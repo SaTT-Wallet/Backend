@@ -1,7 +1,8 @@
 module.exports = async function (app) {
 	delete(global._bitcore);
 	
-	var EthHdkey = require('ethereumjs-wallet/hdkey');
+	var EthHdkey = require('ethereumjs-wallet').hdkey;
+
 	var HDKey = require('hdkey');
 	var bitcore = require('bitcore-lib');
 	
