@@ -1,9 +1,9 @@
 module.exports = async function (app ) {
-	
-	
-	
+
+
+
 	var deployContracts = async function () {
-	
+
 		var campaignAddress = await  app.campaign.deployContract();
 		var oracleAddress = await app.oracleManager.deployContract();
 		var r = await app.campaign.addOracle(oracleAddress);
@@ -14,25 +14,25 @@ module.exports = async function (app ) {
 		console.log("all contracts deployed");
 		//followContracts();
 	}
-	
-	
+
+
 	var followContracts = async function () {
-		
-		app.campaign.followContract();
-		app.oracleManager.followContract();
+
+	//	app.campaign.followContract();
+		//app.oracleManager.followContract();
 		app.token.followContract();
-		app = await require("../manager/eventWatcher")(app);
-		
+		//app = await require("../manager/eventWatcher")(app);
+
 	}
-	
+
 	// premiere execution deployContracts() et ensuite  followContracts()
-	
+
 	if(app.config.deploy) {
 		await deployContracts();
 	}
 	else {
 	  await	followContracts();
 	}
-	
+
 	return app;
 }
