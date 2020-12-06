@@ -31,7 +31,8 @@
 	app = await require("./express/service")(app);
 	//app = await require("./express/campaign")(app);
 	app = await require("./express/campaigncentral")(app);
-	app = await require("./express/stats")(app);
+	app = await require("./express/statscentral")(app);
+//	app = await require("./express/stats")(app);
 	app = await require("./express/wallet")(app);
 	app = await require("./express/main")(app);
 	app = await require("./web3/initcontracts")(app);
