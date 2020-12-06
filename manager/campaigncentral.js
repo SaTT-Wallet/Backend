@@ -12,10 +12,10 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			try {
-				console.log(1)
-				var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials});
 
-					console.log(2)
+			//	var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials});
+
+
 
 				var campaign = {
 					id : receipt.transactionHash,
@@ -29,9 +29,9 @@ module.exports = async function (app) {
 					owner:credentials.address,
 					contract:"central"
 				};
-					console.log(3)
+
 				app.db.campaign().insertOne(campaign);
-					console.log(4)
+
 
 				resolve({id:receipt.transactionHash});
 				} catch (err) {
