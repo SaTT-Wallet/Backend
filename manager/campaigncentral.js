@@ -13,7 +13,7 @@ module.exports = async function (app) {
 
 			try {
 
-			//	var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials});
+				var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials});
 
 
 
