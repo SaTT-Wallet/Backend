@@ -35,7 +35,7 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}
 
-		//	var ret = await app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
+			var ret = await app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
