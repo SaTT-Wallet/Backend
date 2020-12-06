@@ -1,26 +1,26 @@
 module.exports = async function (app) {
-	
+
 	var fs = require("fs");
 	var solc = require("solc");
 	var child = require('child_process');
 	var BN = app.web3.utils.BN;
 	var campaignCentralManager = {};
-		
-	
-	
+
+
+
 	campaignCentralManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-			
+
 			try {
-				
+
 				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas = 60000; 	
+				var gas = 60000;
 				var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
 					.once('transactionHash', function(transactionHash){
-						console.log("create campaign central transactionHash",transactionHash) 
+						console.log("create campaign central transactionHash",transactionHash)
 					})
-				
-				
+
+
 				var campaign = {
 					id : receipt.transactionHash,
 					startDate : startDate,
@@ -34,24 +34,24 @@ module.exports = async function (app) {
 					contract:"central"
 				};
 				app.db.campaign().insertOne(campaign);
-					
-				
-				resolve({id:receipt.transactionHash});	
+
+
+				resolve({id:receipt.transactionHash});
 				} catch (err) {
 					reject(err)
 				}
-			
+
 		})
 	}
-	
-	
+
+
 	campaignCentralManager.fundCampaign = async function (idCampaign,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas = 60000; 	
-				
-				app.db.campaign().findOne({id : idCampaign},function (cmp,err){
+				var gas = 60000;
+
+				app.db.campaign().findOne({id : idCampaign}, async function (cmp,err){
 					if(cmp) {
 						if(cmp.token != token)
 						{
@@ -59,31 +59,31 @@ module.exports = async function (app) {
 						}
 						else
 						{
-							
+
 							var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
 							.once('transactionHash', function(transactionHash){
-								console.log("refund campaign central transactionHash",transactionHash) 
+								console.log("refund campaign central transactionHash",transactionHash)
 							})
 							var newAmount = cmp.amount + amount;
 							await app.db.campaign().updateOne({id : idCampaign},{$set: {amount: newAmount}});
-							resolve({id:cmp.id});	
+							resolve({id:cmp.id});
 						}
-						
+
 					}
 					else {
 						reject({message:"campaign id not found"})
 					}
-					
+
 				})
-				
+
 			} catch (err) {
 				reject(err)
 			}
 		})
 	}
-	
-	
-	
+
+
+
 	campaignCentralManager.applyCampaign = async function (idCampaign,typeSN,idPost,idUser,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
@@ -97,13 +97,13 @@ module.exports = async function (app) {
 			}
 		})
 	}
-	
-	
-	
+
+
+
 	campaignCentralManager.validateProm = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				app.db.apply().findOne({id : idProm},function (prom,err){
+				app.db.apply().findOne({id : idProm},async function (prom,err){
 					if(prom)
 					{
 						var cmp = await app.db.campaign().findOne({id : prom.idCampaign});
@@ -119,20 +119,20 @@ module.exports = async function (app) {
 						reject({message:"link id not found"})
 					}
 				});
-				
+
 			}
 			catch (err)
 			{
 				reject(err);
 			}
-		})	
+		})
 	}
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	campaignCentralManager.getGains = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
@@ -141,36 +141,36 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
-				app.db.apply().findOne({id : idProm},function (prom,err){
-					
+				app.db.apply().findOne({id : idProm},async function (prom,err){
+
 					var gas = 60000;
 					var gasPrice = await app.web3.eth.getGasPrice();
-					
+
 					var cmp = await app.db.campaign().findOne({id : prom.idCampaign})
-					
+
 					var stats = false;
 					switch(prom.typeSN) {
 						case "1" :
 							stats = await app.oracle.facebook(idUser,idPost);
-							
+
 						break;
 						case "2" :
 							stats = await app.oracle.youtube(idPost);
-							
+
 						break;
 						case "3" :
 							stats = await app.oracle.instagram(idPost)
-							
+
 						break;
 						case "4" :
 							stats = await app.oracle.twitter(idUser,idPost)
-							
+
 						break;
-						default : 
+						default :
 							stats = {likes:0,shares:0,views:0,date:Date.now()};
 						break;
 					}
-					
+
 					if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
@@ -185,20 +185,20 @@ module.exports = async function (app) {
 						}
 						newAmount = cmp.amount - topay;
 						var paidGains = prom.paidGains + topay;
-						
+
 						await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount}});
 						await app.db.apply().updateOne({id : idProm},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains,paidGains:paidGains}});
-						
+
 						app.web3.eth.accounts.wallet.decrypt([app.config.CampaignFundsAccountKeystore], app.config.CampaignFundsAccountPass);
 						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay).send({from:app.config.CampaignFundsAccount,gas:gas,gasPrice: gasPrice})
 							.once('transactionHash', function(transactionHash){
-								console.log("refund campaign central transactionHash",transactionHash) 
+								console.log("refund campaign central transactionHash",transactionHash)
 							})
 						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay})
 					}
-					
+
 				})
-				
+
 			}
 			catch (err)
 			{
@@ -207,42 +207,42 @@ module.exports = async function (app) {
 		})
 	}
 
-	
+
 	campaignCentralManager.getRemainingFunds = async function (idCampaign,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas = 60000; 	
-				
-				app.db.campaign().findOne({id : idCampaign},function (cmp,err){
+				var gas = 60000;
+
+				app.db.campaign().findOne({id : idCampaign},async function (cmp,err){
 					if(cmp) {
-						
+
 						var amount = cmp.amount;
 						await app.db.campaign().updateOne({id : idCampaign},{$set: {amount: 0,status : "ended"}});
-						
+
 						app.web3.eth.accounts.wallet.decrypt([app.config.CampaignFundsAccountKeystore], app.config.CampaignFundsAccountPass);
 						var receipt = await app.erc20.transfer(cmp.token,cmp.owner,amount).send({from:app.config.CampaignFundsAccount,gas:gas,gasPrice: gasPrice})
 						.once('transactionHash', function(transactionHash){
-							console.log("refund campaign central transactionHash",transactionHash) 
+							console.log("refund campaign central transactionHash",transactionHash)
 						})
-						
-						resolve({id:cmp.id,to:cmp.owner,amount:amount});	
-						
-						
+
+						resolve({id:cmp.id,to:cmp.owner,amount:amount});
+
+
 					}
 					else {
 						reject({message:"campaign id not found"})
 					}
-					
+
 				})
-				
+
 			} catch (err) {
 				reject(err)
 			}
 		})
 	}
-	
-	
+
+
 	app.campaignCentral = campaignCentralManager;
 	return app;
 }
