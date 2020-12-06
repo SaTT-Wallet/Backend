@@ -57,7 +57,7 @@ module.exports = async function (app) {
 						else
 						{
 
-							var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials});
+							var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials);
 							var newAmount = cmp.amount + amount;
 							await app.db.campaign().updateOne({id : idCampaign},{$set: {amount: newAmount}});
 							resolve({id:cmp.id});
