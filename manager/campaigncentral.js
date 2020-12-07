@@ -13,7 +13,7 @@ module.exports = async function (app) {
 
 			try {
 
-				var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials);
+				var receipt = await app.erc20.transfer(token,app.config.SattReserve,amount,credentials);
 
 
 
@@ -57,7 +57,7 @@ module.exports = async function (app) {
 						else
 						{
 
-							var receipt = await app.erc20.transfer(token,app.config.CampaignFundsAccount,amount,credentials);
+							var receipt = await app.erc20.transfer(token,app.config.SattReserve,amount,credentials);
 							var newAmount = cmp.amount + amount;
 							await app.db.campaign().updateOne({id : idCampaign},{$set: {amount: newAmount}});
 							resolve({id:cmp.id});
@@ -183,8 +183,8 @@ module.exports = async function (app) {
 						await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount}});
 						await app.db.apply().updateOne({id : idProm},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains,paidGains:paidGains}});
 
-						app.web3.eth.accounts.wallet.decrypt([app.config.CampaignFundsAccountKeystore], app.config.CampaignFundsAccountPass);
-						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay,{address:app.config.CampaignFundsAccount})
+						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
+						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay,{address:app.config.SattReserve})
 						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay})
 					}
 
@@ -211,8 +211,8 @@ module.exports = async function (app) {
 						var amount = cmp.amount;
 						await app.db.campaign().updateOne({id : idCampaign},{$set: {amount: 0,status : "ended"}});
 
-						app.web3.eth.accounts.wallet.decrypt([app.config.CampaignFundsAccountKeystore], app.config.CampaignFundsAccountPass);
-						var receipt = await app.erc20.transfer(cmp.token,cmp.owner,amount,{address:app.config.CampaignFundsAccount})
+						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
+						var receipt = await app.erc20.transfer(cmp.token,cmp.owner,amount,{address:app.config.SattReserve})
 
 						resolve({id:cmp.id,to:cmp.owner,amount:amount});
 
