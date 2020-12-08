@@ -97,12 +97,12 @@ module.exports = async function (app) {
 	campaignCentralManager.validateProm = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				app.db.apply().findOne({id : idProm},async function (prom,err){
+				app.db.apply().findOne({_id : idProm},async function (prom,err){
 					if(prom)
 					{
 						var cmp = await app.db.campaign().findOne({id : prom.idCampaign});
 						if(cmp.owner == credentials.address) {
-							app.db.apply().updateOne({id : idProm},{$set: {isAccepted: true}});
+							app.db.apply().updateOne({_id : idProm},{$set: {isAccepted: true}});
 							resolve({idProm:idProm})
 						}
 						else{
@@ -135,7 +135,7 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
-				app.db.apply().findOne({id : idProm},async function (prom,err){
+				app.db.apply().findOne({_id : idProm},async function (prom,err){
 
 					var gas = 60000;
 					var gasPrice = await app.web3.eth.getGasPrice();
