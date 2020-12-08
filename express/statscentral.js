@@ -31,6 +31,8 @@ module.exports = function (app) {
 				newprom.id = newprom._id;
 				var count = await app.db.ban().find({idProm:newprom.id}).count();
 				newprom.pause = count;
+
+				newprom.funds = [result.token,(newprom.totalGains-newprom.paidGains)]
 				proms.push(newprom);
 				if(-1==addresses.indexOf(newprom.influencer))
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
@@ -101,6 +103,7 @@ module.exports = function (app) {
 			for (var j =0;j<proms.length;j++)
 			{
 				var prom = proms[j];
+				prom.funds = [campaigns[i].token,(prom.totalGains-prom.paidGains)]
 				if(prom.influencer.toLowerCase() == address.toLowerCase())
 					campaigns[i].proms.push(prom);
 			}
