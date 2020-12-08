@@ -19,7 +19,7 @@ module.exports = function (app) {
 		var proms = [];
 		var newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
 
-		if(idproms.length || newproms.length) {
+		if(newproms.length) {
 			var addresses = [];
 			var ids = [];
 			var idByAddress = [];
