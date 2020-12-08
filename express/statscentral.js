@@ -13,7 +13,7 @@ module.exports = function (app) {
 			{typeSN:"4",likeRatio:ratios[9],shareRatio:ratios[10],viewRatio:ratios[11]}
 		];
 		result.ratios = res;
-
+		result.advertiser = result.owner;
 		result.funds =  [result.token,result.amount]
 
 		var proms = [];
