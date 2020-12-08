@@ -97,12 +97,12 @@ module.exports = async function (app) {
 	campaignCentralManager.validateProm = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				app.db.apply().findOne({_id : idProm},async function (prom,err){
+				app.db.apply().findOne({_id : app.ObjectId(idProm)},async function (prom,err){
 					if(prom)
 					{
 						var cmp = await app.db.campaign().findOne({id : prom.idCampaign});
 						if(cmp.owner == credentials.address) {
-							app.db.apply().updateOne({_id : idProm},{$set: {isAccepted: true}});
+							app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {isAccepted: true}});
 							resolve({idProm:idProm})
 						}
 						else{
@@ -135,7 +135,7 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
-				app.db.apply().findOne({_id : idProm},async function (prom,err){
+				app.db.apply().findOne({_id :  app.ObjectId(idProm)},async function (prom,err){
 
 					var gas = 60000;
 					var gasPrice = await app.web3.eth.getGasPrice();
@@ -181,7 +181,7 @@ module.exports = async function (app) {
 						var paidGains = prom.paidGains + topay;
 
 						await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount}});
-						await app.db.apply().updateOne({id : idProm},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains,paidGains:paidGains}});
+						await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains,paidGains:paidGains}});
 
 						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
 						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay,{address:app.config.SattReserve})
