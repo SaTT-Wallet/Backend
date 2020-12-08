@@ -48,7 +48,7 @@ module.exports = async function (app) {
 				var gasPrice = await app.web3.eth.getGasPrice();
 				var gas = 60000;
 
-				app.db.campaign().findOne({id : idCampaign}, async function (cmp,err){
+				app.db.campaign().findOne({id : idCampaign}, async function (err,cmp){
 					if(cmp) {
 						if(cmp.token != token)
 						{
@@ -97,7 +97,7 @@ module.exports = async function (app) {
 	campaignCentralManager.validateProm = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				app.db.apply().findOne({_id : app.ObjectId(idProm)},async function (prom,err){
+				app.db.apply().findOne({_id : app.ObjectId(idProm)},async function (err,prom){
 					console.log(prom,err);
 					if(prom)
 					{
@@ -136,7 +136,7 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
-				app.db.apply().findOne({_id :  app.ObjectId(idProm)},async function (prom,err){
+				app.db.apply().findOne({_id :  app.ObjectId(idProm)},async function (err,prom){
 
 					var gas = 60000;
 					var gasPrice = await app.web3.eth.getGasPrice();
@@ -206,7 +206,7 @@ module.exports = async function (app) {
 				var gasPrice = await app.web3.eth.getGasPrice();
 				var gas = 60000;
 
-				app.db.campaign().findOne({id : idCampaign},async function (cmp,err){
+				app.db.campaign().findOne({id : idCampaign},async function (err,cmp){
 					if(cmp) {
 
 						var amount = cmp.amount;
