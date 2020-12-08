@@ -13,7 +13,7 @@ module.exports = async function (app) {
 			var gasPrice = await app.web3.eth.getGasPrice();
 			var gas = await contract.methods.approve(spender,amount).estimateGas({from:addr});
 
-			var receipt = await contract.methods.approve(spender,amount).send({from:addr,gas:gas,gasPrice: gasPrice*2})
+			var receipt = await contract.methods.approve(spender,amount).send({from:addr,gas:gas,gasPrice: gasPrice})
 			.once('transactionHash', function(transactionHash){
 				console.log("approve transactionHash",transactionHash)
 			});
@@ -48,7 +48,7 @@ module.exports = async function (app) {
 			var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
 
 			try {
-				var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice*2})
+				var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
 				.once('transactionHash', function(transactionHash){
 					console.log("transfer  transactionHash",transactionHash)
 				})
