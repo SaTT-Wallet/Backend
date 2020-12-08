@@ -33,7 +33,7 @@ module.exports = async function (app) {
 				app.db.campaign().insertOne(campaign);
 
 
-				resolve({id:receipt.transactionHash});
+				resolve(receipt.transactionHash);
 				} catch (err) {
 					reject(err)
 				}
