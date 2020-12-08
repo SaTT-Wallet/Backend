@@ -175,7 +175,7 @@ module.exports = function (app) {
 	app.get('/prom/:id/results',async  function(req, response) {
 		var idProm = req.params.id;
 		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
-		response.end(JSON.stringify([{likes:prom.likes,share:prom.share,views:prom.views}]));
+		response.end(JSON.stringify([{likes:prom.likes,shares:prom.shares,views:prom.views}]));
 	})
 
 	app.get('/prom/:id/live', async function(req, response) {
