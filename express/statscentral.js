@@ -184,22 +184,22 @@ module.exports = function (app) {
 	app.get('/prom/:id/live', async function(req, response) {
 		var idProm = req.params.id;
 		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
-			results.typeSN = prom.typeSN.toString();
-			switch(results.typeSN) {
+			prom.typeSN = prom.typeSN.toString();
+			switch(prom.typeSN) {
 				case "1" :
-					var res = await app.oracle.facebook(results.idUser,results.idPost);
+					var res = await app.oracle.facebook(prom.idUser,prom.idPost);
 
 				break;
 				case "2" :
-					var res = await app.oracle.youtube(results.idPost);
+					var res = await app.oracle.youtube(prom.idPost);
 
 				break;
 				case "3" :
-					var res = await app.oracle.instagram(results.idPost)
+					var res = await app.oracle.instagram(prom.idPost)
 
 				break;
 				case "4" :
-					var res = await app.oracle.twitter(results.idUser,results.idPost)
+					var res = await app.oracle.twitter(prom.idUser,prom.idPost)
 
 				break;
 				default :
