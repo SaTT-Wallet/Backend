@@ -179,7 +179,7 @@ module.exports = function (app) {
 		var idProm = req.params.id;
 		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 		prom.typeSN = prom.typeSN.toString();
-		switch(prom.typeSN) {
+		/*switch(prom.typeSN) {
 			case "1" :
 				var res = await app.oracle.facebook(prom.idUser,prom.idPost);
 
@@ -199,8 +199,9 @@ module.exports = function (app) {
 			default :
 				var res = {likes:0,shares:0,views:0,date:Date.now()};
 			break;
-		}
-		response.end(JSON.stringify([{likes:res.likes,shares:res.shares,views:res.views}]));
+		}*/
+		//response.end(JSON.stringify([{likes:res.likes,shares:res.shares,views:res.views}]));
+		response.end(JSON.stringify([{likes:prom.likes,shares:prom.shares,views:prom.views}]));
 	})
 
 	app.get('/prom/:id/live', async function(req, response) {
