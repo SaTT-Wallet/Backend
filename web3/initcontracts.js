@@ -18,10 +18,10 @@ module.exports = async function (app ) {
 
 	var followContracts = async function () {
 
-	//	app.campaign.followContract();
-		//app.oracleManager.followContract();
+		app.campaign.followContract();
+		app.oracleManager.followContract();
 		app.token.followContract();
-		//app = await require("../manager/eventWatcher")(app);
+		app = await require("../manager/eventWatcher")(app);
 
 	}
 
