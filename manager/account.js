@@ -1,5 +1,5 @@
 module.exports = async function (app) {
-	
+
 	var child = require('child_process');
 	var bip32 = require("bip32")
 	var bip39 = require('bip39');
@@ -9,15 +9,17 @@ module.exports = async function (app) {
 	var BN = require("bn.js");
 	var speakeasy = require("speakeasy");
 	var QRCode = require('qrcode');
-	
+
 	var rp = require('request-promise');
 
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
-	
+
 	var ctrwSaTT =  new app.web3.eth.Contract(app.config.ctrs.wSaTT.abi,app.config.ctrs.wSaTT.address.mainnet);
-	
+
 	var accountManager = {};
-	
+
+	app.prices = false;
+
 	accountManager.createSeed = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			var escpass = pass.replace(/'/g, "\\'");
@@ -29,37 +31,37 @@ module.exports = async function (app) {
 			const childBtc = rootBtc.derivePath(app.config.pathBtcSegwitCompat);
 			const childBtcBc1 = rootBtcBc1.derivePath(app.config.pathBtcSegwit);
 			const childEth = rootEth.derivePath(app.config.pathEth);
-			
+
 			const address = bitcoinjs.payments.p2sh({
 				  redeem: bitcoinjs.payments.p2wpkh({ pubkey: childBtc.publicKey, network: app.config.networkSegWitCompat }),
 				  network: app.config.networkSegWitCompat
 				}).address
-				
+
 			const  addressbc1  = bitcoinjs.payments.p2wpkh({ pubkey: childBtcBc1.publicKey, network: app.config.networkSegWit }).address
-			
+
 			var addressBuffer = ethUtil.privateToAddress(childEth.privateKey);
 			var checksumAddress = ethUtil.toChecksumAddress(addressBuffer.toString('hex'));
 			var addressEth = ethUtil.addHexPrefix(checksumAddress);
-			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));	
+			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
-			
+
 			child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
-			
-			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");	
-			var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek}; 
+
+			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
+			var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
 			var count = await accountManager.getCount();
-			
-			app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet,mnemo:mnemonic});	
-			resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});	
-			
+
+			app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet,mnemo:mnemonic});
+			resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});
+
 		})
 	}
-	
+
 	accountManager.recover = async function (userId,wordlist,oldpass,pass) {
 		return new Promise( async (resolve, reject) => {
-			
+
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			    account = account[0];
@@ -70,10 +72,10 @@ module.exports = async function (app) {
 				reject({error:"Wrong password"});
 				return;
 			}
-			
+
 			var escpass = pass.replace(/'/g, "\\'");
 			var mnemonic = wordlist.join(" ");
-			
+
 			const seed = await bip39.mnemonicToSeed(mnemonic,pass);
 			const rootBtc = bip32.fromSeed(seed,app.config.networkSegWitCompat);
 			const rootBtcBc1 = bip32.fromSeed(seed,app.config.networkSegWit);
@@ -81,33 +83,33 @@ module.exports = async function (app) {
 			const childBtc = rootBtc.derivePath(app.config.pathBtcSegwitCompat);
 			const childBtcBc1 = rootBtcBc1.derivePath(app.config.pathBtcSegwit);
 			const childEth = rootEth.derivePath(app.config.pathEth);
-			
+
 			const address = bitcoinjs.payments.p2sh({
 				  redeem: bitcoinjs.payments.p2wpkh({ pubkey: childBtc.publicKey, network: app.config.networkSegWitCompat }),
 				  network: app.config.networkSegWitCompat
 				}).address
-				
+
 			const  addressbc1  = bitcoinjs.payments.p2wpkh({ pubkey: childBtcBc1.publicKey, network: app.config.networkSegWit }).address
-			
+
 			var addressBuffer = ethUtil.privateToAddress(childEth.privateKey);
 			var checksumAddress = ethUtil.toChecksumAddress(addressBuffer.toString('hex'));
 			var addressEth = ethUtil.addHexPrefix(checksumAddress);
-			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));	
+			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
-			
+
 			child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
-			
-			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");	
-			var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek}; 
+
+			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
+			var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
 			var count = await accountManager.getCount();
-			
+
 			var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {keystore:account,num:count,btc: btcWallet,mnemo:mnemonic}});
-			
+
 		})
 	}
-	
+
 	accountManager.printSeed = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			try {
@@ -115,7 +117,7 @@ module.exports = async function (app) {
 				account = account[0];
 				app.web3.eth.accounts.wallet.clear();
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
-				
+
 				if(account.mnemo && !account.btc.addressSegWitCompat)
 				{
 					var escpass = pass.replace(/'/g, "\\'");
@@ -128,17 +130,17 @@ module.exports = async function (app) {
 						  redeem: bitcoinjs.payments.p2wpkh({ pubkey: childBtc.publicKey, network: app.config.networkSegWitCompat }),
 						  network: app.config.networkSegWitCompat
 						}).address
-						
+
 					const  addressbc1  = bitcoinjs.payments.p2wpkh({ pubkey: childBtcBc1.publicKey, network: app.config.networkSegWit }).address;
 					var pubBtc = childBtc.publicKey.toString("hex");
 					//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
-					var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");	
+					var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
 					var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
-					
+
 					var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
-					
+
 				}
-				
+
 				if(account.mnemo)
 					resolve(account.mnemo.split(" "));
 				else
@@ -147,11 +149,11 @@ module.exports = async function (app) {
 			catch (e) {
 				reject({error:"Wrong password"});
 			}
-			
+
 		})
 	}
-	
-	
+
+
 	accountManager.recoverBtc = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			try {
@@ -160,7 +162,7 @@ module.exports = async function (app) {
 				app.web3.eth.accounts.wallet.clear();
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 				var address = false;
-				
+
 				if(account.mnemo && !account.btc.addressSegWitCompat)
 				{
 					var escpass = pass.replace(/'/g, "\\'");
@@ -173,17 +175,17 @@ module.exports = async function (app) {
 						  redeem: bitcoinjs.payments.p2wpkh({ pubkey: childBtc.publicKey, network: app.config.networkSegWitCompat }),
 						  network: app.config.networkSegWitCompat
 						}).address
-						
+
 					const  addressbc1  = bitcoinjs.payments.p2wpkh({ pubkey: childBtcBc1.publicKey, network: app.config.networkSegWit }).address;
 					var pubBtc = childBtc.publicKey.toString("hex");
 					//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
-					var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");	
+					var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
 					var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
-					
+
 					var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
-					
+
 				}
-				
+
 				if(address)
 					resolve(address);
 				else
@@ -193,12 +195,12 @@ module.exports = async function (app) {
 				console.log(e)
 				reject({error:"Wrong password"});
 			}
-			
+
 		})
 	}
-	
+
 	accountManager.unlock = async function (userId,pass) {
-		
+
 		return new Promise( async (resolve, reject) => {
 			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			account = account[0];
@@ -207,76 +209,76 @@ module.exports = async function (app) {
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 			}
 			catch (e) {
-				reject({error:"Wrong password"});		
+				reject({error:"Wrong password"});
 			}
 			resolve({address:"0x"+account.keystore.address});
 		});
 	}
-	
+
 	accountManager.getCount = async function() {
 		return new Promise( async (resolve, reject) => {
 			var count = await app.db.wallet().countDocuments();
 			resolve(count+1);
 		});
 	}
-	
+
 	accountManager.genBtcWallet = async function (pass) {
 		var escpass = pass.replace(/'/g, "\\'");
 		var priv = child.execSync(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' ec-new ',app.config.proc_opts).toString().replace("\n","");
 		var wif = child.execSync(app.config.bxCommand+' ec-to-wif '+priv,app.config.proc_opts).toString().replace("\n","");
 		var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+priv,app.config.proc_opts).toString().replace("\n","");
 		var pub = child.execSync(app.config.bxCommand+' ec-to-public '+priv,app.config.proc_opts).toString().replace("\n","");
-		
+
 		const keyPair = bitcoinjs.ECPair.fromWIF(wif);
-		
+
 		const  address1 = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey }).address;
 		const addressbc1 = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey }).address
 		const address3 = bitcoinjs.payments.p2sh({
 			  redeem: bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
 			}).address;
-			
+
 		child.execSync(app.config.btcCmd+" importpubkey "+pub+" 'default' false");
 		//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
-		
-		return {publicKey:pub,address:address1,addressSegWit:addressbc1,addressSegWitCompat:address3,ek:ek};
-		
-	}
-	
 
-	
+		return {publicKey:pub,address:address1,addressSegWit:addressbc1,addressSegWitCompat:address3,ek:ek};
+
+	}
+
+
+
 	accountManager.hasAccount = async function (userId) {
 		return new Promise( async (resolve, reject) => {
 			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
 			resolve(account && !account.unclaimed)
 		});
 	};
-	
+
 	accountManager.getAccount = async function (userId) {
 		return new Promise( async (resolve, reject) => {
-			
+
 			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			account = account[0];
 			var address = "0x"+account.keystore.address;
-					
+
 			var ether_balance = await app.web3.eth.getBalance(address);
-			
+
 			var satt_balance = await app.token.contract.methods.balanceOf(address).call();
 			var res = {address:"0x"+account.keystore.address,ether_balance:ether_balance,satt_balance:satt_balance?satt_balance.toString():0,version:(account.mnemo?2:1)}
 			if(account.btc && account.btc.addressSegWitCompat) {
-				
+
 				res.btc = account.btc.addressSegWitCompat;
-				
+
 				res.btc_balance = 0;
-				
+
 				/*try {
 					var balance = await rp({uri:app.config.btcElectrumUrl+"balance/"+account.btc.addressSegWitCompat,json: true});
-					res.btc_balance = Math.floor(parseFloat(balance)*100000000); 
+					res.btc_balance = Math.floor(parseFloat(balance)*100000000);
 				}*/
-				
-				
+
+
 				try {
 					var utxo = JSON.parse(child.execSync(app.config.btcCmd+" listunspent 1 1000000 '[\""+account.btc.addressSegWitCompat+"\"]'"));
-					
+
 					if(!utxo.length)
 						res.btc_balance = "0";
 					else {
@@ -284,31 +286,31 @@ module.exports = async function (app) {
 							r.amount += parseFloat(cur.amount);
 							return r;
 						})
-						res.btc_balance =  Math.floor(red.amount*100000000); 
+						res.btc_balance =  Math.floor(red.amount*100000000);
 					}
 				}
 				/*
 				try {
 					var balance = await rp({uri:app.config.blockCypher+account.btc.addressSegWitCompat+"/balance",json: true});
-					res.btc_balance = parseInt(balance.balance); 
+					res.btc_balance = parseInt(balance.balance);
 				}*/
 				catch(e)
 				{
 					console.log(e);
 					res.btc_balance = 0;
 				}
-				
-				
-				
-				
-				
-				
-				
+
+
+
+
+
+
+
 			}
 			resolve(res);
-		});	
+		});
 	};
-	
+
 	accountManager.createAccount = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			if(!pass)
@@ -318,7 +320,7 @@ module.exports = async function (app) {
 			else{
 				defaultpass = pass;
 			}
-			
+
 			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
 			if(account && account.unclaimed) {
 				var oldpass = await app.db.passwallet().findOne({UserId: parseInt(userId)});
@@ -333,7 +335,7 @@ module.exports = async function (app) {
 					var new_ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+priv,app.config.proc_opts).toString().replace("\n","");
 					update.btc = {ek:new_ek};
 				}
-					
+
 				var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: update});
 				resolve({result:"OK"});
 			}
@@ -341,43 +343,43 @@ module.exports = async function (app) {
 				account = app.web3.eth.accounts.create().encrypt(defaultpass);
 				var btcWallet = accountManager.genBtcWallet(defaultpass);
 				var count = await accountManager.getCount();
-				app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet});	
+				app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet});
 				resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});
 			}
 		});
-		
+
 	};
-	
+
 	accountManager.createBtcAccount = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
-		
-			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});	
+
+			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
 			if(account && account.mnemo)
 			{
 				reject({error:"Wrong wallet type"});
 				return;
 			}
-			
+
 			try {
-				
+
 				app.web3.eth.accounts.decrypt(account.keystore,pass);
 				var btcWallet = accountManager.genBtcWallet(pass);
 				var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
-				resolve({result:"OK"});	
+				resolve({result:"OK"});
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
-				
+
 			}
-			
-			
+
+
 		});
 	};
-	
+
 	accountManager.changePass = async function (userId,oldPass,newPass) {
 		return new Promise( async (resolve, reject) => {
 			try {
-				var account = await app.db.wallet().findOne({UserId: parseInt(userId)});	
+				var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
 				var newAccount = app.web3.eth.accounts.decrypt(account.keystore,oldPass).encrypt(newPass);
 			}
 			catch (e) {
@@ -400,15 +402,15 @@ module.exports = async function (app) {
 				var new_ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+priv,app.config.proc_opts).toString().replace("\n","");
 				update["btc.ek"] = new_ek;
 			}
-			
+
 			var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: update});
 			resolve({changed:true});
 		});
 	};
-	
+
 	accountManager.exportkey = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
-				
+
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 				account = account[0];
@@ -419,13 +421,13 @@ module.exports = async function (app) {
 				reject({error:"Wrong password"});
 			}
 			resolve(account.keystore);
-			
+
 		})
 	};
-	
+
 	accountManager.exportkeyBtc = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
-				
+
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 				account = account[0];
@@ -436,10 +438,10 @@ module.exports = async function (app) {
 				reject({error:"Wrong password"});
 			}
 			resolve(account.btc.ek);
-			
+
 		})
 	};
-	
+
 	accountManager.getAddrByUid = async function (userId) {
 		return new Promise( async (resolve, reject) => {
 			var count = await app.db.wallet().count({UserId: parseInt(userId)});
@@ -450,17 +452,17 @@ module.exports = async function (app) {
 			else {
 				var pass = app.web3.utils.randomHex(6);
 				var account = app.web3.eth.accounts.create().encrypt(pass);
-				
+
 				var count = await accountManager.getCount();
 				var btcWallet = accountManager.genBtcWallet(pass);
-					
+
 				app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,unclaimed:true,btc:btcWallet});
 				app.db.passwallet().insertOne({UserId:parseInt(userId),value:pass});
 				resolve("0x"+account.address);
 			}
 		});
 	};
-	
+
 	accountManager.getTxs = async function (myaccount,txtype) {
 		return new Promise( async (resolve, reject) => {
 			/*
@@ -498,34 +500,34 @@ module.exports = async function (app) {
 						txtype : "SATT",
 						amount : app.web3.utils.hexToNumberString(receipt.logs[0].data)
 					}
-					
+
 					txs.push(satttx);
-					
+
 				}
 			}
 			resolve(txs);
 		});
 	}
-	  
+
 	accountManager.getTxsFullSatt = async function (myaccount) {
 		return new Promise( async (resolve, reject) => {
 		    var docs = await app.db.txs().find({from:myaccount}).sort({"date":1}).toArray();
 			resolve(docs);
 		 });
 	}
-	 
+
 	accountManager.getSubscription = async function (myaccount) {
 		return new Promise( async (resolve, reject) => {
 			var docs = await  app.db.txs().find({from:myaccount,to:app.config.atayenSubscriptionAddress}).sort({"date":1}).toArray();
 			resolve(docs);
 		});
 	}
-	
+
 	accountManager.getBonus = async function (myaccount) {
 		return new Promise( async (resolve, reject) => {
-			
+
 			try {
-			
+
 				var txs = await  app.db.satt_tx().find({idWallet:myaccount}).toArray();
 				var amt = new BN(0);
 				for (var i =0;i<txs.length;i++)
@@ -545,7 +547,7 @@ module.exports = async function (app) {
 				//var gas = await  ctrBonus.methods.getGap(myaccount,amount,v,r,s).estimateGas({from:myaccount,gasPrice: gasPrice});
 				var gas = 100000;
 				var receipt = await ctrBonus.methods.getGap(myaccount,amount,v,r,s).send({from:myaccount,gas:gas,gasPrice:gasPrice});
-				
+
 				resolve(receipt.hash);
 			}
 			catch (e) {
@@ -554,9 +556,9 @@ module.exports = async function (app) {
 			//resolve("");
 		});
 	}
-	
+
 	accountManager.wrapSatt = async function (amount,cred) {
-		
+
 		return new Promise( async (resolve, reject) => {
 			try {
 				var addr = app.config.ctrs.wSaTT.address.mainnet;
@@ -569,9 +571,9 @@ module.exports = async function (app) {
 				reject({message:e.message});
 			}
 		})
-		
+
 	}
-	
+
 	accountManager.unWwrapSatt = async function (amount,cred) {
 		return new Promise( async (resolve, reject) => {
 			try {
@@ -583,52 +585,52 @@ module.exports = async function (app) {
 			catch (e) {
 				reject({message:e.message});
 			}
-		})		
+		})
 	}
-	
-	
-	
+
+
+
 	accountManager.create2FA = async function (userId) {
 		return new Promise( async (resolve, reject) => {
 			try {
 				var res = await app.db.wallet().find({UserId: parseInt(userId)}).toArray();
 				if(res[0].G2FA)
 				{
-					reject({message:"2FA already set"});	
+					reject({message:"2FA already set"});
 				}
 				var secret = speakeasy.generateSecret({length: 20,name:"satt.atayen.us"});
 				await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {G2FA:secret.base32}});
-				
+
 				QRCode.toDataURL(secret.otpauth_url, function(err, data_url) {
 					resolve(data_url);
-				});		
+				});
 			}
 			catch (e) {
 				reject({message:e.message});
 			}
 		})
 	}
-	
+
 	accountManager.verify2FA = async function (userId,code) {
 		return new Promise( async (resolve, reject) => {
 			try {
 				var res = await app.db.wallet().find({UserId: parseInt(userId)}).toArray();
 				if(!res[0].G2FA)
 				{
-					reject({message:"2FA not set"});	
+					reject({message:"2FA not set"});
 				}
 				var verified = speakeasy.totp.verify({ secret: res.G2FA,encoding: 'base32',token: code });
 				resolve(verified);
-				
-				
+
+
 			}
 			catch (e) {
 				reject({message:e.message});
 			}
 		})
 	}
-	
-	
+
+
 	app.account = accountManager;
 	return app;
 }
