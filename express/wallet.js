@@ -1,50 +1,50 @@
 module.exports = function (app) {
-	
+
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
 	delete(global._bitcore);
 	var Message = require('bitcore-message');
-	
+
 	var rp = require('request-promise');
-	
-	
+
+
 	app.get('/v2/auth/:token', async function(req, response) {
-		
+
 		var pass = req.params.pass;
-		
+
 		try {
-			
+
 			var res = await app.crm.auth2( req.params.token);
-			
-			
-			
+
+
+
 			response.end(JSON.stringify(res));
-			
-			
+
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
-	
+
+
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
-				
+
 			var token = req.params.token;
 			var addr = req.params.addr;
-			
+
 			var balance = await app.erc20.getBalance(token,addr);
-			
-			response.end(JSON.stringify({token:token,balance:balance}));		
+
+			response.end(JSON.stringify({token:token,balance:balance}));
 	})
-	
+
 	app.get('/v2/mywallet/:token', async function(req, response) {
-		
-		
+
+
 		try {
 			var res = await app.crm.auth( req.params.token);
-			
+
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_account"};
 			if(count)
@@ -52,19 +52,19 @@ module.exports = function (app) {
 				var ret = await app.account.getAccount(res.id)
 			}
 			response.end(JSON.stringify(ret));
-			
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
+
 	app.get('/v2/newallet/:token/:pass', async function(req, response) {
-		
+
 		var pass = req.params.pass;
-		
+
 		try {
-			
+
 			var res = await app.crm.auth( req.params.token);
 			var count = await app.account.hasAccount(res.id);
 			console.log("newwallet",res.id,req.connection.remoteAddress);
@@ -74,22 +74,22 @@ module.exports = function (app) {
 				var ret = await app.account.createAccount(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
-			
-			
+
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
+
 	app.get('/v2/printseed/:token/:pass', async function(req, response) {
-		
+
 		var pass = req.params.pass;
-		
+
 		try {
-			
+
 			var res = await app.crm.auth( req.params.token);
-			
+
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
@@ -97,26 +97,26 @@ module.exports = function (app) {
 				var ret = await app.account.printSeed(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
-			
-			
+
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
-	
-	
-	
+
+
+
+
 	app.post('/v2/newallet2', async function(req, response) {
-		
+
 		var pass = req.body.pass;
-		
+
 		try {
-			
-			
+
+
 			var res = await app.crm.auth( req.body.token);
-			
+
 			var count = await app.account.hasAccount(res.id);
 			console.log("newwallet",res.id,req.connection.remoteAddress);
 			var ret = {err:"account_exists"};
@@ -125,25 +125,25 @@ module.exports = function (app) {
 				var ret = await app.account.createSeed(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
-			
-			
+
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
-	
+
+
 	app.post('/v2/recover', async function(req, response) {
-		
+
 		var pass = req.body.pass;
 		var oldpass = req.body.oldpass;
 		var wordlist = req.body.wordlist;
-		
+
 		try {
-			
+
 			var res = await app.crm.auth( req.body.token);
-			
+
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_account"};
 			if(count)
@@ -151,49 +151,49 @@ module.exports = function (app) {
 				var ret = await app.account.recover(res.id,wordlist,oldpass,pass);
 			}
 			response.end(JSON.stringify(ret));
-			
-			
+
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
+
 	app.get('/v2/newalletbtc/:token/:pass', async function(req, response) {
-		
+
 		var pass = req.params.pass;
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = {err:"no_account"};
-			
+
 			var acc = await app.account.getAccount(res.id)
 			if(acc)
 			{
-				
+
 				if(acc.version == 1) {
-				  ret = await app.account.createBtcAccount(res.id,pass);		
+				  ret = await app.account.createBtcAccount(res.id,pass);
 				}
 				if(acc.version == 2) {
 					ret = await app.account.recoverBtc(res.id,pass);
-				}	
+				}
 			}
 
 			response.end(JSON.stringify(ret));
-			
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
-	
+
 	app.get('/v2/resetpass/:token/:pass/:newpass', async function(req, response) {
-		
+
 		var pass = req.params.pass;
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
-			
+
 			var ret = {err:"no_account"};
 			var count = await app.account.hasAccount(res.id);
 			if(count)
@@ -201,43 +201,43 @@ module.exports = function (app) {
 				var ret = await app.account.changePass(res.id,pass,req.params.newpass);
 			}
 			response.end(JSON.stringify(ret));
-			
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	});
-	
+
 	app.get('/v2/export/:pass/:token',async function(req, response) {
 		var pass = req.params.pass;
 		response.attachment();
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			var cred = await app.account.unlock(res.id,pass);
-		
+
 			var ret = await app.account.exportkey(res.id,pass);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
+
 	app.get('/v2/exportbtc/:pass/:token', async function(req, response) {
 		var pass = req.params.pass;
 		response.attachment();
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			var cred = await app.account.unlock(res.id,pass);
-		
+
 			var ret = await app.account.exportkeyBtc(res.id,pass);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
+
 	app.get('/v2/transfer/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
@@ -249,12 +249,12 @@ module.exports = function (app) {
 			var ret = await app.token.transfer(to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
-			
+
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	})
-	
+
 	app.get('/v2/transferether/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
@@ -269,23 +269,23 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
+
 	app.get('/v2/transferbtc/:token/:pass/:to/:val', async function(req, response) {
-		
+
 		var pass = req.params.pass;
 		try {
 			var res = await app.crm.auth( req.params.token);
 			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
 			response.end(JSON.stringify({hash:hash}));
-			
+
 		} catch (err) {
 			console.log(err.message?err.message:err.error);
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
+
 	app.get('/v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
-		
+
 		var pass = req.params.pass;
 		try {
 			var res = await app.crm.auth( req.params.token);
@@ -298,10 +298,10 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end(err.message?err.message:err.error);
 		}
-		
-		
+
+
 	})
-	
+
 	app.get('/v2/transferetherbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
@@ -316,7 +316,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
+
 	app.get('/v2/receivewalleteth/:token', async function(req, response) {
 
 		try {
@@ -325,34 +325,34 @@ module.exports = function (app) {
 			response.end(JSON.stringify({address:addr}));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}		
+		}
 	})
-	
+
 	app.get('/v2/receivewalletbtc/:token', async function(req, response) {
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			var addr = await app.cryptoManager.getReceiveBtcWallet(res.id);
 			response.end(JSON.stringify({address:addr}));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}		
+		}
 	})
-	
-	
-	
+
+
+
 	app.get('/v2/confirmselleth/:token',async function(req, response) {
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			var res2 = await app.cryptoManager.receiveEthWallet(res.id);
 			response.end(JSON.stringify(res2));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}	
-		
+		}
+
 	})
-	
+
 	app.get('/v2/confirmsellbtc/:token',async function(req, response) {
 		try {
 			var res = await app.crm.auth( req.params.token);
@@ -360,74 +360,74 @@ module.exports = function (app) {
 			response.end(JSON.stringify(res2));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}	
+		}
 	})
-	
+
 	app.get('/v2/ethpaylist', async function(req, response) {
 		var res = await app.cryptoManager.listEthPayers();
 		response.end(JSON.stringify(res));
 	})
-	
+
 	app.get('/v2/btcpaylist', async function(req, response) {
 		var res = await app.cryptoManager.listBtcPayers();
 		response.end(JSON.stringify(res));
 	})
-	
+
 	app.get('/v2/ethreceive/:token/:fbid', async function(req, response) {
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			if(res.id != app.config.appAdminV2)
 			{
 				response.end('{"error":"admin required"}');
 			}
-			
+
 			var ret = await app.cryptoManager.receiveEthWallet(req.params.fbid);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}	
-		
+		}
+
 	})
 	app.get('/v2/btcreceive/:token/:fbid', async function(req, response) {
-		
+
 		try {
 			var res = await app.crm.auth( req.params.token);
 			if(res.id != app.config.appAdminV2)
 			{
 				response.end('{"error":"admin required"}');
 			}
-			
+
 			var ret = await app.cryptoManager.receiveBtcWallet(req.params.fbid);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}	
+		}
 	})
-	
+
 	/*app.get('/clic-to-pay/:msg/:sign', async function(req, response) {
-		
-		
+
+
 		var address = app.config.AddrBtcVrfy;
 		var signature = req.params.sign;
-		
+
 		console.log(req.params.msg,signature);
-		
+
 		var msg = req.params.msg;
 		var verified = Message(msg).verify(address, signature);
-		
-		
-		
+
+
+
 		if(verified)
 		{
 			response.end(JSON.stringify({verified:verified}));
 			msg = JSON.parse(msg);
 			var pay_id  = msg.pay_id;
-			
-			var bn18 =  new BN("1000000000000000000");					
+
+			var bn18 =  new BN("1000000000000000000");
 			var bnvalue = new BN(Math.floor(msg.amount/0.0042*app.config.icoFactor));
 			var amount = bnvalue.mul(bn18);
-			
+
 			var account = await app.db.wallet().findOne({'UserId':msg.id });
 			var to = "0x"+account.keystore.address;
 			///////////////
@@ -436,7 +436,7 @@ module.exports = function (app) {
 			//	to_id:msg.id
 			//};
 			//await app.cryptoManager.unlockReserve();
-			
+
 			//var res = await app.token.transfer(to,amount.toString(),cred);
 			/////////////////
 			var res = await app.db.sattbuy().insertOne({UserId:msg.id,to:to,amount:amount.toString(),type:"CB",isNew:true});
@@ -448,74 +448,74 @@ module.exports = function (app) {
 		{
 			response.end(JSON.stringify({verified:verified}));
 		}
-		
+
 	});*/
-	
+
 	app.get('/balance/:addr',async function(req, response) {
-			
+
 			var balance = await app.web3.eth.getBalance(req.params.addr);
 			var count = await app.web3.eth.getTransactionCount(req.params.addr);
 			var balance2 = await app.token.contract.methods.balanceOf(req.params.addr).call();
-			response.end(JSON.stringify({eth:balance,count:count,satt:balance2.toString()}));		
+			response.end(JSON.stringify({eth:balance,count:count,satt:balance2.toString()}));
 	})
-	
+
 	app.get('/gasprice', async function(req, response) {
 			var gasPrice = await app.web3.eth.getGasPrice();
 			response.end(JSON.stringify({gasPrice:(gasPrice/1000000000)}));
 	})
-	
+
 	app.get('/supply', async function(req, response) {
-		
+
 		var balance = await app.token.contract.methods.balanceOf(app.config.SattReserve).call();
-		response.end(JSON.stringify({balance:(balance/1000000000000000000),supply:"1150000000"}));	
+		response.end(JSON.stringify({balance:(balance/1000000000000000000),supply:"1150000000"}));
 	})
-	
+
 	app.get('/supply2', async function(req, response) {
-		
+
 		var balance3 = await app.token.contract.methods.balanceOf(app.config.SattStep3).call();
-		
+
 		var balance4 = await app.token.contract.methods.balanceOf(app.config.SattStep4).call();
 		balance3 = balance3 /1000000000000000000;
 		balance4 = balance4 /1000000000000000000;
-		response.end(JSON.stringify({balance: (balance3+balance4),supply:"5650000000"}));	
+		response.end(JSON.stringify({balance: (balance3+balance4),supply:"5650000000"}));
 	})
-	
+
 	app.get('/checkaccount/:addr', async function(req, response) {
 		var res = await app.account.getSubscription(req.params.addr);
 		response.end(JSON.stringify(res));
 	})
-	
+
 	app.get('/v2/txs/:account', async function(req, response) {
-		
+
 		var res = await app.account.getTxsFullSatt(req.params.addr);
-		response.end(JSON.stringify(res));	
+		response.end(JSON.stringify(res));
 	})
-	
+
 	app.get('/txs/:account/:txtype', async function(req, response) {
-		
+
 		var res = await app.account.getTxs(req.params.account,req.params.txtype);
-		response.end(JSON.stringify(res));	
+		response.end(JSON.stringify(res));
 	})
-	
+
 	app.get('/supply/total', async function(req, response) {
-		
+
 		var balance = await app.token.contract.methods.balanceOf("0x000000000000000000000000000000000000dead").call();
 		var bn18 =  new BN("1000000000000000000");
 		var max =  new BN("20000000000");
 		var burn = (new BN(balance)).div(bn18);
 		console.log((max.sub(burn)).toString());
-		response.end((max.sub(burn)).toString());	
+		response.end((max.sub(burn)).toString());
 	})
-	
-	
+
+
 	app.get('/factor/:id',async function(req, response) {
-		
-		
+
+
 		try {
 			response.set('Content-Type', 'text/html');
-			
+
 			//var pass = req.body.pass;
-			
+
 			//var res = await app.crm.auth( req.body.access_token);
 			//var cred = await app.account.unlock(res.id,pass);
 			var data = await app.account.create2FA(req.params.id);
@@ -524,15 +524,15 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
-	
+
+
 	app.get('/factorvrfy/:id/:code',async function(req, response) {
-		
-		
+
+
 		try {
-			
+
 			//var pass = req.body.pass;
-			
+
 			//var res = await app.crm.auth( req.body.access_token);
 			//var cred = await app.account.unlock(res.id,pass);
 			var data = await app.account.verify2FA(req.params.id,req.body.code);
@@ -541,28 +541,28 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
 
-	
-	
+
+
+
 	app.get('/v2/erc20/:token/approval/:addr/:spender',async function(req, response) {
-			
+
 			var token = req.params.token;
 			var spender = req.params.spender;
 			var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
-			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));		
+			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	})
-	
+
 	app.post('/v2/erc20/transfer',async function(req, response) {
-			
+
 		try {
-			
+
 			var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
 			var res = await app.crm.auth( req.body.access_token);
-			
+
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
@@ -571,11 +571,11 @@ module.exports = function (app) {
 			response.end(err.message?err.message:err.error);
 		}
 	})
-	
+
 	app.post('/v2/erc20/allow',async function(req, response) {
-			
+
 		try {
-			
+
 			var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
@@ -589,10 +589,10 @@ module.exports = function (app) {
 			response.end(err.message?err.message:err.error);
 		}
 	})
-	
+
 	app.post('/v2/bonus',async function(req, response) {
-		
-		
+
+
 		try {
 			var address = req.body.address;
 			var pass = req.body.pass;
@@ -605,11 +605,11 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
-	
+
+
 	app.post('/v2/wrap',async function(req, response) {
-		
-		
+
+
 		try {
 			var pass = req.body.pass;
 			var amount = req.body.amount;
@@ -621,11 +621,11 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
-	
+
+
 	app.post('/v2/unwrap',async function(req, response) {
-		
-		
+
+
 		try {
 			var pass = req.body.pass;
 			var amount = req.body.amount;
@@ -637,10 +637,64 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
-	
-	
-	
+
+
+	app.get("/prices", async (req, res) => {
+
+		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
+
+					}
+					else {
+
+						const requestOptions = {
+						  method: 'GET',
+						  uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+						  qs: {
+							start: 1,
+							limit: 200,
+							convert: 'USD'
+						  },
+						  headers: {
+							'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+						  },
+						  json: true,
+						  gzip: true
+						};
+
+						var p = await rp(requestOptions);
+
+						app.prices = p;
+
+				}
+
+				var response = app.prices.data;
+	      var bwSatt = await rp({uri:req.app.config.bwPrice,json: true});
+        var prices = [];
+        var str = "{";
+        for(var i = 0;i<response.length;i++)
+        {
+                var price = {
+                        price:response[i].quote.USD.price,
+                        percent_change_24h:response[i].quote.USD.percent_change_24h,
+                        market_cap:response[i].quote.USD.market_cap,
+                        volume_24h:response[i].quote.USD.volume_24h,
+                        circulating_supply:response[i].circulating_supply,
+                        total_supply:response[i].total_supply,
+                        max_supply:response[i].max_supply
+                }
+                prices[""+response[i].symbol] = price;
+                str += '"'+response[i].symbol+'":'+JSON.stringify(price)+",";
+        }
+				str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
+				str+='"JET":{"price":0.002134,"percent_change_24h":0}';
+        prices["SATT"] = {price:bwSatt.datas[1]};
+				str+="}"
+
+                res.end(str);
+})
+
+
+
 	return app;
 
 }
