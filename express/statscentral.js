@@ -4,7 +4,14 @@ module.exports = function (app) {
 		var idCampaign = req.params.id;
 
 		var result = await app.db.campaign().findOne({id : idCampaign});
+		if(!result)
+		{
+			response.end("[]");
+			return;
+		}
 		var ratios = result.ratios;
+
+
 
 		var res = [
 			{typeSN:"1",likeRatio:ratios[0],shareRatio:ratios[1],viewRatio:ratios[2]},
