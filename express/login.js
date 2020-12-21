@@ -42,7 +42,7 @@ module.exports = function (app) {
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
 		var users = await app.db.sn_user().find({ email: username }).toArray();
-		console.log(users)
+		console.log(req)
 		if(users.length)
 		{
 			var user = users[0];
@@ -302,7 +302,7 @@ module.exports = function (app) {
 
 
 	app.post('/auth/email',passport.authenticate('local'), async function(req, response) {
-
+		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		if(req.user.noredeirect)
 		{
