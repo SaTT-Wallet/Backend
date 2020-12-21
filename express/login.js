@@ -54,7 +54,7 @@ module.exports = function (app) {
 			if(res[0].password == synfonyHash(password))
 			{
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return done(null,{id:res[0].id,token:token,expires_in:date,noredeirect:req.body.noredeirect});
+				return done(null,{id:res[0].id,token:token,expires_in:date,noredirect:req.body.noredirect});
 			}
 			else
 				return done("auth failed",null);
@@ -84,7 +84,7 @@ module.exports = function (app) {
 			  }
 			});
 
-			return done(null,{id:id,token:token,expires_in:date,noredeirect:req.body.noredeirect});
+			return done(null,{id:id,token:token,expires_in:date,noredirect:req.body.noredirect});
 
 		};
 	  }
@@ -304,7 +304,7 @@ module.exports = function (app) {
 	app.post('/auth/email',passport.authenticate('local'), async function(req, response) {
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		if(req.user.noredeirect)
+		if(req.user.noredirect)
 		{
 			response.end(JSON.stringify(params))
 		}
@@ -329,7 +329,7 @@ module.exports = function (app) {
 	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: '/login' }),async function(req, response) {
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		if(req.user.noredeirect)
+		if(req.user.noredirect)
 		{
 			response.end(JSON.stringify(params))
 		}
