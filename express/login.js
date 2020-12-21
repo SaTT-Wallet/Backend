@@ -54,7 +54,7 @@ module.exports = function (app) {
 			if(res[0].password == synfonyHash(password))
 			{
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return done(null,{id:res[0].id,token:token,expires_in:date,noredeirect:req.noredeirect});
+				return done(null,{id:res[0].id,token:token,expires_in:date,noredeirect:req.body.noredeirect});
 			}
 			else
 				return done("auth failed",null);
@@ -84,7 +84,7 @@ module.exports = function (app) {
 			  }
 			});
 
-			return done(null,{id:id,token:token,expires_in:date,noredeirect:req.noredeirect});
+			return done(null,{id:id,token:token,expires_in:date,noredeirect:req.body.noredeirect});
 
 		};
 	  }
