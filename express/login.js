@@ -310,7 +310,7 @@ module.exports = function (app) {
 		}
 		else {
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
-
+	}
 	});
 
 	app.get('/auth/fb',passport.authenticate('facebook'));
