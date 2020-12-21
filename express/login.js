@@ -303,9 +303,12 @@ module.exports = function (app) {
 
 	app.post('/auth/email',passport.authenticate('local'), async function(req, response) {
 
-		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		if()
+		if(req.user.noredeirect)
+		{
+			response.end(JSON.stringify(params))
+		}
+		else {
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 
 	});
