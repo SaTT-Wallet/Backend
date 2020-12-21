@@ -1,23 +1,23 @@
 module.exports = function (app) {
-	
+
 	var nodemailer = require('nodemailer');
-	
+
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
-	
+
 	var bodyParser = require('body-parser');
 	app.use(bodyParser.urlencoded({ extended: false }));
 	app.use( bodyParser.json() )
-	
+
 	const crypto = require('crypto');
 	const hasha = require('hasha');
-	
+
 	var passport = require('passport');
 	var emailStrategy = require('passport-local').Strategy;
 	var FbStrategy = require('passport-facebook').Strategy;
 	var GoogleStrategy = require('passport-google-oauth20').Strategy;
 	var TwitterStrategy = require('passport-twitter').Strategy;
 	var TelegramStrategy = require('passport-telegram').Strategy;
-	
+
 	var synfonyHash = function (pass) {
 		var salted = pass+"{"+app.config.symfonySalt+"}";
 
@@ -29,15 +29,15 @@ module.exports = function (app) {
 		for(var i=1;i<5000;i++)
 		{
 			arr = [buff,saltBuff];
-			buff = hasha(Buffer.concat(arr),{algorithm:"sha512", encoding:"buffer"});	
+			buff = hasha(Buffer.concat(arr),{algorithm:"sha512", encoding:"buffer"});
 		}
 
 		const base64 = buff.toString('base64');
 		return base64;
 	}
-	
-	 passport.use(new emailStrategy(
-		async function(username, password, done) {
+
+	 passport.use(new emailStrategy({passReqToCallback: true},
+		async function(req,username, password, done) {
 		var date = Math.floor(Date.now()/1000)+86400;
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
@@ -54,7 +54,7 @@ module.exports = function (app) {
 			if(res[0].password == synfonyHash(password))
 			{
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return done(null,{id:res[0].id,token:token,expires_in:date});
+				return done(null,{id:res[0].id,token:token,expires_in:date,noredeirect:req.noredeirect});
 			}
 			else
 				return done("auth failed",null);
@@ -69,7 +69,7 @@ module.exports = function (app) {
 			var id = res_ins.insertId;
 			var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
 			var insert = await app.db.sn_user().insertOne({ _id:id,email: username,created :mongodate,updated:mongodate,idSn:0,locale:"en","userSatt": true});
-			
+
 			var mailOptions = {
 			  from: app.config.mailSender,
 			  to: username,
@@ -83,14 +83,14 @@ module.exports = function (app) {
 				console.log('Email sent: ' + info.response);
 			  }
 			});
-			
-			return done(null,{id:id,token:token,expires_in:date});
-   
+
+			return done(null,{id:id,token:token,expires_in:date,noredeirect:req.noredeirect});
+
 		};
 	  }
 	));
-	
-	
+
+
 	passport.use(new FbStrategy({
     clientID: app.config.appId,
     clientSecret: app.config.appSecret,
@@ -98,7 +98,7 @@ module.exports = function (app) {
 	 profileFields: ['id', 'displayName', 'email',"picture.type(large)","token_for_business"]
 	  },
 	  async function(accessToken, refreshToken, profile, cb) {
-		  
+
 		var date = Math.floor(Date.now()/1000)+86400;
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
@@ -112,7 +112,7 @@ module.exports = function (app) {
 				return done("email already used",null);
 			}
 			var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-			return cb(null,{id:user._id,token:token,expires_in:date});	
+			return cb(null,{id:user._id,token:token,expires_in:date});
 		}
 		else {
 			var mongodate = new Date().toISOString();
@@ -120,7 +120,7 @@ module.exports = function (app) {
 			var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:profile.email,email:profile.email,created:mydate,updated:mydate,enabled:1});
 			var id = res_ins.insertId;
 			var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-			var insert = await app.db.sn_user().insertOne({ 
+			var insert = await app.db.sn_user().insertOne({
 				_id:id,
 				scopedId:profile.id,
 				idOnSn:profile.token_for_business,
@@ -134,12 +134,12 @@ module.exports = function (app) {
 				picLink:profile.picture.data.url,
 				userSatt: true
 			});
-			return cb(null,{id:id,token:token,expires_in:date});  
+			return cb(null,{id:id,token:token,expires_in:date});
 		}
 	}));
-	
-	
-	
+
+
+
 
 		passport.use(new GoogleStrategy({
 			clientID:app.config.googleClientId,
@@ -159,7 +159,7 @@ module.exports = function (app) {
 					return done("email already used",null);
 				}
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return cb(null,{id:user._id,token:token,expires_in:date});	
+				return cb(null,{id:user._id,token:token,expires_in:date});
 			}
 			else {
 				var mongodate = new Date().toISOString();
@@ -167,7 +167,7 @@ module.exports = function (app) {
 				var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:profile.email,email:profile.email,created:mydate,updated:mydate,enabled:1});
 				var id = res_ins.insertId;
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-				var insert = await app.db.sn_user().insertOne({ 
+				var insert = await app.db.sn_user().insertOne({
 					_id:id,
 					idOnSn2:profile.id,
 					email: profile.email,
@@ -179,19 +179,19 @@ module.exports = function (app) {
 					locale:profile.locale,
 					userSatt: true
 				});
-			return cb(null,{id:id,token:token,expires_in:date});  
+			return cb(null,{id:id,token:token,expires_in:date});
 		  }
-		})); 
-		
+		}));
+
 		/*
-		
+
 		passport.use(new TwitterStrategy({
 			consumerKey: app.config.twitterClientId,
 			consumerSecret: app.config.twitterClientSecret,
 			callbackURL: app.config.baseUrl+"callback/twitter"
 		  },
 		  async function(token, tokenSecret, profile, cb) {
-			
+
 			 var date = Math.floor(Date.now()/1000)+86400;
 			var buff = Buffer.alloc(32);
 			var token = crypto.randomFillSync(buff).toString('hex');
@@ -204,7 +204,7 @@ module.exports = function (app) {
 					return done("email already used",null);
 				}
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return cb(null,{id:user._id,token:token,expires_in:date});	
+				return cb(null,{id:user._id,token:token,expires_in:date});
 			}
 			else {
 				var mongodate = new Date().toISOString();
@@ -212,7 +212,7 @@ module.exports = function (app) {
 				var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:profile.email,email:profile.email,created:mydate,updated:mydate,enabled:1});
 				var id = res_ins.insertId;
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-				var insert = await app.db.sn_user().insertOne({ 
+				var insert = await app.db.sn_user().insertOne({
 					_id:id,
 					idOnSn2:profile.id,
 					email: profile.email,
@@ -224,14 +224,14 @@ module.exports = function (app) {
 					locale:profile.locale,
 					userSatt: true
 				});
-			return cb(null,{id:id,token:token,expires_in:date});  
+			return cb(null,{id:id,token:token,expires_in:date});
 		  }
-		
+
 		  }
 		));
 		*/
-		
-		
+
+
 		passport.use(
 			new TelegramStrategy({
 				clientID: app.config.telegramClientId,
@@ -239,7 +239,7 @@ module.exports = function (app) {
 				callbackURL: app.config.baseUrl+"callback/telegram"
 			},
 			async function(accessToken, refreshToken, profile, cb) {
-			
+
 			var date = Math.floor(Date.now()/1000)+86400;
 			var buff = Buffer.alloc(32);
 			var token = crypto.randomFillSync(buff).toString('hex');
@@ -252,7 +252,7 @@ module.exports = function (app) {
 					return done("email already used",null);
 				}
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return cb(null,{id:user._id,token:token,expires_in:date});	
+				return cb(null,{id:user._id,token:token,expires_in:date});
 			}
 			else {
 				var mongodate = new Date().toISOString();
@@ -260,7 +260,7 @@ module.exports = function (app) {
 				var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:profile.email,email:profile.username,created:mydate,updated:mydate,enabled:1});
 				var id = res_ins.insertId;
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-				var insert = await app.db.sn_user().insertOne({ 
+				var insert = await app.db.sn_user().insertOne({
 					_id:id,
 					idOnSn3:profile.id,
 					email: profile.email,
@@ -274,13 +274,13 @@ module.exports = function (app) {
 					locale:"en",
 					userSatt: true
 				});
-			return cb(null,{id:id,token:token,expires_in:date});  
+			return cb(null,{id:id,token:token,expires_in:date});
 		  }
-		
+
 		  }
 		 ));
-		 
-  
+
+
 	passport.serializeUser(function(user, cb) {
 	  cb(null, user.id);
 	});
@@ -289,7 +289,7 @@ module.exports = function (app) {
 		var users = await app.db.sn_user().find({ _id: id }).toArray();
 		cb(null, users[0]);
 	});
-	
+
 	try {
 	app.use(passport.initialize());
 	app.use(passport.session());
@@ -298,55 +298,62 @@ module.exports = function (app) {
 			console.log(e)
 		}
 
-	
-	
-	
+
+
+
 	app.post('/auth/email',passport.authenticate('local'), async function(req, response) {
-		
+
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))	
-	
+		if()
+		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+
 	});
-	
+
 	app.get('/auth/fb',passport.authenticate('facebook'));
-	
+
 	app.get('/auth/google',passport.authenticate('google', { scope: ['profile'] }));
-	
+
 	app.get('/auth/twitter',passport.authenticate('twitter'));
-	
+
 	app.get('/auth/telegram', passport.authenticate('telegram'));
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: '/login' }),async function(req, response) {
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))	
+		if(req.user.noredeirect)
+		{
+			response.end(JSON.stringify(params))
+		}
+		else {
+		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+	}
 	});
-	
+
 	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] }), async function(req, response) {
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))	
+		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 	});
-	
+
 	app.get('/callback/twitter',passport.authenticate('twitter'), async function(req, response) {
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))	
+		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 	});
-	
+
 	app.get('/callback/telegram', passport.authenticate('telegram'),async function(req, response) {
 		console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))	
+		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 	});
-	
-	
+
+
 	app.get('/auth/activate/:id/:code', async function(req, response) {
 		var code = req.params.code;
 		var id = req.params.id;
@@ -363,12 +370,12 @@ module.exports = function (app) {
 		}
 		var res_ins = await app.db.insert("UPDATE user SET ? WHERE id="+id+" ",{confirmation_token:"",enabled:1});
 		response.end('{message:"activated"}');
-		
-		
+
+
 	});
-	
+
 	app.get('/auth/passlost', async function(req, response) {
-		
+
 		var mail = req.params.mail;
 		var res = await app.db.query("Select id from user where email='"+mail+"' ");
 		if(!res.length)
@@ -379,7 +386,7 @@ module.exports = function (app) {
 		var buff = Buffer.alloc(64);
 		var token = crypto.randomFillSync(buff).toString('hex');
 		var res_ins = await app.db.insert("UPDATE user SET ? WHERE id="+res[0].id+" ",{confirmation_token:token});
-		
+
 		var mailOptions = {
 			  from: app.config.mailSender,
 			  to: username,
@@ -398,14 +405,14 @@ module.exports = function (app) {
 				console.log('Email sent: ' + info.response);
 			  }
 			});*/
-		
-		
+
+
 		response.end('{message:"mail sent"}');
-		
+
 	});
-	
+
 	app.post('/auth/passchange', async function(req, response) {
-		
+
 		var newpass = req.body.newpass;
 		var oldpass = req.body.oldpass;
 		var id = req.body.id;
@@ -422,13 +429,13 @@ module.exports = function (app) {
 		}
 		var res_ins = await app.db.insert("UPDATE user SET ? WHERE id="+id+"",{password:synfonyHash(newpass)});
 		response.end('{message:"activated"}');
-		
-		
+
+
 	});
-	
+
 	app.post('/auth/passrecover', async function(req, response) {
-		
-		
+
+
 		var newpass = req.body.newpass;
 		var code = req.body.code;
 		var id = req.body.id;
@@ -441,9 +448,9 @@ module.exports = function (app) {
 		var res_ins = await app.db.insert("UPDATE user SET ? WHERE id="+id+" ",{password:synfonyHash(newpass),confirmation_token:"",enabled:1});
 		response.end('{message:"activated"}');
 	});
-	
-	
-		
+
+
+
 	return app;
 
 }
