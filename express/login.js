@@ -306,7 +306,7 @@ module.exports = function (app) {
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		if(req.user.noredirect)
 		{
-			response.end(JSON.stringify(params))
+			response.end(JSON.stringify(param))
 		}
 		else {
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
@@ -331,7 +331,7 @@ module.exports = function (app) {
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		if(req.user.noredirect)
 		{
-			response.end(JSON.stringify(params))
+			response.end(JSON.stringify(param))
 		}
 		else {
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
