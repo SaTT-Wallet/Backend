@@ -81,7 +81,7 @@ module.exports = async function (app) {
 	campaignCentralManager.applyCampaign = async function (idCampaign,typeSN,idPost,idUser,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				var count = await app.db.ban().apply({idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser}).count();
+				var count = await app.db.apply().find({idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser}).count();
 				if(count)
 				{
 					reject({message:"link already exists"});
