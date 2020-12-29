@@ -261,7 +261,7 @@ module.exports = async function (app) {
 			bngasPrice = bngasPrice.add(bnmore);
 
 
-			console.log( "0x"+myWallet.getPrivateKey().toString('hex'))
+			
 
 			if(bnbal.lt(bngas.mul(bngasPrice)))
 			{
