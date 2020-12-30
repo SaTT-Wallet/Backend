@@ -151,7 +151,7 @@ module.exports = async function (app) {
 					var cmp = await app.db.campaign().findOne({id : prom.idCampaign})
 
 					var stats = false;
-					switch(prom.typeSN) {
+					switch(""+prom.typeSN) {
 						case "1" :
 							stats = await app.oracle.facebook(idUser,idPost);
 
