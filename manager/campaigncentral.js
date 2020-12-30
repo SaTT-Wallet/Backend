@@ -178,24 +178,24 @@ module.exports = async function (app) {
 					if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
-						var gains = stats.likes*cmp.ratios[typeSNindex-3];
-						gains += stats.shares*cmp.ratios[typeSNindex-2];
-						gains += stats.views*cmp.ratios[typeSNindex-1];
-						var topay = gains - prom.paidGains;
-						if(cmp.amount < topay)
+						var gains = (new BN( stats.likes)).mul(new BN(cmp.ratios[typeSNindex-3]));
+						gains = gains.add( (new BN( stats.shares)).mul( new BN(cmp.ratios[typeSNindex-2])));
+						gains = gains.add( (new BN( stats.views)).mul( new BN(cmp.ratios[typeSNindex-1])));
+						var topay = gains.sub( new BN( prom.paidGains));
+						if( (new BN(cmp.amount)).lt(topay))
 						{
-							topay = cmp.amount;
+							topay = new BN(cmp.amount)
 							// alerte campagne plus de fonds
 						}
-						newAmount = cmp.amount - topay;
-						var paidGains = prom.paidGains + topay;
+						var newAmount = (new BN(cmp.amount)).sub(topay);
+						var paidGains =(new BN( prom.paidGains)).add(topay);
 
-						await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount}});
-						await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains,paidGains:paidGains}});
+						await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount.toString()}});
+						await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains.toString(),paidGains:paidGains.toString()}});
 
 						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
-						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay,{address:app.config.SattReserve})
-						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay})
+						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay.toString(),{address:app.config.SattReserve})
+						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})
 					}
 
 				})
