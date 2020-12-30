@@ -194,7 +194,7 @@ module.exports = async function (app) {
 						var h = new BN( prom.paidGains);
 						var topay = gains.sub(h);
 
-						/*if( g.lt(topay))
+						if( g.lt(topay))
 						{
 							topay = g;
 							// alerte campagne plus de fonds
@@ -210,7 +210,7 @@ module.exports = async function (app) {
 
 						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
 						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay.toString(),{address:app.config.SattReserve})
-						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})*/
+						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})
 					}
 
 				})
