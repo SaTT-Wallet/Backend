@@ -142,7 +142,7 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
-			
+
 				app.db.apply().findOne({_id :  app.ObjectId(idProm)},async function (err,prom){
 
 					var gas = 60000;
@@ -179,14 +179,18 @@ module.exports = async function (app) {
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
 						var gains = (new BN( stats.likes)).mul(new BN(cmp.ratios[typeSNindex-3]));
+
 						gains = gains.add( (new BN( stats.shares)).mul( new BN(cmp.ratios[typeSNindex-2])));
 						gains = gains.add( (new BN( stats.views)).mul( new BN(cmp.ratios[typeSNindex-1])));
+
 						var topay = gains.sub( new BN( prom.paidGains));
+
 						if( (new BN(cmp.amount)).lt(topay))
 						{
 							topay = new BN(cmp.amount)
 							// alerte campagne plus de fonds
 						}
+						/*
 						var newAmount = (new BN(cmp.amount)).sub(topay);
 						var paidGains =(new BN( prom.paidGains)).add(topay);
 
@@ -195,7 +199,7 @@ module.exports = async function (app) {
 
 						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
 						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay.toString(),{address:app.config.SattReserve})
-						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})
+						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})*/
 					}
 
 				})
