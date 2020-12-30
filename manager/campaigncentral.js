@@ -149,7 +149,7 @@ module.exports = async function (app) {
 					var gasPrice = await app.web3.eth.getGasPrice();
 
 					var cmp = await app.db.campaign().findOne({id : prom.idCampaign})
-						
+
 					var stats = false;
 					switch(prom.typeSN) {
 						case "1" :
@@ -174,7 +174,7 @@ module.exports = async function (app) {
 
 					console.log(stats);
 					console.log(prom);
-					console.log(stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
+					
 					if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
