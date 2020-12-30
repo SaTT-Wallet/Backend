@@ -173,15 +173,14 @@ module.exports = async function (app) {
 						break;
 					}
 
-					console.log(stats);
-					console.log(prom);
+
 
 					if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
-						var gains = stats.likes*prom.ratios[typeSNindex-3];
-						gains += stats.shares*prom.ratios[typeSNindex-2];
-						gains += stats.views*prom.ratios[typeSNindex-1];
+						var gains = stats.likes*cmp.ratios[typeSNindex-3];
+						gains += stats.shares*cmp.ratios[typeSNindex-2];
+						gains += stats.views*cmp.ratios[typeSNindex-1];
 						var topay = gains - prom.paidGains;
 						if(cmp.amount < topay)
 						{
