@@ -171,10 +171,11 @@ module.exports = async function (app) {
 						default :
 							stats = {likes:0,shares:0,views:0,date:Date.now()};
 						break;
+					}
 
 					console.log(stats);
 					console.log(prom);
-					
+
 					if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
