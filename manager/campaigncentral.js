@@ -191,18 +191,20 @@ module.exports = async function (app) {
 						gains.iadd(e.mul(f));
 
 
-						var topay = gains.sub( new BN( prom.paidGains));
 
-						if( (new BN(cmp.amount)).lt(topay))
+            var g = new BN(cmp.amount);
+						var h = new BN( prom.paidGains);
+						var topay = gains.sub(h);
+						if( g.lt(topay))
 						{
-							topay = new BN(cmp.amount)
+							topay = g;
 							// alerte campagne plus de fonds
 						}
-
+						/*
 						var newAmount = (new BN(cmp.amount)).sub(topay);
 						var paidGains =(new BN( prom.paidGains)).add(topay);
 
-						/*
+
 
 						await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount.toString()}});
 						await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains.toString(),paidGains:paidGains.toString()}});
