@@ -195,12 +195,13 @@ module.exports = async function (app) {
             var g = new BN(cmp.amount);
 						var h = new BN( prom.paidGains);
 						var topay = gains.sub(h);
-						if( g.lt(topay))
+						console.log(g,topay);
+						/*if( g.lt(topay))
 						{
 							topay = g;
 							// alerte campagne plus de fonds
 						}
-						/*
+
 						var newAmount = (new BN(cmp.amount)).sub(topay);
 						var paidGains =(new BN( prom.paidGains)).add(topay);
 
