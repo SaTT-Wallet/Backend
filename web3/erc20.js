@@ -48,6 +48,7 @@ module.exports = async function (app) {
 			var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
 
 			try {
+				console.log(to,amount,{from:credentials.address,gas:gas,gasPrice: gasPrice})
 				var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
 				.once('transactionHash', function(transactionHash){
 					console.log("transfer  transactionHash",transactionHash)
