@@ -182,12 +182,17 @@ module.exports = async function (app) {
 						var b = new BN(cmp.ratios[typeSNindex-3]);
 
 						var gains = a.mul(b);
-						/*
-						gains = gains.add( (new BN( stats.shares)).mul( new BN(cmp.ratios[typeSNindex-2])));
-						gains = gains.add( (new BN( stats.views)).mul( new BN(cmp.ratios[typeSNindex-1])));
+						var c = new BN(cmp.ratios[typeSNindex-2]);
+						var d = new BN(stats.shares);
+						gains.iadd(c.mul(d));
+
+						var e = new BN(cmp.ratios[typeSNindex-1]);
+						var f = new BN(stats.views);
+						gains.iadd(e.mul(f));
+
 
 						var topay = gains.sub( new BN( prom.paidGains));
-
+/*
 						if( (new BN(cmp.amount)).lt(topay))
 						{
 							topay = new BN(cmp.amount)
