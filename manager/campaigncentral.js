@@ -142,13 +142,14 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
+				console.log("manager getGains")
 				app.db.apply().findOne({_id :  app.ObjectId(idProm)},async function (err,prom){
-
+						console.log("manager getGains found")
 					var gas = 60000;
 					var gasPrice = await app.web3.eth.getGasPrice();
 
 					var cmp = await app.db.campaign().findOne({id : prom.idCampaign})
-
+						console.log("manager getGains cmp",cmp)
 					var stats = false;
 					switch(prom.typeSN) {
 						case "1" :
@@ -171,7 +172,7 @@ module.exports = async function (app) {
 							stats = {likes:0,shares:0,views:0,date:Date.now()};
 						break;
 					}
-
+					console(stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
