@@ -153,19 +153,19 @@ module.exports = async function (app) {
 					var stats = false;
 					switch(""+prom.typeSN) {
 						case "1" :
-							stats = await app.oracle.facebook(idUser,idPost);
+							stats = await app.oracle.facebook(prom.idUser,idPost);
 
 						break;
 						case "2" :
-							stats = await app.oracle.youtube(idPost);
+							stats = await app.oracle.youtube(prom.idPost);
 
 						break;
 						case "3" :
-							stats = await app.oracle.instagram(idPost)
+							stats = await app.oracle.instagram(prom.idPost)
 
 						break;
 						case "4" :
-							stats = await app.oracle.twitter(idUser,idPost)
+							stats = await app.oracle.twitter(prom.idUser,prom.idPost)
 
 						break;
 						default :
