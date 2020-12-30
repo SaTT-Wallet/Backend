@@ -142,7 +142,7 @@ module.exports = async function (app) {
 					reject({"message":"oracle not available"});
 					return;
 				}
-				console.log("manager getGains")
+			
 				app.db.apply().findOne({_id :  app.ObjectId(idProm)},async function (err,prom){
 
 					var gas = 60000;
