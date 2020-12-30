@@ -190,12 +190,10 @@ module.exports = async function (app) {
 						var f = new BN(stats.views);
 						gains.iadd(e.mul(f));
 
-
-
             var g = new BN(cmp.amount);
 						var h = new BN( prom.paidGains);
 						var topay = gains.sub(h);
-						console.log(g,topay);
+
 						/*if( g.lt(topay))
 						{
 							topay = g;
