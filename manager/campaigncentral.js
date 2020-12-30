@@ -209,6 +209,7 @@ module.exports = async function (app) {
 						await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains.toString(),paidGains:paidGains.toString()}});
 
 						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
+						console.log(cmp.token,prom.influencer,topay.toString(),app.config.SattReserve);
 						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay.toString(),{address:app.config.SattReserve})
 						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})
 					}
