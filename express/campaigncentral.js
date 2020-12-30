@@ -156,8 +156,8 @@ module.exports = function (app) {
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-			var campaign = await app.campaignCentral.contract.methods.campaigns(idCampaign).call();
-			var proms = await app.campaignCentral.contract.methods.getProms(idCampaign).call();
+			var campaign = await app.db.campaign().findOne({id : idCampaign});
+			var proms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
 			var isAdmin = false;
 			var found = false;
 			if(res.id == 1023)
@@ -195,8 +195,8 @@ module.exports = function (app) {
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-			var campaign = await app.campaignCentral.contract.methods.campaigns(idCampaign).call();
-			var proms = await app.campaignCentral.contract.methods.getProms(idCampaign).call();
+			var campaign = await app.db.campaign().findOne({id : idCampaign});
+			var proms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
 			var isAdmin = false;
 			var found = false;
 			if(res.id == 1023)
