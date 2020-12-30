@@ -179,11 +179,10 @@ module.exports = async function (app) {
 					{
 						typeSNindex = parseInt(prom.typeSN)*3;
 						var a = new BN( stats.likes);
-						console.log(a.toString());
 						var b = new BN(cmp.ratios[typeSNindex-3]);
-						console.log(b.toString());
-						/*var gains = (new BN( stats.likes)).mul(new BN(cmp.ratios[typeSNindex-3]));
 
+						var gains = a.mul(b);
+						/*
 						gains = gains.add( (new BN( stats.shares)).mul( new BN(cmp.ratios[typeSNindex-2])));
 						gains = gains.add( (new BN( stats.views)).mul( new BN(cmp.ratios[typeSNindex-1])));
 
