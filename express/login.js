@@ -42,7 +42,7 @@ module.exports = function (app) {
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
 		var users = await app.db.sn_user().find({ email: username }).toArray();
-		console.log(req)
+		console.log(users)
 		if(users.length)
 		{
 			var user = users[0];
