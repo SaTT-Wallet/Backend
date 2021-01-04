@@ -507,6 +507,29 @@ module.exports = function (app) {
 		response.end((max.sub(burn)).toString());
 	})
 
+	app.get('/supply/circulating', async function(req, response) {
+
+		var balanceburn = await app.token.contract.methods.balanceOf("0x000000000000000000000000000000000000dead").call();
+		var balanctraesury = await app.token.contract.methods.balanceOf("0xab8199eba802e7e6634d4389bf23999b7ae6b253").call();
+		var balanceshare = await app.token.contract.methods.balanceOf("0x22d5d08bc8006d27cc47728998b91bc1b164c896").call();
+		var balanceteam = await app.token.contract.methods.balanceOf("0xe70ea3697996f6b6dcaf9f3202d40020433f5541").call();
+		var balancencent = await app.token.contract.methods.balanceOf("0xa32b828b031f383781f8b7c46b3529bfe422a0cd").call();
+		var balancebonus = await app.token.contract.methods.balanceOf("0xf117674e1890b56be87db3b0dc12750023ee69d9").call();
+		var balancebounty = await app.token.contract.methods.balanceOf("0xa6e8db5b6a78f9edfd7c868abe23a23b60ef3092").call();
+		var bn18 =  new BN("1000000000000000000");
+		var max =  new BN("20000000000");
+
+		max.isub((new BN(balanceburn)).div(bn18));
+		max.isub((new BN(balanctraesury)).div(bn18));
+		max.isub((new BN(balanceshare)).div(bn18));
+		max.isub((new BN(balanceteam)).div(bn18));
+		max.isub((new BN(balancencent)).div(bn18));
+		max.isub((new BN(balancebonus)).div(bn18));
+		max.isub((new BN(balancebounty)).div(bn18));
+
+		response.end(max.toString());
+	})
+
 
 	app.get('/factor/:id',async function(req, response) {
 
