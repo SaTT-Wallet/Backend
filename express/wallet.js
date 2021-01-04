@@ -516,6 +516,7 @@ module.exports = function (app) {
 		var balancencent = await app.token.contract.methods.balanceOf("0xa32b828b031f383781f8b7c46b3529bfe422a0cd").call();
 		var balancebonus = await app.token.contract.methods.balanceOf("0xf117674e1890b56be87db3b0dc12750023ee69d9").call();
 		var balancebounty = await app.token.contract.methods.balanceOf("0xa6e8db5b6a78f9edfd7c868abe23a23b60ef3092").call();
+		var balancebounty = await app.token.contract.methods.balanceOf("0x66290b22df130468f08bfffed04252f3b0cf4e40").call();
 		var bn18 =  new BN("1000000000000000000");
 		var max =  new BN("20000000000");
 
