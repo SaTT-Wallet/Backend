@@ -209,7 +209,7 @@ module.exports = async function (app) {
 						await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains.toString(),paidGains:paidGains.toString()}});
 
 						app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
-						console.log(cmp.token,prom.influencer,topay.toString(),app.config.SattReserve);
+						//console.log(cmp.token,prom.influencer,topay.toString(),app.config.SattReserve);
 						var receipt = await app.erc20.transfer(cmp.token,prom.influencer,topay.toString(),{address:app.config.SattReserve})
 						resolve({transactionHash:receipt.transactionHash,idProm:idProm,to:prom.influencer,amount:topay.toString()})
 					}
@@ -252,6 +252,95 @@ module.exports = async function (app) {
 
 			} catch (err) {
 				reject(err)
+			}
+		})
+	}
+
+	campaignCentralManager.getAllGains = async function (credentials) {
+		return new Promise(async (resolve, reject) => {
+			try {
+
+			var proms = await app.db.apply().find({influencer : credentials.address}).toArray();
+			var topays = new BN(0);
+			var erctoken = "";
+			for(var i = 0;i<proms.length;i++) {
+				var prom = proms[i];
+				var count = await app.db.ban().find({idProm:prom._id}).count();
+				if(count) {
+					//reject({"message":"oracle not available"});
+					continue;
+				}
+				var cmp = await app.db.campaign().findOne({id : prom.idCampaign})
+			 erctoken = cmp.token;
+				var stats = false;
+				switch(""+prom.typeSN) {
+					case "1" :
+						stats = await app.oracle.facebook(prom.idUser,idPost);
+
+					break;
+					case "2" :
+						stats = await app.oracle.youtube(prom.idPost);
+
+					break;
+					case "3" :
+						stats = await app.oracle.instagram(prom.idPost)
+
+					break;
+					case "4" :
+						stats = await app.oracle.twitter(prom.idUser,prom.idPost)
+
+					break;
+					default :
+						stats = {likes:0,shares:0,views:0,date:Date.now()};
+					break;
+				}
+
+				if( stats.likes > prom.likes || stats.shares > prom.shares || stats.views > prom.views)
+				{
+					typeSNindex = parseInt(prom.typeSN)*3;
+					var a = new BN( stats.likes);
+					var b = new BN(cmp.ratios[typeSNindex-3]);
+
+					var gains = a.mul(b);
+					var c = new BN(cmp.ratios[typeSNindex-2]);
+					var d = new BN(stats.shares);
+					gains.iadd(c.mul(d));
+
+					var e = new BN(cmp.ratios[typeSNindex-1]);
+					var f = new BN(stats.views);
+					gains.iadd(e.mul(f));
+
+					var g = new BN(cmp.amount);
+					var h = new BN( prom.paidGains);
+					var topay = gains.sub(h);
+
+					if( g.lt(topay))
+					{
+						topay = g;
+						// alerte campagne plus de fonds
+					}
+
+					var newAmount = (new BN(cmp.amount)).sub(topay);
+					var paidGains =(new BN( prom.paidGains)).add(topay);
+
+					await app.db.campaign().updateOne({id : prom.idCampaign},{$set: {amount: newAmount.toString()}});
+					await app.db.apply().updateOne({_id :  app.ObjectId(idProm)},{$set: {likes:stats.likes,shares:stats.shares,views:stats.views,totalGains:gains.toString(),paidGains:paidGains.toString()}});
+					topays.iadd(topay)
+				}
+			}
+
+			var gas = 60000;
+			var gasPrice = await app.web3.eth.getGasPrice();
+
+			app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
+			//console.log(cmp.token,prom.influencer,topay.toString(),app.config.SattReserve);
+			var receipt = await app.erc20.transfer(erctoken,credentials.address,topays.toString(),{address:app.config.SattReserve})
+			resolve({transactionHash:receipt.transactionHash,to:credentials.address,amount:topays.toString()})
+
+			}
+			catch (err)
+			{
+				reject(err);
 			}
 		})
 	}

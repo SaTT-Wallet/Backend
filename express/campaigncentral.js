@@ -132,6 +132,23 @@ module.exports = function (app) {
 		}
 	});
 
+	app.post('/campaign/gains/all', async function(req, response) {
+
+		var pass = req.body.pass;
+
+		try {
+
+			var res = await app.crm.auth( req.body.token);
+			var cred = await app.account.unlock(res.id,pass);
+			var ret = await app.campaignCentral.getAllGains(cred)
+
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	});
+
 	app.post('/campaign/remaining', async function(req, response) {
 
 		var pass = req.body.pass;
