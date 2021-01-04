@@ -9,6 +9,11 @@ module.exports = function (app) {
 			response.end("[]");
 			return;
 		}
+		if(!result.ratios)
+		{
+			response.end("[]");
+			return;
+		}
 		var ratios = result.ratios;
 
 
