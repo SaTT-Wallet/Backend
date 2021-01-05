@@ -181,7 +181,7 @@ module.exports = function (app) {
 			{
 				isAdmin = true;
 			}
-			if(!isAdmin && campaign.advertiser != cred.address)
+			if(!isAdmin && campaign.advertiser.toLowerCase() != cred.address.toLowerCase())
 			{
 				response.end('{error:"Unauthorized"}');
 				return;
