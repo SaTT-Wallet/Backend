@@ -42,7 +42,7 @@ module.exports = function (app) {
 				var newprom = newproms[i];
 				newprom.id = newprom._id;
 
-				var bans = await app.db.ban().find({idProm:newprom.id}).toArray();
+				var bans = await app.db.ban().find({idProm:""+newprom.id}).toArray();
 				newprom.pause = bans.length;
 
 				newprom.funds = [result.token,(newprom.totalGains-newprom.paidGains)]
