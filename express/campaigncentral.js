@@ -188,7 +188,7 @@ module.exports = function (app) {
 			}
 			for(var i=0;i<proms.length;i++)
 			{
-				if(proms[i] == idProm)
+				if(proms[i]._id == idProm)
 					found = true;
 			}
 			if(!found)
