@@ -41,6 +41,7 @@ module.exports = function (app) {
 			{
 				var newprom = newproms[i];
 				newprom.id = newprom._id;
+				console.log(:newprom.id);
 				var count = await app.db.ban().find({idProm:newprom.id}).count();
 				newprom.pause = count;
 
