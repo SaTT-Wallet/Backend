@@ -225,6 +225,38 @@ module.exports = async function (app) {
 	}
 
 
+	campaignCentralManager.withdraw = async function (UserId,credentials) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var gasPrice = await app.web3.eth.getGasPrice();
+				var gas = 100000;
+
+				app.db.wallet().findOne({UserId : UserId},async function (err,wallet){
+					if(wallet) {
+						if(wallet.amount)
+						{
+							var amount = new BN(wallet.amont);
+							app.db.wallet().updateOne({UserId : UserId},{$set: {amount: 0}});
+
+						}
+						else {
+							resolve({"message":"no amount"});
+							return;
+						}
+
+					}
+					else {
+						reject({"message":"wallet not available"});
+						return;
+					}
+				});
+
+			}
+		})
+	}
+
+
+
 	campaignCentralManager.getRemainingFunds = async function (idCampaign,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
