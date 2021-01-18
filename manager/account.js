@@ -347,6 +347,7 @@ module.exports = async function (app) {
 		return new Promise( async (resolve, reject) => {
 
 			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
+				console.log(account)
 			if(account && account.mnemo)
 			{
 				reject({error:"Wrong wallet type"});
@@ -356,16 +357,14 @@ module.exports = async function (app) {
 			try {
 
 				app.web3.eth.accounts.decrypt(account.keystore,pass);
+				console.log("create")
 				var btcWallet = accountManager.genBtcWallet(pass);
 				var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
 				resolve({result:"OK"});
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
-
 			}
-
-
 		});
 	};
 
