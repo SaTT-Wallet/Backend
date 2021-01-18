@@ -235,8 +235,14 @@ module.exports = async function (app) {
 					if(wallet) {
 						if(wallet.amount)
 						{
-							var amount = new BN(wallet.amont);
+							var amount = new BN(wallet.amount);
 							app.db.wallet().updateOne({UserId : UserId},{$set: {amount: 0}});
+							var addr = "0x"+wallet.keystore.address;
+							app.web3.eth.accounts.wallet.decrypt([app.config.sattReserveKs], app.config.SattReservePass);
+							//console.log(cmp.token,prom.influencer,topay.toString(),app.config.SattReserve);
+							var receipt = await app.erc20.transfer(app.config.tokenContract,addr,amount.toString(),{address:app.config.SattReserve})
+							resolve({transactionHash:receipt.transactionHash,to:addr,amount:amount.toString()})
+						}
 
 						}
 						else {
