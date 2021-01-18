@@ -224,11 +224,13 @@ module.exports = async function (app) {
 
 	accountManager.genBtcWallet = async function (pass) {
 		var escpass = pass.replace(/'/g, "\\'");
-		console.log(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' ec-new ');
+
 		var priv = child.execSync(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' ec-new ',app.config.proc_opts).toString().replace("\n","");
 		var wif = child.execSync(app.config.bxCommand+' ec-to-wif '+priv,app.config.proc_opts).toString().replace("\n","");
 		var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+priv,app.config.proc_opts).toString().replace("\n","");
 		var pub = child.execSync(app.config.bxCommand+' ec-to-public '+priv,app.config.proc_opts).toString().replace("\n","");
+
+   console(priv,wif,ek,pub);
 
 		const keyPair = bitcoinjs.ECPair.fromWIF(wif);
 
@@ -237,6 +239,8 @@ module.exports = async function (app) {
 		const address3 = bitcoinjs.payments.p2sh({
 			  redeem: bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
 			}).address;
+
+			console.log(address1,addressbc1,address3);
 
 		child.execSync(app.config.btcCmd+" importpubkey "+pub+" 'default' false");
 		//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
