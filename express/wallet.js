@@ -171,7 +171,7 @@ module.exports = function (app) {
 			var acc = await app.account.getAccount(res.id)
 			if(acc)
 			{
-
+				console.log(acc);
 				if(acc.version == 1) {
 				  ret = await app.account.createBtcAccount(res.id,pass);
 				}
