@@ -243,8 +243,6 @@ module.exports = async function (app) {
 							var receipt = await app.erc20.transfer(app.config.tokenContract,addr,amount.toString(),{address:app.config.SattReserve})
 							resolve({transactionHash:receipt.transactionHash,to:addr,amount:amount.toString()})
 						}
-
-						}
 						else {
 							resolve({"message":"no amount"});
 							return;
