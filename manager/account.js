@@ -224,6 +224,7 @@ module.exports = async function (app) {
 
 	accountManager.genBtcWallet = async function (pass) {
 		var escpass = pass.replace(/'/g, "\\'");
+		console.log(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' ec-new ');
 		var priv = child.execSync(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' ec-new ',app.config.proc_opts).toString().replace("\n","");
 		var wif = child.execSync(app.config.bxCommand+' ec-to-wif '+priv,app.config.proc_opts).toString().replace("\n","");
 		var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+priv,app.config.proc_opts).toString().replace("\n","");
@@ -347,7 +348,7 @@ module.exports = async function (app) {
 		return new Promise( async (resolve, reject) => {
 
 			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
-				console.log(account)
+
 			if(account && account.mnemo)
 			{
 				reject({error:"Wrong wallet type"});
@@ -357,7 +358,7 @@ module.exports = async function (app) {
 			try {
 
 				app.web3.eth.accounts.decrypt(account.keystore,pass);
-				console.log("create")
+
 				var btcWallet = accountManager.genBtcWallet(pass);
 				var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
 				resolve({result:"OK"});
