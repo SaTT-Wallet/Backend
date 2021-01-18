@@ -230,7 +230,7 @@ module.exports = async function (app) {
 		var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+priv,app.config.proc_opts).toString().replace("\n","");
 		var pub = child.execSync(app.config.bxCommand+' ec-to-public '+priv,app.config.proc_opts).toString().replace("\n","");
 
-   console(priv,wif,ek,pub);
+   console.log(priv,wif,ek,pub);
 
 		const keyPair = bitcoinjs.ECPair.fromWIF(wif);
 
