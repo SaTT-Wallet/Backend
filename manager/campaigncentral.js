@@ -256,6 +256,10 @@ module.exports = async function (app) {
 				});
 
 			}
+			catch (err)
+			{
+				reject(err);
+			}
 		})
 	}
 
