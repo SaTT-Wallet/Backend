@@ -299,13 +299,6 @@ module.exports = async function (app) {
 					console.log(e);
 					res.btc_balance = 0;
 				}
-
-
-
-
-
-
-
 			}
 			resolve(res);
 		});
