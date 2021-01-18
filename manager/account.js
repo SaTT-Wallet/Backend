@@ -240,7 +240,7 @@ module.exports = async function (app) {
 			  redeem: bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
 			}).address;
 
-			
+
 		child.execSync(app.config.btcCmd+" importpubkey "+pub+" 'default' false");
 		//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
@@ -363,6 +363,7 @@ module.exports = async function (app) {
 				app.web3.eth.accounts.decrypt(account.keystore,pass);
 
 				var btcWallet = await accountManager.genBtcWallet(pass);
+				console.log(btcWallet);
 				var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
 				resolve({result:"OK"});
 			}
