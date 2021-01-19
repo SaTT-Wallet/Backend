@@ -171,7 +171,7 @@ module.exports = function (app) {
 			var acc = await app.account.getAccount(res.id)
 			if(acc)
 			{
-				console.log(acc);
+
 				if(acc.version == 1) {
 				  ret = await app.account.createBtcAccount(res.id,pass);
 				}
@@ -275,6 +275,7 @@ module.exports = function (app) {
 		var pass = req.params.pass;
 		try {
 			var res = await app.crm.auth( req.params.token);
+			var cred = await app.account.unlock(res.id,pass);
 			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
 			response.end(JSON.stringify({hash:hash}));
 
