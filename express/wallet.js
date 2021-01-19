@@ -725,7 +725,7 @@ app.get('/v2/feebtc', async function(req, response) {
 
 		var res = await rp({uri:app.config.BtcFees,json: true});
 		var feeRate = parseInt(res.fastestFee);
-		response.end(JSON.stringify({fee:fee}));
+		response.end(JSON.stringify({fee:feeRate*138}));
 
 	} catch (err) {
 		console.log(err.message?err.message:err.error);
