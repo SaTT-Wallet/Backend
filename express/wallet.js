@@ -718,7 +718,20 @@ module.exports = function (app) {
                 res.end(str);
 })
 
+app.get('/v2/feebtc', async function(req, response) {
 
+
+	try {
+
+		var res = await rp({uri:app.config.BtcFees,json: true});
+		var feeRate = parseInt(res.fastestFee);
+		response.end(JSON.stringify({fee:fee}));
+
+	} catch (err) {
+		console.log(err.message?err.message:err.error);
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+})
 
 	return app;
 
