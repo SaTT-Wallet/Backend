@@ -363,7 +363,7 @@ module.exports = async function (app) {
 				app.web3.eth.accounts.decrypt(account.keystore,pass);
 
 				var btcWallet = await accountManager.genBtcWallet(pass);
-				
+
 				var result = await app.db.wallet().updateOne({UserId: parseInt(userId)}, {$set: {btc: btcWallet}});
 				resolve({result:"OK"});
 			}
@@ -631,3 +631,5 @@ module.exports = async function (app) {
 	app.account = accountManager;
 	return app;
 }
+
+//push test
