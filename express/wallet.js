@@ -733,6 +733,25 @@ app.get('/v2/feebtc', async function(req, response) {
 	}
 })
 
+app.get('/v2/sum', async function(req, response) {
+
+
+	try {
+		var sum = 0.0;
+  	var payments = await app.db.buy().find({ "status": "paid", "created":{$gte: ISODate("2020-08-27T00:00:00.000Z"), $lt: ISODate("2020-10-01T00:00:00.000Z")}}).toArray();
+		for (var i = 0; i < payments.length; i++) {
+			sum += parseFloat(payments[i].amount)
+		}
+		response.end(JSON.stringify({sum:sum}));
+
+	} catch (err) {
+		console.log(err.message?err.message:err.error);
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+})
+
+
+
 	return app;
 
 }
