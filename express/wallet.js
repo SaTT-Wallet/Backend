@@ -738,7 +738,7 @@ app.get('/v2/sum', async function(req, response) {
 
 	try {
 		var sum = 0.0;
-  	var payments = await app.db.buy().find({ "status": "paid", "created":{$gte: ISODate("2020-08-27T00:00:00.000Z"), $lt: ISODate("2020-10-01T00:00:00.000Z")}}).toArray();
+  	var payments = await app.db.buy().find({ "status": "paid", "created":{$gte: new Date("2020-08-27T00:00:00.000Z"), $lt: new Date("2020-10-01T00:00:00.000Z")}}).toArray();
 		for (var i = 0; i < payments.length; i++) {
 			sum += parseFloat(payments[i].amount)
 		}
