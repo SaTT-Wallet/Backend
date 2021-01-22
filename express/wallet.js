@@ -743,7 +743,7 @@ app.get('/v2/sum', async function(req, response) {
 		for (var i = 0; i < payments.length; i++) {
 			var pay = payments[i];
 			sum += parseFloat(pay.amount)
-			res.push({idUser:pay.idUser,created:pay.created,amount:pay.amount});
+			res.push({idUser:pay.idNode,created:pay.created,amount:pay.amount});
 		}
 		response.end(JSON.stringify(res));
 
