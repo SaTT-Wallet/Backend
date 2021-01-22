@@ -738,11 +738,14 @@ app.get('/v2/sum', async function(req, response) {
 
 	try {
 		var sum = 0.0;
-  	var payments = await app.db.buy().find({ "status": "paid", "created":{$gte: new Date("2020-08-27T00:00:00.000Z"), $lt: new Date("2020-10-01T00:00:00.000Z")}}).toArray();
+		var res = [];
+  	var payments = await app.db.buy().find({ "status": "paid", "created":{$gte: new Date("2020-08-27T00:00:00.000Z"), $lt: new Date("2020-09-01T00:00:00.000Z")}}).toArray();
 		for (var i = 0; i < payments.length; i++) {
-			sum += parseFloat(payments[i].amount)
+			var pay = payments[i];
+			sum += parseFloat(pay.amount)
+			res.push({idUser:pay.idUser,created:pay.created,amount:pay.amount});
 		}
-		response.end(JSON.stringify({sum:sum}));
+		response.end(JSON.stringify(res));
 
 	} catch (err) {
 		console.log(err.message?err.message:err.error);
