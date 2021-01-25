@@ -66,16 +66,16 @@ module.exports = async function (app) {
 	oracleManager.facebook = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
 
-			var res = await rp({uri:"http://geoffreymoya.hopto.org:3014/fb/page/"+pageName+"/"+idPost,json: true})
+			//var res = await rp({uri:"http://geoffreymoya.hopto.org:3014/fb/page/"+pageName+"/"+idPost,json: true})
+   var perf = {shares:0,likes:0,views:0,date:Math.floor(Date.now()/1000)};
 
-
-					var perf = {shares:res.shares,likes:res.likes,views:0,date:Math.floor(Date.now()/1000)};
+					/*var perf = {shares:res.shares,likes:res.likes,views:0,date:Math.floor(Date.now()/1000)};
 					app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 					var h1 = app.web3.utils.sha3(app.web3.eth.abi.encodeParameters(['uint8','string','string','uint64','uint64','uint64','uint64'],[1,idPost,"",perf.shares,perf.likes,perf.views,perf.date]));
 					var sign = await app.web3.eth.sign(h1,app.config.campaignOwner);
 					perf.r = sign.r;
 					perf.s = sign.s;
-					perf.v = sign.v;
+					perf.v = sign.v;*/
 					resolve(perf);
 				//}
 
@@ -110,8 +110,8 @@ module.exports = async function (app) {
 
 	oracleManager.instagram = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-
-			var perf = await rp({uri:"http://geoffreymoya.hopto.org:3014/insta/"+idPost,json: true})
+				var perf = {shares:0,likes:0,views:0};
+		//	var perf = await rp({uri:"http://geoffreymoya.hopto.org:3014/insta/"+idPost,json: true})
 
 			/*var body = await rp({uri:"https://www.instagram.com/p/"+idPost});
 			var part = body.split('<meta property="og:description" content="')[1];
@@ -128,8 +128,8 @@ module.exports = async function (app) {
 			var sign = await app.web3.eth.sign(h1,app.config.campaignOwner);
 			perf.r = sign.r;
 			perf.s = sign.s;
-			perf.v = sign.v;
-			resolve(perf);*/
+			perf.v = sign.v;*/
+			resolve(perf);
 		})
 
 	};
