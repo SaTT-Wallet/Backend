@@ -120,6 +120,10 @@ module.exports = async function (app) {
 								return db2.db(app.config.mongoBaseCrm).collection('buy_satt');
 						};
 
+		app.db.bep20 = function () {
+          return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
+    };
+
 
 
 
