@@ -9,7 +9,7 @@ module.exports = async function (app) {
       app.web3Bep20.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
     }
 
-    bep20Manager.eventETHtoBSC = async (evt) => {
+    bep20Manager.eventETHtoBSC = async (error, evt) => {
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
         var from = evt.returnValues.from;
@@ -34,7 +34,7 @@ module.exports = async function (app) {
 
     }
 
-    bep20Manager.eventBSCtoETH = async (evt) => {
+    bep20Manager.eventBSCtoETH = async (error, evt) => {
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
