@@ -119,7 +119,7 @@ module.exports = async function (app) {
   	}
 
     bep20Manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
-    app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
+    //app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
 
   app.bep20 = bep20Manager;
   return app;
