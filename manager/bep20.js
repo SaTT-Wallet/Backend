@@ -2,6 +2,8 @@ module.exports = async function (app) {
 
   	var bep20Manager = {};
 
+    var nullAddress = "0x0000000000000000000000000000000000000000";
+
     bep20Manager.contract = new app.web3Bep20.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
 
 
@@ -35,9 +37,15 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventBSCtoETH = async (error, evt) => {
+
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
+
+      if(from == nullAddress)
+      {
+        return;
+      }
 
         await bep20Manager.unlockOwner();
 
