@@ -42,6 +42,8 @@ module.exports = async function (app) {
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
 
+      console.log(evt);
+
       if(from == nullAddress)
       {
         return;
