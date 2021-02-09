@@ -16,8 +16,8 @@ module.exports = async function (app) {
 
         await bep20Manager.unlockOwner();
 
-        var mintres = await bep20Manager.mint(amount);
-        var transferres = await bep20Manager.transfer(to,amount);
+        var mintres = await bep20Manager.mint(value);
+        var transferres = await bep20Manager.transfer(to,value);
 
         var log = {
           type:"ETH-BSC",
@@ -41,11 +41,11 @@ module.exports = async function (app) {
 
         await bep20Manager.unlockOwner();
 
-        var burnres = await bep20Manager.burn(amount);
+        var burnres = await bep20Manager.burn(value);
 
         app.web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
 
-        var transferres = await app.token.transfer(to,amount,{from:app.config.SattBep20Addr});
+        var transferres = await app.token.transfer(to,value,{from:app.config.SattBep20Addr});
 
         var log = {
           type:"BSC-ETH",
