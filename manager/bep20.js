@@ -118,9 +118,9 @@ module.exports = async function (app) {
   		});
   	}
 
-    bep20manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20manager.eventBSCtoETH);
-    app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20manager.eventETHtoBSC);
+    bep20Manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
+    app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
 
-  app.bep20 = bep20manager;
+  app.bep20 = bep20Manager;
   return app;
 }
