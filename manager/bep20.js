@@ -60,7 +60,7 @@ module.exports = async function (app) {
         var ins = await app.db.bep20().insertOne(log);
     }
 
-    bep20Manager.mint = async function (amount) {
+    bep20Manager.mint = async  (amount) => {
       return new Promise(async (resolve, reject) => {
         try {
           var gasPrice = await app.web3Bep20.eth.getGasPrice();
@@ -80,7 +80,7 @@ module.exports = async function (app) {
       });
     }
 
-    bep20Manager.burn = async function (amount) {
+    bep20Manager.burn = async  (amount)  => {
       return new Promise(async (resolve, reject) => {
         try {
           var gasPrice = await app.web3Bep20.eth.getGasPrice();
@@ -100,7 +100,7 @@ module.exports = async function (app) {
       });
     }
 
-    bep20Manager.transfer = async function (to,amount) {
+    bep20Manager.transfer = async  (to,amount) => {
   		return new Promise(async (resolve, reject) => {
   			var gasPrice = await app.web3Bep20.eth.getGasPrice();
   			var gas  = 60000;
@@ -118,8 +118,14 @@ module.exports = async function (app) {
   		});
   	}
 
-    bep20Manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
-    //app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
+
+      bep20Manager.initEventHandlers =  () => {
+        bep20Manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
+        app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
+      }
+
+
+
 
   app.bep20 = bep20Manager;
   return app;
