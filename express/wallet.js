@@ -39,6 +39,16 @@ module.exports = function (app) {
 			response.end(JSON.stringify({token:token,balance:balance}));
 	})
 
+	app.get('/v2/bep20/:token/balance/:addr',async function(req, response) {
+
+			var token = req.params.token;
+			var addr = req.params.addr;
+
+			var balance = await app.bep20.getBalance(token,addr);
+
+			response.end(JSON.stringify({token:token,balance:balance}));
+	})
+
 	app.get('/v2/mywallet/:token', async function(req, response) {
 
 
@@ -615,6 +625,54 @@ module.exports = function (app) {
 			response.end(err.message?err.message:err.error);
 		}
 	})
+
+	/////////////////
+	app.get('/v2/bep20/:token/approval/:addr/:spender',async function(req, response) {
+
+			var token = req.params.token;
+			var spender = req.params.spender;
+			//var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
+			var allowance = {amount:"10000000000000000000000000000"};
+			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
+	})
+
+	app.post('/v2/bep20/transfer',async function(req, response) {
+
+		try {
+
+			var token = req.body.token;
+			var to = req.body.to;
+			var amount = req.body.amount;
+			var pass = req.body.pass;
+			var res = await app.crm.auth( req.body.access_token);
+
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
+			var ret = await app.bep20.transfer(token,to,amount,cred);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end(err.message?err.message:err.error);
+		}
+	})
+
+	app.post('/v2/bep20/allow',async function(req, response) {
+
+		try {
+
+			var token = req.body.token;
+			var spender = req.body.spender;
+			var amount = req.body.amount;
+			var pass = req.body.pass;
+			var res = await app.crm.auth( req.body.access_token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
+			var ret = await app.bep20.approve(token,cred.address,spender,amount);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end(err.message?err.message:err.error);
+		}
+	})
+	/////////////////
 
 	app.post('/v2/bonus',async function(req, response) {
 
