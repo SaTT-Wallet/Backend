@@ -42,7 +42,7 @@ module.exports = async function (app) {
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
 
-      console.log(evt);
+
 
       if(from == nullAddress)
       {
@@ -125,6 +125,42 @@ module.exports = async function (app) {
   			catch (err) {
   				reject(err)
   			}
+  		});
+  	}
+
+    bep20Manager.getBalance = async function (token,addr) {
+  		return new Promise(async (resolve, reject) => {
+  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
+  			var amount = await contract.methods.balanceOf(addr).call();
+
+
+  			resolve({amount:amount.toString()});
+  		});
+  	}
+
+    bep20Manager.approve = async function (token,addr,spender,amount) {
+  		return new Promise(async (resolve, reject) => {
+
+  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
+
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
+  			var gas = await contract.methods.approve(spender,amount).estimateGas({from:addr});
+
+  			var receipt = await contract.methods.approve(spender,amount).send({from:addr,gas:gas,gasPrice: gasPrice})
+  			.once('transactionHash', function(transactionHash){
+  				console.log("approve transactionHash",transactionHash)
+  			});
+  			resolve({transactionHash:receipt.transactionHash,address:addr,spender:spender});
+  			console.log(receipt.transactionHash,"confirmed approval from",addr,"to",spender);
+  		});
+  	}
+
+  	bep20Manager.getApproval = async function (token,addr,spender) {
+  		return new Promise(async (resolve, reject) => {
+  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
+  			var amount = await contract.methods.allowance(addr,spender).call();
+  			console.log("approval",addr,"for",spender,amount.toString());
+  			resolve({amount:amount.toString()});
   		});
   	}
 
