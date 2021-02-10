@@ -22,6 +22,7 @@
 		app = await require("./web3/satt")(app);
 		app = await require("./web3/eth")(app);
 		app = await require("./web3/erc20")(app);
+		app = await require("./manager/bep20")(app);
 
 		app.use(function(req, res, next) {
 		  res.header("content-type","application/json");

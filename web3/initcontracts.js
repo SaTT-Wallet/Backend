@@ -21,6 +21,7 @@ module.exports = async function (app ) {
 		//app.campaign.followContract();
 		//app.oracleManager.followContract();
 		app.token.followContract();
+		await app.bep20.initEventHandlers();
 		//app = await require("../manager/eventWatcher")(app);
 
 	}
