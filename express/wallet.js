@@ -792,6 +792,21 @@ app.get('/v2/feebtc', async function(req, response) {
 	}
 })
 
+app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	var pass = req.params.pass;
+	try {
+		var res = await app.crm.auth( req.params.token);
+		var cred = await app.account.unlock(res.id,pass);
+		cred.from_id = res.id;
+		var to = req.params.to;
+		var amount = req.params.val;
+		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+})
+
 /*
 app.get('/v2/sum', async function(req, response) {
 
