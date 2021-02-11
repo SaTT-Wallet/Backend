@@ -128,6 +128,24 @@ module.exports = async function (app) {
   		});
   	}
 
+    bep20Manager.transferNativeBNB = async  (to,amount,credentials) => {
+  		return new Promise(async (resolve, reject) => {
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
+  			var gas  = 21000;
+
+  			try {
+          var receipt = await app.web3Bep20.eth.sendTransaction({from: credentials.address,value:amount, gas: gas,to:to,gasPrice: gasPrice})
+  				.once('transactionHash', function(transactionHash){
+  					console.log("transfer satt bep20 transactionHash",transactionHash)
+  				})
+  				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
+  			}
+  			catch (err) {
+  				reject(err)
+  			}
+  		});
+  	}
+
     bep20Manager.getBalance = async function (token,addr) {
   		return new Promise(async (resolve, reject) => {
   			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
@@ -135,6 +153,15 @@ module.exports = async function (app) {
 
 
   			resolve({amount:amount.toString()});
+  		});
+  	}
+
+    bep20Manager.getBalanceNativeBNB = async function (addr) {
+  		return new Promise(async (resolve, reject) => {
+
+      	var ether_balance = await app.web3Bep20.eth.getBalance(addr);
+
+  			resolve({amount:ether_balance.toString()});
   		});
   	}
 

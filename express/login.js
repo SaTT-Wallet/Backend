@@ -109,7 +109,7 @@ module.exports = function (app) {
 			var user = users[0];
 			if(user.idSn != 1)
 			{
-				return done("email already used",null);
+				return cb("email already used",null);
 			}
 			var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
 			return cb(null,{id:user._id,token:token,expires_in:date});
@@ -249,7 +249,7 @@ module.exports = function (app) {
 				var user = users[0];
 				if(user.idSn != 5)
 				{
-					return done("email already used",null);
+					return cb("email already used",null);
 				}
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
 				return cb(null,{id:user._id,token:token,expires_in:date});
