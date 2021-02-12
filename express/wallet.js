@@ -475,6 +475,11 @@ module.exports = function (app) {
 			response.end(JSON.stringify({gasPrice:(gasPrice/1000000000)}));
 	})
 
+	app.get('/bnb/gasprice', async function(req, response) {
+			var gasPrice = await app.web3Bep20.eth.getGasPrice();
+			response.end(JSON.stringify({gasPrice:(gasPrice/1000000000)}));
+	})
+
 	app.get('/supply', async function(req, response) {
 
 		var balance = await app.token.contract.methods.balanceOf(app.config.SattReserve).call();
