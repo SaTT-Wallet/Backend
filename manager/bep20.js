@@ -191,6 +191,24 @@ module.exports = async function (app) {
   		});
   	}
 
+    bep20Manager.transferBEP = async  (to,amount,credentials) => {
+  		return new Promise(async (resolve, reject) => {
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
+  			var gas  = 60000;
+
+  			try {
+  				var receipt = await bep20Manager.contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
+  				.once('transactionHash', function(transactionHash){
+  					console.log("transfer satt bep20 transactionHash",transactionHash)
+  				})
+  				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
+  			}
+  			catch (err) {
+  				reject(err)
+  			}
+  		});
+  	}
+
 
       bep20Manager.initEventHandlers =  () => {
         bep20Manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
