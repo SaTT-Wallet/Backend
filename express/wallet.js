@@ -646,7 +646,7 @@ module.exports = function (app) {
 			var pass = req.body.pass;
 			var res = await app.crm.auth( req.body.access_token);
 
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.bep20.transfer(token,to,amount,cred);
 			response.end(JSON.stringify(ret));
@@ -664,7 +664,7 @@ module.exports = function (app) {
 			var amount = req.body.amount;
 			var pass = req.body.pass;
 			var res = await app.crm.auth( req.body.access_token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.bep20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));

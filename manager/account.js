@@ -215,6 +215,22 @@ module.exports = async function (app) {
 		});
 	}
 
+	accountManager.unlockBSC = async function (userId,pass) {
+
+		return new Promise( async (resolve, reject) => {
+			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
+			account = account[0];
+			//app.web3.eth.accounts.wallet.clear();
+			try {
+				app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass);
+			}
+			catch (e) {
+				reject({error:"Wrong password"});
+			}
+			resolve({address:"0x"+account.keystore.address});
+		});
+	}
+
 	accountManager.getCount = async function() {
 		return new Promise( async (resolve, reject) => {
 			var count = await app.db.wallet().countDocuments();
