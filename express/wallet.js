@@ -796,7 +796,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 	var pass = req.params.pass;
 	try {
 		var res = await app.crm.auth( req.params.token);
-		var cred = await app.account.unlock(res.id,pass);
+		var cred = await app.account.unlockBSC(res.id,pass);
 		cred.from_id = res.id;
 		var to = req.params.to;
 		var amount = req.params.val;
