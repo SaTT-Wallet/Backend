@@ -604,7 +604,7 @@ module.exports = function (app) {
 			var ret = await app.erc20.transfer(token,to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
-			response.end(err.message?err.message:err.error);
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
@@ -622,7 +622,7 @@ module.exports = function (app) {
 			var ret = await app.erc20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
-			response.end(err.message?err.message:err.error);
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
@@ -648,10 +648,10 @@ module.exports = function (app) {
 
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			var ret = await app.bep20.transfer(token,to,amount,cred);
+			var ret = await app.bep20.transferBEP(to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
-			response.end(err.message?err.message:err.error);
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
@@ -669,7 +669,7 @@ module.exports = function (app) {
 			var ret = await app.bep20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
-			response.end(err.message?err.message:err.error);
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 	/////////////////
