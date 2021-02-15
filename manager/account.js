@@ -65,12 +65,14 @@ module.exports = async function (app) {
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			    account = account[0];
-				app.web3.eth.accounts.wallet.clear();
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], oldpass);
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
 				return;
+			}
+			finally {
+				app.web3.eth.accounts.wallet.remove("0x"+account.keystore.address);
 			}
 
 			var escpass = pass.replace(/'/g, "\\'");
@@ -115,7 +117,7 @@ module.exports = async function (app) {
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 				account = account[0];
-				app.web3.eth.accounts.wallet.clear();
+
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 
 				if(account.mnemo && !account.btc.addressSegWitCompat)
@@ -149,6 +151,9 @@ module.exports = async function (app) {
 			catch (e) {
 				reject({error:"Wrong password"});
 			}
+			finally {
+				app.web3.eth.accounts.wallet.remove("0x"+account.keystore.address);
+			}
 
 		})
 	}
@@ -159,7 +164,7 @@ module.exports = async function (app) {
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 				account = account[0];
-				app.web3.eth.accounts.wallet.clear();
+
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 				var address = false;
 
@@ -195,6 +200,9 @@ module.exports = async function (app) {
 				console.log(e)
 				reject({error:"Wrong password"});
 			}
+			finally {
+				app.web3.eth.accounts.wallet.remove("0x"+account.keystore.address);
+			}
 
 		})
 	}
@@ -215,6 +223,7 @@ module.exports = async function (app) {
 		});
 	}
 
+
 	accountManager.unlockBSC = async function (userId,pass) {
 
 		return new Promise( async (resolve, reject) => {
@@ -229,6 +238,14 @@ module.exports = async function (app) {
 			}
 			resolve({address:"0x"+account.keystore.address});
 		});
+	}
+
+	accountManager.lock =  function (addr) {
+		app.web3.eth.accounts.wallet.remove(addr);
+	}
+
+	accountManager.lockBSC =  function (addr) {
+		app.web3Bep20.eth.accounts.wallet.remove(addr);
 	}
 
 	accountManager.getCount = async function() {
@@ -429,13 +446,17 @@ module.exports = async function (app) {
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 				account = account[0];
-				app.web3.eth.accounts.wallet.clear();
+
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
+				resolve(account.keystore);
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
 			}
-			resolve(account.keystore);
+			finally {
+				app.web3.eth.accounts.wallet.remove("0x"+account.keystore.address);
+			}
+
 
 		})
 	};
@@ -446,13 +467,16 @@ module.exports = async function (app) {
 			try {
 				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 				account = account[0];
-				app.web3.eth.accounts.wallet.clear();
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
+				resolve(account.btc.ek);
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
 			}
-			resolve(account.btc.ek);
+			finally {
+				app.web3.eth.accounts.wallet.remove("0x"+account.keystore.address);
+			}
+
 
 		})
 	};
