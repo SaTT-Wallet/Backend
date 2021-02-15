@@ -4,36 +4,13 @@ module.exports = function (app) {
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
 
-
-
 	var rp = require('request-promise');
-
-
-	app.get('/v2/auth/:token', async function(req, response) {
-
-		var pass = req.params.pass;
-
-		try {
-
-			var res = await app.crm.auth2( req.params.token);
-
-
-
-			response.end(JSON.stringify(res));
-
-
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-
-	});
 
 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
 			var addr = req.params.addr;
-
 			var balance = await app.erc20.getBalance(token,addr);
 
 			response.end(JSON.stringify({token:token,balance:balance}));
