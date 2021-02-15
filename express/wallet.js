@@ -3,8 +3,8 @@ module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
-	delete(global._bitcore);
-	var Message = require('bitcore-message');
+
+
 
 	var rp = require('request-promise');
 
@@ -442,51 +442,7 @@ module.exports = function (app) {
 		}
 	})
 
-	/*app.get('/clic-to-pay/:msg/:sign', async function(req, response) {
 
-
-		var address = app.config.AddrBtcVrfy;
-		var signature = req.params.sign;
-
-		console.log(req.params.msg,signature);
-
-		var msg = req.params.msg;
-		var verified = Message(msg).verify(address, signature);
-
-
-
-		if(verified)
-		{
-			response.end(JSON.stringify({verified:verified}));
-			msg = JSON.parse(msg);
-			var pay_id  = msg.pay_id;
-
-			var bn18 =  new BN("1000000000000000000");
-			var bnvalue = new BN(Math.floor(msg.amount/0.0042*app.config.icoFactor));
-			var amount = bnvalue.mul(bn18);
-
-			var account = await app.db.wallet().findOne({'UserId':msg.id });
-			var to = "0x"+account.keystore.address;
-			///////////////
-			//var cred = {
-			//	address: app.config.SattReserve,
-			//	to_id:msg.id
-			//};
-			//await app.cryptoManager.unlockReserve();
-
-			//var res = await app.token.transfer(to,amount.toString(),cred);
-			/////////////////
-			var res = await app.db.sattbuy().insertOne({UserId:msg.id,to:to,amount:amount.toString(),type:"CB",isNew:true});
-			console.log("cb satt buy filed",msg.id,to,amount.toString());
-			////////////////
-			var body = await rp({method: 'POST',uri:app.config.PaidSatt,body:{pay_id :pay_id ,hash:res.insertedId},json: true});
-		}
-		else
-		{
-			response.end(JSON.stringify({verified:verified}));
-		}
-
-	});*/
 
 	app.get('/balance/:addr',async function(req, response) {
 
