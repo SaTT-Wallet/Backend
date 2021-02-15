@@ -41,6 +41,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 
 	});
 
@@ -62,6 +65,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -89,6 +95,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/validate', async function(req, response) {
@@ -105,6 +114,9 @@ module.exports = function (app) {
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -130,6 +142,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/gains/all', async function(req, response) {
@@ -147,6 +162,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/remaining', async function(req, response) {
@@ -161,6 +179,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -202,6 +223,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/untag', async function(req, response) {
@@ -240,6 +264,9 @@ module.exports = function (app) {
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 

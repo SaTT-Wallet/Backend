@@ -192,8 +192,12 @@ module.exports = function (app) {
 
 			response.end(JSON.stringify(ret));
 
+
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -231,6 +235,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	})
 
 	app.get('/v2/exportbtc/:pass/:token', async function(req, response) {
@@ -245,6 +252,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	})
 
@@ -262,6 +272,10 @@ module.exports = function (app) {
 
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
+
 
 	})
 
@@ -278,6 +292,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	})
 
 	app.get('/v2/transferbtc/:token/:pass/:to/:val', async function(req, response) {
@@ -292,6 +309,9 @@ module.exports = function (app) {
 		} catch (err) {
 			console.log(err.message?err.message:err.error);
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	})
 
@@ -309,6 +329,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end(err.message?err.message:err.error);
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 
 
 	})
@@ -325,6 +348,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	})
 
@@ -611,6 +637,9 @@ module.exports = function (app) {
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	})
 
 	app.post('/v2/erc20/allow',async function(req, response) {
@@ -628,6 +657,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	})
 
@@ -658,6 +690,9 @@ module.exports = function (app) {
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lockBSC(cred.address);
+		}
 	})
 
 	app.post('/v2/bep20/allow',async function(req, response) {
@@ -676,6 +711,9 @@ module.exports = function (app) {
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lockBSC(cred.address);
+		}
 	})
 	/////////////////
 
@@ -693,6 +731,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	})
 
 
@@ -709,6 +750,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	})
 
 
@@ -724,6 +768,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	})
 
@@ -809,6 +856,9 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		response.end(JSON.stringify(ret));
 	} catch (err) {
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		app.account.lockBSC(cred.address);
 	}
 })
 

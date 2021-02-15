@@ -60,6 +60,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 
 	});
 
@@ -84,6 +87,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 
 	});
 
@@ -94,7 +100,7 @@ module.exports = function (app) {
 		var startDate = req.body.startDate;
 		var endDate = req.body.endDate;
 		var idCampaign = req.body.idCampaign;
-		var reward = req.body.rewardType || 1;
+
 
 		try {
 			var res = await app.crm.auth( req.body.token);
@@ -105,6 +111,9 @@ module.exports = function (app) {
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -124,6 +133,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/price/ratio', async function(req, response) {
@@ -142,6 +154,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -198,6 +213,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/validate', async function(req, response) {
@@ -229,6 +247,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/start', async function(req, response) {
@@ -243,6 +264,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 
 	});
@@ -277,6 +301,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -355,6 +382,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/gains2', async function(req, response) {
@@ -421,6 +451,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/remaining', async function(req, response) {
@@ -435,6 +468,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -476,6 +512,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/untag', async function(req, response) {
@@ -515,6 +554,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/token/approve', async function(req, response) {
@@ -531,6 +573,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.get('/token/allowance/:addr/:spender', async function(req, response) {
@@ -541,7 +586,7 @@ module.exports = function (app) {
 		response.end(JSON.stringify(ret));
 	});
 
-	
+
 
 	app.post('/campaign/estimate/create/youtube', async function(req, response) {
 
@@ -564,6 +609,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 
 	});
 
@@ -582,6 +630,9 @@ module.exports = function (app) {
 			response.end('{"gas":'+gas+'}');
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -602,6 +653,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/estimate/validate', async function(req, response) {
@@ -621,6 +675,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/campaign/estimate/gains', async function(req, response) {
@@ -636,6 +693,9 @@ module.exports = function (app) {
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
@@ -653,6 +713,9 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+		finally {
+			app.account.lock(cred.address);
+		}
 	});
 
 	app.post('/token/estimate/approve', async function(req, response) {
@@ -669,6 +732,9 @@ module.exports = function (app) {
 			response.end('{"gas":'+gas+'}');
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
 		}
 	});
 
