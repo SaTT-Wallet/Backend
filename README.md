@@ -94,7 +94,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
+Geoffrey Moya - geoffrey@atayen.us
 
 
 
