@@ -303,11 +303,11 @@ module.exports = async function (app) {
 
 			var satt_balance = await app.token.contract.methods.balanceOf(address).call();
 			var res = {address:"0x"+account.keystore.address,ether_balance:ether_balance,bnb_balance:bnb_balance,satt_balance:satt_balance?satt_balance.toString():0,version:(account.mnemo?2:1)}
+			res.btc_balance = 0;
 			if(account.btc && account.btc.addressSegWitCompat) {
 
 				res.btc = account.btc.addressSegWitCompat;
 
-				res.btc_balance = 0;
 
 				/*try {
 					var balance = await rp({uri:app.config.btcElectrumUrl+"balance/"+account.btc.addressSegWitCompat,json: true});
