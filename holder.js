@@ -9,7 +9,6 @@ try {
 
   app = await require("./web3/provider")(app);
 
-  app = await require("./web3/db")(app);
 
   var n = 0;
 
