@@ -33,4 +33,7 @@ try {
     console.log(n);
   }
 }
+catch(e) {
+  console.log(e)
+}
 })()
