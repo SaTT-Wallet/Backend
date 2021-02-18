@@ -36,7 +36,7 @@ module.exports = async function (app) {
 
 			if(!app.web3.utils.isAddress(to))
 				reject({error:"Invalid address"});
-
+					try {
 			var gasPrice = await app.web3.eth.getGasPrice();
 			var gas = 21000;
 
@@ -57,6 +57,10 @@ module.exports = async function (app) {
 			tx.to_id = credentials.to_id;
 			app.db.txs().insertOne(tx);
 			resolve({result : "OK",hash:receipt.transactionHash})
+		}
+		catch (e) {
+			reject(e);
+		}
 
 		})
 
@@ -261,7 +265,7 @@ module.exports = async function (app) {
 			bngasPrice = bngasPrice.add(bnmore);
 
 
-			
+
 
 			if(bnbal.lt(bngas.mul(bngasPrice)))
 			{
