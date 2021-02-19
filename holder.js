@@ -16,21 +16,25 @@ try {
 
 
   contract.getPastEvents("Transfer",{fromBlock:7398763,toBlock:8000000},async function (error, evt){
-    console.log(error,evt)
-    var from =  evt.returnValues.from;
-    var to =  evt.returnValues.to;
-    var value =  evt.returnValues.value;
+
+  for(var i = 0;i<evt.length;i++)
+  {
+    var from =  evt[i].returnValues.from;
+    var to =  evt[i].returnValues.to;
+    var value =  evt[i].returnValues.value;
 
 		var tx = {
 			from:from,
       to:to,
       value:value,
-      token:evt.address.toLowerCase()
+      token:evt[i].address.toLowerCase()
 		};
-    console.log(tx);
+
     var res = await app.db.indexedtx().insertOne(tx);
-    console.log(res);
-  
+    
+  }
+
+
   });
 
 
