@@ -15,7 +15,7 @@ try {
   var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
 
 
-  contract.getPastEvents("Transfer",{fromBlock:7398763,toBlock:8000000},function (error, evt){
+  contract.getPastEvents("Transfer",{fromBlock:7398763,toBlock:8000000},async function (error, evt){
     if(evt.returnValues) {
     var from =  evt.returnValues.from;
     var to =  evt.returnValues.to;
@@ -27,7 +27,7 @@ try {
       value:value,
       token:evt.address.toLowerCase()
 		};
-    app.db.indexedtx().insertOne(tx);
+    await app.db.indexedtx().insertOne(tx);
   }
   });
 
