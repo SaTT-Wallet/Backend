@@ -27,7 +27,9 @@ try {
       value:value,
       token:evt.address.toLowerCase()
 		};
-    await app.db.indexedtx().insertOne(tx);
+    console.log(tx);
+    var res = await app.db.indexedtx().insertOne(tx);
+    console.log(res);
   }
   });
 
