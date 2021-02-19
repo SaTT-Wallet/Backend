@@ -16,6 +16,9 @@ try {
 
 
   contract.getPastEvents("Transfer",{fromBlock:7398763,toBlock:8000000},function (error, evt){
+    if(error) {
+      console.log(error)
+    }
     var from =  evt.returnValues.from;
     var to =  evt.returnValues.to;
     var value =  evt.returnValues.value;
