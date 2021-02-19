@@ -19,7 +19,7 @@ try {
     console.log(events);
   });
 
-  app.Transfer = async {
+  app.Transfer = function() {
     console.log("event")
    n++;
 		var from =  evt.returnValues.from;
