@@ -27,11 +27,12 @@ try {
 			from:from,
       to:to,
       value:value,
-      token:evt[i].address.toLowerCase()
+      token:evt[i].address.toLowerCase(),
+      transactionHash:evt[i].transactionHash
 		};
 
     var res = await app.db.indexedtx().insertOne(tx);
-    
+
   }
 
 
