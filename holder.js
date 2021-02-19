@@ -16,7 +16,7 @@ try {
 
 
   contract.getPastEvents("Transfer",{fromBlock:7398763,toBlock:8000000},function (error, evt){
-    console.log(evt);
+    if(evt.returnValues) {
     var from =  evt.returnValues.from;
     var to =  evt.returnValues.to;
     var value =  evt.returnValues.value;
@@ -28,6 +28,7 @@ try {
       token:evt.address.toLowerCase()
 		};
     app.db.indexedtx().insertOne(tx);
+  }
   });
 
 
