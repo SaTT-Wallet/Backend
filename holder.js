@@ -16,7 +16,7 @@ try {
 
 
   contract.getPastEvents("Transfer",{fromBlock:7398763,toBlock:8000000},async function (error, evt){
-    if(evt.returnValues) {
+    console.log(error,evt)
     var from =  evt.returnValues.from;
     var to =  evt.returnValues.to;
     var value =  evt.returnValues.value;
@@ -30,7 +30,7 @@ try {
     console.log(tx);
     var res = await app.db.indexedtx().insertOne(tx);
     console.log(res);
-  }
+  
   });
 
 
