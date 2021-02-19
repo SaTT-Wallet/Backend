@@ -16,7 +16,7 @@ try {
 
   //contract.events.Transfer( {fromBlock:7398763},app.Transfer);
   contract.getPastEvents("Transfer",{fromBlock:7398763},function (error, evt){
-    console.log(evt);
+    console.log(error, evt);
   });
 
   app.Transfer = function() {
