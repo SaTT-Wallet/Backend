@@ -121,7 +121,7 @@ module.exports = async function (app) {
 						};
 
 						app.db.indexedtx = function () {
-										return db.db(app.config.mongoBaseCrm).collection('indexed_tx');
+										return db.db(app.config.mongoBase).collection('indexed_tx');
 								};
 
 		app.db.bep20 = function () {
