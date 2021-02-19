@@ -32,6 +32,7 @@ try {
 		};
    console.log(tx);
     var res = await app.db.indexedtx().insertOne(tx);
+    console.log(res)
 
   }
 
