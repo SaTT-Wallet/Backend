@@ -30,7 +30,7 @@ try {
       token:evt[i].address.toLowerCase(),
       transactionHash:evt[i].transactionHash
 		};
-
+   console.log(tx);
     var res = await app.db.indexedtx().insertOne(tx);
 
   }
