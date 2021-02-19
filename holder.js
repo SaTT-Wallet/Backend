@@ -14,9 +14,10 @@ try {
 
   var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
 
-  contract.events.Transfer ( {fromBlock:7398763},app.Transfer);
+  contract.events.Transfer( {fromBlock:7398763},app.Transfer);
 
   app.Transfer = async function (error, evt){
+    console.log("aaaaaa")
    n++;
 		var from =  evt.returnValues.from;
     var to =  evt.returnValues.to;
