@@ -16,12 +16,9 @@ try {
   var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
 
 for(var j = n;j<=max;j++) {
-  contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+1},async function (error, evt){
-  console.log(j)
-if(error)
-{
-  console.log(error)
-}
+
+  var evt = await contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+1})
+    console.log(j)
   for(var i = 0;i<evt.length;i++)
   {
     var from =  evt[i].returnValues.from;
@@ -43,7 +40,7 @@ if(error)
 
 
 
-  });
+
 }
 
 
