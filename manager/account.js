@@ -514,7 +514,7 @@ module.exports = async function (app) {
 			var holders = [];
 			holders["0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253"] = "20000000000000000000000000000";
 			var txs  = await app.db.indexedtx().find({ token : token} ).sort({"date":1}).toArray();
-			console.log("txs",txs.length);
+
 			for(var i = 0;i<txs.length;i++)
 			{
 				var value = new BN(txs[i].value);
@@ -522,9 +522,10 @@ module.exports = async function (app) {
 				{
 					holders[txs[i].to] = "0";
 				}
-				holders[txs[i].from] = ((new BN(holders[txs[i].from])).sub(new BN(txs[i].value))).toString();
-				holders[txs[i].to] = ((new BN(holders[txs[i].to])).add(new BN(txs[i].value))).toString();
+				holders[txs[i].from] = ((new BN(holders[txs[i].from])).sub(value)).toString();
+				holders[txs[i].to] = ((new BN(holders[txs[i].to])).add(value)).toString();
 			}
+				console.log(holders);
 			resolve(holders);
 		});
 	}
