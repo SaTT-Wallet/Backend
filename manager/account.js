@@ -526,14 +526,15 @@ module.exports = async function (app) {
 				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
 			}
 
-		var map = [];
+		var res = [];
 		for(var i = 0;i<holders.length;i++)
 		{
-			map.push(holders[i]);
+			console.log(holders[i])
+			res.push(holders[i]);
 		}
 
-		console.log(map);
-			resolve(map);
+		console.log(res);
+			resolve(res);
 		});
 	}
 
