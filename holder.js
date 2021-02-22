@@ -10,14 +10,14 @@ try {
   app = await require("./web3/provider")(app);
 
 
-  var n = 8657912;
+  var n = 7398763 ;
   var max = await app.web3.eth.getBlockNumber();
 
   var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
 
-for(var j = n;j<=max;j=j+100) {
+for(var j = n;j<=max;j=j+1000) {
 
-  var evt = await contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+99})
+  var evt = await contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+999})
     console.log(j)
   for(var i = 0;i<evt.length;i++)
   {
@@ -30,7 +30,8 @@ for(var j = n;j<=max;j=j+100) {
       to:to,
       value:value,
       token:evt[i].address.toLowerCase(),
-      transactionHash:evt[i].transactionHash
+      transactionHash:evt[i].transactionHash,
+      date:Date.now()
 		};
 
     var res = await app.db.indexedtx().insertOne(tx);
