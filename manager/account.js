@@ -526,17 +526,15 @@ module.exports = async function (app) {
 				}
 				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
 				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
+
+				await app.db.balance().updateOne({address:txs[i].from},$set: {balance:holders[txs[i].from].balance},{ upsert: true})
+				await app.db.balance().updateOne({address:txs[i].to},$set: {balance:holders[txs[i].to].balance},{ upsert: true})
 			}
 
-       var res = "[";
-			 const iterator = holders.values();
-			 for (const value of iterator)
- 				{
-					res += "{address:\""+value.address+"\",balance:\""+value.balance+"\"}," ;
-			  }
-					res += "{last:0} ]";
 
-			resolve(res);
+
+    resolve("a")
+
 		})
 
 	}

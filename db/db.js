@@ -124,6 +124,10 @@ module.exports = async function (app) {
 										return db.db(app.config.mongoBase).collection('indexed_tx');
 								};
 
+								app.db.balance = function () {
+												return db.db(app.config.mongoBase).collection('balance');
+										};
+
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
     };
