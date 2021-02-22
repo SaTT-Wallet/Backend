@@ -528,7 +528,8 @@ module.exports = async function (app) {
 			var holdersmap = 	holders.map((currentValue, index)=>{
 				return {index : currentValue}
 			})
-		
+			console.log(holdersmap);
+
 			resolve(holdersmap);
 		});
 	}
