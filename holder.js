@@ -17,7 +17,7 @@ try {
 
 for(var j = n;j<=max;j=j+100) {
 
-  var evt = await contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+1})
+  var evt = await contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+99})
     console.log(j)
   for(var i = 0;i<evt.length;i++)
   {
