@@ -532,7 +532,7 @@ module.exports = async function (app) {
 			map.push(holders[i]);
 		}
 
-
+		console.log(map);
 			resolve(map);
 		});
 	}
