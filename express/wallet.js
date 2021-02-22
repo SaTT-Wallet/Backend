@@ -472,6 +472,12 @@ module.exports = function (app) {
 		response.end(JSON.stringify(res));
 	})
 
+	app.get('/holders/:token', async function(req, response) {
+
+		var res = await app.account.getHolders(req.params.token);
+		response.end(JSON.stringify(res));
+	})
+
 	app.get('/supply/total', async function(req, response) {
 
 		var balance = await app.token.contract.methods.balanceOf("0x000000000000000000000000000000000000dead").call();

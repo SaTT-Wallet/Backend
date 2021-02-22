@@ -509,6 +509,25 @@ module.exports = async function (app) {
 		});
 	}
 
+	accountManager.getHolders = async function (token) {
+		return new Promise( async (resolve, reject) => {
+			var holders = [];
+			holders["0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253"] = "20000000000000000000000000000";
+			var txs  = await app.db.indexedtx().find({ token : token ).sort({"date":1}).toArray();
+			for(var i = 0;i<txs.length;i++)
+			{
+				var value = new BN(txs[i].value);
+				if(!holders[txs[i].to])
+				{
+					holders[txs[i].to] = "0";
+				}
+				holders[txs[i].from] = ((new BN(holders[txs[i].from])).sub(new BN(txs[i].value))).toString();
+				holders[txs[i].to] = ((new BN(holders[txs[i].to])).add(new BN(txs[i].value))).toString();
+			}
+			resolve(holders);
+		});
+	}
+
 	accountManager.getTxsFullSatt = async function (myaccount) {
 		return new Promise( async (resolve, reject) => {
 		    var docs = await app.db.txs().find({from:myaccount}).sort({"date":1}).toArray();
