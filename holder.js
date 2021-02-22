@@ -10,13 +10,14 @@ try {
   app = await require("./web3/provider")(app);
 
 
-  var n = 0;
+  var n = 8650000;
+  var max = await app.web3.eth.getBlockNumber();
 
   var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
 
-
-  contract.getPastEvents("Transfer",{fromBlock:8650000,toBlock:870000},async function (error, evt){
-
+for(var j = n;j<=max;j++) {
+  contract.getPastEvents("Transfer",{fromBlock:j,toBlock:j+1},async function (error, evt){
+  console.log(j)
 if(error)
 {
   console.log(error)
@@ -39,9 +40,12 @@ if(error)
 
 
   }
+}
 
 
   });
+
+}
 
 
 }
