@@ -525,8 +525,11 @@ module.exports = async function (app) {
 				holders[txs[i].from] = ((new BN(holders[txs[i].from])).sub(value)).toString();
 				holders[txs[i].to] = ((new BN(holders[txs[i].to])).add(value)).toString();
 			}
-				console.log(holders);
-			resolve(holders);
+			var holdersmap = 	holders.map((currentValue, index)=>{
+				return {index : currentValue}
+			})
+		
+			resolve(holdersmap);
 		});
 	}
 
