@@ -539,7 +539,7 @@ module.exports = async function (app) {
 
 
 			resolve(res);
-		});
+		};
 	}
 
 	accountManager.getTxsFullSatt = async function (myaccount) {
