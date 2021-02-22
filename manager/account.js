@@ -530,13 +530,11 @@ module.exports = async function (app) {
 
        var res = "[";
 			 const iterator = holders.values();
-			 for (const value of iterator) {
+			 for (const value of iterator)
  				{
 					res += "{address:\""+value.address+"\",balance:\""+value.balance+"\"}," ;
 			  }
 					res += "{last:0} ]";
-
-
 
 			resolve(res);
 		};
