@@ -1,23 +1,23 @@
 module.exports = async function (app) {
-	
+
 	var cron = require('node-cron');
 	var fs = require("fs");
-	
+
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
-	
+
 	var BN = require("bn.js");
-	
+
 	var eventWatcher = {};
-	
+
 	eventWatcher.campaignCreated = async function (error, evt){
-		
-		
+
+
 		var idCampaign = evt.returnValues.id;
 		var startDate =  evt.returnValues.startDate;
 		var endDate =  evt.returnValues.endDate;
 		var dataUrl =  evt.returnValues.dataUrl;
-		
+
 		var ev = {
 			id : idCampaign,
 			type : "created",
@@ -25,9 +25,9 @@ module.exports = async function (app) {
 			txhash:evt.transactionHash,
 			contract:evt.address.toLowerCase()
 		};
-		
+
 		var tx = await app.web3.eth.getTransaction(evt.transactionHash);
-		
+
 		var campaign = {
 			id : idCampaign,
 			startDate : startDate,
@@ -37,7 +37,7 @@ module.exports = async function (app) {
 			owner:tx.from.toLowerCase(),
 			contract:evt.address.toLowerCase()
 		};
-		
+
 		app.db.campaign().findOne({id : idCampaign},function (cmp,err){
 			if(cmp) {
 				app.db.campaign().updateOne({id : idCampaign},{$set: {startDate: startDate,endDate : endDate,dataUrl : dataUrl}});
@@ -49,11 +49,11 @@ module.exports = async function (app) {
 			app.db.event().insertOne(ev);
 		})
 	}
-	
-	
+
+
 	eventWatcher.campaignFundsSpent = function (error, evt){
 		var idCampaign = evt.returnValues.id;
-		
+
 		var evt = {
 			id : idCampaign,
 			type : "spent",
@@ -61,15 +61,15 @@ module.exports = async function (app) {
 			txhash:evt.transactionHash,
 			contract:evt.address.toLowerCase()
 		}
-		
+
 		app.db.event().insertOne(evt);
 	}
-	
+
 	eventWatcher.campaignApplied = function (error, evt){
-		
+
 		var idCampaign = evt.returnValues.id;
 		var idProm = evt.returnValues.prom;
-		
+
 		var evt = {
 			id : idCampaign,
 			prom : idProm,
@@ -79,21 +79,21 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase(),
 			owner:evt.address.toLowerCase()
 		}
-		
+
 		app.db.event().insertOne(evt);
-		
+
 	}
-	
-	
+
+
 	app.campaign.contract.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
 	app.campaign.contract.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
 	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
-	
+
 	app.campaign.contractAdvFee.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
 	app.campaign.contractAdvFee.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
 	app.campaign.contractAdvFee.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
-	
-	
+
+
 	/*cron.schedule('11 0 * * *',async function(){
 		console.log("updateCampaignStats")
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
@@ -103,20 +103,20 @@ module.exports = async function (app) {
 			var cmp = await app.campaign.contract.methods.campaigns(campaigns[i].id).call();
 			if(Math.floor(Date.now()/1000) > cmp.startDate && Math.floor(Date.now()/1000) < cmp.endDate )
 			{
-				
+
 				if (cmp.nbValidProms != 0) {
-					
-					
+
+
 					await app.campaign.updateCampaignStats(campaigns[i].id,cred);
 				}
 			}
 		}
-		
+
 	});*/
 	/*cron.schedule('0 * * * *',async function(){
 		await app.oracleManager.checkAnswer();
 	})*/
-	
+
 	eventWatcher.paySattHourly = async function (){
 		var gasPrice = await app.web3.eth.getGasPrice();
 		var bngasPrice = new BN(""+gasPrice);
@@ -132,17 +132,17 @@ module.exports = async function (app) {
 		{
 			var buy = buys[i];
 			await app.token.transfer(buy.to,buy.amount,cred);
-			
+
 			await app.db.sattbuy().updateOne({_id:buy._id},{$set:{isNew:false}});
 		}
 		console.log("cron pay satt end");
 	}
-	
+
 	eventWatcher.paySattHourlyByInf = async function (){
 		var gasPrice = await app.web3.eth.getGasPrice();
 		var bngasPrice = new BN(""+gasPrice);
 		var bngasPlus = new BN(10000000000);
-		
+
 		var buys = await app.db.sattbuy().find({isNew: true}).toArray();
 		console.log("cron pay satt start",buys.length,"elements");
 		//await app.cryptoManager.unlockReserve();
@@ -162,18 +162,38 @@ module.exports = async function (app) {
 			var pv = app.web3.eth.accounts.decrypt(app.config.sattReserveKs34, app.config.SattReservePass);
 			var signed = await app.web3Inf.eth.accounts.signTransaction(tx, pv.privateKey);
 			var receipt = await app.web3Inf.eth.sendSignedTransaction(signed.rawTransaction);
-			console.log(receipt.transactionHash,"confirmed transfer from",app.config.SattReserve,"to",buy.to,"amount",buy.amount); 
-			
+			console.log(receipt.transactionHash,"confirmed transfer from",app.config.SattReserve,"to",buy.to,"amount",buy.amount);
+
 			await app.db.sattbuy().updateOne({_id:buy._id},{$set:{isNew:false}});
 		}
 		console.log("cron pay satt end");
 	}
-	
+
 	/*cron.schedule('30 16 * * *',async function(){
 		await eventWatcher.paySattHourlyByInf();
 	})*/
-	
-	
+
+
+	bep20Manager.SattAllTX = async (error, evt) => {
+			var to = evt.returnValues.to;
+			var value = evt.returnValues.value;
+			var from = evt.returnValues.from;
+
+			var tx = {
+				from:from,
+	      to:to,
+	      value:value,
+	      token:evt.address.toLowerCase(),
+	      transactionHash:evt.transactionHash,
+	      date:Date.now()
+			};
+
+	    var res = await app.db.indexedtx().insertOne(tx);
+
+	}
+
+	app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
+
 	app.events = eventWatcher;
 	return app;
 }
