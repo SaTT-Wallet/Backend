@@ -10,7 +10,7 @@ try {
   app = await require("./web3/provider")(app);
 
 
-  var n = 11905764 ;
+  var n = 11905764 ; // start
   var max = await app.web3.eth.getBlockNumber();
 
   var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);

@@ -502,48 +502,9 @@ module.exports = async function (app) {
 		});
 	};
 
-	accountManager.getTxs = async function (myaccount,txtype) {
+	accountManager.getTxs = async function (myaccount,token) {
 		return new Promise( async (resolve, reject) => {
-			/*
-			var docs = await app.db.txs().find({"txtype":txtype,$or :[{"from":myaccount},{"to":myaccount}]}).toArray();
-			var docs2 = [];
-			for(var i=0;i<docs.length;i++)
-			{
-				var docres = docs[i];
-				if(docs[i].amount) {
-					if(docs[i].amount.negative) {
-						var BNbig = new BN(0);
-						BNbig.negative = docs[i].amount.negative;
-						BNbig.words = docs[i].amount.words;
-						BNbig.length = docs[i].amount.length;
-						docres.amount =  BNbig.toString();
-					}
-				}
-				docs2.push(docres);
-			}
-			resolve(docs2);
-			*/
-			var txs = [];
-			var res = await rp({uri:app.config.etherscanApiUrl+myaccount,json:true});
-			for(var i=0;i< res.result.length;i++)
-			{
-				var tx = res.result[i];
-				if(tx.contractAddress == app.config.tokenContract)
-				{
-					var receipt = await app.web3.eth.getTransactionReceipt(tx.hash);
-					var to = receipt.logs[0].topics[2]? "0x"+receipt.logs[0].topics[2].slice(-40):"";
-					var satttx = {
-						hash : tx.hash,
-						from: "0x"+receipt.logs[0].topics[1].slice(-40),
-						to : to,
-						txtype : "SATT",
-						amount : app.web3.utils.hexToNumberString(receipt.logs[0].data)
-					}
-
-					txs.push(satttx);
-
-				}
-			}
+			var txs  = await app.db.indexedtx().find({ token : token , $or: [ { from: myaccount }, { to : myaccount } ] }).sort({"date":1}).toArray();
 			resolve(txs);
 		});
 	}
