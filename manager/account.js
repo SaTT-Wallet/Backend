@@ -513,7 +513,7 @@ module.exports = async function (app) {
 		return new Promise( async (resolve, reject) => {
 			var holders = [];
 			holders["0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253"] = "20000000000000000000000000000";
-			var txs  = await app.db.indexedtx().find({ token : token ).sort({"date":1}).toArray();
+			var txs  = await app.db.indexedtx().find({ token : token} ).sort({"date":1}).toArray();
 			for(var i = 0;i<txs.length;i++)
 			{
 				var value = new BN(txs[i].value);
