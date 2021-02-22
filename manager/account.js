@@ -529,7 +529,7 @@ module.exports = async function (app) {
 		var res = [];
 
 
-		console.log(holders);
+		const data = fs.writeFileSync('balances.json', holders)
 			resolve(holders);
 		});
 	}
