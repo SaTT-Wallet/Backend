@@ -504,7 +504,7 @@ module.exports = async function (app) {
 
 	accountManager.getTxs = async function (myaccount,token) {
 		return new Promise( async (resolve, reject) => {
-			var txs  = await app.db.indexedtx().find({ token : token , $or: [ { from: myaccount }, { to : myaccount } ] }).sort({"date":1}).toArray();
+			var txs  = await app.db.indexedtx().find({ token : token , $or: [ { from: myaccount }, { to : myaccount } ] }).sort({"date":-1}).toArray();
 			resolve(txs);
 		});
 	}
