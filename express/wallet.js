@@ -466,9 +466,9 @@ module.exports = function (app) {
 		response.end(JSON.stringify(res));
 	})
 
-	app.get('/txs/:account/:txtype', async function(req, response) {
+	app.get('/txs/:account/:token', async function(req, response) {
 
-		var res = await app.account.getTxs(req.params.account,req.params.txtype);
+		var res = await app.account.getTxs(app.web3.utils.toChecksumAddress(req.params.account),req.params.token);
 		response.end(JSON.stringify(res));
 	})
 
