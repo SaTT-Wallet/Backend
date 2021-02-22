@@ -527,14 +527,10 @@ module.exports = async function (app) {
 			}
 
 		var res = [];
-		for(var i = 0;i<holders.length;i++)
-		{
-			console.log(holders[i])
-			res.push(holders[i]);
-		}
 
-		console.log(res);
-			resolve(res);
+
+		console.log(holders);
+			resolve(holders);
 		});
 	}
 
