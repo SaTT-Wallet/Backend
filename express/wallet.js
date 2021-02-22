@@ -463,6 +463,7 @@ module.exports = function (app) {
 	app.get('/v2/txs/:account', async function(req, response) {
 
 		var res = await app.account.getTxsFullSatt(req.params.addr);
+		console.log("holders",res.length)
 		response.end(JSON.stringify(res));
 	})
 
