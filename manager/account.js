@@ -512,7 +512,7 @@ module.exports = async function (app) {
 	accountManager.getHolders = async function (token) {
 		return new Promise( async (resolve, reject) => {
 			var holders = [];
-			holders["0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253"] = "20000000000000000000000000000";
+			holders["0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253"] = {address :"0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253",balance:"20000000000000000000000000000"};
 			var txs  = await app.db.indexedtx().find({ token : token} ).sort({"date":1}).toArray();
 
 			for(var i = 0;i<txs.length;i++)
@@ -520,17 +520,15 @@ module.exports = async function (app) {
 				var value = new BN(txs[i].value);
 				if(!holders[txs[i].to])
 				{
-					holders[txs[i].to] = "0";
+					holders[txs[i].to] = {address :holders[txs[i].to],balance:"0"};
 				}
-				holders[txs[i].from] = ((new BN(holders[txs[i].from])).sub(value)).toString();
-				holders[txs[i].to] = ((new BN(holders[txs[i].to])).add(value)).toString();
+				holders[txs[i].from].balance = ((new BN(holders[txs[i].from])).sub(value)).toString();
+				holders[txs[i].to].balance = ((new BN(holders[txs[i].to])).add(value)).toString();
 			}
-			var holdersmap = 	holders.map((currentValue, index)=>{
-				return {index : currentValue}
-			})
-			console.log(holdersmap);
 
-			resolve(holdersmap);
+			console.log(holders);
+
+			resolve(holders);
 		});
 	}
 
