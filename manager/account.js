@@ -527,10 +527,12 @@ module.exports = async function (app) {
 				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
 				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
 			}
+
        var res = "[";
-			 for(var i = 0;i<holders.length;i++)
+			 const iterator = holders.values();
+			 for (const value of iterator) {
  				{
-					res += "{address:\""+holders[i].address+"\",balance:\""+holders[i].address+"\"}," ;
+					res += "{address:\""+value.address+"\",balance:\""+value.balance+"\"}," ;
 			  }
 					res += "{last:0} ]";
 
