@@ -1,5 +1,7 @@
 module.exports = async function (app) {
 
+	const fs = require('fs')
+
 	var child = require('child_process');
 	var bip32 = require("bip32")
 	var bip39 = require('bip39');
@@ -525,12 +527,16 @@ module.exports = async function (app) {
 				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
 				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
 			}
+       var res = "[";
+			 for(var i = 0;i<holders.length;i++)
+ 				{
+					res += "{address:\""+holders[i].address+"\",balance:\""+holders[i].address+"\"}," ;
+			  }
+					res += "{last:0} ]";
 
-		var res = [];
 
 
-		const data = fs.writeFileSync('balances.json', holders)
-			resolve(holders);
+			resolve(res);
 		});
 	}
 
