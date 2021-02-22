@@ -522,8 +522,8 @@ module.exports = async function (app) {
 				{
 					holders[txs[i].to] = {address :holders[txs[i].to],balance:"0"};
 				}
-				holders[txs[i].from].balance = ((new BN(holders[txs[i].from])).sub(value)).toString();
-				holders[txs[i].to].balance = ((new BN(holders[txs[i].to])).add(value)).toString();
+				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
+				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
 			}
 
 			console.log(holders);
