@@ -183,6 +183,27 @@ module.exports = function (app) {
 		}
 	});*/
 
+	/**
+	 * Check if the link already exists
+	 */
+	app.get('/campaign/checklink/:typeSN/:idPost/:idUser', async function(req, response) {
+
+		let typeSN = req.params.typeSN;
+		let idPost = req.params.idPost;
+		let idUser = req.params.idUser;
+
+		try {
+			let links = await app.db.apply().find({typeSN:typeSN, idPost:idPost, idUser:idUser}).toArray();
+			if (!links.length) {
+				response.end('{"exist":false}');
+			} else {
+				response.end('{"exist":true}');
+			}
+		} catch (err) {
+			response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+		}
+	});
+
 	app.post('/campaign/apply', async function(req, response) {
 
 		var pass = req.body.pass;
