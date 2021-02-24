@@ -190,7 +190,7 @@ module.exports = function (app) {
 
 		let typeSN = req.params.typeSN;
 		let idPost = req.params.idPost;
-		let idUser = req.params.idUser;
+		let idUser = req.params.idUser ? req.params.idUser:"";
 
 		try {
 			let links = await app.db.apply().find({typeSN:typeSN, idPost:idPost, idUser:idUser}).toArray();
