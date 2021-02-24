@@ -186,10 +186,11 @@ module.exports = function (app) {
 	/**
 	 * Check if the link already exists
 	 */
-	app.post('/campaign/checklink', async function(req, response) {
-		let typeSN = req.body.typeSN;
-		let idPost = req.body.idPost;
-		let idUser = req.body.idUser;
+	app.get('/campaign/checklink/:typeSN/:idPost/:idUser', async function(req, response) {
+
+		let typeSN = req.params.typeSN;
+		let idPost = req.params.idPost;
+		let idUser = req.params.idUser;
 
 		try {
 			let links = await app.db.apply().find({typeSN:typeSN, idPost:idPost, idUser:idUser}).toArray();
