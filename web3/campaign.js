@@ -439,49 +439,56 @@ module.exports = async function (app) {
 			prepreCall:(args) => {
 				return {
 					arg:arg,
-					send : () ={
+					send : (params) ={
 						switch (this.arg[0]) {
 							case "createPriceFundAll":
-								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6]);
+								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6],{address:params.from});
 							break;
 							case "modCampaign":
-								app.campaignCentral.modCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4]);
+							;
+								//app.campaignCentral.modCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4]);
 							break;
 							case "priceRatioCampaign":
-								app.campaignCentral.priceRatioCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5]);
+							;
+								//app.campaignCentral.priceRatioCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5]);
 							break;
 							case "applyCampaign":
-								app.campaignCentral.applyCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4]);
+								app.campaignCentral.applyCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],{address:params.from});
 							break;
 							case "validateProm":
-								app.campaignCentral.validateProm(this.arg[1]);
+								app.campaignCentral.validateProm(this.arg[1],{address:params.from});
 							break;
 							case "startCampaign":
-								app.campaignCentral.startCampaign(this.arg[1]);
+							;
+								//app.campaignCentral.startCampaign(this.arg[1]);
 							break;
 							case "applyAndValidate":
-								app.campaignCentral.applyAndValidate(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5]);
+								app.campaignCentral.applyCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],{address:params.from});
 							break;
 							case "updateCampaignStats":
-								app.campaignCentral.updateCampaignStats(this.arg[1]);
+							;
+								//app.campaignCentral.updateCampaignStats(this.arg[1]);
 							break;
 							case "updatePromStats":
-								app.campaignCentral.updatePromStats(this.arg[1]);
+							;
+								//app.campaignCentral.updatePromStats(this.arg[1]);
 							break;
 							case "endCampaign":
-								app.campaignCentral.endCampaign(this.arg[1]);
+							;
+								//app.campaignCentral.endCampaign(this.arg[1]);
 							break;
 							case "modToken":
-								app.campaignCentral.modToken(this.arg[1],this.arg[2]);
+							;
+								//app.campaignCentral.modToken(this.arg[1],this.arg[2]);
 							break;
 							case "fundCampaign":
-								app.campaignCentral.fundCampaign(this.arg[1],this.arg[2],this.arg[3]);
+								app.campaignCentral.fundCampaign(this.arg[1],this.arg[2],this.arg[3],{address:params.from});
 							break;
 							case "getGains":
-								app.campaignCentral.getGains(this.arg[1]);
+								app.campaignCentral.getGains(this.arg[1],{address:params.from});
 							break;
 							case "getRemainingFunds":
-								app.campaignCentral.getRemainingFunds(this.arg[1]);
+								app.campaignCentral.getRemainingFunds(this.arg[1],{address:params.from});
 							break;
 							default:
 								return;
