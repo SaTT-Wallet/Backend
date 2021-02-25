@@ -9,7 +9,8 @@ module.exports = async function (app) {
 
 	campaignManager.getContract = function (address) {
 		if(address == app.config.ctrs.campaign.address.mainnet)
-			return campaignManager.contract;
+			//return campaignManager.contract;
+			//campaignManager.contractCentral;
 		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
 				return campaignManager.contractBep20;
 		else
@@ -47,6 +48,7 @@ module.exports = async function (app) {
 	}
 
 	campaignManager.followContract = function () {
+
 		campaignManager.contract = new app.web3.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
 		campaignManager.contract.getGasPrice = async function () {
 		 var gas = await app.web3.eth.getGasPrice();
@@ -63,7 +65,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			var gasPrice = await app.web3.eth.getGasPrice();
 			var gas = 200000;
-			var receipt = await campaignManager.getContract().methods.createCampaign(dataUrl,startDate,endDate).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("createCampaign transactionHash",hash) });
+			var receipt = await campaignManager.getContract().methods.createCampaign(dataUrl,startDate,endDate).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve(receipt.events.CampaignCreated.returnValues.id);
 			console.log("campaign created:",receipt.events);
 		})
@@ -74,7 +76,7 @@ module.exports = async function (app) {
 			var ctr = campaignManager.getContractToken(token)
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 300000;
-			var receipt = await  ctr.methods.createPriceFundYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("createCampaignYt transactionHash",hash) });
+			var receipt = await  ctr.methods.createPriceFundYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			console.log(receipt.events.CampaignCreated);
 			resolve(receipt.events.CampaignCreated.returnValues.id);
 		})
@@ -86,7 +88,7 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
 			try {
-			var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("createCampaignAll transactionHash",hash) });
+			var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			console.log(receipt.events.CampaignCreated);
 			resolve(receipt.events.CampaignCreated.returnValues.id);
 			} catch (err) {
@@ -100,7 +102,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			var gasPrice = await app.web3.eth.getGasPrice();
 			var gas = 200000;
-			var receipt = await campaignManager.getContract().methods.modCampaign(idCampaign,dataUrl,startDate,endDate).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("modCampaign transactionHash",hash) });
+			var receipt = await campaignManager.getContract().methods.modCampaign(idCampaign,dataUrl,startDate,endDate).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			console.log(receipt.events.CampaignCreated.returnValues.id);
 			resolve(receipt.events.CampaignCreated.returnValues.id);
 		})
@@ -113,7 +115,7 @@ module.exports = async function (app) {
 				var gasPrice = await ctr.getGasPrice();
 			var gas = 200000;
 			console.log(idCampaign,token,amount);
-			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("fundCampaign transactionHash",hash) });
+			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,token:token,amount:amount});
 			   console.log(receipt.transactionHash,"confirmed",idCampaign,"funded");
 			}
@@ -129,7 +131,7 @@ module.exports = async function (app) {
 		var gas = 100000;
 		var ctr = campaignManager.getCampaignContract(idCampaign);
 			var gasPrice = await ctr.getGasPrice();
-			var receipt = await  ctr.methods.priceRatioCampaign(idCampaign,typeSN,likeRatio,shareRatio,viewRatio).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("priceRatioCampaign transactionHash",hash) });
+			var receipt = await  ctr.methods.priceRatioCampaign(idCampaign,typeSN,likeRatio,shareRatio,viewRatio).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,typeSN:typeSN,likeRatio:likeRatio,shareRatio:shareRatio,viewRatio:viewRatio});
 			   console.log(receipt.transactionHash,"confirmed",idCampaign,"priced");
 		})
@@ -148,8 +150,7 @@ module.exports = async function (app) {
 				reject({message:"Link already sent"});
 			}
 			else {
-				var receipt = ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){
-					console.log("applyCampaign transactionHash",hash);
+				var receipt = ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({transactionHash:hash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				});
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
@@ -181,13 +182,9 @@ module.exports = async function (app) {
 				reject({message:"Link already sent"});
 			}
 			else {*/
-				var receipt = await ctr.applyAndValidate(idCampaign,influencer,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){
-
-					console.log("applyCampaign transactionHash",hash);
-					resolve({transactionHash:hash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
-				});
+				var receipt = await ctr.methods.applyAndValidate(idCampaign,influencer,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
-				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
+				resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
 				//}
 			}
@@ -207,7 +204,7 @@ module.exports = async function (app) {
 					var ctr = campaignManager.getPromContract(idProm);
 				var gasPrice = await ctr.getGasPrice();
 
-				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("validateProm transactionHash",hash) });
+				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed validated prom ",idProm);
 			}
@@ -224,7 +221,7 @@ module.exports = async function (app) {
 				var gas = 100000;
 				var ctr =  await campaignManager.getCampaignContract(idCampaign);
 				var gasPrice = await ctr.getGasPrice();
-				var receipt = await  ctr.methods.startCampaign(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("startCampaign transactionHash",hash) });
+				var receipt = await  ctr.methods.startCampaign(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign});
 				console.log(receipt.transactionHash,"confirmed",idCampaign,"started ");
 			}
@@ -243,7 +240,7 @@ module.exports = async function (app) {
 				var gasPrice = await ctr.getGasPrice();
 				if(gasPrice<4000000000)
 					gasPrice = 4000000000;
-				var receipt = await ctr.methods.updateCampaignStats(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("updateCampaignStats transactionHash",hash) });
+				var receipt = await ctr.methods.updateCampaignStats(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,events:receipt.events});
 				console.log(receipt.transactionHash,"confirmed",idCampaign,"stats updated ");
 			}
@@ -261,7 +258,7 @@ module.exports = async function (app) {
 			var ctr =  await campaignManager.getPromContract(idProm);
 			var gasPrice = await ctr.getGasPrice();
 
-			var receipt = await ctr.methods.updatePromStats(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("updatePromStats transactionHash",hash) });
+			var receipt = await ctr.methods.updatePromStats(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
 			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
 		})
@@ -272,7 +269,7 @@ module.exports = async function (app) {
       var ctr =  await campaignManager.getCampaignContract(idCampaign);
 			var gas = 100000;
 			var gasPrice = await ctr.getGasPrice();
-			var receipt = await  ctr.methods.endCampaign(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("endCampaign transactionHash",hash) });
+			var receipt = await  ctr.methods.endCampaign(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign});
 			console.log(receipt.transactionHash,"confirmed",idCampaign,"ended ");
 		})
@@ -283,7 +280,7 @@ module.exports = async function (app) {
 			var gas = 100000;
 				var ctr = campaignManager.getContractToken(token)
 			var gasPrice = await ctr.getGasPrice();
-			var receipt = await  ctr.methods.modToken(token,true).send( {gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("addToken transactionHash",hash) });
+			var receipt = await  ctr.methods.modToken(token,true).send( {gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,token:token});
 			console.log(receipt.transactionHash,"confirmed token added",token);
 		})
@@ -305,7 +302,7 @@ module.exports = async function (app) {
 					var ctr = await campaignManager.getPromContract(idProm);
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
-				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("getGains transactionHash",hash) });
+				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);
 			}
@@ -323,7 +320,7 @@ module.exports = async function (app) {
 				var gas = 200000;
 				var ctr = await campaignManager.getCampaignContract(idCampaign);
 				var gasPrice = await app.web3.eth.getGasPrice();
-				var receipt = await  ctr.methods.getRemainingFunds(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("getRemainingFunds transactionHash",hash) });
+				var receipt = await  ctr.methods.getRemainingFunds(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign});
 				console.log(receipt.transactionHash,"confirmed gains remaining for",idCampaign);
 			}
@@ -420,6 +417,79 @@ module.exports = async function (app) {
 				reject(err);
 			}
 		})
+	}
+
+	campaignManager.contractCentral = {
+		methods : {
+			createPriceFundYt:(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount) =>{prepreCall("createPriceFundYt",dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount)},
+			modCampaign:(idCampaign,dataUrl,startDate,endDate) =>{prepreCall("modCampaign",idCampaign,dataUrl,startDate,endDate)},
+			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
+			priceRatioCampaign:(idCampaign,typeSN,likeRatio,shareRatio,viewRatio) =>{prepreCall("priceRatioCampaign",idCampaign,typeSN,likeRatio,shareRatio,viewRatio)},
+			applyCampaign:(idCampaign,typeSN,idPost,idUser) =>{prepreCall("applyCampaign",idCampaign,typeSN,idPost,idUser)},
+			applyAndValidate:(idCampaign,influencer,typeSN,idPost,idUser) =>{prepreCall("applyAndValidate",idCampaign,influencer,typeSN,idPost,idUser)},
+			validateProm:(idProm) =>{prepreCall("validateProm",idProm)},
+			startCampaign:(idCampaign) =>{prepreCall("startCampaign",idCampaign)},
+			updateCampaignStats:(idCampaign) =>{prepreCall("updateCampaignStats",idCampaign)},
+			updatePromStats:(idProm) =>{prepreCall("updatePromStats",idProm)},
+			endCampaign:(idCampaign) =>{prepreCall("endCampaign",idCampaign)},
+			modToken:(token,istrue) =>{prepreCall("modToken",token,istrue)},
+			fundCampaign:(idCampaign,token,amount) =>{prepreCall("fundCampaign",idCampaign,token,amount)},
+			getGains:(idProm) =>{prepreCall("getGains",idProm)},
+			getRemainingFunds:(idCampaign) =>{prepreCall("getRemainingFunds",idCampaign)},
+			prepreCall:(args) => {
+				return {
+					arg:arg,
+					send : () ={
+						switch (this.arg[0]) {
+							case "createPriceFundAll":
+								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6]);
+							break;
+							case "modCampaign":
+								app.campaignCentral.modCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4]);
+							break;
+							case "priceRatioCampaign":
+								app.campaignCentral.priceRatioCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5]);
+							break;
+							case "applyCampaign":
+								app.campaignCentral.applyCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4]);
+							break;
+							case "validateProm":
+								app.campaignCentral.validateProm(this.arg[1]);
+							break;
+							case "startCampaign":
+								app.campaignCentral.startCampaign(this.arg[1]);
+							break;
+							case "applyAndValidate":
+								app.campaignCentral.applyAndValidate(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5]);
+							break;
+							case "updateCampaignStats":
+								app.campaignCentral.updateCampaignStats(this.arg[1]);
+							break;
+							case "updatePromStats":
+								app.campaignCentral.updatePromStats(this.arg[1]);
+							break;
+							case "endCampaign":
+								app.campaignCentral.endCampaign(this.arg[1]);
+							break;
+							case "modToken":
+								app.campaignCentral.modToken(this.arg[1],this.arg[2]);
+							break;
+							case "fundCampaign":
+								app.campaignCentral.fundCampaign(this.arg[1],this.arg[2],this.arg[3]);
+							break;
+							case "getGains":
+								app.campaignCentral.getGains(this.arg[1]);
+							break;
+							case "getRemainingFunds":
+								app.campaignCentral.getRemainingFunds(this.arg[1]);
+							break;
+							default:
+								return;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	app.campaign = campaignManager;
