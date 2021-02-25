@@ -13,7 +13,7 @@ module.exports = async function (app) {
 	app.web3Inf  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlInf,options));
 	if(app.config.web3UrlBep20.substring(0, 4) == "http")
 	{
-		var web3 = new Web3(new Web3.providers.HttpProvider(app.config.web3UrlBep20,options));
+		app.web3Bep20 = new Web3(new Web3.providers.HttpProvider(app.config.web3UrlBep20,options));
 	}
 	else {
 		app.web3Bep20  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20,options));
