@@ -1,7 +1,6 @@
 module.exports = async function (app) {
 
 	var fs = require("fs");
-	var solc = require("solc");
 	var child = require('child_process');
 	var BN = app.web3.utils.BN;
 	var campaignCentralManager = {};
