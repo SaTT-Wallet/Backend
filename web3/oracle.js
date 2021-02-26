@@ -122,8 +122,13 @@ module.exports = async function (app) {
 
 
 	ContractToken.followContract = async function () {
+		if(app.config.testnet) {
+			ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnet);
+		}
+		else {
+			ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnet);
+		}
 
-		ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnet);
 		ContractToken.contract.events.AskRequest().on('data', async (event) => {
 			await ContractToken.eventCallback(event);
 		});
