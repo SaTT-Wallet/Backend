@@ -12,6 +12,10 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventETHtoBSC = async (error, evt) => {
+      if(error) {
+        console.log(error);
+        return;
+      }
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
         var from = evt.returnValues.from;
@@ -37,6 +41,12 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventBSCtoETH = async (error, evt) => {
+
+      if(error)
+      {
+        console.log(err)
+        return;
+      }
 
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
