@@ -1,48 +1,48 @@
 module.exports = async function (app) {
-	
+
 	var request = require('request');
 	var rp = require('request-promise');
-	
+
 	var crm = {};
-	
+
 	/*crm.auth = function (token,callback) {
-		
+
 		request(app.config.CrmAuthUrl+token, { json: true }, function(err, res, body) {
 			if(body.user) {
-				
-				
+
+
 				app.db.wallet().findOne({UserId: body.user.idUser}).then(function(account,err) {
 					if(account)
 					{
 						callback({id:account.UserId,uid:account._id});
 						return;
 					}
-					
-					
+
+
 					app.db.wallet().findOne({_id: body.user.scopedId}).then(function(account2,err){
-						
-					
+
+
 						app.db.wallet().updateOne({_id: body.user.scopedId}, {$set: {UserId: body.user.idUser}}, function (err4,res4) {
 							callback({id:body.user.idUser,uid:body.user.scopedId})
 						});
-							
-							
-						
+
+
+
 					});
-		
-					
+
+
 				});
-				
+
 			}
 			else
 				callback({error:"auth error"});
 		});
-		
-		
+
+
 	}*/
-	
+
 	var tokens = [];
-	
+
 	/*crm.auth = async function (token) {
 		return new Promise(async (resolve, reject) => {
 			try {
@@ -73,7 +73,7 @@ module.exports = async function (app) {
 		});
 		return p;
 	}*/
-	
+
 	crm.auth = async function (token) {
 		return new Promise(async (resolve, reject) => {
 			try {
@@ -82,20 +82,26 @@ module.exports = async function (app) {
 					resolve(tokens[token]);
 					return;
 				}
+				if(app.config.testnet) {
+					var UserId = 9999999999;
+					tokens[token] = {id:UserId}
+					resolve({id:UserId});
+					return;
+				}
 				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
 				if(res) {
 					var UserId = res[0].user_id;
-					
+
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
-					
+
 					/*else {
 						var account2 = await app.db.wallet().findOne({_id: body.user.scopedId});
 						await app.db.wallet().updateOne({_id: body.user.scopedId}, {$set: {UserId: body.user.idUser}});
 						resolve({id:body.user.idUser});
 					}*/
-					
-					
+
+
 				}
 				else{
 					reject({error:"auth error"});
@@ -107,10 +113,10 @@ module.exports = async function (app) {
 		});
 		return p;
 	}
-	
+
 	app.crm = crm;
-	
-	
-	
+
+
+
 	return app;
 }
