@@ -45,8 +45,9 @@ module.exports = async function (app) {
 			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
-
-			child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+			if(!app.config.testnet) {
+			  child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
@@ -99,8 +100,9 @@ module.exports = async function (app) {
 			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
-
-			child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+      if(!app.config.testnet) {
+			  child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
@@ -273,8 +275,9 @@ module.exports = async function (app) {
 			  redeem: bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
 			}).address;
 
-
+  if(!app.config.testnet) {
 		child.execSync(app.config.btcCmd+" importpubkey "+pub+" 'default' false");
+	}
 		//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 		return {publicKey:pub,address:address1,addressSegWit:addressbc1,addressSegWitCompat:address3,ek:ek};
@@ -304,7 +307,7 @@ module.exports = async function (app) {
 			var satt_balance = await app.token.contract.methods.balanceOf(address).call();
 			var res = {address:"0x"+account.keystore.address,ether_balance:ether_balance,bnb_balance:bnb_balance,satt_balance:satt_balance?satt_balance.toString():0,version:(account.mnemo?2:1)}
 			res.btc_balance = 0;
-			if(account.btc && account.btc.addressSegWitCompat) {
+			if(!app.config.testnet && account.btc && account.btc.addressSegWitCompat && ) {
 
 				res.btc = account.btc.addressSegWitCompat;
 
