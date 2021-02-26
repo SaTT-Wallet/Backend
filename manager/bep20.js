@@ -44,7 +44,7 @@ module.exports = async function (app) {
 
       if(error)
       {
-        console.log(err)
+        console.log(error)
         return;
       }
 
