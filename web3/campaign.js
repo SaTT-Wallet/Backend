@@ -10,7 +10,7 @@ module.exports = async function (app) {
 	campaignManager.getContract = function (address) {
 		if(address == app.config.ctrs.campaign.address.mainnet)
 			//return campaignManager.contract;
-			//campaignManager.contractCentral;
+			return campaignManager.contractCentral;
 		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
 				return campaignManager.contractBep20;
 		else
@@ -49,12 +49,18 @@ module.exports = async function (app) {
 
 	campaignManager.followContract = function () {
 
-		campaignManager.contract = new app.web3.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
+		if(app.config.testnet)
+		  campaignManager.contract = new app.web3.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnet);
+		else
+		  campaignManager.contract = new app.web3.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
 		campaignManager.contract.getGasPrice = async function () {
 		 var gas = await app.web3.eth.getGasPrice();
 		 return gas;
 		}
-		campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.mainnet);
+		if(app.config.testnet)
+			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.mainnet);
+		else
+			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.testnet);
 		campaignManager.contractBep20.getGasPrice = async function () {
 		 var gas = await app.web3Bep20.eth.getGasPrice();
 		 return gas;
