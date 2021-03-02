@@ -7,13 +7,13 @@ module.exports = async function (app) {
 		var result = await app.db.campaign().findOne({id : idCampaign});
 		if(!result)
 		{
-			response.end("[]");
-			return;
+
+			return [];
 		}
 		if(!result.ratios)
 		{
-			response.end("[]");
-			return;
+			
+			return [];
 		}
 		var ratios = result.ratios;
 
