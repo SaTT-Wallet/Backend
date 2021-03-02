@@ -448,7 +448,7 @@ module.exports = async function (app) {
 		methods : {
 			createPriceFundYt:(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount) =>{prepreCall("createPriceFundYt",dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount)},
 			modCampaign:(idCampaign,dataUrl,startDate,endDate) =>{prepreCall("modCampaign",idCampaign,dataUrl,startDate,endDate)},
-			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
+			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{console.log("yo");prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
 			priceRatioCampaign:(idCampaign,typeSN,likeRatio,shareRatio,viewRatio) =>{prepreCall("priceRatioCampaign",idCampaign,typeSN,likeRatio,shareRatio,viewRatio)},
 			applyCampaign:(idCampaign,typeSN,idPost,idUser) =>{prepreCall("applyCampaign",idCampaign,typeSN,idPost,idUser)},
 			applyAndValidate:(idCampaign,influencer,typeSN,idPost,idUser) =>{prepreCall("applyAndValidate",idCampaign,influencer,typeSN,idPost,idUser)},
@@ -462,11 +462,13 @@ module.exports = async function (app) {
 			getGains:(idProm) =>{prepreCall("getGains",idProm)},
 			getRemainingFunds:(idCampaign) =>{prepreCall("getRemainingFunds",idCampaign)},
 			prepreCall:(args) => {
+				console.log("yoyo")
 				return {
 					arg:arg,
 					send : (params) => {
 						switch ( this.arg[0] ) {
 							case "createPriceFundAll":
+							  console.log("yoyoyo")
 								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6],{address:params.from});
 							break;
 							case "modCampaign":
