@@ -36,15 +36,17 @@ module.exports = async function (app) {
 	}
 
 	campaignManager.getContractToken = function (token) {
-    var code = app.web3.eth.getCode(token);
+		var code = app.web3Bep20.eth.getCode(token);
+		if(code != "0x") {
+				return campaignManager.contractBep20;
+		}
 
+		/*
+    code = app.web3.eth.getCode(token);
 		if(code != "0x")
 			return campaignManager.contract;
-		code = app.web3Bep20.eth.getCode(token);
-		if(code != "0x")
-				return campaignManager.contractBep20;
-		else
-			return false;
+			*/
+			return app.campaignCentral;
 	}
 
 		campaignManager.isCentral = async function (idCampaign) {
@@ -95,6 +97,9 @@ module.exports = async function (app) {
 
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
+			if(app.config.testnet || token == app.app.config.ctrs.token.address.mainnet) {
+				token = app.app.config.ctrs.token.address.testnet;
+			}
 			var ctr = campaignManager.getContractToken(token)
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
