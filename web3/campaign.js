@@ -450,8 +450,8 @@ module.exports = async function (app) {
 			prepreCall:(args) => {
 				return {
 					arg:arg,
-					send : (params) ={
-						switch (this.arg[0]) {
+					send : (params) => {
+						switch ( this.arg[0] ) {
 							case "createPriceFundAll":
 								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6],{address:params.from});
 							break;
