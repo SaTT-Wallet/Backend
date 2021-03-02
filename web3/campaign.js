@@ -47,7 +47,7 @@ module.exports = async function (app) {
 		if(code != "0x")
 			return campaignManager.contract;
 			*/
-			return app.contractCentral;
+			return campaignManager.contractCentral;
 	}
 
 		campaignManager.isCentral = async function (idCampaign) {
@@ -440,12 +440,12 @@ module.exports = async function (app) {
 	}
 
 	campaignManager.contractCentral = {
+		getGasPrice : () => {
+			return new Promise(async (resolve, reject) => {
+				resolve(0);
+			})
+		},
 		methods : {
-			getGasPrice : async  () => {
-				return new Promise(async (resolve, reject) => {
-					resolve(0);
-				})
-			},
 			createPriceFundYt:(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount) =>{prepreCall("createPriceFundYt",dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount)},
 			modCampaign:(idCampaign,dataUrl,startDate,endDate) =>{prepreCall("modCampaign",idCampaign,dataUrl,startDate,endDate)},
 			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
