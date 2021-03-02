@@ -47,7 +47,7 @@ module.exports = async function (app) {
 			return false;
 	}
 
-		campaignManager.isCentral = function (idCampaign) {
+		campaignManager.isCentral = async function (idCampaign) {
 			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
 			return campaigns[0].contract == "central";
 		}
