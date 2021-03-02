@@ -10,7 +10,7 @@ module.exports = async function (app) {
 	campaignManager.getContract = function (address) {
 		if(address == app.config.ctrs.campaign.address.mainnet)
 			//return campaignManager.contract;
-			return campaignManager.contractCentral;
+			return app.campaignCentral;
 		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
 				return campaignManager.contractBep20;
 		else
@@ -46,6 +46,11 @@ module.exports = async function (app) {
 		else
 			return false;
 	}
+
+		campaignManager.isCentral = function (idCampaign) {
+			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
+			return campaigns[0].contract == "central";
+		}
 
 	campaignManager.followContract = function () {
 
