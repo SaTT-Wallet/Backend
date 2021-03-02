@@ -97,8 +97,8 @@ module.exports = async function (app) {
 
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-			if(app.config.testnet || token == app.app.config.ctrs.token.address.mainnet) {
-				token = app.app.config.ctrs.token.address.testnet;
+			if(app.config.testnet || token == app.config.ctrs.token.address.mainnet) {
+				token = app.config.ctrs.token.address.testnet;
 			}
 			var ctr = campaignManager.getContractToken(token)
 			var gasPrice = await ctr.getGasPrice();
