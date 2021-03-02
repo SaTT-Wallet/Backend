@@ -16,6 +16,8 @@ campaignCentralManager.getGasPrice = async  () => {
 
 			try {
 
+				console.log("central");
+
 				var receipt = await app.erc20.transfer(token,app.config.SattReserve,amount,credentials);
 
 
