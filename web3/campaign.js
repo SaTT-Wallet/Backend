@@ -163,7 +163,7 @@ module.exports = async function (app) {
 			else {
 				var receipt = ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({transactionHash:hash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
-				});
+
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
