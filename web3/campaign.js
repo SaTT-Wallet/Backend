@@ -35,16 +35,15 @@ module.exports = async function (app) {
 			return false;
 	}
 
-	campaignManager.getContractToken = function (token) {
-		console.log(token);
-		var code = app.web3Bep20.eth.getCode(token);
-		console.log(code);
+	campaignManager.getContractToken = async function (token) {
+
+		var code = await app.web3Bep20.eth.getCode(token);
+
 		if(code != "0x") {
 				return campaignManager.contractBep20;
 		}
-    console.log(app.campaignCentral);
 		/*
-    code = app.web3.eth.getCode(token);
+    code = await app.web3.eth.getCode(token);
 		if(code != "0x")
 			return campaignManager.contract;
 			*/
@@ -88,7 +87,7 @@ module.exports = async function (app) {
 
 	campaignManager.createCampaignYt = async function (dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-			var ctr = campaignManager.getContractToken(token)
+			var ctr = await campaignManager.getContractToken(token)
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 300000;
 			var receipt = await  ctr.methods.createPriceFundYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
@@ -102,8 +101,8 @@ module.exports = async function (app) {
 			if(app.config.testnet || token == app.config.ctrs.token.address.mainnet) {
 				token = app.config.ctrs.token.address.testnet;
 			}
-			console.log(token);
-			var ctr = campaignManager.getContractToken(token);
+
+			var ctr = await campaignManager.getContractToken(token);
 
 
 			var gasPrice = await ctr.getGasPrice();
