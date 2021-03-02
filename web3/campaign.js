@@ -30,7 +30,7 @@ module.exports = async function (app) {
 	campaignManager.getPromContract = async function (idProm) {
 		var proms = await app.db.event().find({prom:idProm}).toArray();
 		if(proms)
-			return 	return campaignManager.getContract(proms[0].contract);
+			return 	 campaignManager.getContract(proms[0].contract);
 		else
 			return false;
 	}
