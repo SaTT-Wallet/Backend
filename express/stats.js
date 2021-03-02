@@ -360,7 +360,7 @@ module.exports = function (app) {
 		});
 	})
 
-	app.get('/isalreadysed/:type/:idpost/:iduser', function(req, response) {
+	app.get('/isalreadysed/:type/:idpost/:iduser', async function(req, response) {
 		var type = req.params.type;
 		var idPost = req.params.idpost;
 		var idUser = req.params.iduser;
@@ -370,7 +370,7 @@ module.exports = function (app) {
 			response.end(res || results);
 		});
 	})
-	app.get('/isalreadysed/:type/:idpost', function(req, response) {
+	app.get('/isalreadysed/:type/:idpost', async function(req, response) {
 		var type = req.params.type;
 		var idPost = req.params.idpost;
 		var res = await app.statcentral.isUsed(type,idPost)
