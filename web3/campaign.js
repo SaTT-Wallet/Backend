@@ -100,7 +100,9 @@ module.exports = async function (app) {
 			if(app.config.testnet || token == app.config.ctrs.token.address.mainnet) {
 				token = app.config.ctrs.token.address.testnet;
 			}
-			var ctr = campaignManager.getContractToken(token)
+			var ctr = campaignManager.getContractToken(token);
+			console.log(app.campaignCentral,ctr);
+
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
 			try {
