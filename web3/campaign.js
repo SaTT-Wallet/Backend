@@ -10,7 +10,7 @@ module.exports = async function (app) {
 	campaignManager.getContract = function (address) {
 		if(address == app.config.ctrs.campaign.address.mainnet)
 			//return campaignManager.contract;
-			return app.campaignCentral;
+			return campaignManager.contractCentral;
 		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
 				return campaignManager.contractBep20;
 		else
@@ -47,7 +47,7 @@ module.exports = async function (app) {
 		if(code != "0x")
 			return campaignManager.contract;
 			*/
-			return app.campaignCentral;
+			return app.contractCentral;
 	}
 
 		campaignManager.isCentral = async function (idCampaign) {
@@ -441,6 +441,11 @@ module.exports = async function (app) {
 
 	campaignManager.contractCentral = {
 		methods : {
+			getGasPrice : async  () => {
+				return new Promise(async (resolve, reject) => {
+					resolve(0);
+				})
+			},
 			createPriceFundYt:(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount) =>{prepreCall("createPriceFundYt",dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount)},
 			modCampaign:(idCampaign,dataUrl,startDate,endDate) =>{prepreCall("modCampaign",idCampaign,dataUrl,startDate,endDate)},
 			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
