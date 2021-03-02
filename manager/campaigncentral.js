@@ -5,7 +5,7 @@ module.exports = async function (app) {
 	var BN = app.web3.utils.BN;
 	var campaignCentralManager = {};
 
-campaignCentralManager.getGasPrice = async () {
+campaignCentralManager.getGasPrice = async  () => {
 	return new Promise(async (resolve, reject) => {
 		resolve(0);
 	})
