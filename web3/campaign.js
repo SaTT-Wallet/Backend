@@ -98,9 +98,7 @@ module.exports = async function (app) {
 
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-			if(app.config.testnet || token == app.config.ctrs.token.address.mainnet) {
-				token = app.config.ctrs.token.address.testnet;
-			}
+			
 
 			var ctr = await campaignManager.getContractToken(token);
 
@@ -120,6 +118,7 @@ module.exports = async function (app) {
 				}
 
 			} catch (err) {
+
 				reject(err)
 			}
 
@@ -485,7 +484,6 @@ module.exports = async function (app) {
 			})
 		},
 		isCentral : true
-
 	}
 
 	app.campaign = campaignManager;
