@@ -12,6 +12,10 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventETHtoBSC = async (error, evt) => {
+      if(error) {
+        console.log(error);
+        return;
+      }
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
         var from = evt.returnValues.from;
@@ -37,6 +41,12 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventBSCtoETH = async (error, evt) => {
+
+      if(error)
+      {
+        console.log(error)
+        return;
+      }
 
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
@@ -148,11 +158,14 @@ module.exports = async function (app) {
 
     bep20Manager.getBalance = async function (token,addr) {
   		return new Promise(async (resolve, reject) => {
-  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
-  			var amount = await contract.methods.balanceOf(addr).call();
+        try {
+          var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
+          var amount = await contract.methods.balanceOf(addr).call();
+          resolve({amount:amount.toString()});
+        } catch (e) {
+          resolve({amount:"0"});
+        }
 
-
-  			resolve({amount:amount.toString()});
   		});
   	}
 

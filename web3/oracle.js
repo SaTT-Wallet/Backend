@@ -1,33 +1,32 @@
 module.exports = async function (app) {
-	
+
 	var fs = require("fs");
-	var solc = require("solc");
 	var child = require('child_process');
 
 	var ContractToken = {};
 	ContractToken.isDeplyed = false;
-	
+
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
-	
-	
+
+
 	ContractToken.eventCallback = async function(evt){
-	
+
 		if( evt.signature != "0xb67322f1a9b0ad182e2b242673f8283103dcd6d1c8a19b47ff5524f89d9758ed" || evt.event != "AskRequest")
-		{		
+		{
 			return;
 		}
-		
-		
+
+
 		var idRequest = evt.returnValues.idRequest;
 		var typeSN = ""+evt.returnValues.typeSN;
 		var idPost = evt.returnValues.idPost;
 		var idUser = evt.returnValues.idUser;
-		
-		
+
+
 		var request = await app.db.request().findOne({id: idRequest});
 		if(!request) {
-			
+
 			var answer = {
 				_id : idRequest,
 				id : idRequest,
@@ -37,48 +36,48 @@ module.exports = async function (app) {
 				idUser:idUser,
 				isNew:true
 			}
-				
+
 			await app.db.request().insertOne(answer);
-			
-			
-			
-			
+
+
+
+
 		}
 		else {
 			console.log("response already sent");
 		}
-		
+
 	}
-	
-	
+
+
 	ContractToken.answerOne = async function (typeSN,idPost,idUser) {
 		switch(typeSN) {
 				case "1" :
 					var res = await app.oracle.facebook(idUser,idPost);
-					
+
 				break;
 				case "2" :
 					var res = await app.oracle.youtube(idPost);
-					
+
 				break;
 				case "3" :
 					var res = await app.oracle.instagram(idPost)
-					
+
 				break;
 				case "4" :
 					var res = await app.oracle.twitter(idUser,idPost)
-					
+
 				break;
-				default : 
+				default :
 					var res = {likes:0,shares:0,views:0,date:Date.now()};
 				break;
 			}
-			
+
 			return res;
 	}
-	
+
 	ContractToken.checkAnswer = async function () {
-		
+
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 		var gasPrice = await app.web3.eth.getGasPrice();
 		var requests = await app.db.request().find({isNew: true}).toArray();
@@ -88,90 +87,55 @@ module.exports = async function (app) {
 			switch(request.typeSN) {
 				case "1" :
 					var res = await app.oracle.facebook(request.idUser,request.idPost);
-					
+
 				break;
 				case "2" :
 					var res = await app.oracle.youtube(request.idPost);
-					
+
 				break;
 				case "3" :
 					var res = await app.oracle.instagram(request.idPost)
-					
+
 				break;
 				case "4" :
 					var res = await app.oracle.twitter(request.idUser,request.idPost)
-					
+
 				break;
-				default : 
+				default :
 				break;
 			}
-			
+
 			var prevstat = await app.db.request().find({isNew:false,typeSN:request.typeSN,idPost:request.idPost,idUser:request.idUser}).sort({date: -1}).toArray();
 			if(prevstat.length && ( prevstat[0].likes >= res.likes || prevstat[0].shares >= res.shares || prevstat[0].views >= res.views))
 			{
 				await app.db.request().deleteOne({_id:request.id});
-				
+
 			}
 			else {
 				await app.db.request().updateOne({_id:request.id},{$set:{likes:res.likes,shares:res.shares,views:res.views,isNew:false}});
 				await ContractToken.answerCall({gasPrice:gasPrice,from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idRequest:request.id,likes:res.likes,shares:res.shares,views:res.views});
 			}
-			
-		}		
-	}
-	
 
-	ContractToken.deployContract = async function () {
-		
-		return new Promise(async (resolve, reject) => {
-		
-			var out = child.execSync(__dirname+'/../solc '+__dirname+'/../contracts/oracle.sol --optimize --combined-json bin,abi');
-		
-			var ctrs = JSON.parse(out.toString());
-			
-			var abi = ctrs.contracts[__dirname+'/../contracts/oracle.sol:oracle'].abi;
-			var bytecode = ctrs.contracts[__dirname+'/../contracts/oracle.sol:oracle'].bin;
-			
-			
-			ContractToken.contract = new app.web3.eth.Contract(JSON.parse(abi));
-			
-			app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-			var gas = await app.web3.eth.estimateGas({data: "0x"+bytecode});
-		
-			ContractToken.contract.options.address = app.config.oracleOwner;
-			console.log(gas);
-			ContractToken.contract.deploy( {data:"0x"+bytecode,arguments:[]})
-			.send({
-			   from:app.config.oracleOwner,
-			   gas:gas+10000,
-			   gasPrice: app.config.gasprice
-			   })
-			   .on('error', function(error){ console.log("contract deploy error",error) })
-			.on('transactionHash', function(transactionHash){console.log("contract deploy transactionHash",transactionHash) })
-			.on('receipt', function(receipt){
-				ContractToken.isDeplyed = true;
-				app.db.contract().insertOne({name:"oracle",fileName:"oracle.sol",address:receipt.contractAddress,type:app.config.blockChain,abi:abi,bytecode:bytecode});
-				ContractToken.contract = new app.web3.eth.Contract(JSON.parse(abi),receipt.contractAddress);
-				resolve(receipt.contractAddress);
-				console.log("receipt ") ;
-			})
-			.on('confirmation', function(confirmationNumber, receipt){ 
-				//console.log("confirmation "+confirmationNumber) ;
-			})
-		});
-		
+		}
 	}
+
+
 
 	ContractToken.followContract = async function () {
-		
-		ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnet);
+		if(app.config.testnet) {
+			ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnet);
+		}
+		else {
+			ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnet);
+		}
+
 		ContractToken.contract.events.AskRequest().on('data', async (event) => {
 			await ContractToken.eventCallback(event);
 		});
-		ContractToken.isDeplyed = true;	
-		
+		ContractToken.isDeplyed = true;
+
 	}
-	
+
 	ContractToken.addCampaign = async function (addr) {
 		return new Promise(async (resolve, reject) => {
 			app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
@@ -186,15 +150,15 @@ module.exports = async function (app) {
 			.on('receipt', function(receipt){
 				console.log("receipt")
 			})
-			.on('confirmation', function(confirmationNumber, receipt){ 
+			.on('confirmation', function(confirmationNumber, receipt){
 				console.log('confirmation',confirmationNumber);
-				
+
 			})
-			.on('error', function(error){ 
+			.on('error', function(error){
 				if(!headerSent)
 					reject({error : ""+error});
 				console.log("oracle error:",error);
-					
+
 			});
 		})
 	}
@@ -207,43 +171,25 @@ module.exports = async function (app) {
 				reject({error : "contract not deployed"});
 				return;
 			}
-			
+
 			var headerSent = false;
 			var gasPrice = await app.web3.eth.getGasPrice();
-				
+
 			//var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
-			
+
 			var receipt = await  ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerCall transactionHash",hash)});
 			resolve({result : "OK",hash:receipt.hash});
-			
+
 		});
-		
+
 	}
 
-	
-	ContractToken.abiGen = async function () {
-		return new Promise(async (resolve, reject) => {
-			var out = child.execSync(__dirname+'/../solc '+__dirname+'/../contracts/oracle.sol --optimize --combined-json bin,abi');
-		
-			var ctrs = JSON.parse(out.toString());
-			
-			var abi = ctrs.contracts[__dirname+'/../contracts/oracle.sol:oracle'].abi;
-			var bytecode = ctrs.contracts[__dirname+'/../contracts/oracle.sol:oracle'].bin;
-			
-			//await app.db.contract().insertOne({name:'oracle',fileName:'oracle.sol',address:"0x0",type:'mainnet',abi:abi,bytecode:bytecode});
-			resolve({result:"OK"});
-			
-		});
-				
-		
-	}
-	
-	
-	
+
+
 	app.oracleManager = ContractToken;
-	
-		
-	
-	
+
+
+
+
 	return app;
 }

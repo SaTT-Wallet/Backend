@@ -1,18 +1,19 @@
-module.exports = function (app) {
+module.exports = async function (app) {
 
-	app.get('/campaign/id/:id', async function(req, response) {
-		var idCampaign = req.params.id;
+	var statsCentral = {};
+
+  statsCentral.campaignById = async (idCampaign) => {
 
 		var result = await app.db.campaign().findOne({id : idCampaign});
 		if(!result)
 		{
-			response.end("[]");
-			return;
+
+			return [];
 		}
 		if(!result.ratios)
 		{
-			response.end("[]");
-			return;
+			
+			return [];
 		}
 		var ratios = result.ratios;
 
@@ -77,12 +78,12 @@ module.exports = function (app) {
 		if(campaignsCrm.length)
 			result.meta = campaignsCrm[0];
 
-		response.end(JSON.stringify(result));
+			return result;
 
-	});
+	}
 
-	app.get('/campaign/all/:influencer', async function(req, response) {
-		var address = req.params.influencer;
+	statsCentral.campaignsByInfluencer = async (address) => {
+
 		var campaigns = [];
 		campaigns = await app.db.campaign().find({contract:"central"}).toArray();
 
@@ -127,11 +128,11 @@ module.exports = function (app) {
 			}
 		}
 
-		response.end(JSON.stringify(campaigns));
-	});
+		return campaigns;
+	}
 
-	app.get('/campaign/owner/:owner', async function(req, response) {
-		var owner = req.params.owner;
+	statsCentral.campaignsByOwner = async (owner) => {
+
 		var campaigns = [];
 		campaigns = await app.db.campaign().find({contract:"central",owner:owner}).toArray();
 		var campaignsCrm = [];
@@ -161,35 +162,32 @@ module.exports = function (app) {
 			];
 			campaigns[i].ratios = res;
 		}
-		response.end(JSON.stringify(campaigns));
-	});
+		return campaigns;
+	}
 
-	app.get('/campaign/draft/:token', async function(req, response) {
-		var res = await app.crm.auth( req.params.token);
+ statsCentral.campaignsDraft = async (token) => {
+
+		var res = await app.crm.auth(token);
 		console.log("0"+res.id);
 		var campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
-		response.end(JSON.stringify(campaigns));
-	})
+	return campaigns;
+	}
 
-	app.get('/proms/owner/:owner', async function(req, response) {
-		var owner = req.params.owner;
+statsCentral.promsByOwner = async (owner) => {
 		var proms = [];
 		proms = await app.db.apply().find({influencer:owner}).toArray();
-		response.end(JSON.stringify(proms));
-	});
+		return proms;
+	};
 
-	app.get('/campaign/:id/proms', async function(req, response) {
-
-		var idCampaign = req.params.id;
+statsCentral.promsByCampaign = async (idCampaign) => {
 		var proms = [];
 		proms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
-		response.end(JSON.stringify(proms));
-	})
+		return proms;
+	};
 
 
+statsCentral.resultsByProm = async (idProm) => {
 
-	app.get('/prom/:id/results',async  function(req, response) {
-		var idProm = req.params.id;
 		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 		prom.typeSN = prom.typeSN.toString();
 		/*switch(prom.typeSN) {
@@ -214,11 +212,11 @@ module.exports = function (app) {
 			break;
 		}*/
 		//response.end(JSON.stringify([{likes:res.likes,shares:res.shares,views:res.views}]));
-		response.end(JSON.stringify([{likes:prom.likes,shares:prom.shares,views:prom.views}]));
-	})
+		return [{likes:prom.likes,shares:prom.shares,views:prom.views}];
+	}
 
-	app.get('/prom/:id/live', async function(req, response) {
-		var idProm = req.params.id;
+statsCentral.resultsByPromLive = async (idProm) => {
+
 		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 			prom.typeSN = prom.typeSN.toString();
 			switch(prom.typeSN) {
@@ -243,28 +241,24 @@ module.exports = function (app) {
 				break;
 			}
 
-			response.end(JSON.stringify(res));
+		return res;
+
+	}
+
+statsCentral.isUsed = async (type,idPost,idUser) => {
 
 
-
-	})
-
-
-
-	app.get('/isalreadysed/:type/:idpost/:iduser', async function(req, response) {
-		var type = req.params.type;
-		var idPost = req.params.idpost;
-		var idUser = req.params.iduser;
 		var proms = await app.db.apply().find({typeSN:type,idPost:idPost,idUser:idUser}).toArray();
-		response.end(proms.length);
+		return proms.length;
 
-	})
-	app.get('/isalreadysed/:type/:idpost', async function(req, response) {
-		var type = req.params.type;
-		var idPost = req.params.idpost;
+	};
+	statsCentral.isUsed = async (type,idPost) => {
+
 		var proms = await app.db.apply().find({typeSN:type,idPost:idPost}).toArray();
-		response.end(proms.length);
-	})
+		return proms.length;
+	};
+
+	app.statcentral = statsCentral;
 
 	return app;
 

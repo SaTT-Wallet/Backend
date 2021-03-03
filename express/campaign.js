@@ -25,6 +25,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 
@@ -46,6 +47,10 @@ module.exports = function (app) {
 
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
+
+			if(app.config.testnet || token == app.config.ctrs.token.address.mainnet) {
+				token = app.config.ctrs.token.address.testnet;
+			}
 
 			var balance = await app.erc20.getBalance(token,cred.address);
 
