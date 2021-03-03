@@ -484,7 +484,7 @@ module.exports = async function (app) {
 				resolve(0);
 			})
 		},
-		isCentral : true;
+		isCentral : true
 
 	}
 
