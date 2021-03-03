@@ -40,7 +40,7 @@ module.exports = async function (app) {
 			} catch (e) {
 			resolve({amount:"0"});
 			}
-		
+
 		});
 	}
 
@@ -51,11 +51,9 @@ module.exports = async function (app) {
 			var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
 
 			try {
-				console.log(to,amount,{from:credentials.address,gas:gas,gasPrice: gasPrice})
+
 				var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
-				.once('transactionHash', function(transactionHash){
-					console.log("transfer  transactionHash",transactionHash)
-				})
+
 
 				var tx = await app.web3.eth.getTransaction(receipt.transactionHash);
 				tx.txtype = token;
@@ -74,7 +72,7 @@ module.exports = async function (app) {
 				console.log(receipt.transactionHash,"confirmed transfer from",credentials.address,"to",to,"amount",amount);
 			}
 			catch (err) {
-
+				
 				reject(err)
 			}
 		});

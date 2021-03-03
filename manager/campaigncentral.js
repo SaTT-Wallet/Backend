@@ -12,7 +12,7 @@ module.exports = async function (app) {
 
 			try {
 
-			
+
 
 				var receipt = await app.erc20.transfer(token,app.config.SattReserve,amount,credentials);
 
@@ -36,6 +36,7 @@ module.exports = async function (app) {
 
 				resolve(receipt.transactionHash);
 				} catch (err) {
+					
 					reject(err)
 				}
 
