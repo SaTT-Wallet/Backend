@@ -105,12 +105,20 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getContractToken(token);
 
 
+
+
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
 			try {
-			var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-			console.log(receipt.events.CampaignCreated);
-			resolve(receipt.events.CampaignCreated.returnValues.id);
+				if(ctr.isCentral) {
+					var receipt = await  app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,credentials);
+					resolve(receipt);
+				}
+				else {
+					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+					resolve(receipt.events.CampaignCreated.returnValues.id);
+				}
+
 			} catch (err) {
 				reject(err)
 			}
@@ -134,7 +142,12 @@ module.exports = async function (app) {
 				var ctr = campaignManager.getContractToken(token);
 				var gasPrice = await ctr.getGasPrice();
 			var gas = 200000;
-			console.log(idCampaign,token,amount);
+
+			if(ctr.isCentral) {
+				var receipt = await  app.campaignCentral.fundCampaign(idCampaign,token,amount,credentials);
+				resolve(receipt);
+			}
+
 			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,token:token,amount:amount});
 			   console.log(receipt.transactionHash,"confirmed",idCampaign,"funded");
@@ -164,6 +177,12 @@ module.exports = async function (app) {
 			var ctr = campaignManager.getCampaignContract(idCampaign);
 			var gasPrice = await ctr.getGasPrice();
 			//var gasPrice = 4000000000;
+			if(ctr.isCentral) {
+				var receipt = await  app.campaignCentral.applyCampaign(idCampaign,typeSN,idPost,idUser,credentials);
+				resolve({transactionHash:receipt,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
+				return;
+			}
+
 			var isDoubled = ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
 			if(isDoubled)
 			{
@@ -171,7 +190,7 @@ module.exports = async function (app) {
 			}
 			else {
 				var receipt = ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve({transactionHash:hash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
+					resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
@@ -223,6 +242,12 @@ module.exports = async function (app) {
 				var gas = 100000;
 					var ctr = campaignManager.getPromContract(idProm);
 				var gasPrice = await ctr.getGasPrice();
+
+				if(ctr.isCentral) {
+					var receipt = await  app.campaignCentral.validateProm(idProm,credentials);
+					resolve({idProm:idProm});
+					return;
+				}
 
 				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
@@ -322,6 +347,13 @@ module.exports = async function (app) {
 					var ctr = await campaignManager.getPromContract(idProm);
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
+
+				if(ctr.isCentral) {
+					var receipt = await  app.campaignCentral.getGains(idProm,credentials);
+					resolve(receipt);
+					return;
+				}
+
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);
@@ -340,6 +372,13 @@ module.exports = async function (app) {
 				var gas = 200000;
 				var ctr = await campaignManager.getCampaignContract(idCampaign);
 				var gasPrice = await app.web3.eth.getGasPrice();
+
+				if(ctr.isCentral) {
+					var receipt = await  app.campaignCentral.getRemainingFunds(idCampaign,credentials);
+					resolve(receipt);
+					return;
+				}
+
 				var receipt = await  ctr.methods.getRemainingFunds(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign});
 				console.log(receipt.transactionHash,"confirmed gains remaining for",idCampaign);
@@ -445,86 +484,8 @@ module.exports = async function (app) {
 				resolve(0);
 			})
 		},
-		methods : {
-			createPriceFundYt:(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount) =>{this.prepreCall("createPriceFundYt",dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount)},
-			modCampaign:(idCampaign,dataUrl,startDate,endDate) =>{this.prepreCall("modCampaign",idCampaign,dataUrl,startDate,endDate)},
-			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{campaignManager.contractCentral.methods.prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
-			priceRatioCampaign:(idCampaign,typeSN,likeRatio,shareRatio,viewRatio) =>{this.prepreCall("priceRatioCampaign",idCampaign,typeSN,likeRatio,shareRatio,viewRatio)},
-			applyCampaign:(idCampaign,typeSN,idPost,idUser) =>{this.prepreCall("applyCampaign",idCampaign,typeSN,idPost,idUser)},
-			applyAndValidate:(idCampaign,influencer,typeSN,idPost,idUser) =>{this.prepreCall("applyAndValidate",idCampaign,influencer,typeSN,idPost,idUser)},
-			validateProm:(idProm) =>{this.prepreCall("validateProm",idProm)},
-			startCampaign:(idCampaign) =>{this.prepreCall("startCampaign",idCampaign)},
-			updateCampaignStats:(idCampaign) =>{this.prepreCall("updateCampaignStats",idCampaign)},
-			updatePromStats:(idProm) =>{this.prepreCall("updatePromStats",idProm)},
-			endCampaign:(idCampaign) =>{this.prepreCall("endCampaign",idCampaign)},
-			modToken:(token,istrue) =>{this.prepreCall("modToken",token,istrue)},
-			fundCampaign:(idCampaign,token,amount) =>{this.prepreCall("fundCampaign",idCampaign,token,amount)},
-			getGains:(idProm) =>{this.prepreCall("getGains",idProm)},
-			getRemainingFunds:(idCampaign) =>{this.prepreCall("getRemainingFunds",idCampaign)},
-			prepreCall:(args) => {
-				return {
-					arg:arg,
-					send : (params) => {
-						console.log("yoyoyo")
-						console.log(this)
-						switch ( this.arg[0] ) {
-							case "createPriceFundAll":
+		isCentral : true;
 
-								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6],{address:params.from});
-							break;
-							case "modCampaign":
-							;
-								//app.campaignCentral.modCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4]);
-							break;
-							case "priceRatioCampaign":
-							;
-								//app.campaignCentral.priceRatioCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5]);
-							break;
-							case "applyCampaign":
-								app.campaignCentral.applyCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],{address:params.from});
-							break;
-							case "validateProm":
-								app.campaignCentral.validateProm(this.arg[1],{address:params.from});
-							break;
-							case "startCampaign":
-							;
-								//app.campaignCentral.startCampaign(this.arg[1]);
-							break;
-							case "applyAndValidate":
-								app.campaignCentral.applyCampaign(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],{address:params.from});
-							break;
-							case "updateCampaignStats":
-							;
-								//app.campaignCentral.updateCampaignStats(this.arg[1]);
-							break;
-							case "updatePromStats":
-							;
-								//app.campaignCentral.updatePromStats(this.arg[1]);
-							break;
-							case "endCampaign":
-							;
-								//app.campaignCentral.endCampaign(this.arg[1]);
-							break;
-							case "modToken":
-							;
-								//app.campaignCentral.modToken(this.arg[1],this.arg[2]);
-							break;
-							case "fundCampaign":
-								app.campaignCentral.fundCampaign(this.arg[1],this.arg[2],this.arg[3],{address:params.from});
-							break;
-							case "getGains":
-								app.campaignCentral.getGains(this.arg[1],{address:params.from});
-							break;
-							case "getRemainingFunds":
-								app.campaignCentral.getRemainingFunds(this.arg[1],{address:params.from});
-							break;
-							default:
-								return;
-						}
-					}
-				}
-			}
-		}
 	}
 
 	app.campaign = campaignManager;

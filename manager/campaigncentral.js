@@ -12,7 +12,7 @@ module.exports = async function (app) {
 
 			try {
 
-				console.log("yoyoyoyo")
+			
 
 				var receipt = await app.erc20.transfer(token,app.config.SattReserve,amount,credentials);
 
