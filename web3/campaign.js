@@ -462,13 +462,14 @@ module.exports = async function (app) {
 			getGains:(idProm) =>{this.prepreCall("getGains",idProm)},
 			getRemainingFunds:(idCampaign) =>{this.prepreCall("getRemainingFunds",idCampaign)},
 			prepreCall:(args) => {
-				console.log("yoyo")
 				return {
 					arg:arg,
 					send : (params) => {
+						console.log("yoyoyo")
+						console.log(this)
 						switch ( this.arg[0] ) {
 							case "createPriceFundAll":
-							  console.log("yoyoyo")
+
 								app.campaignCentral.createCampaignAll(this.arg[1],this.arg[2],this.arg[3],this.arg[4],this.arg[5],this.arg[6],{address:params.from});
 							break;
 							case "modCampaign":
