@@ -448,7 +448,7 @@ module.exports = async function (app) {
 		methods : {
 			createPriceFundYt:(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount) =>{this.prepreCall("createPriceFundYt",dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount)},
 			modCampaign:(idCampaign,dataUrl,startDate,endDate) =>{this.prepreCall("modCampaign",idCampaign,dataUrl,startDate,endDate)},
-			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{this.prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
+			createPriceFundAll:(dataUrl,startDate,endDate,ratios,token,amount) =>{console.log(this);this.prepreCall("createPriceFundAll",dataUrl,startDate,endDate,ratios,token,amount)},
 			priceRatioCampaign:(idCampaign,typeSN,likeRatio,shareRatio,viewRatio) =>{this.prepreCall("priceRatioCampaign",idCampaign,typeSN,likeRatio,shareRatio,viewRatio)},
 			applyCampaign:(idCampaign,typeSN,idPost,idUser) =>{this.prepreCall("applyCampaign",idCampaign,typeSN,idPost,idUser)},
 			applyAndValidate:(idCampaign,influencer,typeSN,idPost,idUser) =>{this.prepreCall("applyAndValidate",idCampaign,influencer,typeSN,idPost,idUser)},
