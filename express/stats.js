@@ -108,6 +108,10 @@ module.exports = function (app) {
 		for (var i = 0;i<campaigns.length;i++)
 		{
 			var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
+			if(!ctr.methods)
+			{
+				continue;
+			}
 			var result = await ctr.methods.campaigns(campaigns[i].id).call();
 			campaigns[i].funds =  result.funds;
 			campaigns[i].nbProms =  result.nbProms;
