@@ -159,6 +159,7 @@ module.exports = function (app) {
 	app.get('/campaign/owner/:owner', async function(req, response) {
 		var owner = req.params.owner;
 		var campaigns = [];
+		var rescampaigns = [];
 		campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 		var campaignsCrm = [];
 		var campaignsCrmbyId = [];
@@ -170,15 +171,18 @@ module.exports = function (app) {
 		}
 		for (var i = 0;i<campaigns.length;i++)
 		{
+
+			if(!ctr.methods)
+			{
+				continue;
+			}
+
 			if(campaignsCrmbyId[campaigns[i].id])
 			{
 				campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
 			}
 
-
-
-			var ctraddr = await app.campaign.getCampaignContract(campaigns[i].id);
-			var ctr = await app.campaign.getContract(ctraddr);
+			var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
 			var result = await ctr.methods.campaigns(campaigns[i].id).call();
 			campaigns[i].funds =  result.funds;
 			campaigns[i].nbProms =  result.nbProms;
@@ -197,11 +201,14 @@ module.exports = function (app) {
 				{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
 				{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 			campaigns[i].ratios = res;
+
+			rescampaigns.push(campaigns[i]);
 		}
 		var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-		campaigns = campaigns.concat(campaignscentral);
+		rescampaigns = rescampaigns.concat(campaignscentral);
 
-		response.end(JSON.stringify(campaigns));
+
+		response.end(JSON.stringify(rescampaigns));
 	});
 
 	app.get('/campaign/draft/:token', async function(req, response) {
