@@ -93,6 +93,7 @@ module.exports = function (app) {
 		var address = req.params.influencer;
 
 		var campaigns = [];
+		var rescampaigns = [];
 		campaigns = await app.db.campaign().find({contract:{$ne : "central"}}).toArray();
 
 		var campaignsCrm = [];
@@ -146,11 +147,13 @@ module.exports = function (app) {
 			{
 				campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
 			}
+			rescampaigns.push(campaigns[i]);
 		}
-		var campaignscentral = await app.statcentral.campaignById(address);
-		campaigns = campaigns.concat(campaignscentral);
+		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
-		response.end(JSON.stringify(campaigns));
+		rescampaigns = rescampaigns.concat(campaignscentral);
+
+		response.end(JSON.stringify(rescampaigns));
 	});
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
