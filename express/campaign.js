@@ -52,12 +52,12 @@ module.exports = function (app) {
 				token = app.config.ctrs.token.address.testnet;
 			}
 
-			var balance = await app.erc20.getBalance(token,cred.address);
+			/*var balance = await app.erc20.getBalance(token,cred.address);
 
 			if( (new BN(balance.amount)).lt(new BN(amount)) )
 			{
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
-			}
+			}*/
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			response.end(JSON.stringify(ret));
