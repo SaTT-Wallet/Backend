@@ -184,7 +184,7 @@ module.exports = async function (app) {
 				reject({message:"Link already sent"});
 			}
 			else {
-				var receipt = ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
