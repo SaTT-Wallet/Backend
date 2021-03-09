@@ -171,7 +171,7 @@ module.exports = function (app) {
 		var campaigns = [];
 		var rescampaigns = [];
 		campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
-	
+
 		var campaignsCrm = [];
 		var campaignsCrmbyId = [];
 		campaignsCrm = await app.db.campaignCrm().find().toArray();
@@ -340,9 +340,10 @@ module.exports = function (app) {
 	app.get('/prom/:id/live', async function(req, response) {
 		var idProm = req.params.id;
 
-		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
-		if(prom)
+
+	if(idProm.substring(0,2) != "0x")
 		{
+			var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 			var res = await app.statcentral.resultsByPromLive(idProm);
 			response.end(JSON.stringify(res));
 			return;
