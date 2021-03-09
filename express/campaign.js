@@ -222,7 +222,7 @@ module.exports = function (app) {
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-			console.log(ctr,app.config.ctrs.campaignAdvFee.address.mainnet)
+		
 			if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
