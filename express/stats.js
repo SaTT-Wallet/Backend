@@ -6,12 +6,12 @@ module.exports = function (app) {
 		var idCampaign = req.params.id;
 
 		if(app.campaign.isCentral(idCampaign)) {
-			console.log("central");
+			
 			var campaign = await app.statcentral.campaignById(idCampaign);
 			response.end(JSON.stringify(campaign));
 			return;
 		}
-			console.log("no central");
+
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
