@@ -219,6 +219,7 @@ module.exports = async function (app) {
 			//app.web3.eth.accounts.wallet.clear();
 			try {
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
+				app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass);
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
@@ -246,6 +247,7 @@ module.exports = async function (app) {
 
 	accountManager.lock =  function (addr) {
 		app.web3.eth.accounts.wallet.remove(addr);
+		app.web3Bep20.eth.accounts.wallet.remove(addr);
 	}
 
 	accountManager.lockBSC =  function (addr) {
