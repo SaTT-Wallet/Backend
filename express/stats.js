@@ -85,6 +85,10 @@ module.exports = function (app) {
 		if(campaignsCrm.length)
 			result.meta = campaignsCrm[0];
 
+		if(result.meta.token.name == "SATTBEP20") {
+			result.meta.token.name ="SATT";
+		}
+
 		response.end(JSON.stringify(result));
 
 	});
@@ -146,6 +150,9 @@ module.exports = function (app) {
 			if(campaignsCrmbyId[campaigns[i].id])
 			{
 				campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
+				if(campaigns[i].meta.token.name == "SATTBEP20") {
+					campaigns[i].meta.token.name ="SATT";
+				}
 			}
 			rescampaigns.push(campaigns[i]);
 		}
@@ -180,6 +187,9 @@ module.exports = function (app) {
 			if(campaignsCrmbyId[campaigns[i].id])
 			{
 				campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
+				if(campaigns[i].meta.token.name == "SATTBEP20") {
+					campaigns[i].meta.token.name ="SATT";
+				}
 			}
 
 
