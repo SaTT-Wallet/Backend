@@ -610,7 +610,7 @@ module.exports = function (app) {
 
 			var token = req.params.token;
 			var spender = req.params.spender;
-			if(spender == app.config.ctrs.campaign.address.mainnet)
+			if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.mainnet;
 			}
@@ -656,7 +656,7 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.access_token);
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			if(spender == app.config.ctrs.campaign.address.mainnet)
+			if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.mainnet;
 			}
