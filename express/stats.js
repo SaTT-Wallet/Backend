@@ -4,9 +4,9 @@ module.exports = function (app) {
 
 
 		var idCampaign = req.params.id;
+		var isCentral = await app.campaign.isCentral(idCampaign);
+		if(isCentral) {
 
-		if(app.campaign.isCentral(idCampaign)) {
-			
 			var campaign = await app.statcentral.campaignById(idCampaign);
 			response.end(JSON.stringify(campaign));
 			return;
