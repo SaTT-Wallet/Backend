@@ -638,7 +638,7 @@ module.exports = function (app) {
 	app.post('/v2/bep20/allow',async function(req, response) {
 
 		try {
-			console.log(req.body);
+
 			var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
@@ -646,6 +646,14 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.access_token);
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
+			if(spender == app.config.ctrs.campaign.address.mainnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.mainnet;
+			}
+			if(spender == app.config.ctrs.campaign.address.testnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.testnet;
+			}
 			var ret = await app.bep20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
