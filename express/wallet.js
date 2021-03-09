@@ -608,8 +608,8 @@ module.exports = function (app) {
 
 			var token = req.params.token;
 			var spender = req.params.spender;
-			//var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
-			var allowance = {amount:"10000000000000000000000000000"};
+			var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
+
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	})
 
