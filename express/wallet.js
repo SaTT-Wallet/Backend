@@ -606,8 +606,18 @@ module.exports = function (app) {
 	/////////////////
 	app.get('/v2/bep20/:token/approval/:addr/:spender',async function(req, response) {
 
+
+
 			var token = req.params.token;
 			var spender = req.params.spender;
+			if(spender == app.config.ctrs.campaign.address.mainnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.mainnet;
+			}
+			if(spender == app.config.ctrs.campaign.address.testnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.testnet;
+			}
 			var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
 
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
