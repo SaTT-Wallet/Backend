@@ -178,7 +178,7 @@ module.exports = async function (app) {
 	})*/
 
 
-	bep20Manager.SattAllTX = async (error, evt) => {
+	/*eventWatcher.SattAllTX = async (error, evt) => {
 			var to = evt.returnValues.to;
 			var value = evt.returnValues.value;
 			var from = evt.returnValues.from;
@@ -194,7 +194,7 @@ module.exports = async function (app) {
 
 	    var res = await app.db.indexedtx().insertOne(tx);
 
-	}
+	}*/
 
 	app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
 
