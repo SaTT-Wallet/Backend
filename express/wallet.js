@@ -648,7 +648,7 @@ module.exports = function (app) {
 	app.post('/v2/bep20/allow',async function(req, response) {
 
 		try {
-
+			console.log( req.body);
 			var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
