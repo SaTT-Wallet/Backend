@@ -318,9 +318,10 @@ module.exports = function (app) {
 	app.get('/prom/:id/results',async  function(req, response) {
 		var idProm = req.params.id;
 
-		var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
-		if(prom)
+
+		if(idProm.substring(0,2) != "0x")
 		{
+			var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 			var res = await app.statcentral.resultsByProm(idProm);
 			response.end(JSON.stringify(res));
 			return;
