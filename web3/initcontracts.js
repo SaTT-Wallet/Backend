@@ -22,7 +22,7 @@ module.exports = async function (app ) {
 		app.oracleManager.followContract();
 		app.token.followContract();
 		await app.bep20.initEventHandlers();
-		//app = await require("../manager/eventWatcher")(app);
+		app = await require("../manager/eventWatcher")(app);
 
 	}
 
