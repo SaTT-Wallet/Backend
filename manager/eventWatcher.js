@@ -17,7 +17,7 @@ module.exports = async function (app) {
 		var startDate =  evt.returnValues.startDate;
 		var endDate =  evt.returnValues.endDate;
 		var dataUrl =  evt.returnValues.dataUrl;
-
+		var tx;
 		var ev = {
 			id : idCampaign,
 			type : "created",
@@ -26,7 +26,14 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase()
 		};
 
-		var tx = await app.web3.eth.getTransaction(evt.transactionHash);
+		if(ev.contract = app.config.ctrs.campaignBep20.address.mainnet) {
+			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
+		}
+		else {
+			tx = await app.web3.eth.getTransaction(evt.transactionHash);
+		}
+
+
 
 		var campaign = {
 			id : idCampaign,
