@@ -178,7 +178,7 @@ module.exports = async function (app) {
 				return;
 			}
 
-			var isDoubled = ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
+			var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
 			if(isDoubled)
 			{
 				reject({message:"Link already sent"});
