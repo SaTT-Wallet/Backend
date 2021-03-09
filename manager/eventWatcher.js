@@ -89,9 +89,9 @@ module.exports = async function (app) {
 	app.campaign.contract.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
 	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
 
-	app.campaign.contractAdvFee.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
-	app.campaign.contractAdvFee.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
-	app.campaign.contractAdvFee.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
+	/*app.campaign.contractAdvFee.events.CampaignCreated ( eventWatcher.campaignCreated);
+	app.campaign.contractAdvFee.events.CampaignFundsSpent (eventWatcher.campaignFundsSpent);
+	app.campaign.contractAdvFee.events.CampaignApplied ( eventWatcher.campaignApplied);*/
 
 	app.campaign.contractBep20.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
 	app.campaign.contractBep20.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
