@@ -180,7 +180,7 @@ module.exports = async function (app) {
 
     bep20Manager.approve = async function (token,addr,spender,amount) {
   		return new Promise(async (resolve, reject) => {
-
+        console.log("approve",token,addr,spender,amount)
   			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
 
   			var gasPrice = await app.web3Bep20.eth.getGasPrice();
