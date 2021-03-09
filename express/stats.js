@@ -171,7 +171,7 @@ module.exports = function (app) {
 		var campaigns = [];
 		var rescampaigns = [];
 		campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
-		console.log("stats",campaigns);
+	
 		var campaignsCrm = [];
 		var campaignsCrmbyId = [];
 		campaignsCrm = await app.db.campaignCrm().find().toArray();
