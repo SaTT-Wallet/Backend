@@ -134,7 +134,7 @@ module.exports = async function (app) {
 	campaignManager.fundCampaign = async function (idCampaign,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				var ctr = campaignManager.getContractToken(token);
+				var ctr = await campaignManager.getContractToken(token);
 				var gasPrice = await ctr.getGasPrice();
 			var gas = 200000;
 
@@ -157,7 +157,7 @@ module.exports = async function (app) {
 	campaignManager.priceRatioCampaign = async function (idCampaign,typeSN,likeRatio,shareRatio,viewRatio,credentials) {
 		return new Promise(async (resolve, reject) => {
 		var gas = 100000;
-		var ctr = campaignManager.getCampaignContract(idCampaign);
+		var ctr = await campaignManager.getCampaignContract(idCampaign);
 			var gasPrice = await ctr.getGasPrice();
 			var receipt = await  ctr.methods.priceRatioCampaign(idCampaign,typeSN,likeRatio,shareRatio,viewRatio).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,typeSN:typeSN,likeRatio:likeRatio,shareRatio:shareRatio,viewRatio:viewRatio});
@@ -169,7 +169,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try {
 			var gas = 400000;
-			var ctr = campaignManager.getCampaignContract(idCampaign);
+			var ctr = await campaignManager.getCampaignContract(idCampaign);
 			var gasPrice = await ctr.getGasPrice();
 			//var gasPrice = 4000000000;
 			if(ctr.isCentral) {
@@ -235,7 +235,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var gas = 100000;
-					var ctr = campaignManager.getPromContract(idProm);
+					var ctr = await campaignManager.getPromContract(idProm);
 				var gasPrice = await ctr.getGasPrice();
 
 				if(ctr.isCentral) {
@@ -318,7 +318,7 @@ module.exports = async function (app) {
 	campaignManager.addToken = async function (token) {
 		return new Promise(async (resolve, reject) => {
 			var gas = 100000;
-				var ctr = campaignManager.getContractToken(token)
+				var ctr = await campaignManager.getContractToken(token)
 			var gasPrice = await ctr.getGasPrice();
 			var receipt = await  ctr.methods.modToken(token,true).send( {gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,token:token});
