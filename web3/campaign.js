@@ -66,9 +66,9 @@ module.exports = async function (app) {
 		 return gas;
 		}
 		if(app.config.testnet)
-			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.mainnet);
-		else
 			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.testnet);
+		else
+			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.mainnet);
 		campaignManager.contractBep20.getGasPrice = async function () {
 		 var gas = await app.web3Bep20.eth.getGasPrice();
 		 return gas;
@@ -103,7 +103,7 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getContractToken(token);
 
 
-			
+
 
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
