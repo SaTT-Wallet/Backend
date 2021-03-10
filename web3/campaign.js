@@ -28,6 +28,8 @@ module.exports = async function (app) {
 	}
 
 	campaignManager.getPromContract = async function (idProm) {
+
+
 		var proms = await app.db.event().find({prom:idProm}).toArray();
 		if(proms)
 			return 	 campaignManager.getContract(proms[0].contract);
@@ -52,7 +54,7 @@ module.exports = async function (app) {
 
 		campaignManager.isCentral = async function (idCampaign) {
 			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
-			
+
 			return campaigns[0].contract == "central";
 		}
 

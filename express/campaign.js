@@ -222,7 +222,7 @@ module.exports = function (app) {
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-		
+
 			if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
@@ -429,15 +429,20 @@ module.exports = function (app) {
 				return;
 			}
 
+
 			var res = await app.crm.auth( req.body.token);
 			var cred2 = await app.account.unlock(res.id,pass);
+			var ctr = await app.campaign.getPromContract(idProm);
 
-			var gasPrice = await app.web3.eth.getGasPrice();
+			console.log(ctr);
 
-			var ctraddr = await app.campaign.getPromContract(idProm);
-			var ctr = await app.campaign.getContract(ctraddr);
+		  var gasPrice = await ctr.getGasPrice();
+
 
 			var prom = await ctr.methods.proms(idProm).call();
+
+
+
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 			console.log(prevstat);
