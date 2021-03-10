@@ -308,7 +308,7 @@ module.exports = function (app) {
 
 	app.get('/prom/:id/status',async function(req, response) {
 		var idProm = req.params.id;
-		var ctra = await app.campaign.getPromContract(idProm);
+		var ctr = await app.campaign.getPromContract(idProm);
 
 		ctr.methods.proms(idProm).call().then(function (results) {
 			delete(results.results)
