@@ -14,10 +14,10 @@ module.exports = function (app) {
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
-    console.log(ctr)
+
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
-    console.log(result,idCampaign)
+    
 
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
