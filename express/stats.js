@@ -330,9 +330,10 @@ module.exports = function (app) {
 
 		var ctr = await app.campaign.getPromContract(idProm);
 
-		console.log(ctr)
+
 
 		ctr.methods.getResults(idProm).call().then(function (results) {
+			console.log(results)
 			app.db.request().find({"id":{$in:results},"views":{ $exists: true}}).toArray(function(err,res2){
 				response.end(JSON.stringify(res2));
 			})
