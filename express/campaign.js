@@ -429,19 +429,12 @@ module.exports = function (app) {
 				return;
 			}
 
-
 			var res = await app.crm.auth( req.body.token);
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-			console.log(ctr);
-
 		  var gasPrice = await ctr.getGasPrice();
-
-
 			var prom = await ctr.methods.proms(idProm).call();
-
-
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
@@ -454,23 +447,19 @@ module.exports = function (app) {
 
 				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
 				{
-
-					var evts = await app.campaign.updatePromStats(idProm,cred2);
-
+					  var evts = await app.campaign.updatePromStats(idProm,cred2);
 						var evt = evts.events[0];
-
 						var idRequest = evt.raw.topics[1];
 						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
 						if(log.typeSN == prom.typeSN && log.idPost == prom.idPost && log.idUser == prom.idUser)
 							requests = [{id:idRequest}];
-
 				}
 			}
 			if(requests.length)
 			{
 				console.log("updateOracle",requests);
 				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
-				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctraddr,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
+				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
 			}
 
 
