@@ -79,7 +79,8 @@ module.exports = async function (app) {
 	ContractToken.checkAnswer = async function () {
 
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-		var gasPrice = await app.web3.eth.getGasPrice();
+		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+
 		var requests = await app.db.request().find({isNew: true}).toArray();
 		for(var i = 0;i<requests.length;i++)
 		{
@@ -113,7 +114,7 @@ module.exports = async function (app) {
 			}
 			else {
 				await app.db.request().updateOne({_id:request.id},{$set:{likes:res.likes,shares:res.shares,views:res.views,isNew:false}});
-				await ContractToken.answerCall({gasPrice:gasPrice,from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idRequest:request.id,likes:res.likes,shares:res.shares,views:res.views});
+				await ContractToken.answerCall({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idRequest:request.id,likes:res.likes,shares:res.shares,views:res.views});
 			}
 
 		}
@@ -129,7 +130,22 @@ module.exports = async function (app) {
 			ContractToken.contract = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnet);
 		}
 
+		ContractToken.contract.getGasPrice = async function () {
+		 var gas = await app.web3.eth.getGasPrice();
+		 return gas;
+		}
+
+			ContractToken.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.oracleBep20.abi,app.config.ctrs.oracleBep20.address.mainnet);
+		ContractToken.contractBep20.getGasPrice = async function () {
+		 var gas = await app.web3Bep20.eth.getGasPrice();
+		 return gas;
+		}
+
 		ContractToken.contract.events.AskRequest().on('data', async (event) => {
+			await ContractToken.eventCallback(event);
+		});
+
+		ContractToken.contractBep20.events.AskRequest().on('data', async (event) => {
 			await ContractToken.eventCallback(event);
 		});
 		ContractToken.isDeplyed = true;
@@ -166,18 +182,20 @@ module.exports = async function (app) {
 
 	ContractToken.answerCall = async function (opts) {
 		return new Promise(async (resolve, reject) => {
-			if (!ContractToken.isDeplyed)
-			{
-				reject({error : "contract not deployed"});
-				return;
-			}
+			var ctr;
+		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
+			ctr = ContractToken.contract;
+		}
+		else {
+			ctr = ContractToken.contractBep20;
+		}
 
 			var headerSent = false;
-			var gasPrice = await app.web3.eth.getGasPrice();
+			var gasPrice = await ctr.getGasPrice();
 
 			//var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
 
-			var receipt = await  ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerCall transactionHash",hash)});
+			var receipt = await  ctr.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerCall transactionHash",hash)});
 			resolve({result : "OK",hash:receipt.hash});
 
 		});
