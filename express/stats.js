@@ -17,7 +17,7 @@ module.exports = function (app) {
 
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
-
+    console.log(result)
 
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
