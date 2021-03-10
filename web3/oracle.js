@@ -190,6 +190,9 @@ module.exports = async function (app) {
 			ctr = ContractToken.contractBep20;
 		}
 
+		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+
 			var headerSent = false;
 			var gasPrice = await ctr.getGasPrice();
 
