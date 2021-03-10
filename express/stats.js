@@ -331,13 +331,13 @@ module.exports = function (app) {
 		var ctr = await app.campaign.getPromContract(idProm);
 
 
-
-		ctr.methods.getResults(idProm).call().then(function (results) {
-			console.log(results)
-			app.db.request().find({"id":{$in:results},"views":{ $exists: true}}).toArray(function(err,res2){
-				response.end(JSON.stringify(res2));
-			})
-		});
+		var res2 = [];
+		var results = await ctr.methods.getResults(idProm).call();
+			for(var i = 0;i<results.length;i++) {
+				var r = await ctr.methods.results(results[i]).call();
+				res2.push(r);
+			}
+			response.end(JSON.stringify(res2));
 	})
 
 	app.get('/prom/:id/live', async function(req, response) {
