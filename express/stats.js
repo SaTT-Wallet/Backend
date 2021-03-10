@@ -14,10 +14,10 @@ module.exports = function (app) {
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
-
+		console.log("ZZ"+idCampaign+"ZZ");
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
-    
+
 
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
@@ -329,6 +329,8 @@ module.exports = function (app) {
 		}
 
 		var ctr = await app.campaign.getPromContract(idProm);
+
+		console.log(ctr)
 
 		ctr.methods.getResults(idProm).call().then(function (results) {
 			app.db.request().find({"id":{$in:results},"views":{ $exists: true}}).toArray(function(err,res2){
