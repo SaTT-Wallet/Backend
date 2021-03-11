@@ -14,7 +14,7 @@ module.exports = async function (app) {
 		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
 				return campaignManager.contractBep20;
 		else
-			return false;
+				return campaignManager.contractCentral
 	}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
@@ -180,7 +180,7 @@ module.exports = async function (app) {
 			var gas = 400000;
 			var ctr = await campaignManager.getCampaignContract(idCampaign);
 
-			console.log(ctr)
+
 
 			//var gasPrice = 4000000000;
 			if(ctr.isCentral) {
