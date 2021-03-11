@@ -178,14 +178,14 @@ module.exports = async function (app) {
 			try {
 			var gas = 400000;
 			var ctr = await campaignManager.getCampaignContract(idCampaign);
-			var gasPrice = await ctr.getGasPrice();
+
 			//var gasPrice = 4000000000;
 			if(ctr.isCentral) {
 				var receipt = await  app.campaignCentral.applyCampaign(idCampaign,typeSN,idPost,idUser,credentials);
 				resolve({transactionHash:receipt,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				return;
 			}
-
+				var gasPrice = await ctr.getGasPrice();
 			var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
 			if(isDoubled)
 			{
