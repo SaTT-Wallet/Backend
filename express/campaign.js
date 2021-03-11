@@ -223,16 +223,16 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 
-			if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
+			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
 				var ret = await app.db.apply().insertOne(applyLink);
 				response.end(JSON.stringify(ret.insertedId));
-			}
-			else {
+			}*/
+		//	else {
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
-			}
+		//	}
 
 
 
