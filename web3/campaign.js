@@ -39,6 +39,7 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
+		console.log("token",token);
 		var code = await app.web3Bep20.eth.getCode(token);
 
 		if(code != "0x") {
