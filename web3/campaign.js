@@ -35,7 +35,7 @@ module.exports = async function (app) {
 		if(proms)
 			return 	 campaignManager.getContract(proms[0].contract);
 		else
-			return false;
+			return campaignManager.contractCentral;
 	}
 
 	campaignManager.getContractToken = async function (token) {
@@ -247,14 +247,14 @@ module.exports = async function (app) {
 			try {
 				var gas = 100000;
 					var ctr = await campaignManager.getPromContract(idProm);
-				var gasPrice = await ctr.getGasPrice();
+
 
 				if(ctr.isCentral) {
 					var receipt = await  app.campaignCentral.validateProm(idProm,credentials);
 					resolve({idProm:idProm});
 					return;
 				}
-
+					var gasPrice = await ctr.getGasPrice();
 				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed validated prom ",idProm);
