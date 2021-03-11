@@ -251,11 +251,12 @@ module.exports = function (app) {
 		var idApply = req.body.idProm;
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
+		console.log(ctr);
 
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-			if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
+			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
 				var prom = await app.db.apply().findOne({_id:app.ObjectId(idApply)});
 
@@ -264,10 +265,10 @@ module.exports = function (app) {
 				var prom = await app.db.apply().deleteOne({_id:app.ObjectId(idApply)});
 
 			}
-			else {
+			else {*/
 				var ret = await app.campaign.validateProm(idApply,cred)
 
-			}
+		//	}
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
