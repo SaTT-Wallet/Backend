@@ -434,6 +434,12 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
+				if(ctr.isCentral) {
+					var ret = await  app.campaignCentral.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
+
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
 
