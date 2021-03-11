@@ -48,7 +48,7 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 
-			if(app.config.testnet || token == app.config.ctrs.token.address.mainnet) {
+			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				token = app.config.ctrs.token.address.testnet;
 			}
 
