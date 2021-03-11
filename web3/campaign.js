@@ -21,7 +21,8 @@ module.exports = async function (app) {
 		var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
 		if(campaigns.length)
 		{
-			return campaignManager.getContract( campaigns[0].contract);
+			return campaignManager.contractCentral;
+			//return campaignManager.getContract( campaigns[0].contract);
 		}
 		else
 			return false;
@@ -112,7 +113,7 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
 			try {
-				if(ctr.isCentral) {
+				if() {
 					var receipt = await  app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,credentials);
 					resolve(receipt);
 				}
@@ -180,7 +181,7 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getCampaignContract(idCampaign);
 
 			//var gasPrice = 4000000000;
-			if(ctr.isCentral) {
+			if(ctr.isCentral()) {
 				var receipt = await  app.campaignCentral.applyCampaign(idCampaign,typeSN,idPost,idUser,credentials);
 				resolve({transactionHash:receipt,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				return;
