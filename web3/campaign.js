@@ -32,6 +32,7 @@ module.exports = async function (app) {
 
 
 		var proms = await app.db.event().find({prom:idProm}).toArray();
+		console.log("log",proms)
 		if(proms)
 			return 	 campaignManager.getContract(proms[0].contract);
 		else
@@ -56,7 +57,7 @@ module.exports = async function (app) {
 
 		campaignManager.isCentral = async function (idCampaign) {
 			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
-			console.log("A",campaigns,"Z");
+
 			if(!campaigns) {
 				return true;
 			}
