@@ -33,10 +33,12 @@ module.exports = async function (app) {
 
 		var proms = await app.db.event().find({prom:idProm}).toArray();
 		console.log("log",proms)
-		if(proms)
+		if(proms.length) {
 			return 	 campaignManager.getContract(proms[0].contract);
-		else
+		}
+		else {
 			return campaignManager.contractCentral;
+		}
 	}
 
 	campaignManager.getContractToken = async function (token) {
