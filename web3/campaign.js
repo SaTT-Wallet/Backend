@@ -179,7 +179,7 @@ module.exports = async function (app) {
 			try {
 			var gas = 400000;
 			var ctr = await campaignManager.getCampaignContract(idCampaign);
-
+			console.log(ctr);
 
 
 			//var gasPrice = 4000000000;
