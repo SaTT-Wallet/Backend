@@ -251,7 +251,7 @@ module.exports = function (app) {
 		var idApply = req.body.idProm;
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
-	
+
 
 		try {
 			var res = await app.crm.auth( req.body.token);
@@ -355,7 +355,7 @@ module.exports = function (app) {
 
 			var gasPrice = await app.web3.eth.getGasPrice();
 			app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-			var prom = await app.campaign..methods.proms(idProm).call();
+			var prom = await app.campaign.methods.proms(idProm).call();
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 			console.log(prevstat);
