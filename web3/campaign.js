@@ -181,7 +181,7 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getCampaignContract(idCampaign);
 
 			//var gasPrice = 4000000000;
-			if(ctr.isCentral()) {
+			if(ctr.isCentral) {
 				var receipt = await  app.campaignCentral.applyCampaign(idCampaign,typeSN,idPost,idUser,credentials);
 				resolve({transactionHash:receipt,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				return;
