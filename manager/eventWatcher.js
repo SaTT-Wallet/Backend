@@ -203,7 +203,7 @@ module.exports = async function (app) {
 
 	}*/
 
-	app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
+	//app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
 
 	app.events = eventWatcher;
 	return app;
