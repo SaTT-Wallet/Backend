@@ -14,7 +14,7 @@ module.exports = function (app) {
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
-		console.log("ZZ"+idCampaign+"ZZ");
+	
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
 
