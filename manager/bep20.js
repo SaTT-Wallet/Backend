@@ -12,6 +12,7 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventETHtoBSC = async (error, evt) => {
+      console.log(error, evt)
       if(error) {
         console.log(error);
         return;
