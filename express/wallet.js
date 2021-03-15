@@ -475,7 +475,8 @@ module.exports = function (app) {
 
 	app.get('/holders/:token', async function(req, response) {
 
-		var res = await app.account.getHolders(req.params.token);
+		//var res = await app.account.getHolders(req.params.token);
+		var res = "";
 		response.end(res);
 	})
 
