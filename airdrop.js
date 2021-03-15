@@ -29,9 +29,9 @@ try {
    //var amount = bal.div(new BN(20));
    var amount = bal.div(div18);
    total = total.add(amount);
-   console.log(i,n,bals[i].address,amount.toString(),total.toString());
+   console.log(i,n,bals[i].address,bal.toString(),total.toString());
 
-   //var receipt = await app.bep20.transferBEP(bals[i].address,amount);
+   var receipt = await app.bep20.transferBEP(bals[i].address,amount);
    //console.log(receipt);
 
  }
