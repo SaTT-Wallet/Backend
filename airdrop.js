@@ -27,7 +27,7 @@ try {
    var bal = new BN (bals[i].balance);
    var amount = bal.mul(new BN("0.05"));
    total.add(amount);
-   console.log(i,n,bals[i].address,amount.toNumber(),total);
+   console.log(i,n,bals[i].address,amount.toString(),total);
 
    //var receipt = await app.bep20.transferBEP(bals[i].address,amount);
    //console.log(receipt);
