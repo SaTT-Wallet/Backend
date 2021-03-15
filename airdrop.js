@@ -25,7 +25,7 @@ try {
   var total = new BN("0");
   var div18 =  new BN("1000000000000000000");
  for (var i = 0; i < bals.length; i++) {
-   var bal = new BN (bals[i].balance);
+   var bal = (new BN (bals[i].balance)).div(new BN("20"));
    //var amount = bal.div(new BN(20));
    var amount = bal.div(div18);
    total = total.add(amount);
