@@ -18,7 +18,7 @@ try {
   var bals = await app.db.balance().find().toArray();
   var n = bals.length;
 
-  var reservePath = fs.readFileSync("/conf/steps/campaign.json",'utf8');
+  var reservePath = fs.readFileSync("./conf/steps/campaign.json",'utf8');
   var reserveBep20 = JSON.parse(reservePath);
 
   app.web3Bep20.eth.accounts.wallet.decrypt([reserveBep20], app.config.SattReservePass);
