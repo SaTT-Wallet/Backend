@@ -15,7 +15,7 @@ try {
   app = await require("./manager/bep20")(app);
   app = await require("./manager/account")(app);
 
-  var bals = await app.db.app.balance().find().toArray();
+  var bals = await app.db.balance().find().toArray();
   var n = bals.length;
 
   var reservePath = fs.readFileSync("/conf/steps/campaign.json",'utf8');
