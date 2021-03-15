@@ -15,7 +15,7 @@ try {
   app = await require("./manager/bep20")(app);
   app = await require("./manager/account")(app);
 
-  var bals = await app.db.balance().find().toArray({balance:{$ne:"0"}});
+  var bals = await app.db.balance().find({balance:{$ne:"0"}}).toArray();
   var n = bals.length;
 
   var reservePath = fs.readFileSync("./conf/steps/campaign.json",'utf8');
@@ -28,7 +28,7 @@ try {
    //var amount = bal.div(new BN(20));
    var amount = bal;
    total.iadd(amount);
-   console.log(i,n,bals[i].address,amount.toString(),total.toString());
+   console.log(i,n,bals[i].address,amount.toString()/*,total.toString()*/);
 
    //var receipt = await app.bep20.transferBEP(bals[i].address,amount);
    //console.log(receipt);
