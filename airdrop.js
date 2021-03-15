@@ -22,10 +22,10 @@ try {
   var reserveBep20 = JSON.parse(reservePath);
 
   app.web3Bep20.eth.accounts.wallet.decrypt([reserveBep20], app.config.SattReservePass);
-  var total = new BN(0);
+  var total = new BN("0");
  for (var i = 0; i < bals.length; i++) {
    var bal = new BN (bals[i].balance);
-   var amount = bal.mul(0.05);
+   var amount = bal.mul("0.05");
    total.add(amount);
    console.log(i,n,bals[i].address,amount.toNumber(),total);
 
