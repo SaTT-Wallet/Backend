@@ -25,7 +25,7 @@ try {
   var total = new BN("0");
  for (var i = 0; i < bals.length; i++) {
    var bal = new BN (bals[i].balance);
-   var amount = bal.div(20);
+   var amount = bal.div(new BN(20));
    total.iadd(amount);
    console.log(i,n,bals[i].address,amount.toString(),total.toString());
 
