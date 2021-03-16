@@ -24,7 +24,7 @@ try {
   app.web3Bep20.eth.accounts.wallet.decrypt([reserveBep20], app.config.SattReservePass);
   var total = new BN("0");
   var div18 =  new BN("1000000000000000000");
- for (var i = 7127; i < bals.length; i++) {
+ for (var i = 7128; i < bals.length; i++) {
    var bal = (new BN (bals[i].balance)).div(new BN("20"));
    var amount = bal.div(new BN(20));
    //var amount = bal.div(div18);
