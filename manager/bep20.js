@@ -3,9 +3,7 @@ module.exports = async function (app) {
   	var bep20Manager = {};
 
     var nullAddress = "0x0000000000000000000000000000000000000000";
-
     bep20Manager.contract = new app.web3Bep20.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
-
 
     bep20Manager.unlockOwner = async () => {
       app.web3Bep20.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
