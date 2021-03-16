@@ -24,15 +24,15 @@ try {
   app.web3Bep20.eth.accounts.wallet.decrypt([reserveBep20], app.config.SattReservePass);
   var total = new BN("0");
   var div18 =  new BN("1000000000000000000");
- for (var i = 6667; i < bals.length; i++) {
+ for (var i = 7000; i < bals.length; i++) {
    var bal = (new BN (bals[i].balance)).div(new BN("20"));
    var amount = bal.div(new BN(20));
    //var amount = bal.div(div18);
    total = total.add(amount);
    console.log(i,n,bals[i].address,bal.toString(),total.toString());
 
-   var receipt = await app.bep20.transferBEP(bals[i].address,bal,{address:"0x"+reserveBep20.address});
-   console.log(receipt);
+   //var receipt = await app.bep20.transferBEP(bals[i].address,bal,{address:"0x"+reserveBep20.address});
+   //console.log(receipt);
 
  }
 
