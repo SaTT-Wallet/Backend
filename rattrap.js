@@ -17,7 +17,7 @@ try {
 
   var bals2 = await app.db.balance2().find({balance:{$ne:"0"}}).toArray();
 
-  var n = bals.length;
+  var n = bals2.length;
 
   var reservePath = fs.readFileSync("./conf/steps/campaign.json",'utf8');
   var reserveBep20 = JSON.parse(reservePath);
