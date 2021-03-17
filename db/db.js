@@ -116,17 +116,23 @@ module.exports = async function (app) {
             return db2.db(app.config.mongoBaseCrm).collection('sn_user');
         };
 
-				app.db.buy = function () {
+		app.db.buy = function () {
 								return db2.db(app.config.mongoBaseCrm).collection('buy_satt');
 						};
 
-						app.db.indexedtx = function () {
-										return db.db(app.config.mongoBase).collection('indexed_tx');
-								};
+		app.db.indexedtx = function () {
+			return db.db(app.config.mongoBase).collection('indexed_tx');
+	};
 
-								app.db.balance = function () {
-												return db.db(app.config.mongoBase).collection('balance');
-										};
+		app.db.balance = function () {
+				return db.db(app.config.mongoBase).collection('balance');
+		};
+		app.db.balance2 = function () {
+				return db.db(app.config.mongoBase).collection('balance2');
+		};
+		app.db.delta = function () {
+				return db.db(app.config.mongoBase).collection('delta');
+		};
 
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
