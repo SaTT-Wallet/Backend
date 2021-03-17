@@ -38,7 +38,7 @@ try {
 
 
    var delta = amount2.sub(amount1);
-   if(!delta.gt(new BN(0)))
+   if(delta.gt(new BN(0)))
     console.log(bal2.address, delta.toString());
 
    //var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
