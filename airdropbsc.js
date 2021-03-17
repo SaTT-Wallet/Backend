@@ -12,7 +12,7 @@ try {
         var parts = line.split('"');
         var address = parts[1];
         var amount = new BN(parseFloat(parts[3]))
-        var mul18 = var div18 =  new BN("1000000000000000000");
+        var mul18  =  new BN("1000000000000000000");
         console.log(address,amount.mul(mul18).toString());
     });
 } catch (err) {
