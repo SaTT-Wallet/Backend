@@ -29,7 +29,7 @@ try {
  for (var i = 0; i < bals2.length; i++) {
 
    var bal2 = bals2[i];
-
+console.log(bal2);
    var bal1 = await app.db.balance().findOne({address:bal2.address});
 
 
