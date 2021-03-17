@@ -532,8 +532,8 @@ module.exports = async function (app) {
 				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
 				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
 
-				await app.db.balance().updateOne({address:txs[i].from},{$set: {balance:holders[txs[i].from].balance}},{ upsert: true})
-				await app.db.balance().updateOne({address:txs[i].to},{$set: {balance:holders[txs[i].to].balance}},{ upsert: true})
+				await app.db.balance2().updateOne({address:txs[i].from},{$set: {balance:holders[txs[i].from].balance}},{ upsert: true})
+				await app.db.balance2().updateOne({address:txs[i].to},{$set: {balance:holders[txs[i].to].balance}},{ upsert: true})
 			}
 
 
