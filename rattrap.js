@@ -29,16 +29,17 @@ try {
  for (var i = 0; i < bals2.length; i++) {
 
    var bal2 = bals2[i];
-   console.log(bal2);
+
    var bal1 = await app.db.balance().findOne({address:bal2.address});
-   console.log(bal1);
+
 
    var amount1 = new BN(bal1.balance);
    var amount2 = new BN(bal2.balance);
 
 
    var delta = amount2.sub(amount1);
-   console.log(bal2.address, delta.toString());
+   if(!delta.isZero())
+    console.log(bal2.address, delta.toString());
 
    //var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
    //console.log(receipt);
