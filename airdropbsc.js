@@ -27,8 +27,8 @@ try {
       var total = new BN("0");
 
     // print all lines
-    lines.forEach((line) => {
-        var parts = line.split('"');
+    for (var i = 0;i<lines.length;i++) {
+        var parts = line[i].split('"');
         var address = parts[1];
         var amount = new BN(parseFloat(parts[3]))
         var mul18  =  new BN("1000000000000000000");
@@ -36,13 +36,13 @@ try {
 
 
         total = total.add(bonus);
-        
+
         console.log(address,amount.toString());
         var receipt = await app.bep20.transferBEP(address,bonus,{address:"0x"+reserveBep20.address});
         console.log(receipt);
 
 
-    });
+    }
 } catch (err) {
     console.error(err);
 }
