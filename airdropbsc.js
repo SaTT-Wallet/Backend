@@ -1,4 +1,16 @@
+(async function() {
+
 const fs = require('fs');
+var BN = require("bn.js");
+app = await require("./conf/config")(app);
+app = await require("./conf/const")(app);
+
+app = await require("./db/db")(app);
+
+app = await require("./web3/provider")(app);
+
+app = await require("./manager/bep20")(app);
+app = await require("./manager/account")(app);
 
 try {
 
@@ -18,3 +30,4 @@ try {
 } catch (err) {
     console.error(err);
 }
+})()
