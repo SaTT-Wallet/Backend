@@ -18,8 +18,6 @@ try {
 
   await app.bep20.initEventHandlers();
 
-
-
 }
 catch(e) {
   console.log(e)
