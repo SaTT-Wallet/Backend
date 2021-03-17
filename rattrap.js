@@ -30,7 +30,7 @@ try {
 
    var bal2 = bals2[i];
    var delta = false;
-   console.log(bal2);
+  
    var bal1 = await app.db.balance().findOne({address:bal2.address});
     var amount2 = new BN(bal2.balance);
    if(!bal1) {
