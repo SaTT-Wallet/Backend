@@ -1,5 +1,5 @@
 (async function() {
-
+  var app = {};
 const fs = require('fs');
 var BN = require("bn.js");
 app = await require("./conf/config")(app);
