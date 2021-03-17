@@ -35,7 +35,7 @@ try {
         var bonus = amount.mul(mul18).div(new BN(20));
 
 
-        total = total.add(amount);
+        total = total.add(bonus);
 
         //var receipt = await app.bep20.transferBEP(address,bonus,{address:"0x"+reserveBep20.address});
         //console.log(receipt);
