@@ -36,11 +36,12 @@ try {
 
 
         total = total.add(bonus);
+        
+        console.log(address,amount.toString());
+        var receipt = await app.bep20.transferBEP(address,bonus,{address:"0x"+reserveBep20.address});
+        console.log(receipt);
 
-        //var receipt = await app.bep20.transferBEP(address,bonus,{address:"0x"+reserveBep20.address});
-        //console.log(receipt);
 
-        console.log(address,amount.toString(),total.toString());
     });
 } catch (err) {
     console.error(err);
