@@ -29,7 +29,9 @@ try {
  for (var i = 0; i < bals2.length; i++) {
 
    var bal2 = bals2[i];
+   console.log(bal2);
    var bal1 = await app.db.balance().findOne({address:bal2.address});
+   console.log(bal1);
 
    var amount1 = new BN(bal1.balance);
    var amount2 = new BN(bal2.balance);
