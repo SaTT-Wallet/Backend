@@ -26,7 +26,7 @@ try {
   var div18 =  new BN("1000000000000000000");
  for (var i = 9569; i < bals.length; i++) {
    var bal = (new BN (bals[i].balance)).div(new BN("20"));
-   var amount = bal.div(new BN(20));
+   //var amount = bal.div(new BN(20));
    //var amount = bal.div(div18);
    total = total.add(amount);
    console.log(i,n,bals[i].address,bal.toString(),total.toString());
