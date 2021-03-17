@@ -2,7 +2,7 @@ const fs = require('fs');
 
 try {
 
-    const data = fs.readFileSync('./bsc', 'UTF-8');
+    const data = fs.readFileSync('./bsc.csv', 'UTF-8');
 
     // split the contents by new line
     const lines = data.split(/\r?\n/);
