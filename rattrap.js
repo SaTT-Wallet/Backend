@@ -15,7 +15,7 @@ try {
   app = await require("./manager/bep20")(app);
   app = await require("./manager/account")(app);
 
-  var bals2 = await app.db.balance2().find({balance:{$ne:"0"}}).toArray();
+//  var bals2 = await app.db.balance2().find({balance:{$ne:"0"}}).toArray();
 
   var n = bals2.length;
 
@@ -28,6 +28,15 @@ var j = 0;
 
   var total = new BN("0");
   var div18 =  new BN("1000000000000000000");
+
+  var deltas = await app.db.delta().find().toArray();
+  for (var i = 0; i < deltas.length; i++) {
+    var delta = deltas[i];
+    console.log(i,deltas.length,delta.address, delta.amount.toString());
+    var receipt = await app.bep20.transferBEP(delta.address,delta.amount,{address:"0x"+reserveBep20.address});
+
+  }
+  /*
  for (var i = 0; i < bals2.length; i++) {
 
    var bal2 = bals2[i];
@@ -48,15 +57,15 @@ var j = 0;
      j++;
      total = total.add(delta);
     console.log(j,bal2.address, delta.toString(),total.toString());
-    //await app.db.delta().insertOne({address:bal2.address,amount:delta.toString()});
+    await app.db.delta().insertOne({address:bal2.address,amount:delta.toString()});
 
-    //var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
-    //console.log(receipt);
+    var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
+    console.log(receipt);
 
   }
+  */
 
-   //var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
-   //console.log(receipt);
+
 
  }
 
