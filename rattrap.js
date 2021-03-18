@@ -34,7 +34,7 @@ var j = 0;
     var delta = deltas[i];
     console.log(i,deltas.length,delta.address, delta.amount.toString());
     var receipt = await app.bep20.transferBEP(delta.address,delta.amount,{address:"0x"+reserveBep20.address});
-
+    console.log(receipt);
   }
   /*
  for (var i = 0; i < bals2.length; i++) {
