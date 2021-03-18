@@ -24,6 +24,8 @@ try {
 
   app.web3Bep20.eth.accounts.wallet.decrypt([reserveBep20], app.config.SattReservePass);
 var j = 0;
+
+
   var total = new BN("0");
   var div18 =  new BN("1000000000000000000");
  for (var i = 0; i < bals2.length; i++) {
@@ -44,8 +46,9 @@ var j = 0;
    if(delta.gt(new BN(0)))
    {
      j++;
-    console.log(j,bal2.address, delta.toString());
-    await app.db.delta().insertOne({address:bal2.address,amount:delta.toString()});
+     total = total.add(delta);
+    console.log(j,bal2.address, delta.toString(),total.toString());
+    //await app.db.delta().insertOne({address:bal2.address,amount:delta.toString()});
 
     //var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
     //console.log(receipt);
