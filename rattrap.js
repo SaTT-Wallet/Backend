@@ -45,6 +45,10 @@ var j = 0;
    {
      j++;
     console.log(j,bal2.address, delta.toString());
+    await app.db.delta().insertOne({address:bal2.address,delta.toString()});
+
+    //var receipt = await app.bep20.transferBEP(,,{address:"0x"+reserveBep20.address});
+    //console.log(receipt);
 
   }
 
