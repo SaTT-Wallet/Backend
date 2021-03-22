@@ -23,7 +23,7 @@ try {
   var reserveBep20 = JSON.parse(reservePath);
 
   app.web3Bep20.eth.accounts.wallet.decrypt([reserveBep20], app.config.SattReservePass);
-var j = 0;
+  var j = 0;
 
 
   var total = new BN("0");
@@ -33,8 +33,8 @@ var j = 0;
   for (var i = 0; i < deltas.length; i++) {
     var delta = deltas[i];
     console.log(i,deltas.length,delta.address, delta.amount.toString());
-    var receipt = await app.bep20.transferBEP(delta.address,delta.amount,{address:"0x"+reserveBep20.address});
-    console.log(receipt);
+    //var receipt = await app.bep20.transferBEP(delta.address,delta.amount,{address:"0x"+reserveBep20.address});
+    //console.log(receipt);
   }
   /*
  for (var i = 0; i < bals2.length; i++) {
