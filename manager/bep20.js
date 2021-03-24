@@ -23,6 +23,7 @@ module.exports = async function (app) {
           console.log("doublon infura :",evt.transactionHash)
           return;
         }
+        console.log(evt);
 
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
