@@ -17,6 +17,7 @@ module.exports = async function (app) {
       }
 
         var dbl = await app.db.bep20().findOne({ethTxHash:evt.transactionHash});
+        console.log(dbl);
         if(dbl.length)
         {
           console.log("doublon infura :",evt.transactionHash)
