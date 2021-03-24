@@ -10,11 +10,19 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventETHtoBSC = async (error, evt) => {
-      console.log(error, evt)
+
       if(error) {
         console.log(error);
         return;
       }
+
+        var dbl = await app.db.bep20().findOne({ethTxHash:evt.transactionHash});
+        if(dbl.length)
+        {
+          console.log("doublon infura :",evt.transactionHash)
+          return;
+        }
+
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
         var from = evt.returnValues.from;
@@ -47,16 +55,28 @@ module.exports = async function (app) {
         return;
       }
 
+      var dbl = await app.db.bep20().findOne({bscTxHash:evt.transactionHash});
+      if(dbl.length)
+      {
+        console.log("doublon binance :",evt.transactionHash)
+        return;
+      }
+
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
 
-
+      if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
+        console.log("recup hack",evt);
+        return;
+      }
 
       if(from == nullAddress)
       {
         return;
       }
+
+
 
         await bep20Manager.unlockOwner();
 
