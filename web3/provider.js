@@ -2,11 +2,21 @@ module.exports = async function (app) {
 	var net = require('net');
 	var Web3 = require('web3');
 
-	var options = {
+/*	var options = {
 		  reconnect: {
 			auto: true
 		  }
-	};
+	};*/
+
+	const options = {
+  // Enable auto reconnection
+  reconnect: {
+      auto: true,
+      delay: 5000, // ms
+      maxAttempts: 5,
+      onTimeout: false
+  }
+};
 
 
 	app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url,options));
