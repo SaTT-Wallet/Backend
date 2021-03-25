@@ -526,13 +526,37 @@ module.exports = async function (app) {
 		})
 
 	};
-
+    
 	cron.schedule('*/10 * * * *',async function(){
 		var rate = await cryptoManager.getRateEth();
 		app.db.rate().insertOne({price:rate,symbol:"ETH",date:Date.now()});
 		var rate = await cryptoManager.getRateBtc();
 		app.db.rate().insertOne({price:rate,symbol:"BTC",date:Date.now()});
 	});
+
+    cryptoManager.FilterTransactionsByHash=(All_Transactions,Erc20_OR_BEP20_Transactions,Network)=>{
+
+		var transaction_content= All_Transactions.result
+		var erc20_or_bep20_transaction_content=Erc20_OR_BEP20_Transactions.result
+
+		var Final_Result=transaction_content.map((elem)=>{
+			var exist=false
+             for(var i=0;i<erc20_or_bep20_transaction_content.length;i++){
+			    if(erc20_or_bep20_transaction_content[i].hash==elem.hash){
+					 exist=true
+					 erc20_or_bep20_transaction_content[i].network=Network
+					 return erc20_or_bep20_transaction_content[i]
+				 }
+			 }
+			 if(!exist){
+				elem.network=Network
+				    return elem
+			 }
+		})
+		console.log(Final_Result.length)
+    return Final_Result
+	}
+
 
 	app.cryptoManager = cryptoManager;
 	return app;

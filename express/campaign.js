@@ -6,7 +6,7 @@ module.exports = function (app) {
 	app.use( bodyParser.json() )
 
 	var BN = require("bn.js");
-
+    
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
