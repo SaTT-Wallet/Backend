@@ -844,6 +844,55 @@ app.get('/v2/sum', async function(req, response) {
 })*/
 
 
+ app.get('/v2/transaction_history/:address', async function(req, response) {
+	var address = req.params.address;
+	try {
+		//ETH Network 
+		const requestOptions_ETH_transactions = {
+			method: 'GET',
+			uri: app.config.etherscanApiUrl_+address+"&action=txlist",
+			json: true,
+			gzip: true
+		  };
+
+		const requestOptions_ERC20_transactions = {
+			method: 'GET',
+			uri: app.config.etherscanApiUrl_+address+"&action=tokentx",
+			json: true,
+			gzip: true
+		  };
+		  
+		  var Eth_transactions =  await rp(requestOptions_ETH_transactions);
+		  var ERC20_transactions= await rp(requestOptions_ERC20_transactions);
+		  var all_Eth_transactions=app.cryptoManager.FilterTransactionsByHash(Eth_transactions,ERC20_transactions,'ERC20')
+
+        //BNB Network 
+		const requestOptions_BNB_transactions = {
+			method: 'GET',
+			uri: app.config.bscscanApi+address+"&action=txlist",
+			json: true,
+			gzip: true
+		  };
+
+		const requestOptions_BEP20_transactions = {
+			method: 'GET',
+			uri: app.config.bscscanApi+address+"&action=tokentx",
+			json: true,
+			gzip: true
+		  };
+
+		  var BNB_transactions= await rp(requestOptions_BNB_transactions);
+		  var BEP20_transactions= await rp(requestOptions_BEP20_transactions);
+          var all_BNB_transactions=app.cryptoManager.FilterTransactionsByHash(BNB_transactions,BEP20_transactions,'BEP20')
+        
+		  const All_Transactions = all_Eth_transactions.concat(all_BNB_transactions)
+
+		  response.end(JSON.stringify(All_Transactions));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+})
+n
 
 	return app;
 
