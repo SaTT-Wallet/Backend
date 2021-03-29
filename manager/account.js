@@ -47,8 +47,9 @@ module.exports = async function (app) {
 			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
-
-			child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+			if(!app.config.testnet) {
+			  child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
@@ -101,8 +102,9 @@ module.exports = async function (app) {
 			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
-
-			child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+      if(!app.config.testnet) {
+			  child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
@@ -217,6 +219,7 @@ module.exports = async function (app) {
 			//app.web3.eth.accounts.wallet.clear();
 			try {
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
+				app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass);
 			}
 			catch (e) {
 				reject({error:"Wrong password"});
@@ -244,6 +247,7 @@ module.exports = async function (app) {
 
 	accountManager.lock =  function (addr) {
 		app.web3.eth.accounts.wallet.remove(addr);
+		app.web3Bep20.eth.accounts.wallet.remove(addr);
 	}
 
 	accountManager.lockBSC =  function (addr) {
@@ -275,8 +279,9 @@ module.exports = async function (app) {
 			  redeem: bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
 			}).address;
 
-
+  if(!app.config.testnet) {
 		child.execSync(app.config.btcCmd+" importpubkey "+pub+" 'default' false");
+	}
 		//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 		return {publicKey:pub,address:address1,addressSegWit:addressbc1,addressSegWitCompat:address3,ek:ek};
@@ -306,7 +311,7 @@ module.exports = async function (app) {
 			var satt_balance = await app.token.contract.methods.balanceOf(address).call();
 			var res = {address:"0x"+account.keystore.address,ether_balance:ether_balance,bnb_balance:bnb_balance,satt_balance:satt_balance?satt_balance.toString():0,version:(account.mnemo?2:1)}
 			res.btc_balance = 0;
-			if(account.btc && account.btc.addressSegWitCompat) {
+			if(!app.config.testnet && account.btc && account.btc.addressSegWitCompat ) {
 
 				res.btc = account.btc.addressSegWitCompat;
 
@@ -527,8 +532,8 @@ module.exports = async function (app) {
 				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
 				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
 
-				await app.db.balance().updateOne({address:txs[i].from},{$set: {balance:holders[txs[i].from].balance}},{ upsert: true})
-				await app.db.balance().updateOne({address:txs[i].to},{$set: {balance:holders[txs[i].to].balance}},{ upsert: true})
+				await app.db.balance2().updateOne({address:txs[i].from},{$set: {balance:holders[txs[i].from].balance}},{ upsert: true})
+				await app.db.balance2().updateOne({address:txs[i].to},{$set: {balance:holders[txs[i].to].balance}},{ upsert: true})
 			}
 
 
