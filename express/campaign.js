@@ -25,6 +25,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 
@@ -47,12 +48,16 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 
-			var balance = await app.erc20.getBalance(token,cred.address);
+			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
+				token = app.config.ctrs.token.address.testnet;
+			}
+
+			/*var balance = await app.erc20.getBalance(token,cred.address);
 
 			if( (new BN(balance.amount)).lt(new BN(amount)) )
 			{
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
-			}
+			}*/
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			response.end(JSON.stringify(ret));
@@ -183,6 +188,27 @@ module.exports = function (app) {
 		}
 	});*/
 
+	/**
+	 * Check if the link already exists
+	 */
+	app.get('/campaign/checklink/:typeSN/:idPost/:idUser', async function(req, response) {
+
+		let typeSN = req.params.typeSN;
+		let idPost = req.params.idPost;
+		let idUser = req.params.idUser ? req.params.idUser:"";
+
+		try {
+			let links = await app.db.apply().find({typeSN:typeSN, idPost:idPost, idUser:idUser}).toArray();
+			if (!links.length) {
+				response.end('{"exist":false}');
+			} else {
+				response.end('{"exist":true}');
+			}
+		} catch (err) {
+			response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+		}
+	});
+
 	app.post('/campaign/apply', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -196,17 +222,17 @@ module.exports = function (app) {
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-			console.log(ctr,app.config.ctrs.campaignAdvFee.address.mainnet)
-			if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
+
+			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
 				var ret = await app.db.apply().insertOne(applyLink);
 				response.end(JSON.stringify(ret.insertedId));
-			}
-			else {
+			}*/
+		//	else {
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
-			}
+		//	}
 
 
 
@@ -226,10 +252,11 @@ module.exports = function (app) {
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
+
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-			if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
+			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
 				var prom = await app.db.apply().findOne({_id:app.ObjectId(idApply)});
 
@@ -238,10 +265,10 @@ module.exports = function (app) {
 				var prom = await app.db.apply().deleteOne({_id:app.ObjectId(idApply)});
 
 			}
-			else {
+			else {*/
 				var ret = await app.campaign.validateProm(idApply,cred)
 
-			}
+		//	}
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -328,7 +355,7 @@ module.exports = function (app) {
 
 			var gasPrice = await app.web3.eth.getGasPrice();
 			app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-			var prom = await app.campaign.contract.methods.proms(idProm).call();
+			var prom = await app.campaign.methods.proms(idProm).call();
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 			console.log(prevstat);
@@ -405,13 +432,17 @@ module.exports = function (app) {
 
 			var res = await app.crm.auth( req.body.token);
 			var cred2 = await app.account.unlock(res.id,pass);
+			var ctr = await app.campaign.getPromContract(idProm);
 
-			var gasPrice = await app.web3.eth.getGasPrice();
+				if(ctr.isCentral) {
+					var ret = await  app.campaignCentral.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
 
-			var ctraddr = await app.campaign.getPromContract(idProm);
-			var ctr = await app.campaign.getContract(ctraddr);
-
+		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
+
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 			console.log(prevstat);
@@ -423,23 +454,19 @@ module.exports = function (app) {
 
 				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
 				{
-
-					var evts = await app.campaign.updatePromStats(idProm,cred2);
-
+					  var evts = await app.campaign.updatePromStats(idProm,cred2);
 						var evt = evts.events[0];
-
 						var idRequest = evt.raw.topics[1];
 						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
 						if(log.typeSN == prom.typeSN && log.idPost == prom.idPost && log.idUser == prom.idUser)
 							requests = [{id:idRequest}];
-
 				}
 			}
 			if(requests.length)
 			{
 				console.log("updateOracle",requests);
 				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
-				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctraddr,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
+				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
 			}
 
 

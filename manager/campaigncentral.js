@@ -1,7 +1,6 @@
 module.exports = async function (app) {
 
 	var fs = require("fs");
-	var solc = require("solc");
 	var child = require('child_process');
 	var BN = app.web3.utils.BN;
 	var campaignCentralManager = {};
@@ -12,6 +11,8 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			try {
+
+
 
 				var receipt = await app.erc20.transfer(token,app.config.SattReserve,amount,credentials);
 
@@ -35,6 +36,7 @@ module.exports = async function (app) {
 
 				resolve(receipt.transactionHash);
 				} catch (err) {
+					
 					reject(err)
 				}
 
