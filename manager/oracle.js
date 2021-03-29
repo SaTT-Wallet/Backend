@@ -91,7 +91,7 @@ module.exports = async function (app) {
 			var perf = {shares:0,likes:0,views:0};
 			var body = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"statistics"}});
 			var res = JSON.parse(body);
-			if(res.items)
+			if(res.items && res.items[0])
 			{
 			//await app.web3.eth.personal.unlockAccount(app.config.campaignOwner,app.config.campaignOwnerPass,app.web3.utils.toHex(15000));
 			//app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
