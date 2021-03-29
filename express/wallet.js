@@ -34,24 +34,25 @@ module.exports = function (app) {
 			var addr = req.params.addr;
 			var balances={}
 			var token_info=app.config.Tokens
-	        tokens.forEach(async (contract)=>{
-             let name;
-			 let network;
-			 for(const T_name in token_info){
-				 if(token_info[T_name]['contract']==contract){
-					 name=T_name
-					 network=token_info[T_name].network
-				 }
-			 }
-			 if(network=="ERC20"){
-			var balance = await app.erc20.getBalance(contract,addr);
-			balances.name=balance['amount']
-			 }else{
-			var balance = await app.bep20.getBalance(contract,addr);
-			balances.name=balance['balance'].amount
-			 }
-			})
-			response.end(JSON.stringify({balance:balances}));
+
+			for(var i=0;i<tokens.length;i++){
+				let name;
+				let network;
+				for(const T_name in token_info){
+					if(token_info[T_name]['contract']==tokens[i]){
+						name=T_name
+						network=token_info[T_name].network
+					}
+				}
+				if(network=="ERC20"){
+					balance = await app.erc20.getBalance(tokens[i],addr);
+				   balances[name]=balance['amount']
+					}else{
+					balance = await app.bep20.getBalance(tokens[i],addr);
+				   balances[name]=balance['amount']
+					}
+			}
+		    response.end(JSON.stringify({balance:balances}));
 
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
