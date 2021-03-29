@@ -3,18 +3,36 @@ module.exports = async function (app) {
   	var bep20Manager = {};
 
     var nullAddress = "0x0000000000000000000000000000000000000000";
-
     bep20Manager.contract = new app.web3Bep20.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
-
 
     bep20Manager.unlockOwner = async () => {
       app.web3Bep20.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
     }
 
     bep20Manager.eventETHtoBSC = async (error, evt) => {
+
+      if(error) {
+        console.log(error);
+        return;
+      }
+
+        var dbl = await app.db.bep20().findOne({ethTxHash:evt.transactionHash});
+
+        if(dbl)
+        {
+          console.log("doublon infura :",evt.transactionHash)
+          return;
+        }
+        console.log(evt);
+
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
         var from = evt.returnValues.from;
+
+        if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
+          console.log("recup hack",evt);
+          return;
+        }
 
         await bep20Manager.unlockOwner();
 
@@ -38,16 +56,34 @@ module.exports = async function (app) {
 
     bep20Manager.eventBSCtoETH = async (error, evt) => {
 
+      if(error)
+      {
+        console.log(error)
+        return;
+      }
+
+      var dbl = await app.db.bep20().findOne({bscTxHash:evt.transactionHash});
+      if(dbl)
+      {
+        console.log("doublon binance :",evt.transactionHash)
+        return;
+      }
+
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
 
-
+      if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
+        console.log("recup hack",evt);
+        return;
+      }
 
       if(from == nullAddress)
       {
         return;
       }
+
+
 
         await bep20Manager.unlockOwner();
 
@@ -148,11 +184,14 @@ module.exports = async function (app) {
 
     bep20Manager.getBalance = async function (token,addr) {
   		return new Promise(async (resolve, reject) => {
-  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
-  			var amount = await contract.methods.balanceOf(addr).call();
+        try {
+          var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
+          var amount = await contract.methods.balanceOf(addr).call();
+          resolve({amount:amount.toString()});
+        } catch (e) {
+          resolve({amount:"0"});
+        }
 
-
-  			resolve({amount:amount.toString()});
   		});
   	}
 
@@ -167,7 +206,7 @@ module.exports = async function (app) {
 
     bep20Manager.approve = async function (token,addr,spender,amount) {
   		return new Promise(async (resolve, reject) => {
-
+        console.log("approve",token,addr,spender,amount)
   			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
 
   			var gasPrice = await app.web3Bep20.eth.getGasPrice();

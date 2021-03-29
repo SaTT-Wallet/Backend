@@ -18,7 +18,7 @@
 		app = await require("./manager/account")(app);
 		app = await require("./web3/oracle")(app);
 		app = await require("./manager/campaigncentral")(app);
-		//app = await require("./web3/campaign")(app);
+		app = await require("./web3/campaign")(app);
 		app = await require("./web3/satt")(app);
 		app = await require("./web3/eth")(app);
 		app = await require("./web3/erc20")(app);
@@ -32,10 +32,10 @@
 		});
 		app = await require("./express/login")(app);
 		app = await require("./express/service")(app);
-		//app = await require("./express/campaign")(app);
-		app = await require("./express/campaigncentral")(app);
+		app = await require("./express/campaign")(app);
+		//app = await require("./express/campaigncentral")(app);
 		app = await require("./express/statscentral")(app);
-		//app = await require("./express/stats")(app);
+		app = await require("./express/stats")(app);
 		app = await require("./express/wallet")(app);
 		app = await require("./express/main")(app);
 		app = await require("./web3/initcontracts")(app);

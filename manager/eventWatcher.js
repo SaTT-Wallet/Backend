@@ -17,7 +17,7 @@ module.exports = async function (app) {
 		var startDate =  evt.returnValues.startDate;
 		var endDate =  evt.returnValues.endDate;
 		var dataUrl =  evt.returnValues.dataUrl;
-
+		var tx;
 		var ev = {
 			id : idCampaign,
 			type : "created",
@@ -26,7 +26,14 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase()
 		};
 
-		var tx = await app.web3.eth.getTransaction(evt.transactionHash);
+		if(ev.contract = app.config.ctrs.campaignBep20.address.mainnet) {
+			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
+		}
+		else {
+			tx = await app.web3.eth.getTransaction(evt.transactionHash);
+		}
+
+
 
 		var campaign = {
 			id : idCampaign,
@@ -89,9 +96,13 @@ module.exports = async function (app) {
 	app.campaign.contract.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
 	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
 
-	app.campaign.contractAdvFee.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
-	app.campaign.contractAdvFee.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
-	app.campaign.contractAdvFee.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
+	/*app.campaign.contractAdvFee.events.CampaignCreated ( eventWatcher.campaignCreated);
+	app.campaign.contractAdvFee.events.CampaignFundsSpent (eventWatcher.campaignFundsSpent);
+	app.campaign.contractAdvFee.events.CampaignApplied ( eventWatcher.campaignApplied);*/
+
+	app.campaign.contractBep20.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
+	app.campaign.contractBep20.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
+	app.campaign.contractBep20.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
 
 
 	/*cron.schedule('11 0 * * *',async function(){
@@ -174,7 +185,7 @@ module.exports = async function (app) {
 	})*/
 
 
-	bep20Manager.SattAllTX = async (error, evt) => {
+	/*eventWatcher.SattAllTX = async (error, evt) => {
 			var to = evt.returnValues.to;
 			var value = evt.returnValues.value;
 			var from = evt.returnValues.from;
@@ -190,9 +201,9 @@ module.exports = async function (app) {
 
 	    var res = await app.db.indexedtx().insertOne(tx);
 
-	}
+	}*/
 
-	app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
+	//app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
 
 	app.events = eventWatcher;
 	return app;

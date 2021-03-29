@@ -247,6 +247,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -510,6 +511,7 @@ module.exports = function (app) {
 	app.get('/holders/:token', async function(req, response) {
 
 		var res = await app.account.getHolders(req.params.token);
+		var res = "";
 		response.end(res);
 	})
 
@@ -640,10 +642,20 @@ module.exports = function (app) {
 	/////////////////
 	app.get('/v2/bep20/:token/approval/:addr/:spender',async function(req, response) {
 
+
+
 			var token = req.params.token;
 			var spender = req.params.spender;
-			//var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
-			var allowance = {amount:"10000000000000000000000000000"};
+			if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.mainnet;
+			}
+			if(spender == app.config.ctrs.campaign.address.testnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.testnet;
+			}
+			var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
+
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	})
 
@@ -680,6 +692,14 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.access_token);
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
+			if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.mainnet;
+			}
+			if(spender == app.config.ctrs.campaign.address.testnet)
+			{
+				spender = app.config.ctrs.campaignBep20.address.testnet;
+			}
 			var ret = await app.bep20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -861,7 +881,7 @@ app.get('/v2/sum', async function(req, response) {
  app.get('/v2/transaction_history/:address', async function(req, response) {
 	var address = req.params.address;
 	try {
-		//ETH Network 
+		//ETH Network
 		const requestOptions_ETH_transactions = {
 			method: 'GET',
 			uri: app.config.etherscanApiUrl_+address+"&action=txlist",
@@ -875,12 +895,12 @@ app.get('/v2/sum', async function(req, response) {
 			json: true,
 			gzip: true
 		  };
-		  
+
 		  var Eth_transactions =  await rp(requestOptions_ETH_transactions);
 		  var ERC20_transactions= await rp(requestOptions_ERC20_transactions);
 		  var all_Eth_transactions=app.cryptoManager.FilterTransactionsByHash(Eth_transactions,ERC20_transactions,'ERC20')
 
-        //BNB Network 
+        //BNB Network
 		const requestOptions_BNB_transactions = {
 			method: 'GET',
 			uri: app.config.bscscanApi+address+"&action=txlist",
@@ -898,7 +918,7 @@ app.get('/v2/sum', async function(req, response) {
 		  var BNB_transactions= await rp(requestOptions_BNB_transactions);
 		  var BEP20_transactions= await rp(requestOptions_BEP20_transactions);
           var all_BNB_transactions=app.cryptoManager.FilterTransactionsByHash(BNB_transactions,BEP20_transactions,'BEP20')
-        
+
 		  const All_Transactions = all_Eth_transactions.concat(all_BNB_transactions)
 
 		  response.end(JSON.stringify(All_Transactions));
