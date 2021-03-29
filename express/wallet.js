@@ -1,3 +1,5 @@
+const { async } = require('hasha');
+
 module.exports = function (app) {
 
 	var bodyParser = require('body-parser');
@@ -25,6 +27,38 @@ module.exports = function (app) {
 
 			response.end(JSON.stringify({token:token,balance:balance}));
 	})
+
+	app.get('/v2/balances/:tokens/:addr',async function(req, response) {
+		try{
+			var tokens = req.params.tokens.split(",");
+			var addr = req.params.addr;
+			var balances={}
+			var token_info=app.config.Tokens
+	        tokens.forEach(async (contract)=>{
+             let name;
+			 let network;
+			 for(const T_name in token_info){
+				 if(token_info[T_name]['contract']==contract){
+					 name=T_name
+					 network=token_info[T_name].network
+				 }
+			 }
+			 if(network=="ERC20"){
+			var balance = await app.erc20.getBalance(contract,addr);
+			balances.name=balance['amount']
+			 }else{
+			var balance = await app.bep20.getBalance(contract,addr);
+			balances.name=balance['balance'].amount
+			 }
+			})
+			response.end(JSON.stringify({balance:balances}));
+
+		}catch(err){
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+
+		
+})
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 
@@ -872,7 +906,7 @@ app.get('/v2/sum', async function(req, response) {
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 })
-n
+
 
 	return app;
 
