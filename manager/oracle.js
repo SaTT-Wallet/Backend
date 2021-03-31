@@ -33,9 +33,9 @@ module.exports = async function (app) {
 			//app.FB.api(pageName,{ access_token: "" }, async function (res) {
 
 				var res = await rp({uri:"https://graph.facebook.com/v3.2/"+pageName+"?access_token="+app.FB.appAccessToken,json: true});
-				console.log("pageres",res);
+				//console.log("pageres",res);
 				var idPage = res.id;
-				console.log("https://graph.facebook.com/v3.2/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+app.FB.appAccessToken);
+				//console.log("https://graph.facebook.com/v3.2/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+app.FB.appAccessToken);
 				var res2 = await rp({uri:"https://graph.facebook.com/v3.2/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+app.FB.appAccessToken,json: true});
 
 				//app.FB.api(idPage+"_"+idPost+"?fields=shares,likes.summary(true)",{ access_token: app.FB.appAccessToken }, async function (res2) {
