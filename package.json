@@ -6,6 +6,7 @@
   "description": "Satt NodeJS backend",
   "main": "app.js",
   "dependencies": {
+    "big.js": "^6.0.3",
     "bip38": "^2.0.2",
     "bip39": "^3.0.3",
     "bitcoinjs-lib": "^4.0.3",
@@ -41,6 +42,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "passport-telegram": "^1.0.0",
+    "passport-twitter": "^1.0.4",
     "path": "^0.12.7",
     "qrcode": "^1.4.4",
     "request": "^2.88.0",
