@@ -36,7 +36,7 @@ module.exports = async function (app) {
 
 				resolve(receipt.transactionHash);
 				} catch (err) {
-					
+
 					reject(err)
 				}
 
@@ -106,7 +106,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				app.db.apply().findOne({_id : app.ObjectId(idProm)},async function (err,prom){
-					console.log(prom,err);
+					//console.log(prom,err);
 					if(prom)
 					{
 						var cmp = await app.db.campaign().findOne({id : prom.idCampaign});
