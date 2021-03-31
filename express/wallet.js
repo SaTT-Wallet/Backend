@@ -529,7 +529,7 @@ module.exports = function (app) {
 		var bn18 =  new BN("1000000000000000000");
 		var max =  new BN("20000000000");
 		var burn = (new BN(balance)).div(bn18);
-		console.log((max.sub(burn)).toString());
+		//console.log((max.sub(burn)).toString());
 		response.end((max.sub(burn)).toString());
 	})
 

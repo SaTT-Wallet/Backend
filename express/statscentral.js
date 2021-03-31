@@ -12,7 +12,7 @@ module.exports = async function (app) {
 		}
 		if(!result.ratios)
 		{
-			
+
 			return [];
 		}
 		var ratios = result.ratios;
@@ -168,7 +168,7 @@ module.exports = async function (app) {
  statsCentral.campaignsDraft = async (token) => {
 
 		var res = await app.crm.auth(token);
-		console.log("0"+res.id);
+		//console.log("0"+res.id);
 		var campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
 	return campaigns;
 	}
