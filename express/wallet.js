@@ -58,7 +58,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 
-		
+
 })
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
@@ -209,6 +209,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -267,6 +268,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -286,6 +288,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 
@@ -306,6 +309,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -324,6 +328,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -343,6 +348,7 @@ module.exports = function (app) {
 			response.end(err.message?err.message:err.error);
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 
@@ -363,6 +369,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -615,6 +622,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -636,6 +644,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -678,6 +687,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lockBSC(cred.address);
 		}
 	})
@@ -707,6 +717,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lockBSC(cred.address);
 		}
 	})
@@ -727,7 +738,8 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+			if(cred)
+				app.account.lock(cred.address);
 		}
 	})
 
@@ -746,6 +758,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
