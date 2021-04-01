@@ -92,8 +92,6 @@ module.exports = function (app) {
 
 			for(const T_name in token_info){
             let network=token_info[T_name].network
-			9999999
-			9999999
 			 if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
