@@ -121,7 +121,7 @@ module.exports = function (app) {
 				}
 			  }
 
-          response.end(JSON.stringify({total_Balance})); 
+          response.end(JSON.stringify({Total_balance})); 
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}',err);
