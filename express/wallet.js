@@ -61,7 +61,7 @@ module.exports = function (app) {
 
 })
 
-    app.get('/v2/Total_balance/:addr/:token', async function(req, response) {
+    app.get('/v2/total_balance/:addr/:token', async function(req, response) {
 		const Fetch_crypto_price = {
 			method: 'GET',
 			uri: 'https://3xchange.io/prices',
@@ -71,15 +71,13 @@ module.exports = function (app) {
 
 		try {
 		    let CryptoPrices = await rp(Fetch_crypto_price);
-			let res = await app.crm.auth( req.params.token);
+			let res = await app.crm.auth(req.params.token);
 			let count = await app.account.hasAccount(res.id);
-			let ret = {err:"no_account"};
 			let addr = req.params.addr;
 			let token_info=app.config.Tokens
 			delete token_info['SATT']
 			delete token_info['BNB']
             let Total_balance=0
-			
 			if(count)
 			{
 				let ret = await app.account.getAccount(res.id)
@@ -87,11 +85,13 @@ module.exports = function (app) {
 				delete ret.btc
 				delete ret.version
 			}else{
+				let ret = {err:"no_account"};
 				response.end(JSON.stringify(ret));
 			}
 
 			for(const T_name in token_info){
             let network=token_info[T_name].network
+				
 			 if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
@@ -101,7 +101,6 @@ module.exports = function (app) {
 				}
 			  }else{
 				 balance = await app.bep20.getBalance(token_info[T_name].contract,addr);
-				 
 				if(token_info[T_name].contract=="0x448bee2d93be708b54ee6353a7cc35c4933f1156"){
 					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
 				}else{
@@ -109,31 +108,21 @@ module.exports = function (app) {
 				}
 			  }
 			 }
-			 
 			 for(const Amount in ret){
-				 if(Amount=="ether_balance"||Amount=="satt_balance"||Amount=="bnb_balance"){
-					 if(Amount=="ether_balance"){ 
-						 console.log("DB response",ret)
-						 console.log((app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2))
-						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
-						console.log("ether",new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() )
-					 }else if(Amount=="satt_balance"){
-						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2)
-						console.log("satt",new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() )
-					 }else{
-						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2)
-						console.log("bnb",new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() )
-					 }
-				 }else{
-					Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
-					console.log("btc",new Big((ret[Amount]*1)).div(new Big(10).pow(8)).toNumber() )
-				 }
-			 }
-			
+				if(Amount=="ether_balance"){
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
+				}else if(Amount=="satt_balance"){
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2)
+				}else if(Amount=="bnb_balance"){
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2)
+				}else if(Amount=="btc_balance"){
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
+				}
+			  }
           response.end(JSON.stringify({total_Balance})); 
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}',err);
 		}
 	});
 
