@@ -70,35 +70,34 @@ module.exports = function (app) {
 		  };
 
 		try {
-		    let CryptoPrices = await rp(Fetch_crypto_price);
-			let res = await app.crm.auth(req.params.token);
-			let count = await app.account.hasAccount(res.id);
-			let addr = req.params.addr;
-			let token_info=app.config.Tokens
+			var Total_balance=0
+		    var CryptoPrices = await rp(Fetch_crypto_price);
+			var res = await app.crm.auth(req.params.token);
+			var count = await app.account.hasAccount(res.id);
+			var addr = req.params.addr;
+			var token_info=app.config.Tokens
 			delete token_info['SATT']
 			delete token_info['BNB']
-            let Total_balance=0
-			let ret = {err:"no_account"};
+			var ret = {err:"no_account"};
 			if(count)
 			{
-				let ret = await app.account.getAccount(res.id)
+				var ret = await app.account.getAccount(res.id)
 				delete ret.address
 				delete ret.btc
 				delete ret.version
 			}else{
-				
 				response.end(JSON.stringify(ret));
 			}
 
 			for(const T_name in token_info){
-            let network=token_info[T_name].network
+            var network=token_info[T_name].network
 				
 			 if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
 					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
 				}else{
-				  Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
+				    Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
 				}
 			  }else{
 				 balance = await app.bep20.getBalance(token_info[T_name].contract,addr);
@@ -121,6 +120,7 @@ module.exports = function (app) {
 					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
 				}
 			  }
+
           response.end(JSON.stringify({total_Balance})); 
 
 		} catch (err) {
