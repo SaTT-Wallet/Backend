@@ -71,7 +71,7 @@ module.exports = function (app) {
 		try {
 		    let CryptoPrices = await rp(Fetch_crypto_price);
 			let res = await app.crm.auth( req.params.token);
-			let count = await app.account.hasAccount(res.id);
+			let count = await app.account.hasAccount(9999999);
 			let ret = {err:"no_account"};
 			let addr = req.params.addr;
 			let token_info=app.config.Tokens
@@ -81,7 +81,7 @@ module.exports = function (app) {
 			
 			if(count)
 			{
-				let ret = await app.account.getAccount(res.id)
+				let ret = await app.account.getAccount(9999999)
 				delete ret.address
 				delete ret.btc
 				delete ret.version
@@ -110,13 +110,17 @@ module.exports = function (app) {
 			 }
 
 			 for(const Amount in ret){
+				 console.log(ret)
 				 if(Amount=="ether_balance"||Amount=="satt_balance"||Amount=="bnb_balance"){
 					 if(Amount=="ether_balance"){ 
 						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
+						console.log("0",(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2))
 					 }else if(Amount=="satt_balance"){
 						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2)
+						console.log("1",(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2))
 					 }else{
 						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2)
+						console.log("2",(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2))
 					 }
 				 }else{
 					Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
