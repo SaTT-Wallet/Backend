@@ -95,29 +95,29 @@ module.exports = function (app) {
 			 if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
-					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
+					Total_balance+=(((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2))*1
 				}else{
-				    Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
+				    Total_balance+=(((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2))*1
 				}
 			  }else{
 				 balance = await app.bep20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x448bee2d93be708b54ee6353a7cc35c4933f1156"){
-					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
+					Total_balance+=(((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2))*1
 				}else{
-					Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
+					Total_balance+=(((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2))*1
 				}
 			  }
 			 }
 
 			 for(const Amount in ret){
 				if(Amount=="ether_balance"){
-					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
+					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "").toNumber() *CryptoPrices['ETH'].price).toFixed(2))
 				}else if(Amount=="satt_balance"){
-					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2)
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "").toNumber() *CryptoPrices['SATT'].price).toFixed(2)
 				}else if(Amount=="bnb_balance"){
-					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2)
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "").toNumber() *CryptoPrices['BNB'].price).toFixed(2)
 				}else if(Amount=="btc_balance"){
-					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
+					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "").toNumber() *CryptoPrices['BTC'].price).toFixed(2)
 				}
 			  }
 
