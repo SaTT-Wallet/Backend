@@ -230,7 +230,7 @@ module.exports = function (app) {
 
 	app.get('/campaign/draft/:token', async function(req, response) {
 		var res = await app.crm.auth( req.params.token);
-		console.log("0"+res.id);
+		//console.log("0"+res.id);
 		var campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
 		response.end(JSON.stringify(campaigns));
 	})

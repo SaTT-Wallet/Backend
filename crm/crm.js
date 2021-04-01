@@ -89,7 +89,7 @@ module.exports = async function (app) {
 					return;
 				}
 				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
-				if(res) {
+				if(res.length) {
 					var UserId = res[0].user_id;
 
 					tokens[token] = {id:UserId}

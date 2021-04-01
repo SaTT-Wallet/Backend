@@ -42,7 +42,7 @@ module.exports = function (app) {
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
 		var users = await app.db.sn_user().find({ email: username }).toArray();
-		console.log(users)
+		//console.log(users)
 		if(users.length)
 		{
 			var user = users[0];
@@ -102,7 +102,7 @@ module.exports = function (app) {
 		var date = Math.floor(Date.now()/1000)+86400;
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
-		console.log(profile);
+		//console.log(profile);
 	    var users = await app.db.sn_user().find({scopedId:profile.id}).toArray()
 		if(users.length)
 		{
@@ -327,7 +327,7 @@ module.exports = function (app) {
 
 
 	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: '/login' }),async function(req, response) {
-		console.log(req.user)
+		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		if(req.user.noredirect)
 		{
@@ -339,19 +339,19 @@ module.exports = function (app) {
 	});
 
 	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] }), async function(req, response) {
-		console.log(req.user)
+		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 	});
 
 	app.get('/callback/twitter',passport.authenticate('twitter'), async function(req, response) {
-		console.log(req.user)
+		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 	});
 
 	app.get('/callback/telegram', passport.authenticate('telegram'),async function(req, response) {
-		console.log(req.user)
+		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
 	});
