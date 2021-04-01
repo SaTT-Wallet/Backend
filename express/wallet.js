@@ -95,16 +95,17 @@ module.exports = function (app) {
 			 if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
-					Total_balance+=(((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2))*1
+					// Total_balance+=(((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2))*1
+					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price).toFixed(2))*1
 				}else{
-				    Total_balance+=(((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2))*1
+				    Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price).toFixed(2))*1
 				}
 			  }else{
 				 balance = await app.bep20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x448bee2d93be708b54ee6353a7cc35c4933f1156"){
-					Total_balance+=(((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2))*1
+					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price).toFixed(2))*1
 				}else{
-					Total_balance+=(((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2))*1
+					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price).toFixed(2))*1
 				}
 			  }
 			 }
