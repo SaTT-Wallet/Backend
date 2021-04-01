@@ -6,7 +6,7 @@ module.exports = function (app) {
 	app.use( bodyParser.json() )
 
 	var BN = require("bn.js");
-    
+
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
@@ -358,7 +358,7 @@ module.exports = function (app) {
 			var prom = await app.campaign.methods.proms(idProm).call();
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
-			console.log(prevstat);
+			//console.log(prevstat);
 
 			requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
 			var cred = {address: app.config.campaignOwner};
@@ -445,7 +445,7 @@ module.exports = function (app) {
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
-			console.log(prevstat);
+			//console.log(prevstat);
 
 			requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
 			var cred = {address: app.config.campaignOwner};

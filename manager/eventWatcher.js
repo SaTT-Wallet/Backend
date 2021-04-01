@@ -100,9 +100,13 @@ module.exports = async function (app) {
 	app.campaign.contractAdvFee.events.CampaignFundsSpent (eventWatcher.campaignFundsSpent);
 	app.campaign.contractAdvFee.events.CampaignApplied ( eventWatcher.campaignApplied);*/
 
-	app.campaign.contractBep20.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
-	app.campaign.contractBep20.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
-	app.campaign.contractBep20.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
+	if(!app.config.testnet) {
+		app.campaign.contractBep20.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
+		app.campaign.contractBep20.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
+		app.campaign.contractBep20.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
+	}
+
+
 
 
 	/*cron.schedule('11 0 * * *',async function(){

@@ -58,6 +58,7 @@ module.exports = function (app) {
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
+
 })
 
     app.get('/v2/Total_balance/:addr/:token', async function(req, response) {
@@ -71,7 +72,7 @@ module.exports = function (app) {
 		try {
 		    let CryptoPrices = await rp(Fetch_crypto_price);
 			let res = await app.crm.auth( req.params.token);
-			let count = await app.account.hasAccount(9999999);
+			let count = await app.account.hasAccount(res.id);
 			let ret = {err:"no_account"};
 			let addr = req.params.addr;
 			let token_info=app.config.Tokens
@@ -81,7 +82,7 @@ module.exports = function (app) {
 			
 			if(count)
 			{
-				let ret = await app.account.getAccount(9999999)
+				let ret = await app.account.getAccount(res.id)
 				delete ret.address
 				delete ret.btc
 				delete ret.version
@@ -91,7 +92,8 @@ module.exports = function (app) {
 
 			for(const T_name in token_info){
             let network=token_info[T_name].network
-				
+			9999999
+			9999999
 			 if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
 				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
@@ -101,26 +103,26 @@ module.exports = function (app) {
 				}
 			  }else{
 				 balance = await app.bep20.getBalance(token_info[T_name].contract,addr);
+				 
 				if(token_info[T_name].contract=="0x448bee2d93be708b54ee6353a7cc35c4933f1156"){
 					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
+					console.log(((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2))
 				}else{
 					Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
 				}
 			  }
 			 }
-
+			 
 			 for(const Amount in ret){
-				 console.log(ret)
 				 if(Amount=="ether_balance"||Amount=="satt_balance"||Amount=="bnb_balance"){
 					 if(Amount=="ether_balance"){ 
+						 console.log(ret)
+						 console.log((app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2))
 						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
-						console.log("0",(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2))
 					 }else if(Amount=="satt_balance"){
 						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2)
-						console.log("1",(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2))
 					 }else{
 						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2)
-						console.log("2",(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2))
 					 }
 				 }else{
 					Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
@@ -279,6 +281,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -337,6 +340,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -356,6 +360,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 
@@ -376,6 +381,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -394,6 +400,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -413,6 +420,7 @@ module.exports = function (app) {
 			response.end(err.message?err.message:err.error);
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 
@@ -433,6 +441,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -592,7 +601,7 @@ module.exports = function (app) {
 		var bn18 =  new BN("1000000000000000000");
 		var max =  new BN("20000000000");
 		var burn = (new BN(balance)).div(bn18);
-		console.log((max.sub(burn)).toString());
+		//console.log((max.sub(burn)).toString());
 		response.end((max.sub(burn)).toString());
 	})
 
@@ -685,6 +694,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -706,6 +716,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})
@@ -748,6 +759,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lockBSC(cred.address);
 		}
 	})
@@ -777,6 +789,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lockBSC(cred.address);
 		}
 	})
@@ -797,7 +810,8 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+			if(cred)
+				app.account.lock(cred.address);
 		}
 	})
 
@@ -816,6 +830,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+				if(cred)
 			app.account.lock(cred.address);
 		}
 	})

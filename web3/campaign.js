@@ -32,7 +32,7 @@ module.exports = async function (app) {
 
 
 		var proms = await app.db.event().find({prom:idProm}).toArray();
-		console.log("log",proms)
+		//console.log("log",proms)
 		if(proms.length) {
 			return 	 campaignManager.getContract(proms[0].contract);
 		}
@@ -43,7 +43,7 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
-		console.log("token",token);
+		//console.log("token",token);
 		var code = await app.web3Bep20.eth.getCode(token);
 
 		if(code != "0x") {
@@ -223,7 +223,7 @@ module.exports = async function (app) {
 			//var gasPrice = 4000000000;
 
 
-			console.log(idCampaign,typeSN,idPost,idUser);
+			//console.log(idCampaign,typeSN,idPost,idUser);
 			/*var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
 
 			if(isDoubled)
@@ -251,7 +251,7 @@ module.exports = async function (app) {
 			try {
 				var gas = 100000;
 					var ctr = await campaignManager.getPromContract(idProm);
-					console.log(ctr);
+					//console.log(ctr);
 
 				if(ctr.isCentral) {
 					var receipt = await  app.campaignCentral.validateProm(idProm,credentials);
