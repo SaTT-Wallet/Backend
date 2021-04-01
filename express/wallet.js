@@ -1,7 +1,8 @@
 const { async } = require('hasha');
+var Big = require('big.js');
 
 module.exports = function (app) {
-
+	
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
@@ -9,7 +10,7 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
+	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) { 
 
 			var token = req.params.token;
 			var addr = req.params.addr;
@@ -58,12 +59,79 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 
-
 })
 
+    app.get('/v2/Total_balance/:addr/:token', async function(req, response) {
+		const Fetch_crypto_price = {
+			method: 'GET',
+			uri: 'https://3xchange.io/prices',
+			json: true,
+			gzip: true
+		  };
+
+		try {
+		    let CryptoPrices = await rp(Fetch_crypto_price);
+			let res = await app.crm.auth( req.params.token);
+			let count = await app.account.hasAccount(res.id);
+			let ret = {err:"no_account"};
+			let addr = req.params.addr;
+			let token_info=app.config.Tokens
+			delete token_info['SATT']
+			delete token_info['BNB']
+            let Total_balance=0
+			
+			if(count)
+			{
+				let ret = await app.account.getAccount(res.id)
+				delete ret.address
+				delete ret.btc
+				delete ret.version
+			}else{
+				response.end(JSON.stringify(ret));
+			}
+
+			for(const T_name in token_info){
+            let network=token_info[T_name].network
+				
+			 if(network=="ERC20"){
+				balance = await app.erc20.getBalance(token_info[T_name].contract,addr);
+				if(token_info[T_name].contract=="0x70A6395650b47D94A77dE4cFEDF9629f6922e645"){
+					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
+				}else{
+				  Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
+				}
+			  }else{
+				 balance = await app.bep20.getBalance(token_info[T_name].contract,addr);
+				if(token_info[T_name].contract=="0x448bee2d93be708b54ee6353a7cc35c4933f1156"){
+					Total_balance+=((balance['amount']*1)*CryptoPrices["SATT"].price).toFixed(2)
+				}else{
+					Total_balance+=((balance['amount']*1)*CryptoPrices[T_name].price).toFixed(2)
+				}
+			  }
+			 }
+
+			 for(const Amount in ret){
+				 if(Amount=="ether_balance"||Amount=="satt_balance"||Amount=="bnb_balance"){
+					 if(Amount=="ether_balance"){ 
+						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
+					 }else if(Amount=="satt_balance"){
+						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['SATT'].price).toFixed(2)
+					 }else{
+						Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['BNB'].price).toFixed(2)
+					 }
+				 }else{
+					Total_balance+=(app.token.filterAmount(new Big((ret[Amount]*1)).div(new Big(10).pow(8)).toNumber() + "") *CryptoPrices['BTC'].price).toFixed(2)
+				 }
+			 }
+			
+          response.end(JSON.stringify({total_Balance})); 
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	});
+
 	app.get('/v2/mywallet/:token', async function(req, response) {
-
-
 		try {
 			var res = await app.crm.auth( req.params.token);
 
@@ -78,7 +146,6 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-
 	});
 
 	app.get('/v2/newallet/:token/:pass', async function(req, response) {
