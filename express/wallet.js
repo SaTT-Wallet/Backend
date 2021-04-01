@@ -29,6 +29,15 @@ module.exports = function (app) {
 			response.end(JSON.stringify({token:token,balance:balance}));
 	})
 
+ /*
+     @Url : /v2/balances/:tokens/:addr'
+     @description: calculate Total balance of a user
+     @parameters :
+     addr : wallet address of user
+     tokens : accept one more contract address
+     @response : balance of each contract address (Token)
+     */
+
 	app.get('/v2/balances/:tokens/:addr',async function(req, response) {
 		try{
 			var tokens = req.params.tokens.split(",");
@@ -60,6 +69,15 @@ module.exports = function (app) {
 		}
 
 })
+
+ /*
+     @Url : /v2/total_balance/:addr/:token'
+     @description: calculate Total balance of a user
+     @parameters :
+     addr : wallet address of user
+     token : access token 
+     @response : Total Balance
+     */
 
     app.get('/v2/total_balance/:addr/:token', async function(req, response) {
 		const Fetch_crypto_price = {
