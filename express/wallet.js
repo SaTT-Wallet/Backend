@@ -78,6 +78,7 @@ module.exports = function (app) {
 			delete token_info['SATT']
 			delete token_info['BNB']
             let Total_balance=0
+			let ret = {err:"no_account"};
 			if(count)
 			{
 				let ret = await app.account.getAccount(res.id)
@@ -85,7 +86,7 @@ module.exports = function (app) {
 				delete ret.btc
 				delete ret.version
 			}else{
-				let ret = {err:"no_account"};
+				
 				response.end(JSON.stringify(ret));
 			}
 
@@ -108,6 +109,7 @@ module.exports = function (app) {
 				}
 			  }
 			 }
+
 			 for(const Amount in ret){
 				if(Amount=="ether_balance"){
 					Total_balance+=(app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "") *CryptoPrices['ETH'].price).toFixed(2)
