@@ -1,15 +1,11 @@
 module.exports = async function (app) {
 
 	var ercManager = {};
-
-
-
-
+	
 	ercManager.approve = async function (token,addr,spender,amount) {
 		return new Promise(async (resolve, reject) => {
 
 			var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
-
 			var gasPrice = await app.web3.eth.getGasPrice();
 			var gas = await contract.methods.approve(spender,amount).estimateGas({from:addr});
 
@@ -47,14 +43,13 @@ module.exports = async function (app) {
 
 	ercManager.transfer = async function (token,to,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-			var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
-			var gasPrice = await app.web3.eth.getGasPrice();
-			var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
 
 			try {
+				var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
+				var gasPrice = await app.web3.eth.getGasPrice();
+				var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
 
 				var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
-
 
 				var tx = await app.web3.eth.getTransaction(receipt.transactionHash);
 				tx.txtype = token;
@@ -67,7 +62,6 @@ module.exports = async function (app) {
 				tx.value = amount;
 				tx.gasPrice = gasPrice;
 				app.db.txs().insertOne(tx);
-
 
 				resolve({transactionHash:receipt.transactionHash,address:credentials.address,to:to,amount:amount});
 				console.log(receipt.transactionHash,"confirmed transfer from",credentials.address,"to",to,"amount",amount);
