@@ -764,15 +764,15 @@ module.exports = function (app) {
 
 
 	    
-	app.post('/campaign/upsert', async (req, res) => {
+	app.post('/campaign/save', async (req, res) => {
 		
 		const campaign = req.body
 		try {
 			app.db.campaign().insertOne(campaign);
-			res.end("succeed").status(200);
+			res.end("creation succeed").status(200);
 
 		} catch (err) {
-			res.end(err).status(400);
+			res.end(err);
 		}
 
 	});
