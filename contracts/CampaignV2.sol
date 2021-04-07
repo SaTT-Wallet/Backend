@@ -180,8 +180,7 @@ contract campaign is oracleClient {
     }
     
     function validateProm(bytes32 idProm) public {
-        Campaign storage cmp = campaigns[proms[idProm].idCampaign];
-        require(cmp.endDate > now);
+        Campaign storage cmp = campaigns[proms[idProm].idCampaign];a
         require(cmp.advertiser == msg.sender);
         proms[idProm].isAccepted = true;
         cmp.nbValidProms++;
