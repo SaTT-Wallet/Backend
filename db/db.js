@@ -13,11 +13,7 @@ module.exports = async function (app) {
 	  connectionLimit : 5,
 	});
 
-
-
-
 	app.db = {};
-
 
 	app.db.query = function (query) {
 
@@ -54,7 +50,6 @@ module.exports = async function (app) {
 
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
-        console.log('Connection successful on mongodb');
 
 
 		app.db.campaignCrm = function () {
