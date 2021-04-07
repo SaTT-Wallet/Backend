@@ -29,9 +29,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify({token:token,balance:balance}));
 	})
 
- /*
+     /*
      @Url : /v2/balances/:tokens/:addr'
-     @description: calculate Total balance of a user
+     @description: calculate Total balance of each token
      @parameters :
      addr : wallet address of user
      tokens : accept one more contract address
@@ -70,7 +70,7 @@ module.exports = function (app) {
 
 })
 
- /*
+/*
      @Url : /v2/total_balance/:addr/:token'
      @description: calculate Total balance of a user
      @parameters :
