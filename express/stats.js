@@ -229,18 +229,18 @@ module.exports = function (app) {
 	});
 
       /*
-     @Url :/campaign/draftowned/:token/addr:'
+     @Url :/campaign/list/:token/addr:'
      @description: fetch drafts and created campaign 
      @parameters :
      addr : wallet address of user
      token : access token
-     @response : draft and created campaigns
+     @response : object of arrays => draft and created campaigns
      */
 
 	app.get('/campaign/list/:token/:addr', async function(req, response) {
 		try{
 			var owner = req.params.addr;
-			var access_token=req.params.addr
+			var access_token=req.params.token
 			var campaigns = [];
 			var rescampaigns = [];
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
@@ -294,6 +294,7 @@ module.exports = function (app) {
 	        let created_campaigns=rescampaigns.concat(campaignscentral);
 
 			let auth = await app.crm.auth(access_token);
+
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
 
             let campaigns_={drafts:draft_campaigns,created:created_campaigns}
