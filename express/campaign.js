@@ -31,8 +31,6 @@ module.exports = function (app) {
 
 	});
 
-
-
 	app.post('/campaign/create/all', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -164,8 +162,6 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
-
-
 
 	/*app.post('/campaign/apply', async function(req, response) {
 
@@ -763,6 +759,22 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
+	});
+
+
+
+	    
+	app.post('/campaign/upsert', async (req, res) => {
+		
+		const campaign = req.body
+		try {
+			app.db.campaign().insertOne(campaign);
+			res.end("succeed").status(200);
+
+		} catch (err) {
+			res.end(err).status(400);
+		}
+
 	});
 
 	return app;
