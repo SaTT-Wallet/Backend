@@ -1,8 +1,8 @@
 module.exports = function (app) {
 
 	var fs = require('fs');
-
 	var bodyParser = require('body-parser');
+
 	app.use( bodyParser.json() )
 
 	var BN = require("bn.js");
@@ -761,8 +761,17 @@ module.exports = function (app) {
 		}
 	});
 
+	app.delete('/addKit/remove/:idKit', async (req, res) => {
+	  const idKit = req.params.idKit
 
-
+	  try {
+		const data=await app.db.campaign_kit().deleteOne({id:idKit});
+		res.end("Kit deleted").status(200);
+	} catch (err) {
+		res.end(err);
+	}
+          
+	})
 	    
 	app.post('/campaign/save', async (req, res) => {
 		
