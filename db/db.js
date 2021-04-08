@@ -47,10 +47,16 @@ module.exports = async function (app) {
 		});
 	}
 
-	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	// var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
-	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	// var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
+    var db = await mongoClient.connect("mongodb+srv://alaa:0000@cluster0.ylnuu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+
+	var db2 = await mongoClient.connect("mongodb+srv://alaa:0000@cluster0.ylnuu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+
+
+	console.log("mongoDB: ",db.topology.s.state)
 
 
 		app.db.campaignCrm = function () {
@@ -117,7 +123,11 @@ module.exports = async function (app) {
 
 		app.db.indexedtx = function () {
 			return db.db(app.config.mongoBase).collection('indexed_tx');
-	};
+	    };
+        
+		app.db.notification = function () {
+            return db.db(app.config.mongoBase).collection("notification");
+        };
 
 		app.db.balance = function () {
 				return db.db(app.config.mongoBase).collection('balance');

@@ -1,12 +1,18 @@
 module.exports = function (app) {
 
 	var fs = require('fs');
-
+	var ObjectId = require('mongodb').ObjectId; 
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 
+	var nodemailer = require('nodemailer');
+
+	var transporter = nodemailer.createTransport(app.config.mailerOptions);
+
 	var BN = require("bn.js");
 
+	
+	
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
@@ -68,7 +74,8 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
-
+		let loader = new TwingLoaderFilesystem('./templates');
+		let twing = new TwingEnvironment(loader);
 	});
 
 
@@ -120,6 +127,72 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
+	});
+
+	/*
+     @Url :/campaign/insert_link_notification'
+     @description: notify campaign owner
+     @parameters => request_body :
+     campaign_id : id of the campaign
+     link : link
+     @response : object of arrays => draft and created campaigns
+     */
+
+	 app.post('/campaign/insert_link_notification', async function(req, response) {
+        try {
+           
+		   let campaign_id=req.body.campaign
+		   let link=req.body.link
+		   let campaign={}
+		   let date;
+		var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)}, function (err, result) {
+			   campaign.owner=result.idNode
+               campaign.title=result.title
+			   campaign.hash=result.hash
+			   manageTime()
+			   let notification={
+				idNode:campaign.owner,//owner id
+				type:"cmp_candidate_insert_link",//done
+				status:"done",//done
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}), 
+				isSeen:false,//done
+				isSend:false,
+				attachedEls:{
+					id:campaign_id
+			  }
+			}
+			app.db.notification().insert(notification)
+           let template_ = fs.readFileSync(app.config.emailTemplate,'utf8');
+			// var mailOptions = {
+			// 	from: app.config.mailSender,
+			// 	to: username,
+			// 	subject: 'Satt wallet activation',
+			// 	html: '<a href="'+app.config.baseUrl+'auth/activate/'+id+"/"+code+'">Activate account</a>'
+			//   };
+			//   transporter.sendMail(mailOptions, function(error, info){
+			// 	if (error) {
+			// 	  console.log(error);
+			// 	} else {
+			// 	  console.log('Email sent: ' + info.response);
+			// 	}
+			//   });
+		  });
+
+
+		   function manageTime (){
+			var d = new Date();
+			var date = d.getDate();
+			var month = d.getMonth() + 1;
+			var year = d.getFullYear();
+			var seconds = d.getSeconds();
+			var minutes = d.getMinutes();
+			var hour = d.getHours();
+			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
+		   }
+		   
+        } catch (err) {
+			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
+        }
 	});
 
 	app.post('/campaign/fund', async function(req, response) {
