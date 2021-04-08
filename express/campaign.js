@@ -163,8 +163,6 @@ module.exports = function (app) {
 		}
 	});
 
-
-
 	/*app.post('/campaign/apply', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -781,6 +779,22 @@ module.exports = function (app) {
 		}
 	})
 	
+
+
+	    
+	app.post('/campaign/save', async (req, res) => {
+		
+		const campaign = req.body
+		try {
+			app.db.campaign().insertOne(campaign);
+			res.end("creation succeed").status(200);
+
+		} catch (err) {
+			res.end(err);
+		}
+
+	});
+
 	return app;
 
 }
