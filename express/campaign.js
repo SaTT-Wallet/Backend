@@ -772,7 +772,7 @@ module.exports = function (app) {
 	  const idKit = req.params.idKit
 
 	  try {
-		const data=await app.db.campaign_kit().deleteOne({id:idKit});
+		const data=await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
 		res.end("Kit deleted").status(200);
 	} catch (err) {
 		res.end(err);
