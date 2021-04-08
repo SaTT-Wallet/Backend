@@ -43,7 +43,7 @@ module.exports = function (app) {
 
 		try {
 
-			var res = await app.crm.auth( req.body.token);
+			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
@@ -108,8 +108,7 @@ module.exports = function (app) {
 		try {
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
-
-			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred)
+			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred);
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -128,8 +127,8 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 
 
-		try {
-			var res = await app.crm.auth( req.body.token);
+		try {			
+			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
 			response.end(JSON.stringify(ret));
@@ -609,8 +608,6 @@ module.exports = function (app) {
 		response.end(JSON.stringify(ret));
 	});
 
-
-
 	app.post('/campaign/estimate/create/youtube', async function(req, response) {
 
 
@@ -758,6 +755,16 @@ module.exports = function (app) {
 		}
 		finally {
 			app.account.lock(cred.address);
+		}
+	});
+	
+	app.delete('/campaign/deleteDraft/:id', async (req, response) => {
+		const id= req.params.id;
+		try {
+			const data=await app.db.campaign().deleteOne({_id:app.ObjectId(id)});
+			response.end(JSON.stringify(data));
+		} catch (err) {
+			response.end(err);
 		}
 	});
 
