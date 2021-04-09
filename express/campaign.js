@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongodb');
 const db = require('../db/db');
 
 module.exports = function (app) {
@@ -10,6 +11,7 @@ module.exports = function (app) {
 
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
+
 
 	app.post('/campaign/create', async function(req, response) {
 
@@ -774,13 +776,11 @@ module.exports = function (app) {
 		try {
 		const kit=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
 		response.end(JSON.stringify(kit));
+			console(kit);
 		}catch (err) {
 			response.end(err);
 		}
 	})
-	
-
-
 	    
 	app.post('/campaign/save', async (req, res) => {
 		
@@ -795,6 +795,36 @@ module.exports = function (app) {
 
 	});
 
+	app.put('/campaign/:id/update', async (req, res) => {
+		
+		const campaign = req.body;
+		const id=req.params.id;
+		try {
+			await app.db.campaign().updateOne({_id:ObjectId(id)},
+			{$set: {
+			_id:ObjectId(id),
+			idNode:campaign.idNode,
+			title:campaign.title,
+			tags:campaign.tags,
+			resume:campaign.resume,
+		    description:campaign.description,
+			status:campaign.status,
+			countries:campaign.countries,
+			token:campaign.token,
+			shortLink:campaign.shortLink,
+			cost:campaign.cost,
+			cost_usd:campaign.cost_usd,
+			ratios:campaign.ratios,
+			time:campaign.time
+				}});		
+			res.end("updated succeed").status(200);
+			} catch (err) {
+			res.end(err);
+			}
+
+	});
+
+	
 	return app;
 
 }
