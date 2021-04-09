@@ -8,6 +8,7 @@ module.exports = function (app) {
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
+	const dot = require('dot-object')
 	const multer = require('multer');
 	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
 	const mongoURI = 'mongodb://wallet:12345678@127.0.0.1:27017/atayen';
@@ -786,6 +787,22 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});	
+
+
+	
+	app.delete('/addKit/remove/:idKit', async (req, res) => {
+		const idKit = req.params.idKit
+  
+		try {
+		  const data=await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
+		  res.end("Kit deleted").status(200);
+	  } catch (err) {
+		  res.end(err);
+	  }
+			
+	  })
+
+
 	app.delete('/campaign/deleteDraft/:id', async (req, response) => {
 		const id= req.params.id;
 		try {
@@ -821,17 +838,7 @@ module.exports = function (app) {
 	  });
 
 
-	app.delete('/addKit/remove/:idKit', async (req, res) => {
-	  const idKit = req.params.idKit
-
-	  try {
-		const data=await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
-		res.end("Kit deleted").status(200);
-	} catch (err) {
-		res.end(err);
-	}
-          
-	})
+	
 
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
 		const idCampaign= req.params.idCampaign;
@@ -855,6 +862,19 @@ module.exports = function (app) {
 		}
 
 	});
+
+
+
+	app.delete('/campaign/delete/:idCampaign/cover', async (req, res) => {
+		try {
+			const campaign = req.params.idCampaign
+			await app.db.CampaignCover().deleteOne({_id : app.ObjectId(campaign)})
+			res.send('deleted').status(200);
+		} catch (err) {
+			res.end(err);
+		}
+		
+	})
 
 
 	return app;
