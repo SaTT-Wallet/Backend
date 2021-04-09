@@ -1,13 +1,38 @@
-const db = require('../db/db');
-
 module.exports = function (app) {
 
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
-
-
 	app.use( bodyParser.json() )
+	const crypto = require('crypto');
+	const methodOverride = require('method-override');
+	const Grid = require('gridfs-stream');
+	const GridFsStorage = require('multer-gridfs-storage');
+	const path = require('path');
+	const multer = require('multer');
+	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
+	const mongoURI = 'mongodb://wallet:12345678@127.0.0.1:27017/atayen';
 
+	const storage = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'campaign_kit'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+	  const upload = multer({ storage });
+
+    app.set("view engine", "ejs");
 
 	var BN = require("bn.js");
 
@@ -760,8 +785,7 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
-	});
-	
+	});	
 	app.delete('/campaign/deleteDraft/:id', async (req, response) => {
 		const id= req.params.id;
 		try {
@@ -771,6 +795,30 @@ module.exports = function (app) {
 			response.end(err);
 		}
 	});
+
+	app.post('/addKit', upload.single('file'), async(req, res) => {
+		const file = {}
+		try {
+		 if(req.file){
+          file.name = req.file.originalname
+		  file.idCampaign = req.body.campaign
+		   file.id = req.file.id
+		   file.file = req.file
+            await app.db.campaign_kit().insertOne(file)
+		 res.json({ file: req.file });
+
+		 } else if(!req.file){
+			let url ={};
+			url.name = req.body.name
+			url.link = req.body.link
+			url.idCampaign = req.body.campaign
+			await app.db.campaign_kit().insertOne(url)
+			res.json("saved").status(200);
+		 }		
+		} catch (err) {
+			res.end(err);
+		}
+	  });
 
 
 	app.delete('/addKit/remove/:idKit', async (req, res) => {
@@ -794,10 +842,6 @@ module.exports = function (app) {
 			response.end(err);
 		}
 	})
-	
-
-
-
 	    
 	app.post('/campaign/save', async (req, res) => {
 		
@@ -811,6 +855,7 @@ module.exports = function (app) {
 		}
 
 	});
+
 
 	return app;
 
