@@ -832,6 +832,16 @@ module.exports = function (app) {
 	}
           
 	})
+
+	app.get('/campaign/:idCampaign/kits',async (req, response) => {
+		const idCampaign= req.params.idCampaign;
+		try {
+		const kit=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
+		response.end(JSON.stringify(kit));
+		}catch (err) {
+			response.end(err);
+		}
+	})
 	    
 	app.post('/campaign/save', async (req, res) => {
 		
