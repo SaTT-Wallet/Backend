@@ -1,9 +1,13 @@
+const db = require('../db/db');
+
 module.exports = function (app) {
 
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
 
+
 	app.use( bodyParser.json() )
+
 
 	var BN = require("bn.js");
 
@@ -768,6 +772,7 @@ module.exports = function (app) {
 		}
 	});
 
+
 	app.delete('/addKit/remove/:idKit', async (req, res) => {
 	  const idKit = req.params.idKit
 
@@ -779,6 +784,20 @@ module.exports = function (app) {
 	}
           
 	})
+
+	app.get('/campaign/:idCampaign/kits',async (req, response) => {
+		const idCampaign= req.params.idCampaign;
+		try {
+		const kit=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
+		response.end(JSON.stringify(kit));
+		}catch (err) {
+			response.end(err);
+		}
+	})
+	
+
+
+
 	    
 	app.post('/campaign/save', async (req, res) => {
 		
