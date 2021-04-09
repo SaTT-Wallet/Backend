@@ -58,6 +58,7 @@ module.exports = async function (app) {
         app.db.campaign_kit = function () {
             return db.db(app.config.mongoBaseCrm).collection("campaign_kit");
         };
+
 		app.db.campaign_link = function () {
             return db.db(app.config.mongoBaseCrm).collection("campaign_link");
         };

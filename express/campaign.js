@@ -23,7 +23,7 @@ module.exports = function (app) {
 			  const filename = buf.toString('hex') + path.extname(file.originalname);
 			  const fileInfo = {
 				filename: filename,
-				bucketName: 'uploads'
+				bucketName: 'campaign_kit'
 			  };
 			  resolve(fileInfo);
 			});
