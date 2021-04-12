@@ -10,8 +10,9 @@ module.exports = function (app) {
 	const path = require('path');
 	const dot = require('dot-object')
 	const multer = require('multer');
-	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
-	const mongoURI = 'mongodb://wallet:12345678@127.0.0.1:27017/atayen';
+	const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
+	// const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
+
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -31,7 +32,28 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	  const upload = multer({ storage });
+
+	  const storageImage = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'campaign_cover'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+
+	  const uploadImage = multer({ storage : storageImage });
+	   const upload = multer({ storage });
 
     app.set("view engine", "ejs");
 
@@ -790,7 +812,7 @@ module.exports = function (app) {
 
 
 	
-	app.delete('/addKit/remove/:idKit', async (req, res) => {
+	app.delete('/Kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
   
 		try {
@@ -865,7 +887,7 @@ module.exports = function (app) {
 
 
 
-	app.delete('/campaign/delete/:idCampaign/cover', async (req, res) => {
+	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
 			await app.db.CampaignCover().deleteOne({_id : app.ObjectId(campaign)})
@@ -906,6 +928,16 @@ module.exports = function (app) {
 
 	});
 
+	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
+		// const token = req.headers["authorization"].split(" ")[1];
+		// const res = await app.crm.auth( token);
+        const img = {};
+		img.idCampaign = req.params.idCampaign;
+        img.name = req.file.originalname
+		img.file = req.file
+		const image = await app.db.campaignCover().insertOne(img)
+		res.json(JSON.stringify(image));
+	})
 
 	return app;
 
