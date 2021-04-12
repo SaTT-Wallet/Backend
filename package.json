@@ -15,6 +15,7 @@
     "coinselect": "^3.1.11",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.3",
+    "dot-object": "^2.1.4",
     "ejs": "^2.6.1",
     "elliptic": "^6.5.4",
     "ethereumjs-wallet": "^1.0.1",
