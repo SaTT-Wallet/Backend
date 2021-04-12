@@ -1,23 +1,17 @@
-
-const { ObjectId } = require('mongodb');
-const db = require('../db/db');
-
-
 module.exports = function (app) {
 
 	var fs = require('fs');
 	var mongoose = require('mongoose');
 
 	var bodyParser = require('body-parser');
-
+	app.use( bodyParser.json() )
 	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
 	const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
-	
-	app.use( bodyParser.json() )
+	// const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
 
 
 	const storage = new GridFsStorage({
@@ -38,10 +32,30 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	  const upload = multer({ storage });
+
+	  const storageImage = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'campaign_cover'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+
+	  const uploadImage = multer({ storage : storageImage });
+	   const upload = multer({ storage });
 
     app.set("view engine", "ejs");
-
 
 	var BN = require("bn.js");
 
@@ -801,8 +815,9 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
+	});	
 
-	});
+
 	
 	app.delete('/Kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
@@ -885,11 +900,14 @@ module.exports = function (app) {
 
 	});
 
+
+
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
-			await app.db.CampaignCover().deleteOne({_id : app.ObjectId(campaign)})
-			res.send('deleted').status(200);
+			console.log(typeof campaign)
+           await app.db.campaignCover().deleteOne({idCampaign: campaign});
+			res.end("deleted").status(200);
 		} catch (err) {
 			res.end(err);
 		}
@@ -976,7 +994,20 @@ module.exports = function (app) {
 					});
 		
 					fs.createReadStream(imagePath).pipe(res);
-			}			 		  
+			}		
+		})
+			
+			
+			
+	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
+		// const token = req.headers["authorization"].split(" ")[1];
+		// const res = await app.crm.auth( token);
+        const img = {};
+		img.idCampaign = req.params.idCampaign;
+        img.name = req.file.originalname
+		img.file = req.file
+		const image = await app.db.campaignCover().insertOne(img)
+		res.json(JSON.stringify(image));
 	})
 
 	
