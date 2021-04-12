@@ -10,8 +10,8 @@ module.exports = function (app) {
 	const path = require('path');
 	const dot = require('dot-object')
 	const multer = require('multer');
-	const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
-	// const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
+	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
+	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
 
 
 	const storage = new GridFsStorage({
@@ -890,8 +890,9 @@ module.exports = function (app) {
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
-			await app.db.CampaignCover().deleteOne({_id : app.ObjectId(campaign)})
-			res.send('deleted').status(200);
+			console.log(typeof campaign)
+           await app.db.campaignCover().deleteOne({idCampaign: campaign});
+			res.end("deleted").status(200);
 		} catch (err) {
 			res.end(err);
 		}
