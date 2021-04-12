@@ -10,8 +10,8 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
-	// const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
+	//const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
+	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
 
 
 	const storage = new GridFsStorage({
