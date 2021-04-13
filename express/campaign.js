@@ -9,8 +9,7 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
-	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
+	const mongoURI = app.config.mongoURI;
 
 
 	const storage = new GridFsStorage({
@@ -25,6 +24,25 @@ module.exports = function (app) {
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_kit'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+
+	  const storageProfilePic = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'user_files'
 			  };
 			  resolve(fileInfo);
 			});
@@ -50,8 +68,8 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-
-	  const uploadImage = multer({ storage : storageImage });
+       const uploadImageProfile =  multer({storage : storageProfilePic})
+	   const uploadImage = multer({ storage : storageImage });
 	   const upload = multer({ storage });
 
     app.set("view engine", "ejs");
@@ -928,16 +946,12 @@ module.exports = function (app) {
 	});
 
 
-	app.get('/campaigns/proms/:campaign', async (req, res) => {
-		const idCampaign = req.params.campaign
-	
-	})
 
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
      @params:
-     idCampaign : campaign id
+     @Input idCampaign : campaign id 
      */
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		// const token = req.headers["authorization"].split(" ")[1];
@@ -955,7 +969,8 @@ module.exports = function (app) {
      @url : /campaign/stats_live
      @description: get live stats of campaign proms
      @params:
-     idProm : prom_id
+     @Input idProm : prom_id
+	 @Output Object with stats
      */
 	app.post('/campaign/stats_live', async(req, res)=>{
         try {
@@ -975,7 +990,8 @@ module.exports = function (app) {
      @url : /campaign/links/:idCampaign
      @description: get rejected links of a campaign
      @params:
-     idCampaign : id of a campaign
+     @Input idCampaign : id of a campaign
+	 @Output array of rejected links
      */
 	app.get('/campaign/links/:idCampaign', async(req, res)=>{
 		try {
@@ -987,6 +1003,7 @@ module.exports = function (app) {
 	}
 	})
 
+	
 	return app;
 
 }

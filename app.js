@@ -33,6 +33,7 @@
 		app = await require("./express/login")(app);
 		app = await require("./express/service")(app);
 		app = await require("./express/campaign")(app);
+		app = await require("./express/profile")(app);
 		//app = await require("./express/campaigncentral")(app);
 		app = await require("./express/statscentral")(app);
 		app = await require("./express/stats")(app);
