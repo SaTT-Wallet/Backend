@@ -47,18 +47,27 @@ module.exports = async function (app) {
 		});
 	}
 
-	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
+	 var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
-
-	console.log("mongoDB: ",db.topology.s.state)
-
+         
 
 		app.db.campaignCrm = function () {
             return db2.db(app.config.mongoBaseCrm).collection(app.config.campaignCollection);
         };
 
+        app.db.campaign_kit = function () {
+
+            return db.db(app.config.mongoBaseCrm).collection("campaign_kit");
+        };
+
+		app.db.campaign_link = function () {
+            return db.db(app.config.mongoBaseCrm).collection("campaign_link");
+        };
+		app.db.campaignCover = function () {
+            return db.db(app.config.mongoBaseCrm).collection("campaign_cover");
+        };
 		app.db.user = function () {
             return db2.db(app.config.mongoBaseCrm).collection("sn_user");
         };
@@ -119,11 +128,7 @@ module.exports = async function (app) {
 
 		app.db.indexedtx = function () {
 			return db.db(app.config.mongoBase).collection('indexed_tx');
-	    };
-        
-		app.db.notification = function () {
-            return db.db(app.config.mongoBase).collection("notification");
-        };
+	};
 
 		app.db.balance = function () {
 				return db.db(app.config.mongoBase).collection('balance');

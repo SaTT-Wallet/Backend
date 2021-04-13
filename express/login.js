@@ -307,7 +307,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(param))
 		}
 		else {
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
 	}
 	});
 
@@ -332,26 +332,26 @@ module.exports = function (app) {
 			response.end(JSON.stringify(param))
 		}
 		else {
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
 	}
 	});
 
 	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] }), async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
 	});
 
 	app.get('/callback/twitter',passport.authenticate('twitter'), async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
 	});
 
 	app.get('/callback/telegram', passport.authenticate('telegram'),async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		response.redirect("https://satt.atayen.us/#?token="+JSON.stringify(param))
+		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
 	});
 
 
