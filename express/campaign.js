@@ -8,7 +8,6 @@ module.exports = function (app) {
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
-	const dot = require('dot-object')
 	const multer = require('multer');
 	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
 	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
@@ -812,7 +811,7 @@ module.exports = function (app) {
 
 
 	
-	app.delete('/Kit/:idKit', async (req, res) => {
+	app.delete('/kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
   
 		try {
@@ -890,7 +889,6 @@ module.exports = function (app) {
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
-			console.log(typeof campaign)
            await app.db.campaignCover().deleteOne({idCampaign: campaign});
 			res.end("deleted").status(200);
 		} catch (err) {
@@ -929,6 +927,18 @@ module.exports = function (app) {
 
 	});
 
+
+	app.get('/campaigns/proms/:campaign', async (req, res) => {
+		const idCampaign = req.params.campaign
+	
+	})
+
+	/*
+     @url : /campaign/:idCampaign/cover
+     @description: Save campaign covers in db
+     @params:
+     idCampaign : campaign id
+     */
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		// const token = req.headers["authorization"].split(" ")[1];
 		// const res = await app.crm.auth( token);
@@ -938,6 +948,27 @@ module.exports = function (app) {
 		img.file = req.file
 		const image = await app.db.campaignCover().insertOne(img)
 		res.json(JSON.stringify(image));
+	})
+
+
+	/*
+     @url : /campaign/stats_live
+     @description: get live stats of campaign proms
+     @params:
+     idProm : prom_id
+     */
+	app.post('/campaign/stats_live', async(req, res)=>{
+        try {
+		const idProm = req.body.prom_id
+		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
+        let stats = {};
+		stats.likes = prom.likes;
+		stats.shares = prom.shares;
+		stats.views = prom.views;
+		res.send(stats).status(200);
+		} catch (err) {
+			res.end(err);
+		}
 	})
 
 	return app;
