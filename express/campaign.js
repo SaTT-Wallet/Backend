@@ -971,6 +971,22 @@ module.exports = function (app) {
 		}
 	})
 
+	/*
+     @url : /campaign/links/:idCampaign
+     @description: get rejected links of a campaign
+     @params:
+     idCampaign : id of a campaign
+     */
+	app.get('/campaign/links/:idCampaign', async(req, res)=>{
+		try {
+      const campaign = req.params.idCampaign
+	    const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
+		res.send(JSON.stringify(links)).status(200);
+	} catch (err) {
+		res.end(err);
+	}
+	})
+
 	return app;
 
 }
