@@ -1,5 +1,7 @@
-module.exports = function (app) {
+const { async } = require('hasha');
 
+module.exports = function (app) {
+	let ejs = require('ejs');
 	var fs = require('fs');
 	var ObjectId = require('mongodb').ObjectId; 
 	var bodyParser = require('body-parser');
@@ -140,12 +142,11 @@ module.exports = function (app) {
 
 	 app.post('/campaign/insert_link_notification', async function(req, response) {
         try {
-           
 		   let campaign_id=req.body.campaign
 		   let link=req.body.link
 		   let campaign={}
 		   let date;
-		var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)}, function (err, result) {
+		var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
 			   campaign.owner=result.idNode
                campaign.title=result.title
 			   campaign.hash=result.hash
@@ -161,22 +162,40 @@ module.exports = function (app) {
 					id:campaign_id
 			  }
 			}
-			app.db.notification().insert(notification)
-           let template_ = fs.readFileSync(app.config.emailTemplate,'utf8');
-			// var mailOptions = {
-			// 	from: app.config.mailSender,
-			// 	to: username,
-			// 	subject: 'Satt wallet activation',
-			// 	html: '<a href="'+app.config.baseUrl+'auth/activate/'+id+"/"+code+'">Activate account</a>'
-			//   };
-			//   transporter.sendMail(mailOptions, function(error, info){
-			// 	if (error) {
-			// 	  console.log(error);
-			// 	} else {
-			// 	  console.log('Email sent: ' + info.response);
-			// 	}
-			//   });
+		  await	app.db.notification().insert(notification)
+
+		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
+		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
+				if (err) {
+				  console.error(err)
+				  return
+				}
+				var data_={
+					cmp:{
+						name:campaign.title,
+						link:link
+					}
+				}
+				let dynamic_html=ejs.render(data, data_);
+				console.log(dynamic_html)
+				var mailOptions = {
+			     from: app.config.mailSender,
+			     to: result.email,
+			     subject: 'New link was added To your campaign',
+			     html: dynamic_html
+			};
+		
+		 await transporter.sendMail(mailOptions, function(error, info){
+				if (error) {
+					res.end(JSON.stringify(error))
+				} else {
+					console.log("email was sent")
+					res.end(JSON.stringify(info.response))
+				}
+			  });
+			})
 		  });
+			})
 
 
 		   function manageTime (){
