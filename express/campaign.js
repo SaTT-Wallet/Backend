@@ -1,20 +1,65 @@
-const { async } = require('hasha');
-
 module.exports = function (app) {
 	let ejs = require('ejs');
-	var fs = require('fs');
 	var ObjectId = require('mongodb').ObjectId; 
+	var fs = require('fs');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
+	const crypto = require('crypto');
+	const methodOverride = require('method-override');
+	const Grid = require('gridfs-stream');
+	const GridFsStorage = require('multer-gridfs-storage');
+	const path = require('path');
+	const dot = require('dot-object')
+	const multer = require('multer');
+	// const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
+	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
 
-	var nodemailer = require('nodemailer');
 
-	var transporter = nodemailer.createTransport(app.config.mailerOptions);
+	const storage = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'campaign_kit'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+
+	  const storageImage = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'campaign_cover'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+
+	  const uploadImage = multer({ storage : storageImage });
+	   const upload = multer({ storage });
+
+    app.set("view engine", "ejs");
 
 	var BN = require("bn.js");
 
-	
-	
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
@@ -39,8 +84,6 @@ module.exports = function (app) {
 
 	});
 
-
-
 	app.post('/campaign/create/all', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -53,7 +96,7 @@ module.exports = function (app) {
 
 		try {
 
-			var res = await app.crm.auth( req.body.token);
+			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
@@ -76,59 +119,7 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
-		let loader = new TwingLoaderFilesystem('./templates');
-		let twing = new TwingEnvironment(loader);
-	});
 
-
-	app.post('/campaign/create/youtube', async function(req, response) {
-
-		var pass = req.body.pass;
-		var dataUrl = req.body.dataUrl;
-		var startDate = req.body.startDate;
-		var endDate = req.body.endDate;
-		var token = req.body.ERC20token;
-		var amount = req.body.amount;
-		var likeRatio = req.body.likeRatio;
-		var viewRatio = req.body.viewRatio;
-
-		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
-			var ret = await app.campaign.createCampaignYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,cred);
-			response.end(JSON.stringify(ret));
-
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-			app.account.lock(cred.address);
-		}
-
-	});
-
-	app.post('/campaign/modify', async function(req, response) {
-
-		var pass = req.body.pass;
-		var dataUrl = req.body.dataUrl;
-		var startDate = req.body.startDate;
-		var endDate = req.body.endDate;
-		var idCampaign = req.body.idCampaign;
-
-
-		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
-
-			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred)
-			response.end(JSON.stringify(ret));
-
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-			app.account.lock(cred.address);
-		}
 	});
 
 	/*
@@ -213,6 +204,55 @@ module.exports = function (app) {
 			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
         }
 	});
+	
+	app.post('/campaign/create/youtube', async function(req, response) {
+
+		var pass = req.body.pass;
+		var dataUrl = req.body.dataUrl;
+		var startDate = req.body.startDate;
+		var endDate = req.body.endDate;
+		var token = req.body.ERC20token;
+		var amount = req.body.amount;
+		var likeRatio = req.body.likeRatio;
+		var viewRatio = req.body.viewRatio;
+
+		try {
+			var res = await app.crm.auth( req.body.token);
+			var cred = await app.account.unlock(res.id,pass);
+			var ret = await app.campaign.createCampaignYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,cred);
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+
+	});
+
+	app.post('/campaign/modify', async function(req, response) {
+
+		var pass = req.body.pass;
+		var dataUrl = req.body.dataUrl;
+		var startDate = req.body.startDate;
+		var endDate = req.body.endDate;
+		var idCampaign = req.body.idCampaign;
+
+
+		try {
+			var res = await app.crm.auth( req.body.token);
+			var cred = await app.account.unlock(res.id,pass);
+			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred);
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
 
 	app.post('/campaign/fund', async function(req, response) {
 
@@ -222,8 +262,8 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 
 
-		try {
-			var res = await app.crm.auth( req.body.token);
+		try {			
+			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
 			response.end(JSON.stringify(ret));
@@ -256,8 +296,6 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
-
-
 
 	/*app.post('/campaign/apply', async function(req, response) {
 
@@ -705,8 +743,6 @@ module.exports = function (app) {
 		response.end(JSON.stringify(ret));
 	});
 
-
-
 	app.post('/campaign/estimate/create/youtube', async function(req, response) {
 
 
@@ -855,7 +891,137 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
+	});	
+
+
+	
+	app.delete('/Kit/:idKit', async (req, res) => {
+		const idKit = req.params.idKit
+  
+		try {
+		  const data=await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
+		  res.end("Kit deleted").status(200);
+	  } catch (err) {
+		  res.end(err);
+	  }
+			
+	  })
+
+
+	app.delete('/campaign/deleteDraft/:id', async (req, response) => {
+		const id= req.params.id;
+		try {
+			const data=await app.db.campaign().deleteOne({_id:app.ObjectId(id)});
+			response.end(JSON.stringify(data));
+		} catch (err) {
+			response.end(err);
+		}
 	});
+
+	app.post('/addKit', upload.single('file'), async(req, res) => {
+		const file = {}
+		try {
+		 if(req.file){
+          file.name = req.file.originalname
+		  file.idCampaign = req.body.campaign
+		   file.id = req.file.id
+		   file.file = req.file
+            await app.db.campaign_kit().insertOne(file)
+		 res.json({ file: req.file });
+
+		 } else if(!req.file){
+			let url ={};
+			url.name = req.body.name
+			url.link = req.body.link
+			url.idCampaign = req.body.campaign
+			await app.db.campaign_kit().insertOne(url)
+			res.json("saved").status(200);
+		 }		
+		} catch (err) {
+			res.end(err);
+		}
+	  });
+
+
+	
+
+	app.get('/campaign/:idCampaign/kits',async (req, response) => {
+		const idCampaign= req.params.idCampaign;
+		try {
+		const kit=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
+		response.end(JSON.stringify(kit));
+		}catch (err) {
+			response.end(err);
+		}
+	})
+	    
+	app.post('/campaign/save', async (req, res) => {
+		
+		const campaign = req.body
+		try {
+			app.db.campaign().insertOne(campaign);
+			res.end("creation succeed").status(200);
+
+		} catch (err) {
+			res.end(err);
+		}
+
+	});
+
+
+
+	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
+		try {
+			const campaign = req.params.idCampaign
+			console.log(typeof campaign)
+           await app.db.campaignCover().deleteOne({idCampaign: campaign});
+			res.end("deleted").status(200);
+		} catch (err) {
+			res.end(err);
+		}
+		
+	})
+
+
+	app.put('/campaign/:id/update', async (req, res) => {
+		
+		const campaign = req.body;
+		const id=req.params.id;
+		try {
+			await app.db.campaign().updateOne({_id:ObjectId(id)},
+			{$set: {
+			_id:ObjectId(id),
+			idNode:campaign.idNode,
+			title:campaign.title,
+			tags:campaign.tags,
+			resume:campaign.resume,
+		    description:campaign.description,
+			status:campaign.status,
+			countries:campaign.countries,
+			token:campaign.token,
+			shortLink:campaign.shortLink,
+			cost:campaign.cost,
+			cost_usd:campaign.cost_usd,
+			ratios:campaign.ratios,
+			time:campaign.time
+				}});		
+			res.end("updated succeed").status(200);
+			} catch (err) {
+			res.end(err);
+			}
+
+	});
+
+	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
+		// const token = req.headers["authorization"].split(" ")[1];
+		// const res = await app.crm.auth( token);
+        const img = {};
+		img.idCampaign = req.params.idCampaign;
+        img.name = req.file.originalname
+		img.file = req.file
+		const image = await app.db.campaignCover().insertOne(img)
+		res.json(JSON.stringify(image));
+	})
 
 	return app;
 
