@@ -11,7 +11,6 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const mongoURI = app.config.mongoURI;
-
 	const storage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -31,6 +30,7 @@ module.exports = function (app) {
 		}
 	  });
 
+
 	  const storageImage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -49,29 +49,10 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-
-	  const uploadImage = multer({ storage : storageImage });
+	   const uploadImage = multer({ storage : storageImage });
 	   const upload = multer({ storage });
 
-		const storageProfilePic = new GridFsStorage({
-		url: mongoURI,
-		file: (req, file) => {
-		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
-			  const fileInfo = {
-				filename: filename,
-				bucketName: 'user_files'
-			  };
-			  resolve(fileInfo);
-			});
-		  });
-		}
-	  });
-	  const uploadImageProfile =  multer({storage : storageProfilePic})
+	
 
 
     app.set("view engine", "ejs");
@@ -843,7 +824,7 @@ module.exports = function (app) {
 
 
 	
-	app.delete('/Kit/:idKit', async (req, res) => {
+	app.delete('/kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
   
 		try {
@@ -929,7 +910,6 @@ module.exports = function (app) {
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
-			console.log(typeof campaign)
            await app.db.campaignCover().deleteOne({idCampaign: campaign});
 			res.end("deleted").status(200);
 		} catch (err) {
@@ -977,7 +957,7 @@ module.exports = function (app) {
      @link : /campaign/:idCampaign/cover
      @description: récupère l'image d'un campaign s'il existe sinon il retourne une image par defaut
      @params:
-     idCampaign : identifiant de la campaign
+     @Input idCampaign : identifiant de la campaign
      */
 	app.get('/campaign/:idCampaign/cover', async (req, res) => {
 			const idCampaign = req.params.idCampaign;
@@ -1042,8 +1022,9 @@ module.exports = function (app) {
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
      @description: get accepted proms by owner
      @params:
-     idCampaign : identifiant de la campaign
-	 idWallet:identifiant de la wallet
+	 @Input idCampaign : identifiant de la campaign
+			idWallet:identifiant de la wallet
+	 @Output array of accepted links	 
      */
 	app.get('/campaign/owner_accepted_proms/:idWallet/:idCampaign',async(req, res)=>{
 		const idCampaign = req.params.idCampaign;
@@ -1056,6 +1037,7 @@ module.exports = function (app) {
 		res.send(allProms);
 	})
 	
+
 	/*
      @url : /campaign/stats_live
      @description: get live stats of campaign proms
@@ -1063,7 +1045,7 @@ module.exports = function (app) {
      @Input idProm : prom_id
 	 @Output Object with stats
      */
-	 app.post('/campaign/stats_live', async(req, res)=>{
+	app.post('/campaign/stats_live', async(req, res)=>{
         try {
 		const idProm = req.body.prom_id
 		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
@@ -1093,10 +1075,7 @@ module.exports = function (app) {
 		res.end(err);
 	}
 	})
-
-
-
-
+	
 	return app;
 
 }
