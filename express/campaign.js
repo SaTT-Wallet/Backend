@@ -12,7 +12,6 @@ module.exports = function (app) {
 	const multer = require('multer');
 	const mongoURI = app.url;
 
-
 	const storage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
