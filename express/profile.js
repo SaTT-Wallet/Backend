@@ -1,5 +1,5 @@
 module.exports = function (app) {
-
+	let ejs = require('ejs');
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
@@ -183,8 +183,18 @@ module.exports = function (app) {
 	  let email=req.body.email
 	  let subject=req.body.subject
 	  let message=req.body.message
-   
-	  console.log(req.body)
+
+	  fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => { //change File Name
+
+		var data_={
+			cmp:{
+				name:campaign.title,
+				link:link
+			}
+		}
+		let dynamic_html=ejs.render(data, data_);
+		
+	  })
 	  }catch (err) {
 		response.send(JSON.stringify(err));
 	}
