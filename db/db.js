@@ -46,28 +46,39 @@ module.exports = async function (app) {
 			});
 		});
 	}
+	
+	 var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	 var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
-	// var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+ 
 
-	// var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-
-    var db = await mongoClient.connect("mongodb+srv://alaa:0000@cluster0.ylnuu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-
-	var db2 = await mongoClient.connect("mongodb+srv://alaa:0000@cluster0.ylnuu.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-
-
-
-      	app.db_=db
-
-		  
 		app.db.campaignCrm = function () {
             return db2.db(app.config.mongoBaseCrm).collection(app.config.campaignCollection);
         };
 
-		app.db.user = function () {
-            return db2.db(app.config.mongoBaseCrm).collection("sn_user");
+        app.db.campaign_kit = function () {
+
+            return db.db(app.config.mongoBaseCrm).collection("campaign_kit");
+        };
+        app.db.userFiles = function () {
+            return db.db(app.config.mongoBaseCrm).collection("user_files");
+        };
+		app.db.Notification = function () {
+            return db.db(app.config.mongoBaseCrm).collection("notification");
+        };
+		app.db.UserLegal = function () {
+            return db.db(app.config.mongoBaseCrm).collection("user_legal");
+        };
+		app.db.campaign_link = function () {
+            return db.db(app.config.mongoBaseCrm).collection("campaign_link");
+        };
+		app.db.campaignCover = function () {
+            return db.db(app.config.mongoBaseCrm).collection("campaign_cover");
         };
 
+		app.db.user = function () {
+            return db2.db(app.config.mongoBaseCrm).collection("sn_user");
+        };		
         app.db.wallet = function () {
             return db.db(app.config.mongoBase).collection(app.config.walletCollection);
         };
@@ -124,11 +135,7 @@ module.exports = async function (app) {
 
 		app.db.indexedtx = function () {
 			return db.db(app.config.mongoBase).collection('indexed_tx');
-	    };
-        
-		app.db.notification = function () {
-            return db.db(app.config.mongoBase).collection("notification");
-        };
+	};
 
 		app.db.balance = function () {
 				return db.db(app.config.mongoBase).collection('balance');
@@ -143,9 +150,5 @@ module.exports = async function (app) {
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
     };
-
-
-
-
     return app;
 }
