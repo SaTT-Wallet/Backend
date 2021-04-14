@@ -128,7 +128,6 @@ module.exports = function (app) {
      @parameters => request_body :
      campaign_id : id of the campaign
      link : link
-     @response : object of arrays => draft and created campaigns
      */
 
 	 app.post('/campaign/insert_link_notification', async function(req, response) {
@@ -204,7 +203,7 @@ module.exports = function (app) {
 			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
         }
 	});
-	
+
 	app.post('/campaign/create/youtube', async function(req, response) {
 
 		var pass = req.body.pass;

@@ -179,8 +179,6 @@ module.exports = function (app) {
 				var ret = await app.account.createAccount(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
-
-
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
@@ -1024,7 +1022,52 @@ app.get('/v2/sum', async function(req, response) {
 	}
 })
 
+	/*
+     @Url :/v2/account'
+     @description: get user data
+     @parameters => request_header :
+     authorization : acces token
+	 response: User data
+     */
 
+app.get('/v2/account', async function(req, response) {
+  try{
+      let authheader = req.headers['authorization'].split(" ")[1]
+      let user =await	app.db.user().findOne({'accessToken':authheader})
+      res.end(user)
+     }catch(err){
+	res.end(JSON.stringify(err))
+   }
+  })
+
+  /*
+     @Url :/v2/profile/update'
+     @description: update profile
+     @parameters => request_body :
+     New_user_data:data To be updated
+     */
+
+app.post('/v2/profile/update', async function(req, response) {
+	try{
+		let authheader = req.headers['authorization'].split(" ")[1]
+        let checkEmail= await app.db.user().find({email:req.body.email}, function (err, docs) {
+          for(var i=0;i<docs.length;i++){
+			  if(docs[i].accessToken!=authheader){
+				  if(docs[i].email==req.body.email){
+					 return res.end("EmailExiste")
+				  }
+			  }
+		  }
+		})
+		let Update_ =await app.db.user().findOneAndUpdate({'accessToken':authheader},req.body,null, (error, doc) => {
+	         if(error){
+				return res.end(error)
+			 }
+			 res.end("Profile Updated")
+		  })
+	   }catch(err){
+	  res.end(JSON.stringify(err))
+	 }
+	})  
 	return app;
-
 }
