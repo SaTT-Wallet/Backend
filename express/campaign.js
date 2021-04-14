@@ -9,7 +9,7 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	const mongoURI = app.config.mongoURI;
+	const mongoURI = app.url;
 
 
 	const storage = new GridFsStorage({
@@ -31,24 +31,6 @@ module.exports = function (app) {
 		}
 	  });
 
-	  const storageProfilePic = new GridFsStorage({
-		url: mongoURI,
-		file: (req, file) => {
-		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
-			  const fileInfo = {
-				filename: filename,
-				bucketName: 'user_files'
-			  };
-			  resolve(fileInfo);
-			});
-		  });
-		}
-	  });
 
 	  const storageImage = new GridFsStorage({
 		url: mongoURI,
@@ -68,7 +50,6 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-       const uploadImageProfile =  multer({storage : storageProfilePic})
 	   const uploadImage = multer({ storage : storageImage });
 	   const upload = multer({ storage });
 
@@ -888,7 +869,14 @@ module.exports = function (app) {
 			response.end(err);
 		}
 	})
-	    
+	
+	/*
+     @url : /campaign/save
+     @description: saving campaign informations into db
+     @params:
+     @Input Campaign : campaign informations
+	 @Output succeed message
+     */
 	app.post('/campaign/save', async (req, res) => {
 		
 		const campaign = req.body
@@ -1003,7 +991,6 @@ module.exports = function (app) {
 	}
 	})
 
-	
 	return app;
 
 }

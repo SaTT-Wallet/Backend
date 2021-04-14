@@ -4,15 +4,31 @@ module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const crypto = require('crypto');
-	const methodOverride = require('method-override');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
-	const mongoURI = app.config.mongoURI;
+	const mongoURI = app.url;
 
-
+	const storageUserLegal = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'user_legal'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
@@ -40,7 +56,7 @@ module.exports = function (app) {
 		gfsprofilePic.collection('user_files');
 
 	  });
-	
+	   const uploadUserLegal =  multer({storage : storageUserLegal})
        const uploadImageProfile =  multer({storage : storageProfilePic})
 
 
@@ -114,6 +130,75 @@ module.exports = function (app) {
 		
 	})
 
+	/*
+     @url : /userlegal
+     @description: saving user legal files
+     @params:
+     @Input type : type of proof id or domicile
+     */
+	app.post('/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+      try{
+		  const date = new Date().toISOString();
+		let legal={};
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		if(req.body.type == 'proofId'){
+          legal.type = "proofId";
+		} 
+        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}		
+		legal.idNode = auth.id;
+        legal.file = req.file;
+		legal.filename = req.file.originalname
+		legal.validate = false;
+		const userLegal = await app.db.UserLegal().insertOne(legal);
+		let notification={
+			idNode:auth.id,
+			type:"save_legal_file_event",
+			status:"done",
+			label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+			isSeen:false,
+			attachedEls:{
+				id:userLegal.insertedId
+		  }
+		}
+	  await	app.db.notification().insert(notification)
+		res.end('legal processed').status(201);
+	  }catch (err) {
+		  res.send(err);
+	  }
+	})
+
+
+	app.get('/userLegal', async(req, res)=>{
+		const limit=parseInt(req.query.limit) || 2;
+		const page=parseInt(req.query.page) || 1
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const idNode=auth.id;
+		const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
+		const startIndex=(page-1) * limit;
+		const endIndex=page * limit;
+
+		const results = {}
+
+		if(endIndex < legal.length){
+			results.next ={
+				page:page+1,
+				limit:limit
+			}	
+		}			
+		if(startIndex > 0){
+			results.previous ={
+			page:page-1,
+			limit:limit
+		}
+		}
+		results.legal=legal.slice(startIndex, endIndex)
+		res.send(results);
+
+	})
+
+	
 
 
 	return app;
