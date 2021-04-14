@@ -116,12 +116,19 @@ module.exports = function (app) {
      req.file : image files
      */
     app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
-	try{
-        
-	} catch (err) {
-		res.end(JSON.stringify(err));
-	 }
-	})
+		try{
+			let pic = {};
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			pic.idUser = auth.id
+			pic.file = req.file;
+			await app.db.userFiles().insertOne(pic)
+			res.send('saved').status(200);
+		} catch (err) {
+			res.send(err);
+		}
+			
+		})
 
 	/*
      @url : /userlegal
