@@ -10,7 +10,9 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	const mongoURI = app.config.mongoURI;
+	//const mongoURI = app.config.mongoURI;
+	const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
+
 	const storage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -884,7 +886,6 @@ module.exports = function (app) {
      */
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
 		const idCampaign= req.params.idCampaign;
-		array=[];
 		try {
 		const kits=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
 		response.end(JSON.stringify(kits))
@@ -1075,7 +1076,7 @@ module.exports = function (app) {
 		res.end(err);
 	}
 	})
-	
+
 	return app;
 
 }
