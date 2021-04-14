@@ -9,7 +9,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
-	// const mongoURI = app.config.mongoURI;
+	const mongoURI = app.url;
 
 	const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
 	const storageUserLegal = new GridFsStorage({
@@ -32,6 +32,24 @@ module.exports = function (app) {
 	  });
 	  const uploadUserLegal =  multer({storage : storageUserLegal})
 
+	const storageUserLegal = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'user_legal'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
@@ -59,7 +77,7 @@ module.exports = function (app) {
 		gfsprofilePic.collection('user_files');
 
 	  });
-	
+	   const uploadUserLegal =  multer({storage : storageUserLegal})
        const uploadImageProfile =  multer({storage : storageProfilePic})
 
 
@@ -80,7 +98,6 @@ module.exports = function (app) {
 	 app.get('/profile/pic/:id', async (req, res) => {
          try{     
 		const idUser = +req.params.id;
-		console.log(idUser);
 		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
 		
 			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
@@ -119,12 +136,19 @@ module.exports = function (app) {
      req.file : image files
      */
     app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
-	try{
-        
-	} catch (err) {
-		res.end(JSON.stringify(err));
-	 }
-	})
+		try{
+			let pic = {};
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			pic.idUser = auth.id
+			pic.file = req.file;
+			await app.db.userFiles().insertOne(pic)
+			res.send('saved').status(200);
+		} catch (err) {
+			res.send(err);
+		}
+			
+		})
 
  	/*
      @link : /profile/userLegal?page='param'&limit='param'
@@ -197,6 +221,43 @@ module.exports = function (app) {
 	
 	  })
 
+	/*
+     @url : /userlegal
+     @description: saving user legal files
+     @params:
+     @Input type : type of proof id or domicile
+     */
+	app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+      try{
+		  const date = new Date().toISOString();
+		let legal={};
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		if(req.body.type == 'proofId'){
+          legal.type = "proofId";
+		} 
+        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}		
+		legal.idNode = auth.id;
+        legal.file = req.file;
+		legal.filename = req.file.originalname
+		legal.validate = false;
+		const userLegal = await app.db.UserLegal().insertOne(legal);
+		let notification={
+			idNode:auth.id,
+			type:"save_legal_file_event",
+			status:"done",
+			label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+			isSeen:false,
+			attachedEls:{
+				id:userLegal.insertedId
+		  }
+		}
+	  await	app.db.notification().insert(notification)
+		res.end('legal processed').status(201);
+	  }catch (err) {
+		  res.send(err);
+	  }
+	})
     /*
      @Url : /SaTT/Support'
      @description: Send Email to SaTT customer service

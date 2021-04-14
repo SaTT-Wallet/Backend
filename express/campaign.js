@@ -11,8 +11,9 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	//const mongoURI = app.config.mongoURI;
-	const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
+	const mongoURI = app.url;
+
+	const mongoURI = app.url;
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -907,7 +908,13 @@ module.exports = function (app) {
 	});	
 
 
-	
+	/*
+     @url : /kit/:idKit
+     @description: deleting campaign chosen kit
+     @params:
+     @Input idKit : id of the kid
+	 @Output delete message
+     */
 	app.delete('/kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
   
@@ -936,6 +943,13 @@ module.exports = function (app) {
 		}
 	});
 
+
+	 /*
+     @link : /addKit
+     @description: saving user kits & links
+     @params:
+     idCampaign : identifiant de la campaign
+     */
 	app.post('/addKit', upload.single('file'), async(req, res) => {
 		const file = {}
 		try {
@@ -976,7 +990,14 @@ module.exports = function (app) {
 		}
 	
 	})
-	    
+	
+	/*
+     @url : /campaign/save
+     @description: saving campaign informations into db
+     @params:
+     @Input Campaign : campaign informations
+	 @Output succeed message
+     */
 	app.post('/campaign/save', async (req, res) => {
 		
 		const campaign = req.body
@@ -990,6 +1011,13 @@ module.exports = function (app) {
 
 	});
 
+	/*
+     @url : /campaign/:idCampaign/cover
+     @description: get rejected links of a campaign
+     @params:
+     @Input idCampaign : id of a campaign
+	 @Output delete campaign cover
+     */
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
@@ -1158,7 +1186,10 @@ module.exports = function (app) {
 		res.end(err);
 	}
 	})
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8d792ac645dc64304a16415b791782b0a8a4f96e
 	return app;
 
 }
