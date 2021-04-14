@@ -1,17 +1,16 @@
 module.exports = function (app) {
 
 	var fs = require('fs');
+	var mongoose = require('mongoose');
+
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const crypto = require('crypto');
-	const methodOverride = require('method-override');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
 	const mongoURI = app.config.mongoURI;
-
-
 	const storage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -31,24 +30,6 @@ module.exports = function (app) {
 		}
 	  });
 
-	  const storageProfilePic = new GridFsStorage({
-		url: mongoURI,
-		file: (req, file) => {
-		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
-			  const fileInfo = {
-				filename: filename,
-				bucketName: 'user_files'
-			  };
-			  resolve(fileInfo);
-			});
-		  });
-		}
-	  });
 
 	  const storageImage = new GridFsStorage({
 		url: mongoURI,
@@ -68,9 +49,11 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-       const uploadImageProfile =  multer({storage : storageProfilePic})
 	   const uploadImage = multer({ storage : storageImage });
 	   const upload = multer({ storage });
+
+	
+
 
     app.set("view engine", "ejs");
 
@@ -78,6 +61,18 @@ module.exports = function (app) {
 
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
+
+	  const conn=mongoose.createConnection(mongoURI);
+	  let gfs;
+	  let gfsKit;
+
+	  conn.once('open', () => {
+		gfs = Grid(conn.db, mongoose.mongo);
+		gfsKit = Grid(conn.db, mongoose.mongo);
+		gfs.collection('campaign_cover');
+		gfsKit.collection('campaign_kit');
+
+	  });
 
 	app.post('/campaign/create', async function(req, response) {
 
@@ -841,7 +836,12 @@ module.exports = function (app) {
 			
 	  })
 
-
+/*
+     @link : /campaign/deleteDraft/:id
+     @description: supprimer un campaign brouillon
+     @params:
+     id : identifiant de la campaign
+     */
 	app.delete('/campaign/deleteDraft/:id', async (req, response) => {
 		const id= req.params.id;
 		try {
@@ -875,18 +875,23 @@ module.exports = function (app) {
 			res.end(err);
 		}
 	  });
-
-
 	
-
+	/*
+     @link : /campaign/:idCampaign/kits
+     @description: récupere les kits d'un campaign
+     @params:
+     idCampaign : identifiant de la campaign
+     */
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
 		const idCampaign= req.params.idCampaign;
+		array=[];
 		try {
-		const kit=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
-		response.end(JSON.stringify(kit));
+		const kits=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
+		response.end(JSON.stringify(kits))
 		}catch (err) {
 			response.end(err);
 		}
+	
 	})
 	    
 	app.post('/campaign/save', async (req, res) => {
@@ -902,8 +907,6 @@ module.exports = function (app) {
 
 	});
 
-
-
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
 			const campaign = req.params.idCampaign
@@ -914,8 +917,13 @@ module.exports = function (app) {
 		}
 		
 	})
-
-
+	/*
+     @link : /campaign/:id/update
+     @description: modifier la campaign
+     @params:
+     id : identifiant de la campaign
+	 @body: {campaign}
+     */
 	app.put('/campaign/:id/update', async (req, res) => {
 		
 		const campaign = req.body;
@@ -945,14 +953,61 @@ module.exports = function (app) {
 
 	});
 
+	/*
+     @link : /campaign/:idCampaign/cover
+     @description: récupère l'image d'un campaign s'il existe sinon il retourne une image par defaut
+     @params:
+     @Input idCampaign : identifiant de la campaign
+     */
+	app.get('/campaign/:idCampaign/cover', async (req, res) => {
+			const idCampaign = req.params.idCampaign;
+	    	const cover=await app.db.campaignCover().find({idCampaign:idCampaign}).toArray();
+			if(cover.length){
+				gfs.files.findOne({ filename: cover[0].file.filename }, (err, file) => {
+					if (!file || file.length === 0) {
+					  return res.status(404).json({
+						err: 'No file exists'
+					  });
+					}
+					if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+					  res.writeHead(200, {
+											'Content-Type': 'image/png',
+											'Content-Length': file.length,
+											'Content-Disposition': `attachment; filename='${file.filename}`
+										});
+					  const readstream = gfs.createReadStream(file.filename);
+					  readstream.pipe(res);
+				
+					} else {
+					  res.status(404).json({
+						err: 'Not an image'
+					  });
+					}
+				  });
+			}else{
 
-
+					const imageName = "default_cover.png"
+					const imagePath = path.join(__dirname,"../public/", imageName);
+	
+					const { size } = fs.statSync(imagePath);
+		
+					res.writeHead(200, {
+						'Content-Type': 'image/png',
+						'Content-Length': size,
+						'Content-Disposition': `attachment; filename='${imageName}`
+					});
+		
+					fs.createReadStream(imagePath).pipe(res);
+			}		
+		})
+			
+			
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
      @params:
      @Input idCampaign : campaign id 
-     */
+     */		
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		// const token = req.headers["authorization"].split(" ")[1];
 		// const res = await app.crm.auth( token);
@@ -963,7 +1018,25 @@ module.exports = function (app) {
 		const image = await app.db.campaignCover().insertOne(img)
 		res.json(JSON.stringify(image));
 	})
-
+	/*
+     @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
+     @description: get accepted proms by owner
+     @params:
+	 @Input idCampaign : identifiant de la campaign
+			idWallet:identifiant de la wallet
+	 @Output array of accepted links	 
+     */
+	app.get('/campaign/owner_accepted_proms/:idWallet/:idCampaign',async(req, res)=>{
+		const idCampaign = req.params.idCampaign;
+		const idWallet = req.params.idWallet;
+		if(idWallet){
+			var allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{id_wallet:idWallet},{isAccepted:"1"}]}).toArray();
+		}else{
+			var allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{isAccepted:"1"}]}).toArray();
+		}
+		res.send(allProms);
+	})
+	
 
 	/*
      @url : /campaign/stats_live
@@ -1002,7 +1075,6 @@ module.exports = function (app) {
 		res.end(err);
 	}
 	})
-
 	
 	return app;
 

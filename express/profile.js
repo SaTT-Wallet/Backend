@@ -4,7 +4,6 @@ module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const crypto = require('crypto');
-	const methodOverride = require('method-override');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
