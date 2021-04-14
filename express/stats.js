@@ -219,6 +219,16 @@ module.exports = function (app) {
 				{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 			campaigns[i].ratios = res;
 
+		var idproms = await ctr.methods.getProms(campaigns[i].id).call();
+			campaigns[i].proms =[];
+			for (var j =0;j<idproms.length;j++)
+			{
+				var prom = await ctr.methods.proms(idproms[j]).call();
+				prom.id = idproms[j];
+				if(prom.influencer.toLowerCase() == address.toLowerCase())
+					campaigns[i].proms.push(prom);
+			}
+
 			rescampaigns.push(campaigns[i]);
 		}
 		var campaignscentral = await app.statcentral.campaignsByOwner(owner);
@@ -288,6 +298,16 @@ module.exports = function (app) {
 					{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 				campaigns[i].ratios = res;
 	
+				var idproms = await ctr.methods.getProms(campaigns[i].id).call();
+				campaigns[i].proms =[];
+				for (var j =0;j<idproms.length;j++)
+				{
+					var prom = await ctr.methods.proms(idproms[j]).call();
+					prom.id = idproms[j];
+					if(prom.influencer.toLowerCase() == address.toLowerCase())
+						campaigns[i].proms.push(prom);
+				}
+				
 				rescampaigns.push(campaigns[i]);
 			}
 			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
@@ -296,10 +316,13 @@ module.exports = function (app) {
 			let auth = await app.crm.auth(access_token);
 
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
+            draft_campaigns=draft_campaigns.map((c)=>{
+				return {...c,stat:'draft'}
+			})
+            let campaigns_=[...created_campaigns,...draft_campaigns]
 
-            let campaigns_={drafts:draft_campaigns,created:created_campaigns}
-			console.log(campaigns_)
 			response.end(JSON.stringify(campaigns_));
+			
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}

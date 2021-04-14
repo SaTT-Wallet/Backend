@@ -119,18 +119,11 @@ module.exports = function (app) {
      req.file : image files
      */
     app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
-		try{
-        let pic = {};
-	    let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		pic.idUser = auth.id
-        pic.file = req.file;
-		await app.db.userFiles().insertOne(pic)
-		res.send('saved').status(200);
+	try{
+        
 	} catch (err) {
-		res.send(err);
-	}
-		
+		res.end(JSON.stringify(err));
+	 }
 	})
 
  	/*
@@ -203,6 +196,28 @@ module.exports = function (app) {
 	
 	  })
 
+    /*
+     @Url : /SaTT/Support'
+     @description: Send Email to SaTT customer service
+     @parameters => req.body:
+     name = name of the user
+	 email= user email
+	 subject= subject of the letter
+	 message= the content of the letter
+     */
+
+	app.get('/SaTT/Support', async (req, res) => {
+	  try{     
+	  let name =req.body.name
+	  let email=req.body.email
+	  let subject=req.body.subject
+	  let message=req.body.message
+   
+	  console.log(req.body)
+	  }catch (err) {
+		response.send(JSON.stringify(err));
+	}
+   })
 	return app;
 
 }

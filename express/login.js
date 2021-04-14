@@ -83,9 +83,7 @@ module.exports = function (app) {
 				console.log('Email sent: ' + info.response);
 			  }
 			});
-
 			return done(null,{id:id,token:token,expires_in:date,noredirect:req.body.noredirect});
-
 		};
 	  }
 	));
