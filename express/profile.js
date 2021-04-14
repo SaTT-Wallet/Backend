@@ -11,6 +11,7 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongoURI = app.url;
 
+	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -77,7 +78,6 @@ module.exports = function (app) {
 	 app.get('/profile/pic/:id', async (req, res) => {
          try{     
 		const idUser = +req.params.id;
-		console.log(idUser);
 		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
 		
 			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
@@ -136,7 +136,7 @@ module.exports = function (app) {
      @params:
      @Input type : type of proof id or domicile
      */
-	app.post('/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+	app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
       try{
 		  const date = new Date().toISOString();
 		let legal={};
@@ -167,38 +167,6 @@ module.exports = function (app) {
 		  res.send(err);
 	  }
 	})
-
-
-	app.get('/userLegal', async(req, res)=>{
-		const limit=parseInt(req.query.limit) || 2;
-		const page=parseInt(req.query.page) || 1
-		let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode=auth.id;
-		const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
-		const startIndex=(page-1) * limit;
-		const endIndex=page * limit;
-
-		const results = {}
-
-		if(endIndex < legal.length){
-			results.next ={
-				page:page+1,
-				limit:limit
-			}	
-		}			
-		if(startIndex > 0){
-			results.previous ={
-			page:page-1,
-			limit:limit
-		}
-		}
-		results.legal=legal.slice(startIndex, endIndex)
-		res.send(results);
-
-	})
-
-	
 
 
 	return app;
