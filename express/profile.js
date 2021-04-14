@@ -160,8 +160,9 @@ module.exports = function (app) {
 		res.send(userLegal);
 
 	})
+
 	/*
-     @link : /notifications?page='param'&limit='param'
+     @link : /notifications?page=param&limit=param
      @description: get all notifications 
      @Input:headers
      @Output:Object
