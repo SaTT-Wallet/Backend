@@ -24,6 +24,7 @@
     "express-session": "^1.15.6",
     "fast-csv": "^4.3.6",
     "fb": "^2.0.0",
+    "filereader": "^0.10.3",
     "gridfs-stream": "^1.1.1",
     "hasha": "^5.2.2",
     "hdkey": "^2.0.1",
