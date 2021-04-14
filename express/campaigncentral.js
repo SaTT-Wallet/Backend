@@ -130,8 +130,6 @@ module.exports = function (app) {
 
 		try {
 
-
-
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 

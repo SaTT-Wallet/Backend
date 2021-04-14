@@ -46,6 +46,7 @@ module.exports = async function (app) {
 			});
 		});
 	}
+	
 	 var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)    
 	app.url=db2.s.url;
@@ -148,9 +149,5 @@ module.exports = async function (app) {
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
     };
-
-
-
-
     return app;
 }

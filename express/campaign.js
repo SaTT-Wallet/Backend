@@ -1,5 +1,6 @@
 module.exports = function (app) {
-
+	let ejs = require('ejs');
+	var ObjectId = require('mongodb').ObjectId; 
 	var fs = require('fs');
 	var mongoose = require('mongoose');
 
@@ -134,6 +135,87 @@ module.exports = function (app) {
 
 	});
 
+	/*
+     @Url :/campaign/insert_link_notification'
+     @description: notify campaign owner
+     @parameters => request_body :
+     campaign_id : id of the campaign
+     link : link
+     */
+
+	 app.post('/campaign/insert_link_notification', async function(req, response) {
+        try {
+		   let campaign_id=req.body.campaign
+		   let link=req.body.link
+		   let campaign={}
+		   let date;
+		var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
+			   campaign.owner=result.idNode
+               campaign.title=result.title
+			   campaign.hash=result.hash
+			   manageTime()
+			   let notification={
+				idNode:campaign.owner,//owner id
+				type:"cmp_candidate_insert_link",//done
+				status:"done",//done
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}), 
+				isSeen:false,//done
+				isSend:false,
+				attachedEls:{
+					id:campaign_id
+			  }
+			}
+		  await	app.db.notification().insert(notification)
+
+		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
+		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
+				if (err) {
+				  console.error(err)
+				  return
+				}
+				var data_={
+					cmp:{
+						name:campaign.title,
+						link:link
+					}
+				}
+				let dynamic_html=ejs.render(data, data_);
+				console.log(dynamic_html)
+				var mailOptions = {
+			     from: app.config.mailSender,
+			     to: result.email,
+			     subject: 'New link was added To your campaign',
+			     html: dynamic_html
+			};
+		
+		 await transporter.sendMail(mailOptions, function(error, info){
+				if (error) {
+					res.end(JSON.stringify(error))
+				} else {
+					console.log("email was sent")
+					res.end(JSON.stringify(info.response))
+				}
+			  });
+			})
+		  });
+			})
+
+
+		   function manageTime (){
+			var d = new Date();
+			var date = d.getDate();
+			var month = d.getMonth() + 1;
+			var year = d.getFullYear();
+			var seconds = d.getSeconds();
+			var minutes = d.getMinutes();
+			var hour = d.getHours();
+			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
+		   }
+		   
+        } catch (err) {
+			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
+        }
+	});
 
 	app.post('/campaign/create/youtube', async function(req, response) {
 
