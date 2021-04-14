@@ -150,9 +150,5 @@ module.exports = async function (app) {
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
     };
-
-
-
-
     return app;
 }

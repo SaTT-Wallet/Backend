@@ -15,7 +15,6 @@ module.exports = async function (app) {
 	
 	
 	io.on('connection', function(socket){
-		
 		socket.on('subscribe', function(hash) {
 			console.log('subscribe hash ', hash);
 			socket.join(hash);
