@@ -10,9 +10,7 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	//const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local 
-	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
-
+	const mongoURI = app.config.mongoURI;
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -55,6 +53,27 @@ module.exports = function (app) {
 	  const uploadImage = multer({ storage : storageImage });
 	   const upload = multer({ storage });
 
+		const storageProfilePic = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'user_files'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+	  const uploadImageProfile =  multer({storage : storageProfilePic})
+
+
     app.set("view engine", "ejs");
 
 	var BN = require("bn.js");
@@ -64,11 +83,16 @@ module.exports = function (app) {
 
 	  const conn=mongoose.createConnection(mongoURI);
 	  let gfs;
+	  let gfsKit;
 
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
+		gfsKit = Grid(conn.db, mongoose.mongo);
 		gfs.collection('campaign_cover');
+		gfsKit.collection('campaign_kit');
+
 	  });
+
 	app.post('/campaign/create', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -879,12 +903,14 @@ module.exports = function (app) {
      */
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
 		const idCampaign= req.params.idCampaign;
+		array=[];
 		try {
-		const kit=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
-		response.end(JSON.stringify(kit));
+		const kits=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
+		response.end(JSON.stringify(kits))
 		}catch (err) {
 			response.end(err);
 		}
+	
 	})
 	    
 	app.post('/campaign/save', async (req, res) => {
@@ -899,8 +925,6 @@ module.exports = function (app) {
 		}
 
 	});
-
-
 
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
@@ -998,7 +1022,12 @@ module.exports = function (app) {
 		})
 			
 			
-			
+	/*
+     @url : /campaign/:idCampaign/cover
+     @description: Save campaign covers in db
+     @params:
+     @Input idCampaign : campaign id 
+     */		
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		// const token = req.headers["authorization"].split(" ")[1];
 		// const res = await app.crm.auth( token);
@@ -1009,8 +1038,65 @@ module.exports = function (app) {
 		const image = await app.db.campaignCover().insertOne(img)
 		res.json(JSON.stringify(image));
 	})
-
+	/*
+     @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
+     @description: get accepted proms by owner
+     @params:
+     idCampaign : identifiant de la campaign
+	 idWallet:identifiant de la wallet
+     */
+	app.get('/campaign/owner_accepted_proms/:idWallet/:idCampaign',async(req, res)=>{
+		const idCampaign = req.params.idCampaign;
+		const idWallet = req.params.idWallet;
+		if(idWallet){
+			var allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{id_wallet:idWallet},{isAccepted:"1"}]}).toArray();
+		}else{
+			var allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{isAccepted:"1"}]}).toArray();
+		}
+		res.send(allProms);
+	})
 	
+	/*
+     @url : /campaign/stats_live
+     @description: get live stats of campaign proms
+     @params:
+     @Input idProm : prom_id
+	 @Output Object with stats
+     */
+	 app.post('/campaign/stats_live', async(req, res)=>{
+        try {
+		const idProm = req.body.prom_id
+		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
+        let stats = {};
+		stats.likes = prom.likes;
+		stats.shares = prom.shares;
+		stats.views = prom.views;
+		res.send(stats).status(200);
+		} catch (err) {
+			res.end(err);
+		}
+	})
+
+	/*
+     @url : /campaign/links/:idCampaign
+     @description: get rejected links of a campaign
+     @params:
+     @Input idCampaign : id of a campaign
+	 @Output array of rejected links
+     */
+	app.get('/campaign/links/:idCampaign', async(req, res)=>{
+		try {
+      const campaign = req.params.idCampaign
+	    const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
+		res.send(JSON.stringify(links)).status(200);
+	} catch (err) {
+		res.end(err);
+	}
+	})
+
+
+
+
 	return app;
 
 }
