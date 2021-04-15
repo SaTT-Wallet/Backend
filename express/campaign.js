@@ -1,6 +1,6 @@
 module.exports = function (app) {
 	let ejs = require('ejs');
-	var ObjectId = require('mongodb').ObjectId; 
+	var ObjectId = require('mongodb').ObjectId;
 	var fs = require('fs');
 	var mongoose = require('mongoose');
 
@@ -12,7 +12,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const mongoURI = app.url;
-	
+
 	const storage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -54,7 +54,7 @@ module.exports = function (app) {
 	   const uploadImage = multer({ storage : storageImage });
 	   const upload = multer({ storage });
 
-	
+
 
 
     app.set("view engine", "ejs");
@@ -158,7 +158,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}), 
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -187,7 +187,7 @@ module.exports = function (app) {
 			     subject: 'New link was added To your campaign',
 			     html: dynamic_html
 			};
-		
+
 		 await transporter.sendMail(mailOptions, function(error, info){
 				if (error) {
 					res.end(JSON.stringify(error))
@@ -211,7 +211,7 @@ module.exports = function (app) {
 			var hour = d.getHours();
 			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
 		   }
-		   
+
         } catch (err) {
 			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
         }
@@ -274,7 +274,7 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 
 
-		try {			
+		try {
 			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
@@ -903,7 +903,7 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
-	});	
+	});
 
 
 	/*
@@ -915,14 +915,14 @@ module.exports = function (app) {
      */
 	app.delete('/kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
-  
+
 		try {
 		  const data=await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
 		  res.end("Kit deleted").status(200);
 	  } catch (err) {
 		  res.end(err);
 	  }
-			
+
 	  })
 
 /*
@@ -966,12 +966,12 @@ module.exports = function (app) {
 			url.idCampaign = req.body.campaign
 			await app.db.campaign_kit().insertOne(url)
 			res.json("saved").status(200);
-		 }		
+		 }
 		} catch (err) {
 			res.end(err);
 		}
 	  });
-	
+
 	/*
      @link : /campaign/:idCampaign/kits
      @description: récupere les kits d'un campaign
@@ -986,9 +986,9 @@ module.exports = function (app) {
 		}catch (err) {
 			response.end(err);
 		}
-	
+
 	})
-	
+
 	/*
      @url : /campaign/save
      @description: saving campaign informations into db
@@ -997,7 +997,7 @@ module.exports = function (app) {
 	 @Output succeed message
      */
 	app.post('/campaign/save', async (req, res) => {
-		
+
 		const campaign = req.body
 		try {
 			app.db.campaign().insertOne(campaign);
@@ -1024,7 +1024,7 @@ module.exports = function (app) {
 		} catch (err) {
 			res.end(err);
 		}
-		
+
 	})
 	/*
      @link : /campaign/:id/update
@@ -1034,7 +1034,7 @@ module.exports = function (app) {
 	 @body: {campaign}
      */
 	app.put('/campaign/:id/update', async (req, res) => {
-		
+
 		const campaign = req.body;
 		const id=req.params.id;
 		try {
@@ -1054,7 +1054,7 @@ module.exports = function (app) {
 			cost_usd:campaign.cost_usd,
 			ratios:campaign.ratios,
 			time:campaign.time
-				}});		
+				}});
 			res.end("updated succeed").status(200);
 			} catch (err) {
 			res.end(err);
@@ -1086,7 +1086,7 @@ module.exports = function (app) {
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-				
+
 					} else {
 					  res.status(404).json({
 						err: 'Not an image'
@@ -1097,26 +1097,26 @@ module.exports = function (app) {
 
 					const imageName = "default_cover.png"
 					const imagePath = path.join(__dirname,"../public/", imageName);
-	
+
 					const { size } = fs.statSync(imagePath);
-		
+
 					res.writeHead(200, {
 						'Content-Type': 'image/png',
 						'Content-Length': size,
 						'Content-Disposition': `attachment; filename='${imageName}`
 					});
-		
+
 					fs.createReadStream(imagePath).pipe(res);
-			}		
+			}
 		})
-			
-			
+
+
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
      @params:
-     @Input idCampaign : campaign id 
-     */		
+     @Input idCampaign : campaign id
+     */
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		// const token = req.headers["authorization"].split(" ")[1];
 		// const res = await app.crm.auth( token);
@@ -1133,7 +1133,7 @@ module.exports = function (app) {
      @params:
 	 @Input idCampaign : identifiant de la campaign
 			idWallet:identifiant de la wallet
-	 @Output array of accepted links	 
+	 @Output array of accepted links
      */
 	app.get('/campaign/owner_accepted_proms/:idWallet/:idCampaign',async(req, res)=>{
 		const idCampaign = req.params.idCampaign;
@@ -1145,7 +1145,7 @@ module.exports = function (app) {
 		}
 		res.send(allProms);
 	})
-	
+
 
 	/*
      @url : /campaign/stats_live
@@ -1184,10 +1184,7 @@ module.exports = function (app) {
 		res.end(err);
 	}
 	})
-<<<<<<< HEAD
 
-=======
->>>>>>> 8d792ac645dc64304a16415b791782b0a8a4f96e
 	return app;
 
 }
