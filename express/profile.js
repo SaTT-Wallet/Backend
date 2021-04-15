@@ -95,7 +95,9 @@ module.exports = function (app) {
      id : identifiant de l'utilisateur'
      */
 	 app.get('/profile/pic/:id', async (req, res) => {
-         try{     
+         try{ 
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth(token);     
 		const idUser = +req.params.id;
 		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
 		
@@ -155,11 +157,10 @@ module.exports = function (app) {
      */
 	app.get('/profile/userLegal', async(req, res)=>{
 		try{
-
-			const limit=parseInt(req.query.limit) || 50;
-			const page=parseInt(req.query.page) || 1
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
+			const limit=parseInt(req.query.limit) || 50;
+			const page=parseInt(req.query.page) || 1
 			const idNode=auth.id;
 			const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
 	
