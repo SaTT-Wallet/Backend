@@ -11,7 +11,7 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongoURI = app.url;
 
-	const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
+	//const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -96,10 +96,10 @@ module.exports = function (app) {
      id : identifiant de l'utilisateur'
      */
 	 app.get('/profile/pic/:id', async (req, res) => {
-         try{     
+         try{
 		const idUser = +req.params.id;
 		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
-		
+
 			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
@@ -114,7 +114,7 @@ module.exports = function (app) {
 									});
 				  const readstream = gfsprofilePic.createReadStream(file.filename);
 				  readstream.pipe(res);
-			
+
 				} else {
 				  res.status(404).json({
 					err: 'Not an image'
@@ -124,10 +124,10 @@ module.exports = function (app) {
             }catch (err) {
                 response.send(err);
             }
-		
+
 	})
- 
-   
+
+
 
      /*
      @link : /profile/pic
@@ -147,7 +147,7 @@ module.exports = function (app) {
 		} catch (err) {
 			res.send(err);
 		}
-			
+
 		})
 
  	/*
@@ -172,8 +172,8 @@ module.exports = function (app) {
 			userLegal.next ={
 				page:page+1,
 				limit:limit
-			}	
-		}			
+			}
+		}
 		if(startIndex > 0){
 			userLegal.previous ={
 			page:page-1,
@@ -187,7 +187,7 @@ module.exports = function (app) {
 
 	/*
      @link : /notifications?page=param&limit=param
-     @description: get all notifications 
+     @description: get all notifications
      @Input:headers
      @Output:Object
      */
@@ -206,8 +206,8 @@ module.exports = function (app) {
 			notifications.next ={
 				page:page+1,
 				limit:limit
-			}	
-		}			
+			}
+		}
 		if(startIndex > 0){
 			notifications.previous ={
 			page:page-1,
@@ -218,7 +218,7 @@ module.exports = function (app) {
 		notifications.isSend=isSend.length;
 		notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
 		res.send(notifications);
-	
+
 	  })
 
 	/*
@@ -235,8 +235,8 @@ module.exports = function (app) {
         const auth = await app.crm.auth(token);
 		if(req.body.type == 'proofId'){
           legal.type = "proofId";
-		} 
-        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}		
+		}
+        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}
 		legal.idNode = auth.id;
         legal.file = req.file;
 		legal.filename = req.file.originalname
@@ -246,7 +246,7 @@ module.exports = function (app) {
 			idNode:auth.id,
 			type:"save_legal_file_event",
 			status:"done",
-			label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+			label:JSON.stringify([{'type':legal.type, 'date': date}]),
 			isSeen:false,
 			attachedEls:{
 				id:userLegal.insertedId
@@ -269,7 +269,7 @@ module.exports = function (app) {
      */
 
 	app.get('/SaTT/Support', async (req, res) => {
-	  try{     
+	  try{
 	  let name =req.body.name
 	  let email=req.body.email
 	  let subject=req.body.subject
@@ -284,7 +284,7 @@ module.exports = function (app) {
 			}
 		}
 		let dynamic_html=ejs.render(data, data_);
-		
+
 	  })
 	  }catch (err) {
 		response.send(JSON.stringify(err));
