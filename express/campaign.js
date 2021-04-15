@@ -1049,10 +1049,10 @@ module.exports = function (app) {
 		
 		
 		try {
-			const campaign = req.body;
-			const id=req.params.id;
 			const token = req.headers["authorization"].split(" ")[1];
 			auth=await app.crm.auth(token);
+			const campaign = req.body;
+			const id=req.params.id;
 			await app.db.campaignCrm().updateOne({_id:ObjectId(id)},
 			{$set: {
 			_id:ObjectId(id),
