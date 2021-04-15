@@ -9,7 +9,28 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
-	const mongoURI = app.config.mongoURI;
+	const mongoURI = app.url;
+
+	//const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
+	const storageUserLegal = new GridFsStorage({
+		url: mongoURI,
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			crypto.randomBytes(16, (err, buf) => {
+			  if (err) {
+				return reject(err);
+			  }
+			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'user_legal'
+			  };
+			  resolve(fileInfo);
+			});
+		  });
+		}
+	  });
+	  
 
 
 
@@ -39,7 +60,7 @@ module.exports = function (app) {
 		gfsprofilePic.collection('user_files');
 
 	  });
-	
+	   const uploadUserLegal =  multer({storage : storageUserLegal})
        const uploadImageProfile =  multer({storage : storageProfilePic})
 
 
@@ -58,11 +79,10 @@ module.exports = function (app) {
      id : identifiant de l'utilisateur'
      */
 	 app.get('/profile/pic/:id', async (req, res) => {
-         try{     
+         try{
 		const idUser = +req.params.id;
-		console.log(idUser);
 		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
-		
+
 			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
@@ -77,7 +97,7 @@ module.exports = function (app) {
 									});
 				  const readstream = gfsprofilePic.createReadStream(file.filename);
 				  readstream.pipe(res);
-			
+
 				} else {
 				  res.status(404).json({
 					err: 'Not an image'
@@ -87,10 +107,10 @@ module.exports = function (app) {
             }catch (err) {
                 response.send(err);
             }
-		
+
 	})
- 
-   
+
+
 
      /*
      @link : /profile/pic
@@ -99,13 +119,128 @@ module.exports = function (app) {
      req.file : image files
      */
     app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
-	try{
-        
-	} catch (err) {
-		res.end(JSON.stringify(err));
-	 }
+		try{
+			let pic = {};
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			pic.idUser = auth.id
+			pic.file = req.file;
+			await app.db.userFiles().insertOne(pic)
+			res.send('saved').status(200);
+		} catch (err) {
+			res.send(err);
+		}
+
+		})
+
+ 	/*
+     @link : /profile/userLegal?page='param'&limit='param'
+     @description: get user legal
+     @Input:headers
+     @Output:Object
+     */
+	app.get('/profile/userLegal', async(req, res)=>{
+		const limit=parseInt(req.query.limit) || 50;
+		const page=parseInt(req.query.page) || 1
+		const token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const idNode=auth.id;
+		const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
+
+		const startIndex=(page-1) * limit;
+		const endIndex=page * limit;
+
+		const userLegal = {}
+		if(endIndex < legal.length){
+			userLegal.next ={
+				page:page+1,
+				limit:limit
+			}
+		}
+		if(startIndex > 0){
+			userLegal.previous ={
+			page:page-1,
+			limit:limit
+		}
+		}
+		userLegal.legal=legal.slice(startIndex, endIndex)
+		res.send(userLegal);
+
 	})
 
+	/*
+     @link : /notifications?page=param&limit=param
+     @description: get all notifications
+     @Input:headers
+     @Output:Object
+     */
+	  app.get('/notifications',async(req, res)=>{
+		const token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const idNode=auth.id;
+		const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
+		const limit=parseInt(req.query.limit) || 50;
+		const page=parseInt(req.query.page) || 1;
+		const startIndex=(page-1) * limit;
+		const endIndex=page * limit;
+
+		const notifications = {}
+		if(endIndex < arrayNotifications.length){
+			notifications.next ={
+				page:page+1,
+				limit:limit
+			}
+		}
+		if(startIndex > 0){
+			notifications.previous ={
+			page:page-1,
+			limit:limit
+			}
+		}
+		const isSend= await app.db.notification().find({idNode:idNode,isSend:true}).toArray()
+		notifications.isSend=isSend.length;
+		notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
+		res.send(notifications);
+
+	  })
+
+	/*
+     @url : /userlegal
+     @description: saving user legal files
+     @params:
+     @Input type : type of proof id or domicile
+     */
+	app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+      try{
+		  const date = new Date().toISOString();
+		let legal={};
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		if(req.body.type == 'proofId'){
+          legal.type = "proofId";
+		}
+        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}
+		legal.idNode = auth.id;
+        legal.file = req.file;
+		legal.filename = req.file.originalname
+		legal.validate = false;
+		const userLegal = await app.db.UserLegal().insertOne(legal);
+		let notification={
+			idNode:auth.id,
+			type:"save_legal_file_event",
+			status:"done",
+			label:JSON.stringify([{'type':legal.type, 'date': date}]),
+			isSeen:false,
+			attachedEls:{
+				id:userLegal.insertedId
+		  }
+		}
+	  await	app.db.notification().insert(notification)
+		res.end('legal processed').status(201);
+	  }catch (err) {
+		  res.send(err);
+	  }
+	})
     /*
      @Url : /SaTT/Support'
      @description: Send Email to SaTT customer service
@@ -117,7 +252,7 @@ module.exports = function (app) {
      */
 
 	app.get('/SaTT/Support', async (req, res) => {
-	  try{     
+	  try{
 	  let name =req.body.name
 	  let email=req.body.email
 	  let subject=req.body.subject
@@ -135,6 +270,7 @@ module.exports = function (app) {
 			}
 		}
 		let dynamic_html=ejs.render(data, data_);
+
 		var mailOptions = {
 			from: email,
 			to:"support@satt-token.com",
@@ -149,6 +285,7 @@ module.exports = function (app) {
 			   res.end(JSON.stringify(info.response))
 		   }
 		 });
+
 	  })
 	  }catch (err) {
 		response.send(JSON.stringify(err));
