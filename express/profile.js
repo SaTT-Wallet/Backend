@@ -32,24 +32,7 @@ module.exports = function (app) {
 	  });
 	  const uploadUserLegal =  multer({storage : storageUserLegal})
 
-	const storageUserLegal = new GridFsStorage({
-		url: mongoURI,
-		file: (req, file) => {
-		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
-			  const fileInfo = {
-				filename: filename,
-				bucketName: 'user_legal'
-			  };
-			  resolve(fileInfo);
-			});
-		  });
-		}
-	  });
+	
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
