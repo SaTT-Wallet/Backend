@@ -146,10 +146,15 @@ module.exports = function (app) {
           legal.type = "proofId";
 		} 
         if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}		
-		legal.idNode = auth.id;
+		legal.idNode = "0" + auth.id;
         legal.file = req.file;
 		legal.filename = req.file.originalname
 		legal.validate = false;
+		legal.DataUser =  {
+			"$ref": "sn_user",
+			"$id": NumberLong(auth.id),
+			"$db": "atayen"
+		 }
 		const userLegal = await app.db.UserLegal().insertOne(legal);
 		let notification={
 			idNode:auth.id,
@@ -189,6 +194,33 @@ module.exports = function (app) {
 		response.send(JSON.stringify(err));
 	}
    })
+
+
+
+/*
+     @url : /profile/notification/issend/clicked
+     @description: notifications were seen
+     @params:
+     @Input headers : access token
+	 @Output : updated notification
+     */
+app.patch('/profile/notification/issend/clicked', async (req, res) =>{
+	try{
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const id = +auth.id 
+		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
+			elem.isSend = false;
+			app.db.notification().save(elem)
+		})
+		res.send('notificatons clicked').status(200);
+	}catch (err) {
+		res.send(err);
+	}
+   
+		
+
+})
 	return app;
 
 }
