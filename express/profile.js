@@ -259,8 +259,10 @@ module.exports = function (app) {
 	  let message=req.body.message
 
 	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
-
 		var data_={
+			SaTT:{
+				Url:'https://v2.satt.atayen.us/#/FAQ'
+			},
 			letter:{
 				from:name+" ("+email+")",
 				subject,
@@ -280,7 +282,6 @@ module.exports = function (app) {
 		   if (error) {
 			   res.end(JSON.stringify(error))
 		   } else {
-			   console.log("email was sent")
 			   res.end(JSON.stringify(info.response))
 		   }
 		 });
