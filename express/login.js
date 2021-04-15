@@ -154,7 +154,7 @@ module.exports = function (app) {
 				var user = users[0];
 				if(user.idSn != 2)
 				{
-					return cb("email already used",null);
+					return cb(null,false,{error:"email already used"});
 				}
 				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
 				return cb(null,{id:user._id,token:token,expires_in:date});
@@ -324,7 +324,7 @@ module.exports = function (app) {
 
 
 
-	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: '/login' }),async function(req, response) {
+	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: '/#/login' }),async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		if(req.user.noredirect)
@@ -336,7 +336,7 @@ module.exports = function (app) {
 	}
 	});
 
-	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] }), async function(req, response) {
+	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] ,failureRedirect: '/#/login'}), async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
