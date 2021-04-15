@@ -30,9 +30,9 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	  const uploadUserLegal =  multer({storage : storageUserLegal})
+	  
 
-	
+
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
