@@ -3,7 +3,9 @@ module.exports = function (app) {
 	var ObjectId = require('mongodb').ObjectId;
 	var fs = require('fs');
 	var mongoose = require('mongoose');
-
+	var nodemailer = require('nodemailer');
+	var transporter = nodemailer.createTransport(app.config.mailerOptions);
+	
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const crypto = require('crypto');
@@ -168,19 +170,21 @@ module.exports = function (app) {
 		  await	app.db.notification().insert(notification)
 
 		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
-		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
+		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
 				  return
 				}
 				var data_={
+					SaTT:{
+                    Url:'https://v2.satt.atayen.us/#/FAQ'
+					},
 					cmp:{
 						name:campaign.title,
 						link:link
 					}
 				}
-				let dynamic_html=ejs.render(data, data_);
-				console.log(dynamic_html)
+				let dynamic_html=ejs.render(data, data_)
 				var mailOptions = {
 			     from: app.config.mailSender,
 			     to: result.email,
