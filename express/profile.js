@@ -258,15 +258,32 @@ module.exports = function (app) {
 	  let subject=req.body.subject
 	  let message=req.body.message
 
-	  fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => { //change File Name
+	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
 
 		var data_={
-			cmp:{
-				name:campaign.title,
-				link:link
+			letter:{
+				from:name+" ("+email+")",
+				subject,
+				message
 			}
 		}
 		let dynamic_html=ejs.render(data, data_);
+
+		var mailOptions = {
+			from: email,
+			to:"support@satt-token.com",
+			subject: 'customer service',
+			html: dynamic_html
+	   };
+   
+	await transporter.sendMail(mailOptions, function(error, info){
+		   if (error) {
+			   res.end(JSON.stringify(error))
+		   } else {
+			   console.log("email was sent")
+			   res.end(JSON.stringify(info.response))
+		   }
+		 });
 
 	  })
 	  }catch (err) {
