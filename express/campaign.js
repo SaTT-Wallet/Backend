@@ -915,7 +915,6 @@ module.exports = function (app) {
      */
 	app.delete('/kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
-  
 		try {
 		  const data=await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
 		  res.end("Kit deleted").status(200);
@@ -929,15 +928,21 @@ module.exports = function (app) {
      @link : /campaign/deleteDraft/:id
      @description: supprimer un campaign brouillon
      @params:
-     id : identifiant de la campaign
+     @Input id : identifiant de la campaign {headers}
+	 @Output delete message
+
      */
-	app.delete('/campaign/deleteDraft/:id', async (req, response) => {
-		const id= req.params.id;
+	app.delete('/campaign/deleteDraft/:id', async (req, res) => {
+
+		
 		try {
-			const data=await app.db.campaign().deleteOne({_id:app.ObjectId(id)});
-			response.end(JSON.stringify(data));
+			const id= req.params.id;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth( token);
+			const data=await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
+			res.end("draft deleted").status(200);
 		} catch (err) {
-			response.end(err);
+			res.end(err);
 		}
 	});
 
@@ -976,15 +981,18 @@ module.exports = function (app) {
      @link : /campaign/:idCampaign/kits
      @description: récupere les kits d'un campaign
      @params:
-     idCampaign : identifiant de la campaign
+     idCampaign : identifiant de la campaign 
+	 {headers}
      */
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
-		const idCampaign= req.params.idCampaign;
 		try {
+		const idCampaign= req.params.idCampaign;
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
 		const kits=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
 		response.end(JSON.stringify(kits))
 		}catch (err) {
-			response.end(err);
+		response.end(err);
 		}
 	
 	})
@@ -1011,15 +1019,17 @@ module.exports = function (app) {
 
 	/*
      @url : /campaign/:idCampaign/cover
-     @description: get rejected links of a campaign
+     @description: get cover 
      @params:
      @Input idCampaign : id of a campaign
 	 @Output delete campaign cover
      */
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth(token);
 			const campaign = req.params.idCampaign
-           await app.db.campaignCover().deleteOne({idCampaign: campaign});
+           	await app.db.campaignCover().deleteOne({idCampaign: campaign});
 			res.end("deleted").status(200);
 		} catch (err) {
 			res.end(err);
@@ -1031,17 +1041,22 @@ module.exports = function (app) {
      @description: modifier la campaign
      @params:
      id : identifiant de la campaign
-	 @body: {campaign}
+	 body: {campaign}
+	 {headers}
+	 @Output success message
      */
 	app.put('/campaign/:id/update', async (req, res) => {
 		
-		const campaign = req.body;
-		const id=req.params.id;
+		
 		try {
-			await app.db.campaign().updateOne({_id:ObjectId(id)},
+			const campaign = req.body;
+			const id=req.params.id;
+			const token = req.headers["authorization"].split(" ")[1];
+			auth=await app.crm.auth(token);
+			await app.db.campaignCrm().updateOne({_id:ObjectId(id)},
 			{$set: {
 			_id:ObjectId(id),
-			idNode:campaign.idNode,
+			idNode:auth.id,
 			title:campaign.title,
 			tags:campaign.tags,
 			resume:campaign.resume,
@@ -1069,7 +1084,10 @@ module.exports = function (app) {
      @Input idCampaign : identifiant de la campaign
      */
 	app.get('/campaign/:idCampaign/cover', async (req, res) => {
-			const idCampaign = req.params.idCampaign;
+		try {
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
+		const idCampaign = req.params.idCampaign;
 	    	const cover=await app.db.campaignCover().find({idCampaign:idCampaign}).toArray();
 			if(cover.length){
 				gfs.files.findOne({ filename: cover[0].file.filename }, (err, file) => {
@@ -1108,6 +1126,10 @@ module.exports = function (app) {
 		
 					fs.createReadStream(imagePath).pipe(res);
 			}		
+		}catch (err) {
+			res.end(err)
+		}
+			
 		})
 			
 			
@@ -1118,8 +1140,8 @@ module.exports = function (app) {
      @Input idCampaign : campaign id 
      */		
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
-		// const token = req.headers["authorization"].split(" ")[1];
-		// const res = await app.crm.auth( token);
+		const token = req.headers["authorization"].split(" ")[1];
+		const res = await app.crm.auth( token);
         const img = {};
 		img.idCampaign = req.params.idCampaign;
         img.name = req.file.originalname
@@ -1135,15 +1157,17 @@ module.exports = function (app) {
 			idWallet:identifiant de la wallet
 	 @Output array of accepted links	 
      */
-	app.get('/campaign/owner_accepted_proms/:idWallet/:idCampaign',async(req, res)=>{
+	app.get('/campaign/owner_accepted_proms/:idCampaign',async(req, res)=>{
+		try {
 		const idCampaign = req.params.idCampaign;
-		const idWallet = req.params.idWallet;
-		if(idWallet){
-			var allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{id_wallet:idWallet},{isAccepted:"1"}]}).toArray();
-		}else{
-			var allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{isAccepted:"1"}]}).toArray();
-		}
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth( token);
+		const allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{status : "accepted"}]}).toArray();
+		
 		res.send(allProms);
+		} catch (err) {
+			res.end(err);
+		}
 	})
 	
 
@@ -1184,10 +1208,6 @@ module.exports = function (app) {
 		res.end(err);
 	}
 	})
-<<<<<<< HEAD
-
-=======
->>>>>>> 8d792ac645dc64304a16415b791782b0a8a4f96e
 	return app;
 
 }
