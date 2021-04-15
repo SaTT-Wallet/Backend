@@ -324,7 +324,7 @@ module.exports = function (app) {
 
 
 
-	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: '/#/login' }),async function(req, response) {
+	app.get('/callback/facebook', passport.authenticate('facebook', { failureRedirect: app.config.walletUrl +'/login' }),async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		if(req.user.noredirect)
@@ -336,7 +336,7 @@ module.exports = function (app) {
 	}
 	});
 
-	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] ,failureRedirect: '/#/login'}), async function(req, response) {
+	app.get('/callback/google',passport.authenticate('google', { scope: ['profile'] ,failureRedirect: app.config.walletUrl +'/login'}), async function(req, response) {
 		//console.log(req.user)
 		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
 		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
