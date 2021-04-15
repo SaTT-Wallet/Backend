@@ -261,7 +261,7 @@ module.exports = function (app) {
 	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
 		var data_={
 			SaTT:{
-				Url:'https://v2.satt.atayen.us/#/FAQ'
+				Url:config.walletUrl+'FAQ'
 			},
 			letter:{
 				from:name+" ("+email+")",
