@@ -13,7 +13,6 @@ module.exports = async function (app) {
   reconnect: {
       auto: true,
       delay: 5000, // ms
-      maxAttempts: 5,
       onTimeout: false
   }
 };
