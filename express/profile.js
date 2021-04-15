@@ -1,5 +1,5 @@
 module.exports = function (app) {
-
+	let ejs = require('ejs');
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
@@ -29,26 +29,9 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	  const uploadUserLegal =  multer({storage : storageUserLegal})
+	  
 
-	const storageUserLegal = new GridFsStorage({
-		url: mongoURI,
-		file: (req, file) => {
-		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
-			  const fileInfo = {
-				filename: filename,
-				bucketName: 'user_legal'
-			  };
-			  resolve(fileInfo);
-			});
-		  });
-		}
-	  });
+
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
@@ -98,9 +81,9 @@ module.exports = function (app) {
          try{ 
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth(token);     
-		const idUser = +req.params.id;
-		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
-		
+			const idUser = +req.params.id;
+			const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
+
 			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
@@ -115,7 +98,7 @@ module.exports = function (app) {
 									});
 				  const readstream = gfsprofilePic.createReadStream(file.filename);
 				  readstream.pipe(res);
-			
+
 				} else {
 				  res.status(404).json({
 					err: 'Not an image'
@@ -125,7 +108,7 @@ module.exports = function (app) {
             }catch (err) {
                 response.send(err);
             }
-		
+
 	})
 
      /*
@@ -146,7 +129,7 @@ module.exports = function (app) {
 		} catch (err) {
 			res.send(err);
 		}
-			
+
 		})
 
  	/*
@@ -193,7 +176,7 @@ module.exports = function (app) {
 
 	/*
      @link : /notifications?page=param&limit=param
-     @description: get all notifications 
+     @description: get all notifications
      @Input:headers
      @Output:Object
      */
@@ -246,8 +229,8 @@ module.exports = function (app) {
         const auth = await app.crm.auth(token);
 		if(req.body.type == 'proofId'){
           legal.type = "proofId";
-		} 
-        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}		
+		}
+        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}
 		legal.idNode = auth.id;
         legal.file = req.file;
 		legal.filename = req.file.originalname
@@ -257,7 +240,7 @@ module.exports = function (app) {
 			idNode:auth.id,
 			type:"save_legal_file_event",
 			status:"done",
-			label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+			label:JSON.stringify([{'type':legal.type, 'date': date}]),
 			isSeen:false,
 			attachedEls:{
 				id:userLegal.insertedId
@@ -280,13 +263,41 @@ module.exports = function (app) {
      */
 
 	app.get('/SaTT/Support', async (req, res) => {
-	  try{     
+	  try{
 	  let name =req.body.name
 	  let email=req.body.email
 	  let subject=req.body.subject
 	  let message=req.body.message
+
+	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
+		var data_={
+			SaTT:{
+				Url:'https://v2.satt.atayen.us/#/FAQ'
+			},
+			letter:{
+				from:name+" ("+email+")",
+				subject,
+				message
+			}
+		}
+		let dynamic_html=ejs.render(data, data_);
+
+		var mailOptions = {
+			from: email,
+			to:"support@satt-token.com",
+			subject: 'customer service',
+			html: dynamic_html
+	   };
    
-	  console.log(req.body)
+	await transporter.sendMail(mailOptions, function(error, info){
+		   if (error) {
+			   res.end(JSON.stringify(error))
+		   } else {
+			   res.end(JSON.stringify(info.response))
+		   }
+		 });
+
+	  })
 	  }catch (err) {
 		response.send(JSON.stringify(err));
 	}
