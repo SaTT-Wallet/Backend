@@ -9,10 +9,9 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
-	//const mongoURI = app.url;
-const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
-
-
+	const mongodb = require('mongodb');
+	const mongoURI = app.url;
+	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -21,7 +20,8 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_legal'
@@ -44,7 +44,7 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_files'
@@ -124,7 +124,6 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
      */
 	 app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
 		try{
-			let pic = {};
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
@@ -132,9 +131,6 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
 				"$id": auth.id, 
 				"$db": "atayen"
 			 }} })
-			// pic.idUser = auth.id
-			// pic.file = req.file;
-			// await app.db.userFiles().insertOne(pic)
 			res.send('saved').status(200);
 		} catch (err) {
 			res.send(err);
@@ -158,7 +154,6 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
 			gfsUserLegal.files.find({idNode: idNode}).toArray(function (err, files) {
 				const startIndex=(page-1) * limit;
 				const endIndex=page * limit;
-	console.log(files)
 				const userLegal = {}
 				if(endIndex < files.length){
 					userLegal.next ={
@@ -232,21 +227,19 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
      @url : /userlegal
      @description: saving user legal files
      @params:
-     @Input type : type of proof id or domicile
+     @Input type : type of proof id or domicile req.body.type
      */
 	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
 		try{
-
 		  const date = new Date().toISOString();
-		  let legal={};
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const idNode = "0" + auth.id;
-          gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
+        gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 			"$ref": "sn_user",
-			"$id": auth.id,
+			"$id": auth.id, 
 			"$db": "atayen"
-		 }, validate : false} })
+		 }, validate : false, type : req.body.type} })
 		  let notification={
 			  idNode:idNode,
 			  type:"save_legal_file_event",
@@ -257,13 +250,12 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
 				  id:req.file.id
 			}
 		  }
+		  await	app.db.notification().insert(notification)
 		  res.end('legal processed').status(201);
 		}catch (err) {
 			res.send(err);
 		}
 	  })
-
-
     /*
      @Url : /SaTT/Support'
      @description: Send Email to SaTT customer service
@@ -314,6 +306,33 @@ const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
 		response.send(JSON.stringify(err));
 	}
    })
+
+
+
+/*
+     @url : /profile/notification/issend/clicked
+     @description: notifications were seen
+     @params:
+     @Input headers : access token
+	 @Output : updated notification
+     */
+app.patch('/profile/notification/issend/clicked', async (req, res) =>{
+	try{
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const id = +auth.id 
+		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
+			elem.isSend = false;
+			app.db.notification().save(elem)
+		})
+		res.send('notificatons clicked').status(200);
+	}catch (err) {
+		res.send(err);
+	}
+   
+		
+
+})
 	return app;
 
 }
