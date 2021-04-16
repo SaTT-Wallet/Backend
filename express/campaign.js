@@ -11,8 +11,9 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	const mongoURI = app.url;
-	
+	//const mongoURI = app.url;
+	const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
+
 	const storage = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -953,25 +954,25 @@ module.exports = function (app) {
      @params:
      idCampaign : identifiant de la campaign
      */
-	app.post('/addKit', upload.single('file'), async(req, res) => {
-		const file = {}
+	 app.post('/addKit', upload.single('file'), async(req, res) => {
 		try {
-		 if(req.file){
-          file.name = req.file.originalname
-		  file.idCampaign = req.body.campaign
-		   file.id = req.file.id
-		   file.file = req.file
-            await app.db.campaign_kit().insertOne(file)
-		 res.json({ file: req.file });
-
-		 } else if(!req.file){
-			let url ={};
-			url.name = req.body.name
-			url.link = req.body.link
-			url.idCampaign = req.body.campaign
-			await app.db.campaign_kit().insertOne(url)
-			res.json("saved").status(200);
-		 }		
+		 let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const idNode = "0" + auth.id;
+		if(req.file){
+			gfsKit.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+			"$ref": "campaign",
+			"$id": app.ObjectId(req.body.campaign), 
+			"$db": "atayen"
+		 }} })
+		} else{
+			gfsKit.files.insert({ campaign : {
+				"$ref": "campaign",
+				"$id": app.ObjectId(req.body.campaign), 
+				"$db": "atayen"
+			 }, link : req.body.link })
+		}
+		res.send('Kit uploaded').status(200);
 		} catch (err) {
 			res.end(err);
 		}
@@ -989,8 +990,9 @@ module.exports = function (app) {
 		const idCampaign= req.params.idCampaign;
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
-		const kits=await app.db.campaign_kit().find({idCampaign:idCampaign}).toArray();
-		response.end(JSON.stringify(kits))
+		gfsKit.files.find({ 'campaign.$id':app.ObjectId(idCampaign)}).toArray(function (err, files) {
+		response.end(JSON.stringify(files));
+		})
 		}catch (err) {
 		response.end(err);
 		}
@@ -1088,15 +1090,24 @@ module.exports = function (app) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 		const idCampaign = req.params.idCampaign;
-	    	const cover=await app.db.campaignCover().find({idCampaign:idCampaign}).toArray();
-			if(cover.length){
-				gfs.files.findOne({ filename: cover[0].file.filename }, (err, file) => {
+
+		
+				gfs.files.findOne({ 'user.$id': app.ObjectId(idCampaign) }, (err, file) => {
 					if (!file || file.length === 0) {
-					  return res.status(404).json({
-						err: 'No file exists'
-					  });
+						const imageName = "default_cover.png"
+						const imagePath = path.join(__dirname,"../public/", imageName);
+		
+						const { size } = fs.statSync(imagePath);
+			
+						res.writeHead(200, {
+							'Content-Type': 'image/png',
+							'Content-Length': size,
+							'Content-Disposition': `attachment; filename='${imageName}`
+						});
+			
+						fs.createReadStream(imagePath).pipe(res);
 					}
-					if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+					else if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
 											'Content-Length': file.length,
@@ -1105,49 +1116,34 @@ module.exports = function (app) {
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
 				
-					} else {
-					  res.status(404).json({
-						err: 'Not an image'
-					  });
-					}
+					} 
 				  });
-			}else{
-
-					const imageName = "default_cover.png"
-					const imagePath = path.join(__dirname,"../public/", imageName);
-	
-					const { size } = fs.statSync(imagePath);
 		
-					res.writeHead(200, {
-						'Content-Type': 'image/png',
-						'Content-Length': size,
-						'Content-Disposition': `attachment; filename='${imageName}`
-					});
-		
-					fs.createReadStream(imagePath).pipe(res);
-			}		
 		}catch (err) {
 			res.end(err)
 		}
 			
-		})
-			
-			
+		})	
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
      @params:
      @Input idCampaign : campaign id 
      */		
-	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
-		// const token = req.headers["authorization"].split(" ")[1];
-		// const res = await app.crm.auth( token);
-        const img = {};
-		img.idCampaign = req.params.idCampaign;
-        img.name = req.file.originalname
-		img.file = req.file
-		const image = await app.db.campaignCover().insertOne(img)
-		res.json(JSON.stringify(image));
+	 app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
+		try{
+			const idCampaign = req.params.idCampaign;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth( token);
+			gfs.files.updateMany({ _id: req.file.id },{$set: { user : {
+				"$ref": "campaign",
+				"$id": app.ObjectId(idCampaign), 
+				"$db": "atayen"
+			 }} })
+			res.json("Cover added");
+		} catch (err) {
+			res.end(err);
+			}	
 	})
 	/*
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
