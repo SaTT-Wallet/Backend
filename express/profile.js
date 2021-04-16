@@ -9,8 +9,9 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
-	const mongoURI = app.url;
-
+	const mongodb = require('mongodb');
+	// const mongoURI = app.url;
+	const mongoURI = "mongodb://127.0.0.1:27017/atayen"
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -19,7 +20,8 @@ module.exports = function (app) {
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_legal'
@@ -41,7 +43,7 @@ module.exports = function (app) {
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_files'
@@ -54,9 +56,12 @@ module.exports = function (app) {
 
       const conn=mongoose.createConnection(mongoURI);
 	  let gfsprofilePic;
+	  let gfsUserLegal;
 	  conn.once('open', () => {
 		gfsprofilePic = Grid(conn.db, mongoose.mongo);
 		gfsprofilePic.collection('user_files');
+		gfsUserLegal = Grid(conn.db, mongoose.mongo);
+		gfsUserLegal.collection('user_legal');
 
 	  });
 	   const uploadUserLegal =  multer({storage : storageUserLegal})
@@ -119,12 +124,13 @@ module.exports = function (app) {
      */
     app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
 		try{
-			let pic = {};
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			pic.idUser = auth.id
-			pic.file = req.file;
-			await app.db.userFiles().insertOne(pic)
+			gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
+				"$ref": "sn_user",
+				"$id": auth.id, 
+				"$db": "atayen"
+			 }} })
 			res.send('saved').status(200);
 		} catch (err) {
 			res.send(err);
@@ -209,42 +215,33 @@ module.exports = function (app) {
      @params:
      @Input type : type of proof id or domicile
      */
-	app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
-      try{
+	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+		try{
 		  const date = new Date().toISOString();
-		let legal={};
-		let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		if(req.body.type == 'proofId'){
-          legal.type = "proofId";
-		} 
-        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}		
-		legal.idNode = "0" + auth.id;
-        legal.file = req.file;
-		legal.filename = req.file.originalname
-		legal.validate = false;
-		legal.DataUser =  {
+		  let token = req.headers["authorization"].split(" ")[1];
+		  const auth = await app.crm.auth(token);
+		  const idNode = "0" + auth.id;
+        gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 			"$ref": "sn_user",
-			"$id": NumberLong(auth.id),
+			"$id": auth.id, 
 			"$db": "atayen"
-		 }
-		const userLegal = await app.db.UserLegal().insertOne(legal);
-		let notification={
-			idNode:auth.id,
-			type:"save_legal_file_event",
-			status:"done",
-			label:JSON.stringify([{'type':legal.type, 'date': date}]),
-			isSeen:false,
-			attachedEls:{
-				id:userLegal.insertedId
+		 }, validate : false} })
+		  let notification={
+			  idNode:idNode,
+			  type:"save_legal_file_event",
+			  status:"done",
+			  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+			  isSeen:false,
+			  attachedEls:{
+				  id:req.file.id
+			}
 		  }
+		  await	app.db.notification().insert(notification)
+		  res.end('legal processed').status(201);
+		}catch (err) {
+			res.send(err);
 		}
-	  await	app.db.notification().insert(notification)
-		res.end('legal processed').status(201);
-	  }catch (err) {
-		  res.send(err);
-	  }
-	})
+	  })
     /*
      @Url : /SaTT/Support'
      @description: Send Email to SaTT customer service
