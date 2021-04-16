@@ -13,7 +13,8 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	const mongoURI = app.url;
+	// const mongoURI = app.url;
+	const mongoURI = "mongodb://127.0.0.1:27017/atayen"
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -23,7 +24,7 @@ module.exports = function (app) {
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_kit'
@@ -43,7 +44,7 @@ module.exports = function (app) {
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
@@ -951,37 +952,29 @@ module.exports = function (app) {
      @link : /addKit
      @description: saving user kits & links
      @params:
-     idCampaign : identifiant de la campaign
+     idCampaign : identifiant de la campaign req.body.campaign
      */
 	app.post('/addKit', upload.single('file'), async(req, res) => {
 		try {
 		 let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);
-		 const file = {}
-		 if(req.file){
-		  file.idNode = "0" + auth.id;
-          file.name = req.file.originalname
-		  file.campaign = {
+		const idNode = "0" + auth.id;
+		const idCampaign = req.body.campaign
+		const link = req.body.link
+		if(req.file){
+			gfsKit.files.updateMany({ _id: req.file.id },{$set: { campaign : {
 			"$ref": "campaign",
-			"$id": ObjectId(req.body.campaign),
+			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
-		 };
-            await app.db.campaign_kit().insertOne(file)
-		 res.json({ file: req.file });
-
-		 } else if(!req.file){
-			let url ={};
-            url.campaign = {
+		 }} })
+		} else{
+			gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
-				"$id": ObjectId(req.body.campaign),
+				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
-			 };
-			url.idNode = "0" + auth.id;
-			url.name = req.body.name
-			url.link = req.body.link
-			await app.db.campaign_kit().insertOne(url)
-			res.json("saved").status(200);
-		 }
+			 }, link : link })
+		}
+		res.send('Kit uploaded').status(200);
 		} catch (err) {
 			res.end(err);
 		}
@@ -1135,14 +1128,19 @@ module.exports = function (app) {
      @Input idCampaign : campaign id
      */
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
-		// const token = req.headers["authorization"].split(" ")[1];
-		// const res = await app.crm.auth( token);
-        const img = {};
-		img.idCampaign = req.params.idCampaign;
-        img.name = req.file.originalname
-		img.file = req.file
-		const image = await app.db.campaignCover().insertOne(img)
-		res.json(JSON.stringify(image));
+		try{
+			const idCampaign = req.params.idCampaign;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth( token);
+			gfs.files.updateMany({ _id: req.file.id },{$set: { user : {
+				"$ref": "campaign",
+				"$id": app.ObjectId(idCampaign), 
+				"$db": "atayen"
+			 }} })
+			res.json("Cover added");
+		} catch (err) {
+			res.end(err);
+			}	
 	})
 	/*
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
@@ -1173,6 +1171,8 @@ module.exports = function (app) {
      */
 	app.post('/campaign/stats_live', async(req, res)=>{
         try {
+	    let token = req.headers["authorization"].split(" ")[1];
+        await app.crm.auth(token);
 		const idProm = req.body.prom_id
 		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
         let stats = {};
@@ -1194,8 +1194,10 @@ module.exports = function (app) {
      */
 	app.get('/campaign/links/:idCampaign', async(req, res)=>{
 		try {
-      const campaign = req.params.idCampaign
-	    const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
+		 let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
+         const campaign = req.params.idCampaign
+	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end(err);
