@@ -10,8 +10,8 @@ module.exports = function (app) {
 	const multer = require('multer');
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
-	// const mongoURI = app.url;
-	const mongoURI = "mongodb://127.0.0.1:27017/atayen"
+	const mongoURI = app.url;
+	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -126,12 +126,15 @@ module.exports = function (app) {
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
-				"$ref": "sn_user",
-				"$id": auth.id, 
-				"$db": "atayen"
-			 }} })
-			res.send('saved').status(200);
+			if(req.file){
+				gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
+					"$ref": "sn_user",
+					"$id": auth.id, 
+					"$db": "atayen"
+				 }} })
+				res.send('saved').status(200);
+			}
+			res.send('').status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
@@ -235,23 +238,26 @@ module.exports = function (app) {
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const idNode = "0" + auth.id;
-        gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
-			"$ref": "sn_user",
-			"$id": auth.id, 
-			"$db": "atayen"
-		 }, validate : false, type : req.body.type} })
-		  let notification={
-			  idNode:idNode,
-			  type:"save_legal_file_event",
-			  status:"done",
-			  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
-			  isSeen:false,
-			  attachedEls:{
-				  id:req.file.id
-			}
-		  }
-		  await	app.db.notification().insert(notification)
-		  res.end('legal processed').status(201);
+         if(req.body.type && req.body.file){
+            gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
+				"$ref": "sn_user",
+				"$id": auth.id, 
+				"$db": "atayen"
+			 }, validate : false, type : req.body.type} })
+			  let notification={
+				  idNode:idNode,
+				  type:"save_legal_file_event",
+				  status:"done",
+				  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+				  isSeen:false,
+				  attachedEls:{
+					  id:req.file.id
+				}
+			  }
+			  await	app.db.notification().insert(notification)
+			  res.end('legal processed').status(201);
+		 }
+		 res.end('No file found').status(201);
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
