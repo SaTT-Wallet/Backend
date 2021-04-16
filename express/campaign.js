@@ -11,8 +11,7 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	//const mongoURI = app.url;
-	const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
+	const mongoURI = app.url;
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -969,14 +968,16 @@ module.exports = function (app) {
 			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
 		 }} })
-		} else{
-			gfsKit.files.insert({ campaign : {
+		 res.send('Kit uploaded').status(200);
+		} if(req.body.link){
+		  gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }, link : link })
+			 res.send('Kit uploaded').status(200);
 		}
-		res.send('Kit uploaded').status(200);
+		res.send('')	
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1139,16 +1140,18 @@ module.exports = function (app) {
      */
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		try{
-			console.log('here')
 			const idCampaign = req.params.idCampaign;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
-			gfs.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+			if(req.file){
+				gfs.files.updateMany({ _id: req.file.id },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
 			res.json("Cover added");
+			}
+			res.send('')
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
