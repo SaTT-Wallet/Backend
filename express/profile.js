@@ -9,7 +9,9 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
-	const mongoURI = app.url;
+	//const mongoURI = app.url;
+const mongoURI = 'mongodb://127.0.0.1:27017/atayen'; //for local
+
 
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
@@ -25,6 +27,7 @@ module.exports = function (app) {
 				bucketName: 'user_legal'
 			  };
 			  resolve(fileInfo);
+
 			});
 		  });
 		}
@@ -54,9 +57,12 @@ module.exports = function (app) {
 
       const conn=mongoose.createConnection(mongoURI);
 	  let gfsprofilePic;
+	  let gfsUserLegal;
 	  conn.once('open', () => {
 		gfsprofilePic = Grid(conn.db, mongoose.mongo);
 		gfsprofilePic.collection('user_files');
+		gfsUserLegal = Grid(conn.db, mongoose.mongo);
+		gfsUserLegal.collection('user_legal');
 
 	  });
 	   const uploadUserLegal =  multer({storage : storageUserLegal})
@@ -77,14 +83,12 @@ module.exports = function (app) {
      @params:
      id : identifiant de l'utilisateur'
      */
-	 app.get('/profile/pic/:id', async (req, res) => {
+	 app.get('/profile/pic', async (req, res) => {
          try{ 
 			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);     
-			const idUser = +req.params.id;
-			const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
-
-			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
+			const auth= await app.crm.auth(token);     
+			const idUser = +auth.id;
+			gfsprofilePic.files.findOne({ 'user.$id':idUser}  , (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
 					err: 'No file exists'
@@ -105,8 +109,9 @@ module.exports = function (app) {
 				  });
 				}
 			  });
+			 
             }catch (err) {
-                response.send(err);
+                res.send(err);
             }
 
 	})
@@ -117,14 +122,19 @@ module.exports = function (app) {
      @params:
      req.file : image files
      */
-    app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
+	 app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
 		try{
 			let pic = {};
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			pic.idUser = auth.id
-			pic.file = req.file;
-			await app.db.userFiles().insertOne(pic)
+			gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
+				"$ref": "sn_user",
+				"$id": auth.id, 
+				"$db": "atayen"
+			 }} })
+			// pic.idUser = auth.id
+			// pic.file = req.file;
+			// await app.db.userFiles().insertOne(pic)
 			res.send('saved').status(200);
 		} catch (err) {
 			res.send(err);
@@ -144,28 +154,31 @@ module.exports = function (app) {
 			const auth = await app.crm.auth(token);
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1
-			const idNode=auth.id;
-			const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
-	
-			const startIndex=(page-1) * limit;
-			const endIndex=page * limit;
-	
-			const userLegal = {}
-			if(endIndex < legal.length){
-				userLegal.next ={
-					page:page+1,
+			const idNode="0"+auth.id;
+			gfsUserLegal.files.find({idNode: idNode}).toArray(function (err, files) {
+				const startIndex=(page-1) * limit;
+				const endIndex=page * limit;
+	console.log(files)
+				const userLegal = {}
+				if(endIndex < files.length){
+					userLegal.next ={
+						page:page+1,
+						limit:limit
+					}	
+				}			
+				if(startIndex > 0){
+					userLegal.previous ={
+					page:page-1,
 					limit:limit
-				}	
-			}			
-			if(startIndex > 0){
-				userLegal.previous ={
-				page:page-1,
-				limit:limit
-			}
-			}
-			userLegal.legal=legal.slice(startIndex, endIndex)
-			res.send(userLegal);
+				}
+				}
+			userLegal.legal=files.slice(startIndex, endIndex)
 
+				res.send(userLegal);
+
+			})
+			
+			
 
 		} catch (err) {
 			res.send(err);
@@ -221,37 +234,36 @@ module.exports = function (app) {
      @params:
      @Input type : type of proof id or domicile
      */
-	app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
-      try{
+	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+		try{
+
 		  const date = new Date().toISOString();
-		let legal={};
-		let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		if(req.body.type == 'proofId'){
-          legal.type = "proofId";
-		}
-        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}
-		legal.idNode = auth.id;
-        legal.file = req.file;
-		legal.filename = req.file.originalname
-		legal.validate = false;
-		const userLegal = await app.db.UserLegal().insertOne(legal);
-		let notification={
-			idNode:auth.id,
-			type:"save_legal_file_event",
-			status:"done",
-			label:JSON.stringify([{'type':legal.type, 'date': date}]),
-			isSeen:false,
-			attachedEls:{
-				id:userLegal.insertedId
+		  let legal={};
+		  let token = req.headers["authorization"].split(" ")[1];
+		  const auth = await app.crm.auth(token);
+		  const idNode = "0" + auth.id;
+          gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
+			"$ref": "sn_user",
+			"$id": auth.id,
+			"$db": "atayen"
+		 }, validate : false} })
+		  let notification={
+			  idNode:idNode,
+			  type:"save_legal_file_event",
+			  status:"done",
+			  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+			  isSeen:false,
+			  attachedEls:{
+				  id:req.file.id
+			}
 		  }
+		  res.end('legal processed').status(201);
+		}catch (err) {
+			res.send(err);
 		}
-	  await	app.db.notification().insert(notification)
-		res.end('legal processed').status(201);
-	  }catch (err) {
-		  res.send(err);
-	  }
-	})
+	  })
+
+
     /*
      @Url : /SaTT/Support'
      @description: Send Email to SaTT customer service
