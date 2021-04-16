@@ -919,11 +919,12 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
             await app.crm.auth(token);
 			const idKit = req.params.idKit
-		    await app.db.campaign_kit().deleteOne({id:app.ObjectId(idKit)});
-		    res.end("Kit deleted").status(200);
+			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
+				res.send('delete')
+			})
+
 	  } catch (err) {
-		  res.end(err);
-	  }
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	  }
 			
 	  })
 
@@ -945,8 +946,7 @@ module.exports = function (app) {
 			const data=await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
 			res.end("draft deleted").status(200);
 		} catch (err) {
-			res.end(err);
-		}
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	});
 
 
@@ -978,8 +978,7 @@ module.exports = function (app) {
 		}
 		res.send('Kit uploaded').status(200);
 		} catch (err) {
-			res.end(err);
-		}
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
 	
 	/*
@@ -998,7 +997,7 @@ module.exports = function (app) {
 		response.end(JSON.stringify(files));
 		})
 		}catch (err) {
-		response.end(err);
+		response.end(JSON.stringify(err));
 		}
 	
 	})
@@ -1020,7 +1019,7 @@ module.exports = function (app) {
 			res.end("creation succeed").status(200);
 
 		} catch (err) {
-			res.end(err);
+			res.end(JSON.stringify(err));
 		}
 
 	});
@@ -1036,11 +1035,13 @@ module.exports = function (app) {
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth(token);
-			const campaign = req.params.idCampaign
-           	await app.db.campaignCover().deleteOne({idCampaign: campaign});
-			res.end("deleted").status(200);
+			const campain = req.params.idCampaign
+			gfs.files.findOneAndDelete({ 'campaign.$id': app.ObjectId(campain) },(err, data)=>{
+				res.send('delete')
+			})
 		} catch (err) {
-			res.end(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+
 		}
 		
 	})
@@ -1080,7 +1081,7 @@ module.exports = function (app) {
 				}});		
 			res.end("updated succeed").status(200);
 			} catch (err) {
-			res.end(err);
+			res.end(JSON.stringify(err));
 			}
 
 	});
@@ -1098,7 +1099,7 @@ module.exports = function (app) {
 		const idCampaign = req.params.idCampaign;
 
 		
-				gfs.files.findOne({ 'user.$id': app.ObjectId(idCampaign) }, (err, file) => {
+				gfs.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
 					if (!file || file.length === 0) {
 						const imageName = "default_cover.png"
 						const imagePath = path.join(__dirname,"../public/", imageName);
@@ -1126,7 +1127,7 @@ module.exports = function (app) {
 				  });
 		
 		}catch (err) {
-			res.end(err)
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 			
 		})	
@@ -1138,17 +1139,18 @@ module.exports = function (app) {
      */
 	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
 		try{
+			console.log('here')
 			const idCampaign = req.params.idCampaign;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
-			gfs.files.updateMany({ _id: req.file.id },{$set: { user : {
+			gfs.files.updateMany({ _id: req.file.id },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
 			res.json("Cover added");
 		} catch (err) {
-			res.end(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
 	})
 	/*
@@ -1168,7 +1170,7 @@ module.exports = function (app) {
 		
 		res.send(allProms);
 		} catch (err) {
-			res.end(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 	})
 	
@@ -1192,7 +1194,7 @@ module.exports = function (app) {
 		stats.views = prom.views;
 		res.send(stats).status(200);
 		} catch (err) {
-			res.end(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 	})
 
@@ -1211,7 +1213,7 @@ module.exports = function (app) {
 	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
-		res.end(err);
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}
 	})
 	return app;

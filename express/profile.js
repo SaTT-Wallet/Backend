@@ -10,8 +10,8 @@ module.exports = function (app) {
 	const multer = require('multer');
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
-	const mongoURI = app.url;
-	
+	// const mongoURI = app.url;
+	const mongoURI = "mongodb://127.0.0.1:27017/atayen"
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -111,7 +111,7 @@ module.exports = function (app) {
 			  });
 			 
             }catch (err) {
-                res.send(err);
+				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
             }
 
 	})
@@ -133,7 +133,7 @@ module.exports = function (app) {
 			 }} })
 			res.send('saved').status(200);
 		} catch (err) {
-			res.send(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 
 		})
@@ -176,7 +176,7 @@ module.exports = function (app) {
 			
 
 		} catch (err) {
-			res.send(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 		
 
@@ -217,7 +217,7 @@ module.exports = function (app) {
 			notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
 			res.send(notifications);
 		  }catch (err){
-			  res.send(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		  }
 		
 	
@@ -253,7 +253,7 @@ module.exports = function (app) {
 		  await	app.db.notification().insert(notification)
 		  res.end('legal processed').status(201);
 		}catch (err) {
-			res.send(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 	  })
     /*
@@ -327,7 +327,7 @@ app.patch('/profile/notification/issend/clicked', async (req, res) =>{
 		})
 		res.send('notificatons clicked').status(200);
 	}catch (err) {
-		res.send(err);
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}
    
 		
