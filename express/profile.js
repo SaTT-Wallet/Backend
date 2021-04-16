@@ -27,6 +27,7 @@ module.exports = function (app) {
 				bucketName: 'user_legal'
 			  };
 			  resolve(fileInfo);
+
 			});
 		  });
 		}
@@ -82,12 +83,12 @@ module.exports = function (app) {
      @params:
      id : identifiant de l'utilisateur'
      */
-	 app.get('/profile/pic/:id', async (req, res) => {
-         try{
-		const idUser = +req.params.id;
-		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
-
-			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
+	 app.get('/profile/pic', async (req, res) => {
+         try{ 
+			const token = req.headers["authorization"].split(" ")[1];
+			const auth= await app.crm.auth(token);     
+			const idUser = +auth.id;
+			gfsprofilePic.files.findOne({ 'user.$id':idUser}  , (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
 					err: 'No file exists'
@@ -108,13 +109,12 @@ module.exports = function (app) {
 				  });
 				}
 			  });
+			 
             }catch (err) {
-                response.send(err);
+                res.send(err);
             }
 
 	})
-
-
 
      /*
      @link : /profile/pic
@@ -122,7 +122,7 @@ module.exports = function (app) {
      @params:
      req.file : image files
      */
-    app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
+	 app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
@@ -145,31 +145,40 @@ module.exports = function (app) {
      @Output:Object
      */
 	app.get('/profile/userLegal', async(req, res)=>{
-		const limit=parseInt(req.query.limit) || 50;
-		const page=parseInt(req.query.page) || 1
-		const token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode=auth.id;
-		const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const limit=parseInt(req.query.limit) || 50;
+			const page=parseInt(req.query.page) || 1
+			const idNode="0"+auth.id;
+			gfsUserLegal.files.find({idNode: idNode}).toArray(function (err, files) {
+				const startIndex=(page-1) * limit;
+				const endIndex=page * limit;
+				const userLegal = {}
+				if(endIndex < files.length){
+					userLegal.next ={
+						page:page+1,
+						limit:limit
+					}	
+				}			
+				if(startIndex > 0){
+					userLegal.previous ={
+					page:page-1,
+					limit:limit
+				}
+				}
+			userLegal.legal=files.slice(startIndex, endIndex)
 
-		const startIndex=(page-1) * limit;
-		const endIndex=page * limit;
+				res.send(userLegal);
 
-		const userLegal = {}
-		if(endIndex < legal.length){
-			userLegal.next ={
-				page:page+1,
-				limit:limit
-			}
+			})
+			
+			
+
+		} catch (err) {
+			res.send(err);
 		}
-		if(startIndex > 0){
-			userLegal.previous ={
-			page:page-1,
-			limit:limit
-		}
-		}
-		userLegal.legal=legal.slice(startIndex, endIndex)
-		res.send(userLegal);
+		
 
 	})
 
@@ -180,40 +189,45 @@ module.exports = function (app) {
      @Output:Object
      */
 	  app.get('/notifications',async(req, res)=>{
-		const token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode=auth.id;
-		const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
-		const limit=parseInt(req.query.limit) || 50;
-		const page=parseInt(req.query.page) || 1;
-		const startIndex=(page-1) * limit;
-		const endIndex=page * limit;
-
-		const notifications = {}
-		if(endIndex < arrayNotifications.length){
-			notifications.next ={
-				page:page+1,
+		  try{
+			const token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const idNode=auth.id;
+			const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
+			const limit=parseInt(req.query.limit) || 50;
+			const page=parseInt(req.query.page) || 1;
+			const startIndex=(page-1) * limit;
+			const endIndex=page * limit;
+	
+			const notifications = {}
+			if(endIndex < arrayNotifications.length){
+				notifications.next ={
+					page:page+1,
+					limit:limit
+				}	
+			}			
+			if(startIndex > 0){
+				notifications.previous ={
+				page:page-1,
 				limit:limit
+				}
 			}
-		}
-		if(startIndex > 0){
-			notifications.previous ={
-			page:page-1,
-			limit:limit
-			}
-		}
-		const isSend= await app.db.notification().find({idNode:idNode,isSend:true}).toArray()
-		notifications.isSend=isSend.length;
-		notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
-		res.send(notifications);
-
+			const isSend= await app.db.notification().find({idNode:idNode,isSend:true}).toArray()
+			notifications.isSend=isSend.length;
+			notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
+			res.send(notifications);
+		  }catch (err){
+			  res.send(err);
+		  }
+		
+	
 	  })
 
 	/*
      @url : /userlegal
      @description: saving user legal files
      @params:
-     @Input type : type of proof id or domicile
+     @Input type : type of proof id or domicile req.body.type
      */
 	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
 		try{
@@ -225,7 +239,7 @@ module.exports = function (app) {
 			"$ref": "sn_user",
 			"$id": auth.id, 
 			"$db": "atayen"
-		 }, validate : false} })
+		 }, validate : false, type : req.body.type} })
 		  let notification={
 			  idNode:idNode,
 			  type:"save_legal_file_event",
