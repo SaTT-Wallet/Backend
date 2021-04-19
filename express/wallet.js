@@ -2,7 +2,7 @@ const { async } = require('hasha');
 var Big = require('big.js');
 
 module.exports = function (app) {
-	
+
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
@@ -10,7 +10,7 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) { 
+	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
 			var addr = req.params.addr;
@@ -75,7 +75,7 @@ module.exports = function (app) {
      @description: calculate Total balance of a user
      @parameters :
      addr : wallet address of user
-     token : access token 
+     token : access token
      @response : Total Balance
      */
 
@@ -96,7 +96,7 @@ module.exports = function (app) {
 			var count = await app.account.hasAccount(res.id);
 
 			var addr = req.params.addr;
-			var ret = {err:"no_account"}; 
+			var ret = {err:"no_account"};
 			var Total_balance=0
 
 			if(count)
@@ -126,7 +126,7 @@ module.exports = function (app) {
 				}
 			  }
 			 }
-                                       
+
 			 for(const Amount in ret){
 				if(Amount=="ether_balance"){
 					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
@@ -140,7 +140,7 @@ module.exports = function (app) {
 			  }
 			  Total_balance=Total_balance.toFixed(2)
 
-          response.end(JSON.stringify({Total_balance})); 
+          response.end(JSON.stringify({Total_balance}));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -871,9 +871,9 @@ module.exports = function (app) {
 	 @Output delete message
      */
 
-	 
+
 	app.get("/prices", async (req, res) => {
-		
+
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
 					}
@@ -920,7 +920,7 @@ module.exports = function (app) {
 		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
 		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
         // prices["SATT"] = {price:bwSatt.datas[1]};
-		// 		str+="}"          
+		// 		str+="}"
 				res.end(str)
 })
 
@@ -997,15 +997,15 @@ app.get('/v2/sum', async function(req, response) {
 			gzip: true
 		  };
 
-		  const requestOptions_BTC_transactions = {
+		 /* const requestOptions_BTC_transactions = {
 			method: 'GET',
 			uri: 'https://blockchain.info/rawaddr/'+ btcAddress ,
 			json: true,
 			gzip: true
-		  };
+		};*/
 
-		  var BTC_transactions =  await rp(requestOptions_BTC_transactions);
-		  console.log(BTC_transactions)
+		  //var BTC_transactions =  await rp(requestOptions_BTC_transactions);
+		  //console.log(BTC_transactions)
 		  var Eth_transactions =  await rp(requestOptions_ETH_transactions);
 		  var ERC20_transactions= await rp(requestOptions_ERC20_transactions);
 		  var all_Eth_transactions=app.cryptoManager.FilterTransactionsByHash(Eth_transactions,ERC20_transactions,'ERC20')
@@ -1084,6 +1084,6 @@ app.post('/v2/profile/update', async function(req, response) {
 	   }catch(err){
 	  res.end(JSON.stringify(err))
 	 }
-	})  
+	})
 	return app;
 }
