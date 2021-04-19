@@ -239,7 +239,7 @@ module.exports = function (app) {
 	});
 
       /*
-     @Url :/campaigns/list/:token/addr:?page[size]'
+     @Url :/campaigns/list/:token/addr:?page[number]'
      @description: fetch drafts and created campaign 
 	 @query: Page number
      @parameters :
