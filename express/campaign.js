@@ -12,6 +12,8 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const mongoURI = app.url;
+	
+	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
