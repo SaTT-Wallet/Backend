@@ -239,22 +239,26 @@ module.exports = function (app) {
 	});
 
       /*
-     @Url :/campaign/list/:token/addr:'
+     @Url :/campaigns/list/:token/addr:?page[number]'
      @description: fetch drafts and created campaign 
+	 @query: Page number
      @parameters :
      addr : wallet address of user
      token : access token
      @response : object of arrays => draft and created campaigns
      */
 
-	app.get('/campaign/list/:token/:addr', async function(req, response) {
+	app.get('/campaigns/list/:token/:addr', async function(req, response) {
 		try{
+			var pageNumber=req.query.page.number
 			var owner = req.params.addr;
 			var access_token=req.params.token
 			var campaigns = [];
 			var rescampaigns = [];
+			let end=(pageNumber*9)
+			let start=end-9
+
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
-	
 			var campaignsCrm = [];
 			var campaignsCrmbyId = [];
 			campaignsCrm = await app.db.campaignCrm().find().toArray();
@@ -311,16 +315,15 @@ module.exports = function (app) {
 				rescampaigns.push(campaigns[i]);
 			}
 			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	        let created_campaigns=rescampaigns.concat(campaignscentral);
-
+	        let created_campaigns=(rescampaigns.concat(campaignscentral)).slice(start,end)
 			let auth = await app.crm.auth(access_token);
-
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
-			})
+			}).slice(start,end)
+			console.log(start,end)
+            console.log([0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 9, 5, 6, 7, 8, 9, 5, 6, 7, 8, 9].slice(start,end))
             let campaigns_=[...created_campaigns,...draft_campaigns]
-
 			response.end(JSON.stringify(campaigns_));
 			
 		}catch(err){
