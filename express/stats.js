@@ -321,8 +321,7 @@ module.exports = function (app) {
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
 			}).slice(start,end)
-			console.log(start,end)
-            console.log([0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 9, 5, 6, 7, 8, 9, 5, 6, 7, 8, 9].slice(start,end))
+
             let campaigns_=[...created_campaigns,...draft_campaigns]
 			response.end(JSON.stringify(campaigns_));
 			
