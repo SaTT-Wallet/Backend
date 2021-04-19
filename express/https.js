@@ -1,6 +1,5 @@
 module.exports = async function (app) {
 	
-	
 	var ioManager = {};
 	var fs = require('fs');
 	var https = require('https');
@@ -9,7 +8,6 @@ module.exports = async function (app) {
 	  key: fs.readFileSync(app.config.SSLKeyFile,'utf8'),
 	  cert: fs.readFileSync(app.config.SSLCertFile,'utf8')
 	}, app);
-	
 	
 	var io = require('socket.io')(httpServer);
 	
@@ -29,6 +27,7 @@ module.exports = async function (app) {
 		io.to(hash).emit('confirmation',{num :numConfirm,hash:hash });
 	}
 	
+	ioManager.SocketIo=io
 	app.io = ioManager;
 	
 	

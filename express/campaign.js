@@ -917,6 +917,7 @@ module.exports = function (app) {
      @Input idKit : id of the kid
 	 @Output delete message
      */
+
 	app.delete('/kit/:idKit', async (req, res) => {
 		const idKit = req.params.idKit
 
@@ -1030,6 +1031,7 @@ module.exports = function (app) {
 		}
 
 	})
+
 	/*
      @link : /campaign/:id/update
      @description: modifier la campaign
@@ -1063,7 +1065,6 @@ module.exports = function (app) {
 			} catch (err) {
 			res.end(err);
 			}
-
 	});
 
 	/*
@@ -1131,6 +1132,7 @@ module.exports = function (app) {
 		const image = await app.db.campaignCover().insertOne(img)
 		res.json(JSON.stringify(image));
 	})
+	
 	/*
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
      @description: get accepted proms by owner
@@ -1182,11 +1184,11 @@ module.exports = function (app) {
 	app.get('/campaign/links/:idCampaign', async(req, res)=>{
 		try {
       const campaign = req.params.idCampaign
-	    const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
+	  const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end(err);
-	}
+	 }
 	})
 
 	return app;
