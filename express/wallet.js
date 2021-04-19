@@ -6,7 +6,7 @@ module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
-	var child = require('child_process');
+
 	var rp = require('request-promise');
 
 
@@ -25,7 +25,7 @@ module.exports = function (app) {
 			var addr = req.params.addr;
 
 			var balance = await app.bep20.getBalance(token,addr);
-			
+
 			response.end(JSON.stringify({token:token,balance:balance}));
 	})
 
@@ -978,7 +978,7 @@ app.get('/v2/sum', async function(req, response) {
 })*/
 
 
- app.get('/v2/transaction_history/:address/:addressBTC', async function(req, response) {
+ app.get('/v2/transaction_history/:address', async function(req, response) {
 	var address = req.params.address;
 	var btcAddress=req.params.addressBTC
 	try {
