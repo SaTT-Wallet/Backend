@@ -863,12 +863,21 @@ module.exports = function (app) {
 		}
 	})
 
+	/*
+     @url : /prices
+     @description: fetch crypto prices
+     @params:
+     @Input idKit : id of the kid
+	 @Output delete message
+     */
 
+	 
 	app.get("/prices", async (req, res) => {
-
+		
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
 					}
+
 					else {
 
 						const requestOptions = {
@@ -885,15 +894,13 @@ module.exports = function (app) {
 						  json: true,
 						  gzip: true
 						};
-
 						var p = await rp(requestOptions);
-
 						app.prices = p;
-
 				}
 
 				var response = app.prices.data;
-	      var bwSatt = await rp({uri:req.app.config.bwPrice,json: true});
+				// console.log(req.app.config.bwPrice)
+	    //   var bwSatt = await rp({uri:req.app.config.bwPrice,json: true});
         var prices = [];
         var str = "{";
         for(var i = 0;i<response.length;i++)
@@ -910,16 +917,14 @@ module.exports = function (app) {
                 prices[""+response[i].symbol] = price;
                 str += '"'+response[i].symbol+'":'+JSON.stringify(price)+",";
         }
-				str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
-				str+='"JET":{"price":0.002134,"percent_change_24h":0}';
-        prices["SATT"] = {price:bwSatt.datas[1]};
-				str+="}"
-
-                res.end(str);
+		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
+		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
+        // prices["SATT"] = {price:bwSatt.datas[1]};
+		// 		str+="}"          
+				res.end(str)
 })
 
 app.get('/v2/feebtc', async function(req, response) {
-
 
 	try {
 
@@ -973,8 +978,9 @@ app.get('/v2/sum', async function(req, response) {
 })*/
 
 
- app.get('/v2/transaction_history/:address', async function(req, response) {
+ app.get('/v2/transaction_history/:address/:addressBTC', async function(req, response) {
 	var address = req.params.address;
+	var btcAddress=req.params.addressBTC
 	try {
 		//ETH Network
 		const requestOptions_ETH_transactions = {
@@ -991,6 +997,15 @@ app.get('/v2/sum', async function(req, response) {
 			gzip: true
 		  };
 
+		  const requestOptions_BTC_transactions = {
+			method: 'GET',
+			uri: 'https://blockchain.info/rawaddr/'+ btcAddress ,
+			json: true,
+			gzip: true
+		  };
+
+		  var BTC_transactions =  await rp(requestOptions_BTC_transactions);
+		  console.log(BTC_transactions)
 		  var Eth_transactions =  await rp(requestOptions_ETH_transactions);
 		  var ERC20_transactions= await rp(requestOptions_ERC20_transactions);
 		  var all_Eth_transactions=app.cryptoManager.FilterTransactionsByHash(Eth_transactions,ERC20_transactions,'ERC20')
@@ -1018,6 +1033,7 @@ app.get('/v2/sum', async function(req, response) {
 
 		  response.end(JSON.stringify(All_Transactions));
 	} catch (err) {
+		throw err
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 })
