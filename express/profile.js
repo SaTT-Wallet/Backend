@@ -9,9 +9,9 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
+	const mongodb = require('mongodb');
 	const mongoURI = app.url;
-
-	//const mongoURI = 'mongodb://127.0.0.1:27017/atayen';
+	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -20,12 +20,14 @@ module.exports = function (app) {
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_legal'
 			  };
 			  resolve(fileInfo);
+
 			});
 		  });
 		}
@@ -42,7 +44,7 @@ module.exports = function (app) {
 			  if (err) {
 				return reject(err);
 			  }
-			  const filename = buf.toString('hex') + path.extname(file.originalname);
+			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_files'
@@ -55,9 +57,12 @@ module.exports = function (app) {
 
       const conn=mongoose.createConnection(mongoURI);
 	  let gfsprofilePic;
+	  let gfsUserLegal;
 	  conn.once('open', () => {
 		gfsprofilePic = Grid(conn.db, mongoose.mongo);
 		gfsprofilePic.collection('user_files');
+		gfsUserLegal = Grid(conn.db, mongoose.mongo);
+		gfsUserLegal.collection('user_legal');
 
 	  });
 	   const uploadUserLegal =  multer({storage : storageUserLegal})
@@ -78,12 +83,12 @@ module.exports = function (app) {
      @params:
      id : identifiant de l'utilisateur'
      */
-	 app.get('/profile/pic/:id', async (req, res) => {
-         try{
-		const idUser = +req.params.id;
-		const profileImage=await app.db.userFiles().find({idUser:idUser}).toArray();
-
-			gfsprofilePic.files.findOne({ filename: profileImage[0].file.filename }, (err, file) => {
+	 app.get('/profile/pic', async (req, res) => {
+         try{ 
+			const token = req.headers["authorization"].split(" ")[1];
+			const auth= await app.crm.auth(token);     
+			const idUser = +auth.id;
+			gfsprofilePic.files.findOne({ 'user.$id':idUser}  , (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
 					err: 'No file exists'
@@ -104,13 +109,12 @@ module.exports = function (app) {
 				  });
 				}
 			  });
+			 
             }catch (err) {
-                response.send(err);
+				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
             }
 
 	})
-
-
 
      /*
      @link : /profile/pic
@@ -118,17 +122,21 @@ module.exports = function (app) {
      @params:
      req.file : image files
      */
-    app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
+	 app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
 		try{
-			let pic = {};
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			pic.idUser = auth.id
-			pic.file = req.file;
-			await app.db.userFiles().insertOne(pic)
-			res.send('saved').status(200);
+			if(req.file){
+				gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
+					"$ref": "sn_user",
+					"$id": auth.id, 
+					"$db": "atayen"
+				 }} })
+				res.send('saved').status(200);
+			}
+			res.send('').status(200);
 		} catch (err) {
-			res.send(err);
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 
 		})
@@ -140,31 +148,40 @@ module.exports = function (app) {
      @Output:Object
      */
 	app.get('/profile/userLegal', async(req, res)=>{
-		const limit=parseInt(req.query.limit) || 50;
-		const page=parseInt(req.query.page) || 1
-		const token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode=auth.id;
-		const legal=await app.db.UserLegal().find({idNode:idNode}).toArray();
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const limit=parseInt(req.query.limit) || 50;
+			const page=parseInt(req.query.page) || 1
+			const idNode="0"+auth.id;
+			gfsUserLegal.files.find({idNode: idNode}).toArray(function (err, files) {
+				const startIndex=(page-1) * limit;
+				const endIndex=page * limit;
+				const userLegal = {}
+				if(endIndex < files.length){
+					userLegal.next ={
+						page:page+1,
+						limit:limit
+					}	
+				}			
+				if(startIndex > 0){
+					userLegal.previous ={
+					page:page-1,
+					limit:limit
+				}
+				}
+			userLegal.legal=files.slice(startIndex, endIndex)
 
-		const startIndex=(page-1) * limit;
-		const endIndex=page * limit;
+				res.send(userLegal);
 
-		const userLegal = {}
-		if(endIndex < legal.length){
-			userLegal.next ={
-				page:page+1,
-				limit:limit
-			}
+			})
+			
+			
+
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
-		if(startIndex > 0){
-			userLegal.previous ={
-			page:page-1,
-			limit:limit
-		}
-		}
-		userLegal.legal=legal.slice(startIndex, endIndex)
-		res.send(userLegal);
+		
 
 	})
 
@@ -175,72 +192,76 @@ module.exports = function (app) {
      @Output:Object
      */
 	  app.get('/notifications',async(req, res)=>{
-		const token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode=auth.id;
-		const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
-		const limit=parseInt(req.query.limit) || 50;
-		const page=parseInt(req.query.page) || 1;
-		const startIndex=(page-1) * limit;
-		const endIndex=page * limit;
-
-		const notifications = {}
-		if(endIndex < arrayNotifications.length){
-			notifications.next ={
-				page:page+1,
+		  try{
+			const token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const idNode=auth.id;
+			const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
+			const limit=parseInt(req.query.limit) || 50;
+			const page=parseInt(req.query.page) || 1;
+			const startIndex=(page-1) * limit;
+			const endIndex=page * limit;
+	
+			const notifications = {}
+			if(endIndex < arrayNotifications.length){
+				notifications.next ={
+					page:page+1,
+					limit:limit
+				}	
+			}			
+			if(startIndex > 0){
+				notifications.previous ={
+				page:page-1,
 				limit:limit
+				}
 			}
-		}
-		if(startIndex > 0){
-			notifications.previous ={
-			page:page-1,
-			limit:limit
-			}
-		}
-		const isSend= await app.db.notification().find({idNode:idNode,isSend:true}).toArray()
-		notifications.isSend=isSend.length;
-		notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
-		res.send(notifications);
-
+			const isSend= await app.db.notification().find({idNode:idNode,isSend:true}).toArray()
+			notifications.isSend=isSend.length;
+			notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
+			res.send(notifications);
+		  }catch (err){
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		  }
+		
+	
 	  })
 
 	/*
      @url : /userlegal
      @description: saving user legal files
      @params:
-     @Input type : type of proof id or domicile
+     @Input type : type of proof id or domicile req.body.type
      */
-	app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
-      try{
+	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
+		try{
 		  const date = new Date().toISOString();
-		let legal={};
-		let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		if(req.body.type == 'proofId'){
-          legal.type = "proofId";
+		  let token = req.headers["authorization"].split(" ")[1];
+		  const auth = await app.crm.auth(token);
+		  const idNode = "0" + auth.id;
+         if(req.body.type && req.body.file){
+            gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
+				"$ref": "sn_user",
+				"$id": auth.id, 
+				"$db": "atayen"
+			 }, validate : false, type : req.body.type} })
+			  let notification={
+				  idNode:idNode,
+				  type:"save_legal_file_event",
+				  status:"done",
+				  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+				  isSeen:false,
+				  attachedEls:{
+					  id:req.file.id
+				}
+			  }
+			  await	app.db.notification().insert(notification)
+			  res.end('legal processed').status(201);
+		 }
+		 res.end('No file found').status(201);
+		}catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
-        if(req.body.type == "proofDomicile"){legal.type = "proofDomicile";}
-		legal.idNode = auth.id;
-        legal.file = req.file;
-		legal.filename = req.file.originalname
-		legal.validate = false;
-		const userLegal = await app.db.UserLegal().insertOne(legal);
-		let notification={
-			idNode:auth.id,
-			type:"save_legal_file_event",
-			status:"done",
-			label:JSON.stringify([{'type':legal.type, 'date': date}]),
-			isSeen:false,
-			attachedEls:{
-				id:userLegal.insertedId
-		  }
-		}
-	  await	app.db.notification().insert(notification)
-		res.end('legal processed').status(201);
-	  }catch (err) {
-		  res.send(err);
-	  }
-	})
+	  })
     /*
      @Url : /SaTT/Support'
      @description: Send Email to SaTT customer service
@@ -261,7 +282,7 @@ module.exports = function (app) {
 	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
 		var data_={
 			SaTT:{
-				Url:'https://v2.satt.atayen.us/#/FAQ'
+				Url:config.walletUrl+'FAQ'
 			},
 			letter:{
 				from:name+" ("+email+")",
@@ -291,6 +312,33 @@ module.exports = function (app) {
 		response.send(JSON.stringify(err));
 	}
    })
+
+
+
+/*
+     @url : /profile/notification/issend/clicked
+     @description: notifications were seen
+     @params:
+     @Input headers : access token
+	 @Output : updated notification
+     */
+app.patch('/profile/notification/issend/clicked', async (req, res) =>{
+	try{
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const id = +auth.id 
+		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
+			elem.isSend = false;
+			app.db.notification().save(elem)
+		})
+		res.send('notificatons clicked').status(200);
+	}catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+   
+		
+
+})
 	return app;
 
 }
