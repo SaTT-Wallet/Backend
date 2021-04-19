@@ -12,6 +12,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const mongoURI = app.url;
+	const nodemailer = require("nodemailer");
 	
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
