@@ -225,8 +225,8 @@ module.exports = function (app) {
 			{
 				var prom = await ctr.methods.proms(idproms[j]).call();
 				prom.id = idproms[j];
-				if(prom.influencer.toLowerCase() == address.toLowerCase())
-					campaigns[i].proms.push(prom);
+			//	if(prom.influencer.toLowerCase() == owner.toLowerCase())
+				//	campaigns[i].proms.push(prom);
 			}
 
 			rescampaigns.push(campaigns[i]);
@@ -240,7 +240,7 @@ module.exports = function (app) {
 
       /*
      @Url :/campaigns/list/:token/addr:?page[number]'
-     @description: fetch drafts and created campaign 
+     @description: fetch drafts and created campaign
 	 @query: Page number
      @parameters :
      addr : wallet address of user
@@ -274,7 +274,7 @@ module.exports = function (app) {
 				{
 					continue;
 				}
-	
+
 				if(campaignsCrmbyId[campaigns[i].id])
 				{
 					campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
@@ -282,14 +282,14 @@ module.exports = function (app) {
 						campaigns[i].meta.token.name ="SATT";
 					}
 				}
-	
+
 				var result = await ctr.methods.campaigns(campaigns[i].id).call();
 				campaigns[i].funds =  result.funds;
 				campaigns[i].nbProms =  result.nbProms;
 				campaigns[i].nbValidProms =  result.nbValidProms;
 				campaigns[i].startDate = result.startDate;
 				campaigns[i].endDate = result.endDate;
-	
+
 				var ratios = await ctr.methods.getRatios(campaigns[i].id).call();
 				var types = ratios[0];
 				var likes = ratios[1];
@@ -301,7 +301,7 @@ module.exports = function (app) {
 					{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
 					{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 				campaigns[i].ratios = res;
-	
+
 				var idproms = await ctr.methods.getProms(campaigns[i].id).call();
 				campaigns[i].proms =[];
 				for (var j =0;j<idproms.length;j++)
@@ -311,7 +311,7 @@ module.exports = function (app) {
 					if(prom.influencer.toLowerCase() == owner.toLowerCase())
 						campaigns[i].proms.push(prom);
 				}
-				
+
 				rescampaigns.push(campaigns[i]);
 			}
 			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
@@ -324,7 +324,7 @@ module.exports = function (app) {
 
             let campaigns_=[...created_campaigns,...draft_campaigns]
 			response.end(JSON.stringify(campaigns_));
-			
+
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
