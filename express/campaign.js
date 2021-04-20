@@ -13,6 +13,9 @@ module.exports = function (app) {
 	const multer = require('multer');
 	const sharp = require('sharp')
 	const mongoURI = app.url;
+	const nodemailer = require("nodemailer");
+	
+	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -914,6 +917,7 @@ module.exports = function (app) {
      @Input idKit : id of the kid
 	 @Output delete message
      */
+
 	app.delete('/kit/:idKit', async (req, res) => {
 		try {
 			let token = req.headers["authorization"].split(" ")[1];
@@ -1047,6 +1051,7 @@ module.exports = function (app) {
 		}
 		
 	})
+
 	/*
      @link : /campaign/:id/update
      @description: modifier la campaign
@@ -1085,7 +1090,6 @@ module.exports = function (app) {
 			} catch (err) {
 			res.end(JSON.stringify(err));
 			}
-
 	});
 
 	/*
@@ -1160,7 +1164,7 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
 	})
-
+	
 	/*
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
      @description: get accepted proms by owner
@@ -1225,5 +1229,4 @@ module.exports = function (app) {
 	}
 	})
 	return app;
-
 }
