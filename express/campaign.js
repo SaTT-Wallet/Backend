@@ -12,8 +12,8 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const sharp = require('sharp')
-	const mongoURI = "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm
-
+	const mongoURI = "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm;
+	
 	const nodemailer = require("nodemailer");
 	
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
@@ -58,12 +58,7 @@ module.exports = function (app) {
 	  });
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
-	  const uploadImage = multer({ storage : storageImage, fileFilter: function (req, file, cb) {
-		if (file.mimetype !== 'image/png' || file.mimetype !== '/image.jpg' || file.mimetype !== '/image.jpeg') {
-		  return cb(null, false, new Error('No Match!'));
-		}
-		cb(null, true);
-	  }}).single('file');
+	  const uploadImage = multer({ storage : storageImage}).single('file');
 	  const upload = multer({ storage });
 
 

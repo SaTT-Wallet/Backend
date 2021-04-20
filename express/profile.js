@@ -10,7 +10,7 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
 	const mongoURI = "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm;
-
+	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
