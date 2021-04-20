@@ -12,7 +12,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const sharp = require('sharp')
-	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
+	const mongoURI = "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm
 
 	const nodemailer = require("nodemailer");
 	
