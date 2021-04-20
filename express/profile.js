@@ -6,12 +6,11 @@ module.exports = function (app) {
 	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
-	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
 	const mongoURI = app.url;
-	
+
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -127,12 +126,16 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			if(req.file){
+				if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
 				gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
 					"$id": auth.id, 
 					"$db": "atayen"
 				 }} })
 				res.send('saved').status(200);
+				} else{
+					res.status(401).send('Only images allowed');
+				}
 			}
 			res.send('').status(200);
 		} catch (err) {
@@ -195,7 +198,7 @@ module.exports = function (app) {
 		  try{
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			const idNode=auth.id;
+			const idNode= "0" + auth.id;
 			const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1;
@@ -326,7 +329,7 @@ app.patch('/profile/notification/issend/clicked', async (req, res) =>{
 	try{
 		let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);
-		const id = +auth.id 
+		const id = "0" + auth.id 
 		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
 			elem.isSend = false;
 			app.db.notification().save(elem)
