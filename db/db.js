@@ -70,10 +70,6 @@ module.exports = async function (app) {
 		app.db.campaign_link = function () {
             return db.db(app.config.mongoBaseCrm).collection("campaign_link");
         };
-		app.db.campaignCover = function () {
-            return db.db(app.config.mongoBaseCrm).collection("campaign_cover");
-        };
-
 		app.db.user = function () {
             return db2.db(app.config.mongoBaseCrm).collection("sn_user");
         };		
