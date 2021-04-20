@@ -12,7 +12,8 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const sharp = require('sharp')
-	const mongoURI = app.url;
+	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
+
 	const nodemailer = require("nodemailer");
 	
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
@@ -57,8 +58,13 @@ module.exports = function (app) {
 	  });
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
-	  const uploadImage = multer({ storage : storageImage}).single('file');
-	  const upload = multer({ storage});
+	  const uploadImage = multer({ storage : storageImage, fileFilter: function (req, file, cb) {
+		if (file.mimetype !== 'image/png' || file.mimetype !== '/image.jpg' || file.mimetype !== '/image.jpeg') {
+		  return cb(null, false, new Error('No Match!'));
+		}
+		cb(null, true);
+	  }}).single('file');
+	  const upload = multer({ storage });
 
 
     app.set("view engine", "ejs");
@@ -77,7 +83,6 @@ module.exports = function (app) {
 		gfsKit = Grid(conn.db, mongoose.mongo);
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
-
 	  });
 
 	app.post('/campaign/create', async function(req, response) {

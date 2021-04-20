@@ -9,7 +9,7 @@ module.exports = function (app) {
 	const multer = require('multer');
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
-	const mongoURI = app.url;
+	const mongoURI = "mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase;
 	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
