@@ -250,13 +250,12 @@ module.exports = function (app) {
 
 	app.get('/campaigns/list/:token/:addr', async function(req, response) {
 		try{
-			var pageNumber=req.query.page.number
 			var owner = req.params.addr;
 			var access_token=req.params.token
 			var campaigns = [];
 			var rescampaigns = [];
-			let end=(pageNumber*9)
-			let start=end-9
+			const limit=parseInt(req.query.limit) || 10;
+			const page=parseInt(req.query.page) || 1
 
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 			var campaignsCrm = [];
@@ -315,15 +314,31 @@ module.exports = function (app) {
 				rescampaigns.push(campaigns[i]);
 			}
 			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	        let created_campaigns=(rescampaigns.concat(campaignscentral)).slice(start,end)
+	        let created_campaigns=rescampaigns.concat(campaignscentral)
 			let auth = await app.crm.auth(access_token);
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
-			}).slice(start,end)
+			})
 
             let campaigns_=[...created_campaigns,...draft_campaigns]
-			response.end(JSON.stringify(campaigns_));
+			const startIndex=(page-1) * limit;
+			const endIndex=page * limit;
+			const listPagination = {}
+			if(endIndex < campaigns_.length){
+				listPagination.next ={
+					page:page+1,
+					limit:limit
+				}	
+			}			
+			if(startIndex > 0){
+				listPagination.previous ={
+				page:page-1,
+				limit:limit
+			}
+			}
+			listPagination.campaign=campaigns_.slice(startIndex, endIndex)
+			response.end(JSON.stringify(listPagination));
 
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
