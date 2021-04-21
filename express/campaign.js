@@ -11,13 +11,16 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-	const mongoURI = app.url;
+	const sharp = require('sharp')
+	const mongoURI = "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm;
+	
 	const nodemailer = require("nodemailer");
 	
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true,useUnifiedTopology: true },
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -38,6 +41,7 @@ module.exports = function (app) {
 
 	  const storageImage = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -54,10 +58,10 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	   const uploadImage = multer({ storage : storageImage });
-	   const upload = multer({ storage });
-
-	
+	  // here I used multer to upload files
+      // you can add your validation here, such as file size, file extension and etc.
+	  const uploadImage = multer({ storage : storageImage}).single('file');
+	  const upload = multer({ storage });
 
 
     app.set("view engine", "ejs");
@@ -76,7 +80,6 @@ module.exports = function (app) {
 		gfsKit = Grid(conn.db, mongoose.mongo);
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
-
 	  });
 
 	app.post('/campaign/create', async function(req, response) {
@@ -981,7 +984,7 @@ module.exports = function (app) {
 			 }, link : link })
 			 res.send('Kit uploaded').status(200);
 		}
-		res.send('')	
+		res.send('No matching data').status(401);	
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1127,8 +1130,9 @@ module.exports = function (app) {
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-				
-					} 
+					} else{
+						res.send('image not found')
+					}
 				  });
 		
 		}catch (err) {
@@ -1142,20 +1146,24 @@ module.exports = function (app) {
      @params:
      @Input idCampaign : campaign id
      */
-	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
+	app.post('/campaign/:idCampaign/cover',uploadImage, async(req, res)=>{
 		try{
 			const idCampaign = req.params.idCampaign;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-				gfs.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+              if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
+				  gfs.files.updateMany({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json("Cover added");
+			res.json("Cover added").status(200);
+			  } else{
+				  res.status(401).send('Only images allowed');
+			  }		
 			}
-			res.send('')
+			res.send('No matching file found').status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	

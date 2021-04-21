@@ -91,7 +91,7 @@ module.exports = function (app) {
 		if(campaignsCrm.length)
 			result.meta = campaignsCrm[0];
 
-		if(result.meta.token.name == "SATTBEP20") {
+		if(result.meta && result.meta.token.name == "SATTBEP20") {
 			result.meta.token.name ="SATT";
 		}
 
@@ -225,8 +225,8 @@ module.exports = function (app) {
 			{
 				var prom = await ctr.methods.proms(idproms[j]).call();
 				prom.id = idproms[j];
-				if(prom.influencer.toLowerCase() == address.toLowerCase())
-					campaigns[i].proms.push(prom);
+			//	if(prom.influencer.toLowerCase() == owner.toLowerCase())
+				//	campaigns[i].proms.push(prom);
 			}
 
 			rescampaigns.push(campaigns[i]);
@@ -240,10 +240,8 @@ module.exports = function (app) {
 
       /*
      @Url :/campaigns/list/:token/addr:?page[number]'
-     @description: fetch drafts and created campaign 
-	 @query: 
-	 Page number
-	 
+     @description: fetch drafts and created campaign
+	 @query: Page number
      @parameters :
      addr : wallet address of user
      token : access token
@@ -252,13 +250,12 @@ module.exports = function (app) {
 
 	app.get('/campaigns/list/:token/:addr', async function(req, response) {
 		try{
-			var pageNumber=req.query.page.number
 			var owner = req.params.addr;
 			var access_token=req.params.token
 			var campaigns = [];
 			var rescampaigns = [];
-			let end=(pageNumber*9)
-			let start=end-9
+			const limit=parseInt(req.query.limit) || 10;
+			const page=parseInt(req.query.page) || 1
 
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 			var campaignsCrm = [];
@@ -276,7 +273,7 @@ module.exports = function (app) {
 				{
 					continue;
 				}
-	
+
 				if(campaignsCrmbyId[campaigns[i].id])
 				{
 					campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
@@ -284,14 +281,14 @@ module.exports = function (app) {
 						campaigns[i].meta.token.name ="SATT";
 					}
 				}
-	
+
 				var result = await ctr.methods.campaigns(campaigns[i].id).call();
 				campaigns[i].funds =  result.funds;
 				campaigns[i].nbProms =  result.nbProms;
 				campaigns[i].nbValidProms =  result.nbValidProms;
 				campaigns[i].startDate = result.startDate;
 				campaigns[i].endDate = result.endDate;
-	
+
 				var ratios = await ctr.methods.getRatios(campaigns[i].id).call();
 				var types = ratios[0];
 				var likes = ratios[1];
@@ -303,7 +300,7 @@ module.exports = function (app) {
 					{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
 					{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 				campaigns[i].ratios = res;
-	
+
 				var idproms = await ctr.methods.getProms(campaigns[i].id).call();
 				campaigns[i].proms =[];
 				for (var j =0;j<idproms.length;j++)
@@ -313,24 +310,123 @@ module.exports = function (app) {
 					if(prom.influencer.toLowerCase() == owner.toLowerCase())
 						campaigns[i].proms.push(prom);
 				}
-				
+
 				rescampaigns.push(campaigns[i]);
 			}
 			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	        let created_campaigns=(rescampaigns.concat(campaignscentral)).slice(start,end)
+	        let created_campaigns=rescampaigns.concat(campaignscentral)
 			let auth = await app.crm.auth(access_token);
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
-			}).slice(start,end)
+			})
 
             let campaigns_=[...created_campaigns,...draft_campaigns]
-			response.end(JSON.stringify(campaigns_));
-			
+			const startIndex=(page-1) * limit;
+			const endIndex=page * limit;
+			const listPagination = {}
+			if(endIndex < campaigns_.length){
+				listPagination.next ={
+					page:page+1,
+					limit:limit
+				}
+			}
+			if(startIndex > 0){
+				listPagination.previous ={
+				page:page-1,
+				limit:limit
+			}
+			}
+			listPagination.campaign=campaigns_.slice(startIndex, endIndex)
+			response.end(JSON.stringify(listPagination));
+
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
+
+	app.get('/campaigns/list/:addr', async function(req, response) {
+		try{
+			let token = req.headers["authorization"].split(" ")[1];
+            await app.crm.auth(token);
+			var owner = req.params.addr;
+			var access_token= token
+			var campaigns = [];
+			var rescampaigns = [];
+
+			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
+			var campaignsCrm = [];
+			var campaignsCrmbyId = [];
+			campaignsCrm = await app.db.campaignCrm().find().toArray();
+			for (var i = 0;i<campaignsCrm.length;i++)
+			{
+				if(campaignsCrm[i].hash)
+					campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
+			}
+			for (var i = 0;i<campaigns.length;i++)
+			{
+				var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
+				if(!ctr.methods)
+				{
+					continue;
+				}
+
+				if(campaignsCrmbyId[campaigns[i].id])
+				{
+					campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
+					if(campaigns[i].meta.token.name == "SATTBEP20") {
+						campaigns[i].meta.token.name ="SATT";
+					}
+				}
+
+				var result = await ctr.methods.campaigns(campaigns[i].id).call();
+				campaigns[i].funds =  result.funds;
+				campaigns[i].nbProms =  result.nbProms;
+				campaigns[i].nbValidProms =  result.nbValidProms;
+				campaigns[i].startDate = result.startDate;
+				campaigns[i].endDate = result.endDate;
+
+				var ratios = await ctr.methods.getRatios(campaigns[i].id).call();
+				var types = ratios[0];
+				var likes = ratios[1];
+				var shares = ratios[2];
+				var views = ratios[3];
+				var res = [
+					{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},
+					{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},
+					{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
+					{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
+				campaigns[i].ratios = res;
+
+				var idproms = await ctr.methods.getProms(campaigns[i].id).call();
+				campaigns[i].proms =[];
+				for (var j =0;j<idproms.length;j++)
+				{
+					var prom = await ctr.methods.proms(idproms[j]).call();
+					prom.id = idproms[j];
+					if(prom.influencer.toLowerCase() == owner.toLowerCase())
+						campaigns[i].proms.push(prom);
+				}
+
+				rescampaigns.push(campaigns[i]);
+			}
+			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
+	        let created_campaigns=rescampaigns.concat(campaignscentral)
+			let auth = await app.crm.auth(access_token);
+			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
+            draft_campaigns=draft_campaigns.map((c)=>{
+				return {...c,stat:'draft'}
+			})
+
+            let campaigns_=[...created_campaigns,...draft_campaigns]
+			response.end(JSON.stringify(campaigns_));
+
+		}catch(err){
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	})
+
 
 
 
