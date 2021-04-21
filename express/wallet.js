@@ -975,7 +975,8 @@ app.get('/v2/sum', async function(req, response) {
 		console.log(err.message?err.message:err.error);
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
-})*/
+})
+*/
 
 
  app.get('/v2/transaction_history/:address', async function(req, response) {
