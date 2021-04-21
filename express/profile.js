@@ -93,7 +93,7 @@ module.exports = function (app) {
 					err: 'No file exists'
 				  });
 				}
-				if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+				else {
 				  res.writeHead(200, {
 										'Content-Type': 'image/png',
 										'Content-Length': file.length,
@@ -101,12 +101,7 @@ module.exports = function (app) {
 									});
 				  const readstream = gfsprofilePic.createReadStream(file.filename);
 				  readstream.pipe(res);
-
-				} else {
-				  res.status(404).json({
-					err: 'Not an image'
-				  });
-				}
+				} 
 			  });
 			 
             }catch (err) {
@@ -126,18 +121,15 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			if(req.file){
-				if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
 				gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
 					"$id": auth.id, 
 					"$db": "atayen"
 				 }} })
+				 
 				res.send('saved').status(200);
-				} else{
-					res.status(401).send('Only images allowed');
-				}
-			}
-			res.send('').status(200);
+				} 
+			res.send('Only images allowed').status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
@@ -241,7 +233,7 @@ module.exports = function (app) {
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const idNode = "0" + auth.id;
-         if(req.body.type && req.body.file){
+         if(req.body.type && req.file){
             gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
 				"$id": auth.id, 

@@ -1120,7 +1120,7 @@ module.exports = function (app) {
 			
 						fs.createReadStream(imagePath).pipe(res);
 					}
-					else if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+					else {
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
 											'Content-Length': file.length,
@@ -1128,8 +1128,6 @@ module.exports = function (app) {
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-					} else{
-						res.send('image not found')
 					}
 				  });
 		
