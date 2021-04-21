@@ -13,6 +13,7 @@ module.exports = function (app) {
 	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -37,6 +38,7 @@ module.exports = function (app) {
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
