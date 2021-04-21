@@ -91,7 +91,7 @@ module.exports = function (app) {
 		if(campaignsCrm.length)
 			result.meta = campaignsCrm[0];
 
-		if(result.meta.token.name == "SATTBEP20") {
+		if(result.meta && result.meta.token.name == "SATTBEP20") {
 			result.meta.token.name ="SATT";
 		}
 
@@ -329,8 +329,8 @@ module.exports = function (app) {
 				listPagination.next ={
 					page:page+1,
 					limit:limit
-				}	
-			}			
+				}
+			}
 			if(startIndex > 0){
 				listPagination.previous ={
 				page:page-1,
