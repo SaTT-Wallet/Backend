@@ -1052,45 +1052,6 @@ module.exports = function (app) {
 		
 	})
 
-	/*
-     @link : /campaign/:id/update
-     @description: modifier la campaign
-     @params:
-     id : identifiant de la campaign
-	 body: {campaign}
-	 {headers}
-	 @Output success message
-     */
-	app.put('/campaign/:id/update', async (req, res) => {
-		
-		
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			auth=await app.crm.auth(token);
-			const campaign = req.body;
-			const id=req.params.id;
-			await app.db.campaignCrm().updateOne({_id:ObjectId(id)},
-			{$set: {
-			_id:ObjectId(id),
-			idNode:auth.id,
-			title:campaign.title,
-			tags:campaign.tags,
-			resume:campaign.resume,
-		    description:campaign.description,
-			status:campaign.status,
-			countries:campaign.countries,
-			token:campaign.token,
-			shortLink:campaign.shortLink,
-			cost:campaign.cost,
-			cost_usd:campaign.cost_usd,
-			ratios:campaign.ratios,
-			time:campaign.time
-				}});		
-			res.end("updated succeed").status(200);
-			} catch (err) {
-			res.end(JSON.stringify(err));
-			}
-	});
 
 	/*
      @link : /campaign/:idCampaign/cover
@@ -1228,5 +1189,29 @@ module.exports = function (app) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}
 	})
+
+
+		/*
+     @link : /campaign/:id/update
+     @description: modifier la campaign
+     @params:
+     id : identifiant de la campaign
+	 body: {campaign}
+	 {headers}
+	 @Output success message
+     */
+   app.patch('/campaign/:idCampaign/update', async (req, res) => {
+	try {
+		let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
+		 let campaign = req.body;
+	await app.db.campaign().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
+	res.send("updated fields").status(201);
+} catch (err) {
+	console.error(err)
+	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+}
+   })
+
 	return app;
 }
