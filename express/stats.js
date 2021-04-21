@@ -346,6 +346,7 @@ module.exports = function (app) {
 	})
 
 
+	
 	app.get('/campaigns/list/:addr', async function(req, response) {
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
