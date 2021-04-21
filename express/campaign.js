@@ -1128,7 +1128,9 @@ module.exports = function (app) {
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-					} 
+					} else{
+						res.send('image not found')
+					}
 				  });
 		
 		}catch (err) {
