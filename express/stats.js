@@ -241,7 +241,9 @@ module.exports = function (app) {
       /*
      @Url :/campaigns/list/:token/addr:?page[number]'
      @description: fetch drafts and created campaign 
-	 @query: Page number
+	 @query: 
+	 Page number
+	 
      @parameters :
      addr : wallet address of user
      token : access token
