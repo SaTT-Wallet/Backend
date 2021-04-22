@@ -165,10 +165,11 @@ module.exports = function (app) {
 		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		rescampaigns = rescampaigns.concat(campaignscentral);
+
 		let Ended_c=0
 		let Pending_c=0
 
-		var unowned = rescampaigns.filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
+		var unowned = [...rescampaigns].filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
         
 		for(var c=0;c<unowned.length;c++){
 
@@ -184,7 +185,7 @@ module.exports = function (app) {
 				Ended_c++
 			  }
 		}
-        console.log(Pending_c,Ended_c)
+		
 		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
 	})
 
