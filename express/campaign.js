@@ -1236,8 +1236,8 @@ module.exports = function (app) {
 			let address=req.params.addess
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
-		    app.db.apply().find({'influencer':address}, function(err, LinksCollection){
-
+		  await  app.db.apply().find({'influencer':address}, function(err, LinksCollection){
+             console.log(LinksCollection)
 			 if(err) res.end(JSON.stringify(err))
 
             for(var i=0;i<LinksCollection.length;i++){
@@ -1246,16 +1246,16 @@ module.exports = function (app) {
 
 				switch (URl['typeSN']) {
 					case 1:
-						HandelUrl("https://www.facebook.com/" + URl.idUser + "/posts/" + URl.idPost)
+						HandelUrl("https://www.facebook.com/" + URl.idUser + "/posts/" + URl.idPost,URl.isAccepted)
 					  break;
 					case 2:
-					    HandelUrl("https://www.youtube.com/watch?v=" + URl.idPost)
+					    HandelUrl("https://www.youtube.com/watch?v=" + URl.idPost,URl.isAccepted)
 					  break;
 					case 3:
-					    HandelUrl("https://www.instagram.com/p/" + URl.idPost + "/")
+					    HandelUrl("https://www.instagram.com/p/" + URl.idPost + "/",URl.isAccepted)
 					  break;
 					case 4:
-						HandelUrl("https://twitter.com/" + URl.idUser + "/status/" + URl.idPost)
+						HandelUrl("https://twitter.com/" + URl.idUser + "/status/" + URl.idPost,URl.isAccepted)
 					  break;
 					default:
 				  }
@@ -1264,7 +1264,9 @@ module.exports = function (app) {
 		  function HandelUrl (url,IsAccepted)
 			{
 				if(!IsAccepted){
+
 				  Links.rejected.push(url)
+
 				}else{
 				  Links.accepted.push(url)
 				}
