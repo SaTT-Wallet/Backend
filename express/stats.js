@@ -165,7 +165,22 @@ module.exports = function (app) {
 		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		rescampaigns = rescampaigns.concat(campaignscentral);
+		
+		rescampaigns['active']=0
+		rescampaigns['finished']=0
 
+          for(var c=0;c<rescampaigns.length;c++){
+
+              if(rescampaigns[c].stat=="active"){
+
+				rescampaigns['active']=rescampaigns['active']+1
+
+			  }else if(rescampaigns[c].stat=="finished"){
+
+				rescampaigns['finished']=rescampaigns['finished']+1
+			  }
+			}
+			 
 		response.end(JSON.stringify(rescampaigns));
 	});
 
