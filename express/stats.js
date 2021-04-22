@@ -165,8 +165,8 @@ module.exports = function (app) {
 		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		rescampaigns = rescampaigns.concat(campaignscentral);
-		rescampaigns['actif']=0
-		rescampaigns['ended']=0
+		let Ended_c=0
+		let Pending_c=0
 
 		var unowned = rescampaigns.filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
         
@@ -179,14 +179,13 @@ module.exports = function (app) {
 				Date.now() >= unowned[c].startDate.getTime() &&
 				Date.now() <= unowned[c].endDate.getTime()
 			  ) {
-				rescampaigns['actif']++
+				Pending_c++
 			  } else if (Date.now() > unowned[c].endDate.getTime()) {
-				rescampaigns['ended']++
+				Ended_c++
 			  }
-
 		}
-
-		response.end(JSON.stringify(rescampaigns));
+        console.log(pending,Ended_c)
+		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
 	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
