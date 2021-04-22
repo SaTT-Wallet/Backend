@@ -11,8 +11,10 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
+
 	const sharp = require('sharp')
 	const mongoURI = app.config.mongoURI;
+
 	
 	const nodemailer = require("nodemailer");
 	
