@@ -12,7 +12,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
 	const sharp = require('sharp')
-	const mongoURI = "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm;
+	const mongoURI = app.config.mongoURI;
 	
 	const nodemailer = require("nodemailer");
 	
@@ -1202,12 +1202,12 @@ module.exports = function (app) {
 	 {headers}
 	 @Output success message
      */
-   app.patch('/campaign/:idCampaign/update', async (req, res) => {
+   app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
 		let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
 		 let campaign = req.body;
-	await app.db.campaign().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
+	await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
 	res.send("updated fields").status(201);
 } catch (err) {
 	console.error(err)
