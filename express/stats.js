@@ -165,24 +165,31 @@ module.exports = function (app) {
 		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		rescampaigns = rescampaigns.concat(campaignscentral);
-		
-		rescampaigns['active']=0
-		rescampaigns['finished']=0
+		rescampaigns['actif']=0
+		rescampaigns['ended']=0
+		var unowned = rescampaigns.filter((campaign) => idWallet?.toLowerCase() !== campaign.owner.toLowerCase())
+        
+		for(var c=0;i<unowned.length;c++){
 
-          for(var c=0;c<rescampaigns.length;c++){
-
-              if(rescampaigns[c].stat=="active"){
-
-				rescampaigns['active']=rescampaigns['active']+1
-
-			  }else if(rescampaigns[c].stat=="finished"){
-
-				rescampaigns['finished']=rescampaigns['finished']+1
+			unowned[c].endDate = this.createDateFromUnixTimestamp(
+				+unowned[c].endDate
+			  );
+			  unowned[c].startDate = this.createDateFromUnixTimestamp(
+				+unowned[c].startDate
+			  );
+			  if (
+				Date.now() >= unowned[c].startDate.getTime() &&
+				Date.now() <= unowned[c].endDate.getTime()
+			  ) {
+				rescampaigns['actif']++
+			  } else if (Date.now() > unowned[c].endDate.getTime()) {
+				rescampaigns['ended']++
 			  }
-			}
-			 
+
+		}
+
 		response.end(JSON.stringify(rescampaigns));
-	});
+	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
 		var owner = req.params.owner;
