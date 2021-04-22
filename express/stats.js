@@ -167,16 +167,14 @@ module.exports = function (app) {
 		rescampaigns = rescampaigns.concat(campaignscentral);
 		rescampaigns['actif']=0
 		rescampaigns['ended']=0
+
 		var unowned = rescampaigns.filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
         
 		for(var c=0;c<unowned.length;c++){
 
-			unowned[c].endDate = this.createDateFromUnixTimestamp(
-				+unowned[c].endDate
-			  );
-			  unowned[c].startDate = this.createDateFromUnixTimestamp(
-				+unowned[c].startDate
-			  );
+			unowned[c].endDate = new Date(+unowned[c].endDate * 1000);
+		    unowned[c].startDate = new Date(+unowned[c].startDate * 1000)
+
 			  if (
 				Date.now() >= unowned[c].startDate.getTime() &&
 				Date.now() <= unowned[c].endDate.getTime()
