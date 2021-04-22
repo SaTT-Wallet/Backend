@@ -165,7 +165,6 @@ module.exports = function (app) {
 		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		rescampaigns = rescampaigns.concat(campaignscentral);
-
 		let Ended_c=0
 		let Pending_c=0
 
@@ -185,7 +184,6 @@ module.exports = function (app) {
 				Ended_c++
 			  }
 		}
-		
 		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
 	})
 
@@ -193,7 +191,7 @@ module.exports = function (app) {
 		var owner = req.params.owner;
 		var campaigns = [];
 		var rescampaigns = [];
-		campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
+		campaigns = await app.db.campaign().find({controptionact:{$ne : "central"},owner:owner}).toArray();
 
 		var campaignsCrm = [];
 		var campaignsCrmbyId = [];
@@ -638,7 +636,10 @@ module.exports = function (app) {
 		});
 
 	})
+   
+
 
 	return app;
 
 }
+
