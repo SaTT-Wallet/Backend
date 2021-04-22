@@ -1237,7 +1237,7 @@ module.exports = function (app) {
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
 		  await  app.db.apply().find({'influencer':address}, function(err, LinksCollection){
-             console.log(LinksCollection)
+               LinksCollection=LinksCollection.toArray()
 			 if(err) res.end(JSON.stringify(err))
 
             for(var i=0;i<LinksCollection.length;i++){
