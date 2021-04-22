@@ -184,7 +184,7 @@ module.exports = function (app) {
 				Ended_c++
 			  }
 		}
-        console.log(pending,Ended_c)
+        console.log(Pending_c,Ended_c)
 		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
 	})
 
