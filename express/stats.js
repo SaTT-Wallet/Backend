@@ -167,7 +167,7 @@ module.exports = function (app) {
 		rescampaigns = rescampaigns.concat(campaignscentral);
 		rescampaigns['actif']=0
 		rescampaigns['ended']=0
-		var unowned = rescampaigns.filter((campaign) => idWallet?.toLowerCase() !== campaign.owner.toLowerCase())
+		var unowned = rescampaigns.filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
         
 		for(var c=0;c<unowned.length;c++){
 
