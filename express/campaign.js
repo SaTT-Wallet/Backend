@@ -1215,5 +1215,74 @@ module.exports = function (app) {
 }
    })
 
+
+        /*
+     @Url :API (link) /campaign/link/list?[option]'
+     @description: fetch drafts and created campaign
+	 @parameters : ID wallet 
+	 @option: 
+	 *Empty option Return Rejected and Accepted links 
+	 *Can be accepted OR REjected (rejected = true || accepted = true)
+     addr : wallet address of user
+     token : access token
+     @response : object of arrays => draft and created campaigns
+     */
+
+	app.get('/campaign/link/list/:addess', async function(req, res) {
+
+		try{
+			let address=req.params.addess
+			let Options =req.query
+            var Links ={rejected:[],accepted:[]}
+		    app.db.apply().find({'influencer':address}, function(err, LinksCollection){
+
+			 if(err) res.end(JSON.stringify(err))
+
+            for(var i=0;i<LinksCollection.length;i++){
+
+              let URl=LinksCollection[i]
+
+				switch (URl['typeSN']) {
+					case 1:
+						HandelUrl("https://www.facebook.com/" + URl.idUser + "/posts/" + URl.idPost)
+					  break;
+					case 2:
+					    HandelUrl("https://www.youtube.com/watch?v=" + URl.idPost)
+					  break;
+					case 3:
+					    HandelUrl("https://www.instagram.com/p/" + URl.idPost + "/")
+					  break;
+					case 4:
+						HandelUrl("https://twitter.com/" + URl.idUser + "/status/" + URl.idPost)
+					  break;
+					default:
+				  }
+			}
+
+		  function HandelUrl (url,IsAccepted)
+			{
+				if(!IsAccepted){
+				  Links.rejected.push(url)
+				}else{
+				  Links.accepted.push(url)
+				}
+			}
+	
+        if(Options.rejected){
+			res.end(JSON.stringify(Links.rejected))
+
+		}else if(Options.accepted){
+			res.end(JSON.stringify(Links.accepted))
+
+		}else{
+			res.end(JSON.stringify(Links))
+		}
+	})
+
+		}catch(err){
+			res.end(JSON.stringify(err))
+		}
+	})
+
 	return app;
 }
