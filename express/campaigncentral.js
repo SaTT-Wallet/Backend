@@ -111,7 +111,6 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaignCentral.validateProm(idApply,cred)
 			response.end(JSON.stringify(ret));
-
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
@@ -267,8 +266,6 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
-
-
 
 	return app;
 
