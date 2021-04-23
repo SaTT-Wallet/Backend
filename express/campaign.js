@@ -13,8 +13,6 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
-	const sharp = require('sharp')
-	const request = require('request')
 	const mongoURI = app.config.mongoURI;
    
 	
@@ -89,6 +87,7 @@ module.exports = function (app) {
 		updateStat();
 		 })
 	 async function updateStat(){
+		 console.log('update')
 		 		campaigns=[];
 				//get all campaign
 				const allCampaign = () => {
