@@ -37,7 +37,7 @@ module.exports = function (app) {
 
 	app.post("/SaTT/bridge", async function (req, res) {
 		let access_T = req.body.token;
-		let Direction = req.body.token;
+		let Direction = req.body.direction;
 		let pass = req.body.password;
 		let amount = req.body.amount;
 
