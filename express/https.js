@@ -26,7 +26,7 @@ module.exports = async function (app) {
 	ioManager.confirm = function(hash,numConfirm) {
 		io.to(hash).emit('confirmation',{num :numConfirm,hash:hash });
 	}
-	
+
 	ioManager.SocketIo=io
 	app.io = ioManager;
 	
