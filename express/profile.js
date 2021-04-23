@@ -129,9 +129,9 @@ module.exports = function (app) {
 					"$db": "atayen"
 				 }} })
 				 
-				res.send('saved').status(200);
+				res.send(JSON.stringify('saved')).status(200);
 				} 
-			res.send('Only images allowed').status(200);
+			res.send(JSON.stringify('Only images allowed')).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
@@ -252,7 +252,7 @@ module.exports = function (app) {
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end('legal processed').status(201);
+			  res.end(JSON.stringify('legal processed')).status(201);
 		 }
 		 res.end('No file found').status(201);
 		}catch (err) {
@@ -328,7 +328,7 @@ app.patch('/profile/notification/issend/clicked', async (req, res) =>{
 			elem.isSend = false;
 			app.db.notification().save(elem)
 		})
-		res.send('notificatons clicked').status(200);
+		res.send(JSON.stringify('notificatons clicked')).status(200);
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}
