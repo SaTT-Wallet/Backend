@@ -2,7 +2,7 @@ const { async } = require('hasha');
 var Big = require('big.js');
 
 module.exports = function (app) {
-	
+
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
@@ -10,7 +10,7 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) { 
+	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
 			var addr = req.params.addr;
@@ -75,7 +75,7 @@ module.exports = function (app) {
      @description: calculate Total balance of a user
      @parameters :
      addr : wallet address of user
-     token : access token 
+     token : access token
      @response : Total Balance
      */
 
@@ -96,7 +96,7 @@ module.exports = function (app) {
 			var count = await app.account.hasAccount(res.id);
 
 			var addr = req.params.addr;
-			var ret = {err:"no_account"}; 
+			var ret = {err:"no_account"};
 			var Total_balance=0
 
 			if(count)
@@ -126,7 +126,7 @@ module.exports = function (app) {
 				}
 			  }
 			 }
-                                       
+
 			 for(const Amount in ret){
 				if(Amount=="ether_balance"){
 					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
@@ -140,7 +140,7 @@ module.exports = function (app) {
 			  }
 			  Total_balance=Total_balance.toFixed(2)
 
-          response.end(JSON.stringify({Total_balance})); 
+          response.end(JSON.stringify({Total_balance}));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -863,12 +863,21 @@ module.exports = function (app) {
 		}
 	})
 
+	/*
+     @url : /prices
+     @description: fetch crypto prices
+     @params:
+     @Input idKit : id of the kid
+	 @Output delete message
+     */
+
 
 	app.get("/prices", async (req, res) => {
 
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
 					}
+
 					else {
 
 						const requestOptions = {
@@ -885,15 +894,13 @@ module.exports = function (app) {
 						  json: true,
 						  gzip: true
 						};
-
 						var p = await rp(requestOptions);
-
 						app.prices = p;
-
 				}
 
 				var response = app.prices.data;
-	      var bwSatt = await rp({uri:req.app.config.bwPrice,json: true});
+				// console.log(req.app.config.bwPrice)
+	    //   var bwSatt = await rp({uri:req.app.config.bwPrice,json: true});
         var prices = [];
         var str = "{";
         for(var i = 0;i<response.length;i++)
@@ -910,16 +917,14 @@ module.exports = function (app) {
                 prices[""+response[i].symbol] = price;
                 str += '"'+response[i].symbol+'":'+JSON.stringify(price)+",";
         }
-				str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
-				str+='"JET":{"price":0.002134,"percent_change_24h":0}';
-        prices["SATT"] = {price:bwSatt.datas[1]};
-				str+="}"
-
-                res.end(str);
+		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
+		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
+        // prices["SATT"] = {price:bwSatt.datas[1]};
+		// 		str+="}"
+				res.end(str)
 })
 
 app.get('/v2/feebtc', async function(req, response) {
-
 
 	try {
 
@@ -970,11 +975,13 @@ app.get('/v2/sum', async function(req, response) {
 		console.log(err.message?err.message:err.error);
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
-})*/
+})
+*/
 
 
  app.get('/v2/transaction_history/:address', async function(req, response) {
 	var address = req.params.address;
+	var btcAddress=req.params.addressBTC
 	try {
 		//ETH Network
 		const requestOptions_ETH_transactions = {
@@ -991,6 +998,15 @@ app.get('/v2/sum', async function(req, response) {
 			gzip: true
 		  };
 
+		 /* const requestOptions_BTC_transactions = {
+			method: 'GET',
+			uri: 'https://blockchain.info/rawaddr/'+ btcAddress ,
+			json: true,
+			gzip: true
+		};*/
+
+		  //var BTC_transactions =  await rp(requestOptions_BTC_transactions);
+		  //console.log(BTC_transactions)
 		  var Eth_transactions =  await rp(requestOptions_ETH_transactions);
 		  var ERC20_transactions= await rp(requestOptions_ERC20_transactions);
 		  var all_Eth_transactions=app.cryptoManager.FilterTransactionsByHash(Eth_transactions,ERC20_transactions,'ERC20')
@@ -1018,6 +1034,7 @@ app.get('/v2/sum', async function(req, response) {
 
 		  response.end(JSON.stringify(All_Transactions));
 	} catch (err) {
+		throw err
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 })
@@ -1068,117 +1085,6 @@ app.post('/v2/profile/update', async function(req, response) {
 	   }catch(err){
 	  res.end(JSON.stringify(err))
 	 }
-	})  
-
-	// app.post('/satt/recieveMoney', async function(req, response) {
-	// 	try{
-	// 		// let token = req.headers["authorization"].split(" ")[1];
-	// 		// let res=await app.crm.auth(token);
-	// 		let idNode=res.id;
-
-	// 		let emailTo=req.body.emailTo;
-	// 		let emailFrom=req.body.emailFrom;
-	// 		let cryptoCurrency=req.body.cryptoCurrency;
-	// 		let price=req.body.body.price;
-	// 		let message=req.body.message;
-	// 		let name=req.body.name;
-	// 		let idWallet=req.body.idWallet;
-	// 		// let notification={
-	// 		// 	idNode:idNode,
-	// 		// 	type:"demande_satt_event",
-	// 		// 	status:"done",
-	// 		// 	label:JSON.stringify([{"name":name,"type":type,"message":message,"price":price,"cryptoCurrency":cryptoCurrency}]), 
-	// 		// 	isSeen:false,
-	// 		// 	attachedEls:{
-	// 		// 		id:idNode
-	// 		//   }
-	// 		// }
-	// 		// await app.db.notification().insert(notification)
-	// 		response.send('ok')
-
-	// 	// 	var mailOptions = {
-	// 	// 		from: app.config.mailSender,
-	// 	// 		to: "haythem@atayen.us",
-	// 	// 		subject: " vous demande ",
-	// 	// 	  	html: '<a href="'+app.config.baseUrl+'auth/activate/'+id+"/"+code+'">Activate account</a>'
-	// 	//    };
-	
-	// 	// await transporter.sendMail(mailOptions, function(error, info){
-	// 	// 	   if (error) {
-	// 	// 		//response.end(JSON.stringify(error))
-	// 	// 		console.log("erreur")
-
-	// 	// 	   } else {
-	// 	// 		   console.log("success"+info)
-	// 	// 		//response.end(JSON.stringify(info.response))
-	// 	// 	   }
-	// 	// 	 });
-
-
-	// 	}catch(err){
-	// 		response.end(JSON.stringify(err))
-	// 	}
-	// })
-
-	app.post('/satt/recieveMoney', async function(req, response) {
-		let name=req.body.name;
-		let message=req.body.message;
-		let emailTo = req.body.emailTo;
-		let price= req.body.price;
-		let cryptoCurrency=req.body.cryptoCurrency;
-		try {
-			// let token = req.headers["authorization"].split(" ")[1];
-			// const auth = await app.crm.auth(token);
-			// const idNode = "0" + auth.id;
-			// let notification={
-			// 	idNode:idNode,
-			// 	type:"demande_satt_event",
-			// 	status:"done",
-			// 	label:JSON.stringify([{"name":name,"type":'demande_satt_event',"message":message,"price":price,"cryptoCurrency":cryptoCurrency}]), 
-			// 	isSeen: false,
-   			// 	isSend: false,
-			// 	attachedEls:{
-			// 		id:idNode
-			//   }
-			// }
-			// await app.db.notification().insertOne(notification);
-			fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
-				if (err) {
-				  console.error(err)
-				  return
-				}
-				var data_={
-					cmp:{
-						name:'campaign.title',
-						link:'link'
-					}
-				}
-				let dynamic_html=ejs.render(data, data_);
-				console.log(dynamic_html)
-			// 	var mailOptions = {
-			//      from: app.config.mailSender,
-			//      to: result.email,
-			//      subject: 'New link was added To your campaign',
-			//      html: dynamic_html
-			// };
-		
-		 	// 	await transporter.sendMail(mailOptions, function(error, info){
-			// 	if (error) {
-			// 		res.end(JSON.stringify(error))
-			// 	} else {
-			// 		console.log("email was sent")
-			// 		res.end(JSON.stringify(info.response))
-			// 	}
-			//   });
-			})
-
-
-
-		}catch (err) {
-			response.send('err')
-		}
-		
 	})
-
-		return app;
+	return app;
 }

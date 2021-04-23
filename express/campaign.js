@@ -12,12 +12,19 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-
+    const Big = require('big.js');
+	const sharp = require('sharp')
+	const request = require('request')
+	const mongoURI = app.config.mongoURI;
+   
 	
-	const mongoURI = app.url;
+	const nodemailer = require("nodemailer");
+	
+	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true,useUnifiedTopology: true },
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -38,6 +45,7 @@ module.exports = function (app) {
 
 	  const storageImage = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -54,10 +62,10 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	   const uploadImage = multer({ storage : storageImage });
-	   const upload = multer({ storage });
-
-	
+	  // here I used multer to upload files
+      // you can add your validation here, such as file size, file extension and etc.
+	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
+	  const upload = multer({ storage });
 
 
     app.set("view engine", "ejs");
@@ -66,17 +74,15 @@ module.exports = function (app) {
 
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
-
 	  const conn=mongoose.createConnection(mongoURI);
 	  let gfs;
 	  let gfsKit;
-
+   
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
 		gfsKit = Grid(conn.db, mongoose.mongo);
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
-
 	  });
     
 	cron.schedule('00 14 * * *',()=>{
@@ -1038,13 +1044,14 @@ module.exports = function (app) {
      @Input idKit : id of the kid
 	 @Output delete message
      */
+
 	app.delete('/kit/:idKit', async (req, res) => {
 		try {
 			let token = req.headers["authorization"].split(" ")[1];
             await app.crm.auth(token);
 			const idKit = req.params.idKit
 			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
-				res.send('delete')
+				res.send(JSON.stringify('Deleted'))
 			})
 
 	  } catch (err) {
@@ -1060,17 +1067,15 @@ module.exports = function (app) {
 	 @Output delete message
 
      */
-	app.delete('/campaign/deleteDraft/:id', async (req, res) => {
-
-		
+	app.delete('/campaign/deleteDraft/:id', async (req, res) => {	
 		try {
 			const id= req.params.id;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
-			const data=await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
-			res.end("draft deleted").status(200);
+			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
+			res.end(JSON.stringify("Draft deleted")).status(200);
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
 
 
@@ -1102,7 +1107,7 @@ module.exports = function (app) {
 			 }, link : link })
 			 res.send('Kit uploaded').status(200);
 		}
-		res.send('')	
+		res.send('No matching data').status(401);	
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1142,7 +1147,7 @@ module.exports = function (app) {
 		    const campaign = req.body
 		    campaign.idNode = "0" + auth.id
 			app.db.campaignCrm().insertOne(campaign);
-			res.end("creation succeed").status(200);
+			res.end(JSON.stringify("creation succeed")).status(200);
 
 		} catch (err) {
 			res.end(JSON.stringify(err));
@@ -1163,7 +1168,7 @@ module.exports = function (app) {
 			await app.crm.auth(token);
 			const campain = req.params.idCampaign
 			gfs.files.findOneAndDelete({ 'campaign.$id': app.ObjectId(campain) },(err, data)=>{
-				res.send('delete')
+				res.send(JSON.stringify('delete'))
 			})
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
@@ -1171,46 +1176,7 @@ module.exports = function (app) {
 		}
 		
 	})
-	/*
-     @link : /campaign/:id/update
-     @description: modifier la campaign
-     @params:
-     id : identifiant de la campaign
-	 body: {campaign}
-	 {headers}
-	 @Output success message
-     */
-	app.put('/campaign/:id/update', async (req, res) => {
-		
-		
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			auth=await app.crm.auth(token);
-			const campaign = req.body;
-			const id=req.params.id;
-			await app.db.campaignCrm().updateOne({_id:ObjectId(id)},
-			{$set: {
-			_id:ObjectId(id),
-			idNode:auth.id,
-			title:campaign.title,
-			tags:campaign.tags,
-			resume:campaign.resume,
-		    description:campaign.description,
-			status:campaign.status,
-			countries:campaign.countries,
-			token:campaign.token,
-			shortLink:campaign.shortLink,
-			cost:campaign.cost,
-			cost_usd:campaign.cost_usd,
-			ratios:campaign.ratios,
-			time:campaign.time
-				}});		
-			res.end("updated succeed").status(200);
-			} catch (err) {
-			res.end(JSON.stringify(err));
-			}
 
-	});
 
 	/*
      @link : /campaign/:idCampaign/cover
@@ -1240,7 +1206,7 @@ module.exports = function (app) {
 			
 						fs.createReadStream(imagePath).pipe(res);
 					}
-					else if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+					else {
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
 											'Content-Length': file.length,
@@ -1248,8 +1214,7 @@ module.exports = function (app) {
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-				
-					} 
+					}
 				  });
 		
 		}catch (err) {
@@ -1257,30 +1222,37 @@ module.exports = function (app) {
 		}
 			
 		})	
+
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
      @params:
      @Input idCampaign : campaign id
-     */
-	app.post('/campaign/:idCampaign/cover',uploadImage.single('file'), async(req, res)=>{
+    */
+
+	app.post('/campaign/:idCampaign/cover',uploadImage, async(req, res)=>{
 		try{
 			const idCampaign = req.params.idCampaign;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-				gfs.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+              if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
+				  gfs.files.updateMany({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json("Cover added");
+			res.json(JSON.stringify("Cover added")).status(200);
+			  } else{
+				  res.status(401).send(JSON.stringify('Only images allowed'));
+			  }		
 			}
-			res.send('')
+			res.send(JSON.stringify('No matching file found')).status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
 	})
+	
 	/*
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
      @description: get accepted proms by owner
@@ -1344,6 +1316,147 @@ module.exports = function (app) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}
 	})
-	return app;
 
+
+		/*
+     @url : /campaign/:id/update
+     @description: modifier la campaign
+     @params:
+     id : identifiant de la campaign
+	 body: {campaign}
+	 {headers}
+	 @Output success message
+     */
+   app.put('/campaign/:idCampaign/update', async (req, res) => {
+	try {
+		let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
+		 let campaign = req.body;
+	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
+	res.send(JSON.stringify({result, success : "updated"})).status(201);
+} catch (err) {
+
+	console.error(err)
+	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+ }
+   })
+
+
+        /*
+     @Url :API (link) /campaign/link/list/:addess?[option]'
+     @description: fetch drafts and created campaign
+	 @parameters : ID wallet 
+	 @option: 
+	 *Empty option Return Rejected and Accepted links 
+	 *Can be accepted OR REjected (rejected = true || accepted = true)
+     addr : wallet address of user
+     token : access token
+     @response : object of arrays => draft and created campaigns
+     */
+
+	app.get('/campaign/link/list/:addess', async function(req, res) {
+
+		try{
+			let address=req.params.addess.toLowerCase()
+			let Options =req.query
+            var Links ={rejected:[],accepted:[]}
+
+			var LinksCollection = await app.db.apply().find({'influencer':address}).toArray();
+
+            for(var i=0;i<LinksCollection.length;i++){
+
+              let URl=LinksCollection[i]
+
+				switch (URl['typeSN']) 
+				  {
+					case 1:
+						HandelUrl("https://www.facebook.com/" + URl.idUser + "/posts/" + URl.idPost,URl.isAccepted)
+					  break;
+					case 2:  
+					    HandelUrl("https://www.youtube.com/watch?v=" + URl.idPost,URl.isAccepted)
+					  break;
+					case 3:
+					    HandelUrl("https://www.instagram.com/p/" + URl.idPost + "/",URl.isAccepted)
+					  break;
+					case 4:
+						HandelUrl("https://twitter.com/" + URl.idUser + "/status/" + URl.idPost,URl.isAccepted)
+					  break;
+					default:
+				  }
+			}
+
+		  function HandelUrl (url,IsAccepted)
+			{
+				if(!IsAccepted){
+
+				  Links.rejected.push(url)
+
+				}else{
+
+				  Links.accepted.push(url)
+
+				}
+			}
+console.log(Links)
+        if(Options.rejected){
+			res.end(JSON.stringify(Links.rejected))
+
+		}else if(Options.accepted){
+			res.end(JSON.stringify(Links.accepted))
+
+		}else{
+			res.end(JSON.stringify(Links))
+		}
+	
+		}catch(err){
+			res.end(JSON.stringify(err))
+		}
+	})
+
+
+    /*
+	@url : /campaign/totalEarned/:addr
+	@description: fetching total earnings of the user in satt & USD
+	@params:
+    addr : wallet address of user
+	{headers}
+	@Output JSON object 
+	*/
+	app.get('/campaign/totalEarned/:addr', async function(req, res){
+		try{
+			let token = req.headers["authorization"].split(" ")[1];
+            await app.crm.auth(token);
+			let address=req.params.addr
+			let sattPrice$;
+			let total= 0;
+			let etherInWei = new Big(1000000000000000000);
+			  const sattPrice = () => {
+				return new Promise((resolve, reject) => {
+					var options = {
+						url: 'https://3xchange.io/prices',
+						method: 'GET',
+						json: true
+					  };
+				  request.get(options, function(error, res, body) {
+						if(error) reject(error);
+						resolve(body);
+				  });
+				});	
+			  }
+			await sattPrice().then((body) => {
+				sattPrice$ = body.SATT.price;
+			})
+
+            await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
+				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
+			})
+			let totalEarned = Number((total * sattPrice$).toFixed(2));
+			const result = {SattEarned : total, USDEarned : totalEarned};
+			res.send(JSON.stringify(result)).status(200);
+		}catch(err){
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		}
+	})
+
+	return app;
 }

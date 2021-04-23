@@ -46,10 +46,10 @@ module.exports = async function (app) {
 			});
 		});
 	} 
-	 var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-	 var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)    
-	 app.url=db2.s.url;
-
+	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	
+	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)    
+   
 		app.db.campaignCrm = function () {
             return db2.db(app.config.mongoBaseCrm).collection(app.config.campaignCollection);
         };
@@ -69,12 +69,6 @@ module.exports = async function (app) {
         };
 		app.db.campaign_link = function () {
             return db.db(app.config.mongoBaseCrm).collection("campaign_link");
-        };
-		app.db.campaignCover = function () {
-            return db.db(app.config.mongoBaseCrm).collection("campaign_cover");
-        };
-		app.db.CampaignLinkStatistic = function () {
-            return db.db(app.config.mongoBase).collection("campaign_link_statistic");
         };
 		app.db.user = function () {
             return db2.db(app.config.mongoBaseCrm).collection("sn_user");
@@ -130,8 +124,8 @@ module.exports = async function (app) {
         };
 
 		app.db.buy = function () {
-								return db2.db(app.config.mongoBaseCrm).collection('buy_satt');
-						};
+		return db2.db(app.config.mongoBaseCrm).collection('buy_satt');
+			};
 
 		app.db.indexedtx = function () {
 			return db.db(app.config.mongoBase).collection('indexed_tx');
