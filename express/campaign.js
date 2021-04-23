@@ -11,10 +11,11 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
-
+    const Big = require('big.js');
 	const sharp = require('sharp')
+	const request = require('request')
 	const mongoURI = app.config.mongoURI;
-
+   
 	
 	const nodemailer = require("nodemailer");
 	
@@ -927,7 +928,7 @@ module.exports = function (app) {
             await app.crm.auth(token);
 			const idKit = req.params.idKit
 			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
-				res.send('delete')
+				res.send(JSON.stringify('Deleted'))
 			})
 
 	  } catch (err) {
@@ -948,8 +949,8 @@ module.exports = function (app) {
 			const id= req.params.id;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
-			await app.db.campaign().deleteOne({_id:app.ObjectId(id)});
-			res.end(JSON.stringify("draft deleted")).status(200);
+			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
+			res.end(JSON.stringify("Draft deleted")).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
@@ -1193,7 +1194,7 @@ module.exports = function (app) {
 
 
 		/*
-     @link : /campaign/:id/update
+     @url : /campaign/:id/update
      @description: modifier la campaign
      @params:
      id : identifiant de la campaign
@@ -1206,8 +1207,8 @@ module.exports = function (app) {
 		let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
 		 let campaign = req.body;
-	await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
-	res.send(JSON.stringify("updated fields")).status(201);
+	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
+	res.send(JSON.stringify({result, success : "updated"})).status(201);
 } catch (err) {
 	console.error(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
@@ -1282,6 +1283,51 @@ module.exports = function (app) {
 
 		}catch(err){
 			res.end(JSON.stringify(err))
+		}
+	})
+
+
+    /*
+	@url : /campaign/totalEarned/:addr
+	@description: fetching total earnings of the user in satt & USD
+	@params:
+    addr : wallet address of user
+	{headers}
+	@Output JSON object 
+	*/
+	app.get('/campaign/totalEarned/:addr', async function(req, res){
+		try{
+			let token = req.headers["authorization"].split(" ")[1];
+            await app.crm.auth(token);
+			let address=req.params.addr
+			let sattPrice$;
+			let total= 0;
+			let etherInWei = new Big(1000000000000000000);
+			  const sattPrice = () => {
+				return new Promise((resolve, reject) => {
+					var options = {
+						url: 'https://3xchange.io/prices',
+						method: 'GET',
+						json: true
+					  };
+				  request.get(options, function(error, res, body) {
+						if(error) reject(error);
+						resolve(body);
+				  });
+				});	
+			  }
+			await sattPrice().then((body) => {
+				sattPrice$ = body.SATT.price;
+			})
+
+            await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
+				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
+			})
+			let totalEarned = Number((total * sattPrice$).toFixed(2));
+			const result = {SattEarned : total, USDEarned : totalEarned};
+			res.send(JSON.stringify(result)).status(200);
+		}catch(err){
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 	})
 

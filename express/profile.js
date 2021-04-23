@@ -319,7 +319,7 @@ module.exports = function (app) {
      @Input headers : access token
 	 @Output : updated notification
      */
-app.patch('/profile/notification/issend/clicked', async (req, res) =>{
+app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	try{
 		let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);
