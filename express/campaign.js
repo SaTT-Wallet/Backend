@@ -168,7 +168,7 @@ module.exports = function (app) {
 									campaignLinkStat.likes=promDetail.likes;
 									campaignLinkStat.views=promDetail.views;
 									campaignLinkStat.date=Date.now();
-									campaignLinkStat.sharesperhDay=Number(promDetail.shares)-Number(element.shares);
+									campaignLinkStat.sharesperDay=Number(promDetail.shares)-Number(element.shares);
 									campaignLinkStat.likesperDay=Number(promDetail.likes)-Number(element.likes);
 									campaignLinkStat.viewsperDay=Number(promDetail.views)-Number(element.views);
 									try{
@@ -187,7 +187,7 @@ module.exports = function (app) {
 									campaignLinkStat.shares=promDetail.shares;
 									campaignLinkStat.likes=promDetail.likes;
 									campaignLinkStat.views=promDetail.views;
-									campaignLinkStat.sharesperhDay=promDetail.shares;
+									campaignLinkStat.sharesperDay=promDetail.shares;
 									campaignLinkStat.likesperDay=promDetail.likes;
 									campaignLinkStat.viewsperDay=promDetail.views;
 									try{
