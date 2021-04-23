@@ -137,10 +137,11 @@ module.exports = function (app) {
 			var shares = ratios[2];
 			var views = ratios[3];
 			var res = [
-				{typeSN:types[0], likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},
+				{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},
 				{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},
 				{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
-				{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
+				{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}
+			    ];
 			campaigns[i].ratios = res;
 
 			var idproms = await ctr.methods.getProms(campaigns[i].id).call();
@@ -165,9 +166,29 @@ module.exports = function (app) {
 		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		rescampaigns = rescampaigns.concat(campaignscentral);
+		
+		let Ended_c=0
+		let Pending_c=0
 
-		response.end(JSON.stringify(rescampaigns));
-	});
+		var unowned = [...rescampaigns].filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
+        
+		for(var c=0;c<unowned.length;c++){
+
+			unowned[c].endDate = new Date(+unowned[c].endDate * 1000);
+		    unowned[c].startDate = new Date(+unowned[c].startDate * 1000)
+
+			  if (
+				Date.now() >= unowned[c].startDate.getTime() &&
+				Date.now() <= unowned[c].endDate.getTime()
+			  ) {
+				Pending_c++
+			  } else if (Date.now() > unowned[c].endDate.getTime()) {
+				Ended_c++
+			  }
+		}
+       
+		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
+	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
 		var owner = req.params.owner;
