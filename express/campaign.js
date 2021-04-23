@@ -1101,12 +1101,14 @@ module.exports = function (app) {
 		}
 			
 		})	
+
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
      @params:
      @Input idCampaign : campaign id
-     */
+    */
+
 	app.post('/campaign/:idCampaign/cover',uploadImage, async(req, res)=>{
 		try{
 			const idCampaign = req.params.idCampaign;
@@ -1211,15 +1213,15 @@ module.exports = function (app) {
 		 let campaign = req.body;
 	await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
 	res.send("updated fields").status(201);
-} catch (err) {
+      } catch (err) {
 	console.error(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
-}
+ }
    })
 
 
         /*
-     @Url :API (link) /campaign/link/list?[option]'
+     @Url :API (link) /campaign/link/list/:addess?[option]'
      @description: fetch drafts and created campaign
 	 @parameters : ID wallet 
 	 @option: 
@@ -1233,22 +1235,22 @@ module.exports = function (app) {
 	app.get('/campaign/link/list/:addess', async function(req, res) {
 
 		try{
-			let address=req.params.addess
+			let address=req.params.addess.toLowerCase()
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
-		  await  app.db.apply().find({'influencer':address}, function(err, LinksCollection){
-               LinksCollection=LinksCollection.toArray()
-			 if(err) res.end(JSON.stringify(err))
+
+			var LinksCollection = await app.db.apply().find({'influencer':address}).toArray();
 
             for(var i=0;i<LinksCollection.length;i++){
 
               let URl=LinksCollection[i]
 
-				switch (URl['typeSN']) {
+				switch (URl['typeSN']) 
+				  {
 					case 1:
 						HandelUrl("https://www.facebook.com/" + URl.idUser + "/posts/" + URl.idPost,URl.isAccepted)
 					  break;
-					case 2:
+					case 2:  
 					    HandelUrl("https://www.youtube.com/watch?v=" + URl.idPost,URl.isAccepted)
 					  break;
 					case 3:
@@ -1268,10 +1270,12 @@ module.exports = function (app) {
 				  Links.rejected.push(url)
 
 				}else{
+
 				  Links.accepted.push(url)
+
 				}
 			}
-	
+console.log(Links)
         if(Options.rejected){
 			res.end(JSON.stringify(Links.rejected))
 
@@ -1281,8 +1285,7 @@ module.exports = function (app) {
 		}else{
 			res.end(JSON.stringify(Links))
 		}
-	})
-
+	
 		}catch(err){
 			res.end(JSON.stringify(err))
 		}
