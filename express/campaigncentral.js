@@ -197,7 +197,7 @@ module.exports = function (app) {
 			var found = false;
 			if(res.id == 1023)
 			{
-				isAdmin = true;
+			 isAdmin = true;
 			}
 			if(!isAdmin && campaign.owner.toLowerCase() != cred.address.toLowerCase())
 			{
