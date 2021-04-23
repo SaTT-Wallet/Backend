@@ -1,9 +1,10 @@
 module.exports = function (app) {
 	let ejs = require('ejs');
+	const cron =require('node-cron');
 	var ObjectId = require('mongodb').ObjectId; 
 	var fs = require('fs');
 	var mongoose = require('mongoose');
-
+	var request = require('request');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const crypto = require('crypto');
@@ -11,6 +12,8 @@ module.exports = function (app) {
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
 	const multer = require('multer');
+
+	
 	const mongoURI = app.url;
 
 	const storage = new GridFsStorage({
@@ -75,7 +78,129 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 
 	  });
+    
+	cron.schedule('00 14 * * *',()=>{
+		updateStat();
+		 })
+	 async function updateStat(){
+		 		campaigns=[];
+				//get all campaign
+				const allCampaign = () => {
+					return new Promise((resolve, reject) => {
+					  var options = {
+						url: app.config.baseUrl+'campaign/all/xxx',
+						method: 'GET',
+						json: true
+					  };
+					  request.get(options, function(error, res, body) {
+							if(error) reject(error);
+							resolve(body);
+					  });
+					});
+						
+				  }
+				  await allCampaign().then((body) => {
+					  body.allCampaign.forEach((c)=>{
+						  campaigns.push(c)
+					  })
+					})        
+			
+			if(campaigns){
+				
+				campaigns.forEach(async (campaign)=>{	
+				
+					hash=campaign.id;
+				
+				//Récupération des détails de la campagne par hash
+				const CampaignById = () => {
+					return new Promise((resolve, reject) => {
+					  var options = {
+						url: app.config.baseUrl+'campaign/id/'+hash,
+						method: 'GET',
+						json: true
+					  };
+					  request.get(options, function(error, res, body) {
+							if(error) reject(error);
+							resolve(body);
+					  });
+					});	
+				  }
+				  await CampaignById().then((body) => {
+					campaignDetails=body;
 
+					}) 
+				
+					if(campaignDetails){
+						if(campaignDetails.proms){
+							
+							campaignDetails.proms.forEach(async (prom)=>{
+								if(prom.isAccepted){
+									promDetail=[];
+									//Récupération des détails d'un proms'
+									const CampaignById = () => {
+										return new Promise((resolve, reject) => {
+										var options = {
+										url: app.config.baseUrl+'prom/'+prom.id+"/live",
+										method: 'GET',
+										json: true
+										};
+										request.get(options, function(error, res, body) {
+										if(error) reject(error);
+										resolve(body);
+										});
+										});	
+										}
+										await CampaignById().then((body) => {
+										promDetail=body;
+										})
+									//recherche dans campaign_link_statistic si un prom existe
+									element = await app.db.CampaignLinkStatistic().findOne({id_prom:prom.id});
+									//update prom s'il existe
+									if(element){
+									campaignLinkStat={};
+									campaignLinkStat.shares=promDetail.shares;
+									campaignLinkStat.likes=promDetail.likes;
+									campaignLinkStat.views=promDetail.views;
+									campaignLinkStat.date=Date.now();
+									campaignLinkStat.sharesperhDay=Number(promDetail.shares)-Number(element.shares);
+									campaignLinkStat.likesperDay=Number(promDetail.likes)-Number(element.likes);
+									campaignLinkStat.viewsperDay=Number(promDetail.views)-Number(element.views);
+									try{
+									await app.db.CampaignLinkStatistic().findOneAndUpdate({_id : element._id}, {$set: campaignLinkStat})
+									}catch (err) {
+										console.end('{"error":"'+(err.message?err.message:err.error)+'"}')
+									}		
+									}else{
+										//créer un nouveau prom s'il n'existe pas
+									campaignLinkStat={};
+									campaignLinkStat.id_campaign=prom.idCampaign;
+									campaignLinkStat.id_prom=prom.id;
+									campaignLinkStat.type_sn=prom.typeSN;
+									campaignLinkStat.id_post=prom.idPost;
+									campaignLinkStat.date=Date.now();
+									campaignLinkStat.shares=promDetail.shares;
+									campaignLinkStat.likes=promDetail.likes;
+									campaignLinkStat.views=promDetail.views;
+									campaignLinkStat.sharesperhDay=promDetail.shares;
+									campaignLinkStat.likesperDay=promDetail.likes;
+									campaignLinkStat.viewsperDay=promDetail.views;
+									try{
+									await app.db.CampaignLinkStatistic().insertOne(campaignLinkStat);
+									}catch (err) {
+										console.end('{"error":"'+(err.message?err.message:err.error)+'"}')
+									}
+								}	
+
+								}  
+							})
+						}
+					}
+				})
+				}
+	 }
+
+	app.post('/updateStat',updateStat)
+	
 	app.post('/campaign/create', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -149,7 +274,7 @@ module.exports = function (app) {
 		   let link=req.body.link
 		   let campaign={}
 		   let date;
-		var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
+			var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
 			   campaign.owner=result.idNode
                campaign.title=result.title
 			   campaign.hash=result.hash

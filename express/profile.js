@@ -11,7 +11,8 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
 	const mongoURI = app.url;
-	
+
+
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		file: (req, file) => {
@@ -145,7 +146,7 @@ module.exports = function (app) {
      @link : /profile/userLegal?page='param'&limit='param'
      @description: get user legal
      @Input:headers
-     @Output:Object
+     @Output:Array of user legal
      */
 	app.get('/profile/userLegal', async(req, res)=>{
 		try{
@@ -189,13 +190,13 @@ module.exports = function (app) {
      @link : /notifications?page=param&limit=param
      @description: get all notifications
      @Input:headers
-     @Output:Object
+     @Output:Array of notifications
      */
 	  app.get('/notifications',async(req, res)=>{
 		  try{
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			const idNode=auth.id;
+			const idNode="0"+auth.id;
 			const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1;
@@ -238,7 +239,7 @@ module.exports = function (app) {
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const idNode = "0" + auth.id;
-         if(req.body.type && req.body.file){
+         if(req.body.type && req.file){
             gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
 				"$id": auth.id, 

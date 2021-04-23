@@ -1069,5 +1069,116 @@ app.post('/v2/profile/update', async function(req, response) {
 	  res.end(JSON.stringify(err))
 	 }
 	})  
-	return app;
+
+	// app.post('/satt/recieveMoney', async function(req, response) {
+	// 	try{
+	// 		// let token = req.headers["authorization"].split(" ")[1];
+	// 		// let res=await app.crm.auth(token);
+	// 		let idNode=res.id;
+
+	// 		let emailTo=req.body.emailTo;
+	// 		let emailFrom=req.body.emailFrom;
+	// 		let cryptoCurrency=req.body.cryptoCurrency;
+	// 		let price=req.body.body.price;
+	// 		let message=req.body.message;
+	// 		let name=req.body.name;
+	// 		let idWallet=req.body.idWallet;
+	// 		// let notification={
+	// 		// 	idNode:idNode,
+	// 		// 	type:"demande_satt_event",
+	// 		// 	status:"done",
+	// 		// 	label:JSON.stringify([{"name":name,"type":type,"message":message,"price":price,"cryptoCurrency":cryptoCurrency}]), 
+	// 		// 	isSeen:false,
+	// 		// 	attachedEls:{
+	// 		// 		id:idNode
+	// 		//   }
+	// 		// }
+	// 		// await app.db.notification().insert(notification)
+	// 		response.send('ok')
+
+	// 	// 	var mailOptions = {
+	// 	// 		from: app.config.mailSender,
+	// 	// 		to: "haythem@atayen.us",
+	// 	// 		subject: " vous demande ",
+	// 	// 	  	html: '<a href="'+app.config.baseUrl+'auth/activate/'+id+"/"+code+'">Activate account</a>'
+	// 	//    };
+	
+	// 	// await transporter.sendMail(mailOptions, function(error, info){
+	// 	// 	   if (error) {
+	// 	// 		//response.end(JSON.stringify(error))
+	// 	// 		console.log("erreur")
+
+	// 	// 	   } else {
+	// 	// 		   console.log("success"+info)
+	// 	// 		//response.end(JSON.stringify(info.response))
+	// 	// 	   }
+	// 	// 	 });
+
+
+	// 	}catch(err){
+	// 		response.end(JSON.stringify(err))
+	// 	}
+	// })
+
+	app.post('/satt/recieveMoney', async function(req, response) {
+		let name=req.body.name;
+		let message=req.body.message;
+		let emailTo = req.body.emailTo;
+		let price= req.body.price;
+		let cryptoCurrency=req.body.cryptoCurrency;
+		try {
+			// let token = req.headers["authorization"].split(" ")[1];
+			// const auth = await app.crm.auth(token);
+			// const idNode = "0" + auth.id;
+			// let notification={
+			// 	idNode:idNode,
+			// 	type:"demande_satt_event",
+			// 	status:"done",
+			// 	label:JSON.stringify([{"name":name,"type":'demande_satt_event',"message":message,"price":price,"cryptoCurrency":cryptoCurrency}]), 
+			// 	isSeen: false,
+   			// 	isSend: false,
+			// 	attachedEls:{
+			// 		id:idNode
+			//   }
+			// }
+			// await app.db.notification().insertOne(notification);
+			fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
+				if (err) {
+				  console.error(err)
+				  return
+				}
+				var data_={
+					cmp:{
+						name:'campaign.title',
+						link:'link'
+					}
+				}
+				let dynamic_html=ejs.render(data, data_);
+				console.log(dynamic_html)
+			// 	var mailOptions = {
+			//      from: app.config.mailSender,
+			//      to: result.email,
+			//      subject: 'New link was added To your campaign',
+			//      html: dynamic_html
+			// };
+		
+		 	// 	await transporter.sendMail(mailOptions, function(error, info){
+			// 	if (error) {
+			// 		res.end(JSON.stringify(error))
+			// 	} else {
+			// 		console.log("email was sent")
+			// 		res.end(JSON.stringify(info.response))
+			// 	}
+			//   });
+			})
+
+
+
+		}catch (err) {
+			response.send('err')
+		}
+		
+	})
+
+		return app;
 }
