@@ -62,7 +62,7 @@ module.exports = function (app) {
 	  });
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
-	  const uploadImage = multer({ storage : storageImage}).single('file');
+	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 	  const upload = multer({ storage });
 
 
@@ -72,11 +72,10 @@ module.exports = function (app) {
 
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
-
 	  const conn=mongoose.createConnection(mongoURI);
 	  let gfs;
 	  let gfsKit;
-
+   
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
 		gfsKit = Grid(conn.db, mongoose.mongo);
@@ -944,17 +943,15 @@ module.exports = function (app) {
 	 @Output delete message
 
      */
-	app.delete('/campaign/deleteDraft/:id', async (req, res) => {
-
-		
+	app.delete('/campaign/deleteDraft/:id', async (req, res) => {	
 		try {
 			const id= req.params.id;
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
-			const data=await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
-			res.end("draft deleted").status(200);
+			await app.db.campaign().deleteOne({_id:app.ObjectId(id)});
+			res.end(JSON.stringify("draft deleted")).status(200);
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
 
 
@@ -1026,7 +1023,7 @@ module.exports = function (app) {
 		    const campaign = req.body
 		    campaign.idNode = "0" + auth.id
 			app.db.campaignCrm().insertOne(campaign);
-			res.end("creation succeed").status(200);
+			res.end(JSON.stringify("creation succeed")).status(200);
 
 		} catch (err) {
 			res.end(JSON.stringify(err));
@@ -1047,7 +1044,7 @@ module.exports = function (app) {
 			await app.crm.auth(token);
 			const campain = req.params.idCampaign
 			gfs.files.findOneAndDelete({ 'campaign.$id': app.ObjectId(campain) },(err, data)=>{
-				res.send('delete')
+				res.send(JSON.stringify('delete'))
 			})
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
@@ -1121,12 +1118,12 @@ module.exports = function (app) {
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json("Cover added").status(200);
+			res.json(JSON.stringify("Cover added")).status(200);
 			  } else{
-				  res.status(401).send('Only images allowed');
+				  res.status(401).send(JSON.stringify('Only images allowed'));
 			  }		
 			}
-			res.send('No matching file found').status(401);
+			res.send(JSON.stringify('No matching file found')).status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
@@ -1212,8 +1209,10 @@ module.exports = function (app) {
          await app.crm.auth(token);
 		 let campaign = req.body;
 	await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
-	res.send("updated fields").status(201);
-      } catch (err) {
+
+	res.send(JSON.stringify("updated fields")).status(201);
+} catch (err) {
+
 	console.error(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
  }
