@@ -6,15 +6,14 @@ module.exports = function (app) {
 	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
-	const path = require('path');
 	const multer = require('multer');
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
-	const mongoURI = app.url;
-
-
+	const mongoURI = app.config.mongoURI;
+	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -39,6 +38,7 @@ module.exports = function (app) {
 
 	  const storageProfilePic = new GridFsStorage({
 		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
 			crypto.randomBytes(16, (err, buf) => {
@@ -95,7 +95,7 @@ module.exports = function (app) {
 					err: 'No file exists'
 				  });
 				}
-				if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
+				else {
 				  res.writeHead(200, {
 										'Content-Type': 'image/png',
 										'Content-Length': file.length,
@@ -103,12 +103,7 @@ module.exports = function (app) {
 									});
 				  const readstream = gfsprofilePic.createReadStream(file.filename);
 				  readstream.pipe(res);
-
-				} else {
-				  res.status(404).json({
-					err: 'Not an image'
-				  });
-				}
+				} 
 			  });
 			 
             }catch (err) {
@@ -133,9 +128,10 @@ module.exports = function (app) {
 					"$id": auth.id, 
 					"$db": "atayen"
 				 }} })
-				res.send('saved').status(200);
-			}
-			res.send('').status(200);
+				 
+				res.send(JSON.stringify('saved')).status(200);
+				} 
+			res.send(JSON.stringify('Only images allowed')).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
@@ -196,7 +192,7 @@ module.exports = function (app) {
 		  try{
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			const idNode="0"+auth.id;
+			const idNode= "0" + auth.id;
 			const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1;
@@ -256,7 +252,7 @@ module.exports = function (app) {
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end('legal processed').status(201);
+			  res.end(JSON.stringify('legal processed')).status(201);
 		 }
 		 res.end('No file found').status(201);
 		}catch (err) {
@@ -283,7 +279,7 @@ module.exports = function (app) {
 	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
 		var data_={
 			SaTT:{
-				Url:'https://v2.satt.atayen.us/#/FAQ'
+				Url:config.walletUrl+'FAQ'
 			},
 			letter:{
 				from:name+" ("+email+")",
@@ -323,16 +319,16 @@ module.exports = function (app) {
      @Input headers : access token
 	 @Output : updated notification
      */
-app.patch('/profile/notification/issend/clicked', async (req, res) =>{
+app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	try{
 		let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);
-		const id = +auth.id 
+		const id = "0" + auth.id 
 		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
 			elem.isSend = false;
 			app.db.notification().save(elem)
 		})
-		res.send('notificatons clicked').status(200);
+		res.send(JSON.stringify('notificatons clicked')).status(200);
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}

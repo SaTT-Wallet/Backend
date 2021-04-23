@@ -56,7 +56,7 @@ module.exports = async function (app) {
 			tx.from_id = credentials.from_id;
 			tx.to_id = credentials.to_id;
 			app.db.txs().insertOne(tx);
-			resolve({result : "OK",hash:receipt.transactionHash})
+			resolve({transactionHash:receipt.transactionHash,address:credentials.address,to:to,amount:amount})
 		}
 		catch (e) {
 			reject(e);

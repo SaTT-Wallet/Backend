@@ -89,14 +89,14 @@ module.exports = async function (app) {
 				idPost = idPost.split("&")[0];
 			}
 			var perf = {shares:0,likes:0,views:0};
-			var body = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"statistics"}});
+		/*	var body = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"statistics"}});
 			var res = JSON.parse(body);
 			if(res.items && res.items[0])
 			{
-			//await app.web3.eth.personal.unlockAccount(app.config.campaignOwner,app.config.campaignOwnerPass,app.web3.utils.toHex(15000));
-			//app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+
 			perf = {shares:res.items[0].statistics.commentCount,likes:res.items[0].statistics.likeCount,views:res.items[0].statistics.viewCount,date:Math.floor(Date.now()/1000)};
 		 }
+		 */
 
 		   /* var h1 = app.web3.utils.sha3(app.web3.eth.abi.encodeParameters(['uint8','string','string','uint64','uint64','uint64','uint64'],[2,idPost,"",perf.shares,perf.likes,perf.views,perf.date]));
 			var sign = await app.web3.eth.sign(h1,app.config.campaignOwner);
