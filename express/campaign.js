@@ -83,129 +83,183 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 	  });
     
-	cron.schedule('00 14 * * *',()=>{
+	cron.schedule('00 12 * * *',()=>{
 		updateStat();
 		 })
 	 async function updateStat(){
-		 console.log('update')
-		 		campaigns=[];
-				//get all campaign
-				const allCampaign = () => {
-					return new Promise((resolve, reject) => {
-					  var options = {
-						url: app.config.baseUrl+'campaign/all/xxx',
-						method: 'GET',
-						json: true
-					  };
-					  request.get(options, function(error, res, body) {
-							if(error) reject(error);
-							resolve(body);
-					  });
-					});
-						
-				  }
-				  await allCampaign().then((body) => {
-					  body.allCampaign.forEach((c)=>{
-						  campaigns.push(c)
-					  })
-					})        
-			
-			if(campaigns){
-				
-				campaigns.forEach(async (campaign)=>{	
-				
-					hash=campaign.id;
-				
-				//Récupération des détails de la campagne par hash
-				const CampaignById = () => {
-					return new Promise((resolve, reject) => {
-					  var options = {
-						url: app.config.baseUrl+'campaign/id/'+hash,
-						method: 'GET',
-						json: true
-					  };
-					  request.get(options, function(error, res, body) {
-							if(error) reject(error);
-							resolve(body);
-					  });
-					});	
-				  }
-				  await CampaignById().then((body) => {
-					campaignDetails=body;
+		 try{
+			console.log(Date('Y-m-d H:i:s')+" [INFO] Début du traitement ") 
+			campaigns=[];
+		   //get all campaign
+		   console.log(Date('Y-m-d H:i:s')+" [INFO] Récuperer tous les campaigns ") 
+		   const allCampaign = () => {
+			   return new Promise((resolve, reject) => {
+				 var options = {
+				   url: app.config.baseUrl+'campaign/all/xxx',
+				   method: 'GET',
+				   json: true
+				 };
+				 request.get(options, function(error, res, body) {
+					   if(error) reject(error);
+					   resolve(body);
+				 });
+			   });
+				   
+			 }
+			 await allCampaign().then((body) => {
+				 body.allCampaign.forEach((c)=>{
+					 campaigns.push(c)
+				 })
+			   })        
+	   
+	   if(campaigns){
+		   
+		   campaigns.forEach(async (campaign)=>{	
+		   
+			   hash=campaign.id;
+		   
+		   //Récupération des détails de la campagne par hash
 
-					}) 
-				
-					if(campaignDetails){
-						if(campaignDetails.proms){
-							
-							campaignDetails.proms.forEach(async (prom)=>{
-								if(prom.isAccepted){
-									promDetail=[];
-									//Récupération des détails d'un proms'
-									const CampaignById = () => {
-										return new Promise((resolve, reject) => {
-										var options = {
-										url: app.config.baseUrl+'prom/'+prom.id+"/live",
-										method: 'GET',
-										json: true
-										};
-										request.get(options, function(error, res, body) {
-										if(error) reject(error);
-										resolve(body);
-										});
-										});	
-										}
-										await CampaignById().then((body) => {
-										promDetail=body;
-										})
-									//recherche dans campaign_link_statistic si un prom existe
-									element = await app.db.CampaignLinkStatistic().findOne({id_prom:prom.id});
-									//update prom s'il existe
-									if(element){
-									campaignLinkStat={};
-									campaignLinkStat.shares=promDetail.shares;
-									campaignLinkStat.likes=promDetail.likes;
-									campaignLinkStat.views=promDetail.views;
-									campaignLinkStat.date=Date.now();
-									campaignLinkStat.sharesperDay=Number(promDetail.shares)-Number(element.shares);
-									campaignLinkStat.likesperDay=Number(promDetail.likes)-Number(element.likes);
-									campaignLinkStat.viewsperDay=Number(promDetail.views)-Number(element.views);
-									try{
-									await app.db.CampaignLinkStatistic().findOneAndUpdate({_id : element._id}, {$set: campaignLinkStat})
-									}catch (err) {
-										console.end('{"error":"'+(err.message?err.message:err.error)+'"}')
-									}		
-									}else{
-										//créer un nouveau prom s'il n'existe pas
-									campaignLinkStat={};
-									campaignLinkStat.id_campaign=prom.idCampaign;
-									campaignLinkStat.id_prom=prom.id;
-									campaignLinkStat.type_sn=prom.typeSN;
-									campaignLinkStat.id_post=prom.idPost;
-									campaignLinkStat.date=Date.now();
-									campaignLinkStat.shares=promDetail.shares;
-									campaignLinkStat.likes=promDetail.likes;
-									campaignLinkStat.views=promDetail.views;
-									campaignLinkStat.sharesperDay=promDetail.shares;
-									campaignLinkStat.likesperDay=promDetail.likes;
-									campaignLinkStat.viewsperDay=promDetail.views;
-									try{
-									await app.db.CampaignLinkStatistic().insertOne(campaignLinkStat);
-									}catch (err) {
-										console.end('{"error":"'+(err.message?err.message:err.error)+'"}')
-									}
-								}	
+		   const CampaignById = () => {
+			   return new Promise((resolve, reject) => {
+				 var options = {
+				   url: app.config.baseUrl+'campaign/id/'+hash,
+				   method: 'GET',
+				   json: true
+				 };
+				 request.get(options, function(error, res, body) {
+					   if(error) reject(error);
+					   resolve(body);
+				 });
+			   });	
+			 }
+			 await CampaignById().then((body) => {
+			   campaignDetails=body;
 
-								}  
-							})
-						}
-					}
-				})
-				}
+			   }) 
+		   
+			   if(campaignDetails){
+				   if(campaignDetails.proms){
+					   
+					   campaignDetails.proms.forEach(async (prom)=>{
+						   if(prom.isAccepted){
+							   promDetail=[];
+							   //Récupération des détails d'un proms'
+							    console.log(Date('Y-m-d H:i:s')+" [INFO] Récuperer les details d'un proms par son id ") 
+
+							   const CampaignById = () => {
+								   return new Promise((resolve, reject) => {
+								   var options = {
+								   url: app.config.baseUrl+'prom/'+prom.id+"/live",
+								   method: 'GET',
+								   json: true
+								   };
+								   request.get(options, function(error, res, body) {
+								   if(error) reject(error);
+								   resolve(body);
+								   });
+								   });	
+								   }
+								   await CampaignById().then((body) => {
+								   promDetail=body;
+								   })
+							   //recherche dans campaign_link_statistic si un prom existe
+							   element = await app.db.CampaignLinkStatistic().find({id_prom:prom.id}).sort({date:-1}).toArray();
+							   if(element[0]){
+								if(promDetail.shares!=element[0].shares || promDetail.likes!=element[0].likes || promDetail.views!=element[0].views){
+								//ajouter un nouveau element avec les nouveau mise a jours si l'element existe et il y a un mise a jours sur likes,shares ou views 
+									campaignLinkStat={};
+										campaignLinkStat.id_campaign=prom.idCampaign;
+										campaignLinkStat.id_prom=prom.id;
+										campaignLinkStat.type_sn=prom.typeSN;
+										campaignLinkStat.id_post=prom.idPost;
+										campaignLinkStat.shares=promDetail.shares;
+										campaignLinkStat.likes=promDetail.likes;
+										campaignLinkStat.views=promDetail.views;
+										campaignLinkStat.date=Date('Y-m-d H:i:s');
+										campaignLinkStat.sharesperDay=Number(promDetail.shares)-Number(element[0].shares);
+										campaignLinkStat.likesperDay=Number(promDetail.likes)-Number(element[0].likes);
+										campaignLinkStat.viewsperDay=Number(promDetail.views)-Number(element[0].views);
+										try{
+											await app.db.CampaignLinkStatistic().insertOne(campaignLinkStat);
+											console.log(Date('Y-m-d H:i:s')+" [INFO] update campaign_link_stat si l'element existe ") 
+
+										}catch (err) {
+											console.log('{"error":"'+(err.message?err.message:err.error)+'"}')
+										}		
+								}
+							   
+							   }else{
+								//ajouter un nouveau element
+							   campaignLinkStat={};
+							   campaignLinkStat.id_campaign=prom.idCampaign;
+							   campaignLinkStat.id_prom=prom.id;
+							   campaignLinkStat.type_sn=prom.typeSN;
+							   campaignLinkStat.id_post=prom.idPost;
+							   campaignLinkStat.date=Date('Y-m-d H:i:s');
+							   campaignLinkStat.shares=promDetail.shares;
+							   campaignLinkStat.likes=promDetail.likes;
+							   campaignLinkStat.views=promDetail.views;
+							   campaignLinkStat.sharesperDay=promDetail.shares;
+							   campaignLinkStat.likesperDay=promDetail.likes;
+							   campaignLinkStat.viewsperDay=promDetail.views;
+							   try{
+							   await app.db.CampaignLinkStatistic().insertOne(campaignLinkStat);
+							   console.log(Date('Y-m-d H:i:s')+" [INFO] créer un nouveau campaign_link_stat ") 
+
+							   }catch (err) {
+								   console.log('{"error":"'+(err.message?err.message:err.error)+'"}')
+							   }
+						   }	
+
+						   }  
+					   })
+				   }
+			   }
+		   })
+		   }
+		   console.log("fin de traitement");
+
+		 }
+		 catch(err){
+			console.log('{"error":"'+(err.message?err.message:err.error)+'"}')
+
+		 }
+
+	
 	 }
 
 	app.post('/updateStat',updateStat)
-	
+	/*
+	@url : /stat/:idProm
+	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0) 
+	@params:
+    idProm : id prom
+	{headers}
+	@Output array of proms 
+	*/
+	app.get('/stat/:idProm',async (req, response) => {
+		try {
+			const prom = req.params.idProm;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth(token);
+			arrayOfProms=[];
+			const stat= await app.db.CampaignLinkStatistic().find({id_prom:prom}).toArray();
+			stat.forEach((statistic)=>{
+				let prom={};
+				prom.date=statistic.date;
+				prom.sharesperDay=statistic.sharesperDay;
+				prom.likesperDay=statistic.likesperDay;
+				prom.viewsperDay=statistic.viewsperDay;
+				arrayOfProms.push(prom);
+			})
+			response.send(arrayOfProms);
+
+		} catch (err) {
+			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');	
+
+		}
+	})
 	app.post('/campaign/create', async function(req, response) {
 
 		var pass = req.body.pass;
