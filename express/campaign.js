@@ -56,7 +56,7 @@ module.exports = function (app) {
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
-	  const upload = multer({ storage });
+	  const upload = multer({ storage }).single('file');
 
 
     app.set("view engine", "ejs");
@@ -954,7 +954,7 @@ module.exports = function (app) {
      @params:
      idCampaign : identifiant de la campaign req.body.campaign
      */
-	app.post('/addKit', upload.single('file'), async(req, res) => {
+	app.post('/addKit', upload, async(req, res) => {
 		try {
 		 let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);

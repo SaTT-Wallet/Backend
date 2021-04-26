@@ -195,7 +195,7 @@ module.exports = function (app) {
 			   }
 			   else {
 				 res.writeHead(200, {
-									   'Content-Type': file.contentType || file.mimeType ,
+									   'Content-Type': 'image/png' ,
 									   'Content-Length': file.length,
 									   'Content-Disposition': `attachment; filename=${file.filename}`
 								   });
