@@ -170,7 +170,7 @@ module.exports = function (app) {
 		let Ended_c=0
 		let Pending_c=0
 
-		var unowned = [...rescampaigns].filter((campaign) => address?.toLowerCase() !== campaign.owner.toLowerCase())
+		var unowned = [...rescampaigns].filter((campaign) => address.toLowerCase() !== campaign.owner.toLowerCase())
         
 		for(var c=0;c<unowned.length;c++){
 
