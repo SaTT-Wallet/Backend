@@ -56,6 +56,8 @@ module.exports = function (app) {
 				filename: filename,
 				bucketName: 'campaign_cover'
 			  };
+			  const idCampaign = req.params.idCampaign
+			  gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			  resolve(fileInfo);
 			});
 		  });
