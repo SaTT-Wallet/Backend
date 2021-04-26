@@ -3,7 +3,6 @@ module.exports = function (app) {
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
-	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const multer = require('multer');
@@ -16,19 +15,12 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-
-			  const filename = file.originalname;
+              const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_legal'
 			  };
 			  resolve(fileInfo);
-
-			});
 		  });
 		}
 	  });
@@ -41,10 +33,6 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
@@ -54,9 +42,7 @@ module.exports = function (app) {
 		  const auth = app.crm.auth(token);
 		  const idNode =  auth.id;
           gfsprofilePic.files.findOneAndDelete({'user.$id':idNode})
-		  resolve(fileInfo);
-			  
-			});
+		  resolve(fileInfo);			  
 		  });
 		}
 	  });
@@ -280,14 +266,14 @@ module.exports = function (app) {
          if(req.body.type && req.file){
             gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
-				"$id": auth.id, 
+				"$id": app.ObjectId(auth.id), 
 				"$db": "atayen"
 			 }, validate : false, type : req.body.type} })
 			  let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+				  label:JSON.stringify([{'type':req.body.type, 'date': date}]), 
 				  isSeen:false,
 				  attachedEls:{
 					  id:req.file.id
