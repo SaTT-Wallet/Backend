@@ -50,7 +50,12 @@ module.exports = function (app) {
 				filename: filename,
 				bucketName: 'user_files'
 			  };
-			  resolve(fileInfo);
+		  let token = req.headers["authorization"].split(" ")[1];
+		  const auth = app.crm.auth(token);
+		  const idNode =  auth.id;
+          gfsprofilePic.files.findOneAndDelete({'user.$id':idNode})
+		  resolve(fileInfo);
+			  
 			});
 		  });
 		}
@@ -181,6 +186,43 @@ module.exports = function (app) {
 		
 
 	})
+
+
+
+
+    /*
+     @link : /profile/userLegal/:id
+     @description: displaying userlegal images
+     @Input : id = file Id
+     @Output:image
+     */
+	app.get('/profile/userLegal/:id', async (req, res) => {
+		try{ 
+		   const token = req.headers["authorization"].split(" ")[1];
+		   await app.crm.auth(token);     
+		   const userLegal = req.params.id
+		   gfsUserLegal.files.findOne({ _id:app.ObjectId(userLegal)}  , (err, file) => {
+			   if (!file || file.length === 0) {
+				 return res.status(404).json({
+				   err: 'No file exists'
+				 });
+			   }
+			   else {
+				 res.writeHead(200, {
+									   'Content-Type': file.contentType || file.mimeType ,
+									   'Content-Length': file.length,
+									   'Content-Disposition': `attachment; filename=${file.filename}`
+								   });
+				 const readstream = gfsUserLegal.createReadStream(file.filename);
+				 readstream.pipe(res);
+			   } 
+			 });
+			
+		   }catch (err) {
+			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		   }
+
+   })
 
 	/*
      @link : /notifications?page=param&limit=param
