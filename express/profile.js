@@ -3,7 +3,6 @@ module.exports = function (app) {
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
-	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const multer = require('multer');
@@ -16,19 +15,12 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-
-			  const filename = file.originalname;
+              const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_legal'
 			  };
 			  resolve(fileInfo);
-
-			});
 		  });
 		}
 	  });
@@ -41,10 +33,6 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
@@ -54,9 +42,7 @@ module.exports = function (app) {
 		  const auth = app.crm.auth(token);
 		  const idNode =  auth.id;
           gfsprofilePic.files.findOneAndDelete({'user.$id':idNode})
-		  resolve(fileInfo);
-			  
-			});
+		  resolve(fileInfo);			  
 		  });
 		}
 	  });
