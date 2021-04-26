@@ -266,14 +266,14 @@ module.exports = function (app) {
          if(req.body.type && req.file){
             gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
-				"$id": auth.id, 
+				"$id": app.ObjectId(auth.id), 
 				"$db": "atayen"
 			 }, validate : false, type : req.body.type} })
 			  let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+				  label:JSON.stringify([{'type':req.body.type, 'date': date}]), 
 				  isSeen:false,
 				  attachedEls:{
 					  id:req.file.id
