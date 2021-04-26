@@ -967,14 +967,14 @@ module.exports = function (app) {
 			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
 		 }} })
-		 res.send('Kit uploaded').status(200);
+		 res.send(JSON.stringify('Kit uploaded')).status(200);
 		} if(req.body.link){
 		  gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }, link : link })
-			 res.send('Kit uploaded').status(200);
+			 res.send(JSON.stringify('Kit uploaded')).status(200);
 		}
 		res.send('No matching data').status(401);	
 		} catch (err) {
