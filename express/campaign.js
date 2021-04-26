@@ -6,7 +6,6 @@ module.exports = function (app) {
 
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
-	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
@@ -26,17 +25,12 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true,useUnifiedTopology: true },
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_kit'
 			  };
 			  resolve(fileInfo);
-			});
 		  });
 		}
 	  });
@@ -47,17 +41,15 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
 			  };
+			  const idCampaign = req.params.idCampaign
+			  gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			  resolve(fileInfo);
-			});
+
 		  });
 		}
 	  });
