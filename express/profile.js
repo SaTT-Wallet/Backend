@@ -3,7 +3,6 @@ module.exports = function (app) {
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
-	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const multer = require('multer');
@@ -16,19 +15,12 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
-
-			  const filename = file.originalname;
+              const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_legal'
 			  };
 			  resolve(fileInfo);
-
-			});
 		  });
 		}
 	  });
@@ -41,17 +33,16 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_files'
 			  };
-			  resolve(fileInfo);
-			});
+		  let token = req.headers["authorization"].split(" ")[1];
+		  const auth = app.crm.auth(token);
+		  const idNode =  auth.id;
+          gfsprofilePic.files.findOneAndDelete({'user.$id':idNode});
+		  resolve(fileInfo);			  
 		  });
 		}
 	  });
@@ -123,15 +114,15 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			if(req.file){
-				gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
+				gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
 					"$id": auth.id, 
 					"$db": "atayen"
 				 }} })
 				 
-				res.send(JSON.stringify('saved')).status(200);
+				res.send(JSON.stringify({message :'Saved'})).status(200);
 				} 
-			res.send(JSON.stringify('Only images allowed')).status(200);
+			res.send(JSON.stringify({message :'Only images allowed'})).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
@@ -181,6 +172,43 @@ module.exports = function (app) {
 		
 
 	})
+
+
+
+
+    /*
+     @link : /profile/userLegal/:id
+     @description: displaying userlegal images
+     @Input : id = file Id
+     @Output:image
+     */
+	app.get('/profile/userLegal/:id', async (req, res) => {
+		try{ 
+		   const token = req.headers["authorization"].split(" ")[1];
+		   await app.crm.auth(token);     
+		   const userLegal = req.params.id
+		   gfsUserLegal.files.findOne({ _id:app.ObjectId(userLegal)}  , (err, file) => {
+			   if (!file || file.length === 0) {
+				 return res.status(404).json({
+				   err: 'No file exists'
+				 });
+			   }
+			   else {			 
+					res.writeHead(200, {
+						'Content-Type': 'image/jpg' ,
+						'Content-Length': file.length,
+						'Content-Disposition': `attachment; filename=${file.filename}`
+					});				   			 
+				 const readstream = gfsUserLegal.createReadStream(file.filename);
+				 readstream.pipe(res);
+			   } 
+			 });
+			
+		   }catch (err) {
+			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		   }
+
+   })
 
 	/*
      @link : /notifications?page=param&limit=param
@@ -238,21 +266,21 @@ module.exports = function (app) {
          if(req.body.type && req.file){
             gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
-				"$id": auth.id, 
+				"$id": app.ObjectId(auth.id), 
 				"$db": "atayen"
 			 }, validate : false, type : req.body.type} })
 			  let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:JSON.stringify([{'type':legal.type, 'date': date}]), 
+				  label:JSON.stringify([{'type':req.body.type, 'date': date}]), 
 				  isSeen:false,
 				  attachedEls:{
 					  id:req.file.id
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end(JSON.stringify('legal processed')).status(201);
+			  res.end(JSON.stringify({message :'legal proceessed'})).status(201);
 		 }
 		 res.end('No file found').status(201);
 		}catch (err) {
@@ -328,7 +356,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			elem.isSend = false;
 			app.db.notification().save(elem)
 		})
-		res.send(JSON.stringify('notificatons clicked')).status(200);
+		res.send(JSON.stringify({message :'Notification clicked'})).status(200);
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}

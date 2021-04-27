@@ -7,7 +7,6 @@ module.exports = function (app) {
 	var request = require('request');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
-	const crypto = require('crypto');
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const path = require('path');
@@ -25,17 +24,12 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true,useUnifiedTopology: true },
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_kit'
 			  };
 			  resolve(fileInfo);
-			});
 		  });
 		}
 	  });
@@ -46,24 +40,22 @@ module.exports = function (app) {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			crypto.randomBytes(16, (err, buf) => {
-			  if (err) {
-				return reject(err);
-			  }
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
 			  };
+			  const idCampaign = req.params.idCampaign
+			  gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			  resolve(fileInfo);
-			});
+
 		  });
 		}
 	  });
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
-	  const upload = multer({ storage });
+	  const upload = multer({ storage }).single('file');
 
 
     app.set("view engine", "ejs");
@@ -1104,7 +1096,7 @@ module.exports = function (app) {
             await app.crm.auth(token);
 			const idKit = req.params.idKit
 			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
-				res.send(JSON.stringify('Deleted'))
+				res.send(JSON.stringify({message :'deleted'}))
 			})
 
 	  } catch (err) {
@@ -1126,7 +1118,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
-			res.end(JSON.stringify("Draft deleted")).status(200);
+			res.end(JSON.stringify({message :'Draft deleted'})).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
@@ -1138,29 +1130,28 @@ module.exports = function (app) {
      @params:
      idCampaign : identifiant de la campaign req.body.campaign
      */
-	app.post('/addKit', upload.single('file'), async(req, res) => {
+	app.post('/addKit', upload, async(req, res) => {
 		try {
-		 let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode = "0" + auth.id;
+		let token = req.headers["authorization"].split(" ")[1];
+        await app.crm.auth(token);
 		const idCampaign = req.body.campaign
 		const link = req.body.link
 		if(req.file){
-			 gfsKit.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
 			"$ref": "campaign",
 			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
 		 }} })
-		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
+		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		} if(req.body.link){
 		   gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }, link : link })
-			 res.send('Kit uploaded').status(200);
+			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		}
-		res.send('No matching data').status(401);	
+		res.send({message :'No matching data'}).status(401);	
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1169,7 +1160,7 @@ module.exports = function (app) {
 
 
 
-/*
+	/*
      @link : /addKits
      @description: saving user kits & links
      @params:
@@ -1179,8 +1170,7 @@ module.exports = function (app) {
 		try {
 		
 		let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode = "0" + auth.id;
+        await app.crm.auth(token);
 		files=req.files;
 		links=req.body.link;
 		const idCampaign = req.body.campaign
@@ -1245,7 +1235,7 @@ module.exports = function (app) {
 		    const campaign = req.body
 		    campaign.idNode = "0" + auth.id
 			app.db.campaignCrm().insertOne(campaign);
-			res.end(JSON.stringify("creation succeed")).status(200);
+			res.end(JSON.stringify({message :'Campaign succeeded'})).status(200);
 
 		} catch (err) {
 			res.end(JSON.stringify(err));
@@ -1266,7 +1256,7 @@ module.exports = function (app) {
 			await app.crm.auth(token);
 			const campain = req.params.idCampaign
 			gfs.files.findOneAndDelete({ 'campaign.$id': app.ObjectId(campain) },(err, data)=>{
-				res.send(JSON.stringify('delete'))
+				res.send(JSON.stringify({message :'delete'}))
 			})
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
@@ -1340,12 +1330,12 @@ module.exports = function (app) {
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify("Cover added")).status(200);
+			res.json(JSON.stringify({message :'Cover added'})).status(200);
 			  } else{
 				  res.status(401).send(JSON.stringify('Only images allowed'));
 			  }		
 			}
-			res.send(JSON.stringify('No matching file found')).status(401);
+			res.send(JSON.stringify({message :'No matchig file found'})).status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
@@ -1545,7 +1535,7 @@ console.log(Links)
 				sattPrice$ = body.SATT.price;
 			})
 
-            await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
+           await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
 				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
 			})
 			let totalEarned = Number((total * sattPrice$).toFixed(2));
