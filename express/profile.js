@@ -41,7 +41,7 @@ module.exports = function (app) {
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = app.crm.auth(token);
 		  const idNode =  auth.id;
-          gfsprofilePic.files.findOneAndDelete({'user.$id':idNode})
+          gfsprofilePic.files.findOneAndDelete({'user.$id':idNode});
 		  resolve(fileInfo);			  
 		  });
 		}
