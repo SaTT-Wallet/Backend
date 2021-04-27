@@ -975,7 +975,7 @@ module.exports = function (app) {
 			 }, link : link })
 			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		}
-		res.send('No matching data').status(401);	
+		res.send({message :'No matching data'}).status(401);	
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
