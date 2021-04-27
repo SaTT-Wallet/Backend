@@ -193,14 +193,25 @@ module.exports = function (app) {
 				   err: 'No file exists'
 				 });
 			   }
-			   else {			 
+			   else {
+				   if(file.contentType == "application/pdf" || file.mimeType == "application/pdf"){
 					res.writeHead(200, {
-						'Content-Type': 'image/jpg' ,
+						'Content-type': 'application/pdf',
+						'Content-Length': file.length,
+						'Content-Disposition': `attachment; filename=${file.filename}`
+					});
+					const readstream = gfsUserLegal.createReadStream(file.filename);
+				      readstream.pipe(res);
+				   }	else{
+	                res.writeHead(200, {
+						'Content-Type': file.mimeType ,
 						'Content-Length': file.length,
 						'Content-Disposition': `attachment; filename=${file.filename}`
 					});				   			 
 				 const readstream = gfsUserLegal.createReadStream(file.filename);
 				 readstream.pipe(res);
+				   }		 
+				
 			   } 
 			 });
 			
@@ -268,7 +279,7 @@ module.exports = function (app) {
 				"$ref": "sn_user",
 				"$id": app.ObjectId(auth.id), 
 				"$db": "atayen"
-			 }, validate : false, type : req.body.type} })
+			 }, validate : false, type : req.body.type, mimeType : req.file.contentType} })
 			  let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
@@ -280,9 +291,8 @@ module.exports = function (app) {
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end(JSON.stringify({message :'legal proceessed'})).status(201);
+			  res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
-		 res.end('No file found').status(201);
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
