@@ -1146,14 +1146,14 @@ module.exports = function (app) {
 		const idCampaign = req.body.campaign
 		const link = req.body.link
 		if(req.file){
-			gfsKit.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+			 gfsKit.files.updateMany({ _id: req.file.id },{$set: { campaign : {
 			"$ref": "campaign",
 			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
 		 }} })
-		 res.send('Kit uploaded').status(200);
+		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
 		} if(req.body.link){
-		  gfsKit.files.insert({ campaign : {
+		   gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
@@ -1165,6 +1165,51 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
 	
+
+
+
+
+/*
+     @link : /addKits
+     @description: saving user kits & links
+     @params:
+     idCampaign : identifiant de la campaign req.body.campaign
+     */
+	 app.post('/addKits', upload.array('file'), async(req, res) => {		
+		try {
+		
+		let token = req.headers["authorization"].split(" ")[1];
+        const auth = await app.crm.auth(token);
+		const idNode = "0" + auth.id;
+		files=req.files;
+		links=req.body.link;
+		const idCampaign = req.body.campaign
+		if(files){
+				files.forEach((file)=>{
+					gfsKit.files.updateOne({ _id: file.id },{$set: { campaign : {
+						"$ref": "campaign",
+						"$id": app.ObjectId(idCampaign), 
+						"$db": "atayen"
+					 }} })
+				})
+		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
+		} if(links){
+				links.forEach((link)=>{
+					 gfsKit.files.insertOne({ campaign : {
+					"$ref": "campaign",
+					"$id": app.ObjectId(idCampaign), 
+					"$db": "atayen"
+			 		}, link : link })
+				})
+		  
+			 res.send('Kit uploaded').status(200);
+		}
+		res.send('No matching data').status(401);	
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+	  });
+
+
 	/*
      @link : /campaign/:idCampaign/kits
      @description: récupere les kits d'un campaign
