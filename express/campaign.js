@@ -956,9 +956,8 @@ module.exports = function (app) {
      */
 	app.post('/addKit', upload, async(req, res) => {
 		try {
-		 let token = req.headers["authorization"].split(" ")[1];
-        const auth = await app.crm.auth(token);
-		const idNode = "0" + auth.id;
+		let token = req.headers["authorization"].split(" ")[1];
+        await app.crm.auth(token);
 		const idCampaign = req.body.campaign
 		const link = req.body.link
 		if(req.file){
@@ -1316,11 +1315,11 @@ console.log(Links)
 				sattPrice$ = body.SATT.price;
 			})
 
-           const subscriptions = await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
+           await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
 				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
 			})
 			let totalEarned = Number((total * sattPrice$).toFixed(2));
-			const result = {SattEarned : total, USDEarned : totalEarned, subscriptions : subscriptions.length};
+			const result = {SattEarned : total, USDEarned : totalEarned};
 			res.send(JSON.stringify(result)).status(200);
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
