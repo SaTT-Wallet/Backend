@@ -920,7 +920,7 @@ module.exports = function (app) {
             await app.crm.auth(token);
 			const idKit = req.params.idKit
 			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
-				res.send(JSON.stringify('Deleted'))
+				res.send(JSON.stringify({message :'deleted'}))
 			})
 
 	  } catch (err) {
@@ -942,7 +942,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
-			res.end(JSON.stringify("Draft deleted")).status(200);
+			res.end(JSON.stringify({message :'Draft deleted'})).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
@@ -961,19 +961,19 @@ module.exports = function (app) {
 		const idCampaign = req.body.campaign
 		const link = req.body.link
 		if(req.file){
-			gfsKit.files.updateMany({ _id: req.file.id },{$set: { campaign : {
+			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
 			"$ref": "campaign",
 			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
 		 }} })
-		 res.send(JSON.stringify('Kit uploaded')).status(200);
+		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		} if(req.body.link){
-		  gfsKit.files.insert({ campaign : {
+		   gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }, link : link })
-			 res.send(JSON.stringify('Kit uploaded')).status(200);
+			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		}
 		res.send('No matching data').status(401);	
 		} catch (err) {
@@ -1015,7 +1015,7 @@ module.exports = function (app) {
 		    const campaign = req.body
 		    campaign.idNode = "0" + auth.id
 			app.db.campaignCrm().insertOne(campaign);
-			res.end(JSON.stringify("creation succeed")).status(200);
+			res.end(JSON.stringify({message :'Campaign succeeded'})).status(200);
 
 		} catch (err) {
 			res.end(JSON.stringify(err));
@@ -1036,7 +1036,7 @@ module.exports = function (app) {
 			await app.crm.auth(token);
 			const campain = req.params.idCampaign
 			gfs.files.findOneAndDelete({ 'campaign.$id': app.ObjectId(campain) },(err, data)=>{
-				res.send(JSON.stringify('delete'))
+				res.send(JSON.stringify({message :'delete'}))
 			})
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
@@ -1110,12 +1110,12 @@ module.exports = function (app) {
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify("Cover added")).status(200);
+			res.json(JSON.stringify({message :'Cover added'})).status(200);
 			  } else{
 				  res.status(401).send(JSON.stringify('Only images allowed'));
 			  }		
 			}
-			res.send(JSON.stringify('No matching file found')).status(401);
+			res.send(JSON.stringify({message :'No matchig file found'})).status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	

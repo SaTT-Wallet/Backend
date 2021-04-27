@@ -114,15 +114,15 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			if(req.file){
-				gfsprofilePic.files.updateMany({ _id: req.file.id },{$set: { user : {
+				gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
 					"$id": auth.id, 
 					"$db": "atayen"
 				 }} })
 				 
-				res.send(JSON.stringify('saved')).status(200);
+				res.send(JSON.stringify({message :'Saved'})).status(200);
 				} 
-			res.send(JSON.stringify('Only images allowed')).status(200);
+			res.send(JSON.stringify({message :'Only images allowed'})).status(200);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
@@ -193,12 +193,12 @@ module.exports = function (app) {
 				   err: 'No file exists'
 				 });
 			   }
-			   else {
-				 res.writeHead(200, {
-									   'Content-Type': 'image/png' ,
-									   'Content-Length': file.length,
-									   'Content-Disposition': `attachment; filename=${file.filename}`
-								   });
+			   else {			 
+					res.writeHead(200, {
+						'Content-Type': 'image/jpg' ,
+						'Content-Length': file.length,
+						'Content-Disposition': `attachment; filename=${file.filename}`
+					});				   			 
 				 const readstream = gfsUserLegal.createReadStream(file.filename);
 				 readstream.pipe(res);
 			   } 
@@ -280,7 +280,7 @@ module.exports = function (app) {
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end(JSON.stringify('legal processed')).status(201);
+			  res.end(JSON.stringify({message :'legal proceessed'})).status(201);
 		 }
 		 res.end('No file found').status(201);
 		}catch (err) {
@@ -356,7 +356,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			elem.isSend = false;
 			app.db.notification().save(elem)
 		})
-		res.send(JSON.stringify('notificatons clicked')).status(200);
+		res.send(JSON.stringify({message :'Notification clicked'})).status(200);
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	}
