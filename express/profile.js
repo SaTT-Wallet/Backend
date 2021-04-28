@@ -133,7 +133,7 @@ module.exports = function (app) {
      @link : /profile/userLegal?page='param'&limit='param'
      @description: get user legal
      @Input:headers
-     @Output:Object
+     @Output:Array of user legal
      */
 	app.get('/profile/userLegal', async(req, res)=>{
 		try{
@@ -214,7 +214,7 @@ module.exports = function (app) {
      @link : /notifications?page=param&limit=param
      @description: get all notifications
      @Input:headers
-     @Output:Object
+     @Output:Array of notifications
      */
 	  app.get('/notifications',async(req, res)=>{
 		  try{
