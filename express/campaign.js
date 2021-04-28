@@ -44,8 +44,6 @@ module.exports = function (app) {
 				filename: filename,
 				bucketName: 'campaign_cover'
 			  };			  
-			  const idCampaign = req.params.idCampaign;			  
-			  gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			  resolve(fileInfo);
 
 		  });
@@ -1182,16 +1180,13 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-              if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
-			 gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
+			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify({message :'Cover added'})).status(200);
-			  } else{
-				  res.status(401).send(JSON.stringify({message :'Only images allowed'}));
-			  }		
+			res.json(JSON.stringify({message :'Cover added'})).status(200);		
 			}
 			res.send(JSON.stringify({message :'No matching file found'})).status(404);
 		} catch (err) {
