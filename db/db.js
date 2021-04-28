@@ -57,9 +57,6 @@ module.exports = async function (app) {
 
             return db.db(app.config.mongoBaseCrm).collection("campaign_kit");
         };
-        app.db.userFiles = function () {
-            return db.db(app.config.mongoBaseCrm).collection("user_files");
-        };
 		app.db.notification = function () {
             return db.db(app.config.mongoBaseCrm).collection("notification");
         };
