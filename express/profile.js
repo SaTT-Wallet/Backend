@@ -80,7 +80,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth= await app.crm.auth(token);     
 			const idUser = +auth.id;
-			gfsprofilePic.files.findOne({ 'user.$id':idUser}  , (err, file) => {
+			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
 					err: 'No file exists'
@@ -193,14 +193,19 @@ module.exports = function (app) {
 				   err: 'No file exists'
 				 });
 			   }
-			   else {			 
+			   else {
+				   if(file.contentType){
+					   contentType = file.contentType
+				   }else{
+					   contentType=file.mimeType
+				   }
 					res.writeHead(200, {
-						'Content-Type': 'image/jpg' ,
+						'Content-type': contentType,
 						'Content-Length': file.length,
 						'Content-Disposition': `attachment; filename=${file.filename}`
-					});				   			 
-				 const readstream = gfsUserLegal.createReadStream(file.filename);
-				 readstream.pipe(res);
+					});
+					const readstream = gfsUserLegal.createReadStream(file.filename);
+				      readstream.pipe(res);			   		 		
 			   } 
 			 });
 			
@@ -280,9 +285,8 @@ module.exports = function (app) {
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end(JSON.stringify({message :'legal proceessed'})).status(201);
+			  res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
-		 res.end('No file found').status(201);
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
