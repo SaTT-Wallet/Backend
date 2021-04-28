@@ -80,7 +80,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth= await app.crm.auth(token);     
 			const idUser = +auth.id;
-			gfsprofilePic.files.findOne({ 'user.$id':idUser}  , (err, file) => {
+			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
 					err: 'No file exists'
@@ -194,24 +194,18 @@ module.exports = function (app) {
 				 });
 			   }
 			   else {
-				   if(file.contentType == "application/pdf" || file.mimeType == "application/pdf"){
+				   if(file.contentType){
+					   contentType = file.contentType
+				   }else{
+					   contentType=file.mimeType
+				   }
 					res.writeHead(200, {
-						'Content-type': 'application/pdf',
+						'Content-type': contentType,
 						'Content-Length': file.length,
 						'Content-Disposition': `attachment; filename=${file.filename}`
 					});
 					const readstream = gfsUserLegal.createReadStream(file.filename);
-				      readstream.pipe(res);
-				   }	else{
-	                res.writeHead(200, {
-						'Content-Type': file.mimeType ,
-						'Content-Length': file.length,
-						'Content-Disposition': `attachment; filename=${file.filename}`
-					});				   			 
-				 const readstream = gfsUserLegal.createReadStream(file.filename);
-				 readstream.pipe(res);
-				   }		 
-				
+				      readstream.pipe(res);			   		 		
 			   } 
 			 });
 			
@@ -279,7 +273,7 @@ module.exports = function (app) {
 				"$ref": "sn_user",
 				"$id": app.ObjectId(auth.id), 
 				"$db": "atayen"
-			 }, validate : false, type : req.body.type, mimeType : req.file.contentType} })
+			 }, validate : false, type : req.body.type} })
 			  let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
