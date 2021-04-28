@@ -36,7 +36,7 @@ module.exports = function (app) {
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
-				bucketName: 'user_files'
+				bucketName: 'user_file'
 			  };
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = app.crm.auth(token);
@@ -52,7 +52,7 @@ module.exports = function (app) {
 	  let gfsUserLegal;
 	  conn.once('open', () => {
 		gfsprofilePic = Grid(conn.db, mongoose.mongo);
-		gfsprofilePic.collection('user_files');
+		gfsprofilePic.collection('user_file');
 		gfsUserLegal = Grid(conn.db, mongoose.mongo);
 		gfsUserLegal.collection('user_legal');
 
