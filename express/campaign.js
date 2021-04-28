@@ -43,8 +43,8 @@ module.exports = function (app) {
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
-			  };
-			  const idCampaign = req.params.idCampaign
+			  };			  
+			  const idCampaign = req.params.idCampaign;			  
 			  gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			  resolve(fileInfo);
 
@@ -1019,7 +1019,7 @@ module.exports = function (app) {
 
 
 	     /*
-     @link : /profile/:id
+     @link : /kit/:id
      @description: displaying kit image 
      @Input : id = file Id
      @Output:image
@@ -1183,7 +1183,7 @@ module.exports = function (app) {
 			await app.crm.auth( token);
 			if(req.file){
               if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
-				  gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
+			 gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
