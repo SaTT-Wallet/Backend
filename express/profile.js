@@ -9,6 +9,17 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
 	const mongoURI = app.config.mongoURI;
+
+	const conn=mongoose.createConnection(mongoURI);
+	let gfsprofilePic;
+	let gfsUserLegal;
+	conn.once('open', () => {
+	  gfsprofilePic = Grid(conn.db, mongoose.mongo);
+	  gfsprofilePic.collection('user_file');
+	  gfsUserLegal = Grid(conn.db, mongoose.mongo);
+	  gfsUserLegal.collection('user_legal');
+
+	});
 	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
@@ -37,26 +48,13 @@ module.exports = function (app) {
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_file'
-			  };
-		  let token = req.headers["authorization"].split(" ")[1];
-		  const auth = app.crm.auth(token);
-		  const idNode =  auth.id;
-          gfsprofilePic.files.findOneAndDelete({'user.$id':idNode});
+			  };    
 		  resolve(fileInfo);			  
 		  });
 		}
 	  });
 
-      const conn=mongoose.createConnection(mongoURI);
-	  let gfsprofilePic;
-	  let gfsUserLegal;
-	  conn.once('open', () => {
-		gfsprofilePic = Grid(conn.db, mongoose.mongo);
-		gfsprofilePic.collection('user_file');
-		gfsUserLegal = Grid(conn.db, mongoose.mongo);
-		gfsUserLegal.collection('user_legal');
-
-	  });
+     
 	   const uploadUserLegal =  multer({storage : storageUserLegal})
        const uploadImageProfile =  multer({storage : storageProfilePic})
 
@@ -114,13 +112,13 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			if(req.file){
-				gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
+				await gfsprofilePic.files.findOneAndDelete({'user.$id': auth.id});
+			    await gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
 					"$id": auth.id, 
 					"$db": "atayen"
-				 }} })
-				 
-				res.send(JSON.stringify({message :'Saved'})).status(200);
+				 }} })			 
+     			res.send(JSON.stringify({message :'Saved'})).status(200);
 				} 
 			res.send(JSON.stringify({message :'Only images allowed'})).status(200);
 		} catch (err) {
