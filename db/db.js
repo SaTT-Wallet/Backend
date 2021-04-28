@@ -63,6 +63,9 @@ module.exports = async function (app) {
 		app.db.notification = function () {
             return db.db(app.config.mongoBaseCrm).collection("notification");
         };
+		app.db.CampaignLinkStatistic = function () {
+            return db.db(app.config.mongoBase).collection("campaign_link_statistic");
+        };
 		app.db.UserLegal = function () {
             return db.db(app.config.mongoBaseCrm).collection("user_legal");
         };
