@@ -3,7 +3,7 @@ module.exports = function (app) {
 	var ObjectId = require('mongodb').ObjectId; 
 	var fs = require('fs');
 	var mongoose = require('mongoose');
-
+	var request = require('request');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const Grid = require('gridfs-stream');
@@ -11,8 +11,6 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
-	const sharp = require('sharp')
-	const request = require('request')
 	const mongoURI = app.config.mongoURI;
    
 	
@@ -56,7 +54,7 @@ module.exports = function (app) {
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
-	  const upload = multer({ storage }).single('file');
+	  const upload = multer({ storage });
 
 
     app.set("view engine", "ejs");
@@ -149,7 +147,7 @@ module.exports = function (app) {
 		   let link=req.body.link
 		   let campaign={}
 		   let date;
-		var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
+			var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
 			   campaign.owner=result.idNode
                campaign.title=result.title
 			   campaign.hash=result.hash
@@ -954,7 +952,7 @@ module.exports = function (app) {
      @params:
      idCampaign : identifiant de la campaign req.body.campaign
      */
-	app.post('/addKit', upload, async(req, res) => {
+	app.post('/addKit', upload.single('file'), async(req, res) => {
 		try {
 		let token = req.headers["authorization"].split(" ")[1];
         await app.crm.auth(token);
@@ -979,7 +977,87 @@ module.exports = function (app) {
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
-	
+
+
+	/*
+     @link : /addKits
+     @description: saving user kits & links
+     @params:
+     idCampaign : identifiant de la campaign req.body.campaign
+     */
+	 app.post('/addKits', upload.array('file'), async(req, res) => {		
+		try {
+		let token = req.headers["authorization"].split(" ")[1];
+        await app.crm.auth(token);
+		files=req.files;
+		links=req.body.link;
+		const idCampaign = req.body.campaign
+		if(files){
+				files.forEach((file)=>{
+					gfsKit.files.updateOne({ _id: file.id },{$set: { campaign : {
+						"$ref": "campaign",
+						"$id": app.ObjectId(idCampaign), 
+						"$db": "atayen"
+					 }} })
+				})
+		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
+		} if(links){
+				links.forEach((link)=>{
+					 gfsKit.files.insertOne({ campaign : {
+					"$ref": "campaign",
+					"$id": app.ObjectId(idCampaign), 
+					"$db": "atayen"
+			 		}, link : link })
+				})
+		  
+			 res.send('Kit uploaded').status(200);
+		}
+		res.send('No matching data').status(401);	
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+	  });
+
+
+	     /*
+     @link : /profile/:id
+     @description: displaying kit image 
+     @Input : id = file Id
+     @Output:image
+     */
+	app.get('/kit/:id', async (req, res) => {
+		try{ 
+		   const token = req.headers["authorization"].split(" ")[1];
+		   await app.crm.auth(token);     
+		   const kit = req.params.id
+		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
+			   if (!file || file.length === 0) {
+				 return res.status(404).json({
+				   err: 'No file exists'
+				 });
+			   }
+			   else {
+				if(file.contentType){
+					contentType = file.contentType
+				}else{
+					contentType=file.mimeType
+				}			 
+					res.writeHead(200, {
+						'Content-Type': contentType ,
+						'Content-Length': file.length,
+						'Content-Disposition': `attachment; filename=${file.filename}`
+					});				   			 
+				 const readstream = gfsKit.createReadStream(file.filename);
+				 readstream.pipe(res);
+			   } 
+			 });
+			
+		   }catch (err) {
+			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		   }
+
+   })
+
+
 	/*
      @link : /campaign/:idCampaign/kits
      @description: récupere les kits d'un campaign
