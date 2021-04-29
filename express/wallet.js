@@ -14,24 +14,45 @@ module.exports = function (app) {
 	// 	console.log('running a task every minute');
 	//   });
 
-    //  const BalanceUsersStats = async ()=>{
+     const BalanceUsersStats = async (condition)=>{
+		let date = Math.round(new Date().getTime()/1000);
+        await app.db.sn_user().find({userSatt : true}).forEach(async user => {
+			var options = {
+				url: app.config.baseUrl+'/v2/total_balance/'+user._id,
+				method: 'GET',
+				json: true
+			  };
+			var Balance = await rp(options);
+            user.Balance={ daily : [], weekly :[],monthly:[]}
+			let userDays = user.Balance.daily;
+			let userWeeks = user.Balance.weekly;
+			let usermonthly = user.Balance.monthly;
+			if(condition === "daily"){
+             userDays.unshift({Balance, date})
+			if(userDays.length > 7){ 
+				userDays.pop();
+			}
+			app.db.sn_user().save(user);
 
-    //     await app.db.sn_user().find({userSatt : true}).forEach(user => {
-        
-
-
-	//     })
-       
-    //  sattUsers.forEach(user=>{
-    //   for(let i = 0; i < addresses.length;i++){
-    //     if(user._id === addresses[i].UserId){
-    //       user.address = addresses[i].address
-	// 	  app.db.sn_user().save(user)
-	// 	}
-	//   }
-	//  })
-
-	//   }
+			}
+			if(condition === "weekly"){
+				userWeeks.unshift({Balance, date})
+			   if(userWeeks.length > 7){ 
+				userWeeks.pop();
+			   }
+			   app.db.sn_user().save(user);
+			   }
+			   if(condition === "monthly"){
+				usermonthly.unshift({Balance, date})
+			   if(usermonthly.length > 7){ 
+				usermonthly.pop();
+			   }
+			   app.db.sn_user().save(user);
+   
+			   }
+	    })
+    
+	  }
 
 	  app.get('/v2/total_balance/:idUser', async function(req, response) {
 		const Fetch_crypto_price = {
@@ -42,7 +63,7 @@ module.exports = function (app) {
 		  };
 		try {
 			var token_info=app.config.Tokens
-			delete token_info['SATT']
+			delete token_info['SATT'] 
 			delete token_info['BNB']
             const idUser = +req.params.idUser
 			var CryptoPrices = await rp(Fetch_crypto_price);

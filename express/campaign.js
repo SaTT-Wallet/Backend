@@ -1387,12 +1387,12 @@ console.log(Links)
 			await sattPrice().then((body) => {
 				sattPrice$ = body.SATT.price;
 			})
-
-           await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
+           const subscriptions = await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).toArray()
+           subscriptions.forEach(elem=>{
 				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
 			})
 			let totalEarned = Number((total * sattPrice$).toFixed(2));
-			const result = {SattEarned : total, USDEarned : totalEarned};
+			const result = {SattEarned : total, USDEarned : totalEarned, subscriptions : subscriptions.length};
 			res.send(JSON.stringify(result)).status(200);
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
