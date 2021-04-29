@@ -44,15 +44,15 @@ module.exports = function (app) {
 			var token_info=app.config.Tokens
 			delete token_info['SATT']
 			delete token_info['BNB']
-
+            const idUser = +req.params.idUser
 			var CryptoPrices = await rp(Fetch_crypto_price);
-			var count = await app.account.hasAccount(req.params.idUser);
+			var count = await app.account.hasAccount(idUser);
 			var ret = {err:"no_account"};
 			var Total_balance=0
 
 			if(count)
 			{
-				var ret = await app.account.getAccount(req.params.idUser)
+				var ret = await app.account.getAccount(idUser)
 				delete ret.btc
 				delete ret.version
 			}else{
