@@ -467,6 +467,26 @@ module.exports = function (app) {
 		response.end(JSON.stringify(campaigns));
 	})
 
+/*
+	@url : campaign/OneDraft/:id
+	@description: get One draft for user
+	@params:
+    id : draft id
+	{headers}
+	@Output JSON object 
+	*/
+	app.get('/campaign/OneDraft/:id', async (req,res)=>{
+		try {
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const idNode="0"+auth.id;
+		const campaign = await app.db.campaignCrm().findOne({_id: app.ObjectId(req.params.id),idNode:idNode,hash:{ $exists: false}});
+		res.end(JSON.stringify(campaign));
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+	})
+
 	app.get('/campaign/:id/proms', async function(req, response) {
 
 		var idCampaign = req.params.id;

@@ -1,5 +1,6 @@
 const { async } = require('hasha');
 var Big = require('big.js');
+var request = require('request');
 
 module.exports = function (app) {
 
@@ -10,23 +11,44 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	// cron.schedule('* * * * *', function() {
+	// cron.schedule('*/2 * * * *', function() {
 	// 	console.log('running a task every minute');
+	// 	BalanceUsersStats("daily")
 	//   });
 
      const BalanceUsersStats = async (condition)=>{
+		 try{
+
+		 
 		let date = Math.round(new Date().getTime()/1000);
+        
+
         await app.db.sn_user().find({userSatt : true}).forEach(async user => {
-			var options = {
-				url: app.config.baseUrl+'/v2/total_balance/'+user._id,
-				method: 'GET',
-				json: true
-			  };
-			var Balance = await rp(options);
-            user.Balance={ daily : [], weekly :[],monthly:[]}
+			console.log(user)
+        let Balance;
+			const BalanceByUser = () => {
+				return new Promise((resolve, reject) => {
+					var options = {
+						url: app.config.baseUrl+'v2/total_balance/'+2005000,
+						method: 'GET',
+						json: true
+					  };
+				request.get(options, function(error, res, body) {
+				if(error) reject(error);
+				resolve(body);
+				});
+				});	
+				}
+               
+				await BalanceByUser().then((body) => {
+					Balance=body;
+                     console.log(body)
+					user.balance={ daily : [], weekly :[],monthly:[]}
 			let userDays = user.Balance.daily;
 			let userWeeks = user.Balance.weekly;
 			let usermonthly = user.Balance.monthly;
+			console.log(user, "user")
+			console.log(Balance)
 			if(condition === "daily"){
              userDays.unshift({Balance, date})
 			if(userDays.length > 7){ 
@@ -50,8 +72,29 @@ module.exports = function (app) {
 			   app.db.sn_user().save(user);
    
 			   }
+					})
+
+			// var options = {
+			// 	url: app.config.baseUrl+'/v2/total_balance/'+user._id,
+			// 	method: 'GET',
+			// 	json: true
+			//   };
+			// var Balance = await rp(options);
+
+			// var options = {
+			// 	url: 'https://3xchange.io/prices',
+			// 	method: 'GET',
+			// 	json: true
+			//   };
+			//   const x= await rp(options);
+            //   console.log(x)
+
+            
 	    })
     
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
 	  }
 
 	  app.get('/v2/total_balance/:idUser', async function(req, response) {
@@ -63,7 +106,7 @@ module.exports = function (app) {
 		  };
 		try {
 			var token_info=app.config.Tokens
-			delete token_info['SATT'] 
+			delete token_info['SATT']
 			delete token_info['BNB']
             const idUser = +req.params.idUser
 			var CryptoPrices = await rp(Fetch_crypto_price);
