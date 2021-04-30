@@ -1,6 +1,6 @@
 const { async } = require('hasha');
 var Big = require('big.js');
-var request = require('request');
+var request = require('request').defaults({strictSSL: false});
 
 module.exports = function (app) {
 
@@ -11,91 +11,7 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	// cron.schedule('*/2 * * * *', function() {
-	// 	console.log('running a task every minute');
-	// 	BalanceUsersStats("daily")
-	//   });
 
-     const BalanceUsersStats = async (condition)=>{
-		 try{
-
-		 
-		let date = Math.round(new Date().getTime()/1000);
-        
-
-        await app.db.sn_user().find({userSatt : true}).forEach(async user => {
-			console.log(user)
-        let Balance;
-			const BalanceByUser = () => {
-				return new Promise((resolve, reject) => {
-					var options = {
-						url: app.config.baseUrl+'v2/total_balance/'+2005000,
-						method: 'GET',
-						json: true
-					  };
-				request.get(options, function(error, res, body) {
-				if(error) reject(error);
-				resolve(body);
-				});
-				});	
-				}
-               
-				await BalanceByUser().then((body) => {
-					Balance=body;
-                     console.log(body)
-					user.balance={ daily : [], weekly :[],monthly:[]}
-			let userDays = user.Balance.daily;
-			let userWeeks = user.Balance.weekly;
-			let usermonthly = user.Balance.monthly;
-			console.log(user, "user")
-			console.log(Balance)
-			if(condition === "daily"){
-             userDays.unshift({Balance, date})
-			if(userDays.length > 7){ 
-				userDays.pop();
-			}
-			app.db.sn_user().save(user);
-
-			}
-			if(condition === "weekly"){
-				userWeeks.unshift({Balance, date})
-			   if(userWeeks.length > 7){ 
-				userWeeks.pop();
-			   }
-			   app.db.sn_user().save(user);
-			   }
-			   if(condition === "monthly"){
-				usermonthly.unshift({Balance, date})
-			   if(usermonthly.length > 7){ 
-				usermonthly.pop();
-			   }
-			   app.db.sn_user().save(user);
-   
-			   }
-					})
-
-			// var options = {
-			// 	url: app.config.baseUrl+'/v2/total_balance/'+user._id,
-			// 	method: 'GET',
-			// 	json: true
-			//   };
-			// var Balance = await rp(options);
-
-			// var options = {
-			// 	url: 'https://3xchange.io/prices',
-			// 	method: 'GET',
-			// 	json: true
-			//   };
-			//   const x= await rp(options);
-            //   console.log(x)
-
-            
-	    })
-    
-	} catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-	}
-	  }
 
 	  app.get('/v2/total_balance/:idUser', async function(req, response) {
 		const Fetch_crypto_price = {
@@ -106,6 +22,7 @@ module.exports = function (app) {
 		  };
 		try {
 			var token_info=app.config.Tokens
+			console.log(token_info,'fdsfsdfsdfsdf');
 			delete token_info['SATT']
 			delete token_info['BNB']
             const idUser = +req.params.idUser
