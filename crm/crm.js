@@ -82,6 +82,7 @@ module.exports = async function (app) {
 					resolve(tokens[token]);
 					return;
 				}
+				console.log("token",token)
 				if(app.config.testnet) {
 					var UserId = 9999999999;
 					tokens[token] = {id:UserId}
