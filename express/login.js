@@ -553,9 +553,13 @@ module.exports = function (app) {
 			UserId = AccessT['user_id']
 		  }
 		  var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
-  
-		  if(user){
-			res.end(JSON.stringify(user))
+		  var user_ =await app.db.sn_user().findOne({"_id":NumberLong(UserId)})
+		  if(user||user_){
+			if(user){
+			  res.end(JSON.stringify(user))
+			}else{
+			  res.end(JSON.stringify(user_))
+			}
 		  }
 		  else{
 			res.end(JSON.stringify({error:"user not found"}))
