@@ -1191,23 +1191,6 @@ app.get('/v2/sum', async function(req, response) {
 	}
 })
 
-	/*
-     @Url :/v2/account'
-     @description: get user data
-     @parameters => request_header :
-     authorization : acces token
-	 response: User data
-     */
-
-app.get('/v2/account', async function(req, response) {
-  try{
-      let authheader = req.headers['authorization'].split(" ")[1]
-      let user =await	app.db.user().findOne({'accessToken':authheader})
-      res.end(user)
-     }catch(err){
-	res.end(JSON.stringify(err))
-   }
-  })
 
   /*
      @Url :/v2/profile/update'

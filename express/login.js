@@ -7,16 +7,21 @@ module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use(bodyParser.urlencoded({ extended: false }));
 	app.use( bodyParser.json() )
-
+	var  ObjectID = require('mongodb').ObjectID
 	const crypto = require('crypto');
 	const hasha = require('hasha');
-
+	var handlebars = require('handlebars');
+	const fs = require('fs');
+	
 	var passport = require('passport');
+	var LocalStrategy = require('passport-local').Strategy;
 	var emailStrategy = require('passport-local').Strategy;
 	var FbStrategy = require('passport-facebook').Strategy;
 	var GoogleStrategy = require('passport-google-oauth20').Strategy;
 	var TwitterStrategy = require('passport-twitter').Strategy;
-	var TelegramStrategy = require('passport-telegram').Strategy;
+    var TelegramStrategy = require('passport-telegram').Strategy;
+
+    var bad_login_limit = 5;
 
 	var synfonyHash = function (pass) {
 		var salted = pass+"{"+app.config.symfonySalt+"}";
@@ -36,57 +41,108 @@ module.exports = function (app) {
 		return base64;
 	}
 
-	 passport.use(new emailStrategy({passReqToCallback: true},
-		async function(req,username, password, done) {
-		var date = Math.floor(Date.now()/1000)+86400;
-		var buff = Buffer.alloc(32);
-		var token = crypto.randomFillSync(buff).toString('hex');
-		var users = await app.db.sn_user().find({ email: username }).toArray();
-		//console.log(users)
-		if(users.length)
-		{
-			var user = users[0];
-			if(user.idSn != 0)
-			{
-				return done("email already used",null);
-			}
-			var res = await app.db.query("Select id,password from user where id='"+user._id+"' ");
-			if(res[0].password == synfonyHash(password))
-			{
-				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return done(null,{id:res[0].id,token:token,expires_in:date,noredirect:req.body.noredirect});
-			}
-			else
-				return done("auth failed",null);
-		}
-		else
-		{
+	passport.use( 'local_strategy',new LocalStrategy({passReqToCallback: true},
+		async function (req, username, password, done) {
+		  var date = Math.floor(Date.now() / 1000) + 86400;
+		  var buff = Buffer.alloc(32);
+	
+		  var token = crypto.randomFillSync(buff).toString('hex');
+		  var users = await app.db.sn_user().find({email: username}).toArray();
+	
+		  if (users.length) {
+			return done(null, false, {error: true, message: 'email_already_used'});
+		  } else {
 			var mongodate = new Date().toISOString();
 			var mydate = mongodate.slice(0, 19).replace('T', ' ');
 			var buff2 = Buffer.alloc(32);
 			var code = crypto.randomFillSync(buff2).toString('hex');
-			var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:username,email:username,password:synfonyHash(password),created:mydate,updated:mydate,confirmation_token:code,enabled:0});
-			var id = res_ins.insertId;
-			var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-			var insert = await app.db.sn_user().insertOne({ _id:id,email: username,created :mongodate,updated:mongodate,idSn:0,locale:"en","userSatt": true});
-
-			var mailOptions = {
-			  from: app.config.mailSender,
-			  to: username,
-			  subject: 'Satt wallet activation',
-			  html: '<a href="'+app.config.baseUrl+'auth/activate/'+id+"/"+code+'">Activate account</a>'
-			};
-			transporter.sendMail(mailOptions, function(error, info){
-			  if (error) {
-				console.log(error);
-			  } else {
-				console.log('Email sent: ' + info.response);
-			  }
+			var insert = await app.db.sn_user().insertOne({
+			  username: username,
+			  email: username,
+			  password: synfonyHash(password),
+			  created: mongodate,
+			  updated: mongodate,
+			  idSn: 0,
+			  locale: "en",
+			  enabled: 0,
+			  confirmation_token: code,
+			  "userSatt": true
 			});
-			return done(null,{id:id,token:token,expires_in:date,noredirect:req.body.noredirect});
-		};
-	  }
-	));
+			var users = await app.db.sn_user().find({email: username}).toArray();
+	
+			readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
+			  var template = handlebars.compile(html);
+			  var replacements = {
+				satt_url: appUrl,
+				validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
+			  };
+	
+			  var htmlToSend = template(replacements);
+			  var mailOptions = {
+				from: app.config.mailSender,
+				to: users[0].username,
+				subject: 'Satt wallet activation',
+				html: htmlToSend
+			  };
+			  transporter.sendMail(mailOptions, function (error, info) {
+				if (error) {
+				  console.log(error);
+				} else {
+				  console.log('Email sent: ' );
+				}
+			  });
+			});
+	
+			return done(null, {id: users[0]._id, token: token, expires_in: date, noredirect: req.body.noredirect});
+		  };
+		}
+	  ));
+	
+
+	  passport.use(new emailStrategy({passReqToCallback: true},
+		async function (req, username, password, done) {
+		  var date = Math.floor(Date.now() / 1000) + 86400;
+		  var buff = Buffer.alloc(32);
+		  var token = crypto.randomFillSync(buff).toString('hex');
+		  var users = await app.db.sn_user().find({email: username}).toArray();
+		  if (users.length) {
+			var user = users[0];
+			if (user.idSn != 0) {
+			  return done(null, false, {error: true, message: 'email_already_used'});
+			}
+			if (user.account_locked) {
+			  return done(null, false, {error: true, message: 'account_locked'});
+			}
+			var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
+			if (res.length && !user.password) {
+			  await app.db.sn_user().updateOne({_id: user._id}, {$set: {password: res[0].password}});
+			}
+			await app.db.sn_user().updateOne({_id: user._id}, {$set: {account_locked: false, failed_count: 0}});
+			if (user.password == synfonyHash(password)) {
+			  var oldToken = await app.db.accessToken().findOne({user_id: user._id});
+			  if (oldToken) {
+				var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+			  } else {
+				var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+			  }
+			  //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+			  return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
+			} else {
+			  var failed_count = user.failed_count? user.failed_count + 1 : 1;
+			  var account_locked = false
+			  if (failed_count >= bad_login_limit) {
+				account_locked = true
+			  }
+			  var update = await app.db.sn_user().updateOne({_id: user._id}, {$set: {account_locked: account_locked, failed_count: failed_count}});
+			  var users0 = await app.db.sn_user().find({_id: user._id}).toArray();
+			  let login_limit = bad_login_limit - failed_count;
+			  return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
+			}
+		  } else {
+			return done(null, false, {error: true, message: 'account_invalide'});
+		  }
+		}
+	  ));
 
 
 	passport.use(new FbStrategy({
@@ -181,54 +237,6 @@ module.exports = function (app) {
 		  }
 		}));
 
-		/*
-
-		passport.use(new TwitterStrategy({
-			consumerKey: app.config.twitterClientId,
-			consumerSecret: app.config.twitterClientSecret,
-			callbackURL: app.config.baseUrl+"callback/twitter"
-		  },
-		  async function(token, tokenSecret, profile, cb) {
-
-			 var date = Math.floor(Date.now()/1000)+86400;
-			var buff = Buffer.alloc(32);
-			var token = crypto.randomFillSync(buff).toString('hex');
-			var users = await app.db.sn_user().find({idOnSn:profile.id}).toArray()
-			if(users.length)
-			{
-				var user = users[0];
-				if(user.idSn != 3)
-				{
-					return done("email already used",null);
-				}
-				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-				return cb(null,{id:user._id,token:token,expires_in:date});
-			}
-			else {
-				var mongodate = new Date().toISOString();
-				var mydate = mongodate.slice(0, 19).replace('T', ' ');
-				var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:profile.email,email:profile.email,created:mydate,updated:mydate,enabled:1});
-				var id = res_ins.insertId;
-				var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-				var insert = await app.db.sn_user().insertOne({
-					_id:id,
-					idOnSn2:profile.id,
-					email: profile.email,
-					first_name:profile.given_name,
-					name:profile.family_name,
-					created :mongodate,
-					updated:mongodate,
-					idSn:3,
-					locale:profile.locale,
-					userSatt: true
-				});
-			return cb(null,{id:id,token:token,expires_in:date});
-		  }
-
-		  }
-		));
-		*/
-
 
 		passport.use(
 			new TelegramStrategy({
@@ -297,18 +305,37 @@ module.exports = function (app) {
 		}
 
 
+	app.post('/auth/signup', (req, res, next) => {
+		assport.authenticate('local_strategy',
+			(err, user, info) => {
+			if (err) {
+				return res.end(JSON.stringify(err))
+	       }
+			if (!user) {
+				return res.end(JSON.stringify(info))
+			}
+			req.logIn(user, function(err) {
+				var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user"};
+				return res.end(JSON.stringify(param))
+			});
+			})(req, res, next);
+		  });
 
-
-	app.post('/auth/email',passport.authenticate('local'), async function(req, response) {
-
-		var param = {"access_token":req.user.token,"expires_in":req.user.expires_in,"token_type":"bearer","scope":"user"};
-		if(req.user.noredirect)
-		{
-			response.end(JSON.stringify(param))
-		}
-		else {
-		response.redirect(app.config.walletUrl + "login?token=" + JSON.stringify(param))
-	}
+	  app.post('/auth/email', (req, res, next) => {
+		passport.authenticate('local',
+			(err, user, info) => {
+			if (err) {
+			  return res.end(JSON.stringify(err))
+			}
+			if (!user) {
+			  return res.end(JSON.stringify(info))
+			}
+			req.logIn(user, function(err) {
+			    var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user"};
+				return res.end(JSON.stringify(param))
+			});
+		
+		})(req, res, next);
 	});
 
 	app.get('/auth/fb',passport.authenticate('facebook'));
@@ -318,8 +345,6 @@ module.exports = function (app) {
 	app.get('/auth/twitter',passport.authenticate('twitter'));
 
 	app.get('/auth/telegram', passport.authenticate('telegram'));
-
-
 
 
 
@@ -374,6 +399,41 @@ module.exports = function (app) {
 
 
 	});
+
+
+	function ensureLoggedIn() {
+		return async function(req, res, next){
+		  var UserId;
+		  var token = req.header('authorization').split(' ')[1]
+		  var AccessT = await app.db.accessToken().findOne({token:token});
+	   if(AccessT){
+		  if(!expiringToken(AccessT.expires_at)){
+			if(!AccessT['token']){
+			  UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
+			  if(!UserId){
+				return  res.end("Invalid Access Token")
+			  }
+			}else{
+			  UserId = AccessT['user_id']
+			}
+			var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
+	
+			if(user){
+			  res.end(JSON.stringify(user))
+			}
+			else{
+			  res.end(JSON.stringify({error:"user not found"}))
+			}
+		  }else{
+			res.end(JSON.stringify({error:"AC_Token expired"}))
+		  }
+		 }else{
+		  res.end("Invalid Access Token")
+		 }
+		}
+	  }
+	
+	app.get('/auth/account', ensureLoggedIn())
 
 	app.get('/auth/passlost', async function(req, response) {
 
