@@ -306,7 +306,7 @@ module.exports = function (app) {
 
 
 	app.post('/auth/signup', (req, res, next) => {
-		assport.authenticate('local_strategy',
+		passport.authenticate('local_strategy',
 			(err, user, info) => {
 			if (err) {
 				return res.end(JSON.stringify(err))
