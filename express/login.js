@@ -553,7 +553,8 @@ module.exports = function (app) {
 			UserId = AccessT['user_id']
 		  }
 		  var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
-		  var user_ =await app.db.sn_user().findOne({"_id":NumberLong(UserId)})
+		  var user_ =await app.db.sn_user().findOne({"_id":UserId})
+          console.log(user,user_)
 		  if(user||user_){
 			if(user){
 			  res.end(JSON.stringify(user))
