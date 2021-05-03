@@ -11,17 +11,17 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	  cron.schedule('50 23 * * *', () => {
-		BalanceUsersStats("daily");
-	  });
+	//   cron.schedule('50 23 * * *', () => {
+	// 	BalanceUsersStats("daily");
+	//   });
 
-	  cron.schedule("* * 1 * *", () =>{
-		BalanceUsersStats("monthly");
-	  });
+	//   cron.schedule("* * 1 * *", () =>{
+	// 	BalanceUsersStats("monthly");
+	//   });
 
-      cron.schedule("0 0 * * 0", () =>{
-		BalanceUsersStats("weekly");
-	  });
+    //   cron.schedule("0 0 * * 0", () =>{
+	// 	BalanceUsersStats("weekly");
+	//   });
 
 
     const BalanceUsersStats = async (condition)=>{
@@ -49,7 +49,7 @@ module.exports = function (app) {
 			if(!Balance.err){
             result.date = date;
 			result.balance = Balance
-		    user.daily.unshift(JSON.parse(result));
+		    user.daily.unshift(result);
 			}	
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
@@ -58,7 +58,7 @@ module.exports = function (app) {
 			if(!Balance.err){
 			result.date = date;
 			result.balance = Balance
-			user.weekly.unshift(JSON.parse(result))
+			user.weekly.unshift(result)
 			}
 		   if(user.weekly.length > 7){user.weekly.pop();}
 		   app.db.sn_user().save(user);
@@ -71,6 +71,7 @@ module.exports = function (app) {
 		   app.db.sn_user().save(user);
 		}
 	   })
+	   console.log("runned")
      
    } catch (err) {
 	   console.log(JSON.stringify(err))
@@ -88,10 +89,12 @@ module.exports = function (app) {
 			  };		
 			let Crypto = await rp(Fetch_crypto_price);
             let balance;
+			let Balance;
 			let balances = []
 			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 				 balance = await app.account.getBalanceByUid(user._id,Crypto)
-				 balances.push(JSON.parse(balance))
+				 Balance = JSON.parse(balance)
+				 balances.push(Balance)
 				 
 			})
 			res.send({balances, balance})
