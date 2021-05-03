@@ -667,22 +667,13 @@ module.exports = async function (app) {
 	}
 
 
-	accountManager.getBalanceByUid = async  (userId) => {	
+	accountManager.getBalanceByUid = async  (userId, crypto) => {	
       return new Promise( async (resolve, reject) => {
        try {
-		const Fetch_crypto_price = {
-			method: 'GET',
-			uri: 'https://3xchange.io/prices',
-			json: true,
-			gzip: true
-		  };
-
           var token_info=app.config.Tokens
 			delete token_info['SATT']
-			delete token_info['BNB']
-		
-
-			var CryptoPrices = await rp(Fetch_crypto_price);
+			delete token_info['BNB']		
+			var CryptoPrices = crypto;
 			var count = await accountManager.hasAccount(userId);
 
 			var ret = {err:"no_account"};

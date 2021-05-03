@@ -28,12 +28,19 @@ module.exports = function (app) {
 		try{
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
-	   let Balance;	     
+	   let Balance;
+	   const Fetch_crypto_price = {
+		method: 'GET',
+		uri: 'https://3xchange.io/prices',
+		json: true,
+		gzip: true
+	  };
+	  let Crypto = await rp(Fetch_crypto_price);	     
 	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 		   if(!user.daily){user.daily = []};
 		   if(!user.weekly){user.weekly = []};
 		   if(!user.monthly){user.monthly = []};
-		balance = await app.account.getBalanceByUid(user._id)
+		balance = await app.account.getBalanceByUid(user._id, Crypto)
 		Balance = balance.Total_balance
         if(condition === "daily"){
 			user.daily.unshift({Balance,date});
