@@ -115,6 +115,46 @@ module.exports = async function (app) {
 		return p;
 	}
 
+	crm.auth = async function (token) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				if(tokens[token])
+				{
+					resolve(tokens[token]);
+					return;
+				}
+				console.log("token",token)
+				if(app.config.testnet) {
+					var UserId = 9999999999;
+					tokens[token] = {id:UserId}
+					resolve({id:UserId});
+					return;
+				}
+				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
+				if(res.length) {
+					var UserId = res[0].user_id;
+
+					tokens[token] = {id:UserId}
+					resolve({id:UserId});
+
+				}
+				else{
+					var res = await app.db.accessToken().findOne({token:token});
+                    if(res){
+                        var UserId = res.user_id;
+                        resolve({id:UserId});
+                    }else{
+                        reject({error:"auth error"});
+                    }
+				}
+			}
+			catch(err) {
+				reject(err);
+			}
+		});
+		return p;
+	}
+
 	app.crm = crm;
 
 
