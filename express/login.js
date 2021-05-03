@@ -539,35 +539,40 @@ module.exports = function (app) {
 	}
   
 	function ensureLoggedIn() {
-	  return async function(req, res, next){
-		var UserId;
-		var token = req.header('authorization').split(' ')[1]
-		var AccessT = await app.db.accessToken().findOne({token:token});
+		return async function(req, res, next){
+		  var UserId;
+		  var token = req.header('authorization').split(' ')[1]
+		  var AccessT = await app.db.accessToken().findOne({token:token});
   
-	 if(AccessT){
-		if(!expiringToken(AccessT.expires_at)){
-		  if(!AccessT['token']){
-			UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
-			if(!UserId){
-			  return  res.end("Invalid Access Token")
+	   if(AccessT){
+		  if(!expiringToken(AccessT.expires_at)){
+			if(!AccessT['token']){
+			  UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
+			  if(!UserId){
+				return  res.end("Invalid Access Token")
+			  }
+			}else{
+			  UserId = AccessT['user_id']
 			}
+			var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
+			var user_ =await app.db.sn_user().findOne({"_id":UserId})
+			console.log(user,user_)
+			if(user||user_){
+			  if(user){
+				res.end(JSON.stringify(user))
+			  }else{
+				res.end(JSON.stringify(user_))
+			  }
 		  }else{
-			UserId = AccessT['user_id']
+			res.end(JSON.stringify({error:"User Not Found"}))
 		  }
-		  var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
-  
-		  if(user){
-			res.end(JSON.stringify(user))
-		  }
-		  else{
-			res.end(JSON.stringify({error:"user not found"}))
-		  }
+		 }else{
+		  res.end({error:"Access Token expire"})
+		 }
+
 		}else{
-		  res.end(JSON.stringify({error:"AC_Token expired"}))
+		res.end({error:"Invalid access Token"})
 		}
-	   }else{
-		res.end("Invalid Access Token")
-	   }
 	  }
 	}
   
