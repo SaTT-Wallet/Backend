@@ -11,6 +11,7 @@ module.exports = async function (app) {
 	var BN = require("bn.js");
 	var speakeasy = require("speakeasy");
 	var QRCode = require('qrcode');
+    var Big = require('big.js');
 
 	var rp = require('request-promise');
 
