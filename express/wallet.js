@@ -10,8 +10,18 @@ module.exports = function (app) {
     const cron = require('node-cron');
 	var rp = require('request-promise');
 
+	
 
 
+	 app.get('/user/balance/:id', async (req,res)=>{
+		 try {
+			 const idUser = +req.params.id 
+          const balance = await app.account.getBalanceByUid(idUser)
+		  res.send(balance)
+		 }catch (err) {
+			 console.error(err)
+		 }
+	 })
 
 	  app.get('/v2/total_balance/:idUser', async function(req, response) {
 		const Fetch_crypto_price = {
@@ -22,7 +32,6 @@ module.exports = function (app) {
 		  };
 		try {
 			var token_info=app.config.Tokens
-			console.log(token_info,'fdsfsdfsdfsdf');
 			delete token_info['SATT']
 			delete token_info['BNB']
             const idUser = +req.params.idUser
