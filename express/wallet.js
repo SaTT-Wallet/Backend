@@ -55,10 +55,41 @@ module.exports = function (app) {
    }
 	 }
 
+
+	 app.get('/user/balances', async (req, res) => {
+		try{
+			let date = Math.round(new Date().getTime()/1000);	     
+			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
+				if(!user.daily){user.daily = []};
+				if(!user.weekly){user.weekly = []};
+				if(!user.monthly){user.monthly = []};
+			 let balance = await app.account.getBalanceByUid(user._id)
+			 let Balance = balance.Total_balance
+			 console.log(Balance)
+			 if(condition === "daily"){
+				 user.daily.unshift({Balance,date});
+			 if(user.daily.length>7){user.daily.pop();}
+			 app.db.sn_user().save(user);
+			 }
+			 if(condition === "weekly"){
+				 user.weekly.unshift({Balance, date})
+				if(user.weekly.length > 7){user.weekly.pop();}
+				app.db.sn_user().save(user);
+			 }
+			 if(condition === "monthly"){
+				 user.monthly.unshift({Balance, date})
+				if(user.monthly.length > 7){user.monthly.pop();}
+				app.db.sn_user().save(user);
+			 }
+			})
+		} catch (err) {
+			res.send(JSON.stringify(err))
+		}
+	 })
    
 	 app.get('/script/balances', async (req, res)=>{
 		 try{
-			BalanceUsersStats("daily");
+			await BalanceUsersStats("daily");
 			res.send(JSON.stringify({message : "runned"}))
 		 } catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
