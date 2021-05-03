@@ -11,6 +11,8 @@ try {
 
   app = await require("./web3/satt")(app);
 
+  app.config.bep20UseWS = true;
+
   app = await require("./manager/bep20")(app);
   app = await require("./manager/account")(app);
 
@@ -21,6 +23,7 @@ try {
 //  await app.bep20.eventBSCtoETH(false,{transactionHash:"0x6005449fbdebae749fd52556e1ddaef3b94355883ff3c4d73f9d31d9cce7d85e",returnValues:{from:"0xf382F4a8B305E1e64df1aC2C7d819c17E1a76666"}});
 
   // test doublons
+
 
 
 
