@@ -4,6 +4,7 @@ module.exports = function (app) {
 	var fs = require('fs');
 	var mongoose = require('mongoose');
 	var request = require('request');
+	const cron =require('node-cron');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const Grid = require('gridfs-stream');
@@ -11,7 +12,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
-	const mongoURI = app.config.mongoURI;
+	const mongoURI = app.config.mongoURI;	
    
 	
 	const nodemailer = require("nodemailer");
@@ -71,6 +72,114 @@ module.exports = function (app) {
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
 	  });
+	  cron.schedule('40 09 * * *',()=>{
+		updateStat();
+		 })
+	 async function updateStat(){
+		promDetail=[];
+		var Events = await app.db.event().find({ prom: { $exists: true} }).toArray();
+		Events.forEach(async (event)=>{
+			var idProm = event.prom;
+			var prom = await app.campaign.methods.proms(idProm).call();
+				var stat={};
+				stat.id_prom=idProm;
+				stat.typeSN=prom.typeSN.toString();
+				stat.date=Date('Y-m-d H:i:s');
+				if(stat.typeSN=="1"){
+				//tester si le lien facebook on recupere les stats de facebook;
+					oraclesFacebook = await app.oracle.facebook(prom.idUser,prom.idPost);
+					stat.shares=oraclesFacebook.shares;
+					stat.likes=oraclesFacebook.likes;
+					stat.views=oraclesFacebook.views;		
+								}
+				//youtube
+				else if(stat.typeSN=="2"){
+				//tester si le lien youtube on recupere les stats de youtube;
+					oraclesYoutube = await app.oracle.youtube(prom.idPost);
+					stat.shares=oraclesYoutube.shares;
+					stat.likes=oraclesYoutube.likes;
+					stat.views=oraclesYoutube.views;
+								}
+				//instagram
+				else if(stat.typeSN=="3"){
+				//tester si le lien instagram on recupere les stats de instagram;
+					oraclesInstagram = await app.oracle.instagram(prom.idPost);
+					stat.shares=oraclesInstagram.shares;
+					stat.likes=oraclesInstagram.likes;
+					stat.views=oraclesInstagram.views;
+								}
+				//twitter
+				else{
+				//tester si le lien twitter on recupere les stats de twitter;
+					oraclesTwitter= await app.oracle.twitter(prom.idUser,prom.idPost);
+					stat.shares=oraclesTwitter.shares;
+					stat.likes=oraclesTwitter.likes;
+					stat.views=oraclesTwitter.views;
+								} 
+
+
+					element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
+						if(element[0]){
+							if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
+								stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
+								stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
+								stat.viewsperDay=Number(stat.views)-Number(element[0].views);
+								try{
+								//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
+									await app.db.CampaignLinkStatistic().insertOne(stat);
+									stat=null;
+								}catch(err){
+									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+								}
+							}
+						}else{
+								stat.sharesperDay=stat.shares;
+								stat.likesperDay=stat.likes;
+								stat.viewsperDay=stat.views;
+								try{
+								//tester si le lien n'existe pas on ajoute un nouveau ligne;
+									await app.db.CampaignLinkStatistic().insertOne(stat);
+									stat=null;
+								}catch(err){
+									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+											}
+								}
+				
+	})	
+		
+	 }
+	app.post('/updateStat', updateStat)
+
+	/*
+	@url : /stat/:idProm
+	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0) 
+	@params:
+    idProm : id prom
+	{headers}
+	@Output array of proms 
+	*/
+	app.get('/stat/:idProm',async (req, response) => {
+		try {
+			const prom = req.params.idProm;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth(token);
+			arrayOfProms=[];
+			const stat= await app.db.CampaignLinkStatistic().find({id_prom:prom}).toArray();
+			stat.forEach((statistic)=>{
+				let prom={};
+				prom.date=statistic.date;
+				prom.sharesperDay=statistic.sharesperDay;
+				prom.likesperDay=statistic.likesperDay;
+				prom.viewsperDay=statistic.viewsperDay;
+				arrayOfProms.push(prom);
+			})
+			response.send(arrayOfProms);
+
+		} catch (err) {
+			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');	
+
+		}
+	})
 
 	app.post('/campaign/create', async function(req, response) {
 
@@ -1028,7 +1137,7 @@ module.exports = function (app) {
 		   await app.crm.auth(token);     
 		   const kit = req.params.id
 		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
-			   if (!file || file.length === 0) {
+			   if (!file.filename || file.length === 0) {
 				 return res.status(404).json({
 				   err: 'No file exists'
 				 });
