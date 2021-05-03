@@ -26,13 +26,15 @@ module.exports = function (app) {
 
     const BalanceUsersStats = async (condition)=>{
 		try{
-	   let date = Math.round(new Date().getTime()/1000);	     
+	   let date = Math.round(new Date().getTime()/1000);
+	   let balance;
+	   let Balance;	     
 	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 		   if(!user.daily){user.daily = []};
 		   if(!user.weekly){user.weekly = []};
 		   if(!user.monthly){user.monthly = []};
-		let balance = await app.account.getBalanceByUid(user._id)
-		let Balance = balance.Total_balance
+		balance = await app.account.getBalanceByUid(user._id)
+		Balance = balance.Total_balance
         if(condition === "daily"){
 			user.daily.unshift({Balance,date});
 		if(user.daily.length>7){user.daily.pop();}
@@ -56,40 +58,26 @@ module.exports = function (app) {
 	 }
 
 
-	 app.get('/user/balances', async (req, res) => {
-		try{
-			let date = Math.round(new Date().getTime()/1000);	     
+	 app.get('/user/balances', async (req,res)=>{
+		try {
+            let balance;
+			let Balance;
+			let balances = []
 			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
-				if(!user.daily){user.daily = []};
-				if(!user.weekly){user.weekly = []};
-				if(!user.monthly){user.monthly = []};
-			 let balance = await app.account.getBalanceByUid(user._id)
-			 let Balance = balance.Total_balance
-			 console.log(Balance)
-			 if(condition === "daily"){
-				 user.daily.unshift({Balance,date});
-			 if(user.daily.length>7){user.daily.pop();}
-			 app.db.sn_user().save(user);
-			 }
-			 if(condition === "weekly"){
-				 user.weekly.unshift({Balance, date})
-				if(user.weekly.length > 7){user.weekly.pop();}
-				app.db.sn_user().save(user);
-			 }
-			 if(condition === "monthly"){
-				 user.monthly.unshift({Balance, date})
-				if(user.monthly.length > 7){user.monthly.pop();}
-				app.db.sn_user().save(user);
-			 }
+				 balance = await app.account.getBalanceByUid(user._id)
+                 Balance = balance.total_balance
+				 balances.push(Balance)
+				 
 			})
-		} catch (err) {
-			res.send(JSON.stringify(err))
+			res.send({balances, balance, Balance})
+		}catch (err) {
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-	 })
-   
+	})
+	 
 	 app.get('/script/balances', async (req, res)=>{
 		 try{
-			await BalanceUsersStats("daily");
+			 BalanceUsersStats("daily");
 			res.send(JSON.stringify({message : "runned"}))
 		 } catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
