@@ -19,7 +19,7 @@ module.exports = function (app) {
           const balance = await app.account.getBalanceByUid(idUser)
 		  res.send(balance)
 		 }catch (err) {
-			 console.error(err)
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }
 	 })
 
