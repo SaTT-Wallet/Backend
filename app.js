@@ -9,6 +9,8 @@
 		app = await require("./conf/config")(app);
 		app = await require("./conf/const")(app);
 
+		
+
 		app = await require("./db/db")(app);
 		app = await require("./crm/crm")(app);
 		app = await  require("./express/https")(app);
@@ -23,13 +25,13 @@
 		app = await require("./web3/eth")(app);
 		app = await require("./web3/erc20")(app);
 		app = await require("./manager/bep20")(app);
-		
+
 		app.use(function(req, res, next) {
 		  res.header("content-type","application/json");
 		  res.header("Access-Control-Allow-Origin", "*");
 		  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
-		  
+
 		  next();
 		});
 		app = await require("./express/login")(app);
