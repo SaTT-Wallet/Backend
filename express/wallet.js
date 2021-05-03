@@ -55,6 +55,16 @@ module.exports = function (app) {
    }
 	 }
 
+   
+	 app.get('/script/balances', async (req, res)=>{
+		 try{
+			BalanceUsersStats("daily");
+			res.send(JSON.stringify({message : "runned"}))
+		 } catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		 }
+		
+	 })
 	 
 	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
