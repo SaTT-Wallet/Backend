@@ -684,7 +684,7 @@ module.exports = async function (app) {
 				delete ret.btc
 				delete ret.version
 			}else{
-				resolve(JSON.stringify(ret));
+				resolve(ret);
 			}
             for(const T_name in token_info){
 				var network=token_info[T_name].network
@@ -718,7 +718,7 @@ module.exports = async function (app) {
 				  }
 				  Total_balance=Total_balance.toFixed(2)
 
-				  resolve(JSON.stringify({Total_balance}));
+				  resolve({Total_balance});
 	   }catch (e) {
 				reject({message:e.message});
 			}

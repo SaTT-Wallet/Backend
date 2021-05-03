@@ -28,6 +28,8 @@ module.exports = function (app) {
 		try{
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
+	   let Balance;
+	   let result = {};
 	   const Fetch_crypto_price = {
 		method: 'GET',
 		uri: 'https://3xchange.io/prices',
@@ -42,18 +44,29 @@ module.exports = function (app) {
 		   if(!user.weekly){user.weekly = []};
 		   if(!user.monthly){user.monthly = []};
 		balance = await app.account.getBalanceByUid(user._id, Crypto);
+		Balance = JSON.parse(balance)
         if(condition === "daily"){
-			user.daily.unshift({balance,date});
+			if(!Balance.err){
+            result.date = date;
+			result.balance = Balance
+		    user.daily.unshift(JSON.parse(result));
+			}	
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
 		}
 		if(condition === "weekly"){
-			user.weekly.unshift({balance, date})
+			if(!Balance.err){
+			result.date = date;
+			result.balance = Balance
+			user.weekly.unshift(JSON.parse(result))
+			}
 		   if(user.weekly.length > 7){user.weekly.pop();}
 		   app.db.sn_user().save(user);
 		}
 		if(condition === "monthly"){
-			user.monthly.unshift({balance, date})
+			if(!Balance.err){
+			user.monthly.unshift({Balance, date})
+			}
 		   if(user.monthly.length > 7){user.monthly.pop();}
 		   app.db.sn_user().save(user);
 		}
@@ -72,14 +85,13 @@ module.exports = function (app) {
 				uri: 'https://3xchange.io/prices',
 				json: true,
 				gzip: true
-			  };
-		
+			  };		
 			let Crypto = await rp(Fetch_crypto_price);
             let balance;
 			let balances = []
 			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 				 balance = await app.account.getBalanceByUid(user._id,Crypto)
-				 balances.push(balance)
+				 balances.push(JSON.parse(balance))
 				 
 			})
 			res.send({balances, balance})
