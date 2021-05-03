@@ -677,15 +677,12 @@ module.exports = async function (app) {
 		  };
 
           var token_info=app.config.Tokens
-		  console.log(token_info);
 			delete token_info['SATT']
 			delete token_info['BNB']
 		
 
 			var CryptoPrices = await rp(Fetch_crypto_price);
-			console.log(CryptoPrices)
 			var count = await accountManager.hasAccount(userId);
-			console.log(count)
 
 			var ret = {err:"no_account"};
 			var Total_balance=0
