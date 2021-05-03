@@ -10,84 +10,53 @@ module.exports = function (app) {
     const cron = require('node-cron');
 	var rp = require('request-promise');
 
-	
+
+	  cron.schedule('50 23 * * *', () => {
+		BalanceUsersStats("daily");
+	  });
+
+	  cron.schedule("* * 1 * *", () =>{
+		BalanceUsersStats("monthly");
+	  });
+
+      cron.schedule("0 0 * * 0", () =>{
+		BalanceUsersStats("weekly");
+	  });
 
 
-	 app.get('/user/balance/:id', async (req,res)=>{
-		 try {
-			 const idUser = +req.params.id 
-          const balance = await app.account.getBalanceByUid(idUser)
-		  res.send(balance)
-		 }catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		 }
-	 })
-
-	  app.get('/v2/total_balance/:idUser', async function(req, response) {
-		const Fetch_crypto_price = {
-			method: 'GET',
-			uri: 'https://3xchange.io/prices',
-			json: true,
-			gzip: true
-		  };
-		try {
-			var token_info=app.config.Tokens
-			delete token_info['SATT']
-			delete token_info['BNB']
-            const idUser = +req.params.idUser
-			var CryptoPrices = await rp(Fetch_crypto_price);
-			var count = await app.account.hasAccount(idUser);
-			var ret = {err:"no_account"};
-			var Total_balance=0
-
-			if(count)
-			{
-				var ret = await app.account.getAccount(idUser)
-				delete ret.btc
-				delete ret.version
-			}else{
-				response.end(JSON.stringify(ret));
-			}
-			for(const T_name in token_info){
-            var network=token_info[T_name].network
-			 if(network=="ERC20"){
-				balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
-				if(token_info[T_name].contract==token_info['WSATT'].contract){
-					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-				}else{
-				    Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-				}
-			  }else{
-				 balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
-				if(token_info[T_name].contract==token_info['SATT_BEP20'].contract){
-					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-				}else{
-					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-				}
-			  }
-			 }
-
-			 for(const Amount in ret){
-				if(Amount=="ether_balance"){
-					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-				}else if(Amount=="satt_balance"){
-					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-				}else if(Amount=="bnb_balance"){
-					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-				}else if(Amount=="btc_balance"){
-					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-				}
-			  }
-			  Total_balance=Total_balance.toFixed(2)
-
-          response.end(JSON.stringify({Total_balance}));
-
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    const BalanceUsersStats = async (condition)=>{
+		try{
+	   let date = Math.round(new Date().getTime()/1000);	     
+	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
+		   if(!user.daily){user.daily = []};
+		   if(!user.weekly){user.weekly = []};
+		   if(!user.monthly){user.monthly = []};
+		let balance = await app.account.getBalanceByUid(user._id)
+		let Balance = balance.Total_balance
+        if(condition === "daily"){
+			user.daily.unshift({Balance,date});
+		if(user.daily.length>7){user.daily.pop();}
+		app.db.sn_user().save(user);
 		}
-	});
+		if(condition === "weekly"){
+			user.weekly.unshift({Balance, date})
+		   if(user.weekly.length > 7){user.weekly.pop();}
+		   app.db.sn_user().save(user);
+		}
+		if(condition === "monthly"){
+			user.monthly.unshift({Balance, date})
+		   if(user.monthly.length > 7){user.monthly.pop();}
+		   app.db.sn_user().save(user);
+		}
+	   })
+     
+   } catch (err) {
+	   console.log(JSON.stringify(err))
+   }
+	 }
 
-
+	 
+	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
