@@ -35,12 +35,14 @@ module.exports = function (app) {
 		json: true,
 		gzip: true
 	  };
-	  let Crypto = await rp(Fetch_crypto_price);	     
+
+	   let Crypto = await rp(Fetch_crypto_price);
+
 	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 		   if(!user.daily){user.daily = []};
 		   if(!user.weekly){user.weekly = []};
 		   if(!user.monthly){user.monthly = []};
-		balance = await app.account.getBalanceByUid(user._id, Crypto)
+		balance = await app.account.getBalanceByUid(user._id, Crypto);
 		Balance = balance.Total_balance
         if(condition === "daily"){
 			user.daily.unshift({Balance,date});
@@ -67,11 +69,19 @@ module.exports = function (app) {
 
 	 app.get('/user/balances', async (req,res)=>{
 		try {
+			const Fetch_crypto_price = {
+				method: 'GET',
+				uri: 'https://3xchange.io/prices',
+				json: true,
+				gzip: true
+			  };
+		
+			   let Crypto = await rp(Fetch_crypto_price);
             let balance;
 			let Balance;
 			let balances = []
 			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
-				 balance = await app.account.getBalanceByUid(user._id)
+				 balance = await app.account.getBalanceByUid(user._id,Crypto)
                  Balance = balance.total_balance
 				 balances.push(Balance)
 				 
