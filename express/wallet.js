@@ -1,13 +1,91 @@
 const { async } = require('hasha');
 var Big = require('big.js');
+var request = require('request').defaults({strictSSL: false});
 
 module.exports = function (app) {
 
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
-
+    const cron = require('node-cron');
 	var rp = require('request-promise');
+
+	
+
+
+	 app.get('/user/balance/:id', async (req,res)=>{
+		 try {
+			 const idUser = +req.params.id 
+          const balance = await app.account.getBalanceByUid(idUser)
+		  res.send(balance)
+		 }catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		 }
+	 })
+
+	  app.get('/v2/total_balance/:idUser', async function(req, response) {
+		const Fetch_crypto_price = {
+			method: 'GET',
+			uri: 'https://3xchange.io/prices',
+			json: true,
+			gzip: true
+		  };
+		try {
+			var token_info=app.config.Tokens
+			delete token_info['SATT']
+			delete token_info['BNB']
+            const idUser = +req.params.idUser
+			var CryptoPrices = await rp(Fetch_crypto_price);
+			var count = await app.account.hasAccount(idUser);
+			var ret = {err:"no_account"};
+			var Total_balance=0
+
+			if(count)
+			{
+				var ret = await app.account.getAccount(idUser)
+				delete ret.btc
+				delete ret.version
+			}else{
+				response.end(JSON.stringify(ret));
+			}
+			for(const T_name in token_info){
+            var network=token_info[T_name].network
+			 if(network=="ERC20"){
+				balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
+				if(token_info[T_name].contract==token_info['WSATT'].contract){
+					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+				}else{
+				    Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
+				}
+			  }else{
+				 balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
+				if(token_info[T_name].contract==token_info['SATT_BEP20'].contract){
+					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+				}else{
+					Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
+				}
+			  }
+			 }
+
+			 for(const Amount in ret){
+				if(Amount=="ether_balance"){
+					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
+				}else if(Amount=="satt_balance"){
+					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+				}else if(Amount=="bnb_balance"){
+					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
+				}else if(Amount=="btc_balance"){
+					Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
+				}
+			  }
+			  Total_balance=Total_balance.toFixed(2)
+
+          response.end(JSON.stringify({Total_balance}));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	});
 
 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
@@ -1039,23 +1117,6 @@ app.get('/v2/sum', async function(req, response) {
 	}
 })
 
-	/*
-     @Url :/v2/account'
-     @description: get user data
-     @parameters => request_header :
-     authorization : acces token
-	 response: User data
-     */
-
-app.get('/v2/account', async function(req, response) {
-  try{
-      let authheader = req.headers['authorization'].split(" ")[1]
-      let user =await	app.db.user().findOne({'accessToken':authheader})
-      res.end(user)
-     }catch(err){
-	res.end(JSON.stringify(err))
-   }
-  })
 
   /*
      @Url :/v2/profile/update'
