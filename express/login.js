@@ -474,6 +474,7 @@ module.exports = function (app) {
 		  req.logIn(user, function(err) {
 			var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user"};
 			return res.end(JSON.stringify(param))
+			//return res.redirect('/');
 		  });
   
 		})(req, res, next);
@@ -500,7 +501,7 @@ module.exports = function (app) {
 	  passport.authenticate('facebook'), async function (req, response) {
 		try {
 		  var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-		  response.redirect(appUrl +"/#/login?token=" + JSON.stringify(param))
+		  response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
 		} catch (e) {
 		  console.log(e)
 		}
@@ -510,20 +511,20 @@ module.exports = function (app) {
 	app.get('/callback/google', passport.authenticate('google', {scope: ['profile']}), async function (req, response) {
 		//console.log(req.user)
 		var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-		response.redirect(appUrl +"/#/login?token=" + JSON.stringify(param))
+		response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
 	  },
 	  authErrorHandler);
   
 	app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
 	  //console.log(req.user)
 	  var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-	  response.redirect(appUrl +"/#/login?token=" + JSON.stringify(param))
+	  response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
 	});
   
 	app.get('/callback/telegram', passport.authenticate('telegram'), async function (req, response) {
 		//console.log(req.user)
 		var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-		response.redirect(appUrl +"/#/login?token=" + JSON.stringify(param))
+		response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
 	  },
 	  authErrorHandler);
   
@@ -538,39 +539,40 @@ module.exports = function (app) {
 	}
   
 	function ensureLoggedIn() {
-	  return async function(req, res, next){
-		var UserId;
-		var token = req.header('authorization').split(' ')[1]
-		var AccessT = await app.db.accessToken().findOne({token:token});
-	 if(AccessT){
-		if(!expiringToken(AccessT.expires_at)){
-		  if(!AccessT['token']){
-			UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
-			if(!UserId){
-			  return  res.end("Invalid Access Token")
-			}
-		  }else{
-			UserId = AccessT['user_id']
-		  }
-		  var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
-		  var user_ =await app.db.sn_user().findOne({"_id":UserId})
-          console.log(user,user_)
-		  if(user||user_){
-			if(user){
-			  res.end(JSON.stringify(user))
+		return async function(req, res, next){
+		  var UserId;
+		  var token = req.header('authorization').split(' ')[1]
+		  var AccessT = await app.db.accessToken().findOne({token:token});
+  
+	   if(AccessT){
+		  if(!expiringToken(AccessT.expires_at)){
+			if(!AccessT['token']){
+			  UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
+			  if(!UserId){
+				return  res.end("Invalid Access Token")
+			  }
 			}else{
-			  res.end(JSON.stringify(user_))
+			  UserId = AccessT['user_id']
 			}
+			var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
+			var user_ =await app.db.sn_user().findOne({"_id":UserId})
+			console.log(user,user_)
+			if(user||user_){
+			  if(user){
+				res.end(JSON.stringify(user))
+			  }else{
+				res.end(JSON.stringify(user_))
+			  }
+		  }else{
+			res.end(JSON.stringify({error:"User Not Found"}))
 		  }
-		  else{
-			res.end(JSON.stringify({error:"user not found"}))
-		  }
+		 }else{
+		  res.end({error:"Access Token expire"})
+		 }
+
 		}else{
-		  res.end(JSON.stringify({error:"AC_Token expired"}))
+		res.end({error:"Invalid access Token"})
 		}
-	   }else{
-		res.end("Invalid Access Token")
-	   }
 	  }
 	}
   
@@ -634,24 +636,7 @@ module.exports = function (app) {
 		  }
 		});
 	  });
-	  /*var mailOptions = {
-		from: app.config.mailSender,
-		to: users[0].username,
-		subject: 'Satt wallet password recover',
-		html: '<form action="' + app.config.baseUrl + 'auth/passrecover">' +
-		  '<input type="hidden" name="id" value="' + users[0]._id + '">' +
-		  '<input type="hidden" name="code" value="' + token + '">' +
-		  '<input type="password" name="newpass" >' +
-		  '<button  type="submit" name="Change" >Change</button>' +
-		  '</form>'
-	  };
-	  transporter.sendMail(mailOptions, function(error, info){
-		if (error) {
-		  console.log(error);
-		} else {
-		  console.log('Email sent: ' + info.response);
-		}
-	  });*/
+
 	  response.end('{message:"mail sent"}');
 	});
   
