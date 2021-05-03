@@ -74,7 +74,7 @@ module.exports = function (app) {
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
 	  });
-	  cron.schedule('51 12 * * *',()=>{
+	  cron.schedule('00 12 * * *',()=>{
 		updateStat();
 		 })
 	 async function updateStat(){
@@ -84,13 +84,7 @@ module.exports = function (app) {
 		var Events = await app.db.event().find({ prom: { $exists: true} }).toArray();
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
-			var options = {
-				url: app.config.baseUrl+'prom/'+idProm+'/details',
-				method: 'GET',
-				json: true
-			  };
-			prom=await rp(options);
-
+			prom = await app.oracle.getPromDetails(idProm)
 			if(prom.isAccepted){
 				var stat={};
 				stat.id_prom=idProm;
@@ -157,26 +151,15 @@ module.exports = function (app) {
 								}
 		
 			}	
+
+			
 					
 	})	
 		
 	 }
 	app.post('/updateStat', updateStat)
 	
-	app.get('/prom/:id/details',async function(req, response) {
-		try{
-		var idProm = req.params.id;
-		var ctr = await app.campaign.getPromContract(idProm);
 
-		ctr.methods.proms(idProm).call().then(function (results) {
-			delete(results.results)
-			response.end(JSON.stringify(results));
-		});
-		}catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}')
-		}
-		
-	})
 	/*
 	@url : /stat/:idProm
 	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0) 
