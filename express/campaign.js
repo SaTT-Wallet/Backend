@@ -43,9 +43,7 @@ module.exports = function (app) {
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
-			  };
-			  const idCampaign = req.params.idCampaign
-			  gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			  };			  
 			  resolve(fileInfo);
 
 		  });
@@ -1071,7 +1069,7 @@ module.exports = function (app) {
 			"$ref": "campaign",
 			"$id": app.ObjectId(idCampaign), 
 			"$db": "atayen"
-		 }} })
+		 }}, mimeType : req.file.contentType })
 		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		} if(req.body.link){
 		   gfsKit.files.insert({ campaign : {
@@ -1081,7 +1079,7 @@ module.exports = function (app) {
 			 }, link : link })
 			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		}
-		res.send({message :'No matching data'}).status(401);	
+		res.send({message :'No matching data'}).status(404);	
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1290,18 +1288,15 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-              if(req.file.originalname.match(/\.(png|jpg|jpeg)$/)){
-				  gfs.files.updateMany({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
+			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify({message :'Cover added'})).status(200);
-			  } else{
-				  res.status(401).send(JSON.stringify('Only images allowed'));
-			  }		
+			res.json(JSON.stringify({message :'Cover added'})).status(200);		
 			}
-			res.send(JSON.stringify({message :'No matchig file found'})).status(401);
+			res.send(JSON.stringify({message :'No matching file found'})).status(404);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 			}	
@@ -1500,12 +1495,12 @@ console.log(Links)
 			await sattPrice().then((body) => {
 				sattPrice$ = body.SATT.price;
 			})
-
-           await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).forEach(elem=>{
+           const subscriptions = await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).toArray()
+           subscriptions.forEach(elem=>{
 				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
 			})
 			let totalEarned = Number((total * sattPrice$).toFixed(2));
-			const result = {SattEarned : total, USDEarned : totalEarned};
+			const result = {SattEarned : total, USDEarned : totalEarned, subscriptions : subscriptions.length};
 			res.send(JSON.stringify(result)).status(200);
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	

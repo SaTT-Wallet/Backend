@@ -9,6 +9,17 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
 	const mongoURI = app.config.mongoURI;
+
+	const conn=mongoose.createConnection(mongoURI);
+	let gfsprofilePic;
+	let gfsUserLegal;
+	conn.once('open', () => {
+	  gfsprofilePic = Grid(conn.db, mongoose.mongo);
+	  gfsprofilePic.collection('user_file');
+	  gfsUserLegal = Grid(conn.db, mongoose.mongo);
+	  gfsUserLegal.collection('user_legal');
+
+	});
 	
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
@@ -36,27 +47,14 @@ module.exports = function (app) {
 			  const filename = file.originalname;
 			  const fileInfo = {
 				filename: filename,
-				bucketName: 'user_files'
-			  };
-		  let token = req.headers["authorization"].split(" ")[1];
-		  const auth = app.crm.auth(token);
-		  const idNode =  auth.id;
-          gfsprofilePic.files.findOneAndDelete({'user.$id':idNode});
+				bucketName: 'user_file'
+			  };    
 		  resolve(fileInfo);			  
 		  });
 		}
 	  });
 
-      const conn=mongoose.createConnection(mongoURI);
-	  let gfsprofilePic;
-	  let gfsUserLegal;
-	  conn.once('open', () => {
-		gfsprofilePic = Grid(conn.db, mongoose.mongo);
-		gfsprofilePic.collection('user_files');
-		gfsUserLegal = Grid(conn.db, mongoose.mongo);
-		gfsUserLegal.collection('user_legal');
-
-	  });
+     
 	   const uploadUserLegal =  multer({storage : storageUserLegal})
        const uploadImageProfile =  multer({storage : storageProfilePic})
 
@@ -80,7 +78,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth= await app.crm.auth(token);     
 			const idUser = +auth.id;
-			gfsprofilePic.files.findOne({ 'user.$id':idUser}  , (err, file) => {
+			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
 				  return res.status(404).json({
 					err: 'No file exists'
@@ -114,13 +112,13 @@ module.exports = function (app) {
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			if(req.file){
-				gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
+				await gfsprofilePic.files.findOneAndDelete({'user.$id': auth.id});
+			    await gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
 					"$id": auth.id, 
 					"$db": "atayen"
-				 }} })
-				 
-				res.send(JSON.stringify({message :'Saved'})).status(200);
+				 }} })			 
+     			res.send(JSON.stringify({message :'Saved'})).status(200);
 				} 
 			res.send(JSON.stringify({message :'Only images allowed'})).status(200);
 		} catch (err) {
@@ -193,14 +191,19 @@ module.exports = function (app) {
 				   err: 'No file exists'
 				 });
 			   }
-			   else {			 
+			   else {
+				   if(file.contentType){
+					   contentType = file.contentType
+				   }else{
+					   contentType=file.mimeType
+				   }
 					res.writeHead(200, {
-						'Content-Type': 'image/jpg' ,
+						'Content-type': contentType,
 						'Content-Length': file.length,
 						'Content-Disposition': `attachment; filename=${file.filename}`
-					});				   			 
-				 const readstream = gfsUserLegal.createReadStream(file.filename);
-				 readstream.pipe(res);
+					});
+					const readstream = gfsUserLegal.createReadStream(file.filename);
+				      readstream.pipe(res);			   		 		
 			   } 
 			 });
 			
@@ -280,9 +283,8 @@ module.exports = function (app) {
 				}
 			  }
 			  await	app.db.notification().insert(notification)
-			  res.end(JSON.stringify({message :'legal proceessed'})).status(201);
+			  res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
-		 res.end('No file found').status(201);
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
