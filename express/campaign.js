@@ -4,6 +4,7 @@ module.exports = function (app) {
 	var fs = require('fs');
 	var mongoose = require('mongoose');
 	var request = require('request');
+	const cron =require('node-cron');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	const Grid = require('gridfs-stream');
@@ -11,7 +12,7 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
-	const mongoURI = app.config.mongoURI;
+	const mongoURI = app.config.mongoURI;	
    
 	
 	const nodemailer = require("nodemailer");
