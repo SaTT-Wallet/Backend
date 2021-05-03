@@ -160,6 +160,22 @@ module.exports = async function (app) {
 		})
 	};
 
+
+	oracleManager.getPromDetails = async function (idProm) {
+		return new Promise(async (resolve, reject) => {
+		try {
+		var ctr = await app.campaign.getPromContract(idProm);
+		if(ctr){
+			ctr.methods.proms(idProm).call().then(function (results) {
+			delete(results.results)
+			resolve(results);
+			});		
+			};
+		}catch (err) {
+			reject({message:e.message});
+		}
+		})
+	};
 	app.oracle = oracleManager;
 	return app;
 }
