@@ -81,21 +81,26 @@ module.exports = function (app) {
 	   console.log(JSON.stringify(err))
    }
 }
-          /*API to run script cronn to get user balances stats for admin*/
-	 app.get('/script/balances', async (req,res)=>{
+          /*API to run script cronn to get user balances stats for admin
+		  @parameter condition : req.params.conditon (daily || weekly || monthly)
+		  */
+	 app.get('/Balances/Script/:conditon', async (req,res)=>{
 		 try {
+			let condition = req.params.conditon;
 			let token = req.headers["authorization"].split(" ")[1];
             const auth = await app.crm.auth(token);
 			if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
-                BalanceUsersStats("daily");
+					BalanceUsersStats(condition);
 				res.send(JSON.stringify({message : 'script runned'}));
 			}
-      		
 		 }catch (err) {
 			 res.send(err)
 		 }
 	 });
 	 
+	//  app.get('/Balances/Script/:conditon', async (req,res)=>{
+	// 	console.log(req.params.condition)
+	//  })
 	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
