@@ -29,7 +29,7 @@ module.exports = function (app) {
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
 	   let result = {};
-
+       result.Date = date;
 	   const Fetch_crypto_price = {
 		method: 'GET',
 		uri: 'https://3xchange.io/prices',
@@ -48,7 +48,6 @@ module.exports = function (app) {
 		balance = await app.account.getBalanceByUid(user._id, Crypto);
 
         if(condition === "daily" && balance.Total_balance){
-            result.date = date;
 			result.Balance = balance.Total_balance;
 		    user.daily.unshift(result);
 		if(user.daily.length>7){user.daily.pop();}
@@ -56,7 +55,6 @@ module.exports = function (app) {
 		}
 
 		if(condition === "weekly" && balance.Total_balance){
-			result.date = date;
 			result.Balance = balance.Total_balance
 			user.weekly.unshift(result)	
 		   if(user.weekly.length > 7){user.weekly.pop();}
@@ -64,7 +62,6 @@ module.exports = function (app) {
 		}
 
 		if(condition === "monthly" && balance.Total_balance){
-			result.date = date;
 			result.Balance = balance.Total_balance
 			user.monthly.unshift(result)
 		   if(user.monthly.length > 7){user.monthly.pop();}
