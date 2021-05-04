@@ -9,7 +9,10 @@ module.exports = async function (app) {
 
     bep20Manager.contract = new web3.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
 
-    bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
+    if(app.web3Bep20Websocket)
+    {
+      bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
+    }
 
     bep20Manager.unlockOwner = async () => {
       web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
