@@ -373,8 +373,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      @description: envoyer une notification et un mail
      @params:
      @Input headers : access token
-	 		body : name,price,cryptoCurrency,to
-	 @Output : updated notification
+	 		body : name,price,cryptoCurrency,from,to
+	 @Output : create notification 
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
@@ -393,7 +393,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					id:auth.id
 			  }
 			}
-			await app.db.notification().insertOne(notification)
+			 await app.db.notification().insertOne(notification)
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
@@ -418,7 +418,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					html: dynamic_html
 			   };
 			
-		  transporter.sendMail(mailOptions, function(error, info){
+		   transporter.sendMail(mailOptions, function(error, info){
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
@@ -427,7 +427,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			  });
 			})
 			
-			res.send(JSON.stringify({message :'Notification created'})).status(200);
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
