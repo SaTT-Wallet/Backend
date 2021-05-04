@@ -49,7 +49,7 @@ module.exports = function (app) {
 
         if(condition === "daily" && balance.Total_balance){
             result.date = date;
-			result.balance = balance.Total_balance;
+			result.Balance = balance.Total_balance;
 		    user.daily.unshift(result);
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
@@ -57,7 +57,7 @@ module.exports = function (app) {
 
 		if(condition === "weekly" && balance.Total_balance){
 			result.date = date;
-			result.balance = balance.Total_balance
+			result.Balance = balance.Total_balance
 			user.weekly.unshift(result)	
 		   if(user.weekly.length > 7){user.weekly.pop();}
 		   app.db.sn_user().save(user);
@@ -65,7 +65,7 @@ module.exports = function (app) {
 
 		if(condition === "monthly" && balance.Total_balance){
 			result.date = date;
-			result.balance = balance.Total_balance
+			result.Balance = balance.Total_balance
 			user.monthly.unshift(result)
 		   if(user.monthly.length > 7){user.monthly.pop();}
 		   app.db.sn_user().save(user);
