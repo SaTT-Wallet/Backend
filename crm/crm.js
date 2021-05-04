@@ -74,46 +74,7 @@ module.exports = async function (app) {
 		return p;
 	}*/
 
-	crm.auth = async function (token) {
-		return new Promise(async (resolve, reject) => {
-			try {
-				if(tokens[token])
-				{
-					resolve(tokens[token]);
-					return;
-				}
-				console.log("token",token)
-				if(app.config.testnet) {
-					var UserId = 9999999999;
-					tokens[token] = {id:UserId}
-					resolve({id:UserId});
-					return;
-				}
-				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
-				if(res.length) {
-					var UserId = res[0].user_id;
 
-					tokens[token] = {id:UserId}
-					resolve({id:UserId});
-
-					/*else {
-						var account2 = await app.db.wallet().findOne({_id: body.user.scopedId});
-						await app.db.wallet().updateOne({_id: body.user.scopedId}, {$set: {UserId: body.user.idUser}});
-						resolve({id:body.user.idUser});
-					}*/
-
-
-				}
-				else{
-					reject({error:"auth error"});
-				}
-			}
-			catch(err) {
-				reject(err);
-			}
-		});
-		return p;
-	}
 
 	crm.auth = async function (token) {
 		return new Promise(async (resolve, reject) => {
@@ -123,13 +84,15 @@ module.exports = async function (app) {
 					resolve(tokens[token]);
 					return;
 				}
-				console.log("token",token)
+
+				//console.log("token",token)
 				if(app.config.testnet) {
 					var UserId = 9999999999;
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
 					return;
 				}
+
 				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
 				if(res.length) {
 					var UserId = res[0].user_id;
