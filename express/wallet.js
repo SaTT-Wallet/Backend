@@ -105,23 +105,6 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/user/balance/:id', async (req,res)=>{
-		try {
-			const Fetch_crypto_price = {
-				method: 'GET',
-				uri: 'https://3xchange.io/prices',
-				json: true,
-				gzip: true
-			  };
-		
-			let Crypto = await rp(Fetch_crypto_price);
-			const idUser = +req.params.id 
-		 const balance = await app.account.getBalanceByUid(idUser,Crypto)
-		 res.send(balance)
-		}catch (err) {
-		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-	})
 
 	 app.get('/script/balances', BalanceUsersStats("daily"))
 	 
