@@ -46,11 +46,11 @@ module.exports = function (app) {
 		balance = await app.account.getBalanceByUid(user._id, Crypto);
 		Balance = JSON.parse(balance)
         if(condition === "daily"){
-			if(!Balance.err){
+			// if(!balance.err){
             result.date = date;
-			result.balance = Balance
+			result.balance = balance
 		    user.daily.unshift(result);
-			}	
+			// }	
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
 		}
@@ -65,6 +65,8 @@ module.exports = function (app) {
 		}
 		if(condition === "monthly"){
 			if(!Balance.err){
+				result.date = date;
+			result.balance = Balance
 			user.monthly.unshift({Balance, date})
 			}
 		   if(user.monthly.length > 7){user.monthly.pop();}
@@ -97,39 +99,14 @@ module.exports = function (app) {
 				 balances.push(Balance)
 				 
 			})
-			res.send({balances, balance})
+			res.send({balances, balance, Balance})
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
-	app.get('/user/balance/:id', async (req,res)=>{
-		try {
-			const Fetch_crypto_price = {
-				method: 'GET',
-				uri: 'https://3xchange.io/prices',
-				json: true,
-				gzip: true
-			  };
-		
-			let Crypto = await rp(Fetch_crypto_price);
-			const idUser = +req.params.id 
-		 const balance = await app.account.getBalanceByUid(idUser,Crypto)
-		 res.send(balance)
-		}catch (err) {
-		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-	})
 
-	 app.get('/script/balances', async (req, res)=>{
-		 try{
-			 BalanceUsersStats("daily");
-			res.send(JSON.stringify({message : "runned"}))
-		 } catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		 }
-		
-	 })
+	 app.get('/script/balances', BalanceUsersStats("daily"))
 	 
 	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
