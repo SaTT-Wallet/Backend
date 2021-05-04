@@ -172,7 +172,7 @@ module.exports = async function (app) {
 			});		
 			};
 		}catch (err) {
-			reject({message:e.message});
+			reject({message:err.message});
 		}
 		})
 	};
