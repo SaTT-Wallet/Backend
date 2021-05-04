@@ -1,6 +1,5 @@
 const { async } = require('hasha');
 var Big = require('big.js');
-var request = require('request').defaults({strictSSL: false});
 
 module.exports = function (app) {
 
@@ -11,20 +10,20 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 
 
-	//   cron.schedule('50 23 * * *', () => {
-	// 	BalanceUsersStats("daily");
-	//   });
+	  cron.schedule('50 23 * * *', () => {
+		BalanceUsersStats("daily");
+	  });
 
-	//   cron.schedule("* * 1 * *", () =>{
-	// 	BalanceUsersStats("monthly");
-	//   });
+	  cron.schedule("* * 1 * *", () =>{
+		BalanceUsersStats("monthly");
+	  });
 
-    //   cron.schedule("0 0 * * 0", () =>{
-	// 	BalanceUsersStats("weekly");
-	//   });
+      cron.schedule("0 0 * * 0", () =>{
+		BalanceUsersStats("weekly");
+	  });
 
 
-    const BalanceUsersStats = async (condition)=>{
+  async function BalanceUsersStats(){
 		try{
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
@@ -40,9 +39,11 @@ module.exports = function (app) {
 	   let Crypto = await rp(Fetch_crypto_price);
 
 	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
+
 		   if(!user.daily){user.daily = []};
 		   if(!user.weekly){user.weekly = []};
 		   if(!user.monthly){user.monthly = []};
+
 		balance = await app.account.getBalanceByUid(user._id, Crypto);
 		Balance = JSON.parse(balance)
         if(condition === "daily"){
@@ -55,9 +56,9 @@ module.exports = function (app) {
 		app.db.sn_user().save(user);
 		}
 		if(condition === "weekly"){
-			if(!Balance.err){
+			if(!balance.err){
 			result.date = date;
-			result.balance = Balance
+			result.balance = balance.Total_balance
 			user.weekly.unshift(result)
 			}
 		   if(user.weekly.length > 7){user.weekly.pop();}
@@ -66,15 +67,15 @@ module.exports = function (app) {
 		if(condition === "monthly"){
 			if(!Balance.err){
 				result.date = date;
-			result.balance = Balance
+			result.balance = balance.Total_balance
 			user.monthly.unshift({Balance, date})
 			}
 		   if(user.monthly.length > 7){user.monthly.pop();}
 		   app.db.sn_user().save(user);
 		}
 	   })
-	   console.log("runned")
-
+	   console.log("runned");
+     
    } catch (err) {
 	   console.log(JSON.stringify(err))
    }
@@ -95,9 +96,9 @@ module.exports = function (app) {
 			let balances = []
 			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 				 balance = await app.account.getBalanceByUid(user._id,Crypto)
-				 Balance = JSON.parse(balance)
-				 balances.push(Balance)
-
+				 total = balance.Total_balance
+				 balances.push(balance)
+				 
 			})
 			res.send({balances, balance, Balance})
 		}catch (err) {
@@ -106,9 +107,16 @@ module.exports = function (app) {
 	})
 
 
-	 //app.get('/script/balances', BalanceUsersStats("daily"))
-
-
+	 app.get('/script/balances', (req,res)=>{
+		 try {
+            BalanceUsersStats("daily");
+			res.send(JSON.stringify({message : 'runned'}));
+		 }catch (err) {
+			 res.send(err)
+		 }
+	 });
+	 
+	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
