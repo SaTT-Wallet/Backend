@@ -97,7 +97,6 @@ module.exports = function (app) {
 			await app.db.sn_user().find({userSatt : true}).forEach(async user => {
 				 balance = await app.account.getBalanceByUid(user._id,Crypto)
 				 total = balance.Total_balance
-				 Balance = JSON.parse(balance)
 				 balances.push(balance)
 				 
 			})
