@@ -1125,7 +1125,7 @@ module.exports = function (app) {
 				})
 		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
 		} if(links){
-				links.forEach((link)=>{
+				links.forEach((link)=>{	
 					 gfsKit.files.insertOne({ campaign : {
 					"$ref": "campaign",
 					"$id": app.ObjectId(idCampaign), 
