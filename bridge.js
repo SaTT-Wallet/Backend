@@ -11,7 +11,7 @@ try {
 
   app = await require("./web3/satt")(app);
 
-  app.config.bep20UseWS = true;
+  
 
   app = await require("./manager/bep20")(app);
   app = await require("./manager/account")(app);
