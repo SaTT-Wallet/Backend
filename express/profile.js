@@ -412,7 +412,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				}
 				let dynamic_html=ejs.render(data, data_);
 				var mailOptions = {
-					from: app.config.mailSender,
+					from: req.body.from,
 					to: req.body.to,
 					subject: 'nouvelle notification',
 					html: dynamic_html
