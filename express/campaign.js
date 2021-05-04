@@ -74,7 +74,7 @@ module.exports = function (app) {
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
 	  });
-	  cron.schedule('00 12 * * *',()=>{
+	  cron.schedule('53 15 * * *',()=>{
 		updateStat();
 		 })
 	 async function updateStat(){
@@ -85,6 +85,7 @@ module.exports = function (app) {
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			prom = await app.oracle.getPromDetails(idProm)
+			console.log(prom)
 			if(prom.isAccepted){
 				var stat={};
 				stat.id_prom=idProm;
@@ -1107,7 +1108,12 @@ module.exports = function (app) {
 		let token = req.headers["authorization"].split(" ")[1];
         await app.crm.auth(token);
 		files=req.files;
-		links=req.body.link;
+		if(typeof req.body.link === "string"){
+			links=Array(req.body.link);
+		}else{
+		     links=req.body.link;
+		}
+
 		const idCampaign = req.body.campaign
 		if(files){
 				files.forEach((file)=>{
