@@ -108,7 +108,7 @@ app.get('/user/balances', async (req,res)=>{
 			let token = req.headers["authorization"].split(" ")[1];
             const auth = await app.crm.auth(token);
 			if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
-					BalanceUsersStats(condition);
+					await BalanceUsersStats(condition);
 				res.send(JSON.stringify({message : `script runned for ${condition}`}));
 			}
 		 }catch (err) {
