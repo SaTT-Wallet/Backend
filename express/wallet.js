@@ -50,7 +50,7 @@ module.exports = function (app) {
             result.date = date;
 			result.balance = balance
 		    user.daily.unshift(result);
-			// }	
+			// }
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
 		}
@@ -74,7 +74,7 @@ module.exports = function (app) {
 		}
 	   })
 	   console.log("runned")
-     
+
    } catch (err) {
 	   console.log(JSON.stringify(err))
    }
@@ -88,7 +88,7 @@ module.exports = function (app) {
 				uri: 'https://3xchange.io/prices',
 				json: true,
 				gzip: true
-			  };		
+			  };
 			let Crypto = await rp(Fetch_crypto_price);
             let balance;
 			let Balance;
@@ -97,7 +97,7 @@ module.exports = function (app) {
 				 balance = await app.account.getBalanceByUid(user._id,Crypto)
 				 Balance = JSON.parse(balance)
 				 balances.push(Balance)
-				 
+
 			})
 			res.send({balances, balance, Balance})
 		}catch (err) {
@@ -106,9 +106,9 @@ module.exports = function (app) {
 	})
 
 
-	 app.get('/script/balances', BalanceUsersStats("daily"))
-	 
-	 
+	 //app.get('/script/balances', BalanceUsersStats("daily"))
+
+
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
