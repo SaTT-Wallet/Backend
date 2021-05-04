@@ -23,13 +23,14 @@ module.exports = function (app) {
 	  });
 
 
-  const BalanceUsersStats = async (condition) =>{
+  async function BalanceUsersStats (condition){
 		try{
 
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
 	   let result = {};
        result.Date = date;
+
 	   const Fetch_crypto_price = {
 		method: 'GET',
 		uri: 'https://3xchange.io/prices',
@@ -54,8 +55,8 @@ module.exports = function (app) {
 		app.db.sn_user().save(user);
 		}
 
-		if(condition === "weekly" && balance.Total_balance){
-			result.Balance = balance.Total_balance
+		if(condition === "weekly"){
+			result.Balance = balance;
 			user.weekly.unshift(result)	
 		   if(user.weekly.length > 7){user.weekly.pop();}
 		   app.db.sn_user().save(user);
@@ -74,26 +75,47 @@ module.exports = function (app) {
 	   console.log(JSON.stringify(err))
    }
 }
+
+app.get('/user/balances', async (req,res)=>{
+	try {
+		const Fetch_crypto_price = {
+			method: 'GET',
+			uri: 'https://3xchange.io/prices',
+			json: true,
+			gzip: true
+		  };
+		let Crypto = await rp(Fetch_crypto_price);
+		let balance;
+		let total;
+		let balances = []
+		await app.db.sn_user().find({userSatt : true}).forEach(async user => {
+			 balance = await app.account.getBalanceByUid(user._id,Crypto)
+			 total = balance.Total_balance
+			 balances.push(balance)
+			 
+		})
+		res.send({balances, balance, total})
+	}catch (err) {
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+})
           /*API to run script cronn to get user balances stats for admin
 		  @parameter condition : req.params.conditon (daily || weekly || monthly)
 		  */
-	 app.get('/Balances/Script/:conditon', async (req,res)=>{
+	 app.get('/Balances/Script:conditon', async (req,res)=>{
 		 try {
 			let condition = req.params.conditon;
 			let token = req.headers["authorization"].split(" ")[1];
             const auth = await app.crm.auth(token);
 			if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
 					BalanceUsersStats(condition);
-				res.send(JSON.stringify({message : 'script runned'}));
+				res.send(JSON.stringify({message : `script runned for ${condition}`}));
 			}
 		 }catch (err) {
 			 res.send(err)
 		 }
 	 });
 	 
-	//  app.get('/Balances/Script/:conditon', async (req,res)=>{
-	// 	console.log(req.params.condition)
-	//  })
 	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
