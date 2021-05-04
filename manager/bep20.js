@@ -1,18 +1,15 @@
 module.exports = async function (app) {
 
   	var bep20Manager = {};
-    var web3 = false;
+    var web3 = app.web3Bep20;
 
-    if(app.config.bep20UseWS)
-    {
-      web3 = app.web3Bep20Websocket;
-    }
-    else {
-      web3 = app.web3Bep20;
-    }
+
 
     var nullAddress = "0x0000000000000000000000000000000000000000";
+
     bep20Manager.contract = new web3.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
+
+    bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
 
     bep20Manager.unlockOwner = async () => {
       web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
@@ -259,7 +256,7 @@ module.exports = async function (app) {
 
 
       bep20Manager.initEventHandlers =  () => {
-        bep20Manager.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
+        bep20Manager.contractWS.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
         app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
       }
 
