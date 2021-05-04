@@ -64,9 +64,6 @@ module.exports = function (app) {
 	   console.log(JSON.stringify(err))
    }
 }
-
-
-	 
 	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
