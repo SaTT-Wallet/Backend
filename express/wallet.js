@@ -47,30 +47,26 @@ module.exports = function (app) {
 
 		balance = await app.account.getBalanceByUid(user._id, Crypto);
 
-        if(condition === "daily"){
-			if(balance.Total_balance){
+        if(condition === "daily" && balance.Total_balance){
             result.date = date;
 			result.balance = balance.Total_balance;
 		    user.daily.unshift(result);
-			}
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
 		}
-		if(condition === "weekly"){
-			if(balance.Total_balance){
+
+		if(condition === "weekly" && balance.Total_balance){
 			result.date = date;
 			result.balance = balance.Total_balance
-			user.weekly.unshift(result)
-			}
+			user.weekly.unshift(result)	
 		   if(user.weekly.length > 7){user.weekly.pop();}
 		   app.db.sn_user().save(user);
 		}
-		if(condition === "monthly"){
-			if(balance.Total_balance){
-				result.date = date;
+
+		if(condition === "monthly" && balance.Total_balance){
+			result.date = date;
 			result.balance = balance.Total_balance
-			user.monthly.unshift({Balance, date})
-			}
+			user.monthly.unshift(result)
 		   if(user.monthly.length > 7){user.monthly.pop();}
 		   app.db.sn_user().save(user);
 		}
