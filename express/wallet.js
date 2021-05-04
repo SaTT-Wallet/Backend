@@ -48,16 +48,16 @@ module.exports = function (app) {
 		balance = await app.account.getBalanceByUid(user._id, Crypto);
 
         if(condition === "daily"){
-			if(!balance.err){
+			if(balance.Total_balance){
             result.date = date;
-			result.balance = balance.Total_balance
+			result.balance = balance.Total_balance;
 		    user.daily.unshift(result);
 			}
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
 		}
 		if(condition === "weekly"){
-			if(!balance.err){
+			if(balance.Total_balance){
 			result.date = date;
 			result.balance = balance.Total_balance
 			user.weekly.unshift(result)
@@ -66,7 +66,7 @@ module.exports = function (app) {
 		   app.db.sn_user().save(user);
 		}
 		if(condition === "monthly"){
-			if(!balance.err){
+			if(balance.Total_balance){
 				result.date = date;
 			result.balance = balance.Total_balance
 			user.monthly.unshift({Balance, date})
@@ -81,11 +81,16 @@ module.exports = function (app) {
 	   console.log(JSON.stringify(err))
    }
 }
-
-	 app.get('/script/balances', (req,res)=>{
+          /*API to run script cronn to get user balances stats for admin*/
+	 app.get('/script/balances', async (req,res)=>{
 		 try {
-            BalanceUsersStats("daily");
-			res.send(JSON.stringify({message : 'runned'}));
+			let token = req.headers["authorization"].split(" ")[1];
+            const auth = await app.crm.auth(token);
+			if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
+                BalanceUsersStats("daily");
+				res.send(JSON.stringify({message : 'script runned'}));
+			}
+      		
 		 }catch (err) {
 			 res.send(err)
 		 }
