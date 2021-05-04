@@ -51,7 +51,7 @@ module.exports = function (app) {
             result.date = date;
 			result.balance = balance
 		    user.daily.unshift(result);
-			// }	
+			// }
 		if(user.daily.length>7){user.daily.pop();}
 		app.db.sn_user().save(user);
 		}
@@ -89,7 +89,7 @@ module.exports = function (app) {
 				uri: 'https://3xchange.io/prices',
 				json: true,
 				gzip: true
-			  };		
+			  };
 			let Crypto = await rp(Fetch_crypto_price);
             let balance;
 			let Balance;
