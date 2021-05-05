@@ -17,7 +17,9 @@
 		app = await require("./manager/bep20")(app);
 
 
-    cron.schedule('00 13 * * *',  () => {
+    app.token.followContract();
+
+    cron.schedule('35 13 * * *',  () => {
 		   app.account.BalanceUsersStats("daily");
 	  });
 
