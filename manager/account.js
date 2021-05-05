@@ -726,11 +726,11 @@ module.exports = async function (app) {
 	}	
 
 	accountManager.BalanceUsersStats = async (condition)=> {
-		debugger;
 		try{
 
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
+	   let Balance;
 	   let result = {};
        result.Date = date;
 
@@ -755,9 +755,9 @@ module.exports = async function (app) {
 				if(!user.monthly){user.monthly = []};
 	 
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
-	 
+	         Balance = JSON.parse(balance);
 			 if(condition === "daily"){
-				   result.Balance = balance;
+				   result.Balance = Balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().save(user);
@@ -766,7 +766,7 @@ module.exports = async function (app) {
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly"){
+			 if(condition === "weekly" && balance.Total_balance){
 				 result.Balance = balance;
 					  user.weekly.unshift(result)	
 						if(user.weekly.length > 7){user.weekly.pop();}
