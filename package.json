@@ -13,6 +13,7 @@
     "bitcore-lib": "^8.23.1",
     "body-parser": "^1.18.3",
     "coinselect": "^3.1.11",
+    "connect": "^3.7.0",
     "cookie-parser": "^1.4.3",
     "dot-object": "^2.1.4",
     "ejs": "^2.6.1",
