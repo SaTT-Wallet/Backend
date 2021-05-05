@@ -762,7 +762,8 @@ module.exports = async function (app) {
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().save(user);
 						  counter++;
-						  console.log("runned");
+			 console.log("count : ", count );
+			 console.log("user Inserted : ", user );
 			 }
 	 
 			 if(condition === "weekly"){
@@ -771,7 +772,8 @@ module.exports = async function (app) {
 						if(user.weekly.length > 7){user.weekly.pop();}
 							  await  app.db.sn_user().save(user);
 							  counter++;
-
+							  console.log("count : ", count );
+							  console.log("user Inserted : ", user );
 							}
 	 
 			 if(condition === "monthly" && balance.Total_balance){
@@ -780,42 +782,11 @@ module.exports = async function (app) {
 					   if(user.monthly.length > 7){user.monthly.pop();}
 										  await   app.db.sn_user().save(user);
 										  counter++;
-
+										  console.log("count : ", count );
+										  console.log("user Inserted : ", user );
 			 }
 
-		}
-
-	// 	Users.forEach(async user => {
-                   
-	// 	   if(!user.daily){user.daily = []};
-	// 	   if(!user.weekly){user.weekly = []};
-	// 	   if(!user.monthly){user.monthly = []};
-
-	// 	balance = await accountManager.getBalanceByUid(user._id, Crypto);
-
-    //     if(condition === "daily"){
-	// 		  result.Balance = balance;
-	// 	         user.daily.unshift(result);
-	// 	           if(user.daily.length>7){user.daily.pop();}
-	// 	            await  app.db.sn_user().save(user);
-	// 	}
-
-	// 	if(condition === "weekly"){
-	// 		result.Balance = balance;
-	// 		     user.weekly.unshift(result)	
-	// 	           if(user.weekly.length > 7){user.weekly.pop();}
-	// 	                 await  app.db.sn_user().save(user);
-	// 	}
-
-	// 	if(condition === "monthly" && balance.Total_balance){
-	// 		result.Balance = balance.Total_balance
-	// 		    user.monthly.unshift(result)
-	// 	          if(user.monthly.length > 7){user.monthly.pop();}
-	// 	                             await   app.db.sn_user().save(user);
-	// 	}
-	//    })
-	   
-     
+		}	   
    } catch (err) {
 	   console.log(JSON.stringify(err))
    }
