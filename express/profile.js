@@ -9,7 +9,8 @@ module.exports = function (app) {
     const mongoose = require('mongoose');
 	const mongodb = require('mongodb');
 	const mongoURI = app.config.mongoURI;
-
+	const nodemailer = require("nodemailer");
+	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 	const conn=mongoose.createConnection(mongoURI);
 	let gfsprofilePic;
 	let gfsUserLegal;
@@ -366,6 +367,73 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		
 
 })
+
+/*
+     @url : /recieveMoney
+     @description: envoyer une notification et un mail
+     @params:
+     @Input headers : access token
+	 		body : name,price,cryptoCurrency,from,to
+	 @Output : create notification 
+     */
+	 app.post('/recieveMoney', async (req, res) =>{
+		try{
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const id = "0" + auth.id;
+			
+			let notification={
+				idNode:id,
+				type:"demande_satt_event",
+				status:"done",
+				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,Date('Y-m-d H:i:s')]), 
+				isSeen:false,
+				isSend:false,
+				attachedEls:{
+					id:auth.id
+			  }
+			}
+			 await app.db.notification().insertOne(notification)
+			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
+				if (err) {
+				  console.error(err)
+				  return
+				}
+				var data_={
+					SaTT:{
+						Url:app.config.walletUrl+'FAQ'
+					},
+					notification:{
+						name:req.body.name,
+						price:req.body.price,
+						cryptoCurrency:req.body.cryptoCurrency,
+						message:req.body.message
+					}
+				}
+				let dynamic_html=ejs.render(data, data_);
+				var mailOptions = {
+					from: req.body.from,
+					to: req.body.to,
+					subject: 'nouvelle notification',
+					html: dynamic_html
+			   };
+			
+		   transporter.sendMail(mailOptions, function(error, info){
+				if (error) {
+					res.end(JSON.stringify(error))
+				} else {
+					res.end(JSON.stringify(info.response))
+				}
+			  });
+			})
+			
+		}catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		}
+	   
+			
+	
+	})
 	return app;
 
 }
