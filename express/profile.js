@@ -225,7 +225,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			const idNode= "0" + auth.id;
-			const arrayNotifications= await app.db.notification().find({idNode:idNode}).toArray()
+			const arrayNotifications= await app.db.notification().find({idNode:idNode}).sort({created:-1}).toArray()
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1;
 			const startIndex=(page-1) * limit;
@@ -391,7 +391,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				isSend:false,
 				attachedEls:{
 					id:auth.id
-			  }
+			  },
+			  created:Date('Y-m-d H:i:s')
 			}
 			 await app.db.notification().insertOne(notification)
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {

@@ -21,7 +21,7 @@ module.exports = function (app) {
 	var FbStrategy = require('passport-facebook').Strategy;
 	var GoogleStrategy = require('passport-google-oauth20').Strategy;
 	var TwitterStrategy = require('passport-twitter').Strategy;
-	var TelegramStrategy = require('passport-telegram').Strategy;
+	var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
 
 	try {
 	  app.use(passport.initialize());
@@ -42,8 +42,10 @@ module.exports = function (app) {
 	  });
 	};
 
-	var appUrl = 'https://v2.satt.atayen.us/#';
-	 // var appUrl = 'http://localhost:4200/';
+	//var appUrl = 'https://v2.satt.atayen.us/#';
+	//  var appUrl = 'http://localhost:4200/#';
+	var appUrl = app.config.walletUrl;
+
 	var synfonyHash = function (pass) {
 	  var salted = pass+"{"+app.config.symfonySalt+"}";
 
@@ -61,7 +63,7 @@ module.exports = function (app) {
 	  return base64;
 	}
 
-	passport.use( 'local_strategy',new LocalStrategy({passReqToCallback: true},
+	passport.use( 'signup_emailStrategy',new LocalStrategy({passReqToCallback: true},
 	  async function (req, username, password, done) {
 		var date = Math.floor(Date.now() / 1000) + 86400;
 		var buff = Buffer.alloc(32);
@@ -117,7 +119,6 @@ module.exports = function (app) {
 		};
 	  }
 	));
-
 	passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
 	  async function (req, username, password, done) {
 		var date = Math.floor(Date.now() / 1000) + 86400;
@@ -163,43 +164,15 @@ module.exports = function (app) {
 	  }
 	));
 
-	passport.use(new FbStrategy({
-		clientID: app.config.appId,
-		clientSecret: app.config.appSecret,
-		callbackURL: app.config.baseUrl + "callback/facebook",
-		profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
-	  },
-	  async function (accessToken, refreshToken, profile, cb) {
-		var date = Math.floor(Date.now() / 1000) + 86400;
-		var buff = Buffer.alloc(32);
-		var token = crypto.randomFillSync(buff).toString('hex');
-		var users = await app.db.sn_user().find({scopedId: profile.id}).toArray()
-		if (users.length) {
-		  var user = users[0];
-		  if (user.idSn != 1) {
-			return cb("email_already_used") //null, false, {message: 'email_already_used'});
-		  }
-		  var oldToken = await app.db.accessToken().findOne({user_id: user._id});
-		  if (oldToken) {
-			var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
-		  } else {
-			var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-		  }
-		  /*var res = await app.db.query("delete from OAAccessToken where user_id='"+user._id+"' ");
-		  var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-  */        return cb(null, {id: user._id, token: token, expires_in: date});emailStrategy
-		} else {
-		  return cb('account_invalide') // (null, false, {error: true, message: 'account_invalide'});
-		}
-	  }))
 
 	passport.use('signup_FbStrategy',new FbStrategy({
 		clientID: app.config.appId,
 		clientSecret: app.config.appSecret,
-		callbackURL: app.config.baseUrl + "callback/facebook",
+		callbackURL: app.config.baseUrl + "callback/facebook_signup",
 		profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
 	  },
 	  async function (accessToken, refreshToken, profile, cb) {
+
 		var date = Math.floor(Date.now() / 1000) + 86400;
 		var buff = Buffer.alloc(32);
 		var token = crypto.randomFillSync(buff).toString('hex');
@@ -230,12 +203,41 @@ module.exports = function (app) {
 		  return cb(null, {id: users[0]._id, token: token, expires_in: date});
 		}
 	  }));
+	passport.use("facebook_strategy",new FbStrategy({
+		clientID: app.config.appId,
+		clientSecret: app.config.appSecret,
+		callbackURL: app.config.baseUrl + "callback/facebook",
+		profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
+	  },
+	  async function (accessToken, refreshToken, profile, cb) {
+		var date = Math.floor(Date.now() / 1000) + 86400;
+		var buff = Buffer.alloc(32);
+		var token = crypto.randomFillSync(buff).toString('hex');
 
+		var users = await app.db.sn_user().find({scopedId: profile.id}).toArray()
+		if (users.length) {
+		  var user = users[0];
+		  if (user.idSn != 1) {
+			return cb("email_already_used") //null, false, {message: 'email_already_used'});
+		  }
+		  var oldToken = await app.db.accessToken().findOne({user_id: user._id});
+		  if (oldToken) {
+			var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+		  } else {
+			var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+		  }
+		  /*var res = await app.db.query("delete from OAAccessToken where user_id='"+user._id+"' ");
+		  var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+  */        return cb(null, {id: user._id, token: token, expires_in: date});
+		} else {
+		  return cb('account_invalide') // (null, false, {error: true, message: 'account_invalide'});
+		}
+	  }))
 
 	passport.use('signup_googleStrategy', new GoogleStrategy({
 		clientID: app.config.googleClientId,
 		clientSecret: app.config.googleClientSecret,
-		callbackURL: app.config.baseUrl + "callback/google"
+		callbackURL: app.config.baseUrl + "callback/google_signup"
 	  },
 	  async function (accessToken, refreshToken, profile, cb) {
 		var date = Math.floor(Date.now() / 1000) + 86400;
@@ -250,8 +252,8 @@ module.exports = function (app) {
 		  var insert = await app.db.sn_user().insertOne({
 			_id: id,
 			idOnSn2: profile.id,
-			email: profile.email,
-			username: profile.email,
+			/*email: profile.email,
+			username: profile.email,*/
 			first_name: profile.given_name,
 			name: profile.family_name,
 			created: mongodate,
@@ -267,7 +269,7 @@ module.exports = function (app) {
 		}
 	  }));
 
-	passport.use(new GoogleStrategy({
+	passport.use('google_strategy', new GoogleStrategy({
 		clientID: app.config.googleClientId,
 		clientSecret: app.config.googleClientSecret,
 		callbackURL: app.config.baseUrl + "callback/google"
@@ -362,9 +364,8 @@ module.exports = function (app) {
 
 	passport.use( 'signup_telegramStrategy',
 	  new TelegramStrategy({
-		  clientID: app.config.telegramClientId,
-		  clientSecret: app.config.telegramClientSecret,
-		  callbackURL: app.config.baseUrl + "callback/telegram"
+		  botToken:  app.config.telegramBotToken,
+		 // callbackURL: app.config.baseUrl + "callback/telegram_signup"
 		},
 		async function (accessToken, refreshToken, profile, cb) {
 		  var date = Math.floor(Date.now() / 1000) + 86400;
@@ -398,10 +399,9 @@ module.exports = function (app) {
 		}
 	  ));
 
-	passport.use(
+	passport.use('telegram_strategy',
 	  new TelegramStrategy({
-		  clientID: app.config.telegramClientId,
-		  clientSecret: app.config.telegramClientSecret,
+		  botToken:  app.config.telegramBotToken,
 		  callbackURL: app.config.baseUrl + "callback/telegram"
 		},
 		async function (accessToken, refreshToken, profile, cb) {
@@ -409,6 +409,8 @@ module.exports = function (app) {
 		  var buff = Buffer.alloc(32);
 		  var token = crypto.randomFillSync(buff).toString('hex');
 		  var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
+		  console.log("-----------------req.user.id --------------")
+		  console.log(users)
 		  if (users.length) {
 			var user = users[0];
 			if (user.idSn != 2) {
@@ -440,7 +442,7 @@ module.exports = function (app) {
 
 
 	app.post('/auth/signup', (req, res, next) => {
-	  passport.authenticate('local_strategy',
+	  passport.authenticate('signup_emailStrategy',
 		(err, user, info) => {
 		  if (err) {
 			return res.end(JSON.stringify(err))
@@ -458,8 +460,6 @@ module.exports = function (app) {
 
 		})(req, res, next);
 	});
-
-
 	app.post('/auth/email', (req, res, next) => {
 	  passport.authenticate('emailStrategy',
 		(err, user, info) => {
@@ -481,15 +481,15 @@ module.exports = function (app) {
 	});
 
 	app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
-	app.get('/auth/fb', passport.authenticate('facebook'));
+	app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
 	app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile']}));
-	app.get('/auth/google', passport.authenticate('google', {scope: ['profile']}));
+	app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile']}));
 
 	//app.get('/auth/twitter', passport.authenticate('twitter'));
 
 	app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'));
-	app.get('/auth/telegram', passport.authenticate('telegram'));
+	app.get('/auth/telegram', passport.authenticate('telegram_strategy'));
 
 	function authErrorHandler(err, req, res, next) {
 	  console.log(err)
@@ -497,8 +497,8 @@ module.exports = function (app) {
 	  res.redirect(appUrl +'/login?error=1&message=' + message);
 	}
 
-	app.get('/callback/facebook',
-	  passport.authenticate('facebook'), async function (req, response) {
+	app.get('/callback/facebook_signup',
+	  passport.authenticate('signup_FbStrategy'), async function (req, response) {
 		try {
 		  var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
 		  response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
@@ -508,21 +508,47 @@ module.exports = function (app) {
 	  },
 	  authErrorHandler);
 
-	app.get('/callback/google', passport.authenticate('google', {scope: ['profile']}), async function (req, response) {
+	app.get('/callback/facebook',
+	  passport.authenticate('facebook_strategy'), async function (req, response) {
+		try {
+		  var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
+		  response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
+		} catch (e) {
+		  console.log(e)
+		}
+	  },
+	  authErrorHandler);
+
+	app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile']}), async function (req, response) {
 		//console.log(req.user)
 		var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
 		response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
 	  },
 	  authErrorHandler);
 
-	app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
+	app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile']}), async function (req, response) {
+		//console.log(req.user)
+		var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
+		response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
+	  },
+	  authErrorHandler);
+
+   /* app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
 	  //console.log(req.user)
 	  var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
 	  response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
-	});
+	});*/
 
-	app.get('/callback/telegram', passport.authenticate('telegram'), async function (req, response) {
+	app.get('callback/telegram_signup', passport.authenticate('signup_telegramStrategy'), async function (req, response) {
 		//console.log(req.user)
+		var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
+		response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
+	  },
+	  authErrorHandler);
+
+	app.get('/callback/telegram', passport.authenticate('telegram_strategy'), async function (req, response) {
+		console.log("-----------------req.user.id --------------")
+		console.log(req.user)
 		var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
 		response.redirect(appUrl +"/login?token=" + JSON.stringify(param))
 	  },
@@ -539,40 +565,35 @@ module.exports = function (app) {
 	}
 
 	function ensureLoggedIn() {
-		return async function(req, res, next){
-		  var UserId;
-		  var token = req.header('authorization').split(' ')[1]
-		  var AccessT = await app.db.accessToken().findOne({token:token});
+	  return async function(req, res, next){
+		var UserId;
+		var token = req.header('authorization').split(' ')[1]
+		var AccessT = await app.db.accessToken().findOne({token:token});
 
-	   if(AccessT){
-		  if(!expiringToken(AccessT.expires_at)){
-			if(!AccessT['token']){
-			  UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
-			  if(!UserId){
-				return  res.end("Invalid Access Token")
-			  }
-			}else{
-			  UserId = AccessT['user_id']
+	 if(AccessT){
+		if(!expiringToken(AccessT.expires_at)){
+		  if(!AccessT['token']){
+			UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
+			if(!UserId){
+			  return  res.end("Invalid Access Token")
 			}
-			var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
-			var user_ =await app.db.sn_user().findOne({"_id":UserId})
-			console.log(user,user_)
-			if(user||user_){
-			  if(user){
-				res.end(JSON.stringify(user))
-			  }else{
-				res.end(JSON.stringify(user_))
-			  }
 		  }else{
-			res.end(JSON.stringify({error:"User Not Found"}))
+			UserId = AccessT['user_id']
 		  }
-		 }else{
-		  res.end({error:"Access Token expire"})
-		 }
+		  var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
 
+		  if(user){
+			res.end(JSON.stringify(user))
+		  }
+		  else{
+			res.end(JSON.stringify({error:"user not found"}))
+		  }
 		}else{
-		res.end({error:"Invalid access Token"})
+		  res.end(JSON.stringify({error:"AC_Token expired"}))
 		}
+	   }else{
+		res.end("Invalid Access Token")
+	   }
 	  }
 	}
 
@@ -584,17 +605,25 @@ module.exports = function (app) {
 	  var users = await app.db.sn_user().find({ _id: ObjectId(id)}).toArray();
 	  if( users.length) {
 		if (users[0].enabled) {
-		  response.end('{error:"account already activated"}');
+		  //response.end('{error:"account already activated"}');
+		  let message = "account already activated";
+		  response.redirect(appUrl +'/login?error=1&message=' + message);
 		  return;
 		}
 		if (users[0].confirmation_token != code) {
-		  response.end('{error:"wrong activation"}');
+		  let message = "wrong activation";
+		  response.redirect(appUrl +'/login?error=1&message=' + message);
+		  //response.end('{error:"wrong activation"}');
 		  return;
 		}
 		var update = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {$set: {confirmation_token: "", enabled: 1}});
-		response.end('{message:"activated"}');
+		let message = "activated";
+		response.redirect(appUrl +'/login?message=' + message);
+		//response.end('{message:"activated"}');
 	  } else {
-		response.end('{error:"no account"}');
+		let message = "no account";
+		response.redirect(appUrl +'/login?error=1&message=' + message);
+		//response.end('{error:"no account"}');
 	  }
 
 	});
@@ -631,15 +660,13 @@ module.exports = function (app) {
 		transporter.sendMail(mailOptions, function (error, info) {
 		  if (error) {
 			console.log(error);
-			console.log(info);
 		  } else {
 			console.log('Email sent: ' );
 		  }
-			response.end(JSON.stringify(info));
 		});
 	  });
-		//response.end('{message:"mail sent"}');
 
+	  response.end('{message:"mail sent"}');
 	});
 
 	app.post('/auth/passchange', async function (req, response) {
@@ -677,10 +704,13 @@ module.exports = function (app) {
 	  var res = await app.db.sn_user().find({ _id: ObjectId(id)}).toArray();
 	  if( res.length) {
 		if (res[0].confirmation_token != code) {
+
 		  response.end('{error:"wrong activation"}');
 		  return;
 		}
-		var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
+		//var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
+		var update = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
+			console.log(update)
 		response.end('{message:"activated"}');
 	  } else {
 		response.end('{error:"no account"}');
