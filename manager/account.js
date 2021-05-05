@@ -788,7 +788,7 @@ module.exports = async function (app) {
 
 		}	   
    } catch (err) {
-	   console.log(JSON.stringify(err))
+	   console.log(err)
    }
 }
 
