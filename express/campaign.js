@@ -1215,7 +1215,7 @@ module.exports = function (app) {
             const auth = await app.crm.auth(token);
 		    const campaign = req.body
 		    campaign.idNode = "0" + auth.id
-		const draft = await app.db.campaignCrm().insertOne(campaign)
+		const draft = await app.db.campaignCrm().insertOne(campaign);
 			res.end(JSON.stringify(draft.ops[0])).status(200);
 
 		} catch (err) {
