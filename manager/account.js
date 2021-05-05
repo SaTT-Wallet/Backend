@@ -742,41 +742,84 @@ module.exports = async function (app) {
 
 	   let Crypto = await rp(Fetch_crypto_price);
 
-	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
+	   	var users_ = await app.db.sn_user().find({userSatt : true});
+		var usersCount = users_.length; 
+	  	var counter = 0;
+
+		  while(counter<usersCount) {
+				var user = users_[counter];
+
+				if(!user.daily){user.daily = []};
+				if(!user.weekly){user.weekly = []};
+				if(!user.monthly){user.monthly = []};
+	 
+			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
+	 
+			 if(condition === "daily"){
+				   result.Balance = balance;
+					  user.daily.unshift(result);
+						if(user.daily.length>7){user.daily.pop();}
+						  await app.db.sn_user().save(user);
+						  counter++;
+						  console.log("runned");
+			 }
+	 
+			 if(condition === "weekly"){
+				 result.Balance = balance;
+					  user.weekly.unshift(result)	
+						if(user.weekly.length > 7){user.weekly.pop();}
+							  await  app.db.sn_user().save(user);
+							  counter++;
+
+							}
+	 
+			 if(condition === "monthly" && balance.Total_balance){
+				 result.Balance = balance.Total_balance
+					 user.monthly.unshift(result)
+					   if(user.monthly.length > 7){user.monthly.pop();}
+										  await   app.db.sn_user().save(user);
+										  counter++;
+
+			 }
+
+		}
+
+	// 	Users.forEach(async user => {
                    
-		   if(!user.daily){user.daily = []};
-		   if(!user.weekly){user.weekly = []};
-		   if(!user.monthly){user.monthly = []};
+	// 	   if(!user.daily){user.daily = []};
+	// 	   if(!user.weekly){user.weekly = []};
+	// 	   if(!user.monthly){user.monthly = []};
 
-		balance = await accountManager.getBalanceByUid(user._id, Crypto);
+	// 	balance = await accountManager.getBalanceByUid(user._id, Crypto);
 
-        if(condition === "daily"){
-			  result.Balance = balance;
-		         user.daily.unshift(result);
-		           if(user.daily.length>7){user.daily.pop();}
-		             app.db.sn_user().save(user);
-		}
+    //     if(condition === "daily"){
+	// 		  result.Balance = balance;
+	// 	         user.daily.unshift(result);
+	// 	           if(user.daily.length>7){user.daily.pop();}
+	// 	            await  app.db.sn_user().save(user);
+	// 	}
 
-		if(condition === "weekly"){
-			result.Balance = balance;
-			     user.weekly.unshift(result)	
-		           if(user.weekly.length > 7){user.weekly.pop();}
-		                  app.db.sn_user().save(user);
-		}
+	// 	if(condition === "weekly"){
+	// 		result.Balance = balance;
+	// 		     user.weekly.unshift(result)	
+	// 	           if(user.weekly.length > 7){user.weekly.pop();}
+	// 	                 await  app.db.sn_user().save(user);
+	// 	}
 
-		if(condition === "monthly" && balance.Total_balance){
-			result.Balance = balance.Total_balance
-			    user.monthly.unshift(result)
-		          if(user.monthly.length > 7){user.monthly.pop();}
-		                               app.db.sn_user().save(user);
-		}
-	   })
-	   console.log("runned");
+	// 	if(condition === "monthly" && balance.Total_balance){
+	// 		result.Balance = balance.Total_balance
+	// 		    user.monthly.unshift(result)
+	// 	          if(user.monthly.length > 7){user.monthly.pop();}
+	// 	                             await   app.db.sn_user().save(user);
+	// 	}
+	//    })
+	   
      
    } catch (err) {
 	   console.log(JSON.stringify(err))
    }
 }
+
 
 	app.account = accountManager;
 	return app;
