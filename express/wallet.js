@@ -2,69 +2,13 @@ const { async } = require('hasha');
 var Big = require('big.js');
 
 module.exports = function (app) {
-
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
     const cron = require('node-cron');
 	var rp = require('request-promise');
-    var wallet = {};
 
 
-
-  wallet.BalanceUsersStats = async (condition)=> {
-		try{
-
-	   let date = Math.round(new Date().getTime()/1000);
-	   let balance;
-	   let result = {};
-       result.Date = date;
-
-	   const Fetch_crypto_price = {
-		method: 'GET',
-		uri: 'https://3xchange.io/prices',
-		json: true,
-		gzip: true
-	  };
-
-	   let Crypto = await rp(Fetch_crypto_price);
-
-	   await app.db.sn_user().find({userSatt : true}).forEach(async user => {
-                   
-		   if(!user.daily){user.daily = []};
-		   if(!user.weekly){user.weekly = []};
-		   if(!user.monthly){user.monthly = []};
-
-		balance = await app.account.getBalanceByUid(user._id, Crypto);
-
-        if(condition === "daily"){
-			result.Balance = balance;
-		    user.daily.unshift(result);
-		if(user.daily.length>7){user.daily.pop();}
-		app.db.sn_user().save(user);
-		}
-
-		if(condition === "weekly"){
-			result.Balance = balance;
-			user.weekly.unshift(result)	
-		   if(user.weekly.length > 7){user.weekly.pop();}
-		   app.db.sn_user().save(user);
-		}
-
-		if(condition === "monthly" && balance.Total_balance){
-			result.Balance = balance.Total_balance
-			user.monthly.unshift(result)
-		   if(user.monthly.length > 7){user.monthly.pop();}
-		   app.db.sn_user().save(user);
-		}
-	   })
-	   console.log("runned");
-     
-   } catch (err) {
-	   console.log(JSON.stringify(err))
-   }
-}
-	 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
@@ -1125,6 +1069,5 @@ app.post('/v2/profile/update', async function(req, response) {
 	 }
 	})
 
-	app.wallet = wallet;
 	return app;
 }
