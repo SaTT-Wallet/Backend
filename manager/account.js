@@ -772,7 +772,8 @@ module.exports = async function (app) {
 						if(user.weekly.length > 7){user.weekly.pop();}
 							  await  app.db.sn_user().save(user);
 							  counter++;
-
+							  console.log("count : ", count );
+							  console.log("user Inserted : ", user );
 							}
 	 
 			 if(condition === "monthly" && balance.Total_balance){
@@ -781,7 +782,8 @@ module.exports = async function (app) {
 					   if(user.monthly.length > 7){user.monthly.pop();}
 										  await   app.db.sn_user().save(user);
 										  counter++;
-
+										  console.log("count : ", count );
+										  console.log("user Inserted : ", user );
 			 }
 
 		}	   
