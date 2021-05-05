@@ -12,6 +12,8 @@ module.exports = function (app) {
 	const nodemailer = require("nodemailer");
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 	const conn=mongoose.createConnection(mongoURI);
+	const moment= require('moment') 
+
 	let gfsprofilePic;
 	let gfsUserLegal;
 	conn.once('open', () => {
@@ -386,13 +388,13 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				idNode:id,
 				type:"demande_satt_event",
 				status:"done",
-				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,Date('Y-m-d H:i:s')]), 
+				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
 					id:auth.id
 			  },
-			  created:Date('Y-m-d H:i:s')
+			  created:new Date()
 			}
 			 await app.db.notification().insertOne(notification)
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
