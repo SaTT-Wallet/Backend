@@ -726,6 +726,7 @@ module.exports = async function (app) {
 	}	
 
 	accountManager.BalanceUsersStats = async (condition)=> {
+		debugger;
 		try{
 
 	   let date = Math.round(new Date().getTime()/1000);
@@ -742,7 +743,7 @@ module.exports = async function (app) {
 
 	   let Crypto = await rp(Fetch_crypto_price);
 
-	   	var users_ = await app.db.sn_user().find({userSatt : true});
+	   	var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
 		var usersCount = users_.length; 
 	  	var counter = 0;
 
