@@ -99,6 +99,7 @@
             font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
+            color: white;
         }
 
         .content .mail-body {
@@ -206,9 +207,11 @@
                 </div>
             </div>
                 <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
-                <h2><%= notification.name %>!</h2>
+                <h2><%= notification.name %> !</h2>
                 <p>Vous demande de lui envoyer </p>
                 <p><%= notification.price %> <%= notification.cryptoCurrency %></p>
+                <p>la wallet de <%= notification.name %> est : </p>
+                <p><strong><%= notification.wallet %></strong></p>
         </div>
         <div class="mail-body">
 
