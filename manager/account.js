@@ -718,7 +718,7 @@ module.exports = async function (app) {
 				  }
 				  Total_balance=Total_balance.toFixed(2)
 
-				  resolve({Total_balance});
+				  resolve({Total_balance : Total_balance});
 	   }catch (e) {
 				reject({message:e.message});
 			}
@@ -756,17 +756,19 @@ module.exports = async function (app) {
 	 
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
 	         Balance = JSON.parse(balance);
-			 if(condition === "daily"){
-				   result.Balance = Balance;
+			 console.log("balance not parsed : " , balance)
+			 console.log("BALANCE : ", Balance.Total_balance)
+			 if(condition === "daily" && !Balance.err){
+				   result.Balance = Balance.Total_balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().save(user);
 						  counter++;
-			 console.log("count : ", counter );
+			//  console.log("count : ", counter );
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly" && balance.Total_balance){
+			 if(condition === "weekly" && Balance.Total_balance){
 				 result.Balance = balance;
 					  user.weekly.unshift(result)	
 						if(user.weekly.length > 7){user.weekly.pop();}
