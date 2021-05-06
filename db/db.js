@@ -70,6 +70,10 @@ module.exports = async function (app) {
 		app.db.UserLegal = function () {
             return db.db(app.config.mongoBaseCrm).collection("user_legal");
         };
+
+		app.db.contact = function () {
+            return db.db(app.config.mongoBaseCrm).collection("contacts");
+        };
 		app.db.campaign_link = function () {
             return db.db(app.config.mongoBaseCrm).collection("campaign_link");
         };
