@@ -375,8 +375,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      @description: envoyer une notification et un mail
      @params:
      @Input headers : access token
-	 		body : name,price,cryptoCurrency,from,to
-	 @Output : create notification 
+	 		body : name,price,cryptoCurrency,from,to,wallet
+	 @Output : success message 
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
@@ -386,7 +386,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			
 			let notification={
 				idNode:id,
-				type:"demande_satt_event",
+				type:"send_demande_satt_event",
 				status:"done",
 				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
 				isSeen:false,
@@ -396,7 +396,25 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			  },
 			  created:new Date()
 			}
-			 await app.db.notification().insertOne(notification)
+			 await app.db.notification().insertOne(notification);
+			 app.db.contact().findOne({email:req.body.to},async function (err, result) {
+				 if(result){
+					let notification={
+						idNode:result.idNode,
+						type:"demande_satt_event",
+						status:"done",
+						label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
+						isSeen:false,
+						isSend:false,
+						attachedEls:{
+							id:auth.id
+					  },
+					  created:new Date()
+					}
+					await app.db.notification().insertOne(notification);
+
+				 }
+			 })
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
@@ -410,7 +428,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						name:req.body.name,
 						price:req.body.price,
 						cryptoCurrency:req.body.cryptoCurrency,
-						message:req.body.message
+						message:req.body.message,
+						wallet:req.body.wallet
 					}
 				}
 				let dynamic_html=ejs.render(data, data_);
