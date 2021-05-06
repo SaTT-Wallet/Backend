@@ -450,8 +450,6 @@ module.exports = function (app) {
 	})
 
 
-
-
 	app.get('/proms/owner/:owner', async function(req, response) {
 		var owner = req.params.owner;
 		var proms = [];
@@ -658,6 +656,29 @@ module.exports = function (app) {
 			response.end(res || results);
 		});
 
+	})
+
+
+	  /*
+     @Url :API (link) /balance/stats'
+     @description: fetch user chart stats
+	 @parameters : header access token 
+     @response : object of arrays => different balance stats (daily, weekly, monthly)
+     */
+	app.get("/balance/stats", async (req, res) => {
+		try {
+			let token = req.headers["authorization"].split(" ")[1];
+			let auth =  await app.crm.auth(token);
+			const id = +auth.id;
+			let result={};
+			let user = await app.db.sn_user().findOne({_id : id});
+			if(user.daily && user.daily.length > 0){result.daily = user.daily}
+			if(user.weekly && user.weekly.length >0){result.weekly = user.weekly;}
+			if(user.monthly && user.monthly.length >0){result.monthly = user.monthly;}
+            res.end(JSON.stringify(result));
+		}catch(err){
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		}
 	})
 
 	return app;
