@@ -396,7 +396,25 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			  },
 			  created:new Date()
 			}
-			 await app.db.notification().insertOne(notification)
+			 await app.db.notification().insertOne(notification);
+			 app.db.contact().findOne({email:req.body.to},async function (err, result) {
+				 if(result){
+					let notification={
+						idNode:result.idNode,
+						type:"demande_satt_event",
+						status:"done",
+						label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
+						isSeen:false,
+						isSend:false,
+						attachedEls:{
+							id:auth.id
+					  },
+					  created:new Date()
+					}
+					await app.db.notification().insertOne(notification);
+
+				 }
+			 })
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
