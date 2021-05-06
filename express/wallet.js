@@ -1069,5 +1069,25 @@ app.post('/v2/profile/update', async function(req, response) {
 	 }
 	})
 
+	app.get('/user/balance', async (req,res)=>{
+		try {
+			let token = req.headers["authorization"].split(" ")[1];
+            const auth = await app.crm.auth(token);
+			const idUser = auth.id
+			const Fetch_crypto_price = {
+				method: 'GET',
+				uri: 'https://3xchange.io/prices',
+				json: true,
+				gzip: true
+			  };
+		
+			let Crypto = await rp(Fetch_crypto_price);
+			const balance = await app.account.getBalanceByUid(idUser,Crypto);
+			res.send(balance)
+		}catch (err) {
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	})
+
 	return app;
 }

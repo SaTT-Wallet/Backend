@@ -375,8 +375,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      @description: envoyer une notification et un mail
      @params:
      @Input headers : access token
-	 		body : name,price,cryptoCurrency,from,to
-	 @Output : create notification 
+	 		body : name,price,cryptoCurrency,from,to,wallet
+	 @Output : success message 
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
@@ -410,7 +410,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						name:req.body.name,
 						price:req.body.price,
 						cryptoCurrency:req.body.cryptoCurrency,
-						message:req.body.message
+						message:req.body.message,
+						wallet:req.body.wallet
 					}
 				}
 				let dynamic_html=ejs.render(data, data_);
