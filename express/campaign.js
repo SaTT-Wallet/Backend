@@ -14,7 +14,7 @@ module.exports = function (app) {
     const Big = require('big.js');
 	const mongoURI = app.config.mongoURI;	
 	var rp = require('request-promise');
-
+    const etherInWei = new Big(1000000000000000000);
 
 	
 	const nodemailer = require("nodemailer");
@@ -1488,30 +1488,24 @@ console.log(Links)
 	{headers}
 	@Output JSON object 
 	*/
-	app.get('/campaign/totalEarned/:addr', async function(req, res){
+	app.get('/campaign/totalEarned/:addr', async (req, res)=>{
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
             await app.crm.auth(token);
 			let address=req.params.addr
+			let prices;
 			let sattPrice$;
 			let total= 0;
-			let etherInWei = new Big(1000000000000000000);
-			  const sattPrice = () => {
-				return new Promise((resolve, reject) => {
-					var options = {
+			
+
+			const sattPrice ={
 						url: 'https://3xchange.io/prices',
 						method: 'GET',
 						json: true
 					  };
-				  request.get(options, function(error, res, body) {
-						if(error) reject(error);
-						resolve(body);
-				  });
-				});	
-			  }
-			await sattPrice().then((body) => {
-				sattPrice$ = body.SATT.price;
-			})
+
+			prices = await rp(sattPrice);
+	        sattPrice$ = prices.SATT.price;
            const subscriptions = await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).toArray()
            subscriptions.forEach(elem=>{
 				total = total + parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4));
