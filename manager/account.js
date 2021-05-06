@@ -677,10 +677,10 @@ module.exports = async function (app) {
 			var count = await accountManager.hasAccount(userId);
 
 			var ret = {err:"no_account"};
-			var Total_balance=0
+			var Total_balance=0;
             if(count)
 			{
-				var ret = await accountManager.getAccount(userId)
+				var ret = await accountManager.getAccount(userId);
 				delete ret.btc
 				delete ret.version
 			}else{
@@ -758,8 +758,8 @@ module.exports = async function (app) {
 	         Balance = JSON.parse(balance);
 			 console.log("balance not parsed : " , balance)
 			 console.log(" parsed BALANCE : ", Balance.Total_balance)
-			 if(condition === "daily" && !Balance.err){
-				   result.Balance = Balance.Total_balance;
+			 if(condition === "daily" && !balance.err){
+				   result.Balance = balance.Total_balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().save(user);
@@ -774,8 +774,6 @@ module.exports = async function (app) {
 						if(user.weekly.length > 7){user.weekly.pop();}
 							  await  app.db.sn_user().save(user);
 							  counter++;
-							  console.log("count : ", counter );
-							  console.log("user Inserted : ", user );
 							}
 	 
 			 if(condition === "monthly" && balance.Total_balance){
@@ -784,8 +782,6 @@ module.exports = async function (app) {
 					   if(user.monthly.length > 7){user.monthly.pop();}
 										  await   app.db.sn_user().save(user);
 										  counter++;
-										  console.log("count : ", counter );
-										  console.log("user Inserted : ", user );
 			 }
 
 		}	   
