@@ -757,7 +757,7 @@ module.exports = async function (app) {
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
 	         Balance = JSON.parse(balance);
 			 console.log("balance not parsed : " , balance)
-			 console.log("BALANCE : ", Balance.Total_balance)
+			 console.log(" parsed BALANCE : ", Balance.Total_balance)
 			 if(condition === "daily" && !Balance.err){
 				   result.Balance = Balance.Total_balance;
 					  user.daily.unshift(result);
