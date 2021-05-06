@@ -386,7 +386,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			
 			let notification={
 				idNode:id,
-				type:"demande_satt_event",
+				type:"send_demande_satt_event",
 				status:"done",
 				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
 				isSeen:false,
