@@ -4,6 +4,23 @@ module.exports = function (app) {
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 	var  ObjectID = require('mongodb').ObjectID
 	var bodyParser = require('body-parser');
+	const cookieParser = require('cookie-parser');
+
+	const path = require('path')
+	const i18n = require('i18n')
+
+
+	i18n.configure({
+		locales: ['fr', 'en'],
+		directory: path.join(__dirname, '/locales'), 
+		queryParameter: 'lang',
+		cookiename:'language'
+	  })
+	  app.use(i18n.init);
+
+	  app.use(cookieParser());
+
+	 
 	app.use(bodyParser.urlencoded({ extended: false }));
 	app.use( bodyParser.json() )
   
@@ -12,6 +29,13 @@ module.exports = function (app) {
 	var handlebars = require('handlebars');
 	const fs = require('fs');
   
+	handlebars.registerHelper('__', function () {
+		return i18n.__.apply(this, arguments);
+	  });
+	  handlebars.registerHelper('__n', function () {
+		return i18n.__n.apply(this, arguments);
+	  });
+	
   
 	ObjectId = require('mongodb').ObjectID
   
@@ -700,7 +724,8 @@ module.exports = function (app) {
 	});
   
 	app.post('/auth/passlost', async function (req, response) {
-  
+		const lang = req.query.lang
+		
 	  var mail = req.body.mail;
 	  // var res = await app.db.query("Select id from user where email='" + mail + "' ");
 	  var users = await app.db.sn_user().find({email: mail}).toArray();
@@ -723,12 +748,13 @@ module.exports = function (app) {
 		};
   
 		var htmlToSend = template(replacements);
+
 		var mailOptions = {
-		  from: app.config.mailSender,
-		  to: users[0].username,
-		  subject: 'Satt wallet password recover',
-		  html: htmlToSend
-		};
+			from: app.config.mailSender,
+			to: users[0].username,
+			subject: 'Satt wallet password recover',
+			html: htmlToSend
+		  };
 		transporter.sendMail(mailOptions, function (error, info) {
 		  if (error) {
 			console.log(error);
