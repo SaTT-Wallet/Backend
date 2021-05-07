@@ -919,8 +919,9 @@ module.exports = function (app) {
 		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
 		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
         // prices["SATT"] = {price:bwSatt.datas[1]};
-		// 		str+="}"
-				res.end(str)
+				response=str.substring(0, str.length-1);
+		 		response+="}"
+				res.end(response)
 })
 
 app.get('/v2/feebtc', async function(req, response) {
@@ -1071,8 +1072,8 @@ app.post('/v2/profile/update', async function(req, response) {
 
 	app.get('/user/balance', async (req,res)=>{
 		try {
-			let token = req.headers["authorization"].split(" ")[1];
-            const auth = await app.crm.auth(token);
+			 let token = req.headers["authorization"].split(" ")[1];
+             const auth = await app.crm.auth(token);
 			const idUser = auth.id
 			const Fetch_crypto_price = {
 				method: 'GET',
@@ -1080,9 +1081,8 @@ app.post('/v2/profile/update', async function(req, response) {
 				json: true,
 				gzip: true
 			  };
-		
 			let Crypto = await rp(Fetch_crypto_price);
-			const balance = await app.account.getBalanceByUid(idUser,Crypto);
+			const balance = await app.account.getListCryptoByUid(idUser,Crypto);
 			res.send(balance)
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');

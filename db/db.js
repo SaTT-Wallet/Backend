@@ -71,6 +71,10 @@ module.exports = async function (app) {
             return db.db(app.config.mongoBaseCrm).collection("user_legal");
         };
 
+		app.db.UsersId = function () {
+            return db2.db(app.config.mongoBaseCrm).collection("UserID");
+        };
+
 		app.db.contact = function () {
             return db.db(app.config.mongoBaseCrm).collection("contacts");
         };
@@ -82,6 +86,9 @@ module.exports = async function (app) {
         };
         app.db.wallet = function () {
             return db.db(app.config.mongoBase).collection(app.config.walletCollection);
+        };
+		app.db.walletUserNode = function () {
+            return db.db(app.config.mongoBaseCrm).collection("wallet_user_node");
         };
 
 		 app.db.passwallet = function () {
