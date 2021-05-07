@@ -83,6 +83,9 @@ module.exports = async function (app) {
         app.db.wallet = function () {
             return db.db(app.config.mongoBase).collection(app.config.walletCollection);
         };
+		app.db.walletUserNode = function () {
+            return db.db(app.config.mongoBaseCrm).collection("wallet_user_node");
+        };
 
 		 app.db.passwallet = function () {
             return db.db(app.config.mongoBase).collection(app.config.passWalletCollection);
