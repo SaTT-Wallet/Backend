@@ -651,28 +651,7 @@ module.exports = function (app) {
   
   
   
-  
-	app.post('/auth/passrecover', async function (req, response) {
-	  var newpass = req.body.newpass;
-	  var code = req.body.code;
-	  var id = req.body.id;
-	  var res = await app.db.sn_user().find({ _id: ObjectId(id)}).toArray();
-	  if( res.length) {
-		if (res[0].confirmation_token != code) {
-		 
-		  response.end('{error:"wrong activation"}');
-		  return;
-		}
-		//var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
-		var update = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
-			console.log(update)
-		response.end('{message:"activated"}');
-	  } else {
-		response.end('{error:"no account"}');
-		return;
-	  }
-  
-	});
+   
   
 	return app;
   }
