@@ -68,7 +68,7 @@ module.exports = function (app) {
 		var token = crypto.randomFillSync(buff).toString('hex');
 		var users = await app.db.sn_user().find({email: username}).toArray();
 		if (users.length) {
-		  return done(null, false, {error: true, message: 'email_already_used',type:app.config.accountType[users[0].idSn]});
+		  return done(null, false, {error: true, message: 'email_already_used'});
 		} else {
 		  var mongodate = new Date().toISOString();
 		  var mydate = mongodate.slice(0, 19).replace('T', ' ');
