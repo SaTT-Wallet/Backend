@@ -74,8 +74,6 @@ module.exports = async function (app) {
 		return p;
 	}*/
 
-
-
 	crm.auth = async function (token) {
 		return new Promise(async (resolve, reject) => {
 			try {
@@ -84,25 +82,23 @@ module.exports = async function (app) {
 					resolve(tokens[token]);
 					return;
 				}
-
-				//console.log("token",token)
 				if(app.config.testnet) {
 					var UserId = 9999999999;
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
 					return;
 				}
-
 				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
 				if(res.length) {
 					var UserId = res[0].user_id;
-
+                    console.log(res,'MYsql')
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
-
+ 
 				}
 				else{
 					var res = await app.db.accessToken().findOne({token:token});
+					console.log(res,'MYsql',token)
                     if(res){
                         var UserId = res.user_id;
                         resolve({id:UserId});

@@ -871,6 +871,16 @@ module.exports = async function (app) {
    }
 }
 
+   accountManager.handleId=async function () {
+	var Collection=await app.db.UsersId().findOne()
+	var id =Collection.UserId
+	var UpdateCollection = await app.db.UsersId().replaceOne({userId:Collection.userId},{UserId:Collection.UserId+1})
+	  if(UpdateCollection.result.nModified){
+		return {NewId:id}
+	  }else{
+		return "an error occurred"
+     }
+  }
 
 	app.account = accountManager;
 	return app;
