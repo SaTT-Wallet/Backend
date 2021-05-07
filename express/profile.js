@@ -372,6 +372,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 })
 
+
 /*
      @url : /recieveMoney
      @description: envoyer une notification et un mail
