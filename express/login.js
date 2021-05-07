@@ -777,7 +777,7 @@ module.exports = function (app) {
 			console.log(update)
 		response.end('{message:"activated"}');
 	  } else {
-		response.end('{error:"no account"}');
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		return;
 	  }
 
