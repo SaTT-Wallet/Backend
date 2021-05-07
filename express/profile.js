@@ -468,6 +468,22 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			
 	
 	})
+
+	app.put('/profile/info/update', async (req, res) => {
+		try {
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			const id = +auth.id;
+			 let profile = req.body;
+		const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile})
+		res.send(JSON.stringify({result, success : "updated"})).status(201);
+	} catch (err) {
+	
+		console.error(err)
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	 }
+	   })
+
 	return app;
 
 }
