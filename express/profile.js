@@ -1,3 +1,5 @@
+const { result } = require('underscore');
+
 module.exports = function (app) {
 	let ejs = require('ejs');
 	var fs = require('fs');
@@ -12,7 +14,7 @@ module.exports = function (app) {
 	const nodemailer = require("nodemailer");
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 	const conn=mongoose.createConnection(mongoURI);
-	const moment= require('moment') 
+	const QRCode = require('qrcode')
 
 	let gfsprofilePic;
 	let gfsUserLegal;
@@ -383,7 +385,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			const id = "0" + auth.id;
-			
+			 let code = await QRCode.toDataURL(req.body.wallet);
 			let notification={
 				idNode:id,
 				type:"send_demande_satt_event",
@@ -397,10 +399,10 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			  created:new Date()
 			}
 			 await app.db.notification().insertOne(notification);
-			 app.db.contact().findOne({email:req.body.to},async function (err, result) {
+			 var result= await app.db.user().findOne({email:req.body.to});
 				 if(result){
-					let notification={
-						idNode:result.idNode,
+						 let notification={
+						idNode:"0"+result._id,
 						type:"demande_satt_event",
 						status:"done",
 						label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
@@ -412,14 +414,17 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					  created:new Date()
 					}
 					await app.db.notification().insertOne(notification);
-
+					 
+					
 				 }
-			 })
+			 
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
 				  return
 				}
+				
+
 				var data_={
 					SaTT:{
 						Url:app.config.walletUrl+'FAQ'
@@ -437,7 +442,14 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					from: req.body.from,
 					to: req.body.to,
 					subject: 'nouvelle notification',
-					html: dynamic_html
+					html: dynamic_html,
+					attachments: [
+						{
+						filename: "codeQr.jpg",
+						contentType:  'image/png',
+						content: new Buffer.from(code.split("base64,")[1], "base64"),
+						}
+						]
 			   };
 			
 		   transporter.sendMail(mailOptions, function(error, info){
@@ -447,7 +459,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					res.end(JSON.stringify(info.response))
 				}
 			  });
-			})
+			})		
 			
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
