@@ -4,6 +4,7 @@
 	try {
 		var express = require('express');
 		var app = express();
+
 		app.use('/assets', express.static('public'))
 		app.set('view engine', 'ejs');
 		app = await require("./conf/config")(app);
