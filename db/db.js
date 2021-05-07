@@ -46,7 +46,9 @@ module.exports = async function (app) {
 			});
 		});
 	}
-	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	var db = await mongoClient.connect("mongodb://" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	// var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
 	app.db.accessToken = function () {
@@ -82,6 +84,9 @@ module.exports = async function (app) {
         };
         app.db.wallet = function () {
             return db.db(app.config.mongoBase).collection(app.config.walletCollection);
+        };
+		app.db.walletUserNode = function () {
+            return db.db(app.config.mongoBaseCrm).collection("wallet_user_node");
         };
 
 		 app.db.passwallet = function () {
