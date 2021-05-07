@@ -677,10 +677,10 @@ module.exports = async function (app) {
 			var count = await accountManager.hasAccount(userId);
 
 			var ret = {err:"no_account"};
-			var Total_balance=0
+			var Total_balance=0;
             if(count)
 			{
-				var ret = await accountManager.getAccount(userId)
+				var ret = await accountManager.getAccount(userId);
 				delete ret.btc
 				delete ret.version
 			}else{
@@ -718,7 +718,7 @@ module.exports = async function (app) {
 				  }
 				  Total_balance=Total_balance.toFixed(2)
 
-				  resolve({Total_balance});
+				  resolve({Total_balance : Total_balance});
 	   }catch (e) {
 				reject({message:e.message});
 			}
@@ -797,11 +797,11 @@ module.exports = async function (app) {
 	  }
 
 	accountManager.BalanceUsersStats = async (condition)=> {
-		debugger;
 		try{
 
 	   let date = Math.round(new Date().getTime()/1000);
 	   let balance;
+	   let Balance;
 	   let result = {};
        result.Date = date;
 
@@ -826,25 +826,25 @@ module.exports = async function (app) {
 				if(!user.monthly){user.monthly = []};
 	 
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
-	 
-			 if(condition === "daily"){
-				   result.Balance = balance;
+	         Balance = JSON.parse(balance);
+			 console.log("balance not parsed : " , balance)
+			 console.log(" parsed BALANCE : ", Balance.Total_balance)
+			 if(condition === "daily" && !balance.err){
+				   result.Balance = balance.Total_balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().save(user);
 						  counter++;
-			 console.log("count : ", counter );
+			//  console.log("count : ", counter );
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly"){
+			 if(condition === "weekly" && Balance.Total_balance){
 				 result.Balance = balance;
 					  user.weekly.unshift(result)	
 						if(user.weekly.length > 7){user.weekly.pop();}
 							  await  app.db.sn_user().save(user);
 							  counter++;
-							  console.log("count : ", counter );
-							  console.log("user Inserted : ", user );
 							}
 	 
 			 if(condition === "monthly" && balance.Total_balance){
@@ -853,8 +853,6 @@ module.exports = async function (app) {
 					   if(user.monthly.length > 7){user.monthly.pop();}
 										  await   app.db.sn_user().save(user);
 										  counter++;
-										  console.log("count : ", counter );
-										  console.log("user Inserted : ", user );
 			 }
 
 		}	   
