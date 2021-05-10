@@ -69,7 +69,7 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
 
       var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({email: username}).toArray();
+      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
@@ -80,8 +80,8 @@ module.exports = function (app) {
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
-          username: username,
-          email: username,
+          username: username.toLowerCase(),
+          email: username.toLowerCase(),
           password: synfonyHash(password),
           created: mongodate,
           updated: mongodate,
@@ -129,7 +129,7 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
       var maxId = app.db.sn_user().find().sort({_id:-1}).limit(1)
 
-      var users = await app.db.sn_user().find({email: username}).toArray();
+      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
         if (user.idSn != 0) {
