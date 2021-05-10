@@ -783,19 +783,19 @@ module.exports = async function (app) {
 					crypto.name='ETH';
 					crypto.price=CryptoPrices['ETH'].price;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
+					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="satt_balance"){
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
 					crypto.name='SATT';
 					crypto.price=CryptoPrices['SATT'].price;
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
+					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="bnb_balance"){
 					crypto.name='BNB';
 					crypto.price=CryptoPrices['BNB'].price;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
+					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="btc_balance"){
 					count++;
