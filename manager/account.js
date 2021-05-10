@@ -12,7 +12,7 @@ module.exports = async function (app) {
 	var speakeasy = require("speakeasy");
 	var QRCode = require('qrcode');
     var Big = require('big.js');
-   
+
 	var rp = require('request-promise');
 
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
