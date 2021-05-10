@@ -6,6 +6,7 @@
   "description": "Satt NodeJS backend",
   "main": "app.js",
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "big.js": "^6.0.3",
     "bip38": "^2.0.2",
     "bip39": "^3.0.3",
@@ -64,9 +65,9 @@
     "solc": "^0.5.0",
     "speakeasy": "^2.0.0",
     "twitter": "^1.7.1",
+    "underscore": ">=1.12.1",
     "web3": "^1.2.6",
     "xmldom": "^0.5.0",
-    "xmlhttprequest-ssl": ">=1.6.2",
-    "underscore": ">=1.12.1"
+    "xmlhttprequest-ssl": ">=1.6.2"
   }
 }
