@@ -1,3 +1,4 @@
+const { compareSync } = require('bcrypt');
 const { async } = require('hasha');
 
 module.exports = function (app) {
@@ -69,6 +70,7 @@ module.exports = function (app) {
 
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({email: username}).toArray();
+      
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
       } else {
@@ -247,6 +249,7 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
+      console.log(users)
       if (users.length) {
         return cb('email_already_used')
       } else {
@@ -254,8 +257,8 @@ module.exports = function (app) {
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var insert = await app.db.sn_user().insertOne({
           idOnSn2: profile.id,
-          /*email: profile.email,
-          username: profile.email,*/
+          email: profile.email,
+          username: profile.email,
           first_name: profile.given_name,
           name: profile.family_name,
           created: mongodate,
@@ -773,12 +776,6 @@ module.exports = function (app) {
     }
 
   });
-
-
-
-
-
-
 
 	app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;
