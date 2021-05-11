@@ -71,6 +71,10 @@ module.exports = async function (app) {
             return db.db(app.config.mongoBaseCrm).collection("user_legal");
         };
 
+		app.db.UsersId = function () {
+            return db2.db(app.config.mongoBaseCrm).collection("UserID");
+        };
+
 		app.db.contact = function () {
             return db.db(app.config.mongoBaseCrm).collection("contacts");
         };

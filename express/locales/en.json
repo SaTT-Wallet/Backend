@@ -11,4 +11,16 @@
     "automate_campaign_description":"Choose influencers from around the world, small or large.Plan your budget without intermediaries or negotiations. Take control of your campaign, make it a masterpiece in your image.Study your statistics and start over. Take advantage of competitive fees.<br>You have all the keys in hand to make your campaign a success!",
     "questions":"Do you have any questions?",
     "questions_description":"All our support team is available to answer your questions.<br>Do not hesitate to contact them via our various social networks!",
-    "consult_faq":"Consult the FAQ"}
+    "consult_faq":"Consult the FAQ",
+	"reset_pass 1": "",
+	"new_pass": "New password",
+	"ask_pass": "You asked to change your password",
+	"connex": "to connect to satt.atayen.us website.",
+	"link": "Click on the following link to change your new password",
+	"reset_pass2": "Rest your password",
+	"reset_pass3": "If you did not make this request, ignore this Email",
+	"contact": "Contact us",
+	"about": "About SaTT",
+	"Hello": "Hello",
+	"Bonjour": "Bonjour"
+}
