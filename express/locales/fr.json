@@ -1,0 +1,16 @@
+{
+    "welcome":"bienvenue !",
+    "finished_inscription":"Votre inscription est presque terminée ! <br>Il ne vous reste plus qu’à valider votre mail pour accéder à <br> tous les services proposés par SaTT. ",
+    "validate_mail":"Je valide mon mail",
+    "contact_support":"Si vous n'êtes pas à l'origine de cette inscription, <br>veuillez contacter le support.",
+    "create_portfolio":"Créer votre portefeuille !",
+    "create_secure":"Créez et sécurisez votre portefeuille !<br> Choisissez et notez vos mots de passe avec précaution.<br> Nous ne pouvons pas vous aider à le retrouver en cas de perte.",
+    "monetisez":"Monétisez votre audience !",
+    "monetisez_description":"Que vous ayez 50 abonnés ou 1 million de followers, soyez rémunéré à la hauteur de votre audience. La plateforme Satturn est conçue dans le but de convenir au plus grand nombre. Grâce à la blockchain, soyez sûr d’être rémunéré, tout est automatisé.",
+    "automate_campaign":"Concevez, paramétrez, automatisez votre campagne. ",
+    "automate_campaign_description":"Choisissez parmi les influencers du monde entier, les petits ou les plus grands.Planifiez votre budget sans intermédiaire ni négociation. Ayez le contrôle sur votre campagne, faites en un chef-d'œuvre à votre image.Étudiez vos statistiques et recommencez. <br>Profitez de frais compétitifs.<br>Vous avez toutes les clés en main pour faire de votre campagne un succès !",
+    "questions":"Vous avez des questions ?",
+    "questions_description":"Toute notre équipe support est disponible <br>pour répondre à chacune de vos questions.<br>N'hésitez pas à les contacter via nos différents réseaux sociaux !",
+    "consult_faq":"Consultez la FAQ"
+
+}

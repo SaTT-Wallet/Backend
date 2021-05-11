@@ -207,22 +207,22 @@
                 </div>
             </div>
                 <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
-                <h2><%= notification.name %> !</h2>
+                <h2>{{notification.name}}  !</h2>
                 <p>Vous demande de lui envoyer </p>
-                <p><%= notification.price %> <%= notification.cryptoCurrency %></p>
-                <p>la wallet de <%= notification.name %> est : </p>
-                <p><strong><%= notification.wallet %></strong></p>
+                <p>{{notification.price}}  {{notification.cryptoCurrency }}</p>
+                <p>la wallet de {{notification.name}} est : </p>
+                <p><strong>{{notification.wallet}}</strong></p>
         </div>
         <div class="mail-body">
 
         <p>Voici son message</p>
     <div class="subtitle">
-        <%= notification.message %>
+        {{notification.message}}
     </div>
 </div>
         <div class="mail-footer">
-            <a href="<%= SaTT.Url %>">À propos de SaTT</a>
-            <a class="border-l" href="<%= SaTT.Url %>">Nous contacter</a>
+            <a href="{{SaTT.Url}}">{{{__ "about"}}}</a>
+            <a class="border-l" href="{{aTT.Url}}">Nous contacter</a>
         </div>
     </div>
 </body>
