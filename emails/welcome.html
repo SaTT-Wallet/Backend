@@ -301,6 +301,9 @@
             letter-spacing: 0.03em;
             color: #FFFFFF;
         }
+        .text-contact{
+        	margin-top: 19px;
+        }
     </style>
 </head>
 <body>
@@ -314,51 +317,43 @@
             
             </div>
             <img src="{{imgUrl}}/password.png" alt="">
-            <h2>Bienvenue !</h2>
-            <p>Votre inscription est presque finie ! <br>
-                Il ne vous reste plus qu'à valider votre inscription pour<br>
-                accéder à tous les services proposés par SaTT. </p>
+            <h2>{{{__ "welcome"}}} </h2>
+            <p>{{{__ "finished_inscription"}}} 
             <div class="actions">
-                <a href="{{validation_url}}" class="primary">Je valide mon mail</a>
+                <a href="{{validation_url}}" class="primary">{{{__ "validate_mail"}}}</a>
+                <h6 class="text-contact">{{{__ "contact_support"}}}</h6>
             </div>
+
         </div>
         <div class="mail-body">
             <div>
                 <div class="col img"><img src="{{imgUrl}}/wallet.png" alt=""></div>
                 <div class="col text">
-                    <div class="subtitle" align="left">Commencez par créer votre portefeuille</div>
-                    <p>Votre inscription est presque finie !
-                        Il ne vous reste plus qu'à valider votre inscription pour accéder à tous les services proposés par SaTT. </p>
+                    <div class="subtitle" align="left">{{{__ "create_portfolio"}}}</div>
+                    <p>{{{__ "create_secure"}}} </p>
                 </div>
             </div>
             <div>
                 <div class="col img"><img src="{{imgUrl}}/audience.png" alt=""></div>
                 <div class="col text">
-                    <div class="subtitle" align="left"> Monétisez votre audience !</div>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Integer eu sodales augue.
-                        Phasellus ultrices consectetur ligula rhoncus egestas.
-                        Fusce eleifend a elit scelerisque scelerisque.</p>
+                    <div class="subtitle" align="left"> {{{__ "monetisez"}}}</div>
+                    <p>{{{__ "monetisez_description"}}}</p>
                 </div>
             </div>
             <div>
                 <div class="col img"><img src="{{imgUrl}}/campaign.png" alt=""></div>
                 <div class="col text">
-                    <div class="subtitle" align="left"> Lancez vos campagnes !</div>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Integer eu sodales augue. Phasellus ultrices consectetur ligula rhoncus egestas.
-                        Fusce eleifend a elit scelerisque scelerisque.</p>
+                    <div class="subtitle" align="left"> {{{__ "automate_campaign"}}}</div>
+                    <p>{{{__ "automate_campaign_description"}}}</p>
                 </div>
             </div>
 
         </div>
         <div class="sub-footer" align="center">
-            <h2>Vous avez des questions ?</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Integer eu sodales augue. Phasellus ultrices consectetur ligula rhoncus egestas.
-                Fusce eleifend a elit scelerisque scelerisque.</p>
+            <h2>{{{__ "questions"}}}</h2>
+            <p>{{{__ "questions_description"}}}</p>
             <div class="actions mt-2">
-                <a href="https://v2.satt.atayen.us/#/FAQ" class="secondary">Consultez la FAQ</a>
+                <a href="https://v2.satt.atayen.us/#/FAQ" class="secondary">{{{__ "consult_faq"}}}</a>
             </div>
         </div>
         <div class="footer">

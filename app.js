@@ -18,6 +18,8 @@
 		app = await require("./manager/oracle")(app);
 		app = await require("./web3/provider")(app);
 		app = await require("./manager/account")(app);
+		app = await require("./manager/i18n")(app);
+
 		app = await require("./web3/oracle")(app);
 		app = await require("./manager/campaigncentral")(app);
 		app = await require("./web3/campaign")(app);

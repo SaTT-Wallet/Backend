@@ -87,7 +87,8 @@ module.exports = function (app) {
 			"userSatt": true
 		  });
 		  var users = await app.db.sn_user().find({email: username}).toArray();
-  
+		  lang=req.query.lang;
+		  app.i18n.configureTranslation(lang)
 		  readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
 			var template = handlebars.compile(html);
 			var replacements = {
