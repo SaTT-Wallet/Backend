@@ -11,6 +11,16 @@
     "automate_campaign_description":"Choisissez parmi les influencers du monde entier, les petits ou les plus grands.Planifiez votre budget sans intermédiaire ni négociation. Ayez le contrôle sur votre campagne, faites en un chef-d'œuvre à votre image.Étudiez vos statistiques et recommencez. <br>Profitez de frais compétitifs.<br>Vous avez toutes les clés en main pour faire de votre campagne un succès !",
     "questions":"Vous avez des questions ?",
     "questions_description":"Toute notre équipe support est disponible <br>pour répondre à chacune de vos questions.<br>N'hésitez pas à les contacter via nos différents réseaux sociaux !",
-    "consult_faq":"Consultez la FAQ"
-
+    "consult_faq":"Consultez la FAQ",
+	"reset_pass1": "Voir la version en ligne",
+	"new_pass": "Nouveau password",
+	"ask_pass": "Vous avez demandé à renouveler votre mot de passe",
+	"connex": "de connexion au site satt.atayen.us.",
+	"link": "Cliquez sur le lien ci-dessous pour choisir votre nouveau mot de passe de connexion",
+	"reset_pass2": "Réinitialiser le mot de passe",
+	"reset_pass3": "Si vous n'êtes pas à l'origine de cette demande, ignorez cet Email",
+	"contact": "Nous contacter",
+	"about": "À propos de SaTT",
+	"Hello": "Bonjour",
+	"Bonjour": "Bonjour"
 }
