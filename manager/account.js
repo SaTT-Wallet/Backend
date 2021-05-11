@@ -12,7 +12,7 @@ module.exports = async function (app) {
 	var speakeasy = require("speakeasy");
 	var QRCode = require('qrcode');
     var Big = require('big.js');
-
+   
 	var rp = require('request-promise');
 
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
@@ -747,15 +747,19 @@ module.exports = async function (app) {
 			  for(const T_name in token_info){
 				var network=token_info[T_name].network;
 				crypto={};
-				crypto.name=T_name;
+				crypto.symbol=token_info[T_name].symbol;
+				crypto.name=token_info[T_name].name;
+				crypto.undername=token_info[T_name].undername;
+				crypto.undername2=token_info[T_name].undername2;
 				if(network=="ERC20"){
 				balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);				
 				   if(token_info[T_name].contract==token_info['WSATT'].contract){
 					crypto.price=CryptoPrices['SATT'].price;
+					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-
 				   }else {
 					crypto.price=CryptoPrices[T_name].price;
+					crypto.variation=CryptoPrices[T_name].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
 
 					}
@@ -763,10 +767,12 @@ module.exports = async function (app) {
 				balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
 					if( token_info[T_name].contract==token_info['SATT_BEP20'].contract){
 					crypto.price=CryptoPrices['SATT'].price;
+					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
 
 				}	else {
 					crypto.price=CryptoPrices[T_name].price;
+					crypto.variation=CryptoPrices[T_name].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
 
 				}	 	  
@@ -778,26 +784,42 @@ module.exports = async function (app) {
 			for(const Amount in ret){
 				crypto={}
 				if(Amount=="ether_balance"){
-					crypto.name='ETH';
+					crypto.symbol='ETH';
+					crypto.name='Ethereum';
+					crypto.undername='ETH';
+					crypto.undername2='ETH'; 
 					crypto.price=CryptoPrices['ETH'].price;
+					crypto.variation=CryptoPrices['ETH'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="satt_balance"){
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-					crypto.name='SATT';
+					crypto.symbol='SATT';
+					crypto.name='SaTT';
+					crypto.undername='SATT';
+					crypto.undername2='SATT'; 
 					crypto.price=CryptoPrices['SATT'].price;
+					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="bnb_balance"){
+					crypto.symbol='BNB';
 					crypto.name='BNB';
+					crypto.undername='(SMART CHAIN)';
+					crypto.undername2='BNB'; 
 					crypto.price=CryptoPrices['BNB'].price;
+					crypto.variation=CryptoPrices['BNB'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="btc_balance"){
-					crypto.name='BTC';
+					crypto.symbol='BTC';
+					crypto.name='Bitcoin';
+					crypto.undername='BTC';
+					crypto.undername2='BTC'; 
 					crypto.price=CryptoPrices['BTC'].price;
+					crypto.variation=CryptoPrices['BTC'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());	
 					listOfCrypto.push(crypto);
@@ -879,16 +901,6 @@ module.exports = async function (app) {
    }
 }
 
-   accountManager.handleId=async function () {
-	var Collection=await app.db.UsersId().findOne()
-	var id =Collection.UserId
-	var UpdateCollection = await app.db.UsersId().replaceOne({userId:Collection.userId},{UserId:Collection.UserId+1})
-	  if(UpdateCollection.result.nModified){
-		return {NewId:id}
-	  }else{
-		return "an error occurred"
-     }
-  }
 
 	app.account = accountManager;
 	return app;
