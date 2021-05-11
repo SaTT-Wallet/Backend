@@ -94,6 +94,8 @@ module.exports = function (app) {
         console.log(insert,'insert ------------------------------------')
         var users = await app.db.sn_user().find({email: username}).toArray();
        console.log(users)
+       lang=req.query.lang
+       app.i18n.configureTranslation(lang)
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
           var replacements = {
