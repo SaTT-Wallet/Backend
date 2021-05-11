@@ -716,6 +716,10 @@ module.exports = function (app) {
   });
 
   app.post('/auth/passlost', async function (req, response) {
+    
+	const lang = req.query.lang;
+	
+	app.i18n.configureTranslation(lang);
 
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
