@@ -185,7 +185,7 @@ module.exports = function (app) {
 			  } else if (Date.now() > unowned[c].endDate.getTime()) {
 				Ended_c++
 			  }
-		}
+		} 
        
 		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
 	})
@@ -195,7 +195,6 @@ module.exports = function (app) {
 		var campaigns = [];
 		var rescampaigns = [];
 		campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
-
 		var campaignsCrm = [];
 		var campaignsCrmbyId = [];
 		campaignsCrm = await app.db.campaignCrm().find().toArray();
@@ -219,8 +218,6 @@ module.exports = function (app) {
 					campaigns[i].meta.token.name ="SATT";
 				}
 			}
-
-
 			var result = await ctr.methods.campaigns(campaigns[i].id).call();
 			campaigns[i].funds =  result.funds;
 			campaigns[i].nbProms =  result.nbProms;

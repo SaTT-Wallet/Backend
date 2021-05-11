@@ -1518,5 +1518,69 @@ console.log(Links)
 		}
 	})
 
+
+	app.get('/campaign/totalSpent/:owner', async (req, res) => {
+       try{
+
+		let prices;
+		let sattPrice$;
+
+	const address = req.params.owner;
+
+	let[total,totalSpent,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,[],[],[],[]];
+
+			const sattPrice ={
+			   url: 'https://3xchange.io/prices',
+				method: 'GET',
+				json: true
+			};
+
+		   prices = await rp(sattPrice);
+		   sattPrice$ = prices.SATT.price;
+
+	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
+
+	campaignsCrm = await app.db.campaignCrm().find().toArray();
+	for (var i = 0;i<campaignsCrm.length;i++)
+	{
+		if(campaignsCrm[i].hash)
+			campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
+	}
+	for (var i = 0;i<campaigns.length;i++)
+	{
+		var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
+		if(!ctr.methods) 
+		{
+			continue;
+		}
+
+		if(campaignsCrmbyId[campaigns[i].id])
+		{
+			campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
+			if(campaigns[i].meta.token.name == "SATTBEP20") {
+				campaigns[i].meta.token.name ="SATT";
+			}
+		}
+
+		rescampaigns.push(campaigns[i]);
+	}
+	            var campaignscentral = await app.statcentral.campaignsByOwner(address);
+				
+	            rescampaigns = rescampaigns.concat(campaignscentral);
+
+	            rescampaigns.forEach(elem =>{
+		total = total + (parseFloat(new Big(elem.cost).div(etherInWei).toFixed(4)) - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(4)));
+	})
+	
+	         let totalSpent = Number((total * sattPrice$).toFixed(2));
+
+	           res.end(JSON.stringify({totalSpent})).status(200);
+
+	   }catch(err){
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+		    
+	}) 
+
 	return app;
 }
