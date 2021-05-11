@@ -15,6 +15,7 @@ module.exports = function (app) {
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 	const conn=mongoose.createConnection(mongoURI);
 	const QRCode = require('qrcode')
+    var handlebars = require('handlebars');
 
 	let gfsprofilePic;
 	let gfsUserLegal;
@@ -383,6 +384,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
+			lang=req.query.lang;
+			app.i18n.configureTranslation(lang)
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			const id = "0" + auth.id;
@@ -424,7 +427,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				  console.error(err)
 				  return
 				}
-				
+				var template = handlebars.compile(data);
 
 				var data_={
 					SaTT:{
@@ -438,12 +441,14 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						wallet:req.body.wallet
 					}
 				}
-				let dynamic_html=ejs.render(data, data_);
+
+				var htmlToSend = template(data_);
+
 				var mailOptions = {
 					from: req.body.from,
 					to: req.body.to,
 					subject: 'nouvelle notification',
-					html: dynamic_html,
+					html: htmlToSend,
 					attachments: [
 						{
 						filename: "codeQr.jpg",
