@@ -1398,8 +1398,9 @@ module.exports = function (app) {
 		let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
 		 let campaign = req.body;
-	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
-	res.send(JSON.stringify({result, success : "updated"})).status(201);
+	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+	const updatedCampaign = result.value
+	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 } catch (err) {
 
 	console.error(err)
@@ -1517,6 +1518,70 @@ console.log(Links)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		}
 	})
+
+
+	app.get('/campaign/totalSpent/:owner', async (req, res) => {
+       try{
+
+		let prices;
+		let sattPrice$;
+
+	const address = req.params.owner;
+
+	let[total,totalSpent,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,[],[],[],[]];
+
+			const sattPrice ={
+			   url: 'https://3xchange.io/prices',
+				method: 'GET',
+				json: true
+			};
+
+		   prices = await rp(sattPrice);
+		   sattPrice$ = prices.SATT.price;
+
+	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
+
+	campaignsCrm = await app.db.campaignCrm().find().toArray();
+	for (var i = 0;i<campaignsCrm.length;i++)
+	{
+		if(campaignsCrm[i].hash)
+			campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
+	}
+	for (var i = 0;i<campaigns.length;i++)
+	{
+		var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
+		if(!ctr.methods) 
+		{
+			continue;
+		}
+
+		if(campaignsCrmbyId[campaigns[i].id])
+		{
+			campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
+			if(campaigns[i].meta.token.name == "SATTBEP20") {
+				campaigns[i].meta.token.name ="SATT";
+			}
+		}
+
+		rescampaigns.push(campaigns[i]);
+	}
+	            var campaignscentral = await app.statcentral.campaignsByOwner(address);
+
+	            rescampaigns = rescampaigns.concat(campaignscentral);
+
+	            rescampaigns.forEach(elem =>{
+		total = total + (parseFloat(new Big(elem.cost).div(etherInWei).toFixed(4)) - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(4)));
+	})
+	
+	         totalSpent = Number((total * sattPrice$).toFixed(2));
+
+	           res.end(JSON.stringify({totalSpent})).status(200);
+
+	   }catch(err){
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+		    
+	}) 
 
 	return app;
 }
