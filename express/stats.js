@@ -272,8 +272,7 @@ module.exports = function (app) {
 			var access_token=req.params.token
 			var campaigns = [];
 			var rescampaigns = [];
-			const limit=parseInt(req.query.limit) || 10;
-			const page=parseInt(req.query.page) || 1
+
 
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 			var campaignsCrm = [];
@@ -339,24 +338,9 @@ module.exports = function (app) {
 				return {...c,stat:'draft'}
 			})
 
-            let campaigns_=[...created_campaigns,...draft_campaigns]
-			const startIndex=(page-1) * limit;
-			const endIndex=page * limit;
-			const listPagination = {}
-			if(endIndex < campaigns_.length){
-				listPagination.next ={
-					page:page+1,
-					limit:limit
-				}
-			}
-			if(startIndex > 0){
-				listPagination.previous ={
-				page:page-1,
-				limit:limit
-			}
-			}
-			listPagination.campaign=campaigns_.slice(startIndex, endIndex)
-			response.end(JSON.stringify(listPagination));
+            let campaigns_=[...created_campaigns,...draft_campaigns];
+
+			response.end(JSON.stringify(campaigns_));
 
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -438,8 +422,8 @@ module.exports = function (app) {
 				return {...c,stat:'draft'}
 			})
 
-            let campaigns_=[...created_campaigns,...draft_campaigns]
-			response.end(JSON.stringify(campaigns_));
+            let Campaigns_=[...created_campaigns,...draft_campaigns]
+			response.end(JSON.stringify(Campaigns_));
 
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');

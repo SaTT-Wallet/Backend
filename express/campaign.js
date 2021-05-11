@@ -1398,8 +1398,9 @@ module.exports = function (app) {
 		let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
 		 let campaign = req.body;
-	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign})
-	res.send(JSON.stringify({result, success : "updated"})).status(201);
+	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+	const updatedCampaign = result.value
+	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 } catch (err) {
 
 	console.error(err)
@@ -1565,14 +1566,14 @@ console.log(Links)
 		rescampaigns.push(campaigns[i]);
 	}
 	            var campaignscentral = await app.statcentral.campaignsByOwner(address);
-				
+
 	            rescampaigns = rescampaigns.concat(campaignscentral);
 
 	            rescampaigns.forEach(elem =>{
 		total = total + (parseFloat(new Big(elem.cost).div(etherInWei).toFixed(4)) - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(4)));
 	})
 	
-	         let totalSpent = Number((total * sattPrice$).toFixed(2));
+	         totalSpent = Number((total * sattPrice$).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent})).status(200);
 
