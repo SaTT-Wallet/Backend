@@ -717,7 +717,7 @@ module.exports = function (app) {
 
   app.post('/auth/passlost', async function (req, response) {
     
-	const lang = req.query.lang || "fr";
+	const lang = req.query.lang || "en";
 	
 	app.i18n.configureTranslation(lang);
 
