@@ -1,3 +1,5 @@
+const { async } = require('hasha');
+
 module.exports = function (app) {
 	let ejs = require('ejs');
 	var ObjectId = require('mongodb').ObjectId; 
@@ -1520,6 +1522,14 @@ console.log(Links)
 	})
 
 
+	 /*
+	@url : /campaign/totalSpent/:owner
+	@description: fetching total spending of the user in USD
+	@params:
+    owner : wallet address of user
+	{headers}
+	@Output JSON object 
+	*/
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
 
@@ -1570,7 +1580,10 @@ console.log(Links)
 	            rescampaigns = rescampaigns.concat(campaignscentral);
 
 	            rescampaigns.forEach(elem =>{
-		total = total + (parseFloat(new Big(elem.cost).div(etherInWei).toFixed(4)) - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(4)));
+               if(elem.meta){
+				total = total + (parseFloat(new Big(elem.meta.cost).div(etherInWei).toFixed(4)) - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(4)));
+			   }
+
 	})
 	
 	         totalSpent = Number((total * sattPrice$).toFixed(2));
