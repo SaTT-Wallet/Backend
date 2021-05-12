@@ -208,7 +208,6 @@ module.exports = function (app) {
           // picLink: profile.picture.data.url,
           userSatt: true
         });
-        var users = await app.db.sn_user().find({email: profile.email}).toArray();
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
         //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
         return cb(null, {id: users[0]._id, token: token, expires_in: date});
@@ -226,7 +225,7 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
 
       var users = await app.db.sn_user().find({idOnSn:  profile.token_for_business}).toArray()
-      console.log(profile,"user")
+      console.log("token business");
       if (users.length) {
         var user = users[0]
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
