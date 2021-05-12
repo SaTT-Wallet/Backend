@@ -72,7 +72,6 @@ module.exports = function (app) {
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
       } else {
-        console.log(username,password)
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var buff2 = Buffer.alloc(32);
@@ -90,9 +89,9 @@ module.exports = function (app) {
           confirmation_token: code,
           "userSatt": true
         });
-        console.log(insert,'insert ------------------------------------')
+
         var users = await app.db.sn_user().find({email: username}).toArray();
-       console.log(users)
+
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
           var replacements = {
@@ -656,7 +655,7 @@ module.exports = function (app) {
   function ensureLoggedIn() {
     return async function(req, res, next){
       var UserId;
-      console.log(req.header('authorization'))
+
       var token = req.header('authorization').split(' ')[1]
       var AccessT = await app.db.accessToken().findOne({token:token});
    if(AccessT){
@@ -696,7 +695,7 @@ module.exports = function (app) {
     var id = req.params.id;
     console.log(id)
     var users = await app.db.sn_user().find({ _id: id}).toArray();
-    console.log(users)
+
     if( users.length) {
       if (users[0].enabled) {
         //response.end('{error:"account already activated"}');
@@ -799,7 +798,7 @@ module.exports = function (app) {
 		}
 		//var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
 		var update = await app.db.sn_user().updateOne({_id: id}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
-			console.log(update)
+
 		response.end(JSON.stringify('successfully'));
 	  } else {
 		response.end(JSON.stringify("Account Not Found"));
