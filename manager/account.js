@@ -901,11 +901,12 @@ module.exports = async function (app) {
    }
 }
    
-   accountManager.handleId=async function () {
-	  var Collection=await app.db.UsersId().findOne()
-	  var id =Collection.UserId
-      var UpdateCollection = await app.db.UsersId().replaceOne({userId:id},{UserId:id+1})
-	  let userId=UpdateCollection.ops[0].UserId
+accountManager.handleId=async function () {
+	var Collection=await app.db.UsersId().findOne()
+	var id =Collection.UserId
+	console.log(id)
+	var UpdateCollection = await app.db.UsersId().replaceOne({UserId:id},{UserId:(id+1)})
+	let userId=UpdateCollection.ops[0].UserId
 	if(UpdateCollection.result.nModified){
 		return userId
 	}else{
