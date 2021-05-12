@@ -44,7 +44,7 @@ module.exports = function (app) {
       }
     });
   };
-  
+
 
   var synfonyHash = function (pass) {
     var salted = pass+"{"+app.config.symfonySalt+"}";
@@ -70,11 +70,10 @@ module.exports = function (app) {
 
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({email: username}).toArray();
-      
+
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
       } else {
-        console.log(username,password)
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var buff2 = Buffer.alloc(32);
@@ -92,9 +91,9 @@ module.exports = function (app) {
           confirmation_token: code,
           "userSatt": true
         });
-        console.log(insert,'insert ------------------------------------')
+
         var users = await app.db.sn_user().find({email: username}).toArray();
-       console.log(users)
+
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
           var replacements = {
@@ -124,7 +123,7 @@ module.exports = function (app) {
     }
   ));
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
-    async function (req, username, password, done) { 
+    async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -251,7 +250,7 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
-      
+
       if (users.length) {
         return cb('email_already_used')
       } else {
@@ -597,7 +596,7 @@ module.exports = function (app) {
     let message = err.message? err.message:err;
     res.redirect(app.config.basedURl +'/login?error=1&message=' + message);
   }
-  
+
 
 
   app.get('/callback/facebook_signup',
@@ -657,12 +656,12 @@ module.exports = function (app) {
   function ensureLoggedIn() {
     return async function(req, res, next){
       var UserId;
-      console.log(req.header('authorization'))
+
       var token = req.header('authorization').split(' ')[1]
       var AccessT = await app.db.accessToken().findOne({token:token});
    if(AccessT){
       if(!expiringToken(AccessT.expires_at)){
-       
+
         if(!AccessT['token']){
           UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
           if(!UserId){
@@ -673,13 +672,10 @@ module.exports = function (app) {
         }
 
         var user = await app.db.sn_user().findOne({'_id':UserId})
-        var user_ = await app.db.sn_user().findOne({'_id':UserId})
-        if(user||user_){
-          if(user){
+
+        if(user){
+            delete(user.password)
             res.end(JSON.stringify(user))
-          }else{
-            res.end(JSON.stringify(user_))
-          }
         }
         else{
           res.end(JSON.stringify({error:"user not found"}))
@@ -698,9 +694,11 @@ module.exports = function (app) {
   app.get('/auth/activate/:id/:code', async function (req, response) {
     var code = req.params.code;
     var id = req.params.id;
+
     console.log(id,"activate with")
     var users = await app.db.sn_user().find({_id:Long.fromNumber(id)}).toArray();
     console.log(users)
+
     if( users.length) {
       if (users[0].enabled) {
         //response.end('{error:"account already activated"}');
@@ -802,8 +800,10 @@ module.exports = function (app) {
 		  return;
 		}
 		//var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
+
 		var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
 			console.log(update)
+
 		response.end(JSON.stringify('successfully'));
 	  } else {
 		response.end(JSON.stringify("Account Not Found"));
