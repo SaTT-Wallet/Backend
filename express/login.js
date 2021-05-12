@@ -1,4 +1,3 @@
-const { compareSync } = require('bcrypt');
 const { async } = require('hasha');
 
 module.exports = function (app) {
@@ -17,6 +16,7 @@ module.exports = function (app) {
 
 
   ObjectId = require('mongodb').ObjectID
+  var Long = require('mongodb').Long;
 
   var passport = require('passport');
   var LocalStrategy = require('passport-local').Strategy;
@@ -44,7 +44,7 @@ module.exports = function (app) {
       }
     });
   };
-  
+
 
   var synfonyHash = function (pass) {
     var salted = pass+"{"+app.config.symfonySalt+"}";
@@ -69,19 +69,19 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
 
       var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
-      
+      var users = await app.db.sn_user().find({email: username}).toArray();
+
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
       } else {
-        console.log(username,password)
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
-          username: username.toLowerCase(),
-          email: username.toLowerCase(),
+          _id:Long.fromNumber(await app.account.handleId()),
+          username: username,
+          email: username,
           password: synfonyHash(password),
           created: mongodate,
           updated: mongodate,
@@ -91,11 +91,11 @@ module.exports = function (app) {
           confirmation_token: code,
           "userSatt": true
         });
-        console.log(insert,'insert ------------------------------------')
+
         var users = await app.db.sn_user().find({email: username}).toArray();
-       console.log(users)
-      const lang=req.query.lang || "en";
-       app.i18n.configureTranslation(lang)
+        const lang = req.query.lang || "en";
+	
+        app.i18n.configureTranslation(lang);
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
           var replacements = {
@@ -125,13 +125,13 @@ module.exports = function (app) {
     }
   ));
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
-    async function (req, username, password, done) { 
+    async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
       var maxId = app.db.sn_user().find().sort({_id:-1}).limit(1)
 
-      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
+      var users = await app.db.sn_user().find({email: username}).toArray();
       if (users.length) {
         var user = users[0];
         if (user.idSn != 0) {
@@ -142,9 +142,9 @@ module.exports = function (app) {
         }*/
         var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
         if (res.length && !user.password) {
-          await app.db.sn_user().updateOne({_id: user._id}, {$set: {password: res[0].password}});
+          await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: res[0].password}});
         }
-        await app.db.sn_user().updateOne({_id: user._id}, {$set: {account_locked: false, failed_count: 0}});
+        await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: false, failed_count: 0}});
         if (user.password == synfonyHash(password)) {
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
@@ -160,8 +160,8 @@ module.exports = function (app) {
           if (failed_count >= bad_login_limit) {
             account_locked = true
           }
-          var update = await app.db.sn_user().updateOne({_id: user._id}, {$set: {account_locked: account_locked, failed_count: failed_count}});
-          var users0 = await app.db.sn_user().find({_id: user._id}).toArray();
+          var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: account_locked, failed_count: failed_count}});
+          var users0 = await app.db.sn_user().find({_id: Long.fromNumber(user._id)}).toArray();
           let login_limit = bad_login_limit - failed_count;
           return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
         }
@@ -192,6 +192,7 @@ module.exports = function (app) {
         console.log("--------------")
         console.log(profile.email)
         var insert = await app.db.sn_user().insertOne({
+          _id:Long.fromNumber(await app.account.handleId()),
           scopedId: profile.id,
           idOnSn: profile.token_for_business,
           email: profile.email,
@@ -251,13 +252,14 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
-      console.log(users)
+
       if (users.length) {
         return cb('email_already_used')
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var insert = await app.db.sn_user().insertOne({
+          _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
           email: profile.email,
           username: profile.email,
@@ -454,6 +456,7 @@ module.exports = function (app) {
           var mongodate = new Date().toISOString();
           var mydate = mongodate.slice(0, 19).replace('T', ' ');
           var insert = await app.db.sn_user().insertOne({
+            id:Long.fromNumber(await app.account.handleId()),
             idOnSn3: profile.id,
             email: profile.email,
             username: profile.email,
@@ -511,7 +514,7 @@ module.exports = function (app) {
   });
 
   passport.deserializeUser(async function (id, cb) {
-    var users = await app.db.sn_user().find({_id: ObjectId(id)}).toArray();
+    var users = await app.db.sn_user().find({_id:Long.fromNumber( id)}).toArray();
     cb(null, users[0]);
   });
 
@@ -556,6 +559,8 @@ module.exports = function (app) {
       })(req, res, next);
   });
 
+
+
   app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
@@ -564,7 +569,7 @@ module.exports = function (app) {
 
   //app.get('/auth/twitter', passport.authenticate('twitter'));
 
-  app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
+  app.get('/auth/signup_telegram', passport.authenticate('F'),
     function(req, res) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
@@ -593,7 +598,7 @@ module.exports = function (app) {
     let message = err.message? err.message:err;
     res.redirect(app.config.basedURl +'/login?error=1&message=' + message);
   }
-  
+
 
 
   app.get('/callback/facebook_signup',
@@ -641,6 +646,11 @@ module.exports = function (app) {
     res.end(JSON.stringify(param))
   });
 
+  app.get('/test', function(req, res) {
+   app.account.handleId()
+  });
+
+
   function expiringToken(date){
     return (Math.floor(new Date().getTime()/1000))>date
   }
@@ -648,12 +658,12 @@ module.exports = function (app) {
   function ensureLoggedIn() {
     return async function(req, res, next){
       var UserId;
-      console.log(req.header('authorization'))
+
       var token = req.header('authorization').split(' ')[1]
       var AccessT = await app.db.accessToken().findOne({token:token});
    if(AccessT){
       if(!expiringToken(AccessT.expires_at)){
-       
+
         if(!AccessT['token']){
           UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
           if(!UserId){
@@ -663,14 +673,11 @@ module.exports = function (app) {
           UserId = AccessT['user_id']
         }
 
-        var user = await app.db.sn_user().findOne({'_id':ObjectId(UserId)})
-        var user_ = await app.db.sn_user().findOne({'_id':UserId})
-        if(user||user_){
-          if(user){
+        var user = await app.db.sn_user().findOne({'_id':UserId})
+
+        if(user){
+            delete(user.password)
             res.end(JSON.stringify(user))
-          }else{
-            res.end(JSON.stringify(user_))
-          }
         }
         else{
           res.end(JSON.stringify({error:"user not found"}))
@@ -689,7 +696,11 @@ module.exports = function (app) {
   app.get('/auth/activate/:id/:code', async function (req, response) {
     var code = req.params.code;
     var id = req.params.id;
-    var users = await app.db.sn_user().find({ _id: ObjectId(id)}).toArray();
+
+    console.log(id,"activate with")
+    var users = await app.db.sn_user().find({_id:Long.fromNumber(id)}).toArray();
+    console.log(users)
+
     if( users.length) {
       if (users[0].enabled) {
         //response.end('{error:"account already activated"}');
@@ -703,7 +714,7 @@ module.exports = function (app) {
         //response.end('{error:"wrong activation"}');
         return;
       }
-      var update = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {$set: {confirmation_token: "", enabled: 1}});
+      var update = await app.db.sn_user().updateOne({_id:Long.fromNumber(id)}, {$set: {confirmation_token: "", enabled: 1}})
       let message = "activated";
       response.redirect(app.config.basedURl +'/login?message=' + message);
       //response.end('{message:"activated"}');
@@ -717,10 +728,10 @@ module.exports = function (app) {
 
   app.post('/auth/passlost', async function (req, response) {
     
-	const lang = req.query.lang || "en";
+    const lang = req.query.lang || "en";
 	
 	app.i18n.configureTranslation(lang);
-
+  
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
     var users = await app.db.sn_user().find({email: mail}).toArray();
@@ -730,7 +741,7 @@ module.exports = function (app) {
     }
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var update = await app.db.sn_user().updateOne({_id: ObjectId(users[0]._id)}, {$set: {confirmation_token: token}});
+    var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
 
     readHTMLFile(__dirname + '/../emails/reset_password.html', function(err, html) {
       var template = handlebars.compile(html);
@@ -754,7 +765,7 @@ module.exports = function (app) {
         if (error) {
           console.log(error);
         } else {
-          response.end(JSON.stringify({message : 'Email was sent to ' + users[0].username}));
+          response.end('Email was sent to ' + users[0].username);
         }
       });
     });
@@ -765,7 +776,7 @@ module.exports = function (app) {
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
     var id = req.body.id;
-    var users = await app.db.sn_user().find({ _id: ObjectId(id)}).toArray();
+    var users = await app.db.sn_user().find({ _id:Long.fromNumber( id)}).toArray();
     if( users.length) {
       if (!users[0].enabled) {
         response.end('{error:"account not activated"}');
@@ -775,7 +786,7 @@ module.exports = function (app) {
         response.end('{error:"wrong password"}');
         return;
       }
-      var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass)});
+      var res_ins = await app.db.sn_user().updateOne({_id: id}, {password: synfonyHash(newpass)});
       response.end('{message:"changed"}');
     } else {
       response.end('{error:"no account"}');
@@ -787,7 +798,7 @@ module.exports = function (app) {
 	  var newpass = req.body.newpass;
 	  var code = req.body.code;
 	  var id = req.body.id;
-	  var res = await app.db.sn_user().find({ _id: ObjectId(id)}).toArray();
+	  var res = await app.db.sn_user().find({ _id:Long.fromNumber(id)}).toArray();
 	  if( res.length) {
 		if (res[0].confirmation_token != code) {
 
@@ -795,8 +806,10 @@ module.exports = function (app) {
 		  return;
 		}
 		//var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
-		var update = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
+
+		var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
 			console.log(update)
+
 		response.end(JSON.stringify('successfully'));
 	  } else {
 		response.end(JSON.stringify("Account Not Found"));
