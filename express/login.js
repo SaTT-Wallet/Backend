@@ -554,7 +554,7 @@ module.exports = function (app) {
 
   //app.get('/auth/twitter', passport.authenticate('twitter'));
 
-  app.get('/auth/signup_telegram', passport.authenticate('F'),
+  app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
