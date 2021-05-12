@@ -4,6 +4,7 @@ module.exports = function (app) {
   var nodemailer = require('nodemailer');
   var bad_login_limit = 5;
   var transporter = nodemailer.createTransport(app.config.mailerOptions);
+  var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
@@ -14,6 +15,7 @@ module.exports = function (app) {
   const fs = require('fs');
 
 
+  ObjectId = require('mongodb').ObjectID
   var Long = require('mongodb').Long;
 
   var passport = require('passport');
@@ -92,9 +94,6 @@ module.exports = function (app) {
 
         var users = await app.db.sn_user().find({email: username}).toArray();
 
-      lang=req.query.lang
-      app.i18n.configureTranslation(lang)
-
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
           var replacements = {
@@ -141,9 +140,9 @@ module.exports = function (app) {
         }*/
         var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
         if (res.length && !user.password) {
-          await app.db.sn_user().updateOne({_id: user._id}, {$set: {password: res[0].password}});
+          await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: res[0].password}});
         }
-        await app.db.sn_user().updateOne({_id: user._id}, {$set: {account_locked: false, failed_count: 0}});
+        await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: false, failed_count: 0}});
         if (user.password == synfonyHash(password)) {
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
@@ -159,8 +158,8 @@ module.exports = function (app) {
           if (failed_count >= bad_login_limit) {
             account_locked = true
           }
-          var update = await app.db.sn_user().updateOne({_id: user._id}, {$set: {account_locked: account_locked, failed_count: failed_count}});
-          var users0 = await app.db.sn_user().find({_id: user._id}).toArray();
+          var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: account_locked, failed_count: failed_count}});
+          var users0 = await app.db.sn_user().find({_id: Long.fromNumber(user._id)}).toArray();
           let login_limit = bad_login_limit - failed_count;
           return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
         }
@@ -513,7 +512,7 @@ module.exports = function (app) {
   });
 
   passport.deserializeUser(async function (id, cb) {
-    var users = await app.db.sn_user().find({_id: id}).toArray();
+    var users = await app.db.sn_user().find({_id:Long.fromNumber( id)}).toArray();
     cb(null, users[0]);
   });
 
@@ -645,9 +644,8 @@ module.exports = function (app) {
     res.end(JSON.stringify(param))
   });
 
-  app.get('/te', function(req, res) {
-    req.logout();st
-    res.end(JSON.stringify(param))
+  app.get('/test', function(req, res) {
+   app.account.handleId()
   });
 
 
@@ -696,8 +694,10 @@ module.exports = function (app) {
   app.get('/auth/activate/:id/:code', async function (req, response) {
     var code = req.params.code;
     var id = req.params.id;
-    console.log(id)
-    var users = await app.db.sn_user().find({ _id: id}).toArray();
+
+    console.log(id,"activate with")
+    var users = await app.db.sn_user().find({_id:Long.fromNumber(id)}).toArray();
+    console.log(users)
 
     if( users.length) {
       if (users[0].enabled) {
@@ -712,7 +712,7 @@ module.exports = function (app) {
         //response.end('{error:"wrong activation"}');
         return;
       }
-      var update = await app.db.sn_user().updateOne({_id: id}, {$set: {confirmation_token: "", enabled: 1}});
+      var update = await app.db.sn_user().updateOne({_id:Long.fromNumber(id)}, {$set: {confirmation_token: "", enabled: 1}})
       let message = "activated";
       response.redirect(app.config.basedURl +'/login?message=' + message);
       //response.end('{message:"activated"}');
@@ -726,9 +726,6 @@ module.exports = function (app) {
 
   app.post('/auth/passlost', async function (req, response) {
 
-    const lang = req.query.lang || "en";
-	  app.i18n.configureTranslation(lang);
-
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
     var users = await app.db.sn_user().find({email: mail}).toArray();
@@ -738,7 +735,7 @@ module.exports = function (app) {
     }
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var update = await app.db.sn_user().updateOne({_id: users[0]._id}, {$set: {confirmation_token: token}});
+    var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
 
     readHTMLFile(__dirname + '/../emails/reset_password.html', function(err, html) {
       var template = handlebars.compile(html);
@@ -773,7 +770,7 @@ module.exports = function (app) {
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
     var id = req.body.id;
-    var users = await app.db.sn_user().find({ _id: id}).toArray();
+    var users = await app.db.sn_user().find({ _id:Long.fromNumber( id)}).toArray();
     if( users.length) {
       if (!users[0].enabled) {
         response.end('{error:"account not activated"}');
@@ -795,7 +792,7 @@ module.exports = function (app) {
 	  var newpass = req.body.newpass;
 	  var code = req.body.code;
 	  var id = req.body.id;
-	  var res = await app.db.sn_user().find({ _id: id}).toArray();
+	  var res = await app.db.sn_user().find({ _id:Long.fromNumber(id)}).toArray();
 	  if( res.length) {
 		if (res[0].confirmation_token != code) {
 
@@ -803,7 +800,9 @@ module.exports = function (app) {
 		  return;
 		}
 		//var res_ins = await app.db.sn_user().updateOne({_id: ObjectId(id)}, {password: synfonyHash(newpass), confirmation_token: "", enabled: 1});
-		var update = await app.db.sn_user().updateOne({_id: id}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
+
+		var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {password: synfonyHash(newpass), confirmation_token: "", enabled: 1}});
+			console.log(update)
 
 		response.end(JSON.stringify('successfully'));
 	  } else {
