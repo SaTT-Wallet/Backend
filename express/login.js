@@ -94,7 +94,7 @@ module.exports = function (app) {
 
         var users = await app.db.sn_user().find({email: username}).toArray();
         const lang = req.query.lang || "en";
-	
+
         app.i18n.configureTranslation(lang);
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
@@ -699,7 +699,7 @@ module.exports = function (app) {
 
     console.log(id,"activate with")
     var users = await app.db.sn_user().find({_id:Long.fromNumber(id)}).toArray();
-    console.log(users)
+    
 
     if( users.length) {
       if (users[0].enabled) {
@@ -728,7 +728,7 @@ module.exports = function (app) {
 
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
-	
+
 	app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
