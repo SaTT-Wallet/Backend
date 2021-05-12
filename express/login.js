@@ -94,7 +94,7 @@ module.exports = function (app) {
 
         var users = await app.db.sn_user().find({email: username}).toArray();
         const lang = req.query.lang || "en";
-	
+
         app.i18n.configureTranslation(lang);
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
@@ -261,16 +261,17 @@ module.exports = function (app) {
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
-          email: profile.email,
-          username: profile.email,
-          first_name: profile.given_name,
-          name: profile.family_name,
+          email: profile.emails.length ? profile.emails[0].value:false,
+          username: profile.displayName,
+          first_name: profile.name.givenName,
+          name: profile.name.familyName,
           created: mongodate,
           updated: mongodate,
           idSn: 2,
           enabled:1,
-          locale: profile.locale,
-          userSatt: true
+          locale: profile._json.locale,
+          userSatt: true,
+          picLink:profile.photos.length ? profile.photos[0].value : false
         });
         console.log(profile)
         var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
@@ -564,8 +565,8 @@ module.exports = function (app) {
   app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile']}));
-  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile']}));
+  app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}));
+  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
 
   //app.get('/auth/twitter', passport.authenticate('twitter'));
 
@@ -621,12 +622,12 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
-  app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile']}), async function (req, response) {
+  app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
-  app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile']}), async function (req, response) {
+  app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
@@ -699,7 +700,7 @@ module.exports = function (app) {
 
     console.log(id,"activate with")
     var users = await app.db.sn_user().find({_id:Long.fromNumber(id)}).toArray();
-    console.log(users)
+
 
     if( users.length) {
       if (users[0].enabled) {
@@ -728,7 +729,7 @@ module.exports = function (app) {
 
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
-	
+
 	app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
