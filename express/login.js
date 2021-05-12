@@ -262,15 +262,16 @@ module.exports = function (app) {
           _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
           email: profile.email,
-          username: profile.email,
-          first_name: profile.given_name,
-          name: profile.family_name,
+          username: profile.displayName,
+          first_name: profile.name.given_name,
+          name: profile.name.family_name,
           created: mongodate,
           updated: mongodate,
           idSn: 2,
           enabled:1,
           locale: profile.locale,
-          userSatt: true
+          userSatt: true,
+          picLink:profile.photos.length ? profile.photos[0].value : false;
         });
         console.log(profile)
         var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
@@ -699,7 +700,7 @@ module.exports = function (app) {
 
     console.log(id,"activate with")
     var users = await app.db.sn_user().find({_id:Long.fromNumber(id)}).toArray();
-    
+
 
     if( users.length) {
       if (users[0].enabled) {
