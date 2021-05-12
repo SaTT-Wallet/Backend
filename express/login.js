@@ -565,8 +565,8 @@ module.exports = function (app) {
   app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile']}));
-  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile']}));
+  app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}));
+  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
 
   //app.get('/auth/twitter', passport.authenticate('twitter'));
 
@@ -622,12 +622,12 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
-  app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile']}), async function (req, response) {
+  app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
-  app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile']}), async function (req, response) {
+  app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
