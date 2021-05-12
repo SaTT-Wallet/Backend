@@ -91,14 +91,14 @@ module.exports = async function (app) {
 				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
 				if(res.length) {
 					var UserId = res[0].user_id;
-                
+
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
 
 				}
 				else{
 					var res = await app.db.accessToken().findOne({token:token});
-					console.log(res,'MYsql',token)
+				
                     if(res){
                         var UserId = res.user_id;
                         resolve({id:UserId});
