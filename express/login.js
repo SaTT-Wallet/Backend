@@ -261,7 +261,7 @@ module.exports = function (app) {
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
-          email: profile.emails.length ? profile.emails[0].value,
+          email: profile.emails.length ? profile.emails[0].value:false,
           username: profile.displayName,
           first_name: profile.name.givenName,
           name: profile.name.familyName,
