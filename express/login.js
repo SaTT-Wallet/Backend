@@ -225,7 +225,7 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
 
       var users = await app.db.sn_user().find({idOnSn:  profile.token_for_business}).toArray()
-      console.log("token business");
+      console.log("token business",profile);
       if (users.length) {
         var user = users[0]
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
