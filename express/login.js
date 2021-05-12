@@ -184,7 +184,7 @@ module.exports = function (app) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({idOnSn:  profile.token_for_business}).toArray()
+      var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
       if (users.length) {
         return cb('Error: email already Used')
       } else {
@@ -195,9 +195,9 @@ module.exports = function (app) {
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           scopedId: profile.id,
-          idOnSn: profile.token_for_business,
+          idOnSn: profile._json.token_for_business,
           email: profile.email,
-          username: profile.email,
+          username: profile.name,
           first_name: profile.first_name,
           name: profile.displayName,
           created: mongodate,
@@ -205,7 +205,7 @@ module.exports = function (app) {
           idSn: 1,
           locale: "en",
           enabled:1,
-          // picLink: profile.picture.data.url,
+          picLink:profile.photos.length ? profile.photos[0].value : false,
           userSatt: true
         });
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
@@ -220,12 +220,14 @@ module.exports = function (app) {
       profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
     },
     async function (accessToken, refreshToken, profile, cb) {
+
+
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
 
-      var users = await app.db.sn_user().find({idOnSn:  profile.token_for_business}).toArray()
-      console.log("token business",profile);
+      var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
+
       if (users.length) {
         var user = users[0]
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
