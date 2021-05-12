@@ -1533,21 +1533,9 @@ console.log(Links)
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
 
-		let prices;
-		let sattPrice$;
-
 	const address = req.params.owner;
 
 	let[total,totalSpent,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,[],[],[],[]];
-
-			const sattPrice ={
-			   url: 'https://3xchange.io/prices',
-				method: 'GET',
-				json: true
-			};
-
-		   prices = await rp(sattPrice);
-		   sattPrice$ = prices.SATT.price;
 
 	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
 
@@ -1584,9 +1572,8 @@ console.log(Links)
 				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
 			   }
 
-	})
-	
-	         totalSpent = Number((total  * sattPrice$).toFixed(2));
+	})	
+	          totalSpent = Number((total).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent})).status(200);
 
@@ -1595,6 +1582,7 @@ console.log(Links)
 	}
 		    
 	}) 
+	
 
 	return app;
 }

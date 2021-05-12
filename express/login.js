@@ -766,7 +766,7 @@ module.exports = function (app) {
         if (error) {
           console.log(error);
         } else {
-          response.end('Email was sent to ' + users[0].email);
+          response.end(JSON.stringify({'message' :'Email was sent to ' + users[0].email}));
         }
       });
     });
