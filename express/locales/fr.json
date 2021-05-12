@@ -13,7 +13,6 @@
     "questions_description":"Toute notre équipe support est disponible <br>pour répondre à chacune de vos questions.<br>N'hésitez pas à les contacter via nos différents réseaux sociaux !",
     "consult_faq":"Consultez la FAQ",
 	"reset_pass1": "",
-	"new_pass": "Nouveau password",
 	"ask_pass": "Vous avez demandé à renouveler votre mot de passe",
 	"connex": "de connexion au site satt.atayen.us.",
 	"link": "Cliquez sur le lien ci-dessous pour réinitialiser votre nouveau mot de passe de connexion",
@@ -22,5 +21,6 @@
 	"contact": "Nous contacter",
 	"about": "À propos de SaTT",
 	"Hello": "Bonjour",
-	"Bonjour": "Bonjour"
+	"Bonjour": "Bonjour",
+    "new_pass": "Nouveau password"
 }
