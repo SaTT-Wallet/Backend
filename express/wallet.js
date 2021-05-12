@@ -106,6 +106,7 @@ module.exports = function (app) {
 				delete ret.version
 			}else{
 				response.end(JSON.stringify(ret));
+				return;
 			}
 			for(const T_name in token_info){
             var network=token_info[T_name].network
