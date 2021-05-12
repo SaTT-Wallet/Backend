@@ -271,7 +271,7 @@ module.exports = function (app) {
           enabled:1,
           locale: profile.locale,
           userSatt: true,
-          picLink:profile.photos.length ? profile.photos[0].value : false;
+          picLink:profile.photos.length ? profile.photos[0].value : false
         });
         console.log(profile)
         var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
