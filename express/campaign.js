@@ -1580,13 +1580,13 @@ console.log(Links)
 	            rescampaigns = rescampaigns.concat(campaignscentral);
 
 	            rescampaigns.forEach(elem =>{
-               if(elem.meta){
-				total = total + (parseFloat(new Big(elem.meta.cost).div(etherInWei).toFixed(4)) - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(4)));
+               if(elem.meta && elem.amount){
+				total = total + (elem.meta.cost - (parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)) * sattPrice$));
 			   }
 
 	})
 	
-	         totalSpent = Number((total * sattPrice$).toFixed(2));
+	         totalSpent = Number((total).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent})).status(200);
 
