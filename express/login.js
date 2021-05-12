@@ -307,24 +307,7 @@ module.exports = function (app) {
         return cb(null, {id: user._id, token: token, expires_in: date});
       } else {
         return cb ('Register First') //(null, false, {message: 'account_invalide'});
-        var mongodate = new Date().toISOString();
-        var mydate = mongodate.slice(0, 19).replace('T', ' ');
-        var insert = await app.db.sn_user().insertOne({
-          idOnSn2: profile.id,
-          email: profile.email,
-          username: profile.email,
-          first_name: profile.given_name,
-          name: profile.family_name,
-          created: mongodate,
-          updated: mongodate,
-          idSn: 2,
-          enabled:0,
-          locale: profile.locale,
-          userSatt: true
-        });
-        var users = await app.db.sn_user().find({email: profile.email}).toArray();
-        var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
-        return cb(null, {id: users[0]._id, token: token, expires_in: date});
+
       }
     }));
 
@@ -461,7 +444,6 @@ module.exports = function (app) {
           var insert = await app.db.sn_user().insertOne({
             id:Long.fromNumber(await app.account.handleId()),
             idOnSn3: profile.id,
-            email: profile.email,
             username: profile.email,
             first_name: profile.first_name,
             lastName: profile.last_name,
@@ -474,7 +456,7 @@ module.exports = function (app) {
             enabled:1,
             userSatt: true
           });
-          var users = await app.db.sn_user().find({email: profile.username}).toArray();
+          var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray();
           var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
           return cb(null, {id: users[0]._id, token: token, expires_in: date});
         }
