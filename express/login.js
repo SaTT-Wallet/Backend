@@ -755,7 +755,7 @@ module.exports = function (app) {
       var htmlToSend = template(replacements);
       var mailOptions = {
         from: app.config.mailSender,
-        to: users[0].username,
+        to: users[0].email,
         subject: 'Satt wallet password recover',
         html: htmlToSend
       };
@@ -763,7 +763,7 @@ module.exports = function (app) {
         if (error) {
           console.log(error);
         } else {
-          response.end('Email was sent to ' + users[0].username);
+          response.end(JSON.stringify({'message' :'Email was sent to ' + users[0].email}));
         }
       });
     });
