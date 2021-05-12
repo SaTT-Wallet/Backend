@@ -261,7 +261,7 @@ module.exports = function (app) {
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
-          email: profile.email,
+          email: profile.emails.length ? profile.emails[0].value,
           username: profile.displayName,
           first_name: profile.name.givenName,
           name: profile.name.familyName,
@@ -269,7 +269,7 @@ module.exports = function (app) {
           updated: mongodate,
           idSn: 2,
           enabled:1,
-          locale: profile.locale,
+          locale: profile._json.locale,
           userSatt: true,
           picLink:profile.photos.length ? profile.photos[0].value : false
         });
