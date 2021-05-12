@@ -124,6 +124,7 @@ module.exports = function (app) {
       };
     }
   ));
+
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
     async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
@@ -183,7 +184,7 @@ module.exports = function (app) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({scopedId: profile.id}).toArray()
+      var users = await app.db.sn_user().find({idOnSn:  profile.token_for_business}).toArray()
       if (users.length) {
         return cb('Error: email already Used')
       } else {
@@ -224,7 +225,7 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
 
-      var users = await app.db.sn_user().find({scopedId: profile.id}).toArray()
+      var users = await app.db.sn_user().find({idOnSn:  profile.token_for_business}).toArray()
       console.log(profile,"user")
       if (users.length) {
         var user = users[0]
