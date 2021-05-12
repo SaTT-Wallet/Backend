@@ -42,7 +42,7 @@ module.exports = function (app) {
       }
     });
   };
-  
+
 
   var synfonyHash = function (pass) {
     var salted = pass+"{"+app.config.symfonySalt+"}";
@@ -68,7 +68,7 @@ module.exports = function (app) {
 
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({email: username}).toArray();
-      
+
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
       } else {
@@ -122,7 +122,7 @@ module.exports = function (app) {
     }
   ));
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
-    async function (req, username, password, done) { 
+    async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -249,7 +249,7 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
-      
+
       if (users.length) {
         return cb('email_already_used')
       } else {
@@ -595,7 +595,7 @@ module.exports = function (app) {
     let message = err.message? err.message:err;
     res.redirect(app.config.basedURl +'/login?error=1&message=' + message);
   }
-  
+
 
 
   app.get('/callback/facebook_signup',
@@ -661,7 +661,7 @@ module.exports = function (app) {
       var AccessT = await app.db.accessToken().findOne({token:token});
    if(AccessT){
       if(!expiringToken(AccessT.expires_at)){
-       
+
         if(!AccessT['token']){
           UserId = await app.db.query("Select user_id  from OAAccessToken where token='" +AccessT + "'  ");
           if(!UserId){
@@ -672,13 +672,10 @@ module.exports = function (app) {
         }
 
         var user = await app.db.sn_user().findOne({'_id':UserId})
-        var user_ = await app.db.sn_user().findOne({'_id':UserId})
-        if(user||user_){
-          if(user){
+
+        if(user){
+            delete(user.password)
             res.end(JSON.stringify(user))
-          }else{
-            res.end(JSON.stringify(user_))
-          }
         }
         else{
           res.end(JSON.stringify({error:"user not found"}))
