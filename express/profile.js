@@ -487,8 +487,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
            return;
             }
 
-		const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile})
-		res.send(JSON.stringify({result, success : "updated"})).status(201);
+		const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false})
+		const updatedProfile= result.value
+		res.send(JSON.stringify({updatedProfile, success : "updated"})).status(201);
 	} catch (err) {
 	
 		console.error(err)
