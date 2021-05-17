@@ -864,8 +864,8 @@ module.exports = async function (app) {
 	 
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
 	 
-			 if(condition === "daily"){
-				   result.Balance = balance;
+			 if(condition === "daily" && balance.Total_balance){
+				   result.Balance = balance.Total_balance ;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
