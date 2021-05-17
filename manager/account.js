@@ -835,7 +835,6 @@ module.exports = async function (app) {
 	  }
 
 	accountManager.BalanceUsersStats = async (condition)=> {
-		debugger;
 		try{
 
 	   let date = Math.round(new Date().getTime()/1000);
