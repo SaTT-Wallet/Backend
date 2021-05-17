@@ -22,5 +22,10 @@
 	"contact": "Contact us",
 	"about": "About SaTT",
 	"Hello": "Hello",
-	"Bonjour": "Bonjour"
+	"Bonjour": "Bonjour",
+    "ask_to_send":"asks you to send him",
+    "here_is_message":"Here's his message",
+    "wallet_of":"wallet of",
+    "is":"is"
+   
 }

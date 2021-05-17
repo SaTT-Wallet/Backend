@@ -22,5 +22,10 @@
 	"about": "À propos de SaTT",
 	"Hello": "Bonjour",
 	"Bonjour": "Bonjour",
-    "new_pass": "Nouveau password"
+    "new_pass": "Nouveau password",
+    "ask_to_send":"Vous demande de lui envoyer",
+    "here_is_message":"Voici son message",
+    "wallet_of":"la portefeuille de",
+    "is":"est"
+
 }
