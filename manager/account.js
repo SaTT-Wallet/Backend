@@ -12,7 +12,7 @@ module.exports = async function (app) {
 	var speakeasy = require("speakeasy");
 	var QRCode = require('qrcode');
     var Big = require('big.js');
-   
+    var Long = require('mongodb').Long;
 	var rp = require('request-promise');
 
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
@@ -868,7 +868,7 @@ module.exports = async function (app) {
 				   result.Balance = balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
-						  await app.db.sn_user().save(user);
+						  await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
 						  counter++;
 			 console.log("count : ", counter );
 			 console.log("user Inserted : ", user );

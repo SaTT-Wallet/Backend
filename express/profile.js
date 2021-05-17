@@ -480,12 +480,16 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			const id = +auth.id;
-			 let profile = req.body;
-			 const users = await app.db.sn_user().find({email: profile.email, _id: { $nin: [id] }}).toArray();
-           if(users.length) {
+			let profile = req.body;
+
+		   if(profile.email){
+		   const users = await app.db.sn_user().find({email: profile.email, _id: { $nin: [id] }}).toArray();
+           if(users.length > 0) {
            res.end(JSON.stringify({message : "email already exists"}));
            return;
             }
+			}
+		   
 
 		const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false})
 		const updatedProfile= result.value
