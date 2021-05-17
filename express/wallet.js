@@ -155,7 +155,8 @@ module.exports = function (app) {
 			var ret = {err:"no_account"};
 			if(count)
 			{
-				var ret = await app.account.getAccount(res.id)
+				var ret = await app.account.getAccount(res.id);
+				ret.err = false;
 			}
 			response.end(JSON.stringify(ret));
 
