@@ -801,5 +801,35 @@ module.exports = function (app) {
 
 	});
 
+  /**
+     link : /changePassword
+     description: change password
+     Input : body:email,oldpass,newpass
+     Output:message
+ */
+
+     app.post('/changePassword', async function (req, response) {
+
+      var newpass = req.body.newpass;
+      var oldpass = req.body.oldpass;
+      var email=req.body.email;
+      var users = await app.db.sn_user().find({ email:email}).toArray();
+      if( users.length) {
+        if (!users[0].enabled) {
+          response.end('{error:"account not activated"}');
+          return;
+        }
+        if (users[0].password != synfonyHash(oldpass)) {
+          response.end('{error:"wrong password"}');
+          return;
+        }
+         var res=await app.db.sn_user().updateOne({email: email},  { $set: { password: synfonyHash(newpass) }});
+        response.end('{message:"changed"}');
+      } else {
+        response.end('{error:"no account"}');
+      }
+  
+    });
+
   return app;
 }
