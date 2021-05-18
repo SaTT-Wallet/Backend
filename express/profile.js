@@ -507,6 +507,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		app.account.BalanceUsersStats(condition);
 		res.send('runned')
 	   })
+
 	return app;
 
 }
