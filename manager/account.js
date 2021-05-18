@@ -835,7 +835,6 @@ module.exports = async function (app) {
 		try{
 
 	   let date = Math.round(new Date().getTime()/1000);
-	   let balance;
 	   let result = {};
        result.Date = date;
 
@@ -853,29 +852,33 @@ module.exports = async function (app) {
 	  	var counter = 0;
 
 		  while(counter<usersCount) {
+			    let balance = "";
+
 				var user = users_[counter];
 
 				if(!user.daily ){user.daily = []};
 				if(!user.weekly){user.weekly = []};
 				if(!user.monthly){user.monthly = []};
-	 
+	          
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
-
+             while(balance == ""){
+				 console.log('balance is empty')
+			 }
 			 
-			 if(condition === "daily"){
-			 result.balanceTry = balance["Total_balance"];
-			 result.Balance = balance;
+			 if(condition === "daily"){	 
+			 console.log(balance, "dailyy")
+			 result.Balance = balance.Total_balance;
 			 user.daily.unshift(result);
 			 if(user.daily.length>7){user.daily.pop();}
-			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
+			 await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
 				counter++;
 			 console.log("count : ", counter );
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly" && !balance.err){
-			 result.balanceTry = balance.Total_balance;
-			 result.Balance = balance;
+			 if(condition === "weekly" && balance.Total_balance){
+				console.log(balance, "weekly")
+			 result.Balance = balance.Total_balance;
 			 user.weekly.unshift(result)	
 			 if(user.weekly.length > 7){user.weekly.pop();}
 			 await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
@@ -885,11 +888,12 @@ module.exports = async function (app) {
 				
 							}
 	 
-			 if(condition === "monthly" &&  balance["Total_balance"]){
+			 if(condition === "monthly" && !balance.err){
+				console.log(balance, "monthly")
 			 result.Balance = balance.Total_balance
 			 user.monthly.unshift(result)
 			 if(user.monthly.length > 7){user.monthly.pop();}
-			 await   app.db.sn_user().save(user);
+			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
 				counter++;
 										  console.log("count : ", counter );
 										  console.log("user Inserted : ", user );
