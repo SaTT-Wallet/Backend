@@ -895,8 +895,8 @@ module.exports = async function (app) {
 				
 							}
 	 
-			 if(condition === "monthly" && !isNaN(balance.Total_balance)){
-				console.log("monthly")
+			 if(condition === "monthly"){
+				if(typeof balance.Total_balance === "number"){
 			 result.Balance = balance.Total_balance
 			 user.monthly.unshift(result)
 			 if(user.monthly.length > 7){user.monthly.pop();}
@@ -904,6 +904,7 @@ module.exports = async function (app) {
 				counter++;
 										  console.log("count : ", counter );
 										  console.log("user Inserted : ", user );
+				}
 			 }
 
 		}	   
