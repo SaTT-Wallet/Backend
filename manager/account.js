@@ -869,10 +869,10 @@ module.exports = async function (app) {
 			 if(condition === "daily"){	 
 				console.log(balance, "daily")
 
-			 result.Balance = balance.Total_balance;
+			 result.Balance = balance["Total_balance"];
 			 user.daily.unshift(result);
 			 if(user.daily.length>7){user.daily.pop();}
-			 await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
+			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
 				counter++;
 			 console.log("count : ", counter );
 			 console.log("user Inserted : ", user );
