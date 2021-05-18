@@ -858,33 +858,36 @@ module.exports = async function (app) {
 		  while(counter<usersCount) {
 				var user = users_[counter];
 
-				if(!user.daily){user.daily = []};
+				if(!user.daily ){user.daily = []};
 				if(!user.weekly){user.weekly = []};
 				if(!user.monthly){user.monthly = []};
 	 
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
 	 
-			 if(condition === "daily" && balance.Total_balance){
-				   result.Balance = balance.Total_balance;
+			 if(condition === "daily"){
+				result.balanceTry = balance["Total_balance"];
+				   result.Balance = balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
-						  await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
+						  await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
 						  counter++;
 			 console.log("count : ", counter );
 			 console.log("user Inserted : ", user );
 			 }
 	 
 			 if(condition === "weekly"){
-				 result.Balance = balance;
+				    result.balanceTry = balance.Total_balance;
+					result.Balance = balance;
 					  user.weekly.unshift(result)	
 						if(user.weekly.length > 7){user.weekly.pop();}
 						await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
 						counter++;
 							  console.log("count : ", counter );
 							  console.log("user Inserted : ", user );
+				
 							}
 	 
-			 if(condition === "monthly" && balance.Total_balance){
+			 if(condition === "monthly" &&  balance["Total_balance"]){
 				 result.Balance = balance.Total_balance
 					 user.monthly.unshift(result)
 					   if(user.monthly.length > 7){user.monthly.pop();}
