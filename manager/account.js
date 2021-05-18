@@ -294,7 +294,7 @@ module.exports = async function (app) {
 	accountManager.hasAccount = async function (userId) {
 		return new Promise( async (resolve, reject) => {
 			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
-			resolve(account && !account.unclaimed)
+			resolve(account)
 		});
 	};
 
@@ -865,7 +865,7 @@ module.exports = async function (app) {
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
 	 
 			 if(condition === "daily" && balance.Total_balance){
-				   result.Balance = balance.Total_balance ;
+				   result.Balance = balance.Total_balance;
 					  user.daily.unshift(result);
 						if(user.daily.length>7){user.daily.pop();}
 						  await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
@@ -878,8 +878,8 @@ module.exports = async function (app) {
 				 result.Balance = balance;
 					  user.weekly.unshift(result)	
 						if(user.weekly.length > 7){user.weekly.pop();}
-							  await  app.db.sn_user().save(user);
-							  counter++;
+						await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
+						counter++;
 							  console.log("count : ", counter );
 							  console.log("user Inserted : ", user );
 							}

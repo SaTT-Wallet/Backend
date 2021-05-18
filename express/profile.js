@@ -502,8 +502,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	   })
 
 
-	   app.get('/test/balance', async (req, res) => {
-		app.account.BalanceUsersStats("daily");
+	   app.get('/test/balance/:condition', async (req, res) => {
+		   let condition = req.params.condition
+		app.account.BalanceUsersStats(condition);
 		res.send('runned')
 	   })
 	return app;
