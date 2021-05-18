@@ -881,13 +881,17 @@ module.exports = async function (app) {
 	 
 			 if(condition === "weekly"){
 				console.log("weekly")
-			 result.Balance = balance.Total_balance;
+              if(balance.Total_balance){
+				   result.Balance = balance.Total_balance;
 			 user.weekly.unshift(result)	
 			 if(user.weekly.length > 7){user.weekly.pop();}
 			 await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
 				counter++;
 							  console.log("count : ", counter );
 							  console.log("user Inserted : ", user );
+			  }
+			
+
 				
 							}
 	 
