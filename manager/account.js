@@ -873,7 +873,7 @@ module.exports = async function (app) {
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly"){
+			 if(condition === "weekly" && !balance.err){
 			 result.balanceTry = balance.Total_balance;
 			 result.Balance = balance;
 			 user.weekly.unshift(result)	
