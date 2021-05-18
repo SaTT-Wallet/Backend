@@ -867,8 +867,8 @@ module.exports = async function (app) {
 			 }
 
 			 if(condition === "daily"){	 
-				console.log(balance, "daily")
-
+				 
+			console.log(balance, "daily")
 			 result.Balance = balance["Total_balance"];
 			 user.daily.unshift(result);
 			 if(user.daily.length>7){user.daily.pop();}
@@ -879,8 +879,9 @@ module.exports = async function (app) {
 			 }
 	 
 			 if(condition === "weekly"){
+
 				console.log(balance,"weekly")
-				   result.Balance = balance.Total_balance;
+				result.Balance = balance.Total_balance;
 			 user.weekly.unshift(result)	
 			 if(user.weekly.length > 7){user.weekly.pop();}
 			 await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
@@ -891,8 +892,8 @@ module.exports = async function (app) {
 							}
 	 
 			 if(condition === "monthly"){
-				console.log(balance,"monthly")
 
+			console.log(balance,"monthly")
 			 result.Balance = balance.Total_balance;
 			 user.monthly.unshift(result)
 			 if(user.monthly.length > 7){user.monthly.pop();}
