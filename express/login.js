@@ -761,10 +761,6 @@ module.exports = function (app) {
     var id = req.body.id;
     var users = await app.db.sn_user().find({ _id:Long.fromNumber( id)}).toArray();
     if( users.length) {
-      if (!users[0].enabled) {
-        response.end('{error:"account not activated"}');
-        return;
-      }
       if (users[0].password != synfonyHash(oldpass)) {
         response.end('{error:"wrong password"}');
         return;
@@ -800,6 +796,8 @@ module.exports = function (app) {
 	  }
 
 	});
+
+
 
   return app;
 }
