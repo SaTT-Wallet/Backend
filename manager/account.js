@@ -865,10 +865,9 @@ module.exports = async function (app) {
              while(balance == ""){
 				 console.log('balance is empty')
 			 }
-			 console.log(balance, "balance")
 
-			 if(condition === "daily" && !isNaN(balance.Total_balance)){	 
-			 console.log("dailyy")
+			 if(condition === "daily"){	 
+				console.log(balance, "daily")
 
 			 result.Balance = balance.Total_balance;
 			 user.daily.unshift(result);
@@ -880,8 +879,7 @@ module.exports = async function (app) {
 			 }
 	 
 			 if(condition === "weekly"){
-				console.log("weekly")
-              if(balance.Total_balance){
+				console.log(balance,"weekly")
 				   result.Balance = balance.Total_balance;
 			 user.weekly.unshift(result)	
 			 if(user.weekly.length > 7){user.weekly.pop();}
@@ -889,22 +887,20 @@ module.exports = async function (app) {
 				counter++;
 							  console.log("count : ", counter );
 							  console.log("user Inserted : ", user );
-			  }
-			
-
 				
 							}
 	 
 			 if(condition === "monthly"){
-				if(typeof balance.Total_balance === "number"){
-			 result.Balance = balance.Total_balance
+				console.log(balance,"monthly")
+
+			 result.Balance = balance.Total_balance;
 			 user.monthly.unshift(result)
 			 if(user.monthly.length > 7){user.monthly.pop();}
 			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
 				counter++;
 										  console.log("count : ", counter );
 										  console.log("user Inserted : ", user );
-				}
+				
 			 }
 
 		}	   
