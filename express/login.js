@@ -761,15 +761,11 @@ module.exports = function (app) {
     var id = req.body.id;
     var users = await app.db.sn_user().find({ _id:Long.fromNumber( id)}).toArray();
     if( users.length) {
-      if (!users[0].enabled) {
-        response.end('{error:"account not activated"}');
-        return;
-      }
       if (users[0].password != synfonyHash(oldpass)) {
         response.end('{error:"wrong password"}');
         return;
       }
-      var res_ins = await app.db.sn_user().updateOne({_id: id}, {password: synfonyHash(newpass)});
+      var res_ins = await app.db.sn_user().updateOne({_id: id},{ $set:{password: synfonyHash(newpass)}});
       response.end('{message:"changed"}');
     } else {
       response.end('{error:"no account"}');
@@ -800,6 +796,8 @@ module.exports = function (app) {
 	  }
 
 	});
+
+
 
   return app;
 }
