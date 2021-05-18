@@ -861,12 +861,15 @@ module.exports = async function (app) {
 				if(!user.monthly){user.monthly = []};
 	          
 			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
+			
              while(balance == ""){
 				 console.log('balance is empty')
 			 }
-			 
-			 if(condition === "daily"){	 
-			 console.log(balance, "dailyy")
+			 console.log(balance, "balance")
+
+			 if(condition === "daily" && !isNaN(balance.Total_balance)){	 
+			 console.log("dailyy")
+
 			 result.Balance = balance.Total_balance;
 			 user.daily.unshift(result);
 			 if(user.daily.length>7){user.daily.pop();}
@@ -876,8 +879,8 @@ module.exports = async function (app) {
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly" && balance.Total_balance){
-				console.log(balance, "weekly")
+			 if(condition === "weekly"){
+				console.log("weekly")
 			 result.Balance = balance.Total_balance;
 			 user.weekly.unshift(result)	
 			 if(user.weekly.length > 7){user.weekly.pop();}
@@ -888,8 +891,8 @@ module.exports = async function (app) {
 				
 							}
 	 
-			 if(condition === "monthly" && !balance.err){
-				console.log(balance, "monthly")
+			 if(condition === "monthly" && !isNaN(balance.Total_balance)){
+				console.log("monthly")
 			 result.Balance = balance.Total_balance
 			 user.monthly.unshift(result)
 			 if(user.monthly.length > 7){user.monthly.pop();}
