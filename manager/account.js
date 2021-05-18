@@ -824,10 +824,8 @@ module.exports = async function (app) {
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());	
 					listOfCrypto.push(crypto);
 				}
-
-			  }
-				  	
-					resolve({listOfCrypto,count});
+			  }				  	
+					resolve({listOfCrypto});
 		 }catch (e) {
 				  reject({message:e.message});
 			  }

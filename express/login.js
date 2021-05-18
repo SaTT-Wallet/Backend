@@ -769,7 +769,7 @@ module.exports = function (app) {
         response.end('{error:"wrong password"}');
         return;
       }
-      var res_ins = await app.db.sn_user().updateOne({_id: id}, {password: synfonyHash(newpass)});
+      var res_ins = await app.db.sn_user().updateOne({_id: id},{ $set:{password: synfonyHash(newpass)}});
       response.end('{message:"changed"}');
     } else {
       response.end('{error:"no account"}');
