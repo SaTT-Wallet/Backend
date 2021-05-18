@@ -876,7 +876,7 @@ module.exports = async function (app) {
 			 console.log("user Inserted : ", user );
 			 }
 	 
-			 if(condition === "weekly"){
+			 if(condition === "weekly" && balance.Total_balance){
 				console.log(balance, "weekly")
 			 result.Balance = balance.Total_balance;
 			 user.weekly.unshift(result)	
@@ -888,12 +888,12 @@ module.exports = async function (app) {
 				
 							}
 	 
-			 if(condition === "monthly"){
+			 if(condition === "monthly" && !balance.err){
 				console.log(balance, "monthly")
 			 result.Balance = balance.Total_balance
 			 user.monthly.unshift(result)
 			 if(user.monthly.length > 7){user.monthly.pop();}
-			 await   app.db.sn_user().save(user);
+			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
 				counter++;
 										  console.log("count : ", counter );
 										  console.log("user Inserted : ", user );
