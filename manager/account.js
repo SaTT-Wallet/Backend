@@ -715,8 +715,7 @@ module.exports = async function (app) {
 						Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
 					}
 				  }
-				  delete CryptoPrices;
-				  delete count;
+
 				  delete ret;
 				  Total_balance=Total_balance.toFixed(2)
 
