@@ -279,12 +279,13 @@ module.exports = function (app) {
 		  const auth = await app.crm.auth(token);
 		  const idNode = "0" + auth.id;
          if(req.body.type && req.file){
-            gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
+			await gfsUserLegal.files.deleteMany({ $and : [{idNode: idNode}, {type : req.body.type}]});
+            await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
 				"$id": app.ObjectId(auth.id),
 				"$db": "atayen"
 			 }, validate : false, type : req.body.type} })
-			  let notification={
+			let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
@@ -294,8 +295,8 @@ module.exports = function (app) {
 					  id:req.file.id
 				}
 			  }
-			  await	app.db.notification().insert(notification)
-			  res.end(JSON.stringify({message :'legal processed'})).status(201);
+			await	app.db.notification().insert(notification)
+			res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -481,6 +482,15 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 	})
 
+
+	/*
+     @url : /profile/info/update
+     @description: update user profile informations
+     @params:
+     @Input headers : access token
+	 		body : sn_user data fields
+	 @Output : success message and updated object 
+     */
 	app.put('/profile/info/update', async (req, res) => {
 		try {
 			let token = req.headers["authorization"].split(" ")[1];
@@ -488,22 +498,20 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			const id = +auth.id;
 			let profile = req.body;
 
-		   if(profile.email){
-		   const users = await app.db.sn_user().find({email: profile.email, _id: { $nin: [id] }}).toArray();
-           if(users.length > 0) {
-           res.end(JSON.stringify({message : "email already exists"}));
-           return;
+		    const users = await app.db.sn_user().find({  $and: [{email: profile.email}, {_id: { $nin: [id] }}]}).toArray();
+            if(users.length) {
+            res.end(JSON.stringify({message : "email already exists"}));
+            return;
             }
-			}
+			
+		   
 
+		   const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false});
+		   const updatedProfile= result.value;
+		   res.send(JSON.stringify({updatedProfile, success : "updated"})).status(201);
 
-		const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false})
-		const updatedProfile= result.value
-		res.send(JSON.stringify({updatedProfile, success : "updated"})).status(201);
 	} catch (err) {
-
-		console.error(err)
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	 }
 	   })
 
