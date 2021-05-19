@@ -739,7 +739,7 @@ module.exports = function (app) {
 
       var htmlToSend = template(replacements);
       var mailOptions = {
-        from: app.config.mailSender,
+        from: app.config.resetpassword_Email,
         to: users[0].email,
         subject: 'Satt wallet password recover',
         html: htmlToSend

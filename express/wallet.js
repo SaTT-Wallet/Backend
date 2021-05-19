@@ -7,6 +7,7 @@ module.exports = function (app) {
 	var BN = require('bn.js');
     const cron = require('node-cron');
 	var rp = require('request-promise');
+	const xChangePricesUrl = app.config.xChangePricesUrl;
 
 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
@@ -81,7 +82,7 @@ module.exports = function (app) {
     app.get('/v2/total_balance/:addr/:token', async function(req, response) {
 		const Fetch_crypto_price = {
 			method: 'GET',
-			uri: 'https://3xchange.io/prices',
+			uri: xChangePricesUrl,
 			json: true,
 			gzip: true
 		  };
@@ -1327,7 +1328,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			const idUser = auth.id
 			const Fetch_crypto_price = {
 				method: 'GET',
-				uri: 'https://3xchange.io/prices',
+				uri: xChangePricesUrl,
 				json: true,
 				gzip: true
 			  };
