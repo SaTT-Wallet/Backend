@@ -755,7 +755,6 @@ module.exports = function (app) {
   });
 
   app.post('/auth/passchange', async function (req, response) {
-
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
     var id = req.body.id;
@@ -770,7 +769,7 @@ module.exports = function (app) {
     } else {
       response.end('{error:"no account"}');
     }
-
+      
   });
 
 	app.post('/auth/passrecover', async function (req, response) {
@@ -797,6 +796,45 @@ module.exports = function (app) {
 
 	});
 
+
+  app.post('/resend-confirmation-token/:email', async function (req, response) {
+    try{
+       var email=req.params.email;
+      var buff2 = Buffer.alloc(32);
+      var code = crypto.randomFillSync(buff2).toString('hex');
+      var users = await app.db.sn_user().find({email: email}).toArray();
+      const lang = req.query.lang || "en";
+      app.i18n.configureTranslation(lang);
+      readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
+        var template = handlebars.compile(html);
+        var replacements = {
+          satt_url: app.config.basedURl,
+          imgUrl: app.config.baseEmailImgURl,
+          validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
+        };
+        var htmlToSend = template(replacements);
+        var mailOptions = {
+          from: app.config.mailSender,
+          to: users[0].username,
+          subject: 'Satt wallet activation',
+          html: htmlToSend
+        };
+        transporter.sendMail(mailOptions, function (error, info) {
+          if (error) {
+            console.log(error);
+          } else {
+            response.end(JSON.stringify({'message' :'Email sent'}));
+          } 
+
+	      })
+      })
+     
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+
+    }
+     
+    })
 
 
   return app;
