@@ -1502,7 +1502,7 @@ console.log(Links)
 			
 
 			const sattPrice ={
-						url: 'https://3xchange.io/prices',
+						url: app.config.xChangePricesUrl,
 						method: 'GET',
 						json: true
 					  };

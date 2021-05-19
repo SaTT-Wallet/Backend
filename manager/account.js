@@ -841,7 +841,7 @@ module.exports = async function (app) {
 
 	   const Fetch_crypto_price = {
 		method: 'GET',
-		uri: 'https://3xchange.io/prices',
+		uri: app.config.xChangePricesUrl,
 		json: true,
 		gzip: true
 	  };

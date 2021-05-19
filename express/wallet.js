@@ -81,7 +81,7 @@ module.exports = function (app) {
     app.get('/v2/total_balance/:addr/:token', async function(req, response) {
 		const Fetch_crypto_price = {
 			method: 'GET',
-			uri: 'https://3xchange.io/prices',
+			uri: app.config.xChangePricesUrl,
 			json: true,
 			gzip: true
 		  };
@@ -1078,7 +1078,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			const idUser = auth.id
 			const Fetch_crypto_price = {
 				method: 'GET',
-				uri: 'https://3xchange.io/prices',
+				uri: app.config.xChangePricesUrl,
 				json: true,
 				gzip: true
 			  };
