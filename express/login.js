@@ -739,7 +739,7 @@ module.exports = function (app) {
 
       var htmlToSend = template(replacements);
       var mailOptions = {
-        from: app.config.mailSender,
+        from: app.config.resetpassword_Email,
         to: users[0].email,
         subject: 'Satt wallet password recover',
         html: htmlToSend
@@ -799,9 +799,7 @@ module.exports = function (app) {
 
   app.post('/resend-confirmation-token/:email', async function (req, response) {
     try{
-       var email=req.params.email;
-      var buff2 = Buffer.alloc(32);
-      var code = crypto.randomFillSync(buff2).toString('hex');
+      var email=req.params.email;     
       var users = await app.db.sn_user().find({email: email}).toArray();
       const lang = req.query.lang || "en";
       app.i18n.configureTranslation(lang);
@@ -810,7 +808,7 @@ module.exports = function (app) {
         var replacements = {
           satt_url: app.config.basedURl,
           imgUrl: app.config.baseEmailImgURl,
-          validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
+          validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + users[0].confirmation_token,
         };
         var htmlToSend = template(replacements);
         var mailOptions = {
