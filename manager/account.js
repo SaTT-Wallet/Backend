@@ -861,8 +861,10 @@ module.exports = async function (app) {
 				if(!user.weekly){user.weekly = []};
 				if(!user.monthly){user.monthly = []};
 	          
-			 balance = await accountManager.getBalanceByUid(user._id, Crypto);	
+			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
 
+             
+                
 			 if(condition === "daily"){	 
 
 			 console.log(balance, "daily")
@@ -871,6 +873,7 @@ module.exports = async function (app) {
 			 if(user.daily.length>7){user.daily.pop();}
 			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
 			 delete result.Balance ;
+
 				counter++;
 			                 console.log("count : ", counter );
 			                 console.log("user Inserted : ", user );
