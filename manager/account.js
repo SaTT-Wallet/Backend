@@ -14,7 +14,7 @@ module.exports = async function (app) {
     var Big = require('big.js');
     var Long = require('mongodb').Long;
 	var rp = require('request-promise');
-    const xChangePricesUrl = app.config.xChangePricesUrl
+    const xChangePricesUrl = app.config.xChangePricesUrl;
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
 
 	var ctrwSaTT =  new app.web3.eth.Contract(app.config.ctrs.wSaTT.abi,app.config.ctrs.wSaTT.address.mainnet);
