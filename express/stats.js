@@ -662,6 +662,21 @@ module.exports = function (app) {
 		}
 	})
 
+
+	app.get('/script/balance/:condition', async (req, res) => {
+        try{
+		let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+		if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
+			let condition = req.params.condition
+		    await  app.account.BalanceUsersStats(condition);
+			res.send(JSON.stringify({message : 'runned'}))
+		}	
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		 }
+	   })
+
 	return app;
 
 }

@@ -513,15 +513,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	 }
-	   })
-
-
-	   app.get('/test/balance/:condition', async (req, res) => {
-		   let condition = req.params.condition
-		await  app.account.BalanceUsersStats(condition);
-		res.send('runned')
-	   })
-
+	   })   
 	return app;
 
 }
