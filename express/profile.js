@@ -26,7 +26,7 @@ module.exports = function (app) {
 	  gfsUserLegal.collection('user_legal');
 
 	});
-	
+
 	const storageUserLegal = new GridFsStorage({
 		url: mongoURI,
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
@@ -41,7 +41,7 @@ module.exports = function (app) {
 		  });
 		}
 	  });
-	  
+
 
 
 
@@ -54,13 +54,13 @@ module.exports = function (app) {
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'user_file'
-			  };    
-		  resolve(fileInfo);			  
+			  };
+		  resolve(fileInfo);
 		  });
 		}
 	  });
 
-     
+
 	   const uploadUserLegal =  multer({storage : storageUserLegal})
        const uploadImageProfile =  multer({storage : storageProfilePic})
 
@@ -80,9 +80,9 @@ module.exports = function (app) {
      id : identifiant de l'utilisateur'
      */
 	 app.get('/profile/pic', async (req, res) => {
-         try{ 
+         try{
 			const token = req.headers["authorization"].split(" ")[1];
-			const auth= await app.crm.auth(token);     
+			const auth= await app.crm.auth(token);
 			const idUser = +auth.id;
 			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
@@ -98,11 +98,11 @@ module.exports = function (app) {
 									});
 				  const readstream = gfsprofilePic.createReadStream(file.filename);
 				  readstream.pipe(res);
-				} 
+				}
 			  });
-			 
+
             }catch (err) {
-				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
             }
 
 	})
@@ -121,14 +121,14 @@ module.exports = function (app) {
 				await gfsprofilePic.files.findOneAndDelete({'user.$id': auth.id});
 			    await gfsprofilePic.files.updateOne({ _id: req.file.id },{$set: { user : {
 					"$ref": "sn_user",
-					"$id": auth.id, 
+					"$id": auth.id,
 					"$db": "atayen"
-				 }} })			 
+				 }} })
      			res.send(JSON.stringify({message :'Saved'})).status(200);
-				} 
+				}
 			res.send(JSON.stringify({message :'Only images allowed'})).status(200);
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 
 		})
@@ -154,26 +154,32 @@ module.exports = function (app) {
 					userLegal.next ={
 						page:page+1,
 						limit:limit
-					}	
-				}			
+					}
+				}
 				if(startIndex > 0){
-					userLegal.previous ={
-					page:page-1,
-					limit:limit
+						userLegal.previous ={
+						page:page-1,
+						limit:limit
+					}
 				}
-				}
+
 			userLegal.legal=files.slice(startIndex, endIndex)
+			for (var i = 0;i<userLegal.legal.length;i++) {
+				if(userLegal.legal[i].validate == "validate") {
+					userLegal.legal[i].validate = true;
+				}
+			}
 
 				res.send(userLegal);
 
 			})
-			
-			
+
+
 
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 
 	})
 
@@ -187,9 +193,9 @@ module.exports = function (app) {
      @Output:image
      */
 	app.get('/profile/userLegal/:id', async (req, res) => {
-		try{ 
+		try{
 		   const token = req.headers["authorization"].split(" ")[1];
-		   await app.crm.auth(token);     
+		   await app.crm.auth(token);
 		   const userLegal = req.params.id
 		   gfsUserLegal.files.findOne({ _id:app.ObjectId(userLegal)}  , (err, file) => {
 			   if (!file || file.length === 0) {
@@ -209,12 +215,12 @@ module.exports = function (app) {
 						'Content-Disposition': `attachment; filename=${file.filename}`
 					});
 					const readstream = gfsUserLegal.createReadStream(file.filename);
-				      readstream.pipe(res);			   		 		
-			   } 
+				      readstream.pipe(res);
+			   }
 			 });
-			
+
 		   }catch (err) {
-			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		   }
 
    })
@@ -235,14 +241,14 @@ module.exports = function (app) {
 			const page=parseInt(req.query.page) || 1;
 			const startIndex=(page-1) * limit;
 			const endIndex=page * limit;
-	
+
 			const notifications = {}
 			if(endIndex < arrayNotifications.length){
 				notifications.next ={
 					page:page+1,
 					limit:limit
-				}	
-			}			
+				}
+			}
 			if(startIndex > 0){
 				notifications.previous ={
 				page:page-1,
@@ -254,10 +260,10 @@ module.exports = function (app) {
 			notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
 			res.send(notifications);
 		  }catch (err){
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		  }
-		
-	
+
+
 	  })
 
 	/*
@@ -275,14 +281,14 @@ module.exports = function (app) {
          if(req.body.type && req.file){
             gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
-				"$id": app.ObjectId(auth.id), 
+				"$id": app.ObjectId(auth.id),
 				"$db": "atayen"
 			 }, validate : false, type : req.body.type} })
 			  let notification={
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:JSON.stringify([{'type':req.body.type, 'date': date}]), 
+				  label:JSON.stringify([{'type':req.body.type, 'date': date}]),
 				  isSeen:false,
 				  attachedEls:{
 					  id:req.file.id
@@ -292,7 +298,7 @@ module.exports = function (app) {
 			  res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
 		}catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	  })
     /*
@@ -331,7 +337,7 @@ module.exports = function (app) {
 			subject: 'customer service',
 			html: dynamic_html
 	   };
-   
+
 	await transporter.sendMail(mailOptions, function(error, info){
 		   if (error) {
 			   res.end(JSON.stringify(error))
@@ -359,17 +365,17 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	try{
 		let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);
-		const id = "0" + auth.id 
+		const id = "0" + auth.id
 		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
 			elem.isSend = false;
 			app.db.notification().save(elem)
 		})
 		res.send(JSON.stringify({message :'Notification clicked'})).status(200);
 	}catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
-   
-		
+
+
 
 })
 
@@ -380,7 +386,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      @params:
      @Input headers : access token
 	 		body : name,price,cryptoCurrency,from,to,wallet
-	 @Output : success message 
+	 @Output : success message
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
@@ -394,7 +400,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				idNode:id,
 				type:"send_demande_satt_event",
 				status:"done",
-				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
+				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]),
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
@@ -409,7 +415,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						idNode:"0"+result._id,
 						type:"demande_satt_event",
 						status:"done",
-						label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]), 
+						label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -418,10 +424,10 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					  created:new Date()
 					}
 					await app.db.notification().insertOne(notification);
-					 
-					
+
+
 				 }
-			 
+
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
@@ -457,7 +463,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						}
 						]
 			   };
-			
+
 		   transporter.sendMail(mailOptions, function(error, info){
 				if (error) {
 					res.end(JSON.stringify(error))
@@ -465,14 +471,14 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					res.end(JSON.stringify(info.response))
 				}
 			  });
-			})		
-			
+			})
+
 		}catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-	   
-			
-	
+
+
+
 	})
 
 	app.put('/profile/info/update', async (req, res) => {
@@ -489,15 +495,15 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
            return;
             }
 			}
-		   
+
 
 		const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false})
 		const updatedProfile= result.value
 		res.send(JSON.stringify({updatedProfile, success : "updated"})).status(201);
 	} catch (err) {
-	
+
 		console.error(err)
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
 	   })
 
