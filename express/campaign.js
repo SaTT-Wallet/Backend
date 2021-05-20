@@ -1366,13 +1366,20 @@ module.exports = function (app) {
 		}
 	})
 
-	/*
-     @url : /campaign/links/:idCampaign
-     @description: get rejected links of a campaign
-     @params:
-     @Input idCampaign : id of a campaign
-	 @Output array of rejected links
-     */
+/**
+ * @swagger
+ * /campaign/links/{idCampaign}:
+ *   get:
+ *     summary: get rejected links of a campaign.
+ *     description: parametres acceptées :params{id} , headers{headers}.
+ *     parameters:
+ *       - name: id
+ *         required: true
+ *         description: id de la campaign.
+ *     responses:
+ *        "200":
+ *          description: array of links
+ */
 	app.get('/campaign/links/:idCampaign', async(req, res)=>{
 		try {
 		 let token = req.headers["authorization"].split(" ")[1];
@@ -1385,16 +1392,47 @@ module.exports = function (app) {
 	}
 	})
 
-
-		/*
-     @url : /campaign/:id/update
-     @description: modifier la campaign
-     @params:
-     id : identifiant de la campaign
-	 body: {campaign}
-	 {headers}
-	 @Output success message
-     */
+/**
+ * @swagger
+ * /campaign/{id}/update:
+ *   put:
+ *     summary: modifier campaign par id.
+ *     description: parametres acceptées :body{campaign},headers{headers},params{id}.
+ *     parameters:
+ *       - name: title
+ *         required: true
+ *         description: titre de la campaign. 
+ *       - name: tags
+ *         required: true
+ *         description: tags de la campaign.
+ *       - name: countries
+ *         required: true
+ *         description: les pays de la campaign.
+ *       - name: resume
+ *         required: true
+ *         description: resume de la campaign.
+ *       - name: description
+ *         required: true
+ *         description: description de la campaign.
+ *       - name: cost
+ *         required: true
+ *         description: cost de la campaign.
+ *       - name: time
+ *         required: true
+ *         description: time de la campaign.
+ *       - name: ratios
+ *         required: true
+ *         description: les oracles de la campaign.
+ *       - name: url
+ *         required: true
+ *         description: liste des urls de la campaign.
+ *       - name: file
+ *         required: true
+ *         description: liste des files de la campaign.
+ *     responses:
+ *        "200":
+ *          description: success:updated
+ */
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
 		let token = req.headers["authorization"].split(" ")[1];
@@ -1583,6 +1621,5 @@ console.log(Links)
 		    
 	}) 
 	
-
 	return app;
 }

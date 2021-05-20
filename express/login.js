@@ -451,7 +451,7 @@ module.exports = function (app) {
             picLink: profile.photo_url,
             created: mongodate,
             updated: mongodate,
-            idSn: 3,
+            idSn: 5,
             locale: "en",
             enabled:1,
             userSatt: true
@@ -474,7 +474,7 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
       if (users.length) {
         var user = users[0];
-        if (user.idSn != 3) {
+        if (user.idSn != 5) {
           return cb('email_already_used') //(null, false, {message: 'email_already_used'});
         }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
