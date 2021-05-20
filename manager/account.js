@@ -714,7 +714,7 @@ module.exports = async function (app) {
 					  }
 	
 					  Total_balance=Total_balance.toFixed(2)
-					  
+
 						return resolve({Total_balance});
 					  				  
 			}else{
@@ -870,16 +870,27 @@ module.exports = async function (app) {
 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-
+			 
     		 console.log(balance, condition)
-			 result.Balance = balance["Total_balance"];
-			 user[condition].unshift(result);
-			 if(user[condition].length>7){user[condition].pop();}
-			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
-			 delete result.Balance ;
-			 delete id;
-				counter++;
-			                 console.log("user Inserted : ", user );
+			 
+			 if(!balance.err){
+				 console.log("err")
+
+			//  result.Balance = balance["Total_balance"];
+			//  user[condition].unshift(result);
+			//  if(user[condition].length>7){user[condition].pop();}
+			//  await app.db.sn_user().updateOne({_id:id}, {$set: user});
+			//  delete result.Balance ;
+			//  delete id;
+			// 	counter++;
+			//                  console.log("user Inserted : ", user );
+			 }else{
+				 console.log('balance')
+				 console.log(balance.Total_balance)
+				 console.log(balance["Total_balance"])
+
+			 }	
+
 
 		}	   
 		
