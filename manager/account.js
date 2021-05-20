@@ -679,7 +679,7 @@ module.exports = async function (app) {
 
             if(count)
 			{
-				var ret = await accountManager.getAccount(userId)
+				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
 				for(const T_name in token_info){
@@ -715,10 +715,8 @@ module.exports = async function (app) {
 	
 					  Total_balance=Total_balance.toFixed(2)
 	                  if(typeof parseInt(Total_balance) === "number"){
-						delete ret;
 						return resolve({Total_balance});
-					  }
-					  
+					  }					  
 			}else{
 				resolve(ret);
 			}
