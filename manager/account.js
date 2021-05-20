@@ -712,10 +712,13 @@ module.exports = async function (app) {
 							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
 						}
 					  }
-	
-					  Total_balance=Total_balance.toFixed(2)
+
+
+						Total_balance=Total_balance.toFixed(2)
 
 						return resolve({Total_balance});
+	
+					  
 					  				  
 			}else{
 				resolve(ret);
@@ -872,24 +875,17 @@ module.exports = async function (app) {
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
 			 
     		 console.log(balance, condition)
-			 
-			 if(!balance.err){
-				 console.log("err")
 
-			//  result.Balance = balance["Total_balance"];
-			//  user[condition].unshift(result);
-			//  if(user[condition].length>7){user[condition].pop();}
-			//  await app.db.sn_user().updateOne({_id:id}, {$set: user});
-			//  delete result.Balance ;
-			//  delete id;
-			// 	counter++;
-			//                  console.log("user Inserted : ", user );
-			 }else{
-				 console.log('balance')
-				 console.log(balance.Total_balance)
-				 console.log(balance["Total_balance"])
 
-			 }	
+			 result.Balance = balance["Total_balance"];
+			 user[condition].unshift(result);
+			 if(user[condition].length>7){user[condition].pop();}
+			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
+			 delete result.Balance ;
+			 delete id;
+				counter++;
+			                 console.log("user Inserted : ", user );
+
 
 
 		}	   
