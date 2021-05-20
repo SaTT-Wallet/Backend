@@ -871,8 +871,6 @@ module.exports = async function (app) {
 
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
 
-			 if(balance.err){ continue; } //Make the loop jump to the next iteration if there's an err
-
     		 console.log(balance, condition)
 			 result.Balance = balance["Total_balance"];
 			 user[condition].unshift(result);

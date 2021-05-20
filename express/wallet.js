@@ -78,7 +78,7 @@ module.exports = function (app) {
      @response : Total Balance Object
      */
 
-    app.get('/v2/total_balance', async function(req, response) {
+    app.get('/v2/total_balance', async (req, res) =>{
 		
 		try {
 			const Fetch_crypto_price = {
@@ -96,7 +96,7 @@ module.exports = function (app) {
 		  res.end(JSON.stringify({Total_balance})).status(201);
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
 
