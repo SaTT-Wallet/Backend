@@ -682,44 +682,44 @@ module.exports = async function (app) {
 				var ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
+				for(const T_name in token_info){
+					var network=token_info[T_name].network
+					 if(network=="ERC20"){
+						balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
+						if(token_info[T_name].contract==token_info['WSATT'].contract){
+							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+						}else{
+							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
+						}
+					  }else{
+						 balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
+						if(token_info[T_name].contract==token_info['SATT_BEP20'].contract){
+							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+						}else{
+							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
+						}
+					  }
+					 }
+		
+					 for(const Amount in ret){
+						if(Amount=="ether_balance"){
+							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
+						}else if(Amount=="satt_balance"){
+							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+						}else if(Amount=="bnb_balance"){
+							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
+						}else if(Amount=="btc_balance"){
+							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
+						}
+					  }
+	
+					  delete ret;
+					  Total_balance=Total_balance.toFixed(2)
+	
+					  return resolve({Total_balance});
 			}else{
 				resolve(ret);
 			}
-            for(const T_name in token_info){
-				var network=token_info[T_name].network
-				 if(network=="ERC20"){
-					balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
-					if(token_info[T_name].contract==token_info['WSATT'].contract){
-						Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-					}else{
-						Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-					}
-				  }else{
-					 balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
-					if(token_info[T_name].contract==token_info['SATT_BEP20'].contract){
-						Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-					}else{
-						Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-					}
-				  }
-				 }
-	
-				 for(const Amount in ret){
-					if(Amount=="ether_balance"){
-						Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-					}else if(Amount=="satt_balance"){
-						Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-					}else if(Amount=="bnb_balance"){
-						Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-					}else if(Amount=="btc_balance"){
-						Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-					}
-				  }
-
-				  delete ret;
-				  Total_balance=Total_balance.toFixed(2)
-
-				  resolve({Total_balance});
 	   }catch (e) {
 				reject({message:e.message});
 			}
@@ -864,14 +864,14 @@ module.exports = async function (app) {
 			    let balance;
 
 				var user = users_[counter];
-				let id = user._id;
+				let id = user._id; //storing user id in a variable
 				delete user._id
 
-			if(!user[condition]){user[condition] = []};
+			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-             
-			 if(balance.err) { continue; } //Make the loop jump to the next iteration if there's a err
+
+			 if(balance.err){ continue; } //Make the loop jump to the next iteration if there's an err
 
     		 console.log(balance, condition)
 			 result.Balance = balance["Total_balance"];
@@ -884,11 +884,12 @@ module.exports = async function (app) {
 			                 console.log("user Inserted : ", user );
 
 		}	   
+		
    } catch (err) {
 	   console.log(err)
    }
 }
-   
+
 accountManager.handleId=async function () {
 	var Collection=await app.db.UsersId().findOne()
 	var id =Collection.UserId
