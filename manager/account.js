@@ -677,8 +677,8 @@ module.exports = async function (app) {
 
 			var count = await accountManager.hasAccount(userId);
 
-            if(count)
-			{
+            if(count){
+
 				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
@@ -712,8 +712,7 @@ module.exports = async function (app) {
 							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
 						}
 					  }
-
-
+				  
 						Total_balance=Total_balance.toFixed(2)
 
 						return resolve({Total_balance});
@@ -873,11 +872,19 @@ module.exports = async function (app) {
 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-			 
+			
     		 console.log(balance, condition)
-
+			  
+		
 
 			 result.Balance = balance["Total_balance"];
+
+			 if(!result.Balance){
+				console.log("err")
+				console.log(result)
+				continue;
+			}
+
 			 user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();}
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
@@ -885,7 +892,7 @@ module.exports = async function (app) {
 			 delete id;
 				counter++;
 			                 console.log("user Inserted : ", user );
-
+			 	
 
 
 		}	   
