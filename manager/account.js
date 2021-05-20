@@ -715,8 +715,10 @@ module.exports = async function (app) {
 	
 					  delete ret;
 					  Total_balance=Total_balance.toFixed(2)
-	
-					  return resolve({Total_balance});
+	                  if(typeof parseInt(Total_balance) === "number"){
+						return resolve({Total_balance});
+					  }
+					  
 			}else{
 				resolve(ret);
 			}
