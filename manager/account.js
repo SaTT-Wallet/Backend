@@ -714,9 +714,9 @@ module.exports = async function (app) {
 					  }
 	
 					  Total_balance=Total_balance.toFixed(2)
-	                  if(typeof parseInt(Total_balance) === "number"){
+					  
 						return resolve({Total_balance});
-					  }					  
+					  				  
 			}else{
 				resolve(ret);
 			}
@@ -870,8 +870,6 @@ module.exports = async function (app) {
 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-
-			 if(balance.err){ continue; } //Make the loop jump to the next iteration if there's an err
 
     		 console.log(balance, condition)
 			 result.Balance = balance["Total_balance"];
