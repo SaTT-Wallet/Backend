@@ -857,10 +857,9 @@ module.exports = async function (app) {
 	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices 
 
 	   	var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
-		   
-		var usersCount = users_.length; 
-	  	var counter = 0;
 
+		let[counter, usersCount] = [0,users_.length];
+		
 		  while(counter<usersCount) {
 			    let balance;
 
@@ -882,7 +881,6 @@ module.exports = async function (app) {
 			 delete result.Balance ;
 			 delete id;
 				counter++;
-			                 console.log("count : ", counter );
 			                 console.log("user Inserted : ", user );
 
 		}	   
