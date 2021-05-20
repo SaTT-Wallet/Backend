@@ -87,12 +87,12 @@ module.exports = function (app) {
 				json: true,
 				gzip: true
 			  };
-			  
+
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const id = auth.id;
 		  let Crypto = await rp(Fetch_crypto_price);
-		  Total_balance = await accountManager.getBalanceByUid(id, Crypto);
+		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		  res.end(JSON.stringify({Total_balance})).status(201);
 
 		} catch (err) {
