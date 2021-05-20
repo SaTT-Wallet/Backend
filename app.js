@@ -10,7 +10,22 @@
 		app = await require("./conf/config")(app);
 		app = await require("./conf/const")(app);
 
-		
+		const swaggerJSDoc = require('swagger-jsdoc');
+		const swaggerUi = require('swagger-ui-express');
+		const swaggerDefinition = {
+			openapi: '3.0.0',
+			info: {
+			  title: 'API for node-satt' 
+			}
+		  };
+
+		const options = {
+		swaggerDefinition,
+		apis: ['./express/*.js'],
+		};
+
+		const swaggerSpec = swaggerJSDoc(options);
+		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 		app = await require("./db/db")(app);
 		app = await require("./crm/crm")(app);
@@ -47,6 +62,7 @@
 		app = await require("./express/wallet")(app);
 		app = await require("./express/main")(app);
 		app = await require("./web3/initcontracts")(app);
+
 	} catch (e) {
 		console.log(e.stack);
 	} finally {
