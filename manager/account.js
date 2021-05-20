@@ -670,13 +670,13 @@ module.exports = async function (app) {
 	accountManager.getBalanceByUid = async  (userId, crypto) => {	
       return new Promise( async (resolve, reject) => {
        try {
-          var token_info=app.config.Tokens
+
+		  var [token_info, ret,Total_balance,CryptoPrices] = [app.config.Tokens, {err:"no_account"},0,crypto];
 			delete token_info['SATT']
-			delete token_info['BNB']		
-			var CryptoPrices = crypto;
+			delete token_info['BNB']	
+
 			var count = await accountManager.hasAccount(userId);
-			var ret = {err:"no_account"};
-			var Total_balance=0
+
             if(count)
 			{
 				var ret = await accountManager.getAccount(userId)
@@ -833,10 +833,18 @@ module.exports = async function (app) {
 		})
 	  }
 
-	accountManager.BalanceUsersStats = async (condition)=> {
-		try{
-	   let date = Math.round(new Date().getTime()/1000);
-	   let result = {};
+	   /*
+	@description: Script that loops & calculate users balances
+	@params:
+    condition : a condition when you should execute the script it should be ('daily','weekly','monthly')
+	{headers}
+	@Output saving users with updated balances with the according time frame 
+	*/
+	  accountManager.BalanceUsersStats = async (condition)=> {
+	   try{
+
+	   let [date, result]= [Math.round(new Date().getTime()/1000), {}];
+
        result.Date = date;
 
 	   const Fetch_crypto_price = {
@@ -846,67 +854,34 @@ module.exports = async function (app) {
 		gzip: true
 	  };
 
-	   let Crypto = await rp(Fetch_crypto_price);
+	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices 
 
 	   	var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
-		var usersCount = users_.length; 
-	  	var counter = 0;
 
+		let[counter, usersCount] = [0,users_.length];
+		
 		  while(counter<usersCount) {
 			    let balance;
 
 				var user = users_[counter];
+				let id = user._id;
+				delete user._id
 
-				if(!user.daily ){user.daily = []};
-				if(!user.weekly){user.weekly = []};
-				if(!user.monthly){user.monthly = []};
-	          
-			 balance = await accountManager.getBalanceByUid(user._id, Crypto);
+			if(!user[condition]){user[condition] = []};
 
+			 balance = await accountManager.getBalanceByUid(id, Crypto);
              
-                
-			 if(condition === "daily"){	 
+			 if(balance.err) { continue; } //Make the loop jump to the next iteration if there's a err
 
-			 console.log(balance, "daily")
+    		 console.log(balance, condition)
 			 result.Balance = balance["Total_balance"];
-			 user.daily.unshift(result);
-			 if(user.daily.length>7){user.daily.pop();}
-			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
+			 user[condition].unshift(result);
+			 if(user[condition].length>7){user[condition].pop();}
+			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
-             
+			 delete id;
 				counter++;
-			                 console.log("count : ", counter );
 			                 console.log("user Inserted : ", user );
-			 }
-	 
-			 if(condition === "weekly"){
-
-			 console.log(balance, "weekly")
-			 result.Balance = balance.Total_balance;
-			 user.weekly.unshift(result)	
-			 if(user.weekly.length > 7){user.weekly.pop();}
-			 await app.db.sn_user().updateOne({_id:Long.fromNumber(user._id)}, {$set: user});
-			 delete result.Balance ;
-				counter++;
-							  console.log("count : ", counter );
-							  console.log("user Inserted : ", user );
-				
-							}
-	 
-			 if(condition === "monthly"){
-
-			 console.log(balance,"monthly");
-			 result.Balance = balance.Total_balance;
-			 user.monthly.unshift(result)
-			 if(user.monthly.length > 7){user.monthly.pop();}
-			 await app.db.sn_user().updateOne({_id:user._id}, {$set: user});
-			 delete result.Balance ;
-				counter++;
-							  console.log("count : ", counter );
-							  console.log("user Inserted : ", user );
-				
-			 }
-
 
 		}	   
    } catch (err) {
