@@ -79,7 +79,7 @@ module.exports = function (app) {
      */
 
     app.get('/v2/total_balance', async (req, res) =>{
-		
+
 		try {
 			const Fetch_crypto_price = {
 				method: 'GET',
@@ -99,6 +99,29 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
+
+//conmatibilité
+	app.get('/v2/total_balance/:addr/:token', async (req, res) =>{
+
+	try {
+		const Fetch_crypto_price = {
+			method: 'GET',
+			uri: xChangePricesUrl,
+			json: true,
+			gzip: true
+			};
+
+		let token = req.params.token;
+		const auth = await app.crm.auth(token);
+		const id = auth.id;
+		let Crypto = await rp(Fetch_crypto_price);
+		Total_balance = await app.account.getBalanceByUid(id, Crypto);
+		res.end(JSON.stringify({Total_balance})).status(201);
+
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+});
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 		try {
