@@ -189,7 +189,7 @@ module.exports = function (app) {
 	app.get('/v3/newallet', async function(req, response) {
 
 		var pass = req.body.pass;
-		var token = req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 
 		try {
 
@@ -234,7 +234,7 @@ module.exports = function (app) {
 	app.get('/v3/printseed', async function(req, response) {
 
 		var pass = req.body.pass;
-		var token =req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 
 			var res = await app.crm.auth(token);
@@ -345,7 +345,7 @@ module.exports = function (app) {
 	app.get('/v3/newalletbtc', async function(req, response) {
 
 		var pass=req.body.pass;
-		var token=req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -398,9 +398,9 @@ module.exports = function (app) {
 
 	app.get('/v3/resetpass', async function(req, response) {
 
-		var pass=req.body.password;
-		var token=req.body.token;
+		var pass=req.body.pass;
 		var newpass=req.body.newpass;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 			var res = await app.crm.auth(token);
 
@@ -439,7 +439,7 @@ module.exports = function (app) {
 
 	app.get('/v3/export',async function(req, response) {
 		var pass = req.body.pass;
-		var token =req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		response.attachment();
 
 		try {
@@ -478,7 +478,7 @@ module.exports = function (app) {
 
 	app.get('/v3/exportbtc', async function(req, response) {
 		var pass = req.body.pass;
-		var token =req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		response.attachment();
 
 		try {
@@ -520,7 +520,7 @@ module.exports = function (app) {
 
 	app.get('/v3/transfer/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.body.pass;
-		var token = req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 
 		try {
 			var res = await app.crm.auth(token);
@@ -563,7 +563,7 @@ module.exports = function (app) {
 
 	app.get('/v3/transferether/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.body.pass;
-		var token=req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -603,7 +603,7 @@ module.exports = function (app) {
 	app.get('/v3/transferbtc/:to/:val', async function(req, response) {
 
 		var pass = req.body.pass;
-		var token=req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -645,7 +645,7 @@ module.exports = function (app) {
 	app.get('/v3/transferbyuid/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 
 		var pass = req.body.pass;
-		var token=req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -685,9 +685,9 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/transferetherbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	app.get('/v3/transferetherbyuid/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.body.pass;
-		var token=req.body.token;
+		var token = req.headers["authorization"].split(" ")[1];
 		try {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -1193,6 +1193,27 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 	var pass = req.params.pass;
 	try {
 		var res = await app.crm.auth( req.params.token);
+		var cred = await app.account.unlockBSC(res.id,pass);
+		cred.from_id = res.id;
+		var to = req.params.to;
+		var amount = req.params.val;
+		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		app.account.lockBSC(cred.address);
+	}
+})
+
+
+app.get('/v3/transferbnb/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	var pass = req.body.pass;
+	var token = req.headers["authorization"].split(" ")[1];
+
+	try {
+		var res = await app.crm.auth(token);
 		var cred = await app.account.unlockBSC(res.id,pass);
 		cred.from_id = res.id;
 		var to = req.params.to;
