@@ -875,24 +875,22 @@ module.exports = async function (app) {
 			
     		 console.log(balance, condition)
 			  
-		
-
 			 result.Balance = balance["Total_balance"];
 
 			 if(!result.Balance){
 				console.log("err")
 				console.log(result)
-				continue;
-			}
-
-			 user[condition].unshift(result);
+			} else{
+				console.log("else ok")
+			user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();}
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
-				counter++;
 			                 console.log("user Inserted : ", user );
-			 	
+			}
+         	counter++;
+			console.log(counter, "counter")
 
 
 		}	   
