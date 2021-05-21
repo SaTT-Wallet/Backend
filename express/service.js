@@ -25,22 +25,46 @@ module.exports = function (app) {
 		response.end(JSON.stringify(res));
 	});
 
-	/*
-		 @Url :/SaTT/bridge'
-		 @description: => BEP20 to ERC20 or the inverse (ETB,BTE)
-		 @parameters => request_body :
-		 access_T : access Token
-		 Direction : define the direction from which network 
-		 pass : user password
-		 amount : Amount Of SaTT
-		 */
+	         /**
+        * @swagger
+        * /v2/campaign/modify:
+        *   post:
+        *     summary:SaTT Bridge 
+        *     description: BEP20 to ERC20 or the inverse (ETB,BTE)
+        *     parameters:
+        *       - name: access token (access_T)
+        *         required: true
+        *         description: authentication token (Direction)
+        *       - name: Direction ETB (Erc20 to Bep20) , BTE (Bep20 to Erc20) 
+        *         required: true
+        *         description: the direction of the conversion
+        *       - name:  password (pass)
+        *         required: true
+        *         description: wallet password
+        *       - name: amount
+        *         required: true
+        *         description: amount of satt User want to convert in *(wei)
 
-		 app.post("/SaTT/bridge", async function (req, res) {
+        *		example:   #Transaction
+        *               token:d1c466f447abd9bbf29e7e996da557600a3ab8afd96417fc96987021335c0231
+        *               direction: ETB 
+		*               password: 64487343745
+		*               amount:1000000000000000000 
+        *     responses:
+        *        "200":
+        *          description: Transaction details 
+        *        "auth error"
+        *          description: access token dosn't match
+		*        "wrong password": wrong wallet password (it's impossible to get it back in case you forgot it )
+		*       
+        */
+
+		app.post("/SaTT/bridge", async function (req, res) {
 			let access_T = req.body.token;
 			let Direction = req.body.direction;
 			let pass = req.body.password;
 			let amount = req.body.amount;
-			  console.log(pass)
+	
 			try {
 				var auth = await app.crm.auth(access_T);
 				console.log(auth)
