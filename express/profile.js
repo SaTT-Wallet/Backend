@@ -295,7 +295,7 @@ module.exports = function (app) {
 					  id:req.file.id
 				}
 			  }
-			await	app.db.notification().insert(notification)
+			await	app.db.notification().insertOne(notification)
 			res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
 		}catch (err) {
