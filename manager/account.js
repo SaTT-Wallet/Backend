@@ -878,8 +878,7 @@ module.exports = async function (app) {
 			 result.Balance = balance["Total_balance"];
 
 			 if(!result.Balance){
-				console.log("err")
-				console.log(result)
+
 			} else{
 				console.log("else ok")
 			user[condition].unshift(result);
