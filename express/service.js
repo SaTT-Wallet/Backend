@@ -44,6 +44,7 @@ module.exports = function (app) {
 			try {
 				var auth = await app.crm.auth(access_T);
 				console.log(auth)
+				console.log(Direction)
 				var ret;
 				if (Direction == "ETB") {
 					var cred = await app.account.unlock(auth.id, pass);
