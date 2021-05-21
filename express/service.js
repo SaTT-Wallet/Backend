@@ -30,7 +30,7 @@ module.exports = function (app) {
 		 @description: => BEP20 to ERC20 or the inverse (ETB,BTE)
 		 @parameters => request_body :
 		 access_T : access Token
-		 Direction : define the direction from which network 
+		 Direction : define the direction from which network
 		 pass : user password
 		 amount : Amount Of SaTT
 		 */
@@ -47,6 +47,11 @@ module.exports = function (app) {
 				var ret;
 				if (Direction == "ETB") {
 					var cred = await app.account.unlock(auth.id, pass);
+					console.log(
+						app.config.Tokens["SATT"].contract,
+						app.config.bridge,
+						amount,
+						cred);
 					ret = await app.erc20.transfer(
 						app.config.Tokens["SATT"].contract,
 						app.config.bridge,
@@ -58,7 +63,7 @@ module.exports = function (app) {
 					var cred = await app.account.unlockBSC(auth.id, pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
-	
+
 				res.end(JSON.stringify(ret));
 			} catch (err) {
 				res.end(JSON.stringify(err));
