@@ -47,7 +47,7 @@ module.exports = function (app) {
 				console.log(Direction == "ETB",Direction == "BTE")
 				var ret;
 				if (Direction == "ETB") {
-					var cred = await app.account.unlock(auth.id, pass);
+					var cred = await app.account.unlock(auth.id, ""+pass);
 					console.log(
 						app.config.Tokens["SATT"].contract,
 						app.config.bridge,
