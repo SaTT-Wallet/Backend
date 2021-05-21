@@ -26,8 +26,39 @@ module.exports = function (app) {
 	});
 
 
-	        
-
+/**
+* @swagger
+* /SaTT/bridge:
+*   post:
+*     summary: SaTT Bridge .
+*     description: BEP20 to ERC20 or the inverse (ETB,BTE).
+*     parameters:
+*        - name: access token (access_T)
+*          required: true
+*          description: authentication token (Direction)
+*        - name: Direction ETB (Erc20 to Bep20) , BTE (Bep20 to Erc20) 
+*          required: true
+*          description: the direction of the conversion
+*        - name:  password (pass)
+*          required: true
+*          description: wallet password
+*        - name: amount
+*          required: true
+*          description: amount of satt User want to convert in *(wei)
+*     responses:
+*        "200":
+*          description: Transaction details
+*        "auth error":
+*          description: access token dosn't match
+*        "wrong password":
+*          description: wrong wallet password (it's impossible to get it back in case you forgot it )
+*		example:   #Transaction
+*               token:d1c466f447abd9bbf29e7e996da557600a3ab8afd96417fc96987021335c0231
+*               direction:ETB 
+*               password:64487343745
+*               amount:1000000000000000000
+*       
+*/    
 		app.post("/SaTT/bridge", async function (req, res) {
 			let access_T = req.body.token;
 			let Direction = req.body.direction;
