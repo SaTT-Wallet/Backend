@@ -311,121 +311,6 @@ module.exports = function (app) {
       }
     }));
 
-  /*
-  passport.use(new TwitterStrategy({
-      consumerKey: app.config.twitterClientId,
-      consumerSecret: app.config.twitterClientSecret,
-      callbackURL: app.config.baseUrl+"callback/twitter"
-    },
-    async function(token, tokenSecret, profile, cb) {
-
-       var date = Math.floor(Date.now()/1000)+86400;
-      var buff = Buffer.alloc(32);
-      var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({idOnSn:profile.id}).toArray()
-      if(users.length)
-      {
-          var user = users[0];
-          if(user.idSn != 3)
-          {
-              return done("email already used",null);
-          }
-          var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-          return cb(null,{id:user._id,token:token,expires_in:date});
-      }
-      else {
-          var mongodate = new Date().toISOString();
-          var mydate = mongodate.slice(0, 19).replace('T', ' ');
-          var res_ins = await app.db.insert("INSERT INTO user SET ?",{username:profile.email,email:profile.email,created:mydate,updated:mydate,enabled:1});
-          var id = res_ins.insertId;
-          var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:id,token:token,expires_at:date,scope:"user"});
-          var insert = await app.db.sn_user().insertOne({
-              _id:id,
-              idOnSn2:profile.id,
-              email: profile.email,
-              first_name:profile.given_name,
-              name:profile.family_name,
-              created :mongodate,
-              updated:mongodate,
-              idSn:3,
-              locale:profile.locale,
-              userSatt: true
-          });
-      return cb(null,{id:id,token:token,expires_in:date});
-    }
-
-    }
-  ));
-  */
-
-  /*passport.use( 'signup_telegramStrategy',
-    new TelegramStrategy({
-        clientID: app.config.telegramClientId,
-        clientSecret: app.config.telegramClientSecret,
-        callbackURL: app.config.baseUrl + "callback/telegram"
-      },
-      async function (accessToken, refreshToken, profile, cb) {
-        var date = Math.floor(Date.now() / 1000) + 86400;
-        var buff = Buffer.alloc(32);
-        var token = crypto.randomFillSync(buff).toString('hex');
-        var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
-        if (users.length) {
-          return cb('email_already_used');
-        } else {
-          var mongodate = new Date().toISOString();
-          var mydate = mongodate.slice(0, 19).replace('T', ' ');
-          var insert = await app.db.sn_user().insertOne({
-            idOnSn3: profile.id,
-            email: profile.email,
-            username: profile.email,
-            first_name: profile.first_name,
-            lastName: profile.last_name,
-            name: profile.username,
-            picLink: profile.photo_url,
-            created: mongodate,
-            updated: mongodate,
-            idSn: 3,
-            locale: "en",
-            enabled:1,
-            userSatt: true
-          });
-          var users = await app.db.sn_user().find({email: profile.username}).toArray();
-          var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
-          return cb(null, {id: users[0]._id, token: token, expires_in: date});
-        }
-      }
-    ));*/
-  /*passport.use(
-    new TelegramStrategy({
-        clientID: app.config.telegramClientId,
-        clientSecret: app.config.telegramClientSecret,
-        callbackURL: app.config.baseUrl + "callback/telegram"
-      },
-      async function (accessToken, refreshToken, profile, cb) {
-        var date = Math.floor(Date.now() / 1000) + 86400;
-        var buff = Buffer.alloc(32);
-        var token = crypto.randomFillSync(buff).toString('hex');
-        var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
-        console.log("-----------------req.user.id --------------")
-        console.log(users)
-        if (users.length) {
-          var user = users[0];
-          if (user.idSn != 3) {
-            return cb('email_already_used') //(null, false, {message: 'email_already_used'});
-          }
-          var oldToken = await app.db.accessToken().findOne({user_id: user._id});
-          if (oldToken) {
-            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
-          } else {
-            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-          }
-          //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-          return cb(null, {id: user._id, token: token, expires_in: date});
-        } else {
-          return cb ('account_invalide');
-        }
-      }
-    ));*/
 
   passport.use('signup_telegramStrategy',
     new TelegramStrategy({
@@ -834,6 +719,12 @@ module.exports = function (app) {
      
     })
 
+    app.get('/referral', async (req, res) => {
+      let referral = req.query.code
+      let userId = req.query.userID
+  
+        return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
+    })
 
   return app;
 }
