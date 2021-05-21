@@ -25,6 +25,7 @@ module.exports = function (app) {
 		response.end(JSON.stringify(res));
 	});
 
+
 	         /**
         * @swagger
         * /v2/campaign/modify:
@@ -45,6 +46,7 @@ module.exports = function (app) {
         *         required: true
         *         description: amount of satt User want to convert in *(wei)
 
+
         *		example:   #Transaction
         *               token:d1c466f447abd9bbf29e7e996da557600a3ab8afd96417fc96987021335c0231
         *               direction: ETB 
@@ -64,13 +66,14 @@ module.exports = function (app) {
 			let Direction = req.body.direction;
 			let pass = req.body.password;
 			let amount = req.body.amount;
-	
+
 			try {
 				var auth = await app.crm.auth(access_T);
-				console.log(auth)
+
 				var ret;
 				if (Direction == "ETB") {
-					var cred = await app.account.unlock(auth.id, pass);
+					var cred = await app.account.unlock(auth.id, ""+pass);
+
 					ret = await app.erc20.transfer(
 						app.config.Tokens["SATT"].contract,
 						app.config.bridge,
@@ -79,10 +82,10 @@ module.exports = function (app) {
 					);
 					console.log(ret)
 				} else if (Direction == "BTE") {
-					var cred = await app.account.unlockBSC(auth.id, pass);
+					var cred = await app.account.unlockBSC(auth.id, ""+pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
-	
+
 				res.end(JSON.stringify(ret));
 			} catch (err) {
 				res.end(JSON.stringify(err));
