@@ -608,7 +608,7 @@ module.exports = function (app) {
 	})
 /**
  * @swagger
- * /v3/transferether/{to}/{val}/{gas}/{estimate}/{gasprice}:
+ * /v3/transferether/{to}/{val}:
  *   get:
  *     summary: transfer ether .
  *     description: parametres acceptées :body , headers{headers}.
@@ -622,7 +622,7 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferether/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	app.get('/v3/transferether/:to/:val', async function(req, response) {
 		var pass = req.body.pass;
 		var token = req.headers["authorization"].split(" ")[1];
 		try {
@@ -641,7 +641,18 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	})
-
+/**
+ * @swagger
+ * /v2/transferbtc/{token}/{pass}/{to}/{val}:
+ *   get:
+ *     summary: transfer btc .
+ *     description: no parameters.
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR hash
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v2/transferbtc/:token/:pass/:to/:val', async function(req, response) {
 
 		var pass = req.params.pass;
@@ -660,7 +671,22 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	})
-
+/**
+ * @swagger
+ * /v3/transferbtc/{to}/{val}:
+ *   get:
+ *     summary: transfer btc .
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR hash
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v3/transferbtc/:to/:val', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -995,7 +1021,34 @@ module.exports = function (app) {
 			var allowance = {amount:"10000000000000000000000000000"};
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	})
-
+	/**
+ * @swagger
+ * /v2/erc20/transfer:
+ *   post:
+ *     summary: transfer erc20 {deprecated}.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     parameters:
+ *       - name: token
+ *         required: true
+ *         description: tokenERC20.
+ *       - name: to
+ *         required: true
+ *         description: transfert to.
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *       - name: amount
+ *         required: true
+ *         description: amount to transfer
+ *       - name: access_token
+ *         required: true
+ *         description: access_token
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
 	app.post('/v2/erc20/transfer',async function(req, response) {
 
 		try {
@@ -1009,6 +1062,55 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+				if(cred)
+			app.account.lock(cred.address);
+		}
+	})
+
+
+	/**
+ * @swagger
+ * /v3/erc20/transfer:
+ *   post:
+ *     summary: transfer erc20.
+ *     description: parametres acceptées :body{transferParameter} , headers{headers}.
+ *     parameters:
+ *       - name: token
+ *         required: true
+ *         description: tokenERC20.
+ *       - name: to
+ *         required: true
+ *         description: transfert to.
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *       - name: amount
+ *         required: true
+ *         description: amount to transfer
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR hash
+ *       "500":
+ *          description: error:error message
+ */
+	app.post('/v3/erc20/transfer',async function(req, response) {
+
+		try {
+			let token = req.headers["authorization"].split(" ")[1];
+			var tokenERC20 = req.body.token;
+			var to = req.body.to;
+			var amount = req.body.amount;
+			var pass = req.body.pass;
+			var res = await app.crm.auth(token);
+
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
+			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1060,7 +1162,31 @@ module.exports = function (app) {
 
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	})
-
+	/**
+ * @swagger
+ * /v3/erc20/transfer:
+ *   post:
+ *     summary: transfer erc20.
+ *     description: parametres acceptées :body{transferParameter} , headers{headers}.
+ *     parameters:
+ *       - name: token
+ *         required: true
+ *         description: tokenERC20.
+ *       - name: to
+ *         required: true
+ *         description: transfert to.
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *       - name: amount
+ *         required: true
+ *         description: amount to transfer
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR hash
+ *       "500":
+ *          description: error:error message
+ */
 	app.post('/v2/bep20/transfer',async function(req, response) {
 
 		try {
@@ -1083,6 +1209,55 @@ module.exports = function (app) {
 			app.account.lockBSC(cred.address);
 		}
 	})
+
+
+		/**
+ * @swagger
+ * /v3/bep20/transfer:
+ *   post:
+ *     summary: transfer bep20.
+ *     description: parametres acceptées :body{transferParameter} , headers{headers}.
+ *     parameters:
+ *       - name: token
+ *         required: true
+ *         description: access token .
+ *       - name: to
+ *         required: true
+ *         description: transfert to.
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *       - name: amount
+ *         required: true
+ *         description: amount to transfer
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR hash
+ *       "500":
+ *          description: error:error message
+ */
+		 app.post('/v3/bep20/transfer',async function(req, response) {
+
+			try {
+	
+				var token = req.body.access_token;
+				var to = req.body.to;
+				var amount = req.body.amount;
+				var pass = req.body.pass;
+				var res = await app.crm.auth(token);
+	
+				var cred = await app.account.unlockBSC(res.id,pass);
+				cred.from_id = res.id;
+				var ret = await app.bep20.transferBEP(to,amount,cred);
+				response.end(JSON.stringify(ret));
+			} catch (err) {
+					response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+			finally {
+					if(cred)
+				app.account.lockBSC(cred.address);
+			}
+		})
 
 	app.post('/v2/bep20/allow',async function(req, response) {
 
@@ -1249,7 +1424,22 @@ app.get('/v2/feebtc', async function(req, response) {
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 })
-
+/**
+ * @swagger
+ * /v2/transferbnb/{token}/{pass}/{to}/{val}/{gas}/{estimate}/{gasprice}:
+ *   get:
+ *     summary: transfer bnb {deprecated}.
+ *     description: parametres acceptées :non parametrs .
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR data
+ *       "500":
+ *          description: error:error message
+ */
 app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 	var pass = req.params.pass;
 	try {
@@ -1268,8 +1458,23 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 	}
 })
 
-
-app.get('/v3/transferbnb/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
+/**
+ * @swagger
+ * /v3/transferbnb/{to}/{val}:
+ *   get:
+ *     summary: transfer bnb .
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR data
+ *       "500":
+ *          description: error:error message
+ */
+app.get('/v3/transferbnb/:to/:val', async function(req, response) {
 	var pass = req.body.pass;
 	var token = req.headers["authorization"].split(" ")[1];
 

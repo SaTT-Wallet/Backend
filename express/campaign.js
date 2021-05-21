@@ -193,7 +193,34 @@ module.exports = function (app) {
 
 		}
 	})
-
+/**
+ * @swagger
+ * /campaign/create:
+ *   post:
+ *     summary: create campaign {deprecated}.
+ *     description: parametres acceptées :body{campaign}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password of user.
+ *       - name: dataUrl
+ *         required: true
+ *         description: data url.
+ *       - name: startDate
+ *         required: true
+ *         description: start date.
+ *       - name: endDate
+ *         required: true
+ *         description: end date
+ *       - name: token
+ *         required: true
+ *         description: access token
+ *     responses:
+ *        "200":
+ *          description: data
+ *        "500":
+ *          description: error:error message
+ */
 	app.post('/campaign/create', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -397,7 +424,7 @@ module.exports = function (app) {
 					id:campaign_id
 			  }
 			}
-		  await	app.db.notification().insertOne(notification)
+		  await	app.db.notification().insert(notification)
 
 		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
 		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
@@ -524,6 +551,8 @@ module.exports = function (app) {
  *     responses:
  *        "200":
  *          description: data
+ *        "500":
+ *          description: error:error message
  */
 	app.post('/v2/campaign/modify', async function(req, response) {
 
@@ -1180,7 +1209,6 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-
 	app.post('/v2/campaign/gains2', async function(req, response) {
 		let token = req.headers["authorization"].split(" ")[1];
 
@@ -1719,6 +1747,34 @@ module.exports = function (app) {
      @Input Campaign : campaign informations
 	 @Output succeed message
      */
+	/**
+ * @swagger
+ * /campaign/save:
+ *   post:
+ *     summary: save campaign.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password of user.
+ *       - name: dataUrl
+ *         required: true
+ *         description: data url.
+ *       - name: startDate
+ *         required: true
+ *         description: start date.
+ *       - name: endDate
+ *         required: true
+ *         description: end date. 
+ *       - name: idCampaign
+ *         required: true
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: succeed message
+ *        "500":
+ *          description: error:error message
+ */
 	app.post('/campaign/save', async (req, res) => {
 		try {
 			let token = req.headers["authorization"].split(" ")[1];
@@ -1815,7 +1871,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-		    await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
@@ -1879,9 +1935,10 @@ module.exports = function (app) {
  * /campaign/links/{idCampaign}:
  *   get:
  *     summary: get rejected links of a campaign.
- *     description: parametres acceptées :params{id} , headers{headers}.
+ *     description: parametres acceptées :params{idCampaign} , headers{headers}.
  *     parameters:
- *       - name: id
+ *       - name: idCampaign
+ *         in: path
  *         required: true
  *         description: id de la campaign.
  *     responses:

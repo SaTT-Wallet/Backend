@@ -17,9 +17,7 @@
 			info: {
 			  title: 'API for node-satt' ,
 		  	  customCss: '.swagger-ui .topbar { display: none }'
-
-			},
-
+			}
 		  };
 		  var cssOptions = {
 			customCss: `
