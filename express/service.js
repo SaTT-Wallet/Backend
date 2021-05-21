@@ -40,19 +40,14 @@ module.exports = function (app) {
 			let Direction = req.body.direction;
 			let pass = req.body.password;
 			let amount = req.body.amount;
-			  console.log(pass)
+
 			try {
 				var auth = await app.crm.auth(access_T);
-				console.log(auth)
-				console.log(Direction == "ETB",Direction == "BTE")
+
 				var ret;
 				if (Direction == "ETB") {
 					var cred = await app.account.unlock(auth.id, ""+pass);
-					console.log(
-						app.config.Tokens["SATT"].contract,
-						app.config.bridge,
-						amount,
-						cred);
+
 					ret = await app.erc20.transfer(
 						app.config.Tokens["SATT"].contract,
 						app.config.bridge,
@@ -61,7 +56,7 @@ module.exports = function (app) {
 					);
 					console.log(ret)
 				} else if (Direction == "BTE") {
-					var cred = await app.account.unlockBSC(auth.id, pass);
+					var cred = await app.account.unlockBSC(auth.id, ""+pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
 
