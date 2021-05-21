@@ -16,7 +16,7 @@ module.exports = function (app) {
 	const conn=mongoose.createConnection(mongoURI);
 	const QRCode = require('qrcode')
     var handlebars = require('handlebars');
-
+    var Long = require('mongodb').Long;
 	let gfsprofilePic;
 	let gfsUserLegal;
 	conn.once('open', () => {
@@ -282,7 +282,7 @@ module.exports = function (app) {
 			await gfsUserLegal.files.deleteMany({ $and : [{idNode: idNode}, {type : req.body.type}]});
             await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
-				"$id": app.ObjectId(auth.id),
+				"$id": Long.fromNumber(auth.id),
 				"$db": "atayen"
 			 }, validate : false, type : req.body.type} })
 			let notification={
@@ -295,7 +295,7 @@ module.exports = function (app) {
 					  id:req.file.id
 				}
 			  }
-			await	app.db.notification().insert(notification)
+			await	app.db.notification().insertOne(notification)
 			res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
 		}catch (err) {

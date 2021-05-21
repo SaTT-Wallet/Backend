@@ -397,7 +397,7 @@ module.exports = function (app) {
 					id:campaign_id
 			  }
 			}
-		  await	app.db.notification().insert(notification)
+		  await	app.db.notification().insertOne(notification)
 
 		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
 		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
@@ -1815,7 +1815,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+		    await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
