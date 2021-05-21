@@ -164,7 +164,22 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
-
+/**
+ * @swagger
+ * /v2/newallet:
+ *   get:
+ *     summary: create password wallet {deprecated}.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:account_exists OR data
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v2/newallet/:token/:pass', async function(req, response) {
 
 		var pass = req.params.pass;
@@ -185,7 +200,22 @@ module.exports = function (app) {
 		}
 
 	});
-
+/**
+ * @swagger
+ * /v3/newallet:
+ *   get:
+ *     summary: create password wallet.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:account_exists OR data
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v3/newallet', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -207,7 +237,22 @@ module.exports = function (app) {
 		}
 
 	});
-
+/**
+ * @swagger
+ * /v2/printseed/:token/:pass:
+ *   get:
+ *     summary: export Mnemo {deprecated}.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:no_exists OR data
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v2/printseed/:token/:pass', async function(req, response) {
 
 		var pass = req.params.pass;
@@ -230,7 +275,22 @@ module.exports = function (app) {
 		}
 
 	});
-
+/**
+ * @swagger
+ * /v3/printseed:
+ *   get:
+ *     summary: export Mnemo.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:no_exists OR data
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v3/printseed', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -541,7 +601,18 @@ module.exports = function (app) {
 
 
 	})
-
+/**
+ * @swagger
+ * /v2/transferether/{token}/{pass}/{to}/{val}/{gas}/{estimate}/{gasprice}:
+ *   get:
+ *     summary: transfer ether {deprecated}.
+ *     description: parametres acceptées :no parameters .
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR data
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v2/transferether/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
@@ -560,7 +631,22 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	})
-
+/**
+ * @swagger
+ * /v3/transferether/{to}/{val}/{gas}/{estimate}/{gasprice}:
+ *   get:
+ *     summary: transfer ether .
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password wallet.
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant OR data
+ *       "500":
+ *          description: error:error message
+ */
 	app.get('/v3/transferether/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.body.pass;
 		var token = req.headers["authorization"].split(" ")[1];
