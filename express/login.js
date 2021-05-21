@@ -771,6 +771,42 @@ module.exports = function (app) {
     }
       
   });
+/**
+ * @swagger
+ * /v2/auth/passchange:
+ *   post:
+ *     summary: change password.
+ *     description: parametres acceptées :body{user}.
+ *     parameters:
+ *       - name: newpass
+ *         required: true
+ *         description: new password.
+ *       - name: oldpass
+ *         required: true
+ *         description: old password.
+ *     responses:
+ *        "200":
+ *          description: message:changed
+ *        "500":
+ *          description: error:wrong password
+ */
+  app.post('/v2/auth/passchange', async function (req, response) {
+    var newpass = req.body.newpass;
+    var oldpass = req.body.oldpass;
+    var id = req.body.id;
+    var users = await app.db.sn_user().find({ _id:Long.fromNumber( id)}).toArray();
+    if( users.length) {
+      if (users[0].password != synfonyHash(oldpass)) {
+        response.end('{error:"wrong password"}').status(500);
+        return;
+      }
+      var res_ins = await app.db.sn_user().updateOne({_id: id},{ $set:{password: synfonyHash(newpass)}});
+      response.end('{message:"changed"}').status(200);
+    } else {
+      response.end('{error:"no account"}').status(500);
+    }
+      
+  });
 
 	app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;

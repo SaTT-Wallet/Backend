@@ -15,17 +15,25 @@
 		const swaggerDefinition = {
 			openapi: '3.0.0',
 			info: {
-			  title: 'API for node-satt' 
-			}
-		  };
+			  title: 'API for node-satt' ,
+		  	  customCss: '.swagger-ui .topbar { display: none }'
 
+			},
+
+		  };
+		  var cssOptions = {
+			customCss: `
+			.topbar-wrapper img {content:url(/assets/SaTT.png); width:50px; height:auto;}`,
+			customSiteTitle: "SaTT",
+			customfavIcon:'/assets/SaTT-noire.png'
+		  };
 		const options = {
 		swaggerDefinition,
 		apis: ['./express/*.js'],
 		};
 
 		const swaggerSpec = swaggerJSDoc(options);
-		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
 		app = await require("./db/db")(app);
 		app = await require("./crm/crm")(app);
