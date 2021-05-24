@@ -910,6 +910,29 @@ accountManager.handleId=async function () {
 	}
   }
 
+  accountManager.HandleReferral = async function (referral, userId) {
+	let user = await app.db.sn_user().findOne({ _id: Long.fromNumber(referral) })
+
+	if (user) {
+		var CheckRef = await app.db.referral().findOne({ filleul: Long.fromNumber(userId) })
+
+		if (CheckRef) {
+
+			return { error: true, message: 'Already referred' }
+
+		} else {
+
+			await app.db.referral().insertOne({ parrain: Long.fromNumber(referral), filleul: Long.fromNumber(userId) })
+			return { error: false, message: 'Referral successfully saved' }
+
+		}
+
+	} else {
+
+		return { error: true, message: 'wrong referral code check again' }
+	}
+ }
+
 	app.account = accountManager;
 	return app;
 }
