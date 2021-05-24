@@ -19,7 +19,7 @@
     app.token.followContract();
     
 
-    cron.schedule('32 10 * * *',  () => {
+    cron.schedule('00 00 * * *',  () => {
 		   app.account.BalanceUsersStats("daily");
 	  });
 
