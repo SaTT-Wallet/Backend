@@ -839,7 +839,7 @@ module.exports = async function (app) {
 	  accountManager.BalanceUsersStats = async (condition)=> {
 
 	   let [date, result]= [Math.round(new Date().getTime()/1000), {}];
-
+       let dateMinus;
        result.Date = date;
 
 	   const Fetch_crypto_price = {
