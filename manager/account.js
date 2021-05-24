@@ -896,7 +896,7 @@ module.exports = async function (app) {
 				 for(i =0 ; i<=(7-length) ;i++)
 				 { 
 					 date =- dateMince
-					user[condition.push({Date : date, Balance:0})] 
+					user[condition].push({Date : date, Balance:0}); 
 
 					
 
