@@ -34,16 +34,13 @@ module.exports = function (app) {
 *     description: BEP20 to ERC20 or the inverse (ETB,BTE).
 *     parameters:
 *        - name: access token (access_T)
-*          required: true
 *          description: authentication token (Direction)
 *        - name: Direction ETB (Erc20 to Bep20) , BTE (Bep20 to Erc20) 
-*          required: true
 *          description: the direction of the conversion
 *        - name:  password (pass)
 *          required: true
 *          description: wallet password
 *        - name: amount
-*          required: true
 *          description: amount of satt User want to convert in *(wei)
 *     responses:
 *        "200":

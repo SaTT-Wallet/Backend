@@ -201,19 +201,14 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: dataUrl
- *         required: true
  *         description: data url.
  *       - name: startDate
- *         required: true
  *         description: start date.
  *       - name: endDate
- *         required: true
  *         description: end date
  *       - name: token
- *         required: true
  *         description: access token
  *     responses:
  *        "200":
@@ -249,16 +244,12 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: dataUrl
- *         required: true
  *         description: data url.
  *       - name: startDate
- *         required: true
  *         description: start date.
  *       - name: endDate
- *         required: true
  *         description: end date
  *     responses:
  *        "200":
@@ -331,25 +322,20 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: dataUrl
- *         required: true
  *         description: data url.
  *       - name: startDate
  *         required: true
  *         description: start date.
  *       - name: endDate
- *         required: true
  *         description: end date. 
  *       - name: ERC20token
  *         required: true
  *         description: ERC20 token. 
  *       - name: amount
- *         required: true
  *         description: amount de la campaign.
  *       - name: ratios
- *         required: true
  *         description: ratios de la campaign. 
  *     responses:
  *        "200":
@@ -537,16 +523,12 @@ module.exports = function (app) {
  *         required: true
  *         description: password of user.
  *       - name: dataUrl
- *         required: true
  *         description: data url.
  *       - name: startDate
- *         required: true
  *         description: start date.
  *       - name: endDate
- *         required: true
  *         description: end date. 
  *       - name: idCampaign
- *         required: true
  *         description: campaign id.
  *     responses:
  *        "200":
@@ -606,16 +588,12 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: amount
- *         required: true
  *         description: amount of campaign.
  *       - name: ERC20token
- *         required: true
  *         description: ERC20token.
  *       - name: idCampaign
- *         required: true
  *         description: campaign id.
  *     responses:
  *        "200":
@@ -751,13 +729,10 @@ module.exports = function (app) {
  *         required: true
  *         description: password of user.
  *       - name: amount
- *         required: true
  *         description: amount of campaign.
  *       - name: ERC20token
- *         required: true
  *         description: ERC20token.
  *       - name: idCampaign
- *         required: true
  *         description: campaign id.
  *     responses:
  *        "200":
@@ -842,13 +817,10 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: idProm
- *         required: true
  *         description: id of campaign.
  *       - name: idCampaign
- *         required: true
  *         description: campaign id.
  *     responses:
  *        "200":
@@ -1032,10 +1004,8 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: idProm
- *         required: true
  *         description: id of prom.
  *     responses:
  *        "200":
@@ -1200,10 +1170,8 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: idProm
- *         required: true
  *         description: id of prom.
  *     responses:
  *        "200":
@@ -1755,19 +1723,15 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password of user.
  *       - name: dataUrl
  *         required: true
  *         description: data url.
  *       - name: startDate
- *         required: true
  *         description: start date.
  *       - name: endDate
- *         required: true
  *         description: end date. 
  *       - name: idCampaign
- *         required: true
  *         description: campaign id.
  *     responses:
  *        "200":
@@ -1939,7 +1903,6 @@ module.exports = function (app) {
  *     parameters:
  *       - name: idCampaign
  *         in: path
- *         required: true
  *         description: id de la campaign.
  *     responses:
  *        "200":
@@ -1965,34 +1928,24 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign},headers{headers},params{id}.
  *     parameters:
  *       - name: title
- *         required: true
  *         description: titre de la campaign. 
  *       - name: tags
- *         required: true
  *         description: tags de la campaign.
  *       - name: countries
- *         required: true
  *         description: les pays de la campaign.
  *       - name: resume
- *         required: true
  *         description: resume de la campaign.
  *       - name: description
- *         required: true
  *         description: description de la campaign.
  *       - name: cost
- *         required: true
  *         description: cost de la campaign.
  *       - name: time
- *         required: true
  *         description: time de la campaign.
  *       - name: ratios
- *         required: true
  *         description: les oracles de la campaign.
  *       - name: url
- *         required: true
  *         description: liste des urls de la campaign.
  *       - name: file
- *         required: true
  *         description: liste des files de la campaign.
  *     responses:
  *        "200":

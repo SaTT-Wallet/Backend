@@ -17,7 +17,19 @@
 			info: {
 			  title: 'API for node-satt' ,
 		  	  customCss: '.swagger-ui .topbar { display: none }'
-			}
+			},
+			components: {
+				securitySchemes: {
+				  bearerAuth: {
+					type: 'http',
+					scheme: 'bearer',
+					bearerFormat: 'JWT',
+				  }
+				}
+			  },
+			  security: [{
+				bearerAuth: []
+			  }]
 		  };
 		  var cssOptions = {
 			customCss: `
