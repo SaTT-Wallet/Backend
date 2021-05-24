@@ -143,11 +143,10 @@ module.exports = function (app) {
  * @swagger
  * /v2/newallet:
  *   get:
- *     summary: create password wallet {deprecated}.
+ *     summary: create password wallet {deprecated} , new api:/v3/newallet.
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -183,7 +182,6 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -216,11 +214,10 @@ module.exports = function (app) {
  * @swagger
  * /v2/printseed/:token/:pass:
  *   get:
- *     summary: export Mnemo {deprecated}.
+ *     summary: export Mnemo {deprecated} , new api:/v3/printseed.
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -258,7 +255,6 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -614,7 +610,6 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -679,7 +674,6 @@ module.exports = function (app) {
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -1029,19 +1023,14 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{transferParameter}.
  *     parameters:
  *       - name: token
- *         required: true
  *         description: tokenERC20.
  *       - name: to
- *         required: true
  *         description: transfert to.
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *       - name: amount
- *         required: true
  *         description: amount to transfer
  *       - name: access_token
- *         required: true
  *         description: access_token
  *     responses:
  *       "200":
@@ -1081,16 +1070,12 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{transferParameter} , headers{headers}.
  *     parameters:
  *       - name: token
- *         required: true
  *         description: tokenERC20.
  *       - name: to
- *         required: true
  *         description: transfert to.
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *       - name: amount
- *         required: true
  *         description: amount to transfer
  *     responses:
  *       "200":
@@ -1170,16 +1155,12 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{transferParameter} , headers{headers}.
  *     parameters:
  *       - name: token
- *         required: true
  *         description: tokenERC20.
  *       - name: to
- *         required: true
  *         description: transfert to.
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *       - name: amount
- *         required: true
  *         description: amount to transfer
  *     responses:
  *       "200":
@@ -1219,16 +1200,12 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{transferParameter} , headers{headers}.
  *     parameters:
  *       - name: token
- *         required: true
  *         description: access token .
  *       - name: to
- *         required: true
  *         description: transfert to.
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *       - name: amount
- *         required: true
  *         description: amount to transfer
  *     responses:
  *       "200":
@@ -1432,7 +1409,6 @@ app.get('/v2/feebtc', async function(req, response) {
  *     description: parametres acceptées :non parametrs .
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":
@@ -1466,7 +1442,6 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
  *       - name: pass
- *         required: true
  *         description: password wallet.
  *     responses:
  *       "200":

@@ -664,10 +664,8 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{user}.
  *     parameters:
  *       - name: newpass
- *         required: true
  *         description: new password.
  *       - name: oldpass
- *         required: true
  *         description: old password.
  *     responses:
  *        "200":
