@@ -787,10 +787,8 @@ module.exports = async function (app) {
 			for(const Amount in ret){
 				crypto={}
 				if(Amount=="ether_balance"){
-					crypto.symbol='ETH';
-					crypto.name='Ethereum';
-					crypto.undername='ETH';
-					crypto.undername2='ETH'; 
+					[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("ETH");
+					crypto.name='Ethereum'; 
 					crypto.price=CryptoPrices['ETH'].price;
 					crypto.variation=CryptoPrices['ETH'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
@@ -798,10 +796,8 @@ module.exports = async function (app) {
 					listOfCrypto.push(crypto);
 				}else if(Amount=="satt_balance"){
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-					crypto.symbol='SATT';
 					crypto.name='SaTT';
-					crypto.undername='SATT';
-					crypto.undername2='SATT'; 
+                    [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("SATT");
 					crypto.price=CryptoPrices['SATT'].price;
 					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
@@ -817,10 +813,8 @@ module.exports = async function (app) {
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
 					listOfCrypto.push(crypto);
 				}else if(Amount=="btc_balance"){
-					crypto.symbol='BTC';
 					crypto.name='Bitcoin';
-					crypto.undername='BTC';
-					crypto.undername2='BTC'; 
+                    [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("BTC");
 					crypto.price=CryptoPrices['BTC'].price;
 					crypto.variation=CryptoPrices['BTC'].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
@@ -843,7 +837,6 @@ module.exports = async function (app) {
 	@Output saving users with updated balances with the according time frame 
 	*/
 	  accountManager.BalanceUsersStats = async (condition)=> {
-	   try{
 
 	   let [date, result]= [Math.round(new Date().getTime()/1000), {}];
 
@@ -857,10 +850,22 @@ module.exports = async function (app) {
 	  };
 
 	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices 
-
-	   	var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
+       
+	   var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
+		// var users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.Date": { $nin: [date] }}]}).toArray();
 
 		let[counter, usersCount] = [0,users_.length];
+		console.log(condition)
+
+		if(condition === "daily"){
+			dateMinus = 86400
+		 }
+		else if(condition === "weekly"){
+			dateMinus = 604800
+	     }
+		else if(condition === "Monthly"){
+			dateMinus = 2629743
+	     }
 		
 		  while(counter<usersCount) {
 			    let balance;
@@ -871,32 +876,43 @@ module.exports = async function (app) {
 
 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
+			try{
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-			
-    		 console.log(balance, condition)
-			  
+			} catch (err) {
+				console.log(err)
+			}	
+
 			 result.Balance = balance["Total_balance"];
 
-			 if(!result.Balance){
-
+			 if(!result.Balance || isNaN(parseInt(result.Balance))){
+				 console.log("no account")
+                counter++;
 			} else{
-				console.log("else ok")
 			user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();}
+			 else{
+
+				 let length = user[condition].length-1
+				 for(i =0 ; i<=(7-length) ;i++)
+				 { 
+					 date =- dateMince
+					user[condition.push({Date : date, Balance:0})] 
+
+					
+
+				 }
+                  
+			 }
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
-			                 console.log("user Inserted : ", user );
+			 console.log("inserted", counter)
+             counter++;
 			}
-         	counter++;
-			console.log(counter, "counter")
-
-
+         	
 		}	   
 		
-   } catch (err) {
-	   console.log(err)
-   }
+  
 }
 
 accountManager.handleId=async function () {
