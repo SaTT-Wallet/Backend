@@ -843,7 +843,6 @@ module.exports = async function (app) {
 	@Output saving users with updated balances with the according time frame 
 	*/
 	  accountManager.BalanceUsersStats = async (condition)=> {
-	   try{
 
 	   let [date, result]= [Math.round(new Date().getTime()/1000), {}];
 
@@ -857,8 +856,9 @@ module.exports = async function (app) {
 	  };
 
 	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices 
-
-	   	var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
+       
+	   var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
+		// var users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.Date": { $nin: [date] }}]}).toArray();
 
 		let[counter, usersCount] = [0,users_.length];
 		
@@ -871,32 +871,30 @@ module.exports = async function (app) {
 
 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
+			try{
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-			
-    		 console.log(balance, condition)
-			  
+			} catch (err) {
+				console.log(err)
+			}	
+
 			 result.Balance = balance["Total_balance"];
 
-			 if(!result.Balance){
-
+			 if(!result.Balance || isNaN(parseInt(result.Balance))){
+				 console.log("no account")
+                counter++;
 			} else{
-				console.log("else ok")
 			user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();}
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
-			                 console.log("user Inserted : ", user );
+			 console.log("inserted", counter)
+             counter++;
 			}
-         	counter++;
-			console.log(counter, "counter")
-
-
+         	
 		}	   
 		
-   } catch (err) {
-	   console.log(err)
-   }
+  
 }
 
 accountManager.handleId=async function () {

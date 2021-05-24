@@ -19,6 +19,7 @@ module.exports = function (app) {
     var Long = require('mongodb').Long;
 	let gfsprofilePic;
 	let gfsUserLegal;
+
 	conn.once('open', () => {
 	  gfsprofilePic = Grid(conn.db, mongoose.mongo);
 	  gfsprofilePic.collection('user_file');
