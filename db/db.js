@@ -56,6 +56,10 @@ module.exports = async function (app) {
 		app.db.campaignCrm = function () {
             return db2.db(app.config.mongoBaseCrm).collection(app.config.campaignCollection);
         };
+		
+        app.db.referral = function () {
+			return db2.db(app.config.mongoBaseCrm).collection('referral');
+	       };
 
         app.db.campaign_kit = function () {
 
