@@ -193,7 +193,29 @@ module.exports = function (app) {
 
 		}
 	})
-
+/**
+ * @swagger
+ * /campaign/create:
+ *   post:
+ *     summary: create campaign {deprecated}.
+ *     description: parametres acceptées :body{campaign}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: dataUrl
+ *         description: data url.
+ *       - name: startDate
+ *         description: start date.
+ *       - name: endDate
+ *         description: end date
+ *       - name: token
+ *         description: access token
+ *     responses:
+ *        "200":
+ *          description: data
+ *        "500":
+ *          description: error:error message
+ */
 	app.post('/campaign/create', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -204,6 +226,46 @@ module.exports = function (app) {
 
 		try {
 			var res = await app.crm.auth( req.body.token);
+			var cred = await app.account.unlock(res.id,pass);
+			var ret = await app.campaign.createCampaign(dataUrl,startDate,endDate,cred);
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+
+	});
+/**
+ * @swagger
+ * /v2/campaign/create:
+ *   post:
+ *     summary: create campaign.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: dataUrl
+ *         description: data url.
+ *       - name: startDate
+ *         description: start date.
+ *       - name: endDate
+ *         description: end date
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/create', async function(req, response) {
+		let token = req.headers["authorization"].split(" ")[1];
+
+		var pass = req.body.pass;
+		var dataUrl = req.body.dataUrl;
+		var startDate = req.body.startDate;
+		var endDate = req.body.endDate;
+		var reward = req.body.rewardType || 1;
+
+		try {
+			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.createCampaign(dataUrl,startDate,endDate,cred);
 			response.end(JSON.stringify(ret));
@@ -252,6 +314,71 @@ module.exports = function (app) {
 		}
 
 	});
+/**
+ * @swagger
+ * /v2/campaign/create/all:
+ *   post:
+ *     summary: create campaign.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: dataUrl
+ *         description: data url.
+ *       - name: startDate
+ *         required: true
+ *         description: start date.
+ *       - name: endDate
+ *         description: end date. 
+ *       - name: ERC20token
+ *         required: true
+ *         description: ERC20 token. 
+ *       - name: amount
+ *         description: amount de la campaign.
+ *       - name: ratios
+ *         description: ratios de la campaign. 
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/create/all', async function(req, response) {
+		let token = req.headers["authorization"].split(" ")[1];
+		var pass = req.body.pass;
+		var dataUrl = req.body.dataUrl;
+		var startDate = req.body.startDate;
+		var endDate = req.body.endDate;
+		var ERC20token = req.body.ERC20token;
+		var amount = req.body.amount;
+		var ratios = req.body.ratios;
+
+		try {
+
+			var res = await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+
+			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
+				token = app.config.ctrs.token.address.testnet;
+			}
+
+			/*var balance = await app.erc20.getBalance(token,cred.address);
+
+			if( (new BN(balance.amount)).lt(new BN(amount)) )
+			{
+				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
+			}*/
+
+			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+
+	});
+
 
 	/*
      @Url :/campaign/insert_link_notification'
@@ -283,7 +410,7 @@ module.exports = function (app) {
 					id:campaign_id
 			  }
 			}
-		  await	app.db.notification().insertOne(notification)
+		  await	app.db.notification().insert(notification)
 
 		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
 		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
@@ -361,6 +488,8 @@ module.exports = function (app) {
 
 	});
 
+	
+
 	app.post('/campaign/modify', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -372,6 +501,53 @@ module.exports = function (app) {
 
 		try {
 			var res = await app.crm.auth( req.body.token);
+			var cred = await app.account.unlock(res.id,pass);
+			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred);
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
+/**
+ * @swagger
+ * /v2/campaign/modify:
+ *   post:
+ *     summary: update campaign.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password of user.
+ *       - name: dataUrl
+ *         description: data url.
+ *       - name: startDate
+ *         description: start date.
+ *       - name: endDate
+ *         description: end date. 
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: data
+ *        "500":
+ *          description: error:error message
+ */
+	app.post('/v2/campaign/modify', async function(req, response) {
+
+		var pass = req.body.pass;
+		var dataUrl = req.body.dataUrl;
+		var startDate = req.body.startDate;
+		var endDate = req.body.endDate;
+		var idCampaign = req.body.idCampaign;
+		let token = req.headers["authorization"].split(" ")[1];
+
+
+		try {
+			var res = await app.crm.auth( token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred);
 			response.end(JSON.stringify(ret));
@@ -404,7 +580,46 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
+/**
+ * @swagger
+ * /v2/campaign/fund:
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: amount
+ *         description: amount of campaign.
+ *       - name: ERC20token
+ *         description: ERC20token.
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/fund', async function(req, response) {
 
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		var ERC20token = req.body.ERC20token;
+		var amount = req.body.amount;
+		let token = req.headers["authorization"].split(" ")[1];
+
+
+		try {			
+			var res = await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			var ret = await app.campaign.fundCampaign(idCampaign,ERC20token,amount,cred);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
 	app.post('/campaign/price/ratio', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -503,6 +718,61 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
+/**
+ * @swagger
+ * /v2/campaign/apply:
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         required: true
+ *         description: password of user.
+ *       - name: amount
+ *         description: amount of campaign.
+ *       - name: ERC20token
+ *         description: ERC20token.
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/apply', async function(req, response) {
+
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		var typeSN = req.body.typeSN;
+		var idPost = req.body.idPost;
+		var idUser = req.body.idUser;
+		let token = req.headers["authorization"].split(" ")[1];
+
+		var ctr = await app.campaign.getCampaignContract(idCampaign);
+
+		try {
+			var res = await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+
+			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
+			{
+				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
+				var ret = await app.db.apply().insertOne(applyLink);
+				response.end(JSON.stringify(ret.insertedId));
+			}*/
+		//	else {
+				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
+				response.end(JSON.stringify(ret));
+		//	}
+
+
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
 
 	app.post('/campaign/validate', async function(req, response) {
 
@@ -539,6 +809,58 @@ module.exports = function (app) {
 		}
 	});
 
+/**
+ * @swagger
+ * /v2/campaign/validate:
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: idProm
+ *         description: id of campaign.
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/validate', async function(req, response) {
+
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		var idApply = req.body.idProm;
+		let token = req.headers["authorization"].split(" ")[1];
+
+		var ctr = await app.campaign.getCampaignContract(idCampaign);
+
+
+		try {
+			var res = await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
+
+				var prom = await app.db.apply().findOne({_id:app.ObjectId(idApply)});
+
+				var ret = await app.campaign.applyAndValidateCampaign(prom.idCampaign,prom.influencer,prom.typeSN,prom.idPost,prom.idUser,cred);
+
+				var prom = await app.db.apply().deleteOne({_id:app.ObjectId(idApply)});
+
+			}
+			else {*/
+				var ret = await app.campaign.validateProm(idApply,cred)
+
+		//	}
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
 	app.post('/campaign/start', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -674,6 +996,102 @@ module.exports = function (app) {
 		}
 	});
 
+/**
+ * @swagger
+ * /v2/campaign/gains:
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: idProm
+ *         description: id of prom.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/gains', async function(req, response) {
+
+		var pass = req.body.pass;
+		var idProm = req.body.idProm;
+		let token = req.headers["authorization"].split(" ")[1];
+
+		var stats;
+		var requests = false;
+		var abi = [{"indexed":true,"name":"idRequest","type":"bytes32"},{"indexed":false,"name":"typeSN","type":"uint8"},{"indexed":false,"name":"idPost","type":"string"},{"indexed":false,"name":"idUser","type":"string"}];
+		try {
+
+			var count = await app.db.ban().find({idProm:idProm}).count();
+			if(count) {
+				response.end('{"error":"oracle not available"}');
+				return;
+			}
+
+			var res = await app.crm.auth(token);
+			var cred2 = await app.account.unlock(res.id,pass);
+
+			var gasPrice = await app.web3.eth.getGasPrice();
+			app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+			var prom = await app.campaign.methods.proms(idProm).call();
+			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
+			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			//console.log(prevstat);
+
+			requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+			var cred = {address: app.config.campaignOwner};
+			if(!requests.length)
+			{
+
+
+
+
+				if(prevstat.length &&( stats.likes < prevstat[0].likes || stats.shares < prevstat[0].shares || stats.views < prevstat[0].views))
+				{
+
+				 // pas d'oracle BUG
+				}
+				else if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
+				{
+
+					var evts = await app.campaign.updateCampaignStats(prom.idCampaign,cred);
+					for(var i=0;evts.events[i];i++)
+					{
+
+						var evt = evts.events[i];
+						if(evt.raw.topics[0] == "0xb67322f1a9b0ad182e2b242673f8283103dcd6d1c8a19b47ff5524f89d9758ed")
+						{
+							var idRequest = evt.raw.topics[1];
+							var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
+							if(log.typeSN == prom.typeSN && log.idPost == prom.idPost && log.idUser == prom.idUser)
+								requests = [{id:idRequest}];
+						}
+					}
+
+					//requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+				}
+			}
+			if(requests.length)
+			{
+				console.log("updateOracle",requests);
+				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:app.campaign.contract.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
+			}
+
+
+			//console.log("getGains",idProm);
+			var ret = await app.campaign.getGains(idProm,cred2);
+			//var ret = {}
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
+
 	app.post('/campaign/gains2', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -691,6 +1109,92 @@ module.exports = function (app) {
 			}
 
 			var res = await app.crm.auth( req.body.token);
+			var cred2 = await app.account.unlock(res.id,pass);
+			var ctr = await app.campaign.getPromContract(idProm);
+
+				if(ctr.isCentral) {
+					var ret = await  app.campaignCentral.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
+
+		  var gasPrice = await ctr.getGasPrice();
+			var prom = await ctr.methods.proms(idProm).call();
+
+			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
+			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			//console.log(prevstat);
+
+			requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+			var cred = {address: app.config.campaignOwner};
+			if(!requests.length)
+			{
+
+				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
+				{
+					  var evts = await app.campaign.updatePromStats(idProm,cred2);
+						var evt = evts.events[0];
+						var idRequest = evt.raw.topics[1];
+						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
+						if(log.typeSN == prom.typeSN && log.idPost == prom.idPost && log.idUser == prom.idUser)
+							requests = [{id:idRequest}];
+				}
+			}
+			if(requests.length)
+			{
+				console.log("updateOracle",requests);
+				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
+			}
+
+
+			//console.log("getGains",idProm);
+			var ret = await app.campaign.getGains(idProm,cred2);
+			//var ret = {}
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+	});
+
+
+/**
+ * @swagger
+ * /v2/campaign/gains2:
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: idProm
+ *         description: id of prom.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.post('/v2/campaign/gains2', async function(req, response) {
+		let token = req.headers["authorization"].split(" ")[1];
+
+		var pass = req.body.pass;
+		var idProm = req.body.idProm;
+
+		var stats;
+		var requests = false;
+		var abi = [{"indexed":true,"name":"idRequest","type":"bytes32"},{"indexed":false,"name":"typeSN","type":"uint8"},{"indexed":false,"name":"idPost","type":"string"},{"indexed":false,"name":"idUser","type":"string"}];
+		try {
+
+			var count = await app.db.ban().find({idProm:idProm}).count();
+			if(count) {
+				response.end('{"error":"oracle not available"}');
+				return;
+			}
+
+			var res = await app.crm.auth(token);
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
@@ -1211,6 +1715,30 @@ module.exports = function (app) {
      @Input Campaign : campaign informations
 	 @Output succeed message
      */
+	/**
+ * @swagger
+ * /campaign/save:
+ *   post:
+ *     summary: save campaign.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: dataUrl
+ *         required: true
+ *         description: data url.
+ *       - name: startDate
+ *         description: start date.
+ *       - name: endDate
+ *         description: end date. 
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: succeed message
+ *        "500":
+ *          description: error:error message
+ */
 	app.post('/campaign/save', async (req, res) => {
 		try {
 			let token = req.headers["authorization"].split(" ")[1];
@@ -1307,7 +1835,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-		    await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
@@ -1371,10 +1899,10 @@ module.exports = function (app) {
  * /campaign/links/{idCampaign}:
  *   get:
  *     summary: get rejected links of a campaign.
- *     description: parametres acceptées :params{id} , headers{headers}.
+ *     description: parametres acceptées :params{idCampaign} , headers{headers}.
  *     parameters:
- *       - name: id
- *         required: true
+ *       - name: idCampaign
+ *         in: path
  *         description: id de la campaign.
  *     responses:
  *        "200":
@@ -1400,34 +1928,24 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign},headers{headers},params{id}.
  *     parameters:
  *       - name: title
- *         required: true
  *         description: titre de la campaign. 
  *       - name: tags
- *         required: true
  *         description: tags de la campaign.
  *       - name: countries
- *         required: true
  *         description: les pays de la campaign.
  *       - name: resume
- *         required: true
  *         description: resume de la campaign.
  *       - name: description
- *         required: true
  *         description: description de la campaign.
  *       - name: cost
- *         required: true
  *         description: cost de la campaign.
  *       - name: time
- *         required: true
  *         description: time de la campaign.
  *       - name: ratios
- *         required: true
  *         description: les oracles de la campaign.
  *       - name: url
- *         required: true
  *         description: liste des urls de la campaign.
  *       - name: file
- *         required: true
  *         description: liste des files de la campaign.
  *     responses:
  *        "200":
