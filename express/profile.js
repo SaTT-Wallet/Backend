@@ -108,12 +108,19 @@ module.exports = function (app) {
 
 	})
 
-     /*
-     @link : /profile/pic
-     @description: saving user profile image
-     @params:
-     req.file : image files
-     */
+    /**
+ * @swagger
+ * /profile/pic:
+ *   post:
+ *     summary: Upload user profile picture.
+ *     description: parametres acceptées :file , headers{headers}.
+ *     parameters:
+ *       - name: file
+ *         description: user picture.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
 	 app.post('/profile/pic',uploadImageProfile.single('file'), async(req, res)=>{
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
@@ -134,12 +141,16 @@ module.exports = function (app) {
 
 		})
 
- 	/*
-     @link : /profile/userLegal?page='param'&limit='param'
-     @description: get user legal
-     @Input:headers
-     @Output:Array of user legal
-     */
+ 	   /**
+ * @swagger
+ * /profile/userLegal:
+ *   get:
+ *     summary: get userLegal files.
+ *     description: parametres acceptées :headers{headers}.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
 	app.get('/profile/userLegal', async(req, res)=>{
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
@@ -267,12 +278,16 @@ module.exports = function (app) {
 
 	  })
 
-	/*
-     @url : /userlegal
-     @description: saving user legal files
-     @params:
-     @Input type : type of proof id or domicile req.body.type
-     */
+	 	   /**
+ * @swagger
+ * /profile/userLegal:
+ *   post:
+ *     summary: upload user userLegal files.
+ *     description: parametres acceptées :file, headers{headers}.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
 	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
 		try{
 		  const date = new Date().toISOString();
@@ -484,14 +499,40 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	})
 
 
-	/*
-     @url : /profile/info/update
-     @description: update user profile informations
-     @params:
-     @Input headers : access token
-	 		body : sn_user data fields
-	 @Output : success message and updated object 
-     */
+
+	/**
+ * @swagger
+ * /profile/info/update:
+ *   put:
+ *     summary: update user profile.
+ *     description: parametres acceptées :body{profile} , headers{headers}.
+ *     parameters:
+ *       - name: _id
+ *         description: primary key.
+ *       - name: email
+ *         description: user email.
+ *       - name: address
+ *         description: user address.
+ *       - name: city
+ *         description: user city. 
+ *       - name: fbLink
+ *         description: facebook link. 
+ *       - name: twitterLink
+ *         description: twitter link.
+ *       - name: country
+ *         description: user country. 
+ *       - name: instagramLink
+ *         description: instagram link.
+ *       - name: phone
+ *         description: user phone number.
+ *       - name: gender
+ *         description: user gender.
+ *       - name: zipCode
+ *         description: user zip code.
+ *     responses:
+ *        "201":
+ *          description: data
+ */
 	app.put('/profile/info/update', async (req, res) => {
 		try {
 			let token = req.headers["authorization"].split(" ")[1];
@@ -503,9 +544,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
             if(users.length) {
             res.end(JSON.stringify({message : "email already exists"}));
             return;
-            }
-			
-		   
+            }	   
 
 		   const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false});
 		   const updatedProfile= result.value;
