@@ -860,7 +860,7 @@ module.exports = async function (app) {
 		if(condition === "daily"){
 			dateMinus = 86400
 		 }
-		 else if(condition === "weekly"){
+		else if(condition === "weekly"){
 			dateMinus = 604800
 	     }
 		else if(condition === "Monthly"){
