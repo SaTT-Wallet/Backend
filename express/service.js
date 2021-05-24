@@ -38,7 +38,6 @@ module.exports = function (app) {
 *        - name: Direction ETB (Erc20 to Bep20) , BTE (Bep20 to Erc20) 
 *          description: the direction of the conversion
 *        - name:  password (pass)
-*          required: true
 *          description: wallet password
 *        - name: amount
 *          description: amount of satt User want to convert in *(wei)
