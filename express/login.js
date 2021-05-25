@@ -662,11 +662,18 @@ module.exports = function (app) {
  *   post:
  *     summary: change password.
  *     description: parametres acceptées :body{user}.
- *     parameters:
- *       - name: newpass
- *         description: new password.
- *       - name: oldpass
- *         description: old password.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               oldpass:
+ *                 type: string
+ *               newpass:
+ *                 type: string
  *     responses:
  *        "200":
  *          description: message:changed
