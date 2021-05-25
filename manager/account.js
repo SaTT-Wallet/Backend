@@ -839,7 +839,7 @@ module.exports = async function (app) {
 	  accountManager.BalanceUsersStats = async (condition)=> {
 
 	   let [date, result]= [Math.round(new Date().getTime()/1000), {}];
-
+       let dateMinus;
        result.Date = date;
 
 	   const Fetch_crypto_price = {
@@ -888,15 +888,15 @@ module.exports = async function (app) {
 				 console.log("no account")
                 counter++;
 			} else{
-			user[condition].unshift(result);
-			 if(user[condition].length>7){user[condition].pop();}
+			 user[condition].unshift(result);
+			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
 			 else{
 
 				 let length = user[condition].length-1
-				 for(i =0 ; i<=(7-length) ;i++)
+				 for(i =0 ; i<= (7-length) ;i++)
 				 { 
-					 date =- dateMince
-					user[condition.push({Date : date, Balance:0})] 
+					 date =- dateMinus;
+					user[condition].push({Date : date, Balance:0}) 
 
 					
 
