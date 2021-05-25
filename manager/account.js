@@ -893,7 +893,7 @@ module.exports = async function (app) {
 			} else{
 			 user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
-			 if(user[condition].length < 7){
+			 else{
 
 				 let length = user[condition].length-1;
 				 for(i =0 ; i<= (7-length) ;i++)
