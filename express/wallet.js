@@ -102,7 +102,7 @@ module.exports = function (app) {
 			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
 			if(user.daily.length > 7){user.daily.pop()}
 			delete user._id
-			await app.db.sn_user.updateOne({_id : id}, {$set: user})
+			await app.db.sn_user().updateOne({_id : id}, {$set: user})
 		  }
 		
 		  res.end(JSON.stringify({Total_balance})).status(201);
