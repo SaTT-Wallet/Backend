@@ -899,7 +899,7 @@ module.exports = async function (app) {
 				 for(i =0 ; i<= (7-length) ;i++)
 				 { 
 					 currentDate = currentDate - dateMinus;
-					user[condition].push({Date : currentDate, Balance:0}) 
+					user[condition].push({Date : currentDate, Balance:0});
 
 					
 
