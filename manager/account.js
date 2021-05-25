@@ -898,7 +898,7 @@ module.exports = async function (app) {
 				 let length = user[condition].length-1;
 				 for(i =0 ; i<= (7-length) ;i++)
 				 { 
-					 currentDate =- dateMinus;
+					 currentDate = currentDate - dateMinus;
 					user[condition].push({Date : currentDate, Balance:0}) 
 
 					
