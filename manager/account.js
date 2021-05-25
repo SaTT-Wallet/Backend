@@ -862,7 +862,7 @@ module.exports = async function (app) {
 			dateMinus = 86400
 		 }
 		else if(condition === "weekly"){
-			users_ = await app.db.sn_user().find({userSatt : true}).toArray()
+			users_ = await app.db.sn_user().find({userSatt : true}).toArray();
 			dateMinus = 604800
 	     }
 		else if(condition === "Monthly"){
