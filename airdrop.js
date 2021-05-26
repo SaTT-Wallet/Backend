@@ -33,7 +33,7 @@ try {
 
    var receipt = await app.bep20.transferBEP(bals[i].address,bal,{address:"0x"+reserveBep20.address});
    console.log(receipt);
-
+  
  }
 
 

@@ -82,12 +82,12 @@ module.exports = async function (app) {
 					resolve(tokens[token]);
 					return;
 				}
-				if(app.config.testnet) {
+			/*	if(app.config.testnet) {
 					var UserId = 9999999999;
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
 					return;
-				}
+				}*/
 				var res = await app.db.query("Select user_id from OAAccessToken where token = '"+token+"'")
 				if(res.length) {
 					var UserId = res[0].user_id;
@@ -98,7 +98,7 @@ module.exports = async function (app) {
 				}
 				else{
 					var res = await app.db.accessToken().findOne({token:token});
-				
+
                     if(res){
                         var UserId = res.user_id;
                         resolve({id:UserId});

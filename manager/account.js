@@ -736,7 +736,7 @@ module.exports = async function (app) {
 			  delete token_info['BNB']		
 			  var CryptoPrices = crypto;
 			  var count = await accountManager.hasAccount(userId);
-  
+    
 			   var ret = {err:"no_account"};
 			  if(count)
 			  {
@@ -838,9 +838,11 @@ module.exports = async function (app) {
 	*/
 	  accountManager.BalanceUsersStats = async (condition)=> {
 
-	   let [date, result]= [Math.round(new Date().getTime()/1000), {}];
+	   let today = (new Date()).toLocaleDateString("en-US");
+	   let [currentDate, result]= [Math.round(new Date().getTime()/1000), {}];
        let dateMinus;
-       result.Date = date;
+
+	   [result.Date, result.convertDate] = [currentDate,today]
 
 	   const Fetch_crypto_price = {
 		method: 'GET',
@@ -851,22 +853,24 @@ module.exports = async function (app) {
 
 	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices 
        
-	   var users_ = await app.db.sn_user().find({userSatt : true}).toArray();
-		// var users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.Date": { $nin: [date] }}]}).toArray();
+	      var users_;
 
-		let[counter, usersCount] = [0,users_.length];
-		console.log(condition)
+		
 
 		if(condition === "daily"){
+		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
 			dateMinus = 86400
 		 }
 		else if(condition === "weekly"){
+			users_ = await app.db.sn_user().find({userSatt : true}).toArray();
 			dateMinus = 604800
 	     }
 		else if(condition === "Monthly"){
+			users_ = await app.db.sn_user().find({userSatt : true}).toArray()
 			dateMinus = 2629743
 	     }
 		
+		 let[counter, usersCount] = [0,users_.length];
 		  while(counter<usersCount) {
 			    let balance;
 
@@ -885,28 +889,24 @@ module.exports = async function (app) {
 			 result.Balance = balance["Total_balance"];
 
 			 if(!result.Balance || isNaN(parseInt(result.Balance))){
-				 console.log("no account")
                 counter++;
 			} else{
 			 user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
 			 else{
 
-				 let length = user[condition].length-1
+				 let length = user[condition].length-1;
 				 for(i =0 ; i<= (7-length) ;i++)
 				 { 
-					 date =- dateMinus;
-					user[condition].push({Date : date, Balance:0}) 
-
-					
-
+					 currentDate = currentDate - dateMinus;
+					user[condition].push({Date : currentDate, Balance:0});
 				 }
                   
 			 }
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
-			 console.log("inserted", counter)
+			 console.log(counter, "script updating" )
              counter++;
 			}
          	

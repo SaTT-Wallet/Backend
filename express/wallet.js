@@ -9,6 +9,17 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 	const xChangePricesUrl = app.config.xChangePricesUrl;
 
+	cron.schedule('11 13 * * *',  () => {
+		app.account.BalanceUsersStats("daily");
+   });
+
+   cron.schedule("* * 1 * *", () =>{
+	 app.account.BalanceUsersStats("monthly");
+   });
+
+   cron.schedule("0 0 * * 0", () =>{
+	 app.account.BalanceUsersStats("weekly");
+   });
 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
@@ -92,15 +103,19 @@ module.exports = function (app) {
 		  const id = auth.id;
 		  let Crypto = await rp(Fetch_crypto_price);
 		  let date = Math.round(new Date().getTime()/1000);
+		  let today = (new Date()).toLocaleDateString("en-US");
+
 		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
 
-		//   const user =  await app.db.sn_user().findOne({_id : id}) ;
-		//   if(user.daily && user.daily[0].Date !== date){
-		// 	user.daily.unshift({Date : date, Balance : Total_balance.Total_balance});
-		// 	if(user.daily.length > 7){user.daily.pop()}
-		// 	delete user._id
-		// 	await app.db.sn_user.updateOne({_id : id}, {$set: user})
-		//   }
+
+		  const user =  await app.db.sn_user().findOne({_id : id});
+		  if(!user.daily){user.daily = []}
+		  if(user.daily[0]?.convertDate !== today){
+			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
+			if(user.daily.length > 7){user.daily.pop()}
+			delete user._id
+			await app.db.sn_user().updateOne({_id : id}, {$set: user});
+		  }
 		
 		  res.end(JSON.stringify({Total_balance})).status(201);
 
