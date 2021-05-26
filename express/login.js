@@ -413,23 +413,7 @@ module.exports = function (app) {
       })(req, res, next);
   });
 
-/**
- * @swagger
- * /auth/email:
- *   post:
- *     summary: login.
- *     description: login using email.
- *     parameters:
- *       - name: email
- *         description: user email.
- *       - name: password
- *         description: user password.
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: error : account doesn't exist, register first
- */
+
 
   app.post('/auth/email', (req, res, next) => {
     passport.authenticate('emailStrategy',
