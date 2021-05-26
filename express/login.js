@@ -435,78 +435,23 @@ module.exports = function (app) {
       })(req, res, next);
   });
 
-/**
- * @swagger
- * /auth/signup_fb:
- *   get:
- *     summary: signup.
- *     description: signup using facebook (Handled with passport).
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: email_already_used
- */
+
 
   app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
 
-  /**
- * @swagger
- * /auth/fb:
- *   get:
- *     summary: login.
- *     description: login using facebook (Handled with passport).
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: error : account doesn't exist , register first
- */
+
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
- /**
- * @swagger
- * /auth/signup_google:
- *   get:
- *     summary: signup.
- *     description: signup using google (Handled with passport).
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: email_already_used
- */
+
 
   app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}));
 
-  /**
- * @swagger
- * /auth/google:
- *   get:
- *     summary: login.
- *     description: login using facebook (Handled with passport).
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: error : account doesn't exist , register first
- */
+
 
   app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
 
- /**
- * @swagger
- * /auth/signup_telegram:
- *   get:
- *     summary: signup.
- *     description: signup using telegram (Handled with passport).
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: email_already_used
- */
+
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
@@ -519,18 +464,7 @@ module.exports = function (app) {
     },
     authErrorHandler);
 
-     /**
- * @swagger
- * /auth/telegram:
- *   get:
- *     summary: login.
- *     description: login using telegram (Handled with passport).
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: email_already_used
- */
+    
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
