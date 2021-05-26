@@ -1,4 +1,20 @@
 module.exports = function (app) {
+ 
+const cron =require('node-cron');
+
+
+cron.schedule('36 14 * * *',  () => {
+	app.account.BalanceUsersStats("daily");
+});
+
+cron.schedule("* * 1 * *", () =>{
+ app.account.BalanceUsersStats("monthly");
+});
+
+cron.schedule("0 0 * * 0", () =>{
+ app.account.BalanceUsersStats("weekly");
+});
+
 
 	app.get('/campaign/id/:id', async function(req, response) {
 
