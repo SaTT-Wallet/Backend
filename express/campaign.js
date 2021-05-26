@@ -76,6 +76,7 @@ module.exports = function (app) {
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
 	  });
+
 	  cron.schedule('53 15 * * *',()=>{
 		updateStat();
 		 })
