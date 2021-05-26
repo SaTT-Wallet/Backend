@@ -72,7 +72,7 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({email: username}).toArray();
 
       if (users.length) {
-        return done(null, false, {error: true, message: 'email_already_used'});
+        return done(null, false, {error: true, message: 'email_already_used'});  
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
@@ -86,7 +86,6 @@ module.exports = function (app) {
           created: mongodate,
           updated: mongodate,
           idSn: 0,
-          onBoarding : false,
           locale: "en",
           enabled: 0,
           confirmation_token: code,
@@ -202,7 +201,6 @@ module.exports = function (app) {
           first_name: profile.first_name,
           name: profile.displayName,
           created: mongodate,
-          onBoarding : false,
           updated: mongodate,
           idSn: 1,
           locale: "en",
@@ -271,7 +269,6 @@ module.exports = function (app) {
           name: profile.name.familyName,
           created: mongodate,
           updated: mongodate,
-          onBoarding : false,
           idSn: 2,
           enabled:1,
           locale: profile._json.locale,
@@ -338,7 +335,6 @@ module.exports = function (app) {
             name: profile.username,
             picLink: profile.photo_url,
             created: mongodate,
-            onBoarding : false,
             updated: mongodate,
             idSn: 5,
             locale: "en",
@@ -355,8 +351,11 @@ module.exports = function (app) {
   passport.use('telegramStrategy',
     new TelegramStrategy({
       botToken: app.config.telegramBotToken
+      //clientID: app.config.telegramClientId,
+      //clientSecret: app.config.telegramClientSecret
     },
     async function(profile, cb) {
+      console.log("telegram id",profile.id);
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -392,7 +391,23 @@ module.exports = function (app) {
     cb(null, users[0]);
   });
 
-
+/**
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     summary: create an account.
+ *     description: create an account using email.
+ *     parameters:
+ *       - name: email
+ *         description: user email.
+ *       - name: password
+ *         description: user password.
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: email_already_used
+ */
 
   app.post('/auth/signup', (req, res, next) => {
     passport.authenticate('signup_emailStrategy',
@@ -413,6 +428,25 @@ module.exports = function (app) {
 
       })(req, res, next);
   });
+
+/**
+ * @swagger
+ * /auth/email:
+ *   post:
+ *     summary: login.
+ *     description: login using email.
+ *     parameters:
+ *       - name: email
+ *         description: user email.
+ *       - name: password
+ *         description: user password.
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: error : account doesn't exist, register first 
+ */
+
   app.post('/auth/email', (req, res, next) => {
     passport.authenticate('emailStrategy',
       (err, user, info) => {
@@ -433,15 +467,78 @@ module.exports = function (app) {
       })(req, res, next);
   });
 
-
+/**
+ * @swagger
+ * /auth/signup_fb:
+ *   get:
+ *     summary: signup.
+ *     description: signup using facebook (Handled with passport).
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: email_already_used
+ */
 
   app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
+
+  /**
+ * @swagger
+ * /auth/fb:
+ *   get:
+ *     summary: login.
+ *     description: login using facebook (Handled with passport).
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: error : account doesn't exist , register first 
+ */
+
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
+ /**
+ * @swagger
+ * /auth/signup_google:
+ *   get:
+ *     summary: signup.
+ *     description: signup using google (Handled with passport).
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: email_already_used
+ */
+
   app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}));
+
+  /**
+ * @swagger
+ * /auth/google:
+ *   get:
+ *     summary: login.
+ *     description: login using facebook (Handled with passport).
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: error : account doesn't exist , register first 
+ */
+
   app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
 
-  //app.get('/auth/twitter', passport.authenticate('twitter'));
+ /**
+ * @swagger
+ * /auth/signup_telegram:
+ *   get:
+ *     summary: signup.
+ *     description: signup using telegram (Handled with passport).
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: email_already_used
+ */
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
@@ -453,6 +550,19 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
+   
+     /**
+ * @swagger
+ * /auth/telegram:
+ *   get:
+ *     summary: login.
+ *     description: login using telegram (Handled with passport).
+ *     responses:
+ *        "200":
+ *          access token: Object : access_token/expires_in/token_type/scope
+ *        "500":
+ *          description: email_already_used
+ */
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
@@ -485,6 +595,7 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
+
   app.get('/callback/facebook',
     passport.authenticate('facebook_strategy'), async function (req, response) {
       try {
@@ -495,11 +606,13 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
+
   app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
+
   app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
@@ -565,6 +678,8 @@ module.exports = function (app) {
     }
   }
 
+ 
+
   app.get('/auth/account', ensureLoggedIn())
 
   app.get('/auth/activate/:id/:code', async function (req, response) {
@@ -599,6 +714,19 @@ module.exports = function (app) {
     }
 
   });
+
+   /**
+ * @swagger
+ * /auth/passlost:
+ *   post:
+ *     summary: recovering password email .
+ *     description: send email to the user contain recovering password access token .
+ *     responses:
+ *        "200":
+ *          message: Email was sent to + (user email)
+ *        "500":
+ *          description: error : (problem in sending email)
+ */
 
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
@@ -658,8 +786,8 @@ module.exports = function (app) {
     } else {
       response.end('{error:"no account"}');
     }
-      
   });
+
 /**
  * @swagger
  * /v2/auth/passchange:
@@ -684,6 +812,7 @@ module.exports = function (app) {
  *        "500":
  *          description: error:wrong password
  */
+
   app.post('/v2/auth/passchange', async function (req, response) {
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
@@ -782,5 +911,6 @@ module.exports = function (app) {
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
        }
     })
+
   return app;
 }
