@@ -72,7 +72,7 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({email: username}).toArray();
 
       if (users.length) {
-        return done(null, false, {error: true, message: 'email_already_used'});  
+        return done(null, false, {error: true, message: 'email_already_used'});
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
@@ -391,23 +391,7 @@ module.exports = function (app) {
     cb(null, users[0]);
   });
 
-/**
- * @swagger
- * /auth/signup:
- *   post:
- *     summary: create an account.
- *     description: create an account using email.
- *     parameters:
- *       - name: email
- *         description: user email.
- *       - name: password
- *         description: user password.
- *     responses:
- *        "200":
- *          access token: Object : access_token/expires_in/token_type/scope
- *        "500":
- *          description: email_already_used
- */
+
 
   app.post('/auth/signup', (req, res, next) => {
     passport.authenticate('signup_emailStrategy',
@@ -444,7 +428,7 @@ module.exports = function (app) {
  *        "200":
  *          access token: Object : access_token/expires_in/token_type/scope
  *        "500":
- *          description: error : account doesn't exist, register first 
+ *          description: error : account doesn't exist, register first
  */
 
   app.post('/auth/email', (req, res, next) => {
@@ -492,7 +476,7 @@ module.exports = function (app) {
  *        "200":
  *          access token: Object : access_token/expires_in/token_type/scope
  *        "500":
- *          description: error : account doesn't exist , register first 
+ *          description: error : account doesn't exist , register first
  */
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
@@ -522,7 +506,7 @@ module.exports = function (app) {
  *        "200":
  *          access token: Object : access_token/expires_in/token_type/scope
  *        "500":
- *          description: error : account doesn't exist , register first 
+ *          description: error : account doesn't exist , register first
  */
 
   app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
@@ -550,7 +534,7 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
-   
+
      /**
  * @swagger
  * /auth/telegram:
@@ -678,7 +662,7 @@ module.exports = function (app) {
     }
   }
 
- 
+
 
   app.get('/auth/account', ensureLoggedIn())
 
@@ -828,7 +812,7 @@ module.exports = function (app) {
     } else {
       response.end('{error:"no account"}').status(500);
     }
-      
+
   });
 
 	app.post('/auth/passrecover', async function (req, response) {
@@ -858,7 +842,7 @@ module.exports = function (app) {
 
   app.post('/resend-confirmation-token/:email', async function (req, response) {
     try{
-      var email=req.params.email;     
+      var email=req.params.email;
       var users = await app.db.sn_user().find({email: email}).toArray();
       const lang = req.query.lang || "en";
       app.i18n.configureTranslation(lang);
@@ -881,22 +865,22 @@ module.exports = function (app) {
             console.log(error);
           } else {
             response.end(JSON.stringify({'message' :'Email sent'}));
-          } 
+          }
 
 	      })
       })
-     
+
     }catch(err){
-      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
     }
-     
+
     })
 
     app.get('/referral', async (req, res) => {
       let referral = req.query.code
       let userId = req.query.userID
-  
+
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
     })
 
@@ -908,7 +892,7 @@ module.exports = function (app) {
         await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {onBoarding: true}});
         res.send(JSON.stringify({success : "onBoarding updated"})).status(201);
       }catch (err) {
-        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
        }
     })
 
