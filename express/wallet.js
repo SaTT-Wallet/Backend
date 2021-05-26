@@ -9,6 +9,17 @@ module.exports = function (app) {
 	var rp = require('request-promise');
 	const xChangePricesUrl = app.config.xChangePricesUrl;
 
+	cron.schedule('11 13 * * *',  () => {
+		app.account.BalanceUsersStats("daily");
+   });
+
+   cron.schedule("* * 1 * *", () =>{
+	 app.account.BalanceUsersStats("monthly");
+   });
+
+   cron.schedule("0 0 * * 0", () =>{
+	 app.account.BalanceUsersStats("weekly");
+   });
 
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
