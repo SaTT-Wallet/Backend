@@ -776,7 +776,7 @@ module.exports = function (app) {
         let token = req.headers["authorization"].split(" ")[1];
 			  const auth = await app.crm.auth(token);
         const id = +auth.id
-        let user =   await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {onBoarding: true}});
+        await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {onBoarding: true}});
         res.send(JSON.stringify({success : "onBoarding updated"})).status(201);
       }catch (err) {
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
