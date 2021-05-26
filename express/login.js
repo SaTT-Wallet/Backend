@@ -825,6 +825,9 @@ module.exports = function (app) {
  *                 type: string
  *               photo:
  *                 type: string
+ *     responses:
+ *        "200":
+ *          description: access_token,expires_in,token_type,scope
  */
     app.post('/auth/social', async(req, res) => {
       try{
@@ -848,7 +851,7 @@ module.exports = function (app) {
         if(user){
           var token = await app.db.accessToken().findOne({user_id: user._id});
           var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
-          res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+          res.send(JSON.stringify(param))
         }else {
             var buff = Buffer.alloc(32);
             var token = crypto.randomFillSync(buff).toString('hex');
@@ -856,7 +859,7 @@ module.exports = function (app) {
             var user=await app.db.sn_user().insertOne(snUser);
             await app.db.accessToken().insertOne({client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user"});
             var param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
-            res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+            res.send(JSON.stringify(param))
           }
 
       }catch(err){
