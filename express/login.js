@@ -320,6 +320,7 @@ module.exports = function (app) {
         botToken: app.config.telegramBotToken
       },
       async function(profile, cb) {
+      
         var date = Math.floor(Date.now() / 1000) + 86400;
         var buff = Buffer.alloc(32);
         var token = crypto.randomFillSync(buff).toString('hex');
@@ -475,6 +476,7 @@ module.exports = function (app) {
     function(req, res) {
       // Successful authentication, redirect home.
       try {
+
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
         res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
       } catch (e) {
@@ -795,6 +797,74 @@ module.exports = function (app) {
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
     })
 
+
+
+    /**
+ * @swagger
+ * /auth/social:
+ *   post:
+ *     summary: login or signup and login with social.
+ *     description: parametres acceptées :body{user}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               email:
+ *                 type: string
+ *               familyName:
+ *                 type: string
+ *               givenName:
+ *                 type: string
+ *               idSn:
+ *                 type: integer
+ *               name:
+ *                 type: string
+ *               photo:
+ *                 type: string
+ */
+    app.post('/auth/social', async(req, res) => {
+      try{
+        var mongodate = new Date().toISOString();
+        snUser={
+         email:req.body.email,
+         idSn:req.body.idSn,
+         picLink:req.body.photo,
+         username:req.body.name,
+         first_name:req.body.givenName,
+         name:req.body.familyName,
+         enabled:1,
+         created: mongodate,
+         updated: mongodate,
+         locale:"en",
+         idOnSn2:req.body.id
+        }
+       
+
+        var user=await app.db.sn_user().findOne({ $and: [{email: snUser.email},{idSn:snUser.idSn}]})
+        if(user){
+          var token = await app.db.accessToken().findOne({user_id: user._id});
+          var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
+          res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        }else {
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
+            var date = Math.floor(Date.now() / 1000) + 86400;
+            var user=await app.db.sn_user().insertOne(snUser);
+            await app.db.accessToken().insertOne({client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user"});
+            var param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
+            res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+          }
+
+      }catch(err){
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+      }
+
+    });
+  
     app.get('/onBoarding', async (req, res) => {
       try{
         let token = req.headers["authorization"].split(" ")[1];
