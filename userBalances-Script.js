@@ -1,5 +1,5 @@
 (async function() {
-   const cron = require('node-cron');
+	const cron =require('node-cron');
     try {
       var app = {};
       app = await require("./conf/config")(app);
@@ -19,7 +19,8 @@
     app.token.followContract();
     
 
-    // cron.schedule('11 11 * * *',  () => {
+    // cron.schedule('43 12 * * *',  () => {
+	// 	console.log(54545)
 	// 	   app.account.BalanceUsersStats("daily");
 	//   });
 
