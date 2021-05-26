@@ -5,6 +5,7 @@
 		var express = require('express');
 		var app = express();
 		var cors = require('cors')
+		
 		app.use(cors())
 
 		app.use('/assets', express.static('public'))
@@ -43,7 +44,6 @@
 		swaggerDefinition,
 		apis: ['./express/*.js'],
 		};
-
 		const swaggerSpec = swaggerJSDoc(options);
 		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
@@ -56,7 +56,7 @@
 		app = await require("./manager/account")(app);
 		app = await require("./manager/i18n")(app);
 
-		app = await require("./web3/oracle")(app);
+     	app = await require("./web3/oracle")(app);
 		app = await require("./manager/campaigncentral")(app);
 		app = await require("./web3/campaign")(app);
 		app = await require("./web3/satt")(app);
@@ -81,8 +81,7 @@
 		app = await require("./express/stats")(app);
 		app = await require("./express/wallet")(app);
 		app = await require("./express/main")(app);
-		app = await require("./web3/initcontracts")(app);
-
+		app = await require("./web3/initcontracts")(app);        
 	} catch (e) {
 		console.log(e.stack);
 	} finally {
