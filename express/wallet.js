@@ -97,8 +97,9 @@ module.exports = function (app) {
 		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
 
 
-		  const user =  await app.db.sn_user().findOne({_id : id}) ;
-		  if(user.daily && user.daily[0]?.convertDate !== today){
+		  const user =  await app.db.sn_user().findOne({_id : id});
+		  if(!user.daily){user.daily = []}
+		  if(user.daily[0]?.convertDate !== today){
 			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
 			if(user.daily.length > 7){user.daily.pop()}
 			delete user._id
