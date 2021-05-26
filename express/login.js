@@ -464,7 +464,7 @@ module.exports = function (app) {
     },
     authErrorHandler);
 
-    
+
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
@@ -617,18 +617,7 @@ module.exports = function (app) {
 
   });
 
-   /**
- * @swagger
- * /auth/passlost:
- *   post:
- *     summary: recovering password email .
- *     description: send email to the user contain recovering password access token .
- *     responses:
- *        "200":
- *          message: Email was sent to + (user email)
- *        "500":
- *          description: error : (problem in sending email)
- */
+
 
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
