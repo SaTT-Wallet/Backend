@@ -1,5 +1,5 @@
 module.exports = function (app) {
- 
+
 const cron =require('node-cron');
 
 
@@ -20,13 +20,13 @@ cron.schedule("0 0 * * 0", () =>{
 
 
 		var idCampaign = req.params.id;
-		var isCentral = await app.campaign.isCentral(idCampaign);
+		/*var isCentral = await app.campaign.isCentral(idCampaign);
 		if(isCentral) {
 
 			var campaign = await app.statcentral.campaignById(idCampaign);
 			response.end(JSON.stringify(campaign));
 			return;
-		}
+		}*/
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
@@ -179,15 +179,15 @@ cron.schedule("0 0 * * 0", () =>{
 			}
 			rescampaigns.push(campaigns[i]);
 		}
-		var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
+		//var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
-		rescampaigns = rescampaigns.concat(campaignscentral);
-		
+		//rescampaigns = rescampaigns.concat(campaignscentral);
+
 		let Ended_c=0
 		let Pending_c=0
 
 		var unowned = [...rescampaigns].filter((campaign) => address.toLowerCase() !== campaign.owner.toLowerCase())
-        
+
 		for(var c=0;c<unowned.length;c++){
 
 			unowned[c].endDate = new Date(+unowned[c].endDate * 1000);
@@ -201,8 +201,8 @@ cron.schedule("0 0 * * 0", () =>{
 			  } else if (Date.now() > unowned[c].endDate.getTime()) {
 				Ended_c++
 			  }
-		} 
-       
+		}
+
 		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
 	})
 
@@ -265,8 +265,8 @@ cron.schedule("0 0 * * 0", () =>{
 
 			rescampaigns.push(campaigns[i]);
 		}
-		var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-		rescampaigns = rescampaigns.concat(campaignscentral);
+		//var campaignscentral = await app.statcentral.campaignsByOwner(owner);
+		//rescampaigns = rescampaigns.concat(campaignscentral);
 
 
 		response.end(JSON.stringify(rescampaigns));
@@ -346,8 +346,8 @@ cron.schedule("0 0 * * 0", () =>{
 
 				rescampaigns.push(campaigns[i]);
 			}
-			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	        let created_campaigns=rescampaigns.concat(campaignscentral)
+		//	var campaignscentral = await app.statcentral.campaignsByOwner(owner);
+	    //    let created_campaigns=rescampaigns.concat(campaignscentral)
 			let auth = await app.crm.auth(access_token);
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
@@ -364,7 +364,7 @@ cron.schedule("0 0 * * 0", () =>{
 	})
 
 
-	
+
 	app.get('/campaigns/list/:addr', async function(req, response) {
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
@@ -430,8 +430,8 @@ cron.schedule("0 0 * * 0", () =>{
 
 				rescampaigns.push(campaigns[i]);
 			}
-			var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	        let created_campaigns=rescampaigns.concat(campaignscentral)
+			//var campaignscentral = await app.statcentral.campaignsByOwner(owner);
+	      //  let created_campaigns=rescampaigns.concat(campaignscentral)
 			let auth = await app.crm.auth(access_token);
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
@@ -451,8 +451,8 @@ cron.schedule("0 0 * * 0", () =>{
 		var owner = req.params.owner;
 		var proms = [];
 		proms = await app.db.event().find({type : "applied",owner:owner}).toArray();
-		var promscentral = await app.statcentral.promsByOwner(owner);
-		proms = proms.concat(promscentral);
+		//var promscentral = await app.statcentral.promsByOwner(owner);
+		//proms = proms.concat(promscentral);
 		response.end(JSON.stringify(proms));
 	});
 
@@ -468,7 +468,7 @@ cron.schedule("0 0 * * 0", () =>{
 	@params:
     id : draft id
 	{headers}
-	@Output JSON object 
+	@Output JSON object
 	*/
 	app.get('/campaign/OneDraft/:id', async (req,res)=>{
 		try {
@@ -478,7 +478,7 @@ cron.schedule("0 0 * * 0", () =>{
 		const campaign = await app.db.campaignCrm().findOne({_id: app.ObjectId(req.params.id),idNode:idNode,hash:{ $exists: false}});
 		res.end(JSON.stringify(campaign));
 	} catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	})
 
@@ -486,11 +486,11 @@ cron.schedule("0 0 * * 0", () =>{
 
 		var idCampaign = req.params.id;
 
-		if(app.campaign.isCentral(idCampaign)) {
+		/*if(app.campaign.isCentral(idCampaign)) {
 			var proms = await app.statcentral.promsByCampaign(idCampaign);
 			response.end(JSON.stringify(proms));
 			return;
-		}
+		}*/
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 		ctr.methods.getProms(idCampaign).call().then(function (results) {
@@ -561,13 +561,13 @@ cron.schedule("0 0 * * 0", () =>{
 		var idProm = req.params.id;
 
 
-		if(idProm.substring(0,2) != "0x")
+		/*if(idProm.substring(0,2) != "0x")
 		{
 			var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 			var res = await app.statcentral.resultsByProm(idProm);
 			response.end(JSON.stringify(res));
 			return;
-		}
+		}*/
 
 		var ctr = await app.campaign.getPromContract(idProm);
 
@@ -585,13 +585,13 @@ cron.schedule("0 0 * * 0", () =>{
 		var idProm = req.params.id;
 
 
-	if(idProm.substring(0,2) != "0x")
+	/*if(idProm.substring(0,2) != "0x")
 		{
 			var prom = await app.db.apply().findOne({_id:app.ObjectId(idProm)})
 			var res = await app.statcentral.resultsByPromLive(idProm);
 			response.end(JSON.stringify(res));
 			return;
-		}
+		}*/
 
 		var ctr = await app.campaign.getPromContract(idProm);
 
@@ -638,19 +638,19 @@ cron.schedule("0 0 * * 0", () =>{
 		var type = req.params.type;
 		var idPost = req.params.idpost;
 		var idUser = req.params.iduser;
-		var res = await app.statcentral.isUsed(type,idPost,idUser)
+	//	var res = await app.statcentral.isUsed(type,idPost,idUser)
 		app.campaign.contract.methods.getIsUsed(type,idPost,idUser).call().then(function (results) {
 			console.log("already",type,idpost,results);
-			response.end(res || results);
+			response.end( results);
 		});
 	})
 	app.get('/isalreadysed/:type/:idpost', async function(req, response) {
 		var type = req.params.type;
 		var idPost = req.params.idpost;
-		var res = await app.statcentral.isUsed(type,idPost)
+		//var res = await app.statcentral.isUsed(type,idPost)
 		app.campaign.contract.methods.getIsUsed(type,idPost,'').call().then(function (results) {
 			console.log("already",type,idpost,results);
-			response.end(res || results);
+			response.end( results);
 		});
 
 	})
@@ -659,7 +659,7 @@ cron.schedule("0 0 * * 0", () =>{
 	  /*
      @Url :API (link) /balance/stats'
      @description: fetch user chart stats
-	 @parameters : header access token 
+	 @parameters : header access token
      @response : object of arrays => different balance stats (daily, weekly, monthly)
      */
 	app.get("/balance/stats", async (req, res) => {
@@ -674,7 +674,7 @@ cron.schedule("0 0 * * 0", () =>{
 			if(user.monthly && user.monthly.length >0){result.monthly = user.monthly;}
             res.end(JSON.stringify(result));
 		}catch(err){
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
@@ -687,9 +687,9 @@ cron.schedule("0 0 * * 0", () =>{
 			let condition = req.params.condition
 		    await  app.account.BalanceUsersStats(condition);
 			res.send(JSON.stringify({message : 'runned'}))
-		}	
+		}
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }
 	   })
 

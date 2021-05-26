@@ -5,7 +5,7 @@
 		var express = require('express');
 		var app = express();
 		var cors = require('cors')
-		
+
 		app.use(cors())
 
 		app.use('/assets', express.static('public'))
@@ -57,7 +57,7 @@
 		app = await require("./manager/i18n")(app);
 
      	app = await require("./web3/oracle")(app);
-		app = await require("./manager/campaigncentral")(app);
+		//app = await require("./manager/campaigncentral")(app);
 		app = await require("./web3/campaign")(app);
 		app = await require("./web3/satt")(app);
 		app = await require("./web3/eth")(app);
@@ -77,11 +77,11 @@
 		app = await require("./express/campaign")(app);
 		app = await require("./express/profile")(app);
 		//app = await require("./express/campaigncentral")(app);
-		app = await require("./express/statscentral")(app);
+		//app = await require("./express/statscentral")(app);
 		app = await require("./express/stats")(app);
 		app = await require("./express/wallet")(app);
 		app = await require("./express/main")(app);
-		app = await require("./web3/initcontracts")(app);        
+		app = await require("./web3/initcontracts")(app);
 	} catch (e) {
 		console.log(e.stack);
 	} finally {
