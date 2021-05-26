@@ -900,15 +900,13 @@ module.exports = async function (app) {
 				 { 
 					 currentDate = currentDate - dateMinus;
 					user[condition].push({Date : currentDate, Balance:0});
-
-					
-
 				 }
                   
 			 }
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
+			 console.log(counter, "script updating" )
              counter++;
 			}
          	
