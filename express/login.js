@@ -86,7 +86,6 @@ module.exports = function (app) {
           created: mongodate,
           updated: mongodate,
           idSn: 0,
-          onBoarding : false,
           locale: "en",
           enabled: 0,
           confirmation_token: code,
@@ -202,7 +201,6 @@ module.exports = function (app) {
           first_name: profile.first_name,
           name: profile.displayName,
           created: mongodate,
-          onBoarding : false,
           updated: mongodate,
           idSn: 1,
           locale: "en",
@@ -271,7 +269,6 @@ module.exports = function (app) {
           name: profile.name.familyName,
           created: mongodate,
           updated: mongodate,
-          onBoarding : false,
           idSn: 2,
           enabled:1,
           locale: profile._json.locale,
@@ -338,7 +335,6 @@ module.exports = function (app) {
             name: profile.username,
             picLink: profile.photo_url,
             created: mongodate,
-            onBoarding : false,
             updated: mongodate,
             idSn: 5,
             locale: "en",
@@ -355,8 +351,11 @@ module.exports = function (app) {
   passport.use('telegramStrategy',
     new TelegramStrategy({
       botToken: app.config.telegramBotToken
+      //clientID: app.config.telegramClientId,
+      //clientSecret: app.config.telegramClientSecret
     },
     async function(profile, cb) {
+      console.log("telegram id",profile.id);
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -413,6 +412,9 @@ module.exports = function (app) {
 
       })(req, res, next);
   });
+
+
+
   app.post('/auth/email', (req, res, next) => {
     passport.authenticate('emailStrategy',
       (err, user, info) => {
@@ -436,12 +438,20 @@ module.exports = function (app) {
 
 
   app.get('/auth/signup_fb', passport.authenticate('signup_FbStrategy'));
+
+
+
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
+
+
   app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}));
+
+
+
   app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
 
-  //app.get('/auth/twitter', passport.authenticate('twitter'));
+
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
@@ -453,6 +463,8 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
+
+
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
@@ -485,6 +497,7 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
+
   app.get('/callback/facebook',
     passport.authenticate('facebook_strategy'), async function (req, response) {
       try {
@@ -495,11 +508,13 @@ module.exports = function (app) {
       }
     },
     authErrorHandler);
+
   app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
+
   app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
@@ -565,6 +580,8 @@ module.exports = function (app) {
     }
   }
 
+
+
   app.get('/auth/account', ensureLoggedIn())
 
   app.get('/auth/activate/:id/:code', async function (req, response) {
@@ -599,6 +616,8 @@ module.exports = function (app) {
     }
 
   });
+
+
 
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
@@ -658,8 +677,8 @@ module.exports = function (app) {
     } else {
       response.end('{error:"no account"}');
     }
-      
   });
+
 /**
  * @swagger
  * /v2/auth/passchange:
@@ -684,6 +703,7 @@ module.exports = function (app) {
  *        "500":
  *          description: error:wrong password
  */
+
   app.post('/v2/auth/passchange', async function (req, response) {
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
@@ -699,7 +719,7 @@ module.exports = function (app) {
     } else {
       response.end('{error:"no account"}').status(500);
     }
-      
+
   });
 
 	app.post('/auth/passrecover', async function (req, response) {
@@ -729,7 +749,7 @@ module.exports = function (app) {
 
   app.post('/resend-confirmation-token/:email', async function (req, response) {
     try{
-      var email=req.params.email;     
+      var email=req.params.email;
       var users = await app.db.sn_user().find({email: email}).toArray();
       const lang = req.query.lang || "en";
       app.i18n.configureTranslation(lang);
@@ -752,22 +772,22 @@ module.exports = function (app) {
             console.log(error);
           } else {
             response.end(JSON.stringify({'message' :'Email sent'}));
-          } 
+          }
 
 	      })
       })
-     
+
     }catch(err){
-      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
     }
-     
+
     })
 
     app.get('/referral', async (req, res) => {
       let referral = req.query.code
       let userId = req.query.userID
-  
+
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
     })
 
@@ -779,8 +799,9 @@ module.exports = function (app) {
         await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {onBoarding: true}});
         res.send(JSON.stringify({success : "onBoarding updated"})).status(201);
       }catch (err) {
-        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
        }
     })
+
   return app;
 }
