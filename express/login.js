@@ -612,7 +612,7 @@ module.exports = function (app) {
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
-    
+
   app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
@@ -898,6 +898,18 @@ module.exports = function (app) {
       let userId = req.query.userID
   
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
+    })
+
+    app.get('/onBoarding', async (req, res) => {
+      try{
+        let token = req.headers["authorization"].split(" ")[1];
+			  const auth = await app.crm.auth(token);
+        const id = +auth.id
+        await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {onBoarding: true}});
+        res.send(JSON.stringify({success : "onBoarding updated"})).status(201);
+      }catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+       }
     })
 
   return app;
