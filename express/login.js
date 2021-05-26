@@ -86,6 +86,7 @@ module.exports = function (app) {
           created: mongodate,
           updated: mongodate,
           idSn: 0,
+          onBoarding : false,
           locale: "en",
           enabled: 0,
           confirmation_token: code,
@@ -201,6 +202,7 @@ module.exports = function (app) {
           first_name: profile.first_name,
           name: profile.displayName,
           created: mongodate,
+          onBoarding : false,
           updated: mongodate,
           idSn: 1,
           locale: "en",
@@ -269,6 +271,7 @@ module.exports = function (app) {
           name: profile.name.familyName,
           created: mongodate,
           updated: mongodate,
+          onBoarding : false,
           idSn: 2,
           enabled:1,
           locale: profile._json.locale,
@@ -335,6 +338,7 @@ module.exports = function (app) {
             name: profile.username,
             picLink: profile.photo_url,
             created: mongodate,
+            onBoarding : false,
             updated: mongodate,
             idSn: 5,
             locale: "en",
@@ -767,5 +771,16 @@ module.exports = function (app) {
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
     })
 
+    app.get('/onBoarding', async (req, res) => {
+      try{
+        let token = req.headers["authorization"].split(" ")[1];
+			  const auth = await app.crm.auth(token);
+        const id = +auth.id
+        let user =   await app.db.sn_user().updateOne({_id: Long.fromNumber(id)}, {$set: {onBoarding: true}});
+        res.send(JSON.stringify({success : "onBoarding updated"})).status(201);
+      }catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+       }
+    })
   return app;
 }
