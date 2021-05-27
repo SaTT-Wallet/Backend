@@ -1,4 +1,5 @@
 const { result } = require('underscore');
+const config = require('../conf/config');
 
 module.exports = function (app) {
 	let ejs = require('ejs');
@@ -318,56 +319,65 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	  })
-    /*
-     @Url : /SaTT/Support'
-     @description: Send Email to SaTT customer service
-     @parameters => req.body:
-     name = name of the user
-	 email= user email
-	 subject= subject of the letter
-	 message= the content of the letter
-     */
 
-	app.get('/SaTT/Support', async (req, res) => {
-	  try{
-	  let name =req.body.name
-	  let email=req.body.email
-	  let subject=req.body.subject
-	  let message=req.body.message
+   
+/**
+ * @swagger
+ * /SaTT/Support:
+ *   post:
+ *     summary: sending email to support team.
+ *     description: parametres acceptées :body{req.body} , headers{headers}.
+ *     parameters:
+ *       - name: name
+ *         description: user name.
+ *       - name: email
+ *         description: user email.
+ *       - name: subject
+ *         description: email subject.
+ *       - name: message
+ *         description: message from user to support. 
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	 app.post('/SaTT/Support', async (req, res) => {
+		try{
 
-	  fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { //change File Name
-		var data_={
-			SaTT:{
-				Url:config.walletUrl+'FAQ'
-			},
-			letter:{
-				from:name+" ("+email+")",
-				subject,
-				message
-			}
-		}
-		let dynamic_html=ejs.render(data, data_);
+		let[name,email,subject,message] = [req.body.name,req.body.email,req.body.subject,req.body.message];	
 
-		var mailOptions = {
-			from: email,
-			to:"support@satt-token.com",
-			subject: 'customer service',
-			html: dynamic_html
-	   };
-
-	await transporter.sendMail(mailOptions, function(error, info){
-		   if (error) {
-			   res.end(JSON.stringify(error))
-		   } else {
-			   res.end(JSON.stringify(info.response))
-		   }
-		 });
-
-	  })
-	  }catch (err) {
-		response.send(JSON.stringify(err));
-	}
-   })
+		fs.readFile(__dirname + '/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => { 
+		  let mailContent={
+			  SaTT:{
+				  Url:app.config.baseUrl+'FAQ'
+			  },
+			  letter:{
+				  from:name+" ("+email+")",
+				  subject,
+				  message
+			  }
+		  }
+		  let dynamic_html=ejs.render(data, mailContent);
+		  
+  
+		  var mailOptions = {
+			  from: email,
+			  to:app.config.SupportMail,
+			  subject: 'customer service',
+			  html: dynamic_html
+		 };
+  
+	  await transporter.sendMail(mailOptions, function(error, info){
+			 if (error) {
+				 res.end(JSON.stringify(error))
+			 } else {
+				 res.end(JSON.stringify(info.response))
+			 }
+		   });
+		})
+		}catch (err) {
+		  response.send(JSON.stringify(err));
+	  }
+	 })
 
 
 
