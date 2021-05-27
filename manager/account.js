@@ -906,7 +906,6 @@ module.exports = async function (app) {
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
-			 console.log(counter, "script updating" )
              counter++;
 			}
          	
