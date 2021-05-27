@@ -353,10 +353,6 @@ cron.schedule("0 0 * * 0", () =>{
 			})
 
             let campaigns_=[...created_campaigns,...draft_campaigns];
-			campaigns_.forEach(campaign=>{
-
-			
-			})
 			response.end(JSON.stringify(campaigns_));
 
 		}catch(err){
