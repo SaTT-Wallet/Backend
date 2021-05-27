@@ -1571,39 +1571,6 @@ module.exports = function (app) {
 	});
 
 
-	 /*
-     @link : /addKit
-     @description: saving user kits & links
-     @params:
-     idCampaign : identifiant de la campaign req.body.campaign
-     */
-	app.post('/addKit', upload.single('file'), async(req, res) => {
-		try {
-		let token = req.headers["authorization"].split(" ")[1];
-        await app.crm.auth(token);
-		const idCampaign = req.body.campaign
-		const link = req.body.link
-		if(req.file){
-			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
-			"$ref": "campaign",
-			"$id": app.ObjectId(idCampaign), 
-			"$db": "atayen"
-		 }}, mimeType : req.file.contentType })
-		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
-		} if(req.body.link){
-		   gfsKit.files.insert({ campaign : {
-				"$ref": "campaign",
-				"$id": app.ObjectId(idCampaign), 
-				"$db": "atayen"
-			 }, link : link })
-			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
-		}
-		res.send({message :'No matching data'}).status(404);	
-		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
-	  });
-
-
 	/*
      @link : /addKits
      @description: saving user kits & links
@@ -1836,7 +1803,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign), 
