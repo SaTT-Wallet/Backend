@@ -569,6 +569,19 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	   })
 	   
 
+	   /**
+ * @swagger
+ * /user/interests:
+ *   post:
+ *     summary: add users interests.
+ *     description: parametres acceptées :body{req.body} , headers{headers}.
+ *     parameters:
+ *       - name: interests
+ *         description: user interests. 
+ *     responses:
+ *        "200":
+ *          description: data
+ */
 	   app.post('/user/interests',async (req, res)=>{
          try{
 			let token = req.headers["authorization"].split(" ")[1];
@@ -576,11 +589,58 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			let userInterests = req.body;
 			userInterests._id = Long.fromNumber(auth.id)
 			await app.db.interests().insertOne(userInterests);
-			res.send({message : "interests added"})
+			res.send(JSON.stringify({message : "interests added"})).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	 }
 	   })
+     
+	   	   /**
+ * @swagger
+ * /user/interests:
+ *   put:
+ *     summary: update users interests.
+ *     description: parametres acceptées :body{req.body} , headers{headers}.
+ *     parameters:
+ *       - name: interests
+ *         description: array of user interests. 
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.put('/user/interests', async (req, res)=>{
+		try{
+			let token = req.headers["authorization"].split(" ")[1];
+			const auth = await app.crm.auth(token);
+			let userInterests = req.body.interests;
+			await app.db.interests().replaceOne({_id:Long.fromNumber(auth.id)},{interests:userInterests});
+			res.send(JSON.stringify({message : "interests updated"})).status(201);
+		 }catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	 }
+	})
+
+		   	   /**
+ * @swagger
+ * /user/interests:
+ *   get:
+ *     summary: update users interests.
+ *     description: parametres acceptées :headers{headers}.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	app.get('/user/interests', async (req, res)=>{
+		try{
+		let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+		const interests = await app.db.interests().findOne({_id:Long.fromNumber(auth.id)});
+		res.send(JSON.stringify(interests)).status(201);
+		 }catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	 }
+	})
+
 
 	return app;
 
