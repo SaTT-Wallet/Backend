@@ -589,7 +589,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			let userInterests = req.body;
 			userInterests._id = Long.fromNumber(auth.id)
 			await app.db.interests().insertOne(userInterests);
-			res.send(JSON.stringify({message : "interests added"}))
+			res.send(JSON.stringify({message : "interests added"})).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 	 }
@@ -641,7 +641,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	 }
 	})
 
-	
+
 	return app;
 
 }
