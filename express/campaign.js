@@ -2,7 +2,7 @@ const { async } = require('hasha');
 
 module.exports = function (app) {
 	let ejs = require('ejs');
-	var ObjectId = require('mongodb').ObjectId; 
+	var ObjectId = require('mongodb').ObjectId;
 	var fs = require('fs');
 	var mongoose = require('mongoose');
 	var request = require('request');
@@ -14,13 +14,13 @@ module.exports = function (app) {
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
-	const mongoURI = app.config.mongoURI;	
+	const mongoURI = app.config.mongoURI;
 	var rp = require('request-promise');
     const etherInWei = new Big(1000000000000000000);
 
-	
+
 	const nodemailer = require("nodemailer");
-	
+
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 	const storage = new GridFsStorage({
@@ -48,7 +48,7 @@ module.exports = function (app) {
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
-			  };			  
+			  };
 			  resolve(fileInfo);
 
 		  });
@@ -69,7 +69,7 @@ module.exports = function (app) {
 	  const conn=mongoose.createConnection(mongoURI);
 	  let gfs;
 	  let gfsKit;
-   
+
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
 		gfsKit = Grid(conn.db, mongoose.mongo);
@@ -99,7 +99,7 @@ module.exports = function (app) {
 					oraclesFacebook = await app.oracle.facebook(prom.idUser,prom.idPost);
 					stat.shares=oraclesFacebook.shares;
 					stat.likes=oraclesFacebook.likes;
-					stat.views=oraclesFacebook.views;		
+					stat.views=oraclesFacebook.views;
 								}
 				//youtube
 				else if(stat.typeSN=="2"){
@@ -124,7 +124,7 @@ module.exports = function (app) {
 					stat.shares=oraclesTwitter.shares;
 					stat.likes=oraclesTwitter.likes;
 					stat.views=oraclesTwitter.views;
-								} 
+								}
 
 
 					element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
@@ -153,24 +153,24 @@ module.exports = function (app) {
 									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
 											}
 								}
-		
-			}	
 
-			
-					
-	})	
-		
+			}
+
+
+
+	})
+
 	 }
 	app.post('/updateStat', updateStat)
-	
+
 
 	/*
 	@url : /stat/:idProm
-	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0) 
+	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0)
 	@params:
     idProm : id prom
 	{headers}
-	@Output array of proms 
+	@Output array of proms
 	*/
 	app.get('/stat/:idProm',async (req, response) => {
 		try {
@@ -190,7 +190,7 @@ module.exports = function (app) {
 			response.send(arrayOfProms);
 
 		} catch (err) {
-			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
 
 		}
 	})
@@ -330,14 +330,14 @@ module.exports = function (app) {
  *         required: true
  *         description: start date.
  *       - name: endDate
- *         description: end date. 
+ *         description: end date.
  *       - name: ERC20token
  *         required: true
- *         description: ERC20 token. 
+ *         description: ERC20 token.
  *       - name: amount
  *         description: amount de la campaign.
  *       - name: ratios
- *         description: ratios de la campaign. 
+ *         description: ratios de la campaign.
  *     responses:
  *        "200":
  *          description: data
@@ -404,7 +404,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}), 
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -433,7 +433,7 @@ module.exports = function (app) {
 			     subject: 'New link was added To your campaign',
 			     html: dynamic_html
 			};
-		
+
 		 await transporter.sendMail(mailOptions, function(error, info){
 				if (error) {
 					res.end(JSON.stringify(error))
@@ -457,7 +457,7 @@ module.exports = function (app) {
 			var hour = d.getHours();
 			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
 		   }
-		   
+
         } catch (err) {
 			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
         }
@@ -489,7 +489,7 @@ module.exports = function (app) {
 
 	});
 
-	
+
 
 	app.post('/campaign/modify', async function(req, response) {
 
@@ -528,7 +528,7 @@ module.exports = function (app) {
  *       - name: startDate
  *         description: start date.
  *       - name: endDate
- *         description: end date. 
+ *         description: end date.
  *       - name: idCampaign
  *         description: campaign id.
  *     responses:
@@ -569,7 +569,7 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 
 
-		try {			
+		try {
 			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
@@ -609,7 +609,7 @@ module.exports = function (app) {
 		let token = req.headers["authorization"].split(" ")[1];
 
 
-		try {			
+		try {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,ERC20token,amount,cred);
@@ -1113,11 +1113,11 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-				if(ctr.isCentral) {
+				/*if(ctr.isCentral) {
 					var ret = await  app.campaignCentral.getGains(idProm,cred2);
 					response.end(JSON.stringify(ret));
 					return;
-				}
+				}*/
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
@@ -1199,11 +1199,11 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-				if(ctr.isCentral) {
+			/*	if(ctr.isCentral) {
 					var ret = await  app.campaignCentral.getGains(idProm,cred2);
 					response.end(JSON.stringify(ret));
 					return;
-				}
+				}*/
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
@@ -1526,7 +1526,7 @@ module.exports = function (app) {
 		finally {
 			app.account.lock(cred.address);
 		}
-	});	
+	});
 
 
 	/*
@@ -1548,7 +1548,7 @@ module.exports = function (app) {
 
 	  } catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	  }
-			
+
 	  })
 
 /*
@@ -1559,7 +1559,7 @@ module.exports = function (app) {
 	 @Output delete message
 
      */
-	app.delete('/campaign/deleteDraft/:id', async (req, res) => {	
+	app.delete('/campaign/deleteDraft/:id', async (req, res) => {
 		try {
 			const id= req.params.id;
 			const token = req.headers["authorization"].split(" ")[1];
@@ -1586,19 +1586,19 @@ module.exports = function (app) {
 		if(req.file){
 			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
 			"$ref": "campaign",
-			"$id": app.ObjectId(idCampaign), 
+			"$id": app.ObjectId(idCampaign),
 			"$db": "atayen"
 		 }}, mimeType : req.file.contentType })
 		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		} if(req.body.link){
 		   gfsKit.files.insert({ campaign : {
 				"$ref": "campaign",
-				"$id": app.ObjectId(idCampaign), 
+				"$id": app.ObjectId(idCampaign),
 				"$db": "atayen"
 			 }, link : link })
 			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
 		}
-		res.send({message :'No matching data'}).status(404);	
+		res.send({message :'No matching data'}).status(404);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1610,7 +1610,7 @@ module.exports = function (app) {
      @params:
      idCampaign : identifiant de la campaign req.body.campaign
      */
-	 app.post('/addKits', upload.array('file'), async(req, res) => {		
+	 app.post('/addKits', upload.array('file'), async(req, res) => {
 		try {
 		let token = req.headers["authorization"].split(" ")[1];
         await app.crm.auth(token);
@@ -1626,23 +1626,23 @@ module.exports = function (app) {
 				files.forEach((file)=>{
 					gfsKit.files.updateOne({ _id: file.id },{$set: { campaign : {
 						"$ref": "campaign",
-						"$id": app.ObjectId(idCampaign), 
+						"$id": app.ObjectId(idCampaign),
 						"$db": "atayen"
 					 }} })
 				})
 		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
 		} if(links){
-				links.forEach((link)=>{	
+				links.forEach((link)=>{
 					 gfsKit.files.insertOne({ campaign : {
 					"$ref": "campaign",
-					"$id": app.ObjectId(idCampaign), 
+					"$id": app.ObjectId(idCampaign),
 					"$db": "atayen"
 			 		}, link : link })
 				})
-		  
+
 			 res.send('Kit uploaded').status(200);
 		}
-		res.send('No matching data').status(401);	
+		res.send('No matching data').status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
@@ -1650,14 +1650,14 @@ module.exports = function (app) {
 
 	     /*
      @link : /kit/:id
-     @description: displaying kit image 
+     @description: displaying kit image
      @Input : id = file Id
      @Output:image
      */
 	app.get('/kit/:id', async (req, res) => {
-		try{ 
+		try{
 		   const token = req.headers["authorization"].split(" ")[1];
-		   await app.crm.auth(token);     
+		   await app.crm.auth(token);
 		   const kit = req.params.id
 		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
 			   if (!file.filename || file.length === 0) {
@@ -1670,19 +1670,19 @@ module.exports = function (app) {
 					contentType = file.contentType
 				}else{
 					contentType=file.mimeType
-				}			 
+				}
 					res.writeHead(200, {
 						'Content-Type': contentType ,
 						'Content-Length': file.length,
 						'Content-Disposition': `attachment; filename=${file.filename}`
-					});				   			 
+					});
 				 const readstream = gfsKit.createReadStream(file.filename);
 				 readstream.pipe(res);
-			   } 
+			   }
 			 });
-			
+
 		   }catch (err) {
-			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		   }
 
    })
@@ -1692,7 +1692,7 @@ module.exports = function (app) {
      @link : /campaign/:idCampaign/kits
      @description: récupere les kits d'un campaign
      @params:
-     idCampaign : identifiant de la campaign 
+     idCampaign : identifiant de la campaign
 	 {headers}
      */
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
@@ -1706,9 +1706,9 @@ module.exports = function (app) {
 		}catch (err) {
 		response.end(JSON.stringify(err));
 		}
-	
+
 	})
-	
+
 	/*
      @url : /campaign/save
      @description: saving campaign informations into db
@@ -1731,7 +1731,7 @@ module.exports = function (app) {
  *       - name: startDate
  *         description: start date.
  *       - name: endDate
- *         description: end date. 
+ *         description: end date.
  *       - name: idCampaign
  *         description: campaign id.
  *     responses:
@@ -1757,7 +1757,7 @@ module.exports = function (app) {
 
 	/*
      @url : /campaign/:idCampaign/cover
-     @description: get cover 
+     @description: get cover
      @params:
      @Input idCampaign : id of a campaign
 	 @Output delete campaign cover
@@ -1771,10 +1771,10 @@ module.exports = function (app) {
 				res.send(JSON.stringify({message :'delete'}))
 			})
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
 		}
-		
+
 	})
 
 
@@ -1790,20 +1790,20 @@ module.exports = function (app) {
 		await app.crm.auth(token);
 		const idCampaign = req.params.idCampaign;
 
-		
+
 				gfs.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
 					if (!file || file.length === 0) {
 						const imageName = "default_cover.png"
 						const imagePath = path.join(__dirname,"../public/", imageName);
-		
+
 						const { size } = fs.statSync(imagePath);
-			
+
 						res.writeHead(200, {
 							'Content-Type': 'image/png',
 							'Content-Length': size,
 							'Content-Disposition': `attachment; filename='${imageName}`
 						});
-			
+
 						fs.createReadStream(imagePath).pipe(res);
 					}
 					else {
@@ -1816,12 +1816,12 @@ module.exports = function (app) {
 					  readstream.pipe(res);
 					}
 				  });
-		
+
 		}catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-			
-		})	
+
+		})
 
 	/*
      @url : /campaign/:idCampaign/cover
@@ -1839,24 +1839,24 @@ module.exports = function (app) {
 			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
-				"$id": app.ObjectId(idCampaign), 
+				"$id": app.ObjectId(idCampaign),
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify({message :'Cover added'})).status(200);		
+			res.json(JSON.stringify({message :'Cover added'})).status(200);
 			}
 			res.send(JSON.stringify({message :'No matching file found'})).status(404);
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
-			}	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
 	})
-	
+
 	/*
      @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
      @description: get accepted proms by owner
      @params:
 	 @Input idCampaign : identifiant de la campaign
 			idWallet:identifiant de la wallet
-	 @Output array of accepted links	 
+	 @Output array of accepted links
      */
 	app.get('/campaign/owner_accepted_proms/:idCampaign',async(req, res)=>{
 		try {
@@ -1864,13 +1864,13 @@ module.exports = function (app) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth( token);
 		const allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{status : "accepted"}]}).toArray();
-		
+
 		res.send(allProms);
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
+
 
 	/*
      @url : /campaign/stats_live
@@ -1891,7 +1891,7 @@ module.exports = function (app) {
 		stats.views = prom.views;
 		res.send(stats).status(200);
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
@@ -1917,7 +1917,7 @@ module.exports = function (app) {
 	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	})
 
@@ -1929,7 +1929,7 @@ module.exports = function (app) {
  *     description: parametres acceptées :body{campaign},headers{headers},params{id}.
  *     parameters:
  *       - name: title
- *         description: titre de la campaign. 
+ *         description: titre de la campaign.
  *       - name: tags
  *         description: tags de la campaign.
  *       - name: countries
@@ -1963,7 +1963,7 @@ module.exports = function (app) {
 } catch (err) {
 
 	console.error(err)
-	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
    })
 
@@ -1971,9 +1971,9 @@ module.exports = function (app) {
         /*
      @Url :API (link) /campaign/link/list/:addess?[option]'
      @description: fetch drafts and created campaign
-	 @parameters : ID wallet 
-	 @option: 
-	 *Empty option Return Rejected and Accepted links 
+	 @parameters : ID wallet
+	 @option:
+	 *Empty option Return Rejected and Accepted links
 	 *Can be accepted OR REjected (rejected = true || accepted = true)
      addr : wallet address of user
      token : access token
@@ -1993,12 +1993,12 @@ module.exports = function (app) {
 
               let URl=LinksCollection[i]
 
-				switch (URl['typeSN']) 
+				switch (URl['typeSN'])
 				  {
 					case 1:
 						HandelUrl("https://www.facebook.com/" + URl.idUser + "/posts/" + URl.idPost,URl.isAccepted)
 					  break;
-					case 2:  
+					case 2:
 					    HandelUrl("https://www.youtube.com/watch?v=" + URl.idPost,URl.isAccepted)
 					  break;
 					case 3:
@@ -2033,7 +2033,7 @@ console.log(Links)
 		}else{
 			res.end(JSON.stringify(Links))
 		}
-	
+
 		}catch(err){
 			res.end(JSON.stringify(err))
 		}
@@ -2046,7 +2046,7 @@ console.log(Links)
 	@params:
     addr : wallet address of user
 	{headers}
-	@Output JSON object 
+	@Output JSON object
 	*/
 	app.get('/campaign/totalEarned/:addr', async (req, res)=>{
 		try{
@@ -2056,7 +2056,7 @@ console.log(Links)
 			let prices;
 			let sattPrice$;
 			let total= 0;
-			
+
 
 			const sattPrice ={
 						url: app.config.xChangePricesUrl,
@@ -2074,7 +2074,7 @@ console.log(Links)
 			const result = {SattEarned : total, USDEarned : totalEarned, subscriptions : subscriptions.length};
 			res.send(JSON.stringify(result)).status(200);
 		}catch(err){
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
@@ -2085,7 +2085,7 @@ console.log(Links)
 	@params:
     owner : wallet address of user
 	{headers}
-	@Output JSON object 
+	@Output JSON object
 	*/
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
@@ -2105,7 +2105,7 @@ console.log(Links)
 	for (var i = 0;i<campaigns.length;i++)
 	{
 		var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
-		if(!ctr.methods) 
+		if(!ctr.methods)
 		{
 			continue;
 		}
@@ -2129,16 +2129,16 @@ console.log(Links)
 				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
 			   }
 
-	})	
+	})
 	          totalSpent = Number((total).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent})).status(200);
 
 	   }catch(err){
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
-		    
-	}) 
-	
+
+	})
+
 	return app;
 }
