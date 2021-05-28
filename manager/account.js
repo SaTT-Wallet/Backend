@@ -888,7 +888,7 @@ module.exports = async function (app) {
 
 			 result.Balance = balance["Total_balance"];
 
-			 if(!result.Balance || isNaN(parseInt(result.Balance))){
+			 if(!result.Balance || isNaN(parseInt(result.Balance) || result.Balance === null)){
                 counter++;
 			} else{
 			 user[condition].unshift(result);
