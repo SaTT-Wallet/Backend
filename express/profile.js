@@ -322,7 +322,7 @@ module.exports = function (app) {
 		  const date = new Date().toISOString();
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
-		  const idNode = "0" + "auth.id";
+		  const idNode = "0" + auth.id;
          if(req.body.type && req.file){
 			await gfsUserLegal.files.deleteMany({ $and : [{idNode: idNode}, {type : req.body.type}]});
             await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
