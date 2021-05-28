@@ -141,7 +141,35 @@ module.exports = function (app) {
 		}
 
 		})
-
+	/**
+ * @swagger
+ * /validateKYC/{idLegal}:
+ *   get:
+ *     summary: validate legal kyc .
+ *     description: parametres acceptées :params{idLegal} , headers{headers}.
+ *     parameters:
+ *       - name: idLegal
+ *         in: path
+ *         description: id legal a valider.
+ *     responses:
+ *        "200":
+ *          description: success message
+ *        "500":
+ *          description: error message
+ */
+	 app.put('/validateKYC/:idLegal', async(req, res)=>{
+		try {
+		 let token = req.headers["authorization"].split(" ")[1];
+         const auth = await app.crm.auth(token);
+		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
+         const idLegal = req.params.idLegal;
+		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}})
+		res.send('success').status(200);
+		 }
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+	})
  	   /**
  * @swagger
  * /profile/userLegal:
@@ -294,7 +322,7 @@ module.exports = function (app) {
 		  const date = new Date().toISOString();
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
-		  const idNode = "0" + auth.id;
+		  const idNode = "0" + "auth.id";
          if(req.body.type && req.file){
 			await gfsUserLegal.files.deleteMany({ $and : [{idNode: idNode}, {type : req.body.type}]});
             await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
