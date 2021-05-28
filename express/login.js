@@ -848,6 +848,8 @@ module.exports = function (app) {
         var user=await app.db.sn_user().findOne({ $and: [{email: snUser.email},{idSn:snUser.idSn}]})
         if(user){
             var date = Math.floor(Date.now() / 1000) + 86400;
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
             var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
             var token = await app.db.accessToken().findOne({user_id: user._id});
           var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
