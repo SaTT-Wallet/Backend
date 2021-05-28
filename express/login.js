@@ -355,8 +355,6 @@ module.exports = function (app) {
   passport.use('telegramStrategy',
     new TelegramStrategy({
       botToken: app.config.telegramBotToken
-      //clientID: app.config.telegramClientId,
-      //clientSecret: app.config.telegramClientSecret
     },
     async function(profile, cb) {
       console.log("telegram id",profile.id);
@@ -366,9 +364,9 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
       if (users.length) {
         var user = users[0];
-        if (user.idSn != 5) {
-          return cb('email_already_used') //(null, false, {message: 'email_already_used'});
-        }
+        // if (user.idSn != 5) {
+        //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -860,7 +858,11 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
         var user=await app.db.sn_user().findOne({ $and: [{email: snUser.email},{idSn:snUser.idSn}]})
         if(user){
-          var token = await app.db.accessToken().findOne({user_id: user._id});
+            var date = Math.floor(Date.now() / 1000) + 86400;
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
+            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+            var token = await app.db.accessToken().findOne({user_id: user._id});
           var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
           res.send(JSON.stringify(param))
         }else {
