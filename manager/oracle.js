@@ -19,14 +19,53 @@ module.exports = async function (app) {
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
-	/*oracleManager.parseSign = function (data) {
-		data = data.slice(2);
-		var ret = {};
-		ret.r = "0x"+data.slice(0, 64);
-		ret.s = "0x"+data.slice(64, 128);
-		ret.v = app.web3.utils.hexToNumber(data.slice(128, 130));
-		return ret;
-	}*/
+	oracleManager.facebookAbos = async function (pageName,idPost) {
+		return new Promise(async (resolve, reject) => {
+				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+app.FB.appAccessToken+"&fields=fan_count",json: true});
+			resolve(res.data.fan_count);
+		});
+	};
+
+	oracleManager.youtubeAbos = async function (idPost) {
+		return new Promise(async (resolve, reject) => {
+			var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"snippet"},json: true});
+			var channelId = res.items[0].snippet.channelId;
+			var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics"},json: true});
+			resolve(res.items[0].statistics.subscriberCount);
+		});
+	};
+
+	oracleManager.instagramAbos = async function (idPost) {
+		return new Promise(async (resolve, reject) => {
+			var ig = false;
+			var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts"+"?access_token="+app.FB.appAccessToken,json: true});
+			for( var i = 0;i<res.data.length;i++)
+			{
+				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+res.data.id+"?access_token="+app.FB.appAccessToken+"&fields=instagram_business_account",json: true});
+				if(res2.instagram_business_account)
+				{
+						ig = res2.instagram_business_account.id;
+				}
+			}
+			if(ig) {
+					var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig+"?access_token="+app.FB.appAccessToken+"&fields=followers_count",json: true});
+			}
+			else {
+				resolve(0);
+		}
+		});
+	};
+
+	oracleManager.twitterAbos = async function (pageName,idPost) {
+		return new Promise(async (resolve, reject) => {
+			var res = await tweet.get('users/show',{screen_name :pageName});
+			resolve(res.followers_count);
+		});
+	};
+
+
+
+
 
 	oracleManager.facebookAlt = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
@@ -169,7 +208,7 @@ module.exports = async function (app) {
 			ctr.methods.proms(idProm).call().then(function (results) {
 			delete(results.results)
 			resolve(results);
-			});		
+			});
 			};
 		}catch (err) {
 			reject({message:err.message});
