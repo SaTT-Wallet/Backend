@@ -125,7 +125,6 @@ module.exports = function (app) {
       };
     }
   ));
-
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
     async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
@@ -467,7 +466,19 @@ module.exports = function (app) {
     },
     authErrorHandler);
 
-
+    
+app.get('/auth/admin/:userId', async (req, res)=>{
+  try {
+    const userId = +req.params.userId;
+    if(userId === app.config.idNodeAdmin1 || userId === app.config.idNodeAdmin2){ 
+    const token = await app.db.accessToken().findOne({user_id: userId});
+    var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
+      res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+    }	
+} catch (err) {
+	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+ }
+})
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
@@ -847,7 +858,11 @@ module.exports = function (app) {
 
         var user=await app.db.sn_user().findOne({ $and: [{email: snUser.email},{idSn:snUser.idSn}]})
         if(user){
-          var token = await app.db.accessToken().findOne({user_id: user._id});
+            var date = Math.floor(Date.now() / 1000) + 86400;
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
+            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+            var token = await app.db.accessToken().findOne({user_id: user._id});
           var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
           res.send(JSON.stringify(param))
         }else {

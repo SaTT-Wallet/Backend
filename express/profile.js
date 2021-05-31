@@ -141,7 +141,38 @@ module.exports = function (app) {
 		}
 
 		})
+	/**
+ * @swagger
+ * /validateKYC/{idLegal}:
+ *   put:
+ *     summary: validate legal kyc .
+ *     description: parametres acceptées :params{idLegal} , headers{headers}.
+ *     parameters:
+ *       - name: idLegal
+ *         in: path
+ *         description: id legal a valider.
+ *     responses:
+ *        "200":
+ *          description: success message
+ *        "500":
+ *          description: error message
+ */
+	 app.put('/validateKYC/:idLegal', async(req, res)=>{
+		try {
+		 let token = req.headers["authorization"].split(" ")[1];
+         const auth = await app.crm.auth(token);
+		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2 || auth.id === app.config.idNodeAdmin3){
+         const idLegal = req.params.idLegal;
+		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}})
+			res.send('success').status(200);
+		 }else{
+			res.send('access_denied').status(200);
 
+		 }
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+	})
  	   /**
  * @swagger
  * /profile/userLegal:
