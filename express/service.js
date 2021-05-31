@@ -66,7 +66,7 @@ module.exports = function (app) {
 
 				var ret;
 				if (Direction == "ETB") {
-					var cred = await app.account.unlock(auth.id, ""+pass);
+					var cred = await app.account.unlock(auth.id,pass);
 
 					ret = await app.erc20.transfer(
 						app.config.Tokens["SATT"].contract,
@@ -76,7 +76,7 @@ module.exports = function (app) {
 					);
 					console.log(ret)
 				} else if (Direction == "BTE") {
-					var cred = await app.account.unlockBSC(auth.id, ""+pass);
+					var cred = await app.account.unlockBSC(auth.id,pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
 
