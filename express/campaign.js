@@ -1888,6 +1888,38 @@ module.exports = function (app) {
 	}
 	})
 
+
+	/**
+ * @swagger
+ * /rejectlink/{idLink}:
+ *   get:
+ *     summary: reject link .
+ *     description: parametres acceptées :params{idLink} , headers{headers}.
+ *     parameters:
+ *       - name: idLink
+ *         in: path
+ *         description: id de ien a rejeter.
+ *     responses:
+ *        "200":
+ *          description: success message
+ *        "500":
+ *          description: error message
+ */
+	 app.put('/rejectlink/:idLink', async(req, res)=>{
+		try {
+		 let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
+         const idLink = req.params.idLink;
+	     const links =  await app.db.campaign_link().update({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
+		res.send('success').status(200);
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+	})
+
+
+
+
 /**
  * @swagger
  * /campaign/{id}/update:
