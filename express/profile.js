@@ -144,7 +144,7 @@ module.exports = function (app) {
 	/**
  * @swagger
  * /validateKYC/{idLegal}:
- *   get:
+ *   put:
  *     summary: validate legal kyc .
  *     description: parametres acceptées :params{idLegal} , headers{headers}.
  *     parameters:
@@ -161,10 +161,13 @@ module.exports = function (app) {
 		try {
 		 let token = req.headers["authorization"].split(" ")[1];
          const auth = await app.crm.auth(token);
-		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
+		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2 || auth.id === app.config.idNodeAdmin3){
          const idLegal = req.params.idLegal;
 		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}})
-		res.send('success').status(200);
+			res.send('success').status(200);
+		 }else{
+			res.send('access_denied').status(200);
+
 		 }
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
