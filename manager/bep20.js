@@ -8,10 +8,15 @@ module.exports = async function (app) {
     var nullAddress = "0x0000000000000000000000000000000000000000";
 
     bep20Manager.contract = new web3.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
-
+ 
     if(app.web3Bep20Websocket)
     {
       bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
+    }
+    if(app.config.testnet){
+      bep20Manager.contract = new web3.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.testnet);
+      bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.testnet);
+
     }
 
     bep20Manager.unlockOwner = async () => {
