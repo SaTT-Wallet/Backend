@@ -863,11 +863,11 @@ module.exports = async function (app) {
 			dateMinus = 86400;
 		 }
 		else if(condition === "weekly"){
-			users = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
+			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
 			dateMinus = 604800;
 	     }
 		else if(condition === "monthly"){
-			users = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
+			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
 			dateMinus = 2629743;
 	     }
 		
