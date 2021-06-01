@@ -495,7 +495,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 				var data_={
 					SaTT:{
-						Url:app.config.walletUrl+'FAQ'
+						Url:app.config.baseUrl+'FAQ'
 					},
 					notification:{
 						name:req.body.name,
