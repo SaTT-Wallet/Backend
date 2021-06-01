@@ -2166,7 +2166,7 @@ console.log(Links)
 
 	const address = req.params.owner;
 
-	let[total,totalSpent, totalSpentInUsD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
+	let[total,totalSpent, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
 
 	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
 
@@ -2204,7 +2204,7 @@ console.log(Links)
 			   }
 
 	})         
-	          totalSpentInUsD = Number((total * sattPrice$).toFixed(2));
+	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
 	          totalSpent = Number((total).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent,totalSpentInUsD })).status(200);
