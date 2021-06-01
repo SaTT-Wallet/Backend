@@ -12,13 +12,17 @@ module.exports = async function (app) {
 
 	ContractToken.eventCallback = async function(evt){
 
-		if( evt.signature != "0xb67322f1a9b0ad182e2b242673f8283103dcd6d1c8a19b47ff5524f89d9758ed" || evt.event != "AskRequest")
+
+
+		if( evt.signature != "0xb67322f1a9b0ad182e2b242673f8283103dcd6d1c8a19b47ff5524f89d9758ed" || evt.event != "AskRequest" || evt.event == "AskRequestBounty")
 		{
 			return;
 		}
 
+		var isBounty = ( evt.event == "AskRequestBounty");
 
-		var idRequest = evt.returnValues.idRequest;
+
+		var idRequest = isBounty?evt.returnValues.idProm: evt.returnValues.idRequest ;
 		var typeSN = ""+evt.returnValues.typeSN;
 		var idPost = evt.returnValues.idPost;
 		var idUser = evt.returnValues.idUser;
@@ -34,6 +38,7 @@ module.exports = async function (app) {
 				typeSN:typeSN,
 				idPost:idPost,
 				idUser:idUser,
+				isBounty:isBounty,
 				isNew:true
 			}
 
@@ -76,12 +81,38 @@ module.exports = async function (app) {
 			return res;
 	}
 
+	ContractToken.answerAbos = async function (typeSN,idPost,idUser) {
+		switch(typeSN) {
+				case "1" :
+					var res = await app.oracle.facebookAbos(idUser,idPost);
+
+				break;
+				case "2" :
+					var res = await app.oracle.youtubeAbos(idPost);
+
+				break;
+				case "3" :
+					var res = await app.oracle.instagramAbos(idPost)
+
+				break;
+				case "4" :
+					var res = await app.oracle.twitterAbos(idUser,idPost)
+
+				break;
+				default :
+					var res = 0;
+				break;
+			}
+
+			return res;
+	}
+
 	ContractToken.checkAnswer = async function () {
 
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 
-		var requests = await app.db.request().find({isNew: true}).toArray();
+		var requests = await app.db.request().find({isNew: true,isBounty:false}).toArray();
 		for(var i = 0;i<requests.length;i++)
 		{
 			var request = requests[i];
@@ -116,6 +147,24 @@ module.exports = async function (app) {
 				await app.db.request().updateOne({_id:request.id},{$set:{likes:res.likes,shares:res.shares,views:res.views,isNew:false}});
 				await ContractToken.answerCall({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idRequest:request.id,likes:res.likes,shares:res.shares,views:res.views});
 			}
+		}
+
+
+	}
+
+	ContractToken.checkAnswerBounty = async function () {
+
+		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+
+		var requests = await app.db.request().find({isNew: true,isBounty:true}).toArray();
+		for(var i = 0;i<requests.length;i++)
+		{
+			var request = requests[i];
+
+			var nbAbos = ContractToken.answerAbos(request.typeSN,request.idPost,request.idUser);
+			await app.db.request().updateOne({_id:request.id},{$set:{likes:res.likes,shares:res.shares,views:res.views,isNew:false}});
+			await ContractToken.answerBounty({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idProm:request.id,nbAbos:nbAbos});
 
 		}
 	}
@@ -204,6 +253,32 @@ module.exports = async function (app) {
 		});
 
 	}
+
+	ContractToken.answerBounty = async function (opts) {
+		return new Promise(async (resolve, reject) => {
+			var ctr;
+		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
+			ctr = ContractToken.contract;
+		}
+		else {
+			ctr = ContractToken.contractBep20;
+		}
+
+		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+
+
+			var gasPrice = await ctr.getGasPrice();
+
+			//var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
+
+			var receipt = await  ctr.methods.answerBounty(opts.campaignContract,opts.idProm,opts.nbAbos).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerBounty transactionHash",hash)});
+			resolve({result : "OK",hash:receipt.hash});
+
+		});
+
+	}
+
 
 
 
