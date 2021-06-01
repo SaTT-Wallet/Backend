@@ -895,8 +895,9 @@ module.exports = async function (app) {
 			 user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
 			 else{
-
-				 let length = user[condition].length-1;
+                  let length = user[condition].length-1;
+				  if(user[condition].length === 0){ length = 0}	
+				  		 
 				 for(i =0 ; i<= (7-length) ;i++)
 				 { 
 					 currentDate = currentDate - dateMinus;
