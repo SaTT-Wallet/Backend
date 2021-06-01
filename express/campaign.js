@@ -2207,7 +2207,7 @@ console.log(Links)
 	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
 	          totalSpent = Number((total).toFixed(2));
 
-	           res.end(JSON.stringify({totalSpent,totalSpentInUsD })).status(200);
+	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
 
 	   }catch(err){
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
