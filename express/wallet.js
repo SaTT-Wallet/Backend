@@ -1058,7 +1058,7 @@ module.exports = function (app) {
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
-			var res = await app.crm.auth( req.body.access_token);
+			var res = await app.crm.auth(req.body.access_token);
 
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
