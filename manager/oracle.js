@@ -44,7 +44,6 @@ module.exports = async function (app) {
 				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+res.data.id+"?access_token="+app.FB.appAccessToken+"&fields=instagram_business_account",json: true});
 				if(res2.instagram_business_account)
 				{
-
 						ig = res2.instagram_business_account.id;
 				}
 			}
