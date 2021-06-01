@@ -2154,10 +2154,19 @@ console.log(Links)
 	*/
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
+		let prices;
+		const sattPrice ={
+			url: app.config.xChangePricesUrl,
+			method: 'GET',
+			json: true
+		  };
+
+		  prices = await rp(sattPrice);
+		 let sattPrice$ = prices.SATT.price;
 
 	const address = req.params.owner;
 
-	let[total,totalSpent,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,[],[],[],[]];
+	let[total,totalSpent, totalSpentInUsD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
 
 	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
 
@@ -2194,10 +2203,11 @@ console.log(Links)
 				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
 			   }
 
-	})
+	})         
+	          totalSpentInUsD = Number((total * sattPrice$).toFixed(2));
 	          totalSpent = Number((total).toFixed(2));
 
-	           res.end(JSON.stringify({totalSpent})).status(200);
+	           res.end(JSON.stringify({totalSpent,totalSpentInUsD })).status(200);
 
 	   }catch(err){
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
