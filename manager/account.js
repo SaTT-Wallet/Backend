@@ -866,7 +866,7 @@ module.exports = async function (app) {
 			users = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
 			dateMinus = 604800;
 	     }
-		else if(condition === "Monthly"){
+		else if(condition === "monthly"){
 			users = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
 			dateMinus = 2629743;
 	     }
@@ -895,8 +895,9 @@ module.exports = async function (app) {
 			 user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
 			 else{
-
-				 let length = user[condition].length-1;
+                  let length = user[condition].length-1;
+				  if(user[condition].length === 0){ length = 0}	
+				  		 
 				 for(i =0 ; i<= (7-length) ;i++)
 				 { 
 					 currentDate = currentDate - dateMinus;
