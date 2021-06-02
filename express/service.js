@@ -60,16 +60,19 @@ module.exports = function (app) {
 			let Direction = req.body.direction;
 			let pass = req.body.password;
 			let amount = req.body.amount;
-
+			var sattContract=app.config.ctrs.token.address.mainnet;
+			if(app.config.testnet){
+				sattContract=app.config.ctrs.token.address.testnet
+			}
 			try {
 				var auth = await app.crm.auth(access_T);
 
 				var ret;
 				if (Direction == "ETB") {
 					var cred = await app.account.unlock(auth.id,pass);
-
+					
 					ret = await app.erc20.transfer(
-						app.config.Tokens["SATT"].contract,
+						sattContract,
 						app.config.bridge,
 						amount,
 						cred
