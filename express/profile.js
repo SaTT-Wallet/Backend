@@ -449,7 +449,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
 			lang=req.query.lang;
-			app.i18n.configureTranslation(lang)
+			app.i18n.configureTranslation(lang)	
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			const id = "0" + auth.id;
