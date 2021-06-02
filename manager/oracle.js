@@ -21,8 +21,15 @@ module.exports = async function (app) {
 
 	oracleManager.facebookAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+app.FB.appAccessToken+"&fields=fan_count",json: true});
+				res2 = await app.db.query("Select pu.token as token from fb_page_admin pa,fb_user_token pu,fb_page_fb pf where pf.id = pa.page_fb and pa.user = pu.user and  pf.name = '"+pageName+"'");
+				if(res2 && res2.length) {
+					var token = res2[0].token;
+				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
 			resolve(res.data.fan_count);
+		}
+		else {
+				resolve(0);
+		}
 		});
 	};
 
@@ -37,20 +44,18 @@ module.exports = async function (app) {
 
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-			var ig = false;
-			var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts"+"?access_token="+app.FB.appAccessToken,json: true});
-			for( var i = 0;i<res.data.length;i++)
-			{
-				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+res.data.id+"?access_token="+app.FB.appAccessToken+"&fields=instagram_business_account",json: true});
-				if(res2.instagram_business_account)
-				{
-						ig = res2.instagram_business_account.id;
-				}
+			var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
+			var username = res.author_name;
+			res2 = await app.db.query("Select pi.instagram_id as igid,pu.token as token from fb_page_instagram pi,fb_page_admin pa,fb_user_token pu where pi.page_fb = pa.page_fb and pa.user = pu.user and  pi.username = '"+username+"'");
+			if(res2 && res2.length) {
+				var ig = res2[0].igid;
+				var token = res2[0].token;
+				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig+"?access_token="+token+"&fields=followers_count",json: true});
+				resolve(res3.followers_count)
 			}
-			if(ig) {
-					var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig+"?access_token="+app.FB.appAccessToken+"&fields=followers_count",json: true});
-					resolve(res3.followers_count)
-			}
+
+
+
 			else {
 				resolve(0);
 		}
