@@ -21,7 +21,7 @@ module.exports = async function (app) {
 
 	oracleManager.facebookAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-				res2 = await app.db.query("Select pt.token as token from fb_page_token pt,fb_page_fb pf where pf.id = pt.page and  pf.name = '"+pageName+"'");
+				res2 = await app.db.query("Select pt.token as token from fb_page_token pt,fb_page_fb pf where pf.id = pt.page and  pf.username = '"+pageName+"'");
 				if(res2 && res2.length) {
 					var token = res2[0].token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
@@ -75,7 +75,7 @@ module.exports = async function (app) {
 
 	oracleManager.facebook = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-			res = await app.db.query("Select pt.token as token pf.page_id as page_id from fb_page_token pt,fb_page_fb pf where pf.id = pt.page  and  pf.name = '"+pageName+"'");
+			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from fb_page_token pt,fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
 			if(res && res.length) {
 				var token = res[0].token;
 				var idPage = res[0].page_id;
