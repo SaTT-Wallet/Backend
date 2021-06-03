@@ -1608,7 +1608,9 @@ app.post('/v2/profile/update', async function(req, response) {
 			  };
 			let Crypto = await rp(Fetch_crypto_price);
 			const balance = await app.account.getListCryptoByUid(idUser,Crypto);
-			res.send(balance)
+			let listOfCrypto = [...new Set(balance.listOfCrypto)];
+			
+			res.send(JSON.stringify({listOfCrypto}))
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
