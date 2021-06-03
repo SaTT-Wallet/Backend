@@ -89,7 +89,7 @@ module.exports = async function (app) {
 					var shares = 0;
 					if(res2.error)
 					{
-						console.log(res2.error)
+						
 						reject({error:"Invalid url"});
 						return;
 					}
