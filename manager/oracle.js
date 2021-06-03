@@ -77,6 +77,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
 			if(res && res.length) {
+				console.log(res);
 				var token = res[0].token;
 				var idPage = res[0].page_id;
 
@@ -88,7 +89,7 @@ module.exports = async function (app) {
 					var shares = 0;
 					if(res2.error)
 					{
-						console.log(res2)
+						console.log(res2.error)
 						reject({error:"Invalid url"});
 						return;
 					}
