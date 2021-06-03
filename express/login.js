@@ -893,32 +893,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
        }
     })
 
-
-    // app.get('/testEmail', async (req, res) => {
-    //   readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
-    //     var template = handlebars.compile(html);
-    //     var replacements = {
-    //       satt_url: app.config.basedURl,
-    //       imgUrl: app.config.baseEmailImgURl,
-    //       validation_url: app.config.baseUrl + 'auth/activate/' + 'users[0]._id' + "/" + 'code',
-    //     };
-
-    //     var htmlToSend = template(replacements);
-    //     var mailOptions = {
-    //       from: app.config.mailSender,
-    //       to: 'hamdi@atayen.us',
-    //       subject: 'Satt wallet activation',
-    //       html: htmlToSend
-    //     };
-    //     transporter.sendMail(mailOptions, function (error, info) {
-    //       if (error) {
-    //         console.log(error);
-    //       } else {
-    //         console.log('Email sent: ' );
-    //       }
-    //     });
-    //   });
-    // })
     app.get('/navigate/v1/:userId', async (req, res)=>{
       try {
         const userId = +req.params.userId;
