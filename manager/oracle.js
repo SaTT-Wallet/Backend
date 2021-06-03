@@ -76,6 +76,7 @@ module.exports = async function (app) {
 	oracleManager.facebook = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
 			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
+			console.log("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
 			if(res && res.length) {
 				console.log(res);
 				var token = res[0].token;
@@ -89,7 +90,7 @@ module.exports = async function (app) {
 					var shares = 0;
 					if(res2.error)
 					{
-						
+
 						reject({error:"Invalid url"});
 						return;
 					}
