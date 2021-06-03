@@ -21,7 +21,7 @@ module.exports = async function (app) {
 
 	oracleManager.facebookAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-				res2 = await app.db.query("Select pt.token as token from fb_page_token pt,fb_page_fb pf where pf.id = pt.page and  pf.username = '"+pageName+"'");
+				res2 = await app.db.query("Select pt.token as token from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page and  pf.username = '"+pageName+"'");
 				if(res2 && res2.length) {
 					var token = res2[0].token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
@@ -46,7 +46,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
 			var username = res.author_name;
-			res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from fb_page_instagram pi,fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
+			res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
 			if(res2 && res2.length) {
 				var ig = res2[0].igid;
 				var token = res2[0].token;
@@ -75,7 +75,7 @@ module.exports = async function (app) {
 
 	oracleManager.facebook = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from fb_page_token pt,fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
+			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
 			if(res && res.length) {
 				var token = res[0].token;
 				var idPage = res[0].page_id;
@@ -137,7 +137,7 @@ module.exports = async function (app) {
 				var perf = {shares:0,likes:0,views:0};
 				var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
 				var username = res.author_name;
-				res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from fb_page_instagram pi,fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
+				res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
 				if(res2 && res2.length) {
 					var ig = res2[0].igid;
 					var token = res2[0].token;
