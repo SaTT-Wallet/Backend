@@ -85,13 +85,14 @@ module.exports = async function (app) {
 
 
 
+
 				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares&access_token="+token,json: true});
 				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetimes&access_token="+token,json: true});
 
 
 					var shares = 0;
 					if(res2.error || res3.error)
-					{}
+					{
 						reject({error:"Invalid url"});
 						return;
 					}
