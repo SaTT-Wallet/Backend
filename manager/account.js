@@ -732,6 +732,7 @@ module.exports = async function (app) {
 	accountManager.getListCryptoByUid = async  (userId, crypto) => {	
 		return new Promise( async (resolve, reject) => {
 		 try {
+			let listOfCrypto=[];
 			var token_info=  Object.assign({}, app.config.Tokens);
 			  delete token_info['SATT']
 			  delete token_info['BNB']		
@@ -747,7 +748,6 @@ module.exports = async function (app) {
 			  }else{
 				resolve(ret);
 			  }
-			  listOfCrypto=[];
 			  for(const T_name in token_info){
 				var network=token_info[T_name].network;
 				crypto={};
