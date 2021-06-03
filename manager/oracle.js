@@ -101,7 +101,7 @@ module.exports = async function (app) {
 					}
 					var likes = res3.data[0].values[0].value.like;
 					var views = res3.data[1].values[0].value;
-					var perf = {shares:shares,likes:.likes,views:views,date:Math.floor(Date.now()/1000)};
+					var perf = {shares:shares,likes:likes,views:views,date:Math.floor(Date.now()/1000)};
 
 					resolve(perf);
 				}
