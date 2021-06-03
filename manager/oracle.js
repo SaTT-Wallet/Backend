@@ -75,15 +75,16 @@ module.exports = async function (app) {
 
 	oracleManager.facebook = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
+
 			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
-			console.log("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
+
 			if(res && res.length) {
-				console.log(res);
-				var token = res[0].token;
-				var idPage = res[0].page_id;
+				var access  = res.pop();
+				var token = access.token;
+				var idPage = access.page_id;
 
 
-				//console.log("https://graph.facebook.com/v3.2/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+app.FB.appAccessToken);
+				console.log("https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+token);
 				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+token,json: true});
 
 				//app.FB.api(idPage+"_"+idPost+"?fields=shares,likes.summary(true)",{ access_token: app.FB.appAccessToken }, async function (res2) {
