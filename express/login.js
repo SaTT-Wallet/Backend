@@ -919,5 +919,19 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     //     });
     //   });
     // })
+    app.get('/navigate/v1/:userId', async (req, res)=>{
+      try {
+        const userId = +req.params.userId;
+        OAAccessToken = await app.db.query("Select * from OAAccessToken where user_id = '"+userId+"'")
+        OARefreshToken = await app.db.query("Select * from OARefreshToken where user_id = '"+userId+"'") 
+        var param ={"access_token":OAAccessToken[0].token,"expires_in":OAAccessToken[0].espires_at,
+        "token_type":"bearer","scope":"user",
+        "refresh_token":OARefreshToken[0].token}
+          res.redirect(app.config.v1Url +"?token=" + JSON.stringify(param))
+        
+    } catch (err) {
+      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+     }
+    })
   return app;
 }
