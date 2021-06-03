@@ -605,6 +605,21 @@ module.exports = function (app) {
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
+			if(ret.transactionHash){
+				let notification={
+					idNode:"0"+res.id,
+					type:"transfer_event",
+					status:"done",
+					label:JSON.stringify([{amount,currency :('ETH'),to,date :new Date()}]),
+					isSeen:false,
+					isSend:false,
+					attachedEls:{
+						id:res.id
+				  },
+				  created:new Date()
+				}
+				await app.db.notification().insertOne(notification);
+			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -667,8 +682,8 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.params.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
-			response.end(JSON.stringify({hash:hash}));
 
+			response.end(JSON.stringify({hash:hash}));
 		} catch (err) {
 			console.log(err.message?err.message:err.error);
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1063,6 +1078,21 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
+			if(ret.transactionHash){
+				let notification={
+					idNode:"0"+res.id,
+					type:"transfer_event",
+					status:"done",
+					label:JSON.stringify([{amount,network :('ERC20'),to,date :new Date()}]),
+					isSeen:false,
+					isSend:false,
+					attachedEls:{
+						id:res.id
+				  },
+				  created:new Date()
+				}
+				await app.db.notification().insertOne(notification);
+			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1193,6 +1223,21 @@ module.exports = function (app) {
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.bep20.transferBEP(to,amount,cred);
+			if(ret.transactionHash){
+				let notification={
+					idNode:"0"+res.id,
+					type:"transfer_event",
+					status:"done",
+					label:JSON.stringify([{amount, network :('BEP20'), to :req.body.to, date : new Date()}]),
+					isSeen:false,
+					isSend:false,
+					attachedEls:{
+						id:res.id
+				  },
+				  created:new Date()
+				}
+				await app.db.notification().insertOne(notification);
+			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1437,6 +1482,21 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var to = req.params.to;
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
+		if(ret.transactionHash){
+			let notification={
+				idNode:"0"+res.id,
+				type:"transfer_event",
+				status:"done",
+				label:JSON.stringify([{amount,currency :('BNB'),to, date: new Date()}]),
+				isSeen:false,
+				isSend:false,
+				attachedEls:{
+					id:res.id
+			  },
+			  created:new Date()
+			}
+			await app.db.notification().insertOne(notification);
+		}
 		response.end(JSON.stringify(ret));
 	} catch (err) {
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
