@@ -91,7 +91,7 @@ module.exports = function (app) {
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
-							id:res.id
+							id:auth.id
 					  },
 					  created:new Date()
 					}
