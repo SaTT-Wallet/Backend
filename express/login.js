@@ -892,7 +892,19 @@ app.get('/auth/admin/:userId', async (req, res)=>{
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
        }
     })
-
+    /**
+ * @swagger
+ * /navigate/v1/{userId}:
+ *   post:
+ *     summary: redirect to v1 version.
+ *     description: parametres acceptées :{userId}.
+ *     parameters:
+ *       - name: userId
+ *         description: id user.
+ *     responses:
+ *        "redirect":
+ *          description: redirect to v1 version
+ */
     app.get('/navigate/v1/:userId', async (req, res)=>{
       try {
         const userId = +req.params.userId;
