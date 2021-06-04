@@ -84,14 +84,15 @@ module.exports = async function (app) {
 				var idPage = access.page_id;
 
 
-				console.log("https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+token);
-				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares,likes.summary(true)&access_token="+token,json: true});
 
-				//app.FB.api(idPage+"_"+idPost+"?fields=shares,likes.summary(true)",{ access_token: app.FB.appAccessToken }, async function (res2) {
+
+				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares&access_token="+token,json: true});
+				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token="+token,json: true});
+
+
 					var shares = 0;
-					if(res2.error)
+					if(res2.error || res3.error)
 					{
-
 						reject({error:"Invalid url"});
 						return;
 					}
@@ -99,7 +100,9 @@ module.exports = async function (app) {
 					{
 						shares = res2.shares.count;
 					}
-					var perf = {shares:shares,likes:res2.likes.summary.total_count,views:0,date:Math.floor(Date.now()/1000)};
+					var likes = res3.data[0].values[0].value.like;
+					var views = res3.data[1].values[0].value;
+					var perf = {shares:shares,likes:likes,views:views,date:Math.floor(Date.now()/1000)};
 
 					resolve(perf);
 				}
