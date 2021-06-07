@@ -9,7 +9,7 @@ cron.schedule("* * 1 * *", () =>{
  app.account.BalanceUsersStats("monthly");
 });
 
-cron.schedule("0 0 * * 0", () =>{
+cron.schedule("03 04 * * 1", () =>{
  app.account.BalanceUsersStats("weekly");
 });
 
