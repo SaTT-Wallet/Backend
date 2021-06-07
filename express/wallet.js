@@ -92,20 +92,27 @@ module.exports = function (app) {
 		  let Crypto = await rp(Fetch_crypto_price);
 		  let date = Math.round(new Date().getTime()/1000);
 		  let today = (new Date()).toLocaleDateString("en-US");
-
+          let variation;
 		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
 
 
 		  const user =  await app.db.sn_user().findOne({_id : id});
+
 		  if(!user.daily){user.daily = []}
+
+
+		   if(user.daily[0]){
+			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
+		   }
+
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
 			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
 			if(user.daily.length > 7){user.daily.pop()}
 			delete user._id
 			await app.db.sn_user().updateOne({_id : id}, {$set: user});
 		  }
-		
-		  res.end(JSON.stringify({Total_balance})).status(201);
+
+		  res.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1273,13 +1280,13 @@ module.exports = function (app) {
 		 app.post('/v3/bep20/transfer',async function(req, response) {
 
 			try {
-	
+
 				var token = req.body.access_token;
 				var to = req.body.to;
 				var amount = req.body.amount;
 				var pass = req.body.pass;
 				var res = await app.crm.auth(token);
-	
+
 				var cred = await app.account.unlockBSC(res.id,pass);
 				cred.from_id = res.id;
 				var ret = await app.bep20.transferBEP(to,amount,cred);
@@ -1669,7 +1676,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			let Crypto = await rp(Fetch_crypto_price);
 			const balance = await app.account.getListCryptoByUid(idUser,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
-			
+
 			res.send(JSON.stringify({listOfCrypto}))
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
