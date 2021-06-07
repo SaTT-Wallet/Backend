@@ -100,9 +100,13 @@ module.exports = function (app) {
 		  
 		  if(!user.daily){user.daily = []}
 
-
+            //calculating the variation depending on the runned script
 		   if(user.daily[0]){
-			variation =  app.token.calculateVariation(total_balance.total_balance, user.daily[0].Balance)
+			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
+		   }
+
+		   if(user.daily[0] && user.daily[0].convertDate === today){
+			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[1].Balance)
 		   }
 
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
