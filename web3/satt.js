@@ -132,6 +132,13 @@ module.exports = async function (app) {
 		}
 	  }
 
+	  tokenManager.calculateVariation =(a, b) =>{
+		if (isNaN(+a) || isNaN(+b)){
+			return  'input error';
+		 }
+		return  a-b === 0 ? 0 : 100 * ( a - b ) / b 
+	   }
+
 	app.token = tokenManager;
 	return app;
 }
