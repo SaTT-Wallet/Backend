@@ -97,7 +97,7 @@ module.exports = function (app) {
 
 
 		  const user =  await app.db.sn_user().findOne({_id : id});
-		  
+
 		  if(!user.daily){user.daily = []}
 
             //calculating the variation depending on the runned script
@@ -115,7 +115,7 @@ module.exports = function (app) {
 			delete user._id
 			await app.db.sn_user().updateOne({_id : id}, {$set: user});
 		  }
-		
+
 		  res.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
@@ -1284,13 +1284,13 @@ module.exports = function (app) {
 		 app.post('/v3/bep20/transfer',async function(req, response) {
 
 			try {
-	
+
 				var token = req.body.access_token;
 				var to = req.body.to;
 				var amount = req.body.amount;
 				var pass = req.body.pass;
 				var res = await app.crm.auth(token);
-	
+
 				var cred = await app.account.unlockBSC(res.id,pass);
 				cred.from_id = res.id;
 				var ret = await app.bep20.transferBEP(to,amount,cred);
@@ -1680,7 +1680,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			let Crypto = await rp(Fetch_crypto_price);
 			const balance = await app.account.getListCryptoByUid(idUser,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
-			
+
 			res.send(JSON.stringify({listOfCrypto}))
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
