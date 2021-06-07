@@ -69,7 +69,7 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
 
       var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({email: username}).toArray();
+      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
 
       if (users.length) {
         return done(null, false, {error: true, message: 'email_already_used'});
@@ -80,8 +80,8 @@ module.exports = function (app) {
         var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
-          username: username,
-          email: username,
+          username: username.toLowerCase(),
+          email: username.toLowerCase(),
           password: synfonyHash(password),
           created: mongodate,
           updated: mongodate,
@@ -93,7 +93,7 @@ module.exports = function (app) {
           "userSatt": true
         });
 
-        var users = await app.db.sn_user().find({email: username}).toArray();
+        var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
         const lang = req.query.lang || "en";
 
         app.i18n.configureTranslation(lang);
@@ -108,7 +108,7 @@ module.exports = function (app) {
           var htmlToSend = template(replacements);
           var mailOptions = {
             from: app.config.mailSender,
-            to: users[0].username,
+            to: users[0].username.toLowerCase(),
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
@@ -132,7 +132,7 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
       var maxId = app.db.sn_user().find().sort({_id:-1}).limit(1)
 
-      var users = await app.db.sn_user().find({email: username}).toArray();
+      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
         if (user.idSn != 0) {
@@ -919,5 +919,36 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
      }
     })
+
+
+
+    app.get('/connect/auth/google/:idUser', (req, res,next)=>{
+      passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
+    });
+
+    passport.use('connect_google', new GoogleStrategy({
+      clientID: app.config.googleClientId,
+      clientSecret: app.config.googleClientSecret,
+      callbackURL: "/callback/connect/google",
+	    passReqToCallback: true
+    },
+    async function (req,accessToken, refreshToken, profile, cb) {
+	    var user_id=+req.query.state;
+      var userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
+      if(userExist.length){
+        return cb('account exist')
+      }else{
+              var users = await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn2: profile.id}})
+              return cb ('account_linked_with success') //(null, false, {message: 'account_invalide'});
+
+      }
+    
+    }));
+
+  app.get('/callback/connect/google', passport.authenticate('connect_google', {scope: ['profile','email']}), async function (req, response) {
+    response.redirect('http://localhost:4200/#/linkAccounts')
+  });
+
+  
   return app;
 }
