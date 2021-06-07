@@ -287,7 +287,7 @@ module.exports = function (app) {
   passport.use('google_strategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: app.config.baseUrl + "callback/google"
+      callbackURL: "http://localhost:4200/#/linkAccounts"
     },
     async function (accessToken, refreshToken, profile, cb) {
       var date = Math.floor(Date.now() / 1000) + 86400;
@@ -938,17 +938,28 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       if(userExist.length){
         return cb('account exist')
       }else{
-              var users = await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn2: profile.id}})
-              return cb ('account_linked_with success') //(null, false, {message: 'account_invalide'});
-
-      }
-    
+        var users = await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn2: profile.id}})
+        return cb ('account_linked_with success') //(null, false, {message: 'account_invalide'});
+      }    
     }));
 
   app.get('/callback/connect/google', passport.authenticate('connect_google', {scope: ['profile','email']}), async function (req, response) {
     response.redirect(app.config.basedURl +'/linkAccounts')
   });
 
-  
+  app.put('/updateUserEmail', async (req, res)=>{
+    try {
+     
+      var users=await app.db.sn_user().find({email:{$regex : /[A-Z]/ }}).toArray();
+      users.forEach(async (user)=>{
+        await app.db.sn_user().updateOne({_id:user._id},{$set:{email:user.email.toLowerCase()}});
+      })
+
+      res.send(JSON.stringify("success"))
+      
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+   }
+  })
   return app;
 }
