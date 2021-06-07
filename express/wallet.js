@@ -92,12 +92,19 @@ module.exports = function (app) {
 		  let Crypto = await rp(Fetch_crypto_price);
 		  let date = Math.round(new Date().getTime()/1000);
 		  let today = (new Date()).toLocaleDateString("en-US");
-
+          let variation;
 		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
 
 
 		  const user =  await app.db.sn_user().findOne({_id : id});
+		  
 		  if(!user.daily){user.daily = []}
+
+
+		   if(user.daily[0]){
+			variation =  app.token.calculateVariation(total_balance.total_balance, user.daily[0].Balance)
+		   }
+
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
 			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
 			if(user.daily.length > 7){user.daily.pop()}
@@ -105,7 +112,7 @@ module.exports = function (app) {
 			await app.db.sn_user().updateOne({_id : id}, {$set: user});
 		  }
 		
-		  res.end(JSON.stringify({Total_balance})).status(201);
+		  res.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
