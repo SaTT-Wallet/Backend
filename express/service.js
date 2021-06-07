@@ -82,7 +82,22 @@ module.exports = function (app) {
 					var cred = await app.account.unlockBSC(auth.id,pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
-
+				if(ret.transactionHash){
+					let notification={
+						idNode:"0"+auth.id,
+						type:"convert_event",
+						status:"done",
+						label:JSON.stringify([{amount,Direction,date :new Date()}]),
+						isSeen:false,
+						isSend:false,
+						attachedEls:{
+							id:auth.id
+					  },
+					  created:new Date()
+					}
+					await app.db.notification().insertOne(notification);
+				}
+                 
 				res.end(JSON.stringify(ret));
 			} catch (err) {
 				res.end(JSON.stringify(err));
