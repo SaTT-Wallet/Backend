@@ -141,7 +141,9 @@ module.exports = async function (app) {
 	oracleManager.instagram = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
 				var perf = {shares:0,likes:0,views:0};
-				var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
+
+			//	var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
+					var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/instagram_oembed?access_token="+token+"&url=url=https://www.instagram.com/p/"+idPost,json: true});
 				var username = res.author_name;
 				res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
 				if(res2 && res2.length) {
