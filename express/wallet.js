@@ -100,15 +100,9 @@ module.exports = function (app) {
 		  
 		  if(!user.daily){user.daily = []}
 
-		  function calculateVariation(a, b) {
-			if (isNaN(+a) || isNaN(+b)){
-				return  'input error';
-			 }
-			return  a-b === 0 ? 0 : 100 * ( a - b ) / b 
-		   }
 
 		   if(user.daily[0]){
-			variation =  calculateVariation(total_balance.total_balance, user.daily[0].Balance)
+			variation =  app.token.calculateVariation(total_balance.total_balance, user.daily[0].Balance)
 		   }
 
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
