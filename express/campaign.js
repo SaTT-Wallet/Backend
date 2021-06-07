@@ -842,16 +842,16 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/validate', async function(req, response) {
-
+ 
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var idApply = req.body.idProm;
-
+        let token = req.headers["authorization"].split(" ")[1];
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
 		try {
-			var res = await app.crm.auth( req.body.token);
+			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
@@ -2213,6 +2213,27 @@ console.log(Links)
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 
+	})
+
+	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
+		try{
+		let idCampaign = req.params.idCampaign;
+		let result = {}
+		let ctr = await app.campaign.getCampaignContract(idCampaign);
+		if(!ctr.methods) {
+			res.end("{}");
+			return;
+		}else{
+        result =  await app.campaignCentral.campaignProms(idCampaign,result,ctr)
+		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
+		res.send(JSON.stringify(acceptedProms, result));
+		}
+	
+        
+		}catch(err){
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		
 	})
 
 	return app;
