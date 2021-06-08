@@ -279,14 +279,21 @@ module.exports = function (app) {
 
           var instagram_id = false;
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
-          console.log(accountsUrl);
-           for (var res = await rp({uri:accountsUrl,json: true});!instagram_id && res.paging.next;  res = await rp({uri:res.paging.next})) {
+          var res = await rp({uri:accountsUrl,json: true})
+          while(true) {
             for (var i =0;i<res.data.length;i++) {
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
               }
             }
-          }
+            if(instagram_id || !res.paging.next)
+            {
+              break;
+            }
+            res = await rp({uri:res.paging.next})
+
+         }
+
           var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/media?fields=shortcode,like_count,owner";
           for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next})) {
             for (var i =0;i<res.data.length;i++) {
