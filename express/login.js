@@ -6,6 +6,7 @@ module.exports = function (app) {
   var transporter = nodemailer.createTransport(app.config.mailerOptions);
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
+  var rp = require('request-promise');
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
 
@@ -261,41 +262,49 @@ module.exports = function (app) {
         } else {
           var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
           "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
-          "&client_secret="+app.config.fbGraphVersion+"&fb_exchange_token="+accessToken;
+          "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
           var resToken = await rp({uri:longTokenUrl,json: true});
           var longToken = resToken.access_token;
 
-          var fbProfile = false;
-          fbProfile = await app.db.fbProfile().findOne({UserId:users[0]._id  });
-          if(fbProfile) {
-            var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
-          }
-          else {
-              profile.accessToken = longToken;
-              profile.UserId = users[0]._id;
-              var res_ins = await app.db.fbProfile().insertOne(profile);
-          }
+
 
           var instagram_id = false;
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
-           for (var res = await rp({uri:accountsUrl,json: true});!instagram_id && res.paging.next;  res = await rp({uri:res.paging.next})) {
-            for (var i =0;i<res.data.length;i++) {
+          var res = await rp({uri:accountsUrl,json: true})
+          while(true) {
+          
+            for (var i = 0;i<res.data.length;i++) {
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
               }
             }
-          }
-          var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/media?fields=shortcode,like_count,owner";
-          for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next})) {
+            if(instagram_id || !res.paging.next)
+            {
+              break;
+            }
+            res = await rp({uri:res.paging.next,json: true})
+         }
+         var fbProfile = false;
+         fbProfile = await app.db.fbProfile().findOne({UserId:users[0]._id  });
+         if(fbProfile) {
+           var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
+         }
+         else {
+             profile.accessToken = longToken;
+             profile.UserId = users[0]._id;
+             profile.instagram_id = instagram_id;
+             var res_ins = await app.db.fbProfile().insertOne(profile);
+         }
+
+          var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
+          for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
             for (var i =0;i<res.data.length;i++) {
               var media = res.data[i];
-              await app.db.igMedia().insertOne(media);
+              await app.db.ig_media().insertOne(media);
             }
           }
 
-
-
-          return cb(null, {id: users[0]._id, token: accessToken, expires_in: date});
+          return cb(null, {id: users[0]._id, token: accessToken});
         }
       }));
 
@@ -581,7 +590,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     authErrorHandler);
 
     app.get('/callback/facebook_insta',
-      passport.authenticate('facebook_strategy'), async function (req, response) {
+      passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
           response.end("ok")
         } catch (e) {
