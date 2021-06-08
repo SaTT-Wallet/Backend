@@ -281,7 +281,7 @@ module.exports = function (app) {
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
           var res = await rp({uri:accountsUrl,json: true})
           while(true) {
-            console.log(res);
+            console.log(res.data);
             for (var i =0;i<res.data.length;i++) {
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
