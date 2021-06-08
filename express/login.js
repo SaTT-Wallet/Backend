@@ -948,7 +948,5 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   app.get('/callback/connect/google', passport.authenticate('connect_google', {scope: ['profile','email']}), async function (req, response) {
     response.redirect(app.config.basedURl +'/linkAccounts')
   });
-
-  
   return app;
 }
