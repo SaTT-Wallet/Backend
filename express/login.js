@@ -262,7 +262,7 @@ module.exports = function (app) {
         } else {
           var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
           "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
-          "&client_secret="+app.config.fbGraphVersion+"&fb_exchange_token="+accessToken;
+          "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
           var resToken = await rp({uri:longTokenUrl,json: true});
           var longToken = resToken.access_token;
 
