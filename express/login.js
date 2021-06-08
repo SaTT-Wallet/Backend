@@ -948,5 +948,24 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   app.get('/callback/connect/google', passport.authenticate('connect_google', {scope: ['profile','email']}), async function (req, response) {
     response.redirect(app.config.basedURl +'/linkAccounts')
   });
+
+
+  app.post('/check/pass', async  (req, res) => {
+    try{
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let walletpass = req.body.password;
+    let id = auth.id;
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber( id)});
+      if (synfonyHash(user.password) != synfonyHash(walletpass)) {
+      res.end('{message:"Not the same password"}').status(200);
+    } else {
+      res.end('{error:"same password"}').status(500);
+    }
+    
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+   }
+  });
   return app;
 }
