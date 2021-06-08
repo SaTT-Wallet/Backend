@@ -291,7 +291,7 @@ module.exports = function (app) {
             {
               break;
             }
-            res = await rp({uri:res.paging.next})
+            res = await rp({uri:res.paging.next,json: true})
 
          }
 
