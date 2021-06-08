@@ -581,7 +581,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     authErrorHandler);
 
     app.get('/callback/facebook_insta',
-      passport.authenticate('facebook_strategy'), async function (req, response) {
+      passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
           response.end("ok")
         } catch (e) {
