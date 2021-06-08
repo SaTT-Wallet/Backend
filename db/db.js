@@ -48,6 +48,7 @@ module.exports = async function (app) {
 	}
 	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	var db3 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseClassed, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
 	app.db.accessToken = function () {
 				return db2.db(app.config.mongoBaseCrm).collection('access_token');
@@ -56,7 +57,7 @@ module.exports = async function (app) {
 		app.db.campaignCrm = function () {
             return db2.db(app.config.mongoBaseCrm).collection(app.config.campaignCollection);
         };
-		
+
         app.db.referral = function () {
 			return db2.db(app.config.mongoBaseCrm).collection('referral');
 	       };
@@ -166,5 +167,13 @@ module.exports = async function (app) {
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
     };
+
+		app.db.fbProfile = function () {
+				return db.db(app.config.mongoBase).collection('fb_profile');
+		};
+
+		app.db.ig_media = function () {
+					return db3.db(app.config.mongoBaseClassed).collection("page_ig_media");
+		};
     return app;
 }
