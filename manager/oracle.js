@@ -22,8 +22,11 @@ module.exports = async function (app) {
 	oracleManager.getIgUsername = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
 			var res = await rp({uri:"https://www.instagram.com/p/"+idPost});
+			console.log(res);
 			res = res.split('<script type="application/ld+json">')[1];
+				console.log(res);
 			part = res.split("</script>");
+				console.log(part);
 			var meta = JSON.parse(part);
 			resolve(meta.author.alternateName.substring(1));
 		})
