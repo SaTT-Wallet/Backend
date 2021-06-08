@@ -957,10 +957,10 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     let walletpass = req.body.password;
     let id = auth.id;
     let user = await app.db.sn_user().findOne({ _id:Long.fromNumber( id)});
-      if (synfonyHash(user.password) != synfonyHash(walletpass)) {
-      res.end('{message:"Not the same password"}').status(200);
+      if (user.password != synfonyHash(walletpass)) {
+      res.end(JSON.stringify({message:"Not the same password"})).status(200);
     } else {
-      res.end('{error:"same password"}').status(500);
+      res.end(JSON.stringify({error:"same password"})).status(500);
     }
     
   } catch (err) {
