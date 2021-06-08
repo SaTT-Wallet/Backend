@@ -922,7 +922,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
 
 
-    app.get('/connect/auth/google/:idUser', (req, res,next)=>{
+    app.get('/connect/google/:idUser', (req, res,next)=>{
       passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
     });
 
@@ -935,7 +935,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     async function (req,accessToken, refreshToken, profile, cb) {
 	    var user_id=+req.query.state;
       var userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
-      if(userExist.length){
+      if(userExist.length){     
         return cb('account exist')
       }else{
               var users = await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn2: profile.id}})
@@ -962,7 +962,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     } else {
       res.end(JSON.stringify({error:"same password"})).status(500);
     }
-    
   } catch (err) {
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
    }
