@@ -266,7 +266,7 @@ module.exports = function (app) {
           var longToken = resToken.access_token;
 
           var fbProfile = false;
-          fbProfile await app.db.fbProfile().findOne({UserId:users[0]._id  });
+          fbProfile = await app.db.fbProfile().findOne({UserId:users[0]._id  });
           if(fbProfile) {
             var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
           }
