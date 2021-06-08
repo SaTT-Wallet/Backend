@@ -16,7 +16,7 @@ module.exports = function (app) {
 	});
 
 	app.get("/instagram/:id", async function (req, response) {
-		console.log(req.params.id);
+		
 		var res = await app.oracle.instagram(req.params.id);
 		response.end(JSON.stringify(res));
 	});
