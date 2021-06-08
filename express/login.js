@@ -266,16 +266,7 @@ module.exports = function (app) {
           var resToken = await rp({uri:longTokenUrl,json: true});
           var longToken = resToken.access_token;
 
-          var fbProfile = false;
-          fbProfile = await app.db.fbProfile().findOne({UserId:users[0]._id  });
-          if(fbProfile) {
-            var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
-          }
-          else {
-              profile.accessToken = longToken;
-              profile.UserId = users[0]._id;
-              var res_ins = await app.db.fbProfile().insertOne(profile);
-          }
+
 
           var instagram_id = false;
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
@@ -292,7 +283,17 @@ module.exports = function (app) {
               break;
             }
             res = await rp({uri:res.paging.next,json: true})
-
+         }
+         var fbProfile = false;
+         fbProfile = await app.db.fbProfile().findOne({UserId:users[0]._id  });
+         if(fbProfile) {
+           var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
+         }
+         else {
+             profile.accessToken = longToken;
+             profile.UserId = users[0]._id;
+             profile.instagram_id = instagram_id;
+             var res_ins = await app.db.fbProfile().insertOne(profile);
          }
 
           var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
