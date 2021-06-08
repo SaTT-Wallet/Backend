@@ -304,8 +304,6 @@ module.exports = function (app) {
             }
           }
 
-
-
           return cb(null, {id: users[0]._id, token: accessToken, expires_in: date});
         }
       }));
