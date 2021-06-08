@@ -295,7 +295,7 @@ module.exports = function (app) {
 
          }
 
-          var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner";
+          var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
           for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
             for (var i =0;i<res.data.length;i++) {
               var media = res.data[i];
