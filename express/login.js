@@ -299,7 +299,7 @@ module.exports = function (app) {
           for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
             for (var i =0;i<res.data.length;i++) {
               var media = res.data[i];
-              await app.db.igMedia().insertOne(media);
+              await app.db.ig_media().insertOne(media);
             }
           }
 
