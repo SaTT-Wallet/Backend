@@ -173,7 +173,7 @@ module.exports = async function (app) {
 		};
 
 		app.db.ig_media = function () {
-					return db3.db(app.config.mongoBaseClassed).collection("page_ig_media");
+						return db.db(app.config.mongoBase).collection("ig_media");
 		};
     return app;
 }
