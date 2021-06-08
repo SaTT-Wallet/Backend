@@ -245,6 +245,60 @@ module.exports = function (app) {
       }
     }))
 
+
+    passport.use('instalink_FbStrategy',new FbStrategy({
+        clientID: app.config.appId,
+        clientSecret: app.config.appSecret,
+        callbackURL: app.config.baseUrl + "callback/facebook_insta",
+        profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
+      },
+      async function (accessToken, refreshToken, profile, cb) {
+
+
+        var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
+        if (!users.length) {
+          return cb('Error: no account')
+        } else {
+          var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
+          "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
+          "&client_secret="+app.config.fbGraphVersion+"&fb_exchange_token="+accessToken;
+          var resToken = await rp({uri:longTokenUrl,json: true});
+          var longToken = resToken.access_token;
+
+          var fbProfile = false;
+          fbProfile await app.db.fbProfile().findOne({UserId:users[0]._id  });
+          if(fbProfile) {
+            var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
+          }
+          else {
+              profile.accessToken = longToken;
+              profile.UserId = users[0]._id;
+              var res_ins = await app.db.fbProfile().insertOne(profile);
+          }
+
+          var instagram_id = false;
+          var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
+           for (var res = await rp({uri:accountsUrl,json: true});!instagram_id && res.paging.next;  res = await rp({uri:res.paging.next})) {
+            for (var i =0;i<res.data.length;i++) {
+              if(res.data[i].instagram_business_account) {
+                instagram_id = res.data[i].instagram_business_account.id;
+              }
+            }
+          }
+          var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/media?fields=shortcode,like_count,owner";
+          for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next})) {
+            for (var i =0;i<res.data.length;i++) {
+              var media = res.data[i];
+              await app.db.igMedia().insertOne(media);
+            }
+          }
+
+
+
+          return cb(null, {id: users[0]._id, token: accessToken, expires_in: date});
+        }
+      }));
+
   passport.use('signup_googleStrategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
@@ -319,7 +373,7 @@ module.exports = function (app) {
         botToken: app.config.telegramBotToken
       },
       async function(profile, cb) {
-      
+
         var date = Math.floor(Date.now() / 1000) + 86400;
         var buff = Buffer.alloc(32);
         var token = crypto.randomFillSync(buff).toString('hex');
@@ -445,6 +499,8 @@ module.exports = function (app) {
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
+  app.get('/auth/fb_insta', passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'] }));
+
 
 
   app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}));
@@ -466,17 +522,17 @@ module.exports = function (app) {
     },
     authErrorHandler);
 
-    
+
 app.get('/auth/admin/:userId', async (req, res)=>{
   try {
     const userId = +req.params.userId;
-    if(userId === app.config.idNodeAdmin1 || userId === app.config.idNodeAdmin2){ 
+    if(userId === app.config.idNodeAdmin1 || userId === app.config.idNodeAdmin2){
     const token = await app.db.accessToken().findOne({user_id: userId});
     var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
       res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
-    }	
+    }
 } catch (err) {
-	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
 })
 
@@ -523,6 +579,16 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       }
     },
     authErrorHandler);
+
+    app.get('/callback/facebook_insta',
+      passport.authenticate('facebook_strategy'), async function (req, response) {
+        try {
+          response.end("ok")
+        } catch (e) {
+          console.log(e)
+        }
+      },
+      authErrorHandler);
 
   app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
@@ -854,7 +920,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
          locale:"en",
          idOnSn2:req.body.id
         }
-       
+
 
         var user=await app.db.sn_user().findOne({ $and: [{email: snUser.email},{idSn:snUser.idSn}]})
         if(user){
@@ -876,11 +942,11 @@ app.get('/auth/admin/:userId', async (req, res)=>{
           }
 
       }catch(err){
-        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
       }
 
     });
-  
+
     app.get('/onBoarding', async (req, res) => {
       try{
         let token = req.headers["authorization"].split(" ")[1];
@@ -909,14 +975,14 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       try {
         const userId = +req.params.userId;
         OAAccessToken = await app.db.query("Select * from OAAccessToken where user_id = '"+userId+"'")
-        OARefreshToken = await app.db.query("Select * from OARefreshToken where user_id = '"+userId+"'") 
+        OARefreshToken = await app.db.query("Select * from OARefreshToken where user_id = '"+userId+"'")
         var param ={"access_token":OAAccessToken[0].token,"expires_in":OAAccessToken[0].espires_at,
         "token_type":"bearer","scope":"user",
         "refresh_token":OARefreshToken[0].token}
           res.redirect(app.config.v1Url +"?token=" + JSON.stringify(param))
-        
+
     } catch (err) {
-      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
      }
     })
 
@@ -942,13 +1008,13 @@ app.get('/auth/admin/:userId', async (req, res)=>{
               return cb ('account_linked_with success') //(null, false, {message: 'account_invalide'});
 
       }
-    
+
     }));
 
   app.get('/callback/connect/google', passport.authenticate('connect_google', {scope: ['profile','email']}), async function (req, response) {
     response.redirect(app.config.basedURl +'/linkAccounts')
   });
 
-  
+
   return app;
 }
