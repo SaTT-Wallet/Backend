@@ -392,9 +392,7 @@ module.exports = async function (app) {
 	campaignCentralManager.campaignProms = async (idCampaign, PassedProms, ctrPassed)=>{
 		return new Promise(async (resolve, reject) => {
       
-       try{
-
-        
+       try{  
         let ctr = ctrPassed;
 		let idproms = await ctr.methods.getProms(idCampaign).call();
 		let proms = [];
@@ -418,7 +416,7 @@ module.exports = async function (app) {
 				if(addresses.indexOf(prom.influencer)== -1)
 					addresses.push(prom.influencer.slice(2).toLowerCase());
 			}
-			//
+		
 
 			for (let i =0;i<newproms.length;i++)
 			{
@@ -428,7 +426,7 @@ module.exports = async function (app) {
 				if(addresses.indexOf(newprom.influencer) == -1)
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
 			}
-			//
+			
 			PassedProms.proms = proms;
 
 			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
