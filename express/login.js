@@ -6,6 +6,7 @@ module.exports = function (app) {
   var transporter = nodemailer.createTransport(app.config.mailerOptions);
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
+  var rp = require('request-promise');
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
 
