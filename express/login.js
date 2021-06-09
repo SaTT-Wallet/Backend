@@ -1024,7 +1024,8 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     }));
 
   app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
-    res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
+    let message = req.authInfo.message
+    res.redirect(app.config.basedURl +'/linkAccounts?message=' + message);
   });
 
 
@@ -1042,7 +1043,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   async function (req,accessToken, refreshToken, profile, done) {
     let user_id=+req.query.state;
     console.log(user_id)
-    let users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
+    let users = await app.db.sn_user().find({idOnSn:profile._json.token_for_business}).toArray()
     if(users.length){        
       done(null,profile,{
      status: false,
@@ -1050,13 +1051,46 @@ app.get('/auth/admin/:userId', async (req, res)=>{
  })
 }else{
      await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn: profile._json.token_for_business}})
-    done (null,profile, {status:true, message:'account_linked_with success'}) //(null, false, {message: 'account_invalide'});
+    done (null,profile, {
+      status:true, 
+      message:'account_linked_with success'
+    }) 
 }
   }))
 
   
 
   app.get('/callback/connect/facebook',passport.authenticate('connect_facebook'), async  (req, res)=> {
+    res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
+  });
+
+
+  app.get('/connect/telegram/:idUser', (req, res,next)=>{
+    passport.authenticate('connect_telegram', {state:req.params.idUser})(req,res,next)
+  }); 
+
+
+  passport.use("connect_telegram",new TelegramStrategy({
+    botToken: app.config.telegramBotToken
+  },
+  async function (req,accessToken, refreshToken, profile, done) {
+    let user_id=+req.query.state;
+    console.log(user_id)
+    let users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
+    if(users.length){        
+      done(null,profile,{
+     status: false,
+     message: "account exist"
+ })
+}else{
+     await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn3: profile.id}})
+    done (null,profile, {status:true, message:'account_linked_with success'}) //(null, false, {message: 'account_invalide'});
+}
+  }))
+
+  
+
+  app.get('/callback/connect/telegram',passport.authenticate('connect_telegram'), async  (req, res)=> {
     res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
   });
 
