@@ -2,8 +2,7 @@ module.exports = function (app) {
 
 const cron =require('node-cron');
 
-
-cron.schedule('36 14 * * *',  () => {
+cron.schedule('00 01 * * *',  () => {
 	app.account.BalanceUsersStats("daily");
 });
 
@@ -11,7 +10,7 @@ cron.schedule("* * 1 * *", () =>{
  app.account.BalanceUsersStats("monthly");
 });
 
-cron.schedule("0 0 * * 0", () =>{
+cron.schedule("03 04 * * 1", () =>{
  app.account.BalanceUsersStats("weekly");
 });
 
@@ -355,7 +354,6 @@ cron.schedule("0 0 * * 0", () =>{
 			})
 
             let campaigns_=[...created_campaigns,...draft_campaigns];
-
 			response.end(JSON.stringify(campaigns_));
 
 		}catch(err){

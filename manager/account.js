@@ -671,7 +671,8 @@ module.exports = async function (app) {
       return new Promise( async (resolve, reject) => {
        try {
 
-		  var [token_info, ret,Total_balance,CryptoPrices] = [app.config.Tokens, {err:"no_account"},0,crypto];
+		  var [ret,Total_balance,CryptoPrices] = [{err:"no_account"},0,crypto];
+		  var token_info=  Object.assign({}, app.config.Tokens);
 			delete token_info['SATT']
 			delete token_info['BNB']	
 
@@ -731,7 +732,8 @@ module.exports = async function (app) {
 	accountManager.getListCryptoByUid = async  (userId, crypto) => {	
 		return new Promise( async (resolve, reject) => {
 		 try {
-			var token_info=app.config.Tokens
+			let listOfCrypto=[];
+			var token_info=  Object.assign({}, app.config.Tokens);
 			  delete token_info['SATT']
 			  delete token_info['BNB']		
 			  var CryptoPrices = crypto;
@@ -746,7 +748,6 @@ module.exports = async function (app) {
 			  }else{
 				resolve(ret);
 			  }
-			  listOfCrypto=[];
 			  for(const T_name in token_info){
 				var network=token_info[T_name].network;
 				crypto={};
@@ -840,7 +841,6 @@ module.exports = async function (app) {
 
 	   let today = (new Date()).toLocaleDateString("en-US");
 	   let [currentDate, result]= [Math.round(new Date().getTime()/1000), {}];
-       let dateMinus;
 
 	   [result.Date, result.convertDate] = [currentDate,today]
 
@@ -859,15 +859,12 @@ module.exports = async function (app) {
 
 		if(condition === "daily"){
 		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
-			dateMinus = 86400
 		 }
 		else if(condition === "weekly"){
-			users_ = await app.db.sn_user().find({userSatt : true}).toArray();
-			dateMinus = 604800
+			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
 	     }
-		else if(condition === "Monthly"){
-			users_ = await app.db.sn_user().find({userSatt : true}).toArray()
-			dateMinus = 2629743
+		else if(condition === "monthly"){
+			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
 	     }
 		
 		 let[counter, usersCount] = [0,users_.length];
@@ -888,25 +885,14 @@ module.exports = async function (app) {
 
 			 result.Balance = balance["Total_balance"];
 
-			 if(!result.Balance || isNaN(parseInt(result.Balance))){
+			 if(!result.Balance || isNaN(parseInt(result.Balance) || result.Balance === null)){
                 counter++;
 			} else{
 			 user[condition].unshift(result);
 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
-			 else{
-
-				 let length = user[condition].length-1;
-				 for(i =0 ; i<= (7-length) ;i++)
-				 { 
-					 currentDate = currentDate - dateMinus;
-					user[condition].push({Date : currentDate, Balance:0});
-				 }
-                  
-			 }
 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
 			 delete result.Balance ;
 			 delete id;
-			 console.log(counter, "script updating" )
              counter++;
 			}
          	

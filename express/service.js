@@ -16,6 +16,7 @@ module.exports = function (app) {
 	});
 
 	app.get("/instagram/:id", async function (req, response) {
+		
 		var res = await app.oracle.instagram(req.params.id);
 		response.end(JSON.stringify(res));
 	});
@@ -35,7 +36,7 @@ module.exports = function (app) {
 *     parameters:
 *        - name: access token (access_T)
 *          description: authentication token (Direction)
-*        - name: Direction ETB (Erc20 to Bep20) , BTE (Bep20 to Erc20) 
+*        - name: Direction ETB (Erc20 to Bep20) , BTE (Bep20 to Erc20)
 *          description: the direction of the conversion
 *        - name:  password (pass)
 *          description: wallet password
@@ -50,34 +51,52 @@ module.exports = function (app) {
 *          description: wrong wallet password (it's impossible to get it back in case you forgot it )
 *		example:   #Transaction
 *               token:d1c466f447abd9bbf29e7e996da557600a3ab8afd96417fc96987021335c0231
-*               direction:ETB 
+*               direction:ETB
 *               password:64487343745
 *               amount:1000000000000000000
-*       
-*/    
+*
+*/
 		app.post("/SaTT/bridge", async function (req, res) {
 			let access_T = req.body.token;
 			let Direction = req.body.direction;
 			let pass = req.body.password;
 			let amount = req.body.amount;
-
+			var sattContract=app.config.ctrs.token.address.mainnet;
+			if(app.config.testnet){
+				sattContract=app.config.ctrs.token.address.testnet
+			}
 			try {
 				var auth = await app.crm.auth(access_T);
 
 				var ret;
 				if (Direction == "ETB") {
-					var cred = await app.account.unlock(auth.id, ""+pass);
+					var cred = await app.account.unlock(auth.id,pass);
 
 					ret = await app.erc20.transfer(
-						app.config.Tokens["SATT"].contract,
+						sattContract,
 						app.config.bridge,
 						amount,
 						cred
 					);
 					console.log(ret)
 				} else if (Direction == "BTE") {
-					var cred = await app.account.unlockBSC(auth.id, ""+pass);
+					var cred = await app.account.unlockBSC(auth.id,pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
+				}
+				if(ret.transactionHash){
+					let notification={
+						idNode:"0"+auth.id,
+						type:"convert_event",
+						status:"done",
+						label:JSON.stringify([{amount,Direction,date :new Date()}]),
+						isSeen:false,
+						isSend:false,
+						attachedEls:{
+							id:auth.id
+					  },
+					  created:new Date()
+					}
+					await app.db.notification().insertOne(notification);
 				}
 
 				res.end(JSON.stringify(ret));

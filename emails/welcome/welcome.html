@@ -10,7 +10,7 @@
     <title>Atayen</title>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap" rel="stylesheet">
     <style>
         .main {
             width: 100%;
@@ -32,8 +32,6 @@
             color: #FFFFFF;
             display: inline-table;
             border: 1px solid #D6D6E8;
-            font-family: 'Poppins', sans-serif;
-            font-style: normal;
         }
 
         .content .top {
@@ -48,7 +46,7 @@
         }
 
         .content .top .col a {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Roboto', sans-serif;
             font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
@@ -56,7 +54,7 @@
         }
 
         .content .mail-header {
-            background-image: url("{{imgUrl}}/password_bg.png");
+            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -66,7 +64,7 @@
         }
 
         .content .mail-header h2 {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Lato', sans-serif;
             font-style: normal;
             font-weight: bold;
             font-size: 40px;
@@ -78,7 +76,7 @@
         }
 
         .content .mail-header a.btn {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Lato', sans-serif;
             font-style: normal;
             font-weight: 900;
             font-size: 18px;
@@ -88,40 +86,19 @@
             background: #00CC9E;
             border-radius: 30px;
         }
-        .content .mail-header .actions {
-            margin-top: 45px;
-            margin-bottom: 70px;
-        }
-        .content .mail-header .actions a.primary {
-            
-            font-family: 'Poppins', sans-serif;
-            font-style: normal;
-            font-weight: 600;
-            font-size: 18px;
-            line-height: 27px;
-            align-items: center;
-            text-align: center;
-            letter-spacing: 0.03em;
-
-            padding: 15px 45px;
-
-            color: #F6F6FF;
-            background: #00CC9E;
-            border-radius: 30px;
-        }
 
         .content .mail-header p.subtitle {
-            font-family: 'Poppins', sans-serif;
-            font-style: normal;
-            font-weight: 600;
-            font-size: 20px;
-            line-height: 30px;
+            font-family: 'Lato', sans-serif;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 22px;
+            text-align: center;
             letter-spacing: 0.02em;
             color: #FFFFFF;
         }
 
         .content .mail-header p {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Roboto', sans-serif;
             font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
@@ -130,14 +107,14 @@
         .content .mail-body {
             color: #1F2337;
             font-style: normal;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Roboto', sans-serif;
             padding: 30px;
         }
 
         .content .mail-body .subtitle {
             margin-top: 15px;
             margin-bottom: 15px;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Lato', sans-serif;
             font-weight: bold;
             font-size: 18px;
             line-height: 22px;
@@ -168,6 +145,7 @@
             width: auto;
             min-width: 245px;
             margin-top: 10px;
+            font-family: 'Lato', sans-serif;
             font-style: normal;
             font-weight: 900;
             font-size: 18px;
@@ -183,30 +161,14 @@
         }
 
         .content .mail-body .actions a.primary {
-            font-family: 'Poppins', sans-serif;
-            font-style: normal;
-            font-weight: 760;
-            font-size: 18px;
-            line-height: 27px;
-            align-items: center;
-            text-align: center;
-            letter-spacing: 0.03em;
-
-            padding: 15px 45px;
-
             color: #F6F6FF;
-            background: #00CC9E;
-            border-radius: 30px;
+            background: #4048FF;
         }
 
         .content .mail-body .actions a.secondary {
             color: #4048FF;
             background: #FFFFFF;
             box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-        }
-
-        .actions{
-        	margin: 32px 0px 16px 0px;
         }
 
         .content .mail-footer {
@@ -220,7 +182,7 @@
         }
 
         .content .mail-footer a {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Roboto', sans-serif;
             font-style: normal;
             font-weight: normal;
             font-size: 14px;
@@ -237,29 +199,11 @@
         .mail-body .col.img {
             width: 30%;
             text-align: center;
-            display: inline-block;
         }
 
         .mail-body .col.text {
             width: 69%;
-            display: inline-block;
-        }
-
-        .sub-footer .actions a.secondary{
-            font-family: 'Poppins', sans-serif;
-            font-style: normal;
-            font-weight: 900;
-            font-size: 18px;
-            line-height: 22px;
-            align-items: center;
-            text-align: center;
-            letter-spacing: 0.03em;
-            padding: 15px 45px;
-            color: #4048FF;
-
-            background: #FFFFFF;
-            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-            border-radius: 30px;
+            text-align: left !important;
         }
 
         .sub-footer {
@@ -269,22 +213,22 @@
         }
 
         .sub-footer h2 {
-            font-family: 'Poppins', sans-serif;
+            font-family: Lato;
             font-style: normal;
             font-weight: bold;
-            font-size: 22px;
-           line-height: 28px;
+            font-size: 40px;
+            line-height: 50px;
             text-align: center;
             letter-spacing: 1px;
             color: #FFFFFF;
         }
 
         .sub-footer p {
-            font-family: 'Poppins', sans-serif;
+            font-family: Roboto;
             font-style: normal;
             font-weight: normal;
             font-size: 14px;
-            line-height: 19.2px;
+            line-height: 18px;
             text-align: center;
             letter-spacing: 0.04em;
             color: #FFFFFF
@@ -306,24 +250,14 @@
         }
 
         .footer .copyright {
-            font-family: 'Poppins', sans-serif;
+            font-family: Roboto;
             font-style: normal;
-            font-size: 16px;
+            font-weight: normal;
+            font-size: 12px;
             line-height: 14px;
             text-align: center;
             letter-spacing: 0.03em;
             color: #FFFFFF;
-            font-weight: 549;
-        }
-        .text-contact{
-        	margin-top: 19px;
-        }
-        .title{
-            font-family: 'Poppins', sans-serif;
-            font-weight: bold;
-              font-size: 36px;
-             line-height: 50px;  
-             letter-spacing: 1px;
         }
     </style>
 </head>
@@ -332,60 +266,71 @@
     <div class="content">
         <div class="mail-header">
             <div class="top">
-                <div align="left">
-                    <img src="{{imgUrl}}/logo.png" alt="">
+                <div class="col" align="left">
+                    <img src="https://web-preprod.iframe-apps.com/images/img_mail/logo.png" alt="">
                 </div>
-            
+                <div class="col" align="right">
+                    <a href="{{satt_url}}">Voir la version en ligne <img class="icon" src="https://web-preprod.iframe-apps.com/images/img_mail/right_arrow.png"></a>
+                </div>
             </div>
-            <img src="{{imgUrl}}/password.png" alt="">
-            <h2 class="title">{{{__ "welcome"}}} </h2>
-            <p>{{{__ "finished_inscription"}}} 
+            <img src="https://web-preprod.iframe-apps.com/images/img_mail/password.png" alt="">
+            <h2>Bienvenue !</h2>
+            <p>Votre inscription est presque finie ! <br>
+                Il ne vous reste plus qu'à valider votre inscription pour<br>
+                accéder à tous les services proposés par SaTT. </p>
             <div class="actions">
-                <a href="{{validation_url}}" class="primary">{{{__ "validate_mail"}}}</a>
-                <h6 class="text-contact">{{{__ "contact_support"}}}</h6>
+                <a href="{{validation_url}}" class="primary">Je valide mon mail</a>
             </div>
-
         </div>
         <div class="mail-body">
             <div>
-                <div class="col img"><img src="{{imgUrl}}/wallet.png" alt=""></div>
+                <div class="col img"><img src="https://web-preprod.iframe-apps.com/images/img_mail/wallet.png" alt=""></div>
                 <div class="col text">
-                    <div class="subtitle" align="left">{{{__ "create_portfolio"}}}</div>
-                    <p>{{{__ "create_secure"}}} </p>
+                    <div class="subtitle" align="left">Commencez par créer votre portefeuille</div>
+                    <p>Votre inscription est presque finie !
+                        Il ne vous reste plus qu'à valider votre inscription pour accéder à tous les services proposés par SaTT. </p>
                 </div>
             </div>
             <div>
-                <div class="col img"><img src="{{imgUrl}}/audience.png" alt=""style="margin-top:7%;"></div>
+                <div class="col img"><img src="https://web-preprod.iframe-apps.com/images/img_mail/audience.png" alt=""></div>
                 <div class="col text">
-                    <div class="subtitle" align="left"> {{{__ "monetisez"}}}</div>
-                    <p>{{{__ "monetisez_description"}}}</p>
+                    <div class="subtitle" align="left"> Monétisez votre audience !</div>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        Integer eu sodales augue.
+                        Phasellus ultrices consectetur ligula rhoncus egestas.
+                        Fusce eleifend a elit scelerisque scelerisque.</p>
                 </div>
             </div>
             <div>
-                <div class="col img"><img src="{{imgUrl}}/campaign.png" alt="" style="margin-top:-9%;"></div>
+                <div class="col img"><img src="https://web-preprod.iframe-apps.com/images/img_mail/campain.png" alt=""></div>
                 <div class="col text">
-                    <div class="subtitle" align="left"> {{{__ "automate_campaign"}}}</div>
-                    <p>{{{__ "automate_campaign_description"}}}</p>
+                    <div class="subtitle" align="left"> Lancez vos campagnes !</div>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        Integer eu sodales augue. Phasellus ultrices consectetur ligula rhoncus egestas.
+                        Fusce eleifend a elit scelerisque scelerisque.</p>
                 </div>
             </div>
 
         </div>
         <div class="sub-footer" align="center">
-            <h2>{{{__ "questions"}}}</h2>
-            <p>{{{__ "questions_description"}}}</p>
-            <div class="actions mt-2">
-                <a href="https://satt-token.com/#faq" class="secondary">{{{__ "consult_faq"}}}</a>
+            <h2>Vous avez des questions ?</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Integer eu sodales augue. Phasellus ultrices consectetur ligula rhoncus egestas.
+                Fusce eleifend a elit scelerisque scelerisque.</p>
+            <div class="actions">
+                <a href="https://satt.atayen.us/#/faq" class="secondary">Consultez la FAQ</a>
             </div>
         </div>
         <div class="footer">
             <div class="social-network">
-                <a href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"><img src="{{imgUrl}}/Facebook.png" style="width:1.5%;"></a>
-                <a href="https://t.me/satttoken"><img src="{{imgUrl}}/Telegram.png" style="width:3%;"></a>
-                <a href="https://twitter.com/SaTT_Token"><img src="{{imgUrl}}/Twitter.png" style="width: 2.8%;"></a>
-                <a href="https://bitcointalk.org/index.php?topic=3407522"><img src="{{imgUrl}}/Bitcoin.png" style="width: 2.4%;"></a>
+                <a href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Facebook.png"></a>
+                <a href="https://t.me/satttoken"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Telegram.png"></a>
+                <a href="https://twitter.com/SaTT_Token"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Twitter.png"></a>
+                <a href="https://bitcointalk.org/index.php?topic=3407522"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Bitcoin.png"></a>
+                <a href=""><img src="https://web-preprod.iframe-apps.com/images/img_mail/Messenger.png"></a>
             </div>
             <div class="copyright">
-                Copyright © 2021 Atayen, Inc. <br>
+                Copyright © 2020 Atayen, Inc. <br>
                 All right reserved
             </div>
         </div>

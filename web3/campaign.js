@@ -134,6 +134,28 @@ module.exports = async function (app) {
 		})
 	}
 
+	campaignManager.createCampaignBounties = async function (dataUrl,startDate,endDate,bounties,token,amount,credentials) {
+		return new Promise(async (resolve, reject) => {
+
+			var ctr = await campaignManager.getContractToken(token);
+
+			var gasPrice = await ctr.getGasPrice();
+			var gas = 500000;
+			try {
+
+
+					var receipt = await  ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+					resolve(receipt.events.CampaignCreated.returnValues.id);
+
+
+			} catch (err) {
+
+				reject(err)
+			}
+
+		})
+	}
+
 	campaignManager.modCampaign = async function (idCampaign,dataUrl,startDate,endDate,credentials) {
 		return new Promise(async (resolve, reject) => {
 			var gasPrice = await app.web3.eth.getGasPrice();
