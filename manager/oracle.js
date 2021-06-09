@@ -153,7 +153,7 @@ module.exports = async function (app) {
 					resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
 				}
 
-		})
+		)
 
 	};
 
