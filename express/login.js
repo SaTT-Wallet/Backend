@@ -193,6 +193,8 @@ module.exports = function (app) {
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         console.log("--------------")
         console.log(profile.email)
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           scopedId: profile.id,
@@ -207,6 +209,7 @@ module.exports = function (app) {
           idSn: 1,
           locale: "en",
           enabled:1,
+          confirmation_token: code,
           picLink:profile.photos.length ? profile.photos[0].value : false,
           userSatt: true
         });
@@ -324,6 +327,8 @@ module.exports = function (app) {
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
@@ -337,6 +342,7 @@ module.exports = function (app) {
           onBoarding : false,
           enabled:1,
           locale: profile._json.locale,
+          confirmation_token: code,
           userSatt: true,
           picLink:profile.photos.length ? profile.photos[0].value : false
         });
@@ -347,7 +353,7 @@ module.exports = function (app) {
       }
     }));
 
-  passport.use('google_strategy', new GoogleStrategy({
+    passport.use('google_strategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
       callbackURL: app.config.baseUrl + "callback/google"
@@ -391,6 +397,8 @@ module.exports = function (app) {
           return cb('email_already_used');
         } else {
           var mongodate = new Date().toISOString();
+          var buff2 = Buffer.alloc(32);
+          var code = crypto.randomFillSync(buff2).toString('hex');
           var mydate = mongodate.slice(0, 19).replace('T', ' ');
           var insert = await app.db.sn_user().insertOne({
             id:Long.fromNumber(await app.account.handleId()),
@@ -405,6 +413,7 @@ module.exports = function (app) {
             updated: mongodate,
             idSn: 5,
             locale: "en",
+            confirmation_token: code,
             enabled:1,
             userSatt: true
           });
@@ -1082,6 +1091,20 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
   });
 
+  app.put('/updateUserEmail', async (req, res)=>{
+    try {
+     
+      var users=await app.db.sn_user().find({ $and: [{email:{$regex : /[A-Z]/ }},{userSatt : true}]}).toArray();
+      users.forEach(async (user)=>{
+        await app.db.sn_user().updateOne({_id:user._id},{$set:{email:user.email.toLowerCase()}});
+      })
+
+      res.send(JSON.stringify("success"))
+      
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+   }
+  })
 
   app.get('/connect/telegram/:idUser', (req, res,next)=>{
     passport.authenticate('connect_telegram', {state:req.params.idUser})(req,res,next)
