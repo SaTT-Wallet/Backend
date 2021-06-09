@@ -109,7 +109,7 @@ module.exports = function (app) {
           var htmlToSend = template(replacements);
           var mailOptions = {
             from: app.config.mailSender,
-            to: users[0].username.toLowerCase(),
+            to: users[0].email.toLowerCase(),
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
@@ -930,7 +930,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
         var htmlToSend = template(replacements);
         var mailOptions = {
           from: app.config.mailSender,
-          to: users[0].username,
+          to: users[0].email,
           subject: 'Satt wallet activation',
           html: htmlToSend
         };
