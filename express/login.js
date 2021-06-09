@@ -996,34 +996,119 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     })
 
 
-
-    app.get('/connect/auth/google/:idUser', (req, res,next)=>{
+    app.get('/connect/google/:idUser', (req, res,next)=>{
       passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
     });
 
     passport.use('connect_google', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: "/callback/connect/google",
+      callbackURL:app.config.baseUrl + "callback/connect/google",
 	    passReqToCallback: true
     },
-    async function (req,accessToken, refreshToken, profile, cb) {
-	    var user_id=+req.query.state;
-      var userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
+    async function (req,accessToken, refreshToken, profile, done) {
+      
+	    let user_id=+req.query.state;
+	    console.log(user_id);
+      let userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
       if(userExist.length){
-        return cb('account exist')
+	             
+                 done(null,profile,{
+                status: false,
+                message: "account exist"
+            })
       }else{
-              var users = await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn2: profile.id}})
-              return cb ('account_linked_with success') //(null, false, {message: 'account_invalide'});
-
+                await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn2: profile.id}})
+               done (null,profile, {status:true, message:'account_linked_with success'}) //(null, false, {message: 'account_invalide'});
       }
-
     }));
 
-  app.get('/callback/connect/google', passport.authenticate('connect_google', {scope: ['profile','email']}), async function (req, response) {
-    response.redirect(app.config.basedURl +'/linkAccounts')
+  app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
+    let message = req.authInfo.message
+    res.redirect(app.config.basedURl +'/linkAccounts?message=' + message);
   });
 
 
+  app.get('/connect/facebook/:idUser', (req, res,next)=>{
+    passport.authenticate('connect_facebook', {state:req.params.idUser})(req,res,next)
+  }); 
+
+
+  passport.use("connect_facebook",new FbStrategy({
+    clientID: app.config.appId,
+    clientSecret: app.config.appSecret,
+    callbackURL: app.config.baseUrl + "callback/connect/facebook",
+    profileFields: ['id', 'email', "token_for_business"]
+  },
+  async function (req,accessToken, refreshToken, profile, done) {
+    let user_id=+req.query.state;
+    console.log(user_id)
+    let users = await app.db.sn_user().find({idOnSn:profile._json.token_for_business}).toArray()
+    if(users.length){        
+      done(null,profile,{
+     status: false,
+     message: "account exist"
+ })
+}else{
+     await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn: profile._json.token_for_business}})
+    done (null,profile, {
+      status:true, 
+      message:'account_linked_with success'
+    }) 
+}
+  }))
+
+  
+
+  app.get('/callback/connect/facebook',passport.authenticate('connect_facebook'), async  (req, res)=> {
+    res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
+  });
+
+
+  app.get('/connect/telegram/:idUser', (req, res,next)=>{
+    passport.authenticate('connect_telegram', {state:req.params.idUser})(req,res,next)
+  }); 
+
+
+  passport.use("connect_telegram",new TelegramStrategy({
+    botToken: app.config.telegramBotToken
+  },
+  async function (req,accessToken, refreshToken, profile, done) {
+    let user_id=+req.query.state;
+    console.log(user_id)
+    let users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
+    if(users.length){        
+      done(null,profile,{
+     status: false,
+     message: "account exist"
+ })
+}else{
+     await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn3: profile.id}})
+    done (null,profile, {status:true, message:'account_linked_with success'}) //(null, false, {message: 'account_invalide'});
+}
+  }))
+
+  
+
+  app.get('/callback/connect/telegram',passport.authenticate('connect_telegram'), async  (req, res)=> {
+    res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
+  });
+
+  app.post('/check/pass', async  (req, res) => {
+    try{
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let walletpass = req.body.password;
+    let id = auth.id;
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber( id)});
+      if (user.password != synfonyHash(walletpass)) {
+      res.end(JSON.stringify({message:"Not the same password"})).status(200);
+    } else {
+      res.end(JSON.stringify({error:"same password"})).status(500);
+    }
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+   }
+  });
   return app;
 }
