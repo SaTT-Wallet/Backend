@@ -1179,11 +1179,11 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-				if(ctr.isCentral) {
+				/*if(ctr.isCentral) {
 					var ret = await  app.campaignCentral.getGains(idProm,cred2);
 					response.end(JSON.stringify(ret));
 					return;
-				}
+				}*/
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
@@ -1265,11 +1265,11 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-				if(ctr.isCentral) {
+			/*	if(ctr.isCentral) {
 					var ret = await  app.campaignCentral.getGains(idProm,cred2);
 					response.end(JSON.stringify(ret));
 					return;
-				}
+				}*/
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
@@ -1637,6 +1637,41 @@ module.exports = function (app) {
 	});
 
 
+
+	 /*
+     @link : /addKit
+     @description: saving user kits & links
+     @params:
+     idCampaign : identifiant de la campaign req.body.campaign
+     */
+	app.post('/addKit', upload.single('file'), async(req, res) => {
+		try {
+		let token = req.headers["authorization"].split(" ")[1];
+        await app.crm.auth(token);
+		const idCampaign = req.body.campaign
+		const link = req.body.link
+		if(req.file){
+			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
+			"$ref": "campaign",
+			"$id": app.ObjectId(idCampaign),
+			"$db": "atayen"
+		 }}, mimeType : req.file.contentType })
+		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
+		} if(req.body.link){
+		   gfsKit.files.insert({ campaign : {
+				"$ref": "campaign",
+				"$id": app.ObjectId(idCampaign),
+				"$db": "atayen"
+			 }, link : link })
+			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
+		}
+		res.send({message :'No matching data'}).status(404);
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+	  });
+
+
+
 	/*
      @link : /addKits
      @description: saving user kits & links
@@ -1951,6 +1986,7 @@ module.exports = function (app) {
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
 	}
 	})
 
@@ -1980,6 +2016,7 @@ module.exports = function (app) {
 		res.send('success').status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
 	}
 	})
 
@@ -2203,8 +2240,10 @@ console.log(Links)
 				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
 			   }
 
+
 	})         
 	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
+
 	          totalSpent = Number((total).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
@@ -2214,6 +2253,7 @@ console.log(Links)
 	}
 
 	})
+
 
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
 		try{
@@ -2235,6 +2275,7 @@ console.log(Links)
 		}
 		
 	})
+
 
 	return app;
 }
