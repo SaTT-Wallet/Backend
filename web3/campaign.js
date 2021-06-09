@@ -9,12 +9,11 @@ module.exports = async function (app) {
 
 	campaignManager.getContract = function (address) {
 		if(address == app.config.ctrs.campaign.address.mainnet)
-			//return campaignManager.contract;
-			return campaignManager.contractCentral
+			return campaignManager.contract;
 		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
 				return campaignManager.contractBep20;
 		else
-				return campaignManager.contractCentral
+				return false;
 	}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
@@ -25,7 +24,7 @@ module.exports = async function (app) {
 			return campaignManager.getContract( campaigns[0].contract);
 		}
 		else
-			return campaignManager.contractCentral;
+			return false;
 	}
 
 	campaignManager.getPromContract = async function (idProm) {
@@ -37,7 +36,7 @@ module.exports = async function (app) {
 			return 	 campaignManager.getContract(proms[0].contract);
 		}
 		else {
-			return campaignManager.contractCentral;
+			return false;
 		}
 	}
 
@@ -49,15 +48,12 @@ module.exports = async function (app) {
 		if(code != "0x") {
 				return campaignManager.contractBep20;
 		}
-		/*
-    code = await app.web3.eth.getCode(token);
-		if(code != "0x")
+
 			return campaignManager.contract;
-			*/
-			return campaignManager.contractCentral;
 	}
 
-		campaignManager.isCentral = async function (idCampaign) {
+		campaignManager.isCentral =  function (idCampaign) {
+			/*
 			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
 
 			if(!campaigns.length) {
@@ -65,7 +61,8 @@ module.exports = async function (app) {
 			}
 				else {
 			return campaigns[0].contract == "central";
-			}
+		}*/
+		return false;
 		}
 
 	campaignManager.followContract = function () {
@@ -120,7 +117,7 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
 			try {
-				if(ctr.isCentral) {
+				if(ctr.isCentral()) {
 					var receipt = await  app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,credentials);
 					resolve(receipt);
 				}
@@ -176,7 +173,7 @@ module.exports = async function (app) {
 				var gasPrice = await ctr.getGasPrice();
 			var gas = 200000;
 
-			if(ctr.isCentral) {
+			if(ctr.isCentral()) {
 				var receipt = await  app.campaignCentral.fundCampaign(idCampaign,token,amount,credentials);
 				resolve(receipt);
 			}
@@ -212,7 +209,7 @@ module.exports = async function (app) {
 
 
 			//var gasPrice = 4000000000;
-			if(ctr.isCentral) {
+			if(ctr.isCentral()) {
 				var receipt = await  app.campaignCentral.applyCampaign(idCampaign,typeSN,idPost,idUser,credentials);
 				resolve({transactionHash:receipt,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				return;
@@ -278,7 +275,7 @@ module.exports = async function (app) {
 					var ctr = await campaignManager.getPromContract(idProm);
 					//console.log(ctr);
 
-				if(ctr.isCentral) {
+					if(ctr.isCentral()) {
 					var receipt = await  app.campaignCentral.validateProm(idProm,credentials);
 					resolve({idProm:idProm});
 					return;
@@ -383,7 +380,7 @@ module.exports = async function (app) {
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
 
-				if(ctr.isCentral) {
+					if(ctr.isCentral()) {
 					var receipt = await  app.campaignCentral.getGains(idProm,credentials);
 					resolve(receipt);
 					return;
@@ -408,7 +405,7 @@ module.exports = async function (app) {
 				var ctr = await campaignManager.getCampaignContract(idCampaign);
 				var gasPrice = await app.web3.eth.getGasPrice();
 
-				if(ctr.isCentral) {
+				if(ctr.isCentral()) {
 					var receipt = await  app.campaignCentral.getRemainingFunds(idCampaign,credentials);
 					resolve(receipt);
 					return;
@@ -513,14 +510,7 @@ module.exports = async function (app) {
 		})
 	}
 
-	campaignManager.contractCentral = {
-		getGasPrice : () => {
-			return new Promise(async (resolve, reject) => {
-				resolve(0);
-			})
-		},
-		isCentral : true
-	}
+	
 
 	app.campaign = campaignManager;
 	return app;
