@@ -76,11 +76,11 @@ module.exports = async function (app) {
 		 return gas;
 		}
 		if(app.config.testnet)
-			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.testnet);
+			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
 		else
 		{
-			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.mainnet);
-			campaignManager.contractBep20WS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.campaignBep20.abi,app.config.ctrs.campaignBep20.address.mainnet);
+			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
+			campaignManager.contractBep20WS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
 		}
 		campaignManager.contractBep20.getGasPrice = async function () {
 		 var gas = await app.web3Bep20.eth.getGasPrice();
@@ -510,7 +510,7 @@ module.exports = async function (app) {
 		})
 	}
 
-	
+
 
 	app.campaign = campaignManager;
 	return app;
