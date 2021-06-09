@@ -381,6 +381,72 @@ module.exports = function (app) {
 	});
 
 
+	/**
+	 * @swagger
+	 * /v2/campaign/create/all:
+	 *   post:
+	 *     summary: create campaign.
+	 *     description: parametres acceptées :body{campaign} , headers{headers}.
+	 *     parameters:
+	 *       - name: pass
+	 *         description: password of user.
+	 *       - name: dataUrl
+	 *         description: data url.
+	 *       - name: startDate
+	 *         required: true
+	 *         description: start date.
+	 *       - name: endDate
+	 *         description: end date.
+	 *       - name: ERC20token
+	 *         required: true
+	 *         description: ERC20 token.
+	 *       - name: amount
+	 *         description: amount de la campaign.
+	 *       - name: ratios
+	 *         description: ratios de la campaign.
+	 *     responses:
+	 *        "200":
+	 *          description: data
+	 */
+		app.post('/v2/campaign/create/bounties', async function(req, response) {
+			let token = req.headers["authorization"].split(" ")[1];
+			var pass = req.body.pass;
+			var dataUrl = req.body.dataUrl;
+			var startDate = req.body.startDate;
+			var endDate = req.body.endDate;
+			var ERC20token = req.body.ERC20token;
+			var amount = req.body.amount;
+			var bounties = req.body.bounties;
+
+			try {
+
+				var res = await app.crm.auth(token);
+				var cred = await app.account.unlock(res.id,pass);
+
+				if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
+					token = app.config.ctrs.token.address.testnet;
+				}
+
+				/*var balance = await app.erc20.getBalance(token,cred.address);
+
+				if( (new BN(balance.amount)).lt(new BN(amount)) )
+				{
+					response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
+				}*/
+
+				var ret = await app.campaign.createCampaignBounties(dataUrl,startDate,endDate,bounties,ERC20token,amount,cred);
+				response.end(JSON.stringify(ret));
+
+			} catch (err) {
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+			finally {
+				app.account.lock(cred.address);
+			}
+
+		});
+
+
 	/*
      @Url :/campaign/insert_link_notification'
      @description: notify campaign owner
@@ -776,16 +842,16 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/validate', async function(req, response) {
-
+ 
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var idApply = req.body.idProm;
-
+        let token = req.headers["authorization"].split(" ")[1];
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
 		try {
-			var res = await app.crm.auth( req.body.token);
+			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
@@ -1571,6 +1637,7 @@ module.exports = function (app) {
 	});
 
 
+
 	 /*
      @link : /addKit
      @description: saving user kits & links
@@ -1602,6 +1669,7 @@ module.exports = function (app) {
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
 	  });
+
 
 
 	/*
@@ -1836,7 +1904,7 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth( token);
 			if(req.file){
-			 await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
+			await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
 				"$ref": "campaign",
 				"$id": app.ObjectId(idCampaign),
@@ -1918,8 +1986,42 @@ module.exports = function (app) {
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
 	}
 	})
+
+
+	/**
+ * @swagger
+ * /rejectlink/{idLink}:
+ *   get:
+ *     summary: reject link .
+ *     description: parametres acceptées :params{idLink} , headers{headers}.
+ *     parameters:
+ *       - name: idLink
+ *         in: path
+ *         description: id de ien a rejeter.
+ *     responses:
+ *        "200":
+ *          description: success message
+ *        "500":
+ *          description: error message
+ */
+	 app.put('/rejectlink/:idLink', async(req, res)=>{
+		try {
+		 let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
+         const idLink = req.params.idLink;
+	     const links =  await app.db.campaign_link().update({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
+		res.send('success').status(200);
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+	}
+	})
+
+
+
 
 /**
  * @swagger
@@ -2089,10 +2191,19 @@ console.log(Links)
 	*/
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
+		let prices;
+		const sattPrice ={
+			url: app.config.xChangePricesUrl,
+			method: 'GET',
+			json: true
+		  };
+
+		  prices = await rp(sattPrice);
+		 let sattPrice$ = prices.SATT.price;
 
 	const address = req.params.owner;
 
-	let[total,totalSpent,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,[],[],[],[]];
+	let[total,totalSpent, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
 
 	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
 
@@ -2129,16 +2240,42 @@ console.log(Links)
 				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
 			   }
 
-	})
+
+	})         
+	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
+
 	          totalSpent = Number((total).toFixed(2));
 
-	           res.end(JSON.stringify({totalSpent})).status(200);
+	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
 
 	   }catch(err){
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 
 	})
+
+
+	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
+		try{
+		let idCampaign = req.params.idCampaign;
+		let result = {}
+		let ctr = await app.campaign.getCampaignContract(idCampaign);
+		if(!ctr.methods) {
+			res.end("{}");
+			return;
+		}else{
+        result =  await app.campaignCentral.campaignProms(idCampaign,result,ctr)
+		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
+		res.send(JSON.stringify(acceptedProms, result));
+		}
+	
+        
+		}catch(err){
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		
+	})
+
 
 	return app;
 }
