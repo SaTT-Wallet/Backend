@@ -151,11 +151,12 @@ module.exports = async function (app) {
 				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
 				var token = fbProfile.accessToken;
 
-					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"/insights?metric=engagement,impressions&access_token="+token,json: true});
-					if(!cur.error)
+					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"/insights?metric=engagement,impressions&access_token="+token,json: true}).catch(function (e) {
+						var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count&access_token="+token,json: true});
+						resolve({shares:0,likes:cur.like_count,views:0})
+					});
 						resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
-					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count&access_token="+token,json: true});
-					resolve({shares:0,likes:cur.like_count,views:0})
+
 				}
 
 		)
