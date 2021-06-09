@@ -347,10 +347,10 @@ module.exports = function (app) {
       }
     }));
 
-  passport.use('google_strategy', new GoogleStrategy({
+    passport.use('google_strategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: "http://localhost:4200/#/linkAccounts"
+      callbackURL: app.config.baseUrl + "callback/google"
     },
     async function (accessToken, refreshToken, profile, cb) {
       var date = Math.floor(Date.now() / 1000) + 86400;
