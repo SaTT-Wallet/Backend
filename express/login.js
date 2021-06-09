@@ -950,7 +950,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   app.put('/updateUserEmail', async (req, res)=>{
     try {
      
-      var users=await app.db.sn_user().find({email:{$regex : /[A-Z]/ }}).toArray();
+      var users=await app.db.sn_user().find({ $and: [{email:{$regex : /[A-Z]/ }},{userSatt : true}]}).toArray();
       users.forEach(async (user)=>{
         await app.db.sn_user().updateOne({_id:user._id},{$set:{email:user.email.toLowerCase()}});
       })
@@ -961,5 +961,62 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
    }
   })
+
+  	/**
+ * @swagger
+ * /isCompleted:
+ *   get:
+ *     summary: check if account completed .
+ *     description: parametres acceptées :headers{headers}.
+ *     responses:
+ *       "200":
+ *          description: true or false
+ *       "500":
+ *          description: error:error message
+ */
+     app.get('/isCompleted', async function(req, response) {
+
+     var token = req.headers["authorization"].split(" ")[1];
+      try {
+        var res = await app.crm.auth(token);
+        const id = +res.id;
+        const user = await app.db.sn_user().findOne({ _id: id});
+        if(user.completed){
+          response.end(JSON.stringify('true'));
+        }else{
+          response.end(JSON.stringify('false'));
+        }		
+      } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+      }
+    });
+
+    	/**
+ * @swagger
+ * /updateCompleted:
+ *   get:
+ *     summary: update account set completed =true.
+ *     description: parametres acceptées :headers{headers}.
+ *     responses:
+ *       "200":
+ *          description: updated with success
+ *       "500":
+ *          description: error:error message
+ */
+       app.put('/updateCompleted', async function(req, response) {
+
+        var token = req.headers["authorization"].split(" ")[1];
+         try {
+           var res = await app.crm.auth(token);
+           const id = +res.id;
+           const user = await app.db.sn_user().updateOne({ _id: id},{$set: { completed :true}});   
+             response.end(JSON.stringify('updated with success'));
+           
+           		
+         } catch (err) {
+           response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+         }
+     
+       });
   return app;
 }
