@@ -144,13 +144,18 @@ module.exports = async function (app) {
 				var perf = {shares:0,likes:0,views:0};
 
 				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
+				if(!ig_media)
+					resolve({error:"media not found"});
 			  var ig_user = ig_media.owner.id;
 				var media_id = ig_media.id;
 				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
 				var token = fbProfile.accessToken;
 
 					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"/insights?metric=engagement,impressions&access_token="+token,json: true});
-					resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
+					if(!cur.console.error())
+						resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
+					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count&access_token="+token,json: true});
+					resolve({shares:0,likes:cur.like_count,views:0})
 				}
 
 		)
