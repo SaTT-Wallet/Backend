@@ -19,6 +19,8 @@ module.exports = async function (app) {
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
+
+
 	oracleManager.facebookAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
 				res2 = await app.db.query("Select pt.token as token from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page and  pf.username = '"+pageName+"'");
@@ -44,13 +46,12 @@ module.exports = async function (app) {
 
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-			var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
-			var username = res.author_name;
-			res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
+				var ig_media = await app.db.ig_media().findOne({shortCode: idPost});
+			var ig_user = ig_media.owner;
+			res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.instagram_id = '"+ig_user+"'");
 			if(res2 && res2.length) {
-				var ig = res2[0].igid;
 				var token = res2[0].token;
-				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig+"?access_token="+token+"&fields=followers_count",json: true});
+				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig_user+"?access_token="+token+"&fields=followers_count",json: true});
 				resolve(res3.followers_count)
 			}
 
@@ -142,37 +143,23 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 				var perf = {shares:0,likes:0,views:0};
 
-			//	var res = await rp({uri:"https://api.instagram.com/oembed/?url=https://www.instagram.com/p/"+idPost+"/",json: true});
-					var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/instagram_oembed?access_token="+token+"&url=https://www.instagram.com/p/"+idPost,json: true});
-				var username = res.author_name;
-				res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.username = '"+username+"'");
-				if(res2 && res2.length) {
-					var ig = res2[0].igid;
-					var token = res2[0].token;
-					var mediaId = false;
-					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig+"/media?access_token="+token+"&fields=permalink,like_count",json: true});
+				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
+				if(!ig_media)
+					resolve({error:"media not found"});
+			  var ig_user = ig_media.owner.id;
+				var media_id = ig_media.id;
+				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
+				var token = fbProfile.accessToken;
 
-					while (cur.paging.next) {
-						for(var i = 0 ;i<cur.data.length;i++)
-						{
-							if ("https://www.instagram.com/p/"+idPost+"/" == cur.data[i].permalink) {
-								resolve({shares:0,likes:cur.data[i].like_count,views:0})
-								return;
-							}
-						}
-						cur = await rp({uri:cur.paging.next,json: true});
-					}
-
+					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"/insights?metric=engagement,impressions&access_token="+token,json: true}).catch(async function (e) {
+						var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count&access_token="+token,json: true});
+						resolve({shares:0,likes:cur.like_count,views:0})
+					});
+						resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
 
 				}
 
-
-
-				else {
-					resolve(perf);
-			}
-
-		})
+		)
 
 	};
 

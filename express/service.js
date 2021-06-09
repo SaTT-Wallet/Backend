@@ -10,12 +10,13 @@ module.exports = function (app) {
 		var parts = url.split("/");
 		var pageName = parts[3];
 		var idPost = parts[5];
-	
+
 		var res = await app.oracle.facebook(pageName, idPost);
 		response.end(JSON.stringify(res));
 	});
 
 	app.get("/instagram/:id", async function (req, response) {
+		
 		var res = await app.oracle.instagram(req.params.id);
 		response.end(JSON.stringify(res));
 	});
@@ -97,7 +98,7 @@ module.exports = function (app) {
 					}
 					await app.db.notification().insertOne(notification);
 				}
-                 
+
 				res.end(JSON.stringify(ret));
 			} catch (err) {
 				res.end(JSON.stringify(err));
