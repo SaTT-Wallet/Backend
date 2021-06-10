@@ -730,8 +730,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		}
 		const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
 			email:profile.email,
-		   firstName:profile.firstName,
-		  lastName:profile.lastName,
+			first_name:profile.firstName,
+			name:profile.lastName,
 		  password:synfonyHash(profile.password)
 		  }})
 				res.end("updated successfully")
