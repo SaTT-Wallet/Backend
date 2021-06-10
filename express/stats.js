@@ -353,7 +353,7 @@ cron.schedule("03 04 * * 1", () =>{
 				return {...c,stat:'draft'}
 			})
 
-            let campaigns_=[...created_campaigns,...draft_campaigns];
+            let campaigns_=[...rescampaigns,...draft_campaigns];
 			response.end(JSON.stringify(campaigns_));
 
 		}catch(err){
@@ -436,7 +436,7 @@ cron.schedule("03 04 * * 1", () =>{
 				return {...c,stat:'draft'}
 			})
 
-            let Campaigns_=[...created_campaigns,...draft_campaigns]
+            let Campaigns_=[...rescampaigns,...draft_campaigns]
 			response.end(JSON.stringify(Campaigns_));
 
 		}catch(err){
