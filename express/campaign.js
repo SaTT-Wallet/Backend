@@ -1250,6 +1250,8 @@ module.exports = function (app) {
 		var pass = req.body.pass;
 		var idProm = req.body.idProm;
 
+
+
 		var stats;
 		var requests = false;
 		var abi = [{"indexed":true,"name":"idRequest","type":"bytes32"},{"indexed":false,"name":"typeSN","type":"uint8"},{"indexed":false,"name":"idPost","type":"string"},{"indexed":false,"name":"idUser","type":"string"}];
@@ -1265,21 +1267,31 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-			/*	if(ctr.isCentral) {
-					var ret = await  app.campaignCentral.getGains(idProm,cred2);
-					response.end(JSON.stringify(ret));
-					return;
-				}*/
+
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
+
+			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
+
+			if(cmp.bounties.length) {
+
+				var evts = await app.campaign.updateBounty(idProm,cred2);
+				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+				await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
+				var ret = await app.campaign.getGains(idProm,cred2);
+				response.end(JSON.stringify(ret));
+				return;
+
+			}
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 			//console.log(prevstat);
 
-			requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
-			var cred = {address: app.config.campaignOwner};
+			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+
 			if(!requests.length)
 			{
 
@@ -1310,7 +1322,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+			app.account.lock(cred2.address);
 		}
 	});
 
