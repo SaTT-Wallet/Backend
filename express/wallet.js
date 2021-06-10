@@ -100,13 +100,9 @@ module.exports = function (app) {
 
 		  if(!user.daily){user.daily = []}
 
-            //calculating the variation depending on the runned script
+
 		   if(user.daily[0]){
 			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
-		   }
-
-		   if(user.daily[0] && user.daily[0].convertDate === today){
-			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[1].Balance)
 		   }
 
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
@@ -162,6 +158,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
+	
 /**
  * @swagger
  * /v2/newallet:
@@ -233,6 +230,9 @@ module.exports = function (app) {
 		}
 
 	});
+
+
+
 /**
  * @swagger
  * /v2/printseed/:token/:pass:
