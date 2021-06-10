@@ -735,7 +735,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			completed:true,
 		  password:synfonyHash(profile.password)
 		  }})
-				res.end("updated successfully")
+				res.end(JSON.stringify({message : "updated successfully"}))
 		} catch (err) {
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		 }  
