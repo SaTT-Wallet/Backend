@@ -337,10 +337,10 @@ module.exports = function (app) {
  *       - name: amount
  *         description: amount de la campaign.
  *       - name: ratios
- *         description: ratios de la campaign.
+ *         description: campaign ratios array, (likeRatio,shareRatio,viewRatio,reachLimit) x4 (facebook,youtube,insta,twitter)
  *     responses:
  *        "200":
- *          description: data
+ *          description: campaign hash
  */
 	app.post('/v2/campaign/create/all', async function(req, response) {
 		let token = req.headers["authorization"].split(" ")[1];
@@ -383,9 +383,9 @@ module.exports = function (app) {
 
 	/**
 	 * @swagger
-	 * /v2/campaign/create/all:
+	 * /v2/campaign/create/bounties:
 	 *   post:
-	 *     summary: create campaign.
+	 *     summary: create campaign with bounties.
 	 *     description: parametres acceptées :body{campaign} , headers{headers}.
 	 *     parameters:
 	 *       - name: pass
@@ -401,9 +401,9 @@ module.exports = function (app) {
 	 *         required: true
 	 *         description: ERC20 token.
 	 *       - name: amount
-	 *         description: amount de la campaign.
+	 *         description: amount credited to campaign.
 	 *       - name: ratios
-	 *         description: ratios de la campaign.
+	 *         description: bounty array. (min,max,typeSN,amount)
 	 *     responses:
 	 *        "200":
 	 *          description: data
@@ -842,7 +842,7 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/validate', async function(req, response) {
- 
+
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var idApply = req.body.idProm;
@@ -2241,7 +2241,7 @@ console.log(Links)
 			   }
 
 
-	})         
+	})
 	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
 
 	          totalSpent = Number((total).toFixed(2));
@@ -2268,12 +2268,12 @@ console.log(Links)
 		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
 		res.send(JSON.stringify(acceptedProms, result));
 		}
-	
-        
+
+
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
+
 	})
 
 
