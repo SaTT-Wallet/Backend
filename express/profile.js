@@ -732,6 +732,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			email:profile.email,
 			first_name:profile.firstName,
 			name:profile.lastName,
+			completed:true,
 		  password:synfonyHash(profile.password)
 		  }})
 				res.end("updated successfully")
