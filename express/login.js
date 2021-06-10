@@ -1130,5 +1130,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
    }
   });
+  
   return app;
 }

@@ -17,6 +17,7 @@ module.exports = function (app) {
 	const conn=mongoose.createConnection(mongoURI);
 	const QRCode = require('qrcode')
     var handlebars = require('handlebars');
+	const hasha = require('hasha');
     var Long = require('mongodb').Long;
 	let gfsprofilePic;
 	let gfsUserLegal;
@@ -74,7 +75,22 @@ module.exports = function (app) {
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
 	app.campaignWallet = JSON.parse(campaignKeystore);
 
-
+	var synfonyHash = function (pass) {
+		var salted = pass+"{"+app.config.symfonySalt+"}";
+	
+	
+		var buff = hasha(salted, {encoding: "buffer"});
+		var saltBuff = Buffer.from(salted);
+		var arr = [];
+	
+		for (var i = 1; i < 5000; i++) {
+		  arr = [buff, saltBuff];
+		  buff = hasha(Buffer.concat(arr), {algorithm: "sha512", encoding: "buffer"});
+		}
+	
+		const base64 = buff.toString('base64');
+		return base64;
+	  }
      /*
      @link : /profile/pic/:id
      @description: récupère l'image d'un utilisateur
@@ -672,6 +688,57 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	 }
 	})
 
+	/**
+ * @swagger
+ * /updateLastStep:
+ *   put:
+ *     summary: update profile last step.
+ *     description: parametres acceptées :body{user}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *        "200":
+ *          description: message:updated successfully or email exists
+ *        "500":
+ *          description: error:error messages
+ */
+	app.put('/updateLastStep',async(req,res)=>{
+		try{
+		let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+		const id = +auth.id;
+		let profile = req.body;
+				const user =await app.db.sn_user().findOne({_id:id});
+		if(profile.email !== user.email){
+		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
+		  if(users.length) {
+		  res.end(JSON.stringify({message : "email already exists"}));
+		  return;
+		  }
+		}
+		const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+			email:profile.email,
+		   firstName:profile.firstName,
+		  lastName:profile.lastName,
+		  password:synfonyHash(profile.password)
+		  }})
+				res.end("updated successfully")
+		} catch (err) {
+		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+		 }  
+	  })
 	return app;
 
 }
