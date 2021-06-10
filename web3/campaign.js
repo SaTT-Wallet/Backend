@@ -121,14 +121,10 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 500000;
 			try {
-				if(ctr.isCentral()) {
-					var receipt = await  app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,credentials);
-					resolve(receipt);
-				}
-				else {
+
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve(receipt.events.CampaignCreated.returnValues.id);
-				}
+
 
 			} catch (err) {
 
@@ -177,10 +173,7 @@ module.exports = async function (app) {
 				var gasPrice = await ctr.getGasPrice();
 			var gas = 200000;
 
-			if(ctr.isCentral()) {
-				var receipt = await  app.campaignCentral.fundCampaign(idCampaign,token,amount,credentials);
-				resolve(receipt);
-			}
+
 
 			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,token:token,amount:amount});
@@ -213,11 +206,7 @@ module.exports = async function (app) {
 
 
 			//var gasPrice = 4000000000;
-			if(ctr.isCentral()) {
-				var receipt = await  app.campaignCentral.applyCampaign(idCampaign,typeSN,idPost,idUser,credentials);
-				resolve({transactionHash:receipt,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
-				return;
-			}
+
 				var gasPrice = await ctr.getGasPrice();
 			var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
 			if(isDoubled)
@@ -279,11 +268,7 @@ module.exports = async function (app) {
 					var ctr = await campaignManager.getPromContract(idProm);
 					//console.log(ctr);
 
-					if(ctr.isCentral()) {
-					var receipt = await  app.campaignCentral.validateProm(idProm,credentials);
-					resolve({idProm:idProm});
-					return;
-				}
+
 					var gasPrice = await ctr.getGasPrice();
 				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
@@ -384,11 +369,7 @@ module.exports = async function (app) {
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
 
-					if(ctr.isCentral()) {
-					var receipt = await  app.campaignCentral.getGains(idProm,credentials);
-					resolve(receipt);
-					return;
-				}
+
 
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
@@ -408,12 +389,6 @@ module.exports = async function (app) {
 				var gas = 200000;
 				var ctr = await campaignManager.getCampaignContract(idCampaign);
 				var gasPrice = await app.web3.eth.getGasPrice();
-
-				if(ctr.isCentral()) {
-					var receipt = await  app.campaignCentral.getRemainingFunds(idCampaign,credentials);
-					resolve(receipt);
-					return;
-				}
 
 				var receipt = await  ctr.methods.getRemainingFunds(idCampaign).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign});
