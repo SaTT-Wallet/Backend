@@ -10,7 +10,7 @@ module.exports = async function (app) {
 	campaignManager.getContract = function (address) {
 		if(address == app.config.ctrs.campaign.address.mainnet)
 			return campaignManager.contract;
-		else if(address == app.config.ctrs.campaignBep20.address.mainnet)
+		else if(address == app.config.ctrs.campaign.address.mainnetBep20)
 				return campaignManager.contractBep20;
 		else
 				return false;
