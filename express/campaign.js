@@ -2411,7 +2411,7 @@ console.log(Links)
 
 	})
 
-
+  //extract campaign/id/:id logic
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
 		try{
 		let idCampaign = req.params.idCampaign;
@@ -2425,8 +2425,6 @@ console.log(Links)
 		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
 		res.send(JSON.stringify({acceptedProms, result}));
 		}
-
-
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
