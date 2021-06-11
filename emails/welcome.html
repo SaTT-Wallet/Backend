@@ -316,7 +316,16 @@
             font-weight: 549;
         }
         .text-contact{
+font-family: Poppins;
+font-size: 12px;
+font-style: normal;
+font-weight: 500;
+line-height: 13px;
+letter-spacing: 0.03em;
+text-align: center;
+
         	margin-top: 19px;
+            font-family: 'Poppins', sans-serif;
         }
         .title{
             font-family: 'Poppins', sans-serif;
@@ -348,21 +357,21 @@
         </div>
         <div class="mail-body">
             <div>
-                <div class="col img"><img src="{{imgUrl}}/wallet.png" alt=""></div>
+                <div ><img src="{{imgUrl}}/wallet.png" alt="" style="margin-left: -21%!important;float: unset;"></div>
                 <div class="col text">
                     <div class="subtitle" align="left">{{{__ "create_portfolio"}}}</div>
                     <p>{{{__ "create_secure"}}} </p>
                 </div>
             </div>
             <div>
-                <div class="col img"><img src="{{imgUrl}}/audience.png" alt=""style="margin-top:7%;"></div>
+                <div ><img src="{{imgUrl}}/audience.png" alt="" style="margin-left: -10%!important;float: unset;"></div>
                 <div class="col text">
                     <div class="subtitle" align="left"> {{{__ "monetisez"}}}</div>
                     <p>{{{__ "monetisez_description"}}}</p>
                 </div>
             </div>
             <div>
-                <div class="col img"><img src="{{imgUrl}}/campaign.png" alt="" style="margin-top:-9%;"></div>
+                <div ><img src="{{imgUrl}}/campaign.png" alt="" style="float: unset;margin-left: -10%!important;"></div>
                 <div class="col text">
                     <div class="subtitle" align="left"> {{{__ "automate_campaign"}}}</div>
                     <p>{{{__ "automate_campaign_description"}}}</p>
@@ -374,7 +383,7 @@
             <h2>{{{__ "questions"}}}</h2>
             <p>{{{__ "questions_description"}}}</p>
             <div class="actions mt-2">
-                <a href="https://satt-token.com/#faq" class="secondary">{{{__ "consult_faq"}}}</a>
+                <a href="{{satt_faq}}" class="secondary">{{{__ "consult_faq"}}}</a>
             </div>
         </div>
         <div class="footer">
