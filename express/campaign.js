@@ -17,7 +17,7 @@ module.exports = function (app) {
 	const mongoURI = app.config.mongoURI;
 	var rp = require('request-promise');
     const etherInWei = new Big(1000000000000000000);
-
+    const handlebars = require('handlebars');
 
 	const nodemailer = require("nodemailer");
 
@@ -58,6 +58,18 @@ module.exports = function (app) {
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 	  const upload = multer({ storage });
+
+	  let readHTMLFile = function(path, callback) {
+		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
+		  if (err) {
+			throw err;
+			callback(err);
+		  }
+		  else {
+			callback(null, html);
+		  }
+		});
+	  };
 
 
     app.set("view engine", "ejs");
@@ -455,7 +467,7 @@ module.exports = function (app) {
      link : link
      */
 
-	 app.post('/campaign/insert_link_notification', async function(req, response) {
+	 app.post('/campaign/insert_link_notification', async function(req, res) {
         try {
 		   let campaign_id=req.body.campaign
 		   let link=req.body.link
@@ -470,7 +482,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date,'cmp_hash':campaign.hash}),
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -812,13 +824,12 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-		let token = req.headers["authorization"].split(" ")[1];
-
+		let [token,res,id] = [req.headers["authorization"].split(" ")[1], await app.crm.auth(token),res.id];
+        
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 		try {
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(id,pass);
 
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
@@ -827,7 +838,24 @@ module.exports = function (app) {
 				response.end(JSON.stringify(ret.insertedId));
 			}*/
 		//	else {
+               
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
+                let campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
+				if(ret.transactionHash){
+					let notification={
+						idNode:"0"+id,
+						type:"apply_campaign",
+						status:"done",
+						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode}),
+						isSeen:false,
+						isSend:false,
+						attachedEls:{
+							id:id
+					  },
+					  created:new Date()
+					}
+					await app.db.notification().insertOne(notification);
+				}
 				response.end(JSON.stringify(ret));
 		//	}
 
@@ -893,19 +921,23 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-	app.post('/v2/campaign/validate', async function(req, response) {
+	app.post('/v2/campaign/validate', async function(req, res) {
 
-		var pass = req.body.pass;
-		var idCampaign = req.body.idCampaign;
-		var idApply = req.body.idProm;
+		let pass = req.body.pass;
+		let idCampaign = req.body.idCampaign;
+		let idApply = req.body.idProm;
 		let token = req.headers["authorization"].split(" ")[1];
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
 		try {
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+
+			const lang = req.query.lang || "en";
+			app.i18n.configureTranslation(lang);
+
+			var auth = await app.crm.auth(token);
+			var cred = await app.account.unlock(auth.id,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
 				var prom = await app.db.apply().findOne({_id:app.ObjectId(idApply)});
@@ -916,13 +948,67 @@ module.exports = function (app) {
 
 			}
 			else {*/
-				var ret = await app.campaign.validateProm(idApply,cred)
+				let ret = await app.campaign.validateProm(idApply,cred);
 
-		//	}
-			response.end(JSON.stringify(ret));
+                 if(ret.transactionHash){
+
+					const prom = await app.db.campaign_link().findOne({_id:app.ObjectId(idApply)});
+					const campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
+					const applier = await app.db.walletUserNode().findOne({wallet : prom.id_wallet});
+					const id = applier.idUser;
+
+                    const notification={
+						idNode:"0"+id,
+						type:"validated_link",
+						status:"done",
+						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
+						isSeen:false,
+						isSend:false,
+						attachedEls:{
+							id:id
+					  },
+					  created:new Date()
+					}
+					await app.db.notification().insertOne(notification);
+					let user = await app.db.sn_user().findOne({_id:id});
+					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
+						if (err) {
+							console.error(err)
+							return
+						  }
+						  let template = handlebars.compile(html);
+
+						    let emailContent = {
+							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,	
+							satt_faq : app.config.Satt_faq,
+							satt_url: app.config.basedURl,
+							cmp_title: campaign.title,
+							imgUrl: app.config.baseEmailImgURl
+						    };
+								let htmlToSend = template(emailContent);
+
+								let mailOptions = {
+								 from: app.config.mailSender,
+								 to: user.email,
+								 subject: 'Your link has been accepted in a campaign',
+								 html: htmlToSend
+							};
+				
+						  transporter.sendMail(mailOptions, function(error, info){
+								if (error) {
+									res.end(JSON.stringify(error))
+								} else {
+									console.log("email was sent")
+									res.end(JSON.stringify(ret))
+								}
+							  });
+							})					
+				 }
+
+			res.end(JSON.stringify(ret));
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
 			app.account.lock(cred.address);
@@ -1972,12 +2058,71 @@ module.exports = function (app) {
  *          description: error message
  */
 	 app.put('/rejectlink/:idLink', async(req, res)=>{
+
+		const lang = req.query.lang || "en";
+        app.i18n.configureTranslation(lang);
+
 		try {
 		 let token = req.headers["authorization"].split(" ")[1];
-         await app.crm.auth(token);
+         const [auth,id] = [await app.crm.auth(token),auth.id];
+         const reason =req.body.reason || "";
+		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
-	     const links =  await app.db.campaign_link().update({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		res.send('success').status(200);
+	     const links =  await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
+		 let userWallet = links["value"].id_wallet
+		 let campaign = await app.db.campaign().findOne({_id : idCampaign});
+         let influencerId = await app.db.walletUserNode().findOne({wallet : userWallet});
+         let user = await app.db.sn_user().findOne({_id : influencerId.idUser});
+		 
+		 const notification={
+			idNode:"0"+influencerId.idUser,
+			type:"rejected_link",
+			status:"done",
+			label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':id, action : "link_rejected"}),
+			isSeen:false,
+			isSend:false,
+			attachedEls:{
+				id:influencerId.idUser
+		  },
+		  created:new Date()
+		}
+		await app.db.notification().insertOne(notification);
+
+		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
+			if (err) {
+				console.error(err)
+				return
+			  }
+			  let template = handlebars.compile(html);
+
+				let emailContent = {
+				reject_reason : reason,	
+				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,	
+				satt_faq : app.config.Satt_faq,
+				satt_url: app.config.basedURl,
+				cmp_title: campaign.title,
+				imgUrl: app.config.baseEmailImgURl
+				};
+					let htmlToSend = template(emailContent);
+
+					let mailOptions = {
+					 from: app.config.mailSender,
+					 to: user.email,
+					 subject: 'Your link has been rejected in a campaign',
+					 html: htmlToSend
+				};
+	
+			  transporter.sendMail(mailOptions, function(error, info){
+					if (error) {
+						res.end(JSON.stringify(error))
+					} else {
+						console.log("email was sent")
+						res.end(JSON.stringify(ret))
+					}
+				  });
+				})
+
+		res.send(JSON.stringify({message : 'success', userWallet})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
@@ -2224,17 +2369,15 @@ console.log(Links)
 			res.end("{}");
 			return;
 		}else{
-        result =  await app.campaignCentral.campaignProms(idCampaign,result,ctr)
+        result = await app.campaignCentral.campaignProms(idCampaign,result,ctr)
 		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
-		res.send(JSON.stringify(acceptedProms, result));
+		res.send(JSON.stringify({acceptedProms, result}));
 		}
 	
         
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-		
 	})
-
 	return app;
 }
