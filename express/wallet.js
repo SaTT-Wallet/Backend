@@ -100,13 +100,9 @@ module.exports = function (app) {
 
 		  if(!user.daily){user.daily = []}
 
-            //calculating the variation depending on the runned script
+
 		   if(user.daily[0]){
 			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
-		   }
-
-		   if(user.daily[0] && user.daily[0].convertDate === today){
-			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[1].Balance)
 		   }
 
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
@@ -162,6 +158,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
+
 /**
  * @swagger
  * /v2/newallet:
@@ -233,6 +230,9 @@ module.exports = function (app) {
 		}
 
 	});
+
+
+
 /**
  * @swagger
  * /v2/printseed/:token/:pass:
@@ -1050,6 +1050,10 @@ module.exports = function (app) {
 			var token = req.params.token;
 			var spender = req.params.spender;
 			var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
+<<<<<<< HEAD
+=======
+			//var allowance = {amount:"10000000000000000000000000000"};
+>>>>>>> 7ba9f41b22712bc8bee1c686b5f121203b29a6e0
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	})
 	/**

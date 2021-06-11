@@ -349,10 +349,10 @@ module.exports = function (app) {
  *       - name: amount
  *         description: amount de la campaign.
  *       - name: ratios
- *         description: ratios de la campaign.
+ *         description: campaign ratios array, (likeRatio,shareRatio,viewRatio,reachLimit) x4 (facebook,youtube,insta,twitter)
  *     responses:
  *        "200":
- *          description: data
+ *          description: campaign hash
  */
 	app.post('/v2/campaign/create/all', async function(req, response) {
 		let token = req.headers["authorization"].split(" ")[1];
@@ -395,9 +395,9 @@ module.exports = function (app) {
 
 	/**
 	 * @swagger
-	 * /v2/campaign/create/all:
+	 * /v2/campaign/create/bounties:
 	 *   post:
-	 *     summary: create campaign.
+	 *     summary: create campaign with bounties.
 	 *     description: parametres acceptées :body{campaign} , headers{headers}.
 	 *     parameters:
 	 *       - name: pass
@@ -413,9 +413,9 @@ module.exports = function (app) {
 	 *         required: true
 	 *         description: ERC20 token.
 	 *       - name: amount
-	 *         description: amount de la campaign.
+	 *         description: amount credited to campaign.
 	 *       - name: ratios
-	 *         description: ratios de la campaign.
+	 *         description: bounty array. (min,max,typeSN,amount)
 	 *     responses:
 	 *        "200":
 	 *          description: data
@@ -870,7 +870,7 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/validate', async function(req, response) {
- 
+
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var idApply = req.body.idProm;
@@ -1265,11 +1265,11 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-				if(ctr.isCentral) {
+				/*if(ctr.isCentral) {
 					var ret = await  app.campaignCentral.getGains(idProm,cred2);
 					response.end(JSON.stringify(ret));
 					return;
-				}
+				}*/
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
@@ -1336,6 +1336,8 @@ module.exports = function (app) {
 		var pass = req.body.pass;
 		var idProm = req.body.idProm;
 
+
+
 		var stats;
 		var requests = false;
 		var abi = [{"indexed":true,"name":"idRequest","type":"bytes32"},{"indexed":false,"name":"typeSN","type":"uint8"},{"indexed":false,"name":"idPost","type":"string"},{"indexed":false,"name":"idUser","type":"string"}];
@@ -1351,21 +1353,31 @@ module.exports = function (app) {
 			var cred2 = await app.account.unlock(res.id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
-				if(ctr.isCentral) {
-					var ret = await  app.campaignCentral.getGains(idProm,cred2);
-					response.end(JSON.stringify(ret));
-					return;
-				}
+
 
 		  var gasPrice = await ctr.getGasPrice();
 			var prom = await ctr.methods.proms(idProm).call();
+
+			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
+
+			if(cmp.bounties.length) {
+
+				var evts = await app.campaign.updateBounty(idProm,cred2);
+				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+				await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
+				var ret = await app.campaign.getGains(idProm,cred2);
+				response.end(JSON.stringify(ret));
+				return;
+
+			}
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 			//console.log(prevstat);
 
-			requests = await app.db.request().find({isNew:true,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
-			var cred = {address: app.config.campaignOwner};
+			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+
 			if(!requests.length)
 			{
 
@@ -1396,7 +1408,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+			app.account.lock(cred2.address);
 		}
 	});
 
@@ -1723,6 +1735,41 @@ module.exports = function (app) {
 	});
 
 
+
+	 /*
+     @link : /addKit
+     @description: saving user kits & links
+     @params:
+     idCampaign : identifiant de la campaign req.body.campaign
+     */
+	app.post('/addKit', upload.single('file'), async(req, res) => {
+		try {
+		let token = req.headers["authorization"].split(" ")[1];
+        await app.crm.auth(token);
+		const idCampaign = req.body.campaign
+		const link = req.body.link
+		if(req.file){
+			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
+			"$ref": "campaign",
+			"$id": app.ObjectId(idCampaign),
+			"$db": "atayen"
+		 }}, mimeType : req.file.contentType })
+		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
+		} if(req.body.link){
+		   gfsKit.files.insert({ campaign : {
+				"$ref": "campaign",
+				"$id": app.ObjectId(idCampaign),
+				"$db": "atayen"
+			 }, link : link })
+			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
+		}
+		res.send({message :'No matching data'}).status(404);
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+	  });
+
+
+
 	/*
      @link : /addKits
      @description: saving user kits & links
@@ -2037,6 +2084,7 @@ module.exports = function (app) {
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
 	}
 	})
 
@@ -2125,6 +2173,7 @@ module.exports = function (app) {
 		res.send(JSON.stringify({message : 'success', userWallet})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
 	}
 	})
 
@@ -2348,8 +2397,10 @@ console.log(Links)
 				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
 			   }
 
-	})         
+
+	})
 	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
+
 	          totalSpent = Number((total).toFixed(2));
 
 	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
@@ -2359,6 +2410,7 @@ console.log(Links)
 	}
 
 	})
+
 
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
 		try{
@@ -2373,8 +2425,8 @@ console.log(Links)
 		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
 		res.send(JSON.stringify({acceptedProms, result}));
 		}
-	
-        
+
+
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}

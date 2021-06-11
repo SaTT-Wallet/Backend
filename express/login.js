@@ -110,7 +110,7 @@ module.exports = function (app) {
           var htmlToSend = template(replacements);
           var mailOptions = {
             from: app.config.mailSender,
-            to: users[0].username.toLowerCase(),
+            to: users[0].email.toLowerCase(),
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
@@ -194,20 +194,23 @@ module.exports = function (app) {
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         console.log("--------------")
         console.log(profile.email)
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           scopedId: profile.id,
           idOnSn: profile._json.token_for_business,
           email: profile.email,
           username: profile.name,
-          first_name: profile.first_name,
-          name: profile.displayName,
+          firstName: profile.first_name,
+          lastName: profile.displayName,
           created: mongodate,
           onBoarding : false,
           updated: mongodate,
           idSn: 1,
           locale: "en",
           enabled:1,
+          confirmation_token: code,
           picLink:profile.photos.length ? profile.photos[0].value : false,
           userSatt: true
         });
@@ -325,19 +328,22 @@ module.exports = function (app) {
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           idOnSn2: profile.id,
           email: profile.emails.length ? profile.emails[0].value:false,
           username: profile.displayName,
-          first_name: profile.name.givenName,
-          name: profile.name.familyName,
+          firstName: profile.name.givenName,
+          lastName: profile.name.familyName,
           created: mongodate,
           updated: mongodate,
           idSn: 2,
           onBoarding : false,
           enabled:1,
           locale: profile._json.locale,
+          confirmation_token: code,
           userSatt: true,
           picLink:profile.photos.length ? profile.photos[0].value : false
         });
@@ -348,7 +354,7 @@ module.exports = function (app) {
       }
     }));
 
-  passport.use('google_strategy', new GoogleStrategy({
+    passport.use('google_strategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
       callbackURL: app.config.baseUrl + "callback/google"
@@ -392,12 +398,14 @@ module.exports = function (app) {
           return cb('email_already_used');
         } else {
           var mongodate = new Date().toISOString();
+          var buff2 = Buffer.alloc(32);
+          var code = crypto.randomFillSync(buff2).toString('hex');
           var mydate = mongodate.slice(0, 19).replace('T', ' ');
           var insert = await app.db.sn_user().insertOne({
             id:Long.fromNumber(await app.account.handleId()),
             idOnSn3: profile.id,
             username: profile.email,
-            first_name: profile.first_name,
+            firstName: profile.first_name,
             lastName: profile.last_name,
             name: profile.username,
             picLink: profile.photo_url,
@@ -406,6 +414,7 @@ module.exports = function (app) {
             updated: mongodate,
             idSn: 5,
             locale: "en",
+            confirmation_token: code,
             enabled:1,
             userSatt: true
           });
@@ -922,7 +931,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
         var htmlToSend = template(replacements);
         var mailOptions = {
           from: app.config.mailSender,
-          to: users[0].username,
+          to: users[0].email,
           subject: 'Satt wallet activation',
           html: htmlToSend
         };
@@ -1083,6 +1092,20 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
   });
 
+  app.put('/updateUserEmail', async (req, res)=>{
+    try {
+     
+      var users=await app.db.sn_user().find({ $and: [{email:{$regex : /[A-Z]/ }},{userSatt : true}]}).toArray();
+      users.forEach(async (user)=>{
+        await app.db.sn_user().updateOne({_id:user._id},{$set:{email:user.email.toLowerCase()}});
+      })
+
+      res.send(JSON.stringify("success"))
+      
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+   }
+  })
 
   app.get('/connect/telegram/:idUser', (req, res,next)=>{
     passport.authenticate('connect_telegram', {state:req.params.idUser})(req,res,next)
@@ -1108,5 +1131,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
    }
   });
+  
   return app;
 }
