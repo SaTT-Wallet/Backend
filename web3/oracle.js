@@ -184,7 +184,7 @@ module.exports = async function (app) {
 		 return gas;
 		}
 
-			ContractToken.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.oracleBep20.abi,app.config.ctrs.oracleBep20.address.mainnet);
+			ContractToken.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnetBep20);
 		ContractToken.contractBep20.getGasPrice = async function () {
 		 var gas = await app.web3Bep20.eth.getGasPrice();
 		 return gas;
