@@ -101,6 +101,7 @@ module.exports = function (app) {
         readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
           var template = handlebars.compile(html);
           var replacements = {
+            satt_faq : app.config.Satt_faq,
             satt_url: app.config.basedURl,
             imgUrl: app.config.baseEmailImgURl,
             validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
@@ -639,7 +640,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   function authErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/login?error=1&message=' + message);
+    res.redirect(app.config.basedURl +'/registration?error=1&message=' + message);
   }
 
 
