@@ -951,10 +951,11 @@ module.exports = function (app) {
 				let ret = await app.campaign.validateProm(idApply,cred);
 
                  if(ret.transactionHash){
-					const campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
 
+					const campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
 					const id = re.body.idUser;
                     const user = await app.db.sn_user().findOne({_id : id});
+
                     const notification={
 						idNode:"0"+id,
 						type:"validated_link",
@@ -968,7 +969,7 @@ module.exports = function (app) {
 					  created:new Date()
 					}
 					await app.db.notification().insertOne(notification);
-					let user = await app.db.sn_user().findOne({_id:id});
+
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 						if (err) {
 							console.error(err)
@@ -2110,7 +2111,7 @@ module.exports = function (app) {
 
 		try {
 		 let token = req.headers["authorization"].split(" ")[1];
-         const [auth,id] = [await app.crm.auth(token),auth.id];
+         await app.crm.auth(token)
          const reason =req.body.reason || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
