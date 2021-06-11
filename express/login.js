@@ -639,7 +639,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   function authErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/login?error=1&message=' + message);
+    res.redirect(app.config.basedURl +'/registration?error=1&message=' + message);
   }
 
 
