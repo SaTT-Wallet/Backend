@@ -175,11 +175,24 @@ module.exports = function (app) {
  */
 	 app.put('/validateKYC/:idLegal', async(req, res)=>{
 		try {
+		 const date = new Date().toISOString();
 		 let token = req.headers["authorization"].split(" ")[1];
          const auth = await app.crm.auth(token);
 		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2 || auth.id === app.config.idNodeAdmin3){
          const idLegal = req.params.idLegal;
-		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}})
+		 const file=await gfsUserLegal.files.findOne({ _id: app.ObjectId(idLegal) });
+		 const idNode="0" + file.idNode;
+		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}});
+		 let notification={
+			idNode:idNode,
+			type:"validate_kyc",
+			status:"done",
+			label:JSON.stringify([{'type':type, 'date': date}]),
+			isSeen:false
+		}
+		await app.db.notification().insertOne(notification)
+		
+
 			res.send('success').status(200);
 		 }else{
 			res.send('access_denied').status(200);
@@ -732,8 +745,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			email:profile.email,
 			firstName:profile.firstName,
 			lastName:profile.lastName,
+			enabled:false,
 			completed:true,
-		  password:synfonyHash(profile.password)
+		    password:synfonyHash(profile.password)
 		  }})
 				res.end(JSON.stringify({message : "updated successfully"}))
 		} catch (err) {
