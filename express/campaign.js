@@ -951,12 +951,10 @@ module.exports = function (app) {
 				let ret = await app.campaign.validateProm(idApply,cred);
 
                  if(ret.transactionHash){
-
-					const prom = await app.db.campaign_link().findOne({_id:app.ObjectId(idApply)});
 					const campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
-					const applier = await app.db.walletUserNode().findOne({wallet : prom.id_wallet});
-					const id = applier.idUser;
 
+					const id = re.body.idUser;
+                    const user = await app.db.sn_user().findOne({_id : id});
                     const notification={
 						idNode:"0"+id,
 						type:"validated_link",
@@ -2116,14 +2114,13 @@ module.exports = function (app) {
          const reason =req.body.reason || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
-	     const links =  await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		 let userWallet = links["value"].id_wallet
+	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
 		 let campaign = await app.db.campaign().findOne({_id : idCampaign});
-         let influencerId = await app.db.walletUserNode().findOne({wallet : userWallet});
-         let user = await app.db.sn_user().findOne({_id : influencerId.idUser});
+		 let id = req.body.idUser
+         let user = await app.db.sn_user().findOne({_id : id});
 		 
 		 const notification={
-			idNode:"0"+influencerId.idUser,
+			idNode:"0"+id,
 			type:"rejected_link",
 			status:"done",
 			label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':id, action : "link_rejected"}),
@@ -2411,7 +2408,7 @@ console.log(Links)
 
 	})
 
-  //extract campaign/id/:id logic
+  //extract campaign/id/:id
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
 		try{
 		let idCampaign = req.params.idCampaign;
