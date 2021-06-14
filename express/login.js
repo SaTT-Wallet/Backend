@@ -137,9 +137,9 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
-        if (user.idSn != 0) {
-          return done(null, false, {error: true, message: 'email_already_used'});
-        }
+        // if (user.idSn != 0) {
+        //   return done(null, false, {error: true, message: 'email_already_used'});
+        // }
         /*if (user.account_locked) {
           return done(null, false, {error: true, message: 'account_locked'});
         }*/
@@ -235,7 +235,10 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
 
       if (users.length) {
-        var user = users[0]
+        var user = users[0];
+        if(!user.enabled){
+          return cb('account not verified')
+        }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -366,8 +369,11 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
       if (users.length) {
         var user = users[0];
-        if (user.idSn != 2) {
-          return cb('email_already_used') //(null, false, {message: 'email_already_used'});
+        // if (user.idSn != 2) {
+        //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
+        // }
+        if(!user.enabled){
+          return cb('account not verified')
         }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
@@ -440,6 +446,9 @@ module.exports = function (app) {
         // if (user.idSn != 5) {
         //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
         // }
+        if(!user.enabled){
+          return cb('account not verified')
+        }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -640,7 +649,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   function authErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/registration?error=1&message=' + message);
+    res.redirect(app.config.basedURl +'/registration?message=' + message);
   }
 
 
@@ -764,12 +773,12 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       if (users[0].enabled) {
         //response.end('{error:"account already activated"}');
         let message = "account already activated";
-        response.redirect(app.config.basedURl +'/login?error=1&message=' + message);
+        response.redirect(app.config.basedURl +'/login?message=' + message);
         return;
       }
       if (users[0].confirmation_token != code) {
         let message = "wrong activation";
-        response.redirect(app.config.basedURl +'/login?error=1&message=' + message);
+        response.redirect(app.config.basedURl +'/login?message=' + message);
         //response.end('{error:"wrong activation"}');
         return;
       }
@@ -779,7 +788,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       //response.end('{message:"activated"}');
     } else {
       let message = "no account";
-      response.redirect(app.config.basedURl +'/login?error=1&message=' + message);
+      response.redirect(app.config.basedURl +'/login?message=' + message);
       //response.end('{error:"no account"}');
     }
 
