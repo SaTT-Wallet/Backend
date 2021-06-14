@@ -381,7 +381,7 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 
 			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
-				token = app.config.ctrs.token.address.testnet;
+				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
