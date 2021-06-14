@@ -175,11 +175,24 @@ module.exports = function (app) {
  */
 	 app.put('/validateKYC/:idLegal', async(req, res)=>{
 		try {
+		 const date = new Date().toISOString();
 		 let token = req.headers["authorization"].split(" ")[1];
          const auth = await app.crm.auth(token);
 		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2 || auth.id === app.config.idNodeAdmin3){
          const idLegal = req.params.idLegal;
-		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}})
+		 const file=await gfsUserLegal.files.findOne({ _id: app.ObjectId(idLegal) });
+		 const idNode="0" + file.idNode;
+		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}});
+		 let notification={
+			idNode:idNode,
+			type:"validate_kyc",
+			status:"done",
+			label:JSON.stringify([{'type':type, 'date': date}]),
+			isSeen:false
+		}
+		await app.db.notification().insertOne(notification)
+		
+
 			res.send('success').status(200);
 		 }else{
 			res.send('access_denied').status(200);
@@ -525,7 +538,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				var htmlToSend = template(data_);
 
 				var mailOptions = {
-					from: req.body.from,
+					from: app.config.mailSender,
 					to: req.body.to,
 					subject: 'nouvelle notification',
 					html: htmlToSend,
@@ -706,8 +719,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  *                 type: string
  *               lastName:
  *                 type: string
- *               password:
- *                 type: string
  *     responses:
  *        "200":
  *          description: message:updated successfully or email exists
@@ -716,26 +727,41 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
-		let token = req.headers["authorization"].split(" ")[1];
-		const auth = await app.crm.auth(token);
+		 let token = req.headers["authorization"].split(" ")[1];
+		 const auth = await app.crm.auth(token);
 		const id = +auth.id;
 		let profile = req.body;
-				const user =await app.db.sn_user().findOne({_id:id});
+		let password=Math.random().toString(36).slice(-8);
+		const user =await app.db.sn_user().findOne({_id:id});
 		if(profile.email !== user.email){
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
 		  if(users.length) {
 		  res.end(JSON.stringify({message : "email already exists"}));
 		  return;
+		  }else{
+			const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+				email:profile.email,
+				firstName:profile.firstName,
+				lastName:profile.lastName,
+				enabled:false,
+				completed:true,
+				password:synfonyHash(password)
+			  }})
+			  res.end(JSON.stringify({message : "updated successfully"}))
+
 		  }
-		}
-		const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
-			email:profile.email,
+		}else{
+			const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
 			firstName:profile.firstName,
 			lastName:profile.lastName,
+			enabled:1,
 			completed:true,
-		  password:synfonyHash(profile.password)
+			password:synfonyHash(password)
 		  }})
-				res.end(JSON.stringify({message : "updated successfully"}))
+		  res.end(JSON.stringify({message : "updated successfully with same email"}))
+
+		}
+		
 		} catch (err) {
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		 }  
