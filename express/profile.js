@@ -719,8 +719,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  *                 type: string
  *               lastName:
  *                 type: string
- *               password:
- *                 type: string
  *     responses:
  *        "200":
  *          description: message:updated successfully or email exists
@@ -729,9 +727,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
-		// let token = req.headers["authorization"].split(" ")[1];
-		// const auth = await app.crm.auth(token);
-		const id = 5//+auth.id;
+		 let token = req.headers["authorization"].split(" ")[1];
+		 const auth = await app.crm.auth(token);
+		const id = +auth.id;
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
 		const user =await app.db.sn_user().findOne({_id:id});
@@ -760,7 +758,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			completed:true,
 			password:synfonyHash(password)
 		  }})
-		  res.end(JSON.stringify({message : "updated successfully"}))
+		  res.end(JSON.stringify({message : "updated successfully with same email"}))
 
 		}
 		
