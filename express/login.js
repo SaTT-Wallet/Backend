@@ -1,3 +1,4 @@
+const console = require('console');
 const { async } = require('hasha');
 
 module.exports = function (app) {
