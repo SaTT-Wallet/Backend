@@ -428,8 +428,7 @@ cron.schedule("03 04 * * 1", () =>{
 
 				rescampaigns.push(campaigns[i]);
 			}
-			//var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	      //  let created_campaigns=rescampaigns.concat(campaignscentral)
+
 			let auth = await app.crm.auth(access_token);
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
