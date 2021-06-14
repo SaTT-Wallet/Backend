@@ -2146,7 +2146,7 @@ module.exports = function (app) {
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
-				id:influencerId.idUser
+				id:id
 		  },
 		  created:new Date()
 		}
