@@ -858,13 +858,13 @@ module.exports = function (app) {
 		//	else {
                
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-                let campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
+                let campaign = await app.db.campaign().findOne({id:idCampaign});
 				if(ret.transactionHash){
 					let notification={
 						idNode:"0"+id,
 						type:"apply_campaign",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode}),
+						label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':campaign.idNode}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
