@@ -236,9 +236,9 @@ module.exports = function (app) {
 
       if (users.length) {
         var user = users[0];
-        if(!user.enabled){
-          return cb('account not verified')
-        }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -372,9 +372,9 @@ module.exports = function (app) {
         // if (user.idSn != 2) {
         //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
         // }
-        if(!user.enabled){
-          return cb('account not verified')
-        }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -446,9 +446,9 @@ module.exports = function (app) {
         // if (user.idSn != 5) {
         //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
         // }
-        if(!user.enabled){
-          return cb('account not verified')
-        }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
