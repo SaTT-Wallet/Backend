@@ -538,7 +538,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				var htmlToSend = template(data_);
 
 				var mailOptions = {
-					from: req.body.from,
+					from: app.config.mailSender,
 					to: req.body.to,
 					subject: 'nouvelle notification',
 					html: htmlToSend,
@@ -729,27 +729,41 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
-		let token = req.headers["authorization"].split(" ")[1];
-		const auth = await app.crm.auth(token);
-		const id = +auth.id;
+		// let token = req.headers["authorization"].split(" ")[1];
+		// const auth = await app.crm.auth(token);
+		const id = 5//+auth.id;
 		let profile = req.body;
-				const user =await app.db.sn_user().findOne({_id:id});
+		let password=Math.random().toString(36).slice(-8);
+		const user =await app.db.sn_user().findOne({_id:id});
 		if(profile.email !== user.email){
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
 		  if(users.length) {
 		  res.end(JSON.stringify({message : "email already exists"}));
 		  return;
+		  }else{
+			const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+				email:profile.email,
+				firstName:profile.firstName,
+				lastName:profile.lastName,
+				enabled:false,
+				completed:true,
+				password:synfonyHash(password)
+			  }})
+			  res.end(JSON.stringify({message : "updated successfully"}))
+
 		  }
-		}
-		const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
-			email:profile.email,
+		}else{
+			const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
 			firstName:profile.firstName,
 			lastName:profile.lastName,
-			enabled:false,
+			enabled:1,
 			completed:true,
-		    password:synfonyHash(profile.password)
+			password:synfonyHash(password)
 		  }})
-				res.end(JSON.stringify({message : "updated successfully"}))
+		  res.end(JSON.stringify({message : "updated successfully"}))
+
+		}
+		
 		} catch (err) {
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		 }  
