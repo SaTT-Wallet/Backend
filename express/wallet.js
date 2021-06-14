@@ -1084,6 +1084,7 @@ module.exports = function (app) {
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
+			var currency=req.body.currency;
 			var res = await app.crm.auth(req.body.access_token);
 
 			var cred = await app.account.unlock(res.id,pass);
@@ -1094,7 +1095,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:JSON.stringify([{amount,network :('ERC20'),to,date :new Date()}]),
+					label:JSON.stringify([{amount,network :('ERC20'),currency,to,date :new Date()}]),
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
