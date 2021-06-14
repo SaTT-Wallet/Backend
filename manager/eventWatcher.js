@@ -26,7 +26,7 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase()
 		};
 
-		if(ev.contract = app.config.ctrs.campaignBep20.address.mainnet) {
+		if(ev.contract = app.config.ctrs.campaign.address.mainnetBep20 || ev.contract = app.config.ctrs.campaign.address.testnetBep20) {
 			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
 		}
 		else {
