@@ -366,11 +366,10 @@ cron.schedule("03 04 * * 1", () =>{
 	app.get('/campaigns/list/:addr', async function(req, response) {
 		try{
 			let token = req.headers["authorization"].split(" ")[1];
-            await app.crm.auth(token);
+           let auth =  await app.crm.auth(token);
 			var owner = req.params.addr;
 			var access_token= token
 			var campaigns = [];
-			var rescampaigns = [];
 
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 			var campaignsCrm = [];
@@ -428,8 +427,7 @@ cron.schedule("03 04 * * 1", () =>{
 
 				rescampaigns.push(campaigns[i]);
 			}
-
-			let auth = await app.crm.auth(access_token);
+	
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}

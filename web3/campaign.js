@@ -8,7 +8,7 @@ module.exports = async function (app) {
 
 
 	campaignManager.getContract = (address) => {
-		if(address == app.config.ctrs.campaign.address.mainnet )
+		if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.mainnet )
 			return campaignManager.contract;
 		else if(address == app.config.ctrs.campaign.address.mainnetBep20)
 				return campaignManager.contractBep20;
