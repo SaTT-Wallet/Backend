@@ -2017,7 +2017,7 @@ module.exports = function (app) {
 		try{
 			const idCampaign = req.params.idCampaign;
 			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth( token);
+			await app.crm.auth(token);
 			if(req.file){
 			await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
