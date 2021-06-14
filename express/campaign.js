@@ -299,6 +299,7 @@ module.exports = function (app) {
 		var token = req.body.ERC20token;
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
+		let id =req.body.idCampaign
 
 		try {
 
@@ -316,7 +317,17 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
+			await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred)
+			.then(async(campaignHash)=>{
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
+				response.end(JSON.stringify({campaignHash})).status(201);
+			})
+			.catch((error)=>{
+				response.send({error,errorMessage: "EVM error"}).status(400);
+
+			})
+
+
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -363,14 +374,14 @@ module.exports = function (app) {
 		var ERC20token = req.body.ERC20token;
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
-
+        let id =req.body.idCampaign
 		try {
 
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 
 			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
-				token = app.config.ctrs.token.address.testnet;
+				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
@@ -380,8 +391,15 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			response.end(JSON.stringify(ret));
+			await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred)
+				.then(async(campaignHash)=>{
+					await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
+					response.end(JSON.stringify({campaignHash})).status(201);
+				})
+				.catch((error)=>{
+					response.send({error,errorMessage: "EVM error"}).status(400);
+
+				})
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');

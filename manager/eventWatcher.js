@@ -17,6 +17,7 @@ module.exports = async function (app) {
 		var startDate =  evt.returnValues.startDate;
 		var endDate =  evt.returnValues.endDate;
 		var dataUrl =  evt.returnValues.dataUrl;
+		let blockchainType='erc20';
 		var tx;
 		var ev = {
 			id : idCampaign,
@@ -26,7 +27,8 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase()
 		};
 
-		if(ev.contract = app.config.ctrs.campaign.address.mainnetBep20 || ev.contract = app.config.ctrs.campaign.address.testnetBep20) {
+		if(ev.contract == app.config.ctrs.campaign.address.mainnetBep20 || ev.contract == app.config.ctrs.campaign.address.testnetBep20) {
+			blockchainType = 'bep20'
 			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
 		}
 		else {
@@ -37,6 +39,7 @@ module.exports = async function (app) {
 
 		var campaign = {
 			id : idCampaign,
+			blockchainType,
 			startDate : startDate,
 			endDate : endDate,
 			dataUrl : dataUrl,
