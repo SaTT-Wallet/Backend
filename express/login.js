@@ -1125,13 +1125,14 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
   });
 
+
   app.post('/check/pass', async  (req, res) => {
     try{
     let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
     let walletpass = req.body.password;
     let id = auth.id;
-    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber( id)});
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)});
       if (user.password != synfonyHash(walletpass)) {
       res.end(JSON.stringify({message:"Not the same password"})).status(200);
     } else {

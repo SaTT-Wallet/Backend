@@ -454,7 +454,7 @@ module.exports = function (app) {
 				var cred = await app.account.unlock(res.id,pass);
 
 				if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
-					token = app.config.ctrs.token.address.testnet;
+					ERC20token = app.config.ctrs.token.address.testnet;
 				}
 
 				/*var balance = await app.erc20.getBalance(token,cred.address);
@@ -858,13 +858,13 @@ module.exports = function (app) {
 		//	else {
                
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-                let campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
+                let campaign = await app.db.campaign().findOne({id:idCampaign});
 				if(ret.transactionHash){
 					let notification={
 						idNode:"0"+id,
 						type:"apply_campaign",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode}),
+						label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':campaign.idNode}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -970,7 +970,7 @@ module.exports = function (app) {
 
                  if(ret.transactionHash){
 
-					const campaign = await app.db.campaign().findOne({id:ObjectId(idCampaign)});
+					const campaign = await app.db.campaign().findOne({id:idCampaign});
 					const id = re.body.idUser;
                     const user = await app.db.sn_user().findOne({_id : id});
 
@@ -978,7 +978,7 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"validated_link",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
+						label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -2017,7 +2017,7 @@ module.exports = function (app) {
 		try{
 			const idCampaign = req.params.idCampaign;
 			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth( token);
+			await app.crm.auth(token);
 			if(req.file){
 			await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
@@ -2134,19 +2134,19 @@ module.exports = function (app) {
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
 	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		 let campaign = await app.db.campaign().findOne({_id : idCampaign});
-		 let id = req.body.idUser
+		 let campaign = await app.db.campaign().findOne({id : idCampaign});
+		 let id = +req.body.idUser
          let user = await app.db.sn_user().findOne({_id : id});
 		 
 		 const notification={
 			idNode:"0"+id,
 			type:"rejected_link",
 			status:"done",
-			label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':id, action : "link_rejected"}),
+			label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':id, action : "link_rejected"}),
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
-				id:influencerId.idUser
+				id:id
 		  },
 		  created:new Date()
 		}
@@ -2437,9 +2437,8 @@ console.log(Links)
 			res.end("{}");
 			return;
 		}else{
-        result = await app.campaignCentral.campaignProms(idCampaign,result,ctr)
-		let acceptedProms = result.proms.filter(prom => prom.isAccepted === true)
-		res.send(JSON.stringify({acceptedProms, result}));
+        result = await app.campaign.campaignProms(idCampaign,result,ctr)
+		res.send(JSON.stringify({result}));
 		}
 		}catch(err){
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
