@@ -399,7 +399,7 @@ module.exports = function (app) {
         var date = Math.floor(Date.now() / 1000) + 86400;
         var buff = Buffer.alloc(32);
         var token = crypto.randomFillSync(buff).toString('hex');
-        var users = await app.db.sn_user().find( {$or: [ {idOnSn3: profile.id},{email:profile._json.email}]}).toArray()
+        var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
         if (users.length) {
           return cb('account_already_used&idSn='+users[0].idSn);
         } else {
