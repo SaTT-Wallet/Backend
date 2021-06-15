@@ -47,7 +47,6 @@ module.exports = async function (app) {
 			owner:tx.from.toLowerCase(),
 			contract:evt.address.toLowerCase()
 		};
-
 		app.db.campaign().findOne({id : idCampaign},function (cmp,err){
 			if(cmp) {
 				app.db.campaign().updateOne({id : idCampaign},{$set: {startDate: startDate,endDate : endDate,dataUrl : dataUrl}});

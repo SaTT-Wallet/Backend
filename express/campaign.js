@@ -89,7 +89,7 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 	  });
 
-	  cron.schedule('53 15 * * *',()=>{
+	  cron.schedule('*/15 * * * *',()=>{
 		updateStat();
 		 })
 	 async function updateStat(){
@@ -300,7 +300,7 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
 		let id =req.body.idCampaign
-
+  
 		try {
 
 			var res = await app.crm.auth(req.body.token);
@@ -317,17 +317,22 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred)
-			.then(async(campaignHash)=>{
-				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
-				response.end(JSON.stringify({campaignHash})).status(201);
-			})
-			.catch((error)=>{
-				response.send({error,errorMessage: "EVM error"}).status(400);
+			// await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred)
+			// .then(async(campaignHash)=>{
+         
+			// 	await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
+			// 	response.end(JSON.stringify({campaignHash})).status(201);
+			// })
+			// .catch((error)=>{
+			// 	response.send({error,errorMessage: "EVM error"}).status(400);
 
-			})
+			// })
 
-
+			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
+			if(ret){
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
+			}
+			
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -487,12 +492,12 @@ module.exports = function (app) {
 
 	 app.post('/campaign/insert_link_notification', async function(req, res) {
         try {
-		   let campaign_id=req.body.campaign
+		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   let campaign={}
 		   let date;
-			var data = await  app.db.campaign().findOne({_id:ObjectId(campaign_id)},async function (err, result) {
-			   campaign.owner=result.idNode
+		 await  app.db.campaign().findOne({id:campaign_id},async function (err, result) {
+			   campaign.owner= Number(result.idNode.substring(1))
                campaign.title=result.title
 			   campaign.hash=result.hash
 			   manageTime()
@@ -507,10 +512,10 @@ module.exports = function (app) {
 					id:campaign_id
 			  }
 			}
-		  await	app.db.notification().insert(notification)
+		  await	app.db.notification().insertOne(notification)
 
-		  await	app.db.user().findOne({'_id':campaign.owner}, function (err, result) {
-		fs.readFile(__dirname + '/emailtemplate/email.html', 'utf8' ,async(err, data) => {
+		  await	app.db.sn_user().findOne({_id:campaign.owner}, function (err, result) {
+		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
 				if (err) {
 				  console.error(err)
 				  return
@@ -555,7 +560,7 @@ module.exports = function (app) {
 		   }
 
         } catch (err) {
-			response.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
+			res.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
         }
 	});
 
@@ -970,15 +975,15 @@ module.exports = function (app) {
 
                  if(ret.transactionHash){
 
-					const campaign = await app.db.campaign().findOne({id:idCampaign});
-					const id = re.body.idUser;
-                    const user = await app.db.sn_user().findOne({_id : id});
+					const campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+					const id = req.body.idUser;
+                    const email = req.body.email;
 
                     const notification={
 						idNode:"0"+id,
 						type:"validated_link",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
+						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1006,7 +1011,7 @@ module.exports = function (app) {
 
 								let mailOptions = {
 								 from: app.config.mailSender,
-								 to: user.email,
+								 to: email,
 								 subject: 'Your link has been accepted in a campaign',
 								 html: htmlToSend
 							};
@@ -2027,7 +2032,7 @@ module.exports = function (app) {
 			 }} })
 			res.json(JSON.stringify({message :'Cover added'})).status(200);
 			}
-			res.send(JSON.stringify({message :'No matching file found'})).status(404);
+			res.send(JSON.stringify({message :'No matching file found'}));
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
@@ -2067,7 +2072,7 @@ module.exports = function (app) {
 	    let token = req.headers["authorization"].split(" ")[1];
         await app.crm.auth(token);
 		const idProm = req.body.prom_id
-		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
+		const prom = await app.db.CampaignLinkStatistic().findOne({id_prom: idProm})
         let stats = {};
 		stats.likes = prom.likes;
 		stats.shares = prom.shares;
@@ -2404,7 +2409,7 @@ console.log(Links)
 
 		rescampaigns.push(campaigns[i]);
 	}
-	            var campaignscentral = await app.statcentral.campaignsByOwner(address);
+	            var campaignscentral = await app.campaign.campaignsByOwner(address);
 
 	            rescampaigns = rescampaigns.concat(campaignscentral);
 
