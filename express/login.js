@@ -279,7 +279,7 @@ module.exports = function (app) {
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
           var res = await rp({uri:accountsUrl,json: true})
           while(true) {
-          
+
             for (var i = 0;i<res.data.length;i++) {
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
@@ -352,7 +352,7 @@ module.exports = function (app) {
         });
         console.log(profile)
         var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
-        var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
+        var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit"});
         return cb(null, {id: profile.id, token: token, expires_in: date});
       }
     }));
@@ -473,12 +473,12 @@ module.exports = function (app) {
     passReqToCallback: true
   },
   async function (req,accessToken, refreshToken, profile, done) {
-    
+
     let user_id=+req.query.state;
     console.log(user_id);
     let userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
     if(userExist.length){
-             
+
                done(null,profile,{
               status: false,
               message: "account exist"
@@ -522,7 +522,7 @@ module.exports = function (app) {
   async function (req,accessToken, refreshToken, profile, done) {
     let user_id=+req.query.state;
     let users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
-    if(users.length){        
+    if(users.length){
       done(null,profile,{
      status: false,
      message: "account exist"
@@ -533,7 +533,7 @@ module.exports = function (app) {
 }
   }))
 
-  
+
   passport.serializeUser(function (user, cb) {
     cb(null, user.id);
   });
@@ -1094,7 +1094,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
   app.get('/connect/facebook/:idUser', (req, res,next)=>{
     passport.authenticate('connect_facebook', {state:req.params.idUser})(req,res,next)
-  }); 
+  });
 
 
   app.get('/callback/connect/facebook',passport.authenticate('connect_facebook'), async  (req, res)=> {
@@ -1103,22 +1103,22 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
   app.put('/updateUserEmail', async (req, res)=>{
     try {
-     
+
       var users=await app.db.sn_user().find({ $and: [{email:{$regex : /[A-Z]/ }},{userSatt : true}]}).toArray();
       users.forEach(async (user)=>{
         await app.db.sn_user().updateOne({_id:user._id},{$set:{email:user.email.toLowerCase()}});
       })
 
       res.send(JSON.stringify("success"))
-      
+
   } catch (err) {
-    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   })
 
   app.get('/connect/telegram/:idUser', (req, res,next)=>{
     passport.authenticate('connect_telegram', {state:req.params.idUser})(req,res,next)
-  }); 
+  });
 
   app.get('/callback/connect/telegram',passport.authenticate('connect_telegram'), async  (req, res)=> {
     res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
@@ -1137,9 +1137,9 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       res.end(JSON.stringify({error:"same password"})).status(500);
     }
   } catch (err) {
-    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   });
-  
+
   return app;
 }
