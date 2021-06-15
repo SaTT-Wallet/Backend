@@ -2139,7 +2139,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		 let campaign = await app.db.campaign().findOne({id : idCampaign});
+		 let campaign = await app.db.campaignCrm().findOne({id : idCampaign});
 		 let id = +req.body.idUser
 
 		 
@@ -2147,7 +2147,7 @@ module.exports = function (app) {
 			idNode:"0"+id,
 			type:"rejected_link",
 			status:"done",
-			label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':id, action : "link_rejected"}),
+			label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':id, action : "link_rejected"}),
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
