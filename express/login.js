@@ -74,7 +74,7 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
 
       if (users.length) {
-        return done(null, false, {error: true, message: 'email_already_used'});
+        return done(null, false, {error: true, message: 'account_already_used'});
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
@@ -139,7 +139,7 @@ module.exports = function (app) {
       if (users.length) {
         var user = users[0];
         // if (user.idSn != 0) {
-        //   return done(null, false, {error: true, message: 'email_already_used'});
+        //   return done(null, false, {error: true, message: 'account_already_used'});
         // }
         /*if (user.account_locked) {
           return done(null, false, {error: true, message: 'account_locked'});
@@ -189,7 +189,7 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
       var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
       if (users.length) {
-        return cb('Error: email already Used')
+        return cb('account_already_used&idSn='+users[0].idSn)
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
@@ -325,10 +325,9 @@ module.exports = function (app) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
-      var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
-
+      var users = await app.db.sn_user().find({$or: [ {idOnSn2: profile.id},{email:profile._json.email}]}).toArray()
       if (users.length) {
-        return cb('email_already_used')
+        return cb('account_already_used&idSn='+users[0].idSn)
       } else {
         var mongodate = new Date().toISOString();
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
@@ -371,7 +370,7 @@ module.exports = function (app) {
       if (users.length) {
         var user = users[0];
         // if (user.idSn != 2) {
-        //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
+        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
         // }
         // if(!user.enabled){
         //   return cb('account not verified')
@@ -402,14 +401,14 @@ module.exports = function (app) {
         var token = crypto.randomFillSync(buff).toString('hex');
         var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
         if (users.length) {
-          return cb('email_already_used');
+          return cb('account_already_used&idSn='+users[0].idSn);
         } else {
           var mongodate = new Date().toISOString();
           var buff2 = Buffer.alloc(32);
           var code = crypto.randomFillSync(buff2).toString('hex');
           var mydate = mongodate.slice(0, 19).replace('T', ' ');
           var insert = await app.db.sn_user().insertOne({
-            id:Long.fromNumber(await app.account.handleId()),
+            _id:Long.fromNumber(await app.account.handleId()),
             idOnSn3: profile.id,
             username: profile.email,
             firstName: profile.first_name,
@@ -445,7 +444,7 @@ module.exports = function (app) {
       if (users.length) {
         var user = users[0];
         // if (user.idSn != 5) {
-        //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
+        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
         // }
         // if(!user.enabled){
         //   return cb('account not verified')
@@ -645,7 +644,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
         console.log(e)
       }
     },
-    authErrorHandler);
+    authSignInErrorHandler);
 
   function authErrorHandler(err, req, res, next) {
     console.log(err)
@@ -654,7 +653,11 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   }
 
 
-
+  function authSignInErrorHandler(err, req, res, next) {
+    console.log(err)
+    let message = err.message? err.message:err;
+    res.redirect(app.config.basedURl +'/login?message=' + message);
+  }
   app.get('/callback/facebook_signup',
     passport.authenticate('signup_FbStrategy'), async function (req, response) {
       try {
@@ -675,7 +678,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
         console.log(e)
       }
     },
-    authErrorHandler);
+    authSignInErrorHandler);
 
     app.get('/callback/facebook_insta',
       passport.authenticate('instalink_FbStrategy'), async function (req, response) {
@@ -698,7 +701,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
-    authErrorHandler);
+    authSignInErrorHandler);
 
  /* app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
     //console.log(req.user)
