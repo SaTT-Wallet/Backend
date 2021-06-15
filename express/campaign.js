@@ -495,8 +495,7 @@ module.exports = function (app) {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   let campaign={}
-		   let date;
-		 await  app.db.campaign().findOne({id:campaign_id},async function (err, result) {
+		 await  app.db.campaignCrm().findOne({hash:campaign_id},async function (err, result) {
 			   campaign.owner= Number(result.idNode.substring(1))
                campaign.title=result.title
 			   campaign.hash=result.hash
@@ -505,7 +504,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date}),
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.created}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
