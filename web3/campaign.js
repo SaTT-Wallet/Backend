@@ -118,7 +118,7 @@ module.exports = async function (app) {
 
 			var ctr = await campaignManager.getContractToken(token);
 
-			var gasPrice = await ctr.getGasPrice();
+			var gasPrice = await ctr.getGasPrice()*1.40;
 			var gas = 600000;
 			try {
 
