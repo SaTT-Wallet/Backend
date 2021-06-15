@@ -7,12 +7,12 @@ module.exports = async function (app) {
 
 
 
-	campaignManager.getContract = function (address) {
-		if(address == app.config.ctrs.campaign.address.mainnet )
+	campaignManager.getContract = (address) => {
+		if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.mainnet )
 			return campaignManager.contract;
 		else if(address == app.config.ctrs.campaign.address.mainnetBep20)
 				return campaignManager.contractBep20;
-		else	if(address == app.config.ctrs.campaign.address.testnet )
+		else	if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.testnet )
 				return campaignManager.contract;
 		else if(address == app.config.ctrs.campaign.address.testnetBep20)
 				return campaignManager.contractBep20;
@@ -487,6 +487,77 @@ module.exports = async function (app) {
 				reject(err);
 			}
 		})
+	}
+
+	campaignManager.campaignProms = async (idCampaign, PassedProms, ctrPassed)=>{
+		return new Promise(async (resolve, reject) => {
+      
+       try{  
+        let ctr = ctrPassed;
+		let idproms = await ctr.methods.getProms(idCampaign).call();
+		let proms = [];
+
+		let newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
+
+
+		if(idproms.length || newproms.length) {
+			let addresses = [];
+			let ids = [];
+			let idByAddress = [];
+			let userById = [];
+
+			for (let i =0;i<idproms.length;i++)
+			{
+				let prom = await ctr.methods.proms(idproms[i]).call();
+				let count = await app.db.ban().find({idProm:idproms[i]}).count();
+				prom.id = idproms[i];
+				prom.pause = count;
+				proms.push(prom);
+				if(addresses.indexOf(prom.influencer)== -1)
+					addresses.push(prom.influencer.slice(2).toLowerCase());
+			}
+		
+
+			for (let i =0;i<newproms.length;i++)
+			{
+				let newprom = newproms[i];
+				newprom.id = newprom._id;
+				proms.push(newprom);
+				if(addresses.indexOf(newprom.influencer) == -1)
+					addresses.push(newprom.influencer.slice(2).toLowerCase());
+			}
+			
+			PassedProms.proms = proms;
+
+			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
+			for (let i =0;i<wallets.length;i++)
+			{
+				idByAddress["0x"+wallets[i].keystore.address] ="id#"+wallets[i].UserId;
+				if(ids.indexOf(wallets[i].UserId)== -1)
+					ids.push(wallets[i].UserId);
+			}
+			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
+			for (let i =0;i<users.length;i++)
+			{
+				delete(users[i].accessToken)
+				userById["id#"+users[i]._id] = users[i];
+			}
+			for (let i =0;i<PassedProms.proms.length;i++)
+			{
+				PassedProms.proms[i].meta = userById[idByAddress[PassedProms.proms[i].influencer.toLowerCase()]];
+			}
+
+		}
+			resolve(PassedProms)
+
+
+	   }catch (err)
+			{
+				reject(err);
+			}
+		
+		
+		})            
 	}
 
 

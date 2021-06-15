@@ -1,3 +1,4 @@
+const console = require('console');
 const { async } = require('hasha');
 
 module.exports = function (app) {
@@ -236,9 +237,9 @@ module.exports = function (app) {
 
       if (users.length) {
         var user = users[0];
-        if(!user.enabled){
-          return cb('account not verified')
-        }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -372,9 +373,9 @@ module.exports = function (app) {
         // if (user.idSn != 2) {
         //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
         // }
-        if(!user.enabled){
-          return cb('account not verified')
-        }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -446,9 +447,9 @@ module.exports = function (app) {
         // if (user.idSn != 5) {
         //   return cb('email_already_used') //(null, false, {message: 'email_already_used'});
         // }
-        if(!user.enabled){
-          return cb('account not verified')
-        }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -1124,13 +1125,14 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
   });
 
+
   app.post('/check/pass', async  (req, res) => {
     try{
     let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
     let walletpass = req.body.password;
     let id = auth.id;
-    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber( id)});
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)});
       if (user.password != synfonyHash(walletpass)) {
       res.end(JSON.stringify({message:"Not the same password"})).status(200);
     } else {
