@@ -2137,10 +2137,11 @@ module.exports = function (app) {
          const reason =req.body.reason || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
+		 const email = req.body.email
 	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
 		 let campaign = await app.db.campaign().findOne({id : idCampaign});
 		 let id = +req.body.idUser
-         let user = await app.db.sn_user().findOne({_id : id});
+
 		 
 		 const notification={
 			idNode:"0"+id,
@@ -2175,7 +2176,7 @@ module.exports = function (app) {
 
 					let mailOptions = {
 					 from: app.config.mailSender,
-					 to: user.email,
+					 to: email,
 					 subject: 'Your link has been rejected in a campaign',
 					 html: htmlToSend
 				};
