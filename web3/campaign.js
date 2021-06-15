@@ -560,7 +560,39 @@ module.exports = async function (app) {
 		})            
 	}
 
+	campaignManager.campaignsByOwner = async (owner) => {
 
+		var campaigns = [];
+		campaigns = await app.db.campaign().find({contract:"central",owner:owner}).toArray();
+		var campaignsCrm = [];
+		var campaignsCrmbyId = [];
+		campaignsCrm = await app.db.campaignCrm().find().toArray();
+		for (var i = 0;i<campaignsCrm.length;i++)
+		{
+			if(campaignsCrm[i].hash)
+				campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
+		}
+		for (var i = 0;i<campaigns.length;i++)
+		{
+			if(campaignsCrmbyId[campaigns[i].id])
+			{
+				campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
+			}
+
+			campaigns[i].funds =  [campaigns[i].token,campaigns[i].amount]
+
+
+			var ratios = campaigns[i].ratios;
+			var res = [
+				{typeSN:"1",likeRatio:ratios[0],shareRatio:ratios[1],viewRatio:ratios[2]},
+				{typeSN:"2",likeRatio:ratios[3],shareRatio:ratios[4],viewRatio:ratios[5]},
+				{typeSN:"3",likeRatio:ratios[6],shareRatio:ratios[7],viewRatio:ratios[8]},
+				{typeSN:"4",likeRatio:ratios[9],shareRatio:ratios[10],viewRatio:ratios[11]}
+			];
+			campaigns[i].ratios = res;
+		}
+		return campaigns;
+	}
 
 	app.campaign = campaignManager;
 	return app;

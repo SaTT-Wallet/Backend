@@ -89,7 +89,7 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 	  });
 
-	  cron.schedule('53 15 * * *',()=>{
+	  cron.schedule('*/15 * * * *',()=>{
 		updateStat();
 		 })
 	 async function updateStat(){
@@ -496,7 +496,7 @@ module.exports = function (app) {
 		   let link=req.body.link
 		   let campaign={}
 		   let date;
-		 await  app.db.campaign().findOne({id:ObjectId(campaign_id)},async function (err, result) {
+		 await  app.db.campaign().findOne({id:campaign_id},async function (err, result) {
 			   campaign.owner= Number(result.idNode.substring(1))
                campaign.title=result.title
 			   campaign.hash=result.hash
@@ -2072,7 +2072,7 @@ module.exports = function (app) {
 	    let token = req.headers["authorization"].split(" ")[1];
         await app.crm.auth(token);
 		const idProm = req.body.prom_id
-		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
+		const prom = await app.db.CampaignLinkStatistic().findOne({id_prom: idProm})
         let stats = {};
 		stats.likes = prom.likes;
 		stats.shares = prom.shares;
@@ -2409,7 +2409,7 @@ console.log(Links)
 
 		rescampaigns.push(campaigns[i]);
 	}
-	            var campaignscentral = await app.statcentral.campaignsByOwner(address);
+	            var campaignscentral = await app.campaign.campaignsByOwner(address);
 
 	            rescampaigns = rescampaigns.concat(campaignscentral);
 

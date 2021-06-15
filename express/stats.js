@@ -370,7 +370,8 @@ cron.schedule("03 04 * * 1", () =>{
 			var owner = req.params.addr;
 			var access_token= token
 			var campaigns = [];
-
+            let rescampaigns = [];
+			
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 			var campaignsCrm = [];
 			var campaignsCrmbyId = [];
