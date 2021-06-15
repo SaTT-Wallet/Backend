@@ -975,15 +975,15 @@ module.exports = function (app) {
 
                  if(ret.transactionHash){
 
-					const campaign = await app.db.campaign().findOne({id:idCampaign});
-					const id = re.body.idUser;
-                    const user = await app.db.sn_user().findOne({_id : id});
+					const campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+					const id = req.body.idUser;
+                    const email = req.body.email;
 
                     const notification={
 						idNode:"0"+id,
 						type:"validated_link",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
+						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1011,7 +1011,7 @@ module.exports = function (app) {
 
 								let mailOptions = {
 								 from: app.config.mailSender,
-								 to: user.email,
+								 to: email,
 								 subject: 'Your link has been accepted in a campaign',
 								 html: htmlToSend
 							};
