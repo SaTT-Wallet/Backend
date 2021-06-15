@@ -733,7 +733,18 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
 		const user =await app.db.sn_user().findOne({_id:id});
-		if(profile.email !== user.email){
+		if(!user.email){
+			const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+				email:profile.email,
+				firstName:profile.firstName,
+				lastName:profile.lastName,
+				enabled:false,
+				completed:true,
+				password:synfonyHash(password)
+			  }})
+			  res.end(JSON.stringify({message : "updated successfully"}))
+		}
+		else if (profile.email !== user.email){
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
 		  if(users.length) {
 		  res.end(JSON.stringify({message : "email already exists"}));
