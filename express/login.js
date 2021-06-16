@@ -15,6 +15,7 @@ module.exports = function (app) {
   const hasha = require('hasha');
   var handlebars = require('handlebars');
   const fs = require('fs');
+  var Twitter = require('twitter-v2');
 
 
   ObjectId = require('mongodb').ObjectID
@@ -415,6 +416,18 @@ module.exports = function (app) {
     }));
 
 
+    passport.use('twitter_link',new TwitterStrategy({
+      consumerKey:app.config.twitter.consumer_key,
+      consumerSecret:app.config.twitter.consumer_secret,
+      callbackURL: app.config.baseUrl +'callback/twitter',
+      passReqToCallback: true
+    },
+  function(req, accessToken, tokenSecret, profile, cb) {
+
+    return cb(null, {profile:profile,accessToken:accessToken,tokenSecret:tokenSecret,user:req.query.user});
+  }));
+
+
 
 
 
@@ -635,7 +648,7 @@ module.exports = function (app) {
 
   app.get('/auth/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}));
 
-
+app.get('/auth/twitterlink', passport.authenticate('twitter_link', {scope: ['profile','email']}));
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
@@ -742,11 +755,20 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       }
       });
 
- /* app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
-    //console.log(req.user)
-    var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-    response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
-  });*/
+      app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
+        try {
+            var tweet = new Twitter({
+          	  consumer_key: app.config.twitter.consumer_key,
+          	  consumer_secret: app.config.twitter.consumer_secret,
+          	  access_token_key: req.accessToken,
+          	  access_token_secret:req.tokenSecret
+          	});
+
+          response.end("ok")
+        } catch (e) {
+          console.log(e)
+        }
+        });
 
 
   // route for logging out
