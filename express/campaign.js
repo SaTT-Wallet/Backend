@@ -2149,7 +2149,7 @@ module.exports = function (app) {
 		 const email = req.body.email
 		 let link = req.body.link
 	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		 let campaign = await app.db.campaignCrm().findOne({id : idCampaign});
+		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
 
@@ -2196,12 +2196,12 @@ module.exports = function (app) {
 						res.end(JSON.stringify(error))
 					} else {
 						console.log("email was sent")
-						res.end(JSON.stringify(ret))
+						res.end(JSON.stringify(info))
 					}
 				  });
 				})
 
-		res.send(JSON.stringify({message : 'success', userWallet})).status(200);
+		res.send(JSON.stringify({message : 'success'})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
