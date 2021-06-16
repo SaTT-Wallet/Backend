@@ -495,8 +495,7 @@ module.exports = function (app) {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   let campaign={}
-		   let date;
-		 await  app.db.campaign().findOne({id:campaign_id},async function (err, result) {
+		 await  app.db.campaignCrm().findOne({hash:campaign_id},async function (err, result) {
 			   campaign.owner= Number(result.idNode.substring(1))
                campaign.title=result.title
 			   campaign.hash=result.hash
@@ -505,7 +504,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date}),
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.created}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -2138,16 +2137,17 @@ module.exports = function (app) {
          const reason =req.body.reason || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
+		 const email = req.body.email
 	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		 let campaign = await app.db.campaign().findOne({id : idCampaign});
+		 let campaign = await app.db.campaignCrm().findOne({id : idCampaign});
 		 let id = +req.body.idUser
-         let user = await app.db.sn_user().findOne({_id : id});
+
 		 
 		 const notification={
 			idNode:"0"+id,
 			type:"rejected_link",
 			status:"done",
-			label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':id, action : "link_rejected"}),
+			label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':id, action : "link_rejected"}),
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
@@ -2176,7 +2176,7 @@ module.exports = function (app) {
 
 					let mailOptions = {
 					 from: app.config.mailSender,
-					 to: user.email,
+					 to: email,
 					 subject: 'Your link has been rejected in a campaign',
 					 html: htmlToSend
 				};
