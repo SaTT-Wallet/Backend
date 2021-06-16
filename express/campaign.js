@@ -330,6 +330,7 @@ module.exports = function (app) {
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			if(ret){
+				console.log(ret, "create/all")
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
 
