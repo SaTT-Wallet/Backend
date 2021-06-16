@@ -404,6 +404,7 @@ module.exports = function (app) {
 
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         var channelId = res.items[0].snippet.channelId;
+        console.log(res)
         var update = await app.db.sn_user().updateOne({idOnSn2: profile.id}, {$set: {youtubeLink: channelId}});
 
         return cb(null, {id: user._id});
