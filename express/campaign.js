@@ -506,7 +506,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.created}),
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.created, 'cmp_hash':campaign.hash}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -957,7 +957,7 @@ module.exports = function (app) {
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;
 		let token = req.headers["authorization"].split(" ")[1];
-
+        let link = req.body.link
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
@@ -965,7 +965,7 @@ module.exports = function (app) {
 
 			const lang = req.query.lang || "en";
 			app.i18n.configureTranslation(lang);
-
+            
 			var auth = await app.crm.auth(token);
 			var cred = await app.account.unlock(auth.id,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
@@ -988,9 +988,9 @@ module.exports = function (app) {
 
                     const notification={
 						idNode:"0"+id,
-						type:"validated_link",
+						type:"cmp_candidate_accept_link",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
+						label:JSON.stringify({'cmp_name':campaign.title, action : "link_accepted", 'cmp_link' : link, 'cmp_hash' : campaign.hash}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -2147,6 +2147,7 @@ module.exports = function (app) {
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
 		 const email = req.body.email
+		 let link = req.body.link
 	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
 		 let campaign = await app.db.campaignCrm().findOne({id : idCampaign});
 		 let id = +req.body.idUser
@@ -2154,9 +2155,9 @@ module.exports = function (app) {
 
 		 const notification={
 			idNode:"0"+id,
-			type:"rejected_link",
+			type:"cmp_candidate_reject_link",
 			status:"done",
-			label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':id, action : "link_rejected"}),
+			label:JSON.stringify({'cmp_name':campaign.title, action : "link_rejected", 'cmp_link' : link, 'cmp_hash': campaign.hash}),
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
