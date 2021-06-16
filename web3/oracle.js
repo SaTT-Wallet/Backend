@@ -184,7 +184,16 @@ module.exports = async function (app) {
 		 return gas;
 		}
 
-			ContractToken.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnetBep20);
+			
+			if(app.config.testnet) {
+				ContractToken.contractBep20 = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnetBep20);
+			}
+			else {
+				ContractToken.contractBep20 = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnetBep20);
+			}
+
+
+
 		ContractToken.contractBep20.getGasPrice = async function () {
 		 var gas = await app.web3Bep20.eth.getGasPrice();
 		 return gas;
