@@ -300,7 +300,7 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
 		let id =req.body.idCampaign
-  
+
 		try {
 
 			var res = await app.crm.auth(req.body.token);
@@ -319,7 +319,7 @@ module.exports = function (app) {
 
 			// await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred)
 			// .then(async(campaignHash)=>{
-         
+
 			// 	await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
 			// 	response.end(JSON.stringify({campaignHash})).status(201);
 			// })
@@ -332,7 +332,7 @@ module.exports = function (app) {
 			if(ret){
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
-			
+
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -847,7 +847,7 @@ module.exports = function (app) {
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
 		let [token,res,id] = [req.headers["authorization"].split(" ")[1], await app.crm.auth(token),res.id];
-        
+
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 		try {
@@ -860,7 +860,7 @@ module.exports = function (app) {
 				response.end(JSON.stringify(ret.insertedId));
 			}*/
 		//	else {
-               
+
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
                 let campaign = await app.db.campaign().findOne({id:idCampaign});
 				if(ret.transactionHash){
@@ -1000,7 +1000,7 @@ module.exports = function (app) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,	
+							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
 							cmp_title: campaign.title,
@@ -1014,7 +1014,7 @@ module.exports = function (app) {
 								 subject: 'Your link has been accepted in a campaign',
 								 html: htmlToSend
 							};
-				
+
 						  transporter.sendMail(mailOptions, function(error, info){
 								if (error) {
 									res.end(JSON.stringify(error))
@@ -1023,7 +1023,7 @@ module.exports = function (app) {
 									res.end(JSON.stringify(ret))
 								}
 							  });
-							})					
+							})
 				 }
 
 			res.end(JSON.stringify(ret));
@@ -1405,6 +1405,7 @@ module.exports = function (app) {
 				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
 				{
 					  var evts = await app.campaign.updatePromStats(idProm,cred2);
+						console.log(evts);
 						var evt = evts.events[0];
 						var idRequest = evt.raw.topics[1];
 						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
@@ -2142,7 +2143,7 @@ module.exports = function (app) {
 		 let campaign = await app.db.campaignCrm().findOne({id : idCampaign});
 		 let id = +req.body.idUser
 
-		 
+
 		 const notification={
 			idNode:"0"+id,
 			type:"rejected_link",
@@ -2165,8 +2166,8 @@ module.exports = function (app) {
 			  let template = handlebars.compile(html);
 
 				let emailContent = {
-				reject_reason : reason,	
-				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,	
+				reject_reason : reason,
+				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: campaign.title,
@@ -2180,7 +2181,7 @@ module.exports = function (app) {
 					 subject: 'Your link has been rejected in a campaign',
 					 html: htmlToSend
 				};
-	
+
 			  transporter.sendMail(mailOptions, function(error, info){
 					if (error) {
 						res.end(JSON.stringify(error))
