@@ -199,14 +199,14 @@
         <div class="mail-header">
             <div class="top">
                 <div class="col" align="left">
-                    <img src="https://web-preprod.iframe-apps.com/images/img_mail/logo.png" alt="">
+                    <img src="{{imgUrl}}/logo.png" alt="">
                 </div>
                 <div class="col" align="right">
                 </div>
             </div>
                 <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
                 <h2>Lien ajouté !</h2>
-                <p>Un nouveau lien a été ajouté à votre campagne "<%= cmp.name %>"</p>
+                <p>Un nouveau lien {{cmp_link}} a été ajouté à votre campagne {{cmp_title}}</p>
         </div>
         <div class="mail-body">
 
@@ -216,8 +216,8 @@
     </div>
 </div>
         <div class="mail-footer">
-            <a href="<%= SaTT.Url %>">À propos de SaTT</a>
-            <a class="border-l" href="<%= SaTT.Url %>">Nous contacter</a>
+            <a href="{{satt_faq}}">À propos de SaTT</a>
+            <a class="border-l" href="{{satt_faq}}">Nous contacter</a>
         </div>
     </div>
 </body>
