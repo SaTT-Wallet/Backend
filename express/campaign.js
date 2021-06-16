@@ -2201,7 +2201,6 @@ module.exports = function (app) {
 				  });
 				})
 
-		res.send(JSON.stringify({message : 'success'})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
