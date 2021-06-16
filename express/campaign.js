@@ -490,7 +490,7 @@ module.exports = function (app) {
      link : link
      */
 
-	 app.post('/campaign/insert_link_notification', async function(req, res) {
+	 app.post('/campaign/insert_link_notification', async (req, res) => {
         try {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
@@ -500,6 +500,7 @@ module.exports = function (app) {
                campaign.title=result.title
 			   campaign.hash=result.hash
 			   manageTime()
+			   
 			   let notification={
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
@@ -514,24 +515,30 @@ module.exports = function (app) {
 		  await	app.db.notification().insertOne(notification)
 
 		  await	app.db.sn_user().findOne({_id:campaign.owner}, function (err, result) {
-		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
+			readHTMLFile(__dirname + '/emailtemplate/Email_Template_link_added.html',async(err, html) => {
+
 				if (err) {
 				  console.error(err)
 				  return
 				}
-				var data_={
-					cmp:{
-						name:campaign.title,
-						link:link
-					}
-				}
-				let dynamic_html=ejs.render(data, data_);
-				console.log(dynamic_html)
+
+				let template = handlebars.compile(html);
+
+				let emailContent = {
+					cmp_link : link,	
+					satt_faq : app.config.Satt_faq,
+					satt_url: app.config.basedURl,
+					cmp_title: campaign.title,
+					imgUrl: app.config.baseEmailImgURl
+					};
+
+						let htmlToSend = template(emailContent);
+
 				var mailOptions = {
 			     from: app.config.mailSender,
 			     to: result.email,
 			     subject: 'New link was added To your campaign',
-			     html: dynamic_html
+			     html: htmlToSend
 			};
 
 		 await transporter.sendMail(mailOptions, function(error, info){
