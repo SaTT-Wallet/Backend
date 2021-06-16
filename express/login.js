@@ -390,6 +390,33 @@ module.exports = function (app) {
     }));
 
 
+    passport.use('google_strategy_link', new GoogleStrategy({
+      clientID: app.config.googleClientId,
+      clientSecret: app.config.googleClientSecret,
+      callbackURL: app.config.baseUrl + "callback/googlelink"
+    },
+    async function (accessToken, refreshToken, profile, cb) {
+
+      var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
+      if (users.length) {
+        var user = users[0];
+
+
+        var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        var channelId = res.items[0].snippet.channelId;
+        var update = await app.db.sn_user().updateOne({idOnSn2: profile.id}, {$set: {youtubeLink: channelId}});
+
+        return cb(null, {id: user._id});
+      } else {
+        return cb ('Register First')
+
+      }
+    }));
+
+
+
+
+
   passport.use('signup_telegramStrategy',
     new TelegramStrategy({
         botToken: app.config.telegramBotToken
@@ -603,7 +630,9 @@ module.exports = function (app) {
 
 
 
-  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
+  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email',]}));
+
+  app.get('/auth/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}));
 
 
 
@@ -702,6 +731,15 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authSignInErrorHandler);
+
+
+    app.get('/callback/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+      try {
+        response.end("ok")
+      } catch (e) {
+        console.log(e)
+      }
+      });
 
  /* app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
     //console.log(req.user)
