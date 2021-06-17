@@ -337,9 +337,9 @@ module.exports = function (app) {
 		let id =req.body.idCampaign
 
 		try {
-				console.log(token);
+
 			var res = await app.crm.auth(req.body.token);
-				console.log(res);
+
 			var cred = await app.account.unlock(res.id,pass);
 				console.log(cred);
 
@@ -348,6 +348,8 @@ module.exports = function (app) {
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				token = app.config.ctrs.token.address.testnet;
 			}
+
+					console.log(token);
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
 
