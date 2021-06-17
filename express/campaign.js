@@ -417,13 +417,17 @@ module.exports = function (app) {
 		var ratios = req.body.ratios;
         let id =req.body.idCampaign
 		try {
-
+			console.log(ERC20token);
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
+
+			console.log(res,cred);
 
 			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
+
+			console.log(ERC20token);
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
 
