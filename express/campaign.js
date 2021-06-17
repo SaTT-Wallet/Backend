@@ -375,7 +375,7 @@ module.exports = function (app) {
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
 
-			response.end(JSON.stringify(ret));
+			response.end(JSON.stringify({transactionHash : ret}));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
