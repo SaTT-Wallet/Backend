@@ -903,13 +903,13 @@ module.exports = function (app) {
 		//	else {
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-                let campaign = await app.db.campaign().findOne({id:idCampaign});
+                let campaign = await app.db.campaignCrm().findOne({id:idCampaign});
 				if(ret.transactionHash){
 					let notification={
 						idNode:"0"+id,
 						type:"apply_campaign",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':campaign.idNode}),
+						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -2053,8 +2053,6 @@ module.exports = function (app) {
 
 		})
 
-		console.log("test9");
-
 
 	/*
      @url : /campaign/:idCampaign/cover
@@ -2075,7 +2073,7 @@ module.exports = function (app) {
 				"$id": app.ObjectId(idCampaign),
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify({message :'Cover added'})).status(200);
+			res.json(JSON.stringify({message :'Cover added'}));
 			}
 			res.send(JSON.stringify({message :'No matching file found'}));
 		} catch (err) {
@@ -2151,7 +2149,7 @@ module.exports = function (app) {
 		 let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
-	     const links =  await app.db.campaign_link_statistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
+	     const links =  await app.db.CampaignLinkStatistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -2191,7 +2189,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	     await app.db.campaign_link_statistic().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+	     await app.db.CampaignLinkStatistic().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
@@ -2323,7 +2321,7 @@ module.exports = function (app) {
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
 
-			var LinksCollection = await app.db.campaign_link_statistic().find({'influencer':address}).toArray();
+			var LinksCollection = await app.db.CampaignLinkStatistic().find({'influencer':address}).toArray();
 
             for(var i=0;i<LinksCollection.length;i++){
 
