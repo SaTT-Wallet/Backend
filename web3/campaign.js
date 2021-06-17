@@ -118,11 +118,12 @@ module.exports = async function (app) {
 
 			var ctr = await campaignManager.getContractToken(token);
 
-			var gasPrice = await ctr.getGasPrice()*1.40;
+			var gasPrice = await ctr.getGasPrice();
 			var gas = 600000;
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+					console.log(receiplt, "createCampaignAll")
 					resolve(receipt.events.CampaignCreated.returnValues.id);
 
 
