@@ -893,7 +893,7 @@ module.exports = function (app) {
 		//	else {
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-                let campaign = await app.db.campaignCrm().findOne({id:idCampaign});
+                let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 				if(ret.transactionHash){
 					let notification={
 						idNode:"0"+id,
