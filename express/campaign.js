@@ -89,9 +89,10 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 	  });
 
-	  cron.schedule('00 59 * * *',()=>{
-		updateStat();
-		 })
+	//   cron.schedule('* */1 * * *',()=>{
+	// 	updateStat();
+	// 	 })
+		 
 	 async function updateStat(){
 		 console.log("debut de traitement")
 		promDetail=[];
@@ -2119,7 +2120,7 @@ module.exports = function (app) {
 		 let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
-	     const links =  await app.db.campaign_link_statistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
+	     const links =  await app.db.CampaignLinkStatistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -2157,7 +2158,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	     await app.db.campaign_link_statistic().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+	     await app.db.CampaignLinkStatistic().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
@@ -2285,7 +2286,7 @@ module.exports = function (app) {
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
 
-			var LinksCollection = await app.db.campaign_link_statistic().find({'influencer':address}).toArray();
+			var LinksCollection = await app.db.CampaignLinkStatistic().find({'influencer':address}).toArray();
 
             for(var i=0;i<LinksCollection.length;i++){
 
