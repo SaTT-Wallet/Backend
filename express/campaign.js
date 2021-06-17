@@ -358,20 +358,8 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			// await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred)
-			// .then(async(campaignHash)=>{
-
-			// 	await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
-			// 	response.end(JSON.stringify({campaignHash})).status(201);
-			// })
-			// .catch((error)=>{
-			// 	response.send({error,errorMessage: "EVM error"}).status(400);
-
-			// })
-
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			if(ret){
-				console.log(ret, "create/all")
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
 
@@ -412,7 +400,7 @@ module.exports = function (app) {
  *        "200":
  *          description: campaign hash
  */
-	app.post('/v2/campaign/create/all', async function(req, response) {
+	app.post('/v2/campaign/create/all', async (req, res)=> {
 
 		let token = req.headers["authorization"].split(" ")[1];
 		var pass = req.body.pass;
@@ -425,36 +413,31 @@ module.exports = function (app) {
         let id =req.body.idCampaign
 		try {
 
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+			var auth = await app.crm.auth(token);
+			var cred = await app.account.unlock(auth.id,pass);
 
-			console.log(res,cred);
 
 			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 
-			console.log(ERC20token);
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
 
 			if( (new BN(balance.amount)).lt(new BN(amount)) )
 			{
-				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
+				res.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred)
-				.then(async(campaignHash)=>{
-					await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
-					response.end(JSON.stringify({campaignHash})).status(201);
-				})
-				.catch((error)=>{
-					response.send({error,errorMessage: "EVM error"}).status(400);
+			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
+			if(ret){
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
+			}
 
-				})
+			res.end(JSON.stringify({transactionHash : ret}));
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
 			app.account.lock(cred.address);
