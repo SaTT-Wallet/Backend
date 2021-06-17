@@ -621,7 +621,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:{amount,currency :('ETH'),to,date :new Date()},
+					label:JSON.stringify({amount,currency :('ETH'),to,date :new Date()}),
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1095,7 +1095,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:{amount,currency,to,date :new Date()},
+					label:JSON.stringify({amount,currency,to,date :new Date()}),
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1240,7 +1240,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:{amount, network :('BEP20'), to :req.body.to, date : new Date()},
+					label:JSON.stringify({amount, network :('BEP20'), to :req.body.to, date : new Date()}),
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1499,7 +1499,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 				idNode:"0"+res.id,
 				type:"transfer_event",
 				status:"done",
-				label:{amount,currency :('BNB'),to, date: new Date()},
+				label:JSON.stringify({amount,currency :('BNB'),to, date: new Date()}),
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
