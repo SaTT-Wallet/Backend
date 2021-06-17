@@ -189,20 +189,20 @@ cron.schedule("03 04 * * 1", () =>{
 
 		for(var c=0;c<unowned.length;c++){
 
-			unowned[c].endDate = new Date(+unowned[c].endDate * 1000);
-		    unowned[c].startDate = new Date(+unowned[c].startDate * 1000)
+			let endDate = new Date(+unowned[c].endDate * 1000);
+		     let startDate = new Date(+unowned[c].startDate * 1000)
 
 			  if (
-				Date.now() >= unowned[c].startDate.getTime() &&
-				Date.now() <= unowned[c].endDate.getTime()
+				Date.now() >= startDate.getTime() &&
+				Date.now() <= endDate.getTime()
 			  ) {
 				Pending_c++
-			  } else if (Date.now() > unowned[c].endDate.getTime()) {
+			  } else if (Date.now() > endDate.getTime()) {
 				Ended_c++
 			  }
 		}
 
-		response.end(JSON.stringify({allCampaign:rescampaigns,ended:Ended_c,pending:Pending_c}));
+		response.end(JSON.stringify({allCampaign:unowned,ended:Ended_c,pending:Pending_c}));
 	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
