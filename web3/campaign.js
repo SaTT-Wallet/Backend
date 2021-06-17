@@ -116,6 +116,8 @@ module.exports = async function (app) {
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
+			console.log("createCampaignAll",dataUrl,startDate,endDate,ratios,token,amount,credentials)
+
 			var ctr = await campaignManager.getContractToken(token);
 
 			var gasPrice = await ctr.getGasPrice();
@@ -492,8 +494,8 @@ module.exports = async function (app) {
 
 	campaignManager.campaignProms = async (idCampaign, PassedProms, ctrPassed)=>{
 		return new Promise(async (resolve, reject) => {
-      
-       try{  
+
+       try{
         let ctr = ctrPassed;
 		let idproms = await ctr.methods.getProms(idCampaign).call();
 		let proms = [];
@@ -517,7 +519,7 @@ module.exports = async function (app) {
 				if(addresses.indexOf(prom.influencer)== -1)
 					addresses.push(prom.influencer.slice(2).toLowerCase());
 			}
-		
+
 
 			for (let i =0;i<newproms.length;i++)
 			{
@@ -527,7 +529,7 @@ module.exports = async function (app) {
 				if(addresses.indexOf(newprom.influencer) == -1)
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
 			}
-			
+
 			PassedProms.proms = proms;
 
 			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
@@ -556,9 +558,9 @@ module.exports = async function (app) {
 			{
 				reject(err);
 			}
-		
-		
-		})            
+
+
+		})
 	}
 
 	campaignManager.campaignsByOwner = async (owner) => {
