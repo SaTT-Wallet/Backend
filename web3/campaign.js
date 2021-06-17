@@ -55,6 +55,8 @@ module.exports = async function (app) {
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
 				return campaignManager.contractBep20;
 
+			}
+
 		campaignManager.isCentral =  function (idCampaign) {
 			/*
 			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
@@ -119,7 +121,7 @@ module.exports = async function (app) {
 
 			var ctr = await campaignManager.getContractToken(token);
 
-			
+
 
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 600000;
