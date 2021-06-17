@@ -337,7 +337,7 @@ module.exports = function (app) {
 		let id =req.body.idCampaign
 
 		try {
-				console.log(ERC20token);
+				console.log(token);
 			var res = await app.crm.auth(req.body.token);
 				console.log(res);
 			var cred = await app.account.unlock(res.id,pass);
