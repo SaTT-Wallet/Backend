@@ -367,7 +367,7 @@ module.exports = function (app) {
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:{'type':req.body.type, 'date': date},
+				  label:{type:req.body.type, date},
 				  isSeen:false,
 				  isSend : false,
 				  attachedEls:{

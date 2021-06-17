@@ -534,7 +534,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:{'cmp_name':campaign.title,'date':campaign.created, 'cmp_hash':campaign.hash},
+				label:{cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash},
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -899,7 +899,7 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"apply_campaign",
 						status:"done",
-						label:{'cmp_name':campaign.title,'cmp_owner':campaign.idNode},
+						label:{cmp_name :campaign.title, cmp_owner:campaign.idNode},
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1013,7 +1013,7 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"cmp_candidate_accept_link",
 						status:"done",
-						label:{'cmp_name':campaign.title, action : "link_accepted", 'cmp_link' : link, 'cmp_hash' : campaign.hash},
+						label:{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash},
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -2188,7 +2188,7 @@ module.exports = function (app) {
 			idNode:"0"+id,
 			type:"cmp_candidate_reject_link",
 			status:"done",
-			label:{'cmp_name':campaign.title, action : "link_rejected", 'cmp_link' : link, 'cmp_hash': campaign.hash},
+			label:{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash},
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
