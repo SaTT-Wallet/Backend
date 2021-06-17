@@ -1,6 +1,8 @@
 const { async } = require('hasha');
 
 module.exports = function (app) {
+
+	console.log("test1");
 	let ejs = require('ejs');
 	var ObjectId = require('mongodb').ObjectId;
 	var fs = require('fs');
@@ -9,19 +11,23 @@ module.exports = function (app) {
 	const cron =require('node-cron');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
+	console.log("test2");
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
+	console.log("test3");
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
 	const mongoURI = app.config.mongoURI;
+	console.log("test4");
 	var rp = require('request-promise');
     const etherInWei = new Big(1000000000000000000);
     const handlebars = require('handlebars');
-
+console.log("test5");
 	const nodemailer = require("nodemailer");
-
+console.log("test6");
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
+	console.log("test7");
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -54,10 +60,16 @@ module.exports = function (app) {
 		  });
 		}
 	  });
+
+		console.log("test8");
+
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 	  const upload = multer({ storage });
+
+		console.log("test9");
+
 
 	  let readHTMLFile = function(path, callback) {
 		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
@@ -74,6 +86,9 @@ module.exports = function (app) {
 
     app.set("view engine", "ejs");
 
+		console.log("test10");
+
+
 	var BN = require("bn.js");
 
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
@@ -82,12 +97,18 @@ module.exports = function (app) {
 	  let gfs;
 	  let gfsKit;
 
+		console.log("test11");
+
+
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
 		gfsKit = Grid(conn.db, mongoose.mongo);
 		gfs.collection('campaign_cover');
 		gfsKit.collection('campaign_kit');
 	  });
+
+		console.log("test12");
+
 
 	  cron.schedule('00 59 * * *',()=>{
 		updateStat();
@@ -146,13 +167,13 @@ module.exports = function (app) {
 				let result = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
 							await app.db.CampaignLinkStatistic().updateOne({id_prom:stat.id_prom},{$set: {stat}})
-							stat=null;	
+							stat=null;
 						} else{
 							console.log(stat, "stat script")
 							await app.db.CampaignLinkStatistic().insertOne(stat);
 							stat=null;
 						}
-	
+
 						// if(element[0]){
 						// 	if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
 						// 		stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
@@ -182,6 +203,8 @@ module.exports = function (app) {
 	})
 
 	 }
+
+
 	app.post('/updateStat', updateStat)
 
 
@@ -968,7 +991,7 @@ module.exports = function (app) {
 
 			const lang = req.query.lang || "en";
 			app.i18n.configureTranslation(lang);
-            
+
 			var auth = await app.crm.auth(token);
 			var cred = await app.account.unlock(auth.id,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
