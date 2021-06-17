@@ -83,7 +83,7 @@ cron.schedule("03 04 * * 1", () =>{
            
 			if(rejectedProms.length){
 				rejectedProms.forEach(element => {
-				proms.forEach((prom, index)=>{
+				proms.forEach(prom=>{
 				   if(element.id_prom === prom.id){
 					 prom.isAccepted = "rejected"
 				   }
