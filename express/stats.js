@@ -51,8 +51,8 @@ cron.schedule("03 04 * * 1", () =>{
 		var proms = [];
 
 		var newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
-
-
+        let rejectedProms = await app.db.CampaignLinkStatistic().find({$and: [ { idCampaign },{status : "rejected"}]}).toArray();
+   
 		if(idproms.length || newproms.length) {
 			var addresses = [];
 			var ids = [];
@@ -80,6 +80,18 @@ cron.schedule("03 04 * * 1", () =>{
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
 			}
 			//
+           
+			if(rejectedProms.length){
+				rejectedProms.forEach(element => {
+				proms.forEach((prom, index)=>{
+				   if(element.id_prom === prom.id){
+					 prom.isAccepted = "rejected"
+				   }
+				})
+			})
+			}
+			
+
 			result.proms = proms;
 
 			var wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
@@ -102,7 +114,7 @@ cron.schedule("03 04 * * 1", () =>{
 			}
 
 		}
-
+       
 		var campaignsCrm = await app.db.campaignCrm().find({hash:idCampaign}).toArray();
 		if(campaignsCrm.length)
 			result.meta = campaignsCrm[0];
