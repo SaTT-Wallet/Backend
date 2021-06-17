@@ -1095,7 +1095,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:JSON.stringify([{amount,network :('ERC20'),currency,to,date :new Date()}]),
+					label:JSON.stringify([{amount,currency,to,date :new Date()}]),
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
