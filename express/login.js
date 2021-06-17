@@ -757,12 +757,12 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
       app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
         try {
-            var tweet = new Twitter({
+            /*var tweet = new Twitter({
           	  consumer_key: app.config.twitter.consumer_key,
           	  consumer_secret: app.config.twitter.consumer_secret,
           	  access_token_key: req.accessToken,
           	  access_token_secret:req.tokenSecret
-          	});
+          	});*/
 
 
           response.end("ok")
