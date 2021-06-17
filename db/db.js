@@ -48,8 +48,7 @@ module.exports = async function (app) {
 	}
 	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-	var db3 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseClassed, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-
+	
 	app.db.accessToken = function () {
 				return db2.db(app.config.mongoBaseCrm).collection('access_token');
 			};
