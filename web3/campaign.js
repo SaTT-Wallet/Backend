@@ -48,7 +48,7 @@ module.exports = async function (app) {
 
 		//console.log("token",token);
 		var code = await app.web3Bep20.eth.getCode(token);
-
+		console.log("code",code);
 		if(code != "0x") {
 				return campaignManager.contractBep20;
 		}
@@ -119,6 +119,8 @@ module.exports = async function (app) {
 			console.log("createCampaignAll",dataUrl,startDate,endDate,ratios,token,amount,credentials)
 
 			var ctr = await campaignManager.getContractToken(token);
+
+			console.log("contract",ctr)
 
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 600000;
