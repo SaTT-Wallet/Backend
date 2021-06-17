@@ -729,12 +729,12 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
 		 let token = req.headers["authorization"].split(" ")[1];
-		 const auth = await app.crm.auth(token);
+		const auth = await app.crm.auth(token);
 		const id = +auth.id;
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
 		const user =await app.db.sn_user().findOne({_id:id});
-	  if (profile.email !== user.email || !user.email){
+	    if (profile.email !== user.email || !user.email){
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
 		  if(users.length) {
 		  res.end(JSON.stringify({message : "email already exists"}));
