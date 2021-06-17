@@ -341,7 +341,7 @@ module.exports = function (app) {
 			var res = await app.crm.auth(req.body.token);
 
 			var cred = await app.account.unlock(res.id,pass);
-				console.log(cred);
+			
 
 
 
@@ -349,7 +349,7 @@ module.exports = function (app) {
 				token = app.config.ctrs.token.address.testnet;
 			}
 
-					console.log(token);
+
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
 
