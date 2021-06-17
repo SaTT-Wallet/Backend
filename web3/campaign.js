@@ -115,11 +115,11 @@ module.exports = async function (app) {
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
-			console.log("createCampaignAll",dataUrl,startDate,endDate,ratios,token,amount,credentials)
+
 
 			var ctr = await campaignManager.getContractToken(token);
 
-			console.log("contract",ctr)
+			
 
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 600000;
