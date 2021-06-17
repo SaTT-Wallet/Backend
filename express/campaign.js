@@ -2,7 +2,7 @@ const { async } = require('hasha');
 
 module.exports = function (app) {
 
-	console.log("test1");
+
 	let ejs = require('ejs');
 	var ObjectId = require('mongodb').ObjectId;
 	var fs = require('fs');
@@ -11,23 +11,23 @@ module.exports = function (app) {
 	const cron =require('node-cron');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
-	console.log("test2");
+
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
-	console.log("test3");
+
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
 	const mongoURI = app.config.mongoURI;
-	console.log("test4");
+
 	var rp = require('request-promise');
     const etherInWei = new Big(1000000000000000000);
     const handlebars = require('handlebars');
-console.log("test5");
+
 	const nodemailer = require("nodemailer");
-console.log("test6");
+
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
-	console.log("test7");
+
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -61,14 +61,14 @@ console.log("test6");
 		}
 	  });
 
-		console.log("test8");
+
 
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 	  const upload = multer({ storage });
 
-		console.log("test9");
+
 
 
 	  let readHTMLFile = function(path, callback) {
@@ -86,7 +86,7 @@ console.log("test6");
 
     app.set("view engine", "ejs");
 
-		console.log("test10");
+
 
 
 	var BN = require("bn.js");
@@ -97,7 +97,7 @@ console.log("test6");
 	  let gfs;
 	  let gfsKit;
 
-		console.log("test11");
+
 
 
 	  conn.once('open', () => {
@@ -107,12 +107,13 @@ console.log("test6");
 		gfsKit.collection('campaign_kit');
 	  });
 
-		console.log("test12");
+
 
 
 	  cron.schedule('00 59 * * *',()=>{
 		updateStat();
 		 })
+
 	 async function updateStat(){
 		 console.log("debut de traitement")
 		promDetail=[];
@@ -2046,6 +2047,9 @@ console.log("test6");
 
 		})
 
+		console.log("test9");
+
+
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
@@ -2094,6 +2098,7 @@ console.log("test6");
 		}
 	})
 
+	console.log("test8");
 
 	/*
      @url : /campaign/stats_live
@@ -2117,6 +2122,9 @@ console.log("test6");
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
+	console.log("test7");
+
 
 /**
  * @swagger
@@ -2144,6 +2152,8 @@ console.log("test6");
 
 	}
 	})
+
+	console.log("test6");
 
 
 	/**
@@ -2234,6 +2244,7 @@ console.log("test6");
 	}
 	})
 
+	console.log("test5");
 
 
 
@@ -2296,6 +2307,9 @@ console.log("test6");
      @response : object of arrays => draft and created campaigns
      */
 
+		 console.log("test4");
+
+
 	app.get('/campaign/link/list/:addess', async function(req, res) {
 
 		try{
@@ -2355,6 +2369,9 @@ console.log(Links)
 		}
 	})
 
+	console.log("test3");
+
+
 
     /*
 	@url : /campaign/totalEarned/:addr
@@ -2403,6 +2420,8 @@ console.log(Links)
 	{headers}
 	@Output JSON object
 	*/
+	console.log("test2");
+
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
 		let prices;
@@ -2468,6 +2487,7 @@ console.log(Links)
 
 	})
 
+console.log("test1");
   //extract campaign/id/:id
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
 		try{
