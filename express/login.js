@@ -15,6 +15,7 @@ module.exports = function (app) {
   const hasha = require('hasha');
   var handlebars = require('handlebars');
   const fs = require('fs');
+  var Twitter = require('twitter-v2');
 
 
   ObjectId = require('mongodb').ObjectID
@@ -390,6 +391,46 @@ module.exports = function (app) {
     }));
 
 
+    passport.use('google_strategy_link', new GoogleStrategy({
+      clientID: app.config.googleClientId,
+      clientSecret: app.config.googleClientSecret,
+      callbackURL: app.config.baseUrl + "callback/googlelink"
+    },
+    async function (accessToken, refreshToken, profile, cb) {
+
+      var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
+      if (users.length) {
+        var user = users[0];
+
+
+        var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        var channelId = res.items[0].id;
+        console.log(res.items[0])
+        var update = await app.db.sn_user().updateOne({idOnSn2: profile.id}, {$set: {youtubeLink: channelId}});
+
+        return cb(null, {id: user._id});
+      } else {
+        return cb ('Register First')
+
+      }
+    }));
+
+
+    passport.use('twitter_link',new TwitterStrategy({
+      consumerKey:app.config.twitter.consumer_key,
+      consumerSecret:app.config.twitter.consumer_secret,
+      callbackURL: app.config.baseUrl +'callback/twitter',
+      passReqToCallback: true
+    },
+  function(req, accessToken, tokenSecret, profile, cb) {
+
+    return cb(null, {profile:profile,accessToken:accessToken,tokenSecret:tokenSecret,user:req.query.user});
+  }));
+
+
+
+
+
   passport.use('signup_telegramStrategy',
     new TelegramStrategy({
         botToken: app.config.telegramBotToken
@@ -603,9 +644,11 @@ module.exports = function (app) {
 
 
 
-  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email']}));
+  app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email',]}));
 
+  app.get('/auth/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}));
 
+app.get('/auth/twitterlink', passport.authenticate('twitter_link', {scope: ['profile','email']}));
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
@@ -703,11 +746,30 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     },
     authSignInErrorHandler);
 
- /* app.get('/callback/twitter', passport.authenticate('twitter'), async function (req, response) {
-    //console.log(req.user)
-    var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-    response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
-  });*/
+
+    app.get('/callback/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+      try {
+        response.end("ok")
+      } catch (e) {
+        console.log(e)
+      }
+      });
+
+      app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
+        try {
+            /*var tweet = new Twitter({
+          	  consumer_key: app.config.twitter.consumer_key,
+          	  consumer_secret: app.config.twitter.consumer_secret,
+          	  access_token_key: req.accessToken,
+          	  access_token_secret:req.tokenSecret
+          	});*/
+
+
+          response.end("ok")
+        } catch (e) {
+          console.log(e)
+        }
+        });
 
 
   // route for logging out
