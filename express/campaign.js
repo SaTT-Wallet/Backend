@@ -1,6 +1,8 @@
 const { async } = require('hasha');
 
 module.exports = function (app) {
+
+
 	let ejs = require('ejs');
 	var ObjectId = require('mongodb').ObjectId;
 	var fs = require('fs');
@@ -9,12 +11,15 @@ module.exports = function (app) {
 	const cron =require('node-cron');
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
+
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
+
 	const path = require('path');
 	const multer = require('multer');
     const Big = require('big.js');
 	const mongoURI = app.config.mongoURI;
+
 	var rp = require('request-promise');
     const etherInWei = new Big(1000000000000000000);
     const handlebars = require('handlebars');
@@ -22,6 +27,7 @@ module.exports = function (app) {
 	const nodemailer = require("nodemailer");
 
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
+
 
 	const storage = new GridFsStorage({
 		url: mongoURI,
@@ -54,10 +60,16 @@ module.exports = function (app) {
 		  });
 		}
 	  });
+
+
+
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 	  const upload = multer({ storage });
+
+
+
 
 	  let readHTMLFile = function(path, callback) {
 		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
@@ -74,6 +86,9 @@ module.exports = function (app) {
 
     app.set("view engine", "ejs");
 
+
+
+
 	var BN = require("bn.js");
 
 	var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
@@ -82,6 +97,9 @@ module.exports = function (app) {
 	  let gfs;
 	  let gfsKit;
 
+
+
+
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
 		gfsKit = Grid(conn.db, mongoose.mongo);
@@ -89,9 +107,15 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 	  });
 
-	//   cron.schedule('*/15 * * * *',()=>{
-	// 	updateStat();
-	// 	 })
+
+
+/*
+	  cron.schedule('00 59 * * *',()=>{
+		updateStat();
+		 })
+
+		 */
+
 	 async function updateStat(){
 		 console.log("debut de traitement")
 		promDetail=[];
@@ -101,9 +125,13 @@ module.exports = function (app) {
 			var idProm = event.prom;
 			prom = await app.oracle.getPromDetails(idProm)
 			console.log(prom)
-			if(prom.isAccepted){
 				var stat={};
+				stat.status = prom.isAccepted
+				stat.influencer = prom.influencer
+				stat.idCampaign = prom.idCampaign
 				stat.id_prom=idProm;
+				stat.idPost = prom.idPost
+				stat.idUser = prom.idUser
 				stat.typeSN=prom.typeSN.toString();
 				stat.date=Date('Y-m-d H:i:s');
 				if(stat.typeSN=="1"){
@@ -139,40 +167,47 @@ module.exports = function (app) {
 								}
 
 
-					element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
-						if(element[0]){
-							if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
-								stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
-								stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
-								stat.viewsperDay=Number(stat.views)-Number(element[0].views);
-								try{
-								//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
-									await app.db.CampaignLinkStatistic().insertOne(stat);
-									stat=null;
-								}catch(err){
-									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-								}
-							}
-						}else{
-								stat.sharesperDay=stat.shares;
-								stat.likesperDay=stat.likes;
-								stat.viewsperDay=stat.views;
-								try{
-								//tester si le lien n'existe pas on ajoute un nouveau ligne;
-									await app.db.CampaignLinkStatistic().insertOne(stat);
-									stat=null;
-								}catch(err){
-									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-											}
-								}
+				let result = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).toArray()
+                        if(result[0]){
+							await app.db.CampaignLinkStatistic().updateOne({id_prom:stat.id_prom},{$set: {stat}})
+							stat=null;
+						} else{
+							console.log(stat, "stat script")
+							await app.db.CampaignLinkStatistic().insertOne(stat);
+							stat=null;
+						}
 
-			}
-
-
+						// if(element[0]){
+						// 	if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
+						// 		stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
+						// 		stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
+						// 		stat.viewsperDay=Number(stat.views)-Number(element[0].views);
+						// 		try{
+						// 		//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
+						// 			await app.db.CampaignLinkStatistic().insertOne(stat);
+						// 			stat=null;
+						// 		}catch(err){
+						// 			console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+						// 		}
+						// 	}
+						// }else{
+						// 		stat.sharesperDay=stat.shares;
+						// 		stat.likesperDay=stat.likes;
+						// 		stat.viewsperDay=stat.views;
+						// 		try{
+						// 		//tester si le lien n'existe pas on ajoute un nouveau ligne;
+						// 			await app.db.CampaignLinkStatistic().insertOne(stat);
+						// 			stat=null;
+						// 		}catch(err){
+						// 			console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+						// 					}
+						// 		}
 
 	})
 
 	 }
+
+
 	app.post('/updateStat', updateStat)
 
 
@@ -300,7 +335,7 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
 		let id =req.body.idCampaign
-  
+
 		try {
 
 			var res = await app.crm.auth(req.body.token);
@@ -319,7 +354,7 @@ module.exports = function (app) {
 
 			// await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred)
 			// .then(async(campaignHash)=>{
-         
+
 			// 	await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : campaignHash}});
 			// 	response.end(JSON.stringify({campaignHash})).status(201);
 			// })
@@ -330,9 +365,10 @@ module.exports = function (app) {
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			if(ret){
+				console.log(ret, "create/all")
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
-			
+
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -495,8 +531,7 @@ module.exports = function (app) {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   let campaign={}
-		   let date;
-		 await  app.db.campaign().findOne({id:campaign_id},async function (err, result) {
+		 await  app.db.campaignCrm().findOne({hash:campaign_id},async function (err, result) {
 			   campaign.owner= Number(result.idNode.substring(1))
                campaign.title=result.title
 			   campaign.hash=result.hash
@@ -505,7 +540,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.date}),
+				label:JSON.stringify({'cmp_name':campaign.title,'date':campaign.created, 'cmp_hash':campaign.hash}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -817,6 +852,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -848,7 +884,7 @@ module.exports = function (app) {
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
 		let [token,res,id] = [req.headers["authorization"].split(" ")[1], await app.crm.auth(token),res.id];
-        
+
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 		try {
@@ -861,7 +897,7 @@ module.exports = function (app) {
 				response.end(JSON.stringify(ret.insertedId));
 			}*/
 		//	else {
-               
+
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
                 let campaign = await app.db.campaign().findOne({id:idCampaign});
 				if(ret.transactionHash){
@@ -950,7 +986,7 @@ module.exports = function (app) {
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;
 		let token = req.headers["authorization"].split(" ")[1];
-
+        let link = req.body.link
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
@@ -981,9 +1017,9 @@ module.exports = function (app) {
 
                     const notification={
 						idNode:"0"+id,
-						type:"validated_link",
+						type:"cmp_candidate_accept_link",
 						status:"done",
-						label:JSON.stringify({'cmp_name':campaign.title,'cmp_owner':campaign.idNode, action : "link_accepted"}),
+						label:JSON.stringify({'cmp_name':campaign.title, action : "link_accepted", 'cmp_link' : link, 'cmp_hash' : campaign.hash}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1001,7 +1037,7 @@ module.exports = function (app) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,	
+							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
 							cmp_title: campaign.title,
@@ -1015,7 +1051,7 @@ module.exports = function (app) {
 								 subject: 'Your link has been accepted in a campaign',
 								 html: htmlToSend
 							};
-				
+
 						  transporter.sendMail(mailOptions, function(error, info){
 								if (error) {
 									res.end(JSON.stringify(error))
@@ -1024,7 +1060,7 @@ module.exports = function (app) {
 									res.end(JSON.stringify(ret))
 								}
 							  });
-							})					
+							})
 				 }
 
 			res.end(JSON.stringify(ret));
@@ -1308,6 +1344,7 @@ module.exports = function (app) {
 				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
 				{
 					  var evts = await app.campaign.updatePromStats(idProm,cred2);
+							console.log("oracle log",evts);
 						var evt = evts.events[0];
 						var idRequest = evt.raw.topics[1];
 						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
@@ -1406,6 +1443,7 @@ module.exports = function (app) {
 				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
 				{
 					  var evts = await app.campaign.updatePromStats(idProm,cred2);
+						console.log("oracle log",evts);
 						var evt = evts.events[0];
 						var idRequest = evt.raw.topics[1];
 						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
@@ -2011,6 +2049,9 @@ module.exports = function (app) {
 
 		})
 
+		console.log("test9");
+
+
 	/*
      @url : /campaign/:idCampaign/cover
      @description: Save campaign covers in db
@@ -2060,6 +2101,7 @@ module.exports = function (app) {
 	})
 
 
+
 	/*
      @url : /campaign/stats_live
      @description: get live stats of campaign proms
@@ -2083,6 +2125,9 @@ module.exports = function (app) {
 		}
 	})
 
+
+
+
 /**
  * @swagger
  * /campaign/links/{idCampaign}:
@@ -2102,13 +2147,15 @@ module.exports = function (app) {
 		 let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
-	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
+	     const links =  await app.db.campaign_link_statistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
 	}
 	})
+
+
 
 
 	/**
@@ -2138,16 +2185,18 @@ module.exports = function (app) {
          const reason =req.body.reason || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
-	     await app.db.campaign_link().findOneAndUpdate({ _id : app.ObjectId(idLink) }, {$set: { status : "rejected"}});
-		 let campaign = await app.db.campaign().findOne({id : idCampaign});
+		 const email = req.body.email
+		 let link = req.body.link
+	     await app.db.campaign_link_statistic().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
-         let user = await app.db.sn_user().findOne({_id : id});
-		 
+
+
 		 const notification={
 			idNode:"0"+id,
-			type:"rejected_link",
+			type:"cmp_candidate_reject_link",
 			status:"done",
-			label:JSON.stringify({'cmp_name':campaign.meta.title,'cmp_owner':id, action : "link_rejected"}),
+			label:JSON.stringify({'cmp_name':campaign.title, action : "link_rejected", 'cmp_link' : link, 'cmp_hash': campaign.hash}),
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
@@ -2165,8 +2214,8 @@ module.exports = function (app) {
 			  let template = handlebars.compile(html);
 
 				let emailContent = {
-				reject_reason : reason,	
-				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,	
+				reject_reason : reason,
+				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: campaign.title,
@@ -2176,27 +2225,27 @@ module.exports = function (app) {
 
 					let mailOptions = {
 					 from: app.config.mailSender,
-					 to: user.email,
+					 to: email,
 					 subject: 'Your link has been rejected in a campaign',
 					 html: htmlToSend
 				};
-	
+
 			  transporter.sendMail(mailOptions, function(error, info){
 					if (error) {
 						res.end(JSON.stringify(error))
 					} else {
 						console.log("email was sent")
-						res.end(JSON.stringify(ret))
+						res.end(JSON.stringify(info))
 					}
 				  });
 				})
 
-		res.send(JSON.stringify({message : 'success', userWallet})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
 	}
 	})
+
 
 
 
@@ -2260,6 +2309,9 @@ module.exports = function (app) {
      @response : object of arrays => draft and created campaigns
      */
 
+
+
+
 	app.get('/campaign/link/list/:addess', async function(req, res) {
 
 		try{
@@ -2267,7 +2319,7 @@ module.exports = function (app) {
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
 
-			var LinksCollection = await app.db.apply().find({'influencer':address}).toArray();
+			var LinksCollection = await app.db.campaign_link_statistic().find({'influencer':address}).toArray();
 
             for(var i=0;i<LinksCollection.length;i++){
 
@@ -2320,6 +2372,9 @@ console.log(Links)
 	})
 
 
+
+
+
     /*
 	@url : /campaign/totalEarned/:addr
 	@description: fetching total earnings of the user in satt & USD
@@ -2367,6 +2422,8 @@ console.log(Links)
 	{headers}
 	@Output JSON object
 	*/
+
+
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
 		let prices;
@@ -2431,6 +2488,7 @@ console.log(Links)
 	}
 
 	})
+
 
   //extract campaign/id/:id
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{

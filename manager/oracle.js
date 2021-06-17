@@ -3,16 +3,16 @@ module.exports = async function (app) {
 	var request = require('request');
 	var rp = require('request-promise');
 	var fs = require("fs");
-	var Twitter = require('twitter');
+	//var Twitter = require('twitter-v2');
 	var jsdomlib = require("jsdom");
 	var jsdom = jsdomlib.JSDOM;
 
-	var tweet = new Twitter({
+/*	var tweet = new Twitter({
 	  consumer_key: app.config.twitter.consumer_key,
 	  consumer_secret: app.config.twitter.consumer_secret,
 	  access_token_key: app.config.twitter.access_token_key,
 	  access_token_secret: app.config.twitter.access_token_secret
-	});
+	});*/
 
 	var oracleManager = {};
 
@@ -128,11 +128,8 @@ module.exports = async function (app) {
 			var res = JSON.parse(body);
 			if(res.items && res.items[0])
 			{
-
-			perf = {shares:res.items[0].statistics.commentCount,likes:res.items[0].statistics.likeCount,views:res.items[0].statistics.viewCount,date:Math.floor(Date.now()/1000)};
+				perf = {shares:res.items[0].statistics.commentCount,likes:res.items[0].statistics.likeCount,views:res.items[0].statistics.viewCount,date:Math.floor(Date.now()/1000)};
 		 }
-
-
 
 			resolve(perf);
 		})
@@ -167,12 +164,8 @@ module.exports = async function (app) {
 
 		return new Promise(async (resolve, reject) => {
 
-
-
 			var res = await tweet.get('statuses/show',{id:idPost});
-
 			var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
-
 
 			resolve(perf);
 		})

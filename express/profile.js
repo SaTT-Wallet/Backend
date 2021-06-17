@@ -95,16 +95,17 @@ module.exports = function (app) {
      @link : /profile/pic/:id
      @description: récupère l'image d'un utilisateur
      @params:
+	 fedi.sadouki@yopmail.com5A
      id : identifiant de l'utilisateur'
      */
 	 app.get('/profile/pic', async (req, res) => {
          try{
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth= await app.crm.auth(token);
-			const idUser = +auth.id;
+			const idUser = auth.id;
 			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
-				  return res.status(404).json({
+				  return res.json({
 					err: 'No file exists'
 				  });
 				}
