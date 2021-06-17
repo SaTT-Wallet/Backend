@@ -2098,7 +2098,7 @@ module.exports = function (app) {
 		}
 	})
 
-	console.log("test8");
+
 
 	/*
      @url : /campaign/stats_live
@@ -2123,7 +2123,7 @@ module.exports = function (app) {
 		}
 	})
 
-	console.log("test7");
+
 
 
 /**
@@ -2153,7 +2153,7 @@ module.exports = function (app) {
 	}
 	})
 
-	console.log("test6");
+
 
 
 	/**
@@ -2244,7 +2244,7 @@ module.exports = function (app) {
 	}
 	})
 
-	console.log("test5");
+
 
 
 
@@ -2307,7 +2307,7 @@ module.exports = function (app) {
      @response : object of arrays => draft and created campaigns
      */
 
-		 console.log("test4");
+
 
 
 	app.get('/campaign/link/list/:addess', async function(req, res) {
@@ -2369,7 +2369,7 @@ console.log(Links)
 		}
 	})
 
-	console.log("test3");
+
 
 
 
@@ -2420,7 +2420,7 @@ console.log(Links)
 	{headers}
 	@Output JSON object
 	*/
-	console.log("test2");
+
 
 	app.get('/campaign/totalSpent/:owner', async (req, res) => {
        try{
@@ -2487,7 +2487,7 @@ console.log(Links)
 
 	})
 
-console.log("test1");
+
   //extract campaign/id/:id
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
 		try{
