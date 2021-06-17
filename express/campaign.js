@@ -2049,8 +2049,6 @@ module.exports = function (app) {
 
 		})
 
-		console.log("test9");
-
 
 	/*
      @url : /campaign/:idCampaign/cover
@@ -2071,7 +2069,7 @@ module.exports = function (app) {
 				"$id": app.ObjectId(idCampaign),
 				"$db": "atayen"
 			 }} })
-			res.json(JSON.stringify({message :'Cover added'})).status(200);
+			res.json(JSON.stringify({message :'Cover added'}));
 			}
 			res.send(JSON.stringify({message :'No matching file found'}));
 		} catch (err) {
