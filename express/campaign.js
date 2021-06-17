@@ -326,7 +326,7 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/create/all', async function(req, response) {
-
+	console.log(req.body);
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -337,9 +337,13 @@ module.exports = function (app) {
 		let id =req.body.idCampaign
 
 		try {
-
+				console.log(ERC20token);
 			var res = await app.crm.auth(req.body.token);
+				console.log(res);
 			var cred = await app.account.unlock(res.id,pass);
+				console.log(cred);
+
+
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				token = app.config.ctrs.token.address.testnet;
@@ -407,7 +411,7 @@ module.exports = function (app) {
  *          description: campaign hash
  */
 	app.post('/v2/campaign/create/all', async function(req, response) {
-		console.log(req.body);
+
 		let token = req.headers["authorization"].split(" ")[1];
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
@@ -418,7 +422,7 @@ module.exports = function (app) {
 		var ratios = req.body.ratios;
         let id =req.body.idCampaign
 		try {
-			console.log(ERC20token);
+
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 
