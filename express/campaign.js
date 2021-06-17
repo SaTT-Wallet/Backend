@@ -89,9 +89,9 @@ module.exports = function (app) {
 		gfsKit.collection('campaign_kit');
 	  });
 
-	  cron.schedule('*/15 * * * *',()=>{
-		updateStat();
-		 })
+	//   cron.schedule('*/15 * * * *',()=>{
+	// 	updateStat();
+	// 	 })
 	 async function updateStat(){
 		 console.log("debut de traitement")
 		promDetail=[];
