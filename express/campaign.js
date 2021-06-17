@@ -407,6 +407,7 @@ module.exports = function (app) {
  *          description: campaign hash
  */
 	app.post('/v2/campaign/create/all', async function(req, response) {
+		console.log(req.body);
 		let token = req.headers["authorization"].split(" ")[1];
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
