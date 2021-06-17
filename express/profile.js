@@ -731,6 +731,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		 let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
 		const id = +auth.id;
+
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
 		const user =await app.db.sn_user().findOne({_id:id});
@@ -744,6 +745,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				email:profile.email,
 				firstName:profile.firstName,
 				lastName:profile.lastName,
+				isChanged:true,
 				enabled:false,
 				completed:true,
 				password:synfonyHash(password)
@@ -752,14 +754,28 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 		  }
 		}else{
-			const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
-			firstName:profile.firstName,
-			lastName:profile.lastName,
-			enabled:1,
-			completed:true,
-			password:synfonyHash(password)
-		  }})
-		  res.end(JSON.stringify({message : "updated successfully with same email"}))
+			if(user.isChanged===true){
+				const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+					email:profile.email,
+					firstName:profile.firstName,
+					lastName:profile.lastName,
+					enabled:false,
+					completed:true,
+					password:synfonyHash(password)
+				  }})
+			res.end(JSON.stringify({message : "updated successfully"}))
+
+			}else{
+				const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+					firstName:profile.firstName,
+					lastName:profile.lastName,
+					enabled:1,
+					completed:true,
+					password:synfonyHash(password)
+				  }})
+				  res.end(JSON.stringify({message : "updated successfully with same email"}))
+			}
+			
 
 		}
 		

@@ -326,7 +326,7 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/create/all', async function(req, response) {
-
+	console.log(req.body);
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -339,11 +339,17 @@ module.exports = function (app) {
 		try {
 
 			var res = await app.crm.auth(req.body.token);
+
 			var cred = await app.account.unlock(res.id,pass);
+			
+
+
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				token = app.config.ctrs.token.address.testnet;
 			}
+
+
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
 
@@ -407,6 +413,7 @@ module.exports = function (app) {
  *          description: campaign hash
  */
 	app.post('/v2/campaign/create/all', async function(req, response) {
+
 		let token = req.headers["authorization"].split(" ")[1];
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
@@ -421,9 +428,13 @@ module.exports = function (app) {
 			var res = await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 
+			console.log(res,cred);
+
 			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
+
+			console.log(ERC20token);
 
 			/*var balance = await app.erc20.getBalance(token,cred.address);
 
