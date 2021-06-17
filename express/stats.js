@@ -110,7 +110,6 @@ cron.schedule("03 04 * * 1", () =>{
 			for (var i =0;i<result.proms.length;i++)
 			{
 				result.proms[i].meta = userById[idByAddress[result.proms[i].influencer.toLowerCase()]];
-				delete result.proms[i].meta.password
 			}
 
 		}
