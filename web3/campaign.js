@@ -46,15 +46,16 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
-		//console.log("token",token);
-		var code = await app.web3Bep20.eth.getCode(token);
-		console.log("code",code);
-		if(code != "0x") {
-				return campaignManager.contractBep20;
-		}
-
+		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() )
 			return campaignManager.contract;
-	}
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase())
+				return campaignManager.contractBep20;
+		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() )
+				return campaignManager.contract;
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
+				return campaignManager.contractBep20;
+
+			}
 
 		campaignManager.isCentral =  function (idCampaign) {
 			/*
@@ -116,11 +117,11 @@ module.exports = async function (app) {
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
-			console.log("createCampaignAll",dataUrl,startDate,endDate,ratios,token,amount,credentials)
+
 
 			var ctr = await campaignManager.getContractToken(token);
 
-			console.log("contract",ctr)
+
 
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 600000;
