@@ -23,9 +23,11 @@ module.exports = async function (app) {
 
 	oracleManager.facebookAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-				res2 = await app.db.query("Select pt.token as token from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page and  pf.username = '"+pageName+"'");
-				if(res2 && res2.length) {
-					var token = res2[0].token;
+
+				var page = await app.db.fbPage().findOne({username: pageName});
+
+				if(page) {
+					var token = page.token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
 			resolve(res.data.fan_count);
 		}
@@ -48,9 +50,10 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 				var ig_media = await app.db.ig_media().findOne({shortCode: idPost});
 			var ig_user = ig_media.owner;
-			res2 = await app.db.query("Select pi.instagram_id as igid,pt.token as token from classed.fb_page_instagram pi,classed.fb_page_token pt where pi.page_fb = pt.page and  pi.instagram_id = '"+ig_user+"'");
-			if(res2 && res2.length) {
-				var token = res2[0].token;
+			fbProfile = await app.db.fbProfile().findOne({instagram_id:ig_user  });
+
+			if(fbProfile) {
+				var token = fbProfile.accessToken;
 				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig_user+"?access_token="+token+"&fields=followers_count",json: true});
 				resolve(res3.followers_count)
 			}
@@ -77,15 +80,10 @@ module.exports = async function (app) {
 	oracleManager.facebook = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
 
-			res = await app.db.query("Select pt.token as token, pf.page_id as page_id from classed.fb_page_token pt,classed.fb_page_fb pf where pf.id = pt.page  and  pf.username = '"+pageName+"'");
-
-			if(res && res.length) {
-				var access  = res.pop();
-				var token = access.token;
-				var idPage = access.page_id;
-
-
-
+			var page = await app.db.fbPage().findOne({username: pageName});
+			if(page) {
+				var token = page.token;
+				var idPage = page.id;
 
 				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares&access_token="+token,json: true});
 				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token="+token,json: true});
