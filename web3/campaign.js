@@ -6,19 +6,18 @@ module.exports = async function (app) {
 	var campaignManager = {};
 
 
-
 	campaignManager.getContract = (address) => {
-		if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.mainnet )
+
+		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
 			return campaignManager.contract;
-		else if(address == app.config.ctrs.campaign.address.mainnetBep20)
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
 				return campaignManager.contractBep20;
-		else	if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.testnet )
+		else	if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
 				return campaignManager.contract;
-		else if(address == app.config.ctrs.campaign.address.testnetBep20)
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase())
 				return campaignManager.contractBep20;
-		else
-				return false;
-	}
+
+			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();

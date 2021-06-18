@@ -278,7 +278,7 @@ module.exports = function (app) {
 
 
           var instagram_id = false;
-          var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account&access_token="+accessToken;
+          var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
           var res = await rp({uri:accountsUrl,json: true})
           while(true) {
 
@@ -286,8 +286,9 @@ module.exports = function (app) {
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
               }
+              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:{UserId:users[0]._id,username:res.data[i].username,token:res.data[i].access_token}},{ upsert: true });
             }
-            if(instagram_id || !res.paging.next)
+            if( !res.paging.next)
             {
               break;
             }
@@ -405,8 +406,22 @@ module.exports = function (app) {
 
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         var channelId = res.items[0].id;
-        console.log(res.items[0])
-        var update = await app.db.sn_user().updateOne({idOnSn2: profile.id}, {$set: {youtubeLink: channelId}});
+
+
+
+        var googleProfile = false;
+        googleProfile = await app.db.googleProfile().findOne({UserId:users[0]._id  });
+        if(googleProfile) {
+          var res_ins = await app.db.googleProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:accessToken}});
+        }
+        else {
+            profile.accessToken = accessToken;
+            profile.UserId = users[0]._id;
+            profile.google_id = profile.id;
+            profile.channelId = channelId;
+
+            var res_ins = await app.db.googleProfile().insertOne(profile);
+        }
 
         return cb(null, {id: user._id});
       } else {
