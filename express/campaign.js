@@ -700,39 +700,9 @@ module.exports = function (app) {
 		}
 	});
 
-	app.post('/campaign/fund', async function(req, response) {
-
-		var pass = req.body.pass;
-		var idCampaign = req.body.idCampaign;
-		var token = req.body.ERC20token;
-		var amount = req.body.amount;
-
-
-		try {
-			var res = await app.crm.auth(req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
-			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
-			if(ret.transactionHash){
-			const ctr = await app.campaign.getCampaignContract(idCampaign);
-			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
-			ret.remaining = fundsInfo.funds[1]
-
-			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
-				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed()
-                 await app.db.campaignCrm().updateOne({hash:idCampaign}, {$set: {cost: budget}})
-			 })
-			}
-			response.end(JSON.stringify(ret));
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-			app.account.lock(cred.address);
-		}
-	});
-/**
+	/**
  * @swagger
- * /v2/campaign/fund:
+ * /campaign/fund:
  *   post:
  *     summary: Increase budget.
  *     description: parametres acceptées :body{campaign} , headers{headers}.
@@ -749,19 +719,28 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-	app.post('/v2/campaign/fund', async function(req, response) {
+	app.post('/campaign/fund', async (req, response) =>{
 
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
-		var ERC20token = req.body.ERC20token;
+		var token = req.body.ERC20token;
 		var amount = req.body.amount;
-		let token = req.headers["authorization"].split(" ")[1];
-
+		let access_token = req.headers["authorization"].split(" ")[1];
 
 		try {
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			var ret = await app.campaign.fundCampaign(idCampaign,ERC20token,amount,cred);
+			var auth = await app.crm.auth(access_token);
+			var cred = await app.account.unlock(auth.id,pass);
+			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
+			if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+			ret.remaining = fundsInfo.funds[1]
+
+			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaignCrm().updateOne({hash:idCampaign}, {$set: {cost: budget}});
+			 })
+			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -770,6 +749,7 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
+
 	app.post('/campaign/price/ratio', async function(req, response) {
 
 		var pass = req.body.pass;
