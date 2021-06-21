@@ -126,6 +126,7 @@ module.exports = function (app) {
 			prom = await app.oracle.getPromDetails(idProm)
 			console.log(prom)
 				var stat={};
+			
 				stat.status = prom.isAccepted
 				stat.id_wallet = prom.influencer
 				stat.id_campaign = prom.idCampaign
@@ -178,7 +179,7 @@ module.exports = function (app) {
 							stat=null;
 						}
                          
-						if(stat.isAccepted){
+						if(prom.isAccepted){
 					let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
 						if(element[0]){
 							if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
@@ -539,8 +540,7 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label : `Someone has applied to your campaign : ${campaign.title}, your campaign hash ${campaign.hash}`,
-				// label:JSON.stringify({cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash}),
+				label:{cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash},
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
@@ -710,6 +710,14 @@ module.exports = function (app) {
 			var res = await app.crm.auth(req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
+			if(ret.transactionHash){
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
+				 result.cost = new Big(result.cost).plus(new Big(amount))
+				 await app.db.campaignCrm().save(result);
+                ret.remaining = fundsInfo.funds[1]
+			 })
+			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -906,8 +914,7 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"apply_campaign",
 						status:"done",
-						label : `You applied to the following campaign ${campaign.title}`,
-						// label:JSON.stringify({cmp_name :campaign.title, cmp_owner:campaign.idNode}),
+						label:{cmp_name :campaign.title},
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1021,8 +1028,7 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"cmp_candidate_accept_link",
 						status:"done",
-						label : `Your link ${link} has been validated in the following campaign ${campaign.title}`,
-						// label:JSON.stringify({cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash}),
+						label:{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash},
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -2197,8 +2203,7 @@ module.exports = function (app) {
 			idNode:"0"+id,
 			type:"cmp_candidate_reject_link",
 			status:"done",
-			lable : `Your link has been rejected in this campaign ${campaign.title}`,
-			// label:JSON.stringify({cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash}),
+			label:{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash},
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
