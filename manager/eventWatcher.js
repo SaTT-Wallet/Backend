@@ -14,7 +14,6 @@ module.exports = async function (app) {
 
 
 		var idCampaign = evt.returnValues.id;
-		console.log(idCampaign,"eventWatcher");
 		var startDate =  evt.returnValues.startDate;
 		var endDate =  evt.returnValues.endDate;
 		var dataUrl =  evt.returnValues.dataUrl;

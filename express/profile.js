@@ -190,7 +190,8 @@ module.exports = function (app) {
 			idNode:idNode,
 			type:"validate_kyc",
 			status:"done",
-			label:JSON.stringify([{'type':type, 'date': date}]),
+			label:`Your kyc has been validated`,
+			// label:JSON.stringify({'type':type, 'date': date}),
 			isSeen:false
 		}
 		await app.db.notification().insertOne(notification)
@@ -331,7 +332,7 @@ module.exports = function (app) {
 				limit:limit
 				}
 			}
-			const isSend= await app.db.notification().find({idNode:idNode,isSend:true}).toArray()
+			const isSend= await app.db.notification().find({idNode:idNode,isSend:false}).toArray()
 			notifications.isSend=isSend.length;
 			notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
 			res.send(notifications);
@@ -369,8 +370,10 @@ module.exports = function (app) {
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:JSON.stringify([{'type':req.body.type, 'date': date}]),
+				  label:`Your Kyc will be reveiwed soon`,
+				//   label:JSON.stringify({type:req.body.type, date}),
 				  isSeen:false,
+				  isSend : false,
 				  attachedEls:{
 					  id:req.file.id
 				}
@@ -456,8 +459,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		let token = req.headers["authorization"].split(" ")[1];
         const auth = await app.crm.auth(token);
 		const id = "0" + auth.id
-		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : true }]}).forEach((elem)=>{
-			elem.isSend = false;
+		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : false }]}).forEach((elem)=>{
+			elem.isSend = true;
 			app.db.notification().save(elem)
 		})
 		res.send(JSON.stringify({message :'Notification clicked'})).status(200);
@@ -490,7 +493,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				idNode:id,
 				type:"send_demande_satt_event",
 				status:"done",
-				label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]),
+				label:`You asked ${req.body.price} of ${req.body.cryptoCurrency} to be sent to you`,
+				// label:JSON.stringify({name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency}),
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
@@ -505,7 +509,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						idNode:"0"+result._id,
 						type:"demande_satt_event",
 						status:"done",
-						label:JSON.stringify([req.body.name,req.body.price,req.body.cryptoCurrency,new Date()]),
+						label:`${req.body.name} asked you to send him ${req.body.price} of ${req.body.cryptoCurrency}`,
+						// label:JSON.stringify({name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -730,10 +735,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
-		//  let token = req.headers["authorization"].split(" ")[1];
-		//  const auth = await app.crm.auth(token);
-		// const id = +auth.id;
-		const id = 7;
+		 let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+		const id = +auth.id;
 
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
