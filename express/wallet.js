@@ -621,9 +621,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:`You have sent ${amount} of Etherium to ${to}`,
-
-					// label:JSON.stringify({amount,currency :('ETH'),to,date :new Date()}),
+					label:{amount,currency :('ETH'),to},
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1097,8 +1095,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					lable:`You have sent ${amount} of ${currency} to ${to}`,
-					// label:JSON.stringify({amount,currency,to,date :new Date()}),
+					label:{amount,currency,to},
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1243,8 +1240,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:`You have sent ${amount} to ${to}`, 
-					// label:JSON.stringify({amount, network :('BEP20'), to :req.body.to, date : new Date()}),
+					label:{amount, network :('BEP20'), to :req.body.to},
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1503,8 +1499,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 				idNode:"0"+res.id,
 				type:"transfer_event",
 				status:"done",
-				label:`You have sent ${amount} of Binance coin to ${to}`,
-				// label:JSON.stringify({amount,currency :('BNB'),to, date: new Date()}),
+				label:{amount,currency :('BNB'),to},
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
