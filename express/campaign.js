@@ -713,11 +713,13 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
 			if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
 			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+			ret.remaining = fundsInfo.funds[1]
+
 			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
-				 result.cost = new Big(result.cost).plus(new Big(amount))
-				 await app.db.campaignCrm().save(result);
-                ret.remaining = fundsInfo.funds[1]
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed()
+                 await app.db.campaignCrm().updateOne({hash:idCampaign}, {$set: {cost: budget}})
 			 })
 			}
 			response.end(JSON.stringify(ret));
@@ -1379,7 +1381,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-			
+
 			response.end(JSON.stringify({ error: err.message?err.message:err.error }));
 		}
 		finally {

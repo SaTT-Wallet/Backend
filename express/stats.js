@@ -728,6 +728,7 @@ cron.schedule("03 04 * * 1", () =>{
 	   let total;
 	   const idProm = req.params.idProm;
 	   const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
+	   const payedAmount = info.payedAmount || "not payed yet"
 	   const campaign = await app.db.campaignCrm().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
 	   ratio.forEach(elem =>{
@@ -738,8 +739,8 @@ cron.schedule("03 04 * * 1", () =>{
 		   total = view.plus(like).plus(share).toFixed()
 		   }
 	   })
-
-	   res.end(JSON.stringify({total}))
+       
+	   res.end(JSON.stringify({total, payedAmount}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
