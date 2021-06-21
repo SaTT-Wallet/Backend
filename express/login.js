@@ -456,7 +456,7 @@ module.exports = function (app) {
     }
     else {
         profile.access_token_key = req.accessToken;
-        profile.access_token_secret:req.tokenSecret;
+        profile.access_token_secret = req.tokenSecret;
         profile.UserId = user_id;
         profile.username = res.screen_name;
         profile.twitter_id = twwet.id;
