@@ -2,6 +2,7 @@ module.exports = function (app) {
 
 const cron =require('node-cron');
 const Big = require('big.js');
+const rp = require('request-promise');
 
 cron.schedule('00 01 * * *',  () => {
 	app.account.BalanceUsersStats("daily");

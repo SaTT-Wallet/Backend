@@ -178,7 +178,6 @@ module.exports = async function (app) {
 			var gas = 200000;
 
 
-
 			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,token:token,amount:amount});
 			   console.log(receipt.transactionHash,"confirmed",idCampaign,"funded");
