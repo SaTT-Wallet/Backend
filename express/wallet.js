@@ -621,7 +621,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:JSON.stringify({amount,currency :('ETH'),to,date :new Date()}),
+					label:{amount,currency :('ETH'),to},
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1084,7 +1084,7 @@ module.exports = function (app) {
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
-			var currency=req.body.currency;
+			var currency=req.body.symbole;
 			var res = await app.crm.auth(req.body.access_token);
 
 			var cred = await app.account.unlock(res.id,pass);
@@ -1095,7 +1095,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:JSON.stringify({amount,currency,to,date :new Date()}),
+					label:{amount,currency,to},
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1240,7 +1240,7 @@ module.exports = function (app) {
 					idNode:"0"+res.id,
 					type:"transfer_event",
 					status:"done",
-					label:JSON.stringify({amount, network :('BEP20'), to :req.body.to, date : new Date()}),
+					label:{amount, network :('BEP20'), to :req.body.to},
 					isSeen:false,
 					isSend:false,
 					attachedEls:{
@@ -1499,7 +1499,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 				idNode:"0"+res.id,
 				type:"transfer_event",
 				status:"done",
-				label:JSON.stringify({amount,currency :('BNB'),to, date: new Date()}),
+				label:{amount,currency :('BNB'),to},
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
