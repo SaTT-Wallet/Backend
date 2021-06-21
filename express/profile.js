@@ -19,6 +19,8 @@ module.exports = function (app) {
     var handlebars = require('handlebars');
 	const hasha = require('hasha');
     var Long = require('mongodb').Long;
+	const crypto = require('crypto');
+
 	let gfsprofilePic;
 	let gfsUserLegal;
 
@@ -188,8 +190,9 @@ module.exports = function (app) {
 			idNode:idNode,
 			type:"validate_kyc",
 			status:"done",
-			label:JSON.stringify({'type':type, 'date': date}),
-			isSeen:false
+			label:{action : "validated kyc"},
+			isSeen:false,
+			created:new Date()
 		}
 		await app.db.notification().insertOne(notification)
 		
@@ -356,7 +359,8 @@ module.exports = function (app) {
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const idNode = "0" + auth.id;
-         if(req.body.type && req.file){
+		  let type = req.body.type;
+         if(type && req.file){
 			await gfsUserLegal.files.deleteMany({ $and : [{idNode: idNode}, {type : req.body.type}]});
             await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode: idNode, DataUser : {
 				"$ref": "sn_user",
@@ -367,12 +371,13 @@ module.exports = function (app) {
 				  idNode:idNode,
 				  type:"save_legal_file_event",
 				  status:"done",
-				  label:JSON.stringify({type:req.body.type, date}),
+				  label:{type},
 				  isSeen:false,
 				  isSend : false,
 				  attachedEls:{
 					  id:req.file.id
-				}
+				},
+				created:new Date()
 			  }
 			await	app.db.notification().insertOne(notification)
 			res.end(JSON.stringify({message :'legal processed'})).status(201);
@@ -489,7 +494,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				idNode:id,
 				type:"send_demande_satt_event",
 				status:"done",
-				label:JSON.stringify({name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency}),
+				label:{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency},
 				isSeen:false,
 				isSend:false,
 				attachedEls:{
@@ -504,7 +509,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						idNode:"0"+result._id,
 						type:"demande_satt_event",
 						status:"done",
-						label:JSON.stringify({name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency}),
+						label:{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency},
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -736,7 +741,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
 		const user =await app.db.sn_user().findOne({_id:id});
-	    if (profile.email !== user.email || !user.email){
+		const buff = Buffer.alloc(32);
+        const code = crypto.randomFillSync(buff).toString('hex');
+	  if (profile.email !== user.email || !user.email){
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
 		  if(users.length) {
 		  res.end(JSON.stringify({message : "email already exists"}));
@@ -748,6 +755,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				lastName:profile.lastName,
 				isChanged:true,
 				enabled:false,
+				confirmation_token: code,
 				completed:true,
 				password:synfonyHash(password)
 			  }})
@@ -760,6 +768,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					email:profile.email,
 					firstName:profile.firstName,
 					lastName:profile.lastName,
+					confirmation_token: code,
 					enabled:false,
 					completed:true,
 					password:synfonyHash(password)

@@ -597,22 +597,19 @@ module.exports = function (app) {
 
   passport.use("connect_telegram",new TelegramStrategy({
     botToken: app.config.telegramBotToken,
-    callbackURL: app.config.baseUrl + "callback/connect/telegram",
     passReqToCallback: true,
   },
-  async function (req,accessToken, refreshToken, profile, done) {
-    let user_id=+req.query.state;
+  async function (req,profile, cb) {
+    let user_id=+req.params.idUser;
     let users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
     if(users.length){
-      done(null,profile,{
-     status: false,
-     message: "account exist"
- })
+      cb(null,profile,{message:"account exist"})
 }else{
      await app.db.sn_user().updateOne({_id:user_id},{$set: {idOnSn3: profile.id}})
-    done (null,profile, {status:true, message:'account_linked_with success'}) //(null, false, {message: 'account_invalide'});
+    cb (null,profile, {status:true, message:'account_linked_with success'}) //(null, false, {message: 'account_invalide'});
 }
   }))
+
 
 
   passport.serializeUser(function (user, cb) {
@@ -1190,7 +1187,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
   app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
     let message = req.authInfo.message
-    res.redirect(app.config.basedURl +'/linkAccounts?message=' + message);
+    res.redirect(app.config.basedURl +'/profile/networks?message=' + message);
   });
 
   app.get('/connect/facebook/:idUser', (req, res,next)=>{
@@ -1199,7 +1196,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
 
   app.get('/callback/connect/facebook',passport.authenticate('connect_facebook'), async  (req, res)=> {
-    res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
+    res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
   });
 
   app.put('/updateUserEmail', async (req, res)=>{
@@ -1216,13 +1213,60 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   })
+  app.get('/connect/telegram/:idUser', 
+    passport.authenticate('connect_telegram'),
+    function(req, res) {
+      try {
+        res.redirect(app.config.basedURl +"/profile/networks?message=" + req.authInfo.message)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    );
 
-  app.get('/connect/telegram/:idUser', (req, res,next)=>{
-    passport.authenticate('connect_telegram', {state:req.params.idUser})(req,res,next)
-  });
 
   app.get('/callback/connect/telegram',passport.authenticate('connect_telegram'), async  (req, res)=> {
-    res.redirect(app.config.basedURl +'/linkAccounts?message=' + req.authInfo.message);
+    res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
+  });
+
+
+  app.put('/deconnect/facebook', async  (req, res) => {
+    try{
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let id = auth.id;
+    let user = await app.db.sn_user().updateOne({ _id:Long.fromNumber(id)},{$set:{idOnSn: null}});
+    res.end(JSON.stringify({message:"deconnect successfully"})).status(200);
+
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+   }
+  });
+
+  app.put('/deconnect/google', async  (req, res) => {
+    try{
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let id = auth.id;
+    let user = await app.db.sn_user().updateOne({ _id:Long.fromNumber(id)},{$set:{idOnSn2: null}});
+    res.end(JSON.stringify({message:"deconnect successfully"})).status(200);
+
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+   }
+  });
+
+  app.put('/deconnect/telegram', async  (req, res) => {
+    try{
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let id = auth.id;
+    let user = await app.db.sn_user().updateOne({ _id:Long.fromNumber(id)},{$set:{idOnSn3: null}});
+    res.end(JSON.stringify({message:"deconnect successfully"})).status(200);
+
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+   }
   });
 
 
