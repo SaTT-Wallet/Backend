@@ -203,9 +203,9 @@ module.exports = async function (app) {
 			await ContractToken.eventCallback(event);
 		});
 
-		ContractToken.contractBep20.events.AskRequest().on('data', async (event) => {
-			await ContractToken.eventCallback(event);
-		});
+		// ContractToken.contractBep20.events.AskRequest().on('data', async (event) => {
+		// 	await ContractToken.eventCallback(event);
+		// });
 		ContractToken.isDeplyed = true;
 
 	}

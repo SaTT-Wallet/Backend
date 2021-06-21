@@ -19,6 +19,8 @@ module.exports = function (app) {
     var handlebars = require('handlebars');
 	const hasha = require('hasha');
     var Long = require('mongodb').Long;
+	const crypto = require('crypto');
+
 	let gfsprofilePic;
 	let gfsUserLegal;
 
@@ -728,13 +730,16 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
-		 let token = req.headers["authorization"].split(" ")[1];
-		 const auth = await app.crm.auth(token);
-		const id = +auth.id;
+		//  let token = req.headers["authorization"].split(" ")[1];
+		//  const auth = await app.crm.auth(token);
+		// const id = +auth.id;
+		const id = 7;
 
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
 		const user =await app.db.sn_user().findOne({_id:id});
+		const buff = Buffer.alloc(32);
+        const code = crypto.randomFillSync(buff).toString('hex');
 	  if (profile.email !== user.email || !user.email){
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
 		  if(users.length) {
@@ -747,6 +752,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				lastName:profile.lastName,
 				isChanged:true,
 				enabled:false,
+				confirmation_token: code,
 				completed:true,
 				password:synfonyHash(password)
 			  }})
@@ -759,6 +765,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					email:profile.email,
 					firstName:profile.firstName,
 					lastName:profile.lastName,
+					confirmation_token: code,
 					enabled:false,
 					completed:true,
 					password:synfonyHash(password)
