@@ -6,19 +6,18 @@ module.exports = async function (app) {
 	var campaignManager = {};
 
 
-
 	campaignManager.getContract = (address) => {
-		if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.mainnet )
+
+		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
 			return campaignManager.contract;
-		else if(address == app.config.ctrs.campaign.address.mainnetBep20)
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
 				return campaignManager.contractBep20;
-		else	if(app.web3.utils.toChecksumAddress(address) == app.config.ctrs.campaign.address.testnet )
+		else	if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
 				return campaignManager.contract;
-		else if(address == app.config.ctrs.campaign.address.testnetBep20)
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase())
 				return campaignManager.contractBep20;
-		else
-				return false;
-	}
+
+			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
@@ -46,15 +45,16 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
-		//console.log("token",token);
-		var code = await app.web3Bep20.eth.getCode(token);
-
-		if(code != "0x") {
-				return campaignManager.contractBep20;
-		}
-
+		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() )
 			return campaignManager.contract;
-	}
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase())
+				return campaignManager.contractBep20;
+		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() )
+				return campaignManager.contract;
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
+				return campaignManager.contractBep20;
+
+			}
 
 		campaignManager.isCentral =  function (idCampaign) {
 			/*
@@ -116,14 +116,17 @@ module.exports = async function (app) {
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
+
+
 			var ctr = await campaignManager.getContractToken(token);
+
+
 
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 600000;
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					console.log(receiplt, "createCampaignAll")
 					resolve(receipt.events.CampaignCreated.returnValues.id);
 
 
@@ -492,8 +495,8 @@ module.exports = async function (app) {
 
 	campaignManager.campaignProms = async (idCampaign, PassedProms, ctrPassed)=>{
 		return new Promise(async (resolve, reject) => {
-      
-       try{  
+
+       try{
         let ctr = ctrPassed;
 		let idproms = await ctr.methods.getProms(idCampaign).call();
 		let proms = [];
@@ -517,7 +520,7 @@ module.exports = async function (app) {
 				if(addresses.indexOf(prom.influencer)== -1)
 					addresses.push(prom.influencer.slice(2).toLowerCase());
 			}
-		
+
 
 			for (let i =0;i<newproms.length;i++)
 			{
@@ -527,7 +530,7 @@ module.exports = async function (app) {
 				if(addresses.indexOf(newprom.influencer) == -1)
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
 			}
-			
+
 			PassedProms.proms = proms;
 
 			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
@@ -556,9 +559,9 @@ module.exports = async function (app) {
 			{
 				reject(err);
 			}
-		
-		
-		})            
+
+
+		})
 	}
 
 	campaignManager.campaignsByOwner = async (owner) => {

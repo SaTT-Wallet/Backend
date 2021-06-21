@@ -88,7 +88,7 @@ module.exports = function (app) {
 						idNode:"0"+auth.id,
 						type:"convert_event",
 						status:"done",
-						label:JSON.stringify([{amount,Direction,date :new Date()}]),
+						label:JSON.stringify({amount,Direction,date :new Date()}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
