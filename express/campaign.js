@@ -142,6 +142,7 @@ module.exports = function (app) {
 					stat.shares=oraclesFacebook.shares;
 					stat.likes=oraclesFacebook.likes;
 					stat.views=oraclesFacebook.views;
+					stat.oracle = 'facebook'
 								}
 				//youtube
 				else if(stat.typeSN=="2"){
@@ -150,6 +151,7 @@ module.exports = function (app) {
 					stat.shares=oraclesYoutube.shares;
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
+					stat.oracle = 'youtube'
 								}
 				//instagram
 				else if(stat.typeSN=="3"){
@@ -158,6 +160,7 @@ module.exports = function (app) {
 					stat.shares=oraclesInstagram.shares;
 					stat.likes=oraclesInstagram.likes;
 					stat.views=oraclesInstagram.views;
+					stat.oracle = 'instagram'
 								}
 				//twitter
 				else{
@@ -166,17 +169,16 @@ module.exports = function (app) {
 					stat.shares=oraclesTwitter.shares;
 					stat.likes=oraclesTwitter.likes;
 					stat.views=oraclesTwitter.views;
+					stat.oracle = 'twitter'
 								}
 
 
 				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
 							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: {stat}})
-							stat=null;
 						} else{
 							console.log(stat, "stat script")
 							await app.db.campaign_link().insertOne(stat);
-							stat=null;
 						}
                          
 						if(prom.isAccepted){
@@ -892,7 +894,9 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-		let [token,res,id] = [req.headers["authorization"].split(" ")[1], await app.crm.auth(token),res.id];
+        let token = req.headers["authorization"].split(" ")[1]
+		let res = await app.crm.auth(token)
+		let id = res.id
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
@@ -1066,7 +1070,7 @@ module.exports = function (app) {
 									res.end(JSON.stringify(error))
 								} else {
 									console.log("email was sent")
-									res.end(JSON.stringify(ret))
+								return	res.end(JSON.stringify(ret))
 								}
 							  });
 							})
@@ -1375,6 +1379,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+			
 			response.end(JSON.stringify({ error: err.message?err.message:err.error }));
 		}
 		finally {
@@ -1428,7 +1433,7 @@ module.exports = function (app) {
 
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
-			if(cmp.bounties.length) {
+			if(cmp.bounties && cmp.bounties.length) {
 
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
@@ -1474,7 +1479,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+			// response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
 			app.account.lock(cred2.address);

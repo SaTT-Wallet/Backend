@@ -191,7 +191,8 @@ module.exports = function (app) {
 			type:"validate_kyc",
 			status:"done",
 			label:{action : "validated kyc"},
-			isSeen:false
+			isSeen:false,
+			created:new Date()
 		}
 		await app.db.notification().insertOne(notification)
 		
@@ -375,7 +376,8 @@ module.exports = function (app) {
 				  isSend : false,
 				  attachedEls:{
 					  id:req.file.id
-				}
+				},
+				created:new Date()
 			  }
 			await	app.db.notification().insertOne(notification)
 			res.end(JSON.stringify({message :'legal processed'})).status(201);
