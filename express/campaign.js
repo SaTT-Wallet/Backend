@@ -116,7 +116,7 @@ module.exports = function (app) {
 
 		 */
 
-	 async function updateStat(){
+	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
 		promDetail=[];
 		let prom;
@@ -127,11 +127,12 @@ module.exports = function (app) {
 			console.log(prom)
 				var stat={};
 				stat.status = prom.isAccepted
-				stat.influencer = prom.influencer
-				stat.idCampaign = prom.idCampaign
+				stat.id_wallet = prom.influencer
+				stat.id_campaign = prom.idCampaign
 				stat.id_prom=idProm;
 				stat.idPost = prom.idPost
 				stat.idUser = prom.idUser
+				stat.isPayed = prom.isPayed;
 				stat.typeSN=prom.typeSN.toString();
 				stat.date=Date('Y-m-d H:i:s');
 				if(stat.typeSN=="1"){
@@ -167,41 +168,45 @@ module.exports = function (app) {
 								}
 
 
-				let result = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).toArray()
+				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
-							await app.db.CampaignLinkStatistic().updateOne({id_prom:stat.id_prom},{$set: {stat}})
+							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: {stat}})
 							stat=null;
 						} else{
 							console.log(stat, "stat script")
-							await app.db.CampaignLinkStatistic().insertOne(stat);
+							await app.db.campaign_link().insertOne(stat);
 							stat=null;
 						}
-
-						// if(element[0]){
-						// 	if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
-						// 		stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
-						// 		stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
-						// 		stat.viewsperDay=Number(stat.views)-Number(element[0].views);
-						// 		try{
-						// 		//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
-						// 			await app.db.CampaignLinkStatistic().insertOne(stat);
-						// 			stat=null;
-						// 		}catch(err){
-						// 			console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-						// 		}
-						// 	}
-						// }else{
-						// 		stat.sharesperDay=stat.shares;
-						// 		stat.likesperDay=stat.likes;
-						// 		stat.viewsperDay=stat.views;
-						// 		try{
-						// 		//tester si le lien n'existe pas on ajoute un nouveau ligne;
-						// 			await app.db.CampaignLinkStatistic().insertOne(stat);
-						// 			stat=null;
-						// 		}catch(err){
-						// 			console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-						// 					}
-						// 		}
+                         
+						if(stat.isAccepted){
+					let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
+						if(element[0]){
+							if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
+								stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
+								stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
+								stat.viewsperDay=Number(stat.views)-Number(element[0].views);
+								try{
+								//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
+									await app.db.CampaignLinkStatistic().insertOne(stat);
+									stat=null;
+								}catch(err){
+									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+								}
+							}
+						}else{
+								stat.sharesperDay=stat.shares;
+								stat.likesperDay=stat.likes;
+								stat.viewsperDay=stat.views;
+								try{
+								//tester si le lien n'existe pas on ajoute un nouveau ligne;
+									await app.db.CampaignLinkStatistic().insertOne(stat);
+									stat=null;
+								}catch(err){
+									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+											}
+								}
+						}
+					
 
 	})
 
@@ -534,12 +539,14 @@ module.exports = function (app) {
 				idNode:campaign.owner,//owner id
 				type:"cmp_candidate_insert_link",//done
 				status:"done",//done
-				label:JSON.stringify({cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash}),
+				label : `Someone has applied to your campaign : ${campaign.title}, your campaign hash ${campaign.hash}`,
+				// label:JSON.stringify({cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash}),
 				isSeen:false,//done
 				isSend:false,
 				attachedEls:{
 					id:campaign_id
-			  }
+			  },
+			  created:new Date()
 			}
 		  await	app.db.notification().insertOne(notification)
 
@@ -899,7 +906,8 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"apply_campaign",
 						status:"done",
-						label:JSON.stringify({cmp_name :campaign.title, cmp_owner:campaign.idNode}),
+						label : `You applied to the following campaign ${campaign.title}`,
+						// label:JSON.stringify({cmp_name :campaign.title, cmp_owner:campaign.idNode}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1013,7 +1021,8 @@ module.exports = function (app) {
 						idNode:"0"+id,
 						type:"cmp_candidate_accept_link",
 						status:"done",
-						label:JSON.stringify({cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash}),
+						label : `Your link ${link} has been validated in the following campaign ${campaign.title}`,
+						// label:JSON.stringify({cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash}),
 						isSeen:false,
 						isSend:false,
 						attachedEls:{
@@ -1360,7 +1369,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({ error: err.message?err.message:err.error }));
 		}
 		finally {
 			app.account.lock(cred.address);
@@ -1881,7 +1890,7 @@ module.exports = function (app) {
 		   const kit = req.params.id
 		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
 			   if (!file.filename || file.length === 0) {
-				 return res.status(404).json({
+				 return res.json({
 				   err: 'No file exists'
 				 });
 			   }
@@ -2006,8 +2015,8 @@ module.exports = function (app) {
      */
 	app.get('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
+		// const token = req.headers["authorization"].split(" ")[1];
+		// await app.crm.auth(token);
 		const idCampaign = req.params.idCampaign;
 
 
@@ -2029,7 +2038,7 @@ module.exports = function (app) {
 					else {
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
-											'Content-Length': file.length,
+											// 'Content-Length': file.length,
 											'Content-Disposition': `attachment; filename='${file.filename}`
 										});
 					  const readstream = gfs.createReadStream(file.filename);
@@ -2106,7 +2115,7 @@ module.exports = function (app) {
 	    let token = req.headers["authorization"].split(" ")[1];
         await app.crm.auth(token);
 		const idProm = req.body.prom_id
-		const prom = await app.db.CampaignLinkStatistic().findOne({id_prom: idProm})
+		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
         let stats = {};
 		stats.likes = prom.likes;
 		stats.shares = prom.shares;
@@ -2179,7 +2188,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	     await app.db.CampaignLinkStatistic().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+	     await app.db.campaign_link().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
@@ -2188,7 +2197,8 @@ module.exports = function (app) {
 			idNode:"0"+id,
 			type:"cmp_candidate_reject_link",
 			status:"done",
-			label:JSON.stringify({cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash}),
+			lable : `Your link has been rejected in this campaign ${campaign.title}`,
+			// label:JSON.stringify({cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash}),
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
@@ -2311,7 +2321,7 @@ module.exports = function (app) {
 			let Options =req.query
             var Links ={rejected:[],accepted:[]}
 
-			var LinksCollection = await app.db.CampaignLinkStatistic().find({'influencer':address}).toArray();
+			var LinksCollection = await app.db.campaign_link().find({'influencer':address}).toArray();
 
             for(var i=0;i<LinksCollection.length;i++){
 
