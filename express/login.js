@@ -15,7 +15,8 @@ module.exports = function (app) {
   const hasha = require('hasha');
   var handlebars = require('handlebars');
   const fs = require('fs');
-  var Twitter = require('twitter-v2');
+  var Twitter = require('twitter');
+  var Twitter2 = require('twitter-v2');
 
 
   ObjectId = require('mongodb').ObjectID
@@ -439,7 +440,31 @@ module.exports = function (app) {
     },
   function(req, accessToken, tokenSecret, profile, cb) {
 
-    return cb(null, {profile:profile,accessToken:accessToken,tokenSecret:tokenSecret,user:req.query.user});
+    var user_id = req.query.state;
+
+    var tweet = new Twitter({
+      consumer_key: app.config.twitter.consumer_key,
+      consumer_secret: app.config.twitter.consumer_secret,
+      access_token_key: req.accessToken,
+      access_token_secret:req.tokenSecret
+    });
+    var res = await tweet.get('account/verify_credentials',{include_email :true});
+
+    var twitterProfile = await app.db.twitterProfile().findOne({UserId:user_id  });
+    if(twitterProfile) {
+      var res_ins = await app.db.twitterProfile().updateOne({UserId:user_id  }, { $set: {access_token_key:req.accessToken,access_token_secret:req.tokenSecret}});
+    }
+    else {
+        profile.access_token_key = req.accessToken;
+        profile.access_token_secret:req.tokenSecret;
+        profile.UserId = user_id;
+        profile.username = res.screen_name;
+        profile.twitter_id = twwet.id;
+
+        var res_ins = await app.db.twitterProfile().insertOne(profile);
+    }
+
+    return cb(null, {id: user_id});
   }));
 
 
@@ -772,12 +797,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 
       app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
         try {
-            /*var tweet = new Twitter({
-          	  consumer_key: app.config.twitter.consumer_key,
-          	  consumer_secret: app.config.twitter.consumer_secret,
-          	  access_token_key: req.accessToken,
-          	  access_token_secret:req.tokenSecret
-          	});*/
+
 
 
           response.end("ok")
