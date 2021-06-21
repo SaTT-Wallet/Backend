@@ -180,6 +180,12 @@ module.exports = async function (app) {
 				return db.db(app.config.mongoBase).collection('google_profile');
 		};
 
+		app.db.twitterProfile = function () {
+				return db.db(app.config.mongoBase).collection('twitter_profile');
+		};
+
+
+
 		app.db.ig_media = function () {
 						return db.db(app.config.mongoBase).collection("ig_media");
 		};
