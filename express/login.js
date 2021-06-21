@@ -438,7 +438,7 @@ module.exports = function (app) {
       callbackURL: app.config.baseUrl +'callback/twitter',
       passReqToCallback: true
     },
-  function(req, accessToken, tokenSecret, profile, cb) {
+  async function(req, accessToken, tokenSecret, profile, cb) {
 
     var user_id = req.query.state;
 
@@ -1213,7 +1213,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   })
-  app.get('/connect/telegram/:idUser', 
+  app.get('/connect/telegram/:idUser',
     passport.authenticate('connect_telegram'),
     function(req, res) {
       try {
