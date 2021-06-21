@@ -175,7 +175,7 @@ module.exports = function (app) {
 
 				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
-							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: {stat}})
+							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: stat})
 						} else{
 							console.log(stat, "stat script")
 							await app.db.campaign_link().insertOne(stat);
