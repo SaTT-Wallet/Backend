@@ -895,8 +895,8 @@ module.exports = function (app) {
 		//	else {
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-                let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 				if(ret.transactionHash){
+					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 					let notification={
 						idNode:"0"+id,
 						type:"apply_campaign",
@@ -1872,7 +1872,7 @@ module.exports = function (app) {
 						'Content-Disposition': `attachment; filename=${file.filename}`
 					});
 				 const readstream = gfsKit.createReadStream(file.filename);
-				 readstream.pipe(res);
+				 readstream.pipe(res)
 			   }
 			 });
 
