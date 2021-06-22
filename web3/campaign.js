@@ -368,12 +368,13 @@ module.exports = async function (app) {
 	campaignManager.getGains = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
-					var ctr = await campaignManager.getPromContract(idProm);
+				var ctr = await campaignManager.getPromContract(idProm);
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
 
 
-
+                let prom = await ctr.methods.proms(idProm).call();
+				await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);

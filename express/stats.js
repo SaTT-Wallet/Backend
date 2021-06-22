@@ -1,3 +1,5 @@
+const { VirtualConsole } = require('jsdom');
+
 module.exports = function (app) {
 
 const cron =require('node-cron');
@@ -712,7 +714,7 @@ cron.schedule("03 04 * * 1", () =>{
      const element = await ctr.methods.campaigns(req.params.idCampaign).call()
 	 const toPayBig = new Big(element.funds[1]);
 	 const bgBudget = new Big(result.cost)
-	 const spent =Math.abs(bgBudget.minus(toPayBig))
+	 const spent =bgBudget.minus(toPayBig).toFixed()
 		 
      res.end(JSON.stringify({toPay : element.funds[1] , spent, initialBudget : result.cost}))
 		}catch (err) {
@@ -721,18 +723,29 @@ cron.schedule("03 04 * * 1", () =>{
 	})
 
    app.get('/prom/stats/:idProm', async (req, res) => {
-
 	try{
+
+	   let total;
 	   const idProm = req.params.idProm;
 	   const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
+	   const payedAmount = info.payedAmount || "not payed yet"
 	   const campaign = await app.db.campaignCrm().findOne({hash : info.id_campaign});
-
+       const ratio = campaign.ratios
+	   ratio.forEach(elem =>{
+		   if(elem.oracle === info.oracle){
+           let view =new Big(elem["view"]).times(info.view)
+		   let like =  new Big(elem["like"]).times(info.like)
+		   let share = new Big(elem["share"]).times(info.share)
+		   total = view.plus(like).plus(share).toFixed()
+		   }
+	   })
+       
+	   res.end(JSON.stringify({total, payedAmount}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-
 	 }
-
    })
+
 	return app;
 
 }

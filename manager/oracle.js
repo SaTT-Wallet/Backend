@@ -4,6 +4,8 @@ module.exports = async function (app) {
 	var rp = require('request-promise');
 	var fs = require("fs");
 	var Twitter = require('twitter');
+
+	var Twitter2 = require('twitter-v2');
 	var jsdomlib = require("jsdom");
 	var jsdom = jsdomlib.JSDOM;
 
@@ -162,8 +164,20 @@ module.exports = async function (app) {
 
 		return new Promise(async (resolve, reject) => {
 
-			var res = await tweet.get('statuses/show',{id:idPost});
-			var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
+			  var twitterProfile = await app.db.twitterProfile().findOne({username:userName  });
+
+
+			var tweet = new Twitter2({
+			  consumer_key: app.config.twitter.consumer_key,
+			  consumer_secret: app.config.twitter.consumer_secret,
+			  access_token_key: twitterProfile.access_token_key,
+			  access_token_secret: twitterProfile.access_token_secret
+			});
+			var res = await tweet('tweets/'+idPost ,{'tweet.fields':"public_metrics, non_public_metrics"});
+			var perf = {shares:res.public_metrics.retweet_count,likes:res.public_metrics.like_count,views:res.non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
+
+			//var res = await tweet.get('statuses/show',{id:idPost});
+			//var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
 
 			resolve(perf);
 		})
