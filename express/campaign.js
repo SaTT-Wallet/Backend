@@ -529,15 +529,15 @@ module.exports = function (app) {
      link : link
      */
 
-	 app.post('/campaign/insert_link_notification', async function(req, res) {
+	 app.post('/campaign/insert_link_notification', async (req, res)=> {
         try {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   let campaign={}
-		 await  app.db.campaignCrm().findOne({hash:campaign_id},async function (err, result) {
-			   campaign.owner= Number(result.idNode.substring(1))
-               campaign.title=result.title
-			   campaign.hash=result.hash
+		 await  app.db.campaignCrm().findOne({hash:campaign_id},async  (err, element)=> {
+			   let owner= Number(element.idNode.substring(1))
+               campaign.title=element.title
+			   campaign.hash=element.hash
 			   manageTime()
 			   let notification={
 				idNode:campaign.owner,//owner id
@@ -553,8 +553,8 @@ module.exports = function (app) {
 			}
 		  await	app.db.notification().insertOne(notification)
 
-		  await	app.db.sn_user().findOne({_id:campaign.owner}, function (err, result) {
-		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
+		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
+		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, html) => {
 				if (err) {
 				  console.error(err)
 				  return
@@ -565,7 +565,7 @@ module.exports = function (app) {
 						link:link
 					}
 				}
-				let dynamic_html=ejs.render(data, data_);
+				let dynamic_html=ejs.render(html, data_);
 				console.log(dynamic_html)
 				var mailOptions = {
 			     from: app.config.mailSender,
@@ -1053,7 +1053,8 @@ module.exports = function (app) {
 									res.end(JSON.stringify(error))
 								} else {
 									console.log("email was sent")
-								return	res.end(JSON.stringify(ret))
+									res.end(JSON.stringify(ret))
+									return;
 								}
 							  });
 							})
@@ -1797,41 +1798,6 @@ module.exports = function (app) {
 	});
 
 
-
-	 /*
-     @link : /addKit
-     @description: saving user kits & links
-     @params:
-     idCampaign : identifiant de la campaign req.body.campaign
-     */
-	app.post('/addKit', upload.single('file'), async(req, res) => {
-		try {
-		let token = req.headers["authorization"].split(" ")[1];
-        await app.crm.auth(token);
-		const idCampaign = req.body.campaign
-		const link = req.body.link
-		if(req.file){
-			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
-			"$ref": "campaign",
-			"$id": app.ObjectId(idCampaign),
-			"$db": "atayen"
-		 }}, mimeType : req.file.contentType })
-		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
-		} if(req.body.link){
-		   gfsKit.files.insert({ campaign : {
-				"$ref": "campaign",
-				"$id": app.ObjectId(idCampaign),
-				"$db": "atayen"
-			 }, link : link })
-			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
-		}
-		res.send({message :'No matching data'}).status(404);
-		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
-	  });
-
-
-
 	/*
      @link : /addKits
      @description: saving user kits & links
@@ -2015,8 +1981,8 @@ module.exports = function (app) {
      */
 	app.get('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
-		// const token = req.headers["authorization"].split(" ")[1];
-		// await app.crm.auth(token);
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
 		const idCampaign = req.params.idCampaign;
 
 
@@ -2073,6 +2039,7 @@ module.exports = function (app) {
 				"$db": "atayen"
 			 }} })
 			res.json(JSON.stringify({message :'Cover added'}));
+			return;
 			}
 			res.send(JSON.stringify({message :'No matching file found'}));
 		} catch (err) {
@@ -2510,5 +2477,6 @@ console.log(Links)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
 	return app;
 }
