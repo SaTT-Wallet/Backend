@@ -165,6 +165,19 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			  var twitterProfile = await app.db.twitterProfile().findOne({username:userName  });
+				if(!twitterProfile)
+				{
+					var tweet = new Twitter({
+						consumer_key: app.config.twitter.consumer_key_alt,
+						consumer_secret: app.config.twitter.consumer_secret_alt,
+						access_token_key: app.config.access_token_key,
+						access_token_secret: app.config.access_token_secret
+					});
+					var res = await tweet.get('statuses/show',{id:idPost});
+					var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
+					resolve(perf);
+					return;
+				}
 
 
 			var tweet = new Twitter2({
