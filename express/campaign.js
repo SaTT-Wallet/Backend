@@ -126,7 +126,7 @@ module.exports = function (app) {
 			prom = await app.oracle.getPromDetails(idProm)
 			console.log(prom)
 				var stat={};
-			
+
 				stat.status = prom.isAccepted
 				stat.id_wallet = prom.influencer
 				stat.id_campaign = prom.idCampaign
@@ -180,7 +180,7 @@ module.exports = function (app) {
 							console.log(stat, "stat script")
 							await app.db.campaign_link().insertOne(stat);
 						}
-                         
+
 						if(prom.isAccepted){
 					let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
 						if(element[0]){
@@ -209,7 +209,7 @@ module.exports = function (app) {
 											}
 								}
 						}
-					
+
 
 	})
 
@@ -349,7 +349,7 @@ module.exports = function (app) {
 			var res = await app.crm.auth(req.body.token);
 
 			var cred = await app.account.unlock(res.id,pass);
-			
+
 
 
 
@@ -1865,6 +1865,7 @@ module.exports = function (app) {
 				})
 
 			 res.send('Kit uploaded').status(200);
+			 return;
 		}
 		res.send('No matching data').status(401);
 		} catch (err) {
