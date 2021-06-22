@@ -109,12 +109,12 @@ module.exports = function (app) {
 
 
 
-/*
-	  cron.schedule('00 59 * * *',()=>{
+
+	  cron.schedule('*/30 * * * *',()=>{
 		updateStat();
 		 })
 
-		 */
+		
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
