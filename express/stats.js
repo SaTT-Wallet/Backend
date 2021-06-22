@@ -55,7 +55,7 @@ cron.schedule("03 04 * * 1", () =>{
 		var proms = [];
 
 		var newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
-        let rejectedProms = await app.db.campaign_link().find({$and: [ { idCampaign },{status : "rejected"}]}).toArray();
+        let rejectedProms = await app.db.campaign_link().find({$and: [ { id_campaign:idCampaign },{status : "rejected"}]}).toArray();
    
 		if(idproms.length || newproms.length) {
 			var addresses = [];

@@ -377,7 +377,7 @@ module.exports = async function (app) {
 
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
                 if(receipt.transactionHash){
-					await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
+                			 await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
 
 				}
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
