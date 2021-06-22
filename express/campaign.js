@@ -142,6 +142,7 @@ module.exports = function (app) {
 					stat.shares=oraclesFacebook.shares;
 					stat.likes=oraclesFacebook.likes;
 					stat.views=oraclesFacebook.views;
+					stat.oracle = 'facebook'
 								}
 				//youtube
 				else if(stat.typeSN=="2"){
@@ -150,6 +151,7 @@ module.exports = function (app) {
 					stat.shares=oraclesYoutube.shares;
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
+					stat.oracle = 'youtube'
 								}
 				//instagram
 				else if(stat.typeSN=="3"){
@@ -158,6 +160,7 @@ module.exports = function (app) {
 					stat.shares=oraclesInstagram.shares;
 					stat.likes=oraclesInstagram.likes;
 					stat.views=oraclesInstagram.views;
+					stat.oracle = 'instagram'
 								}
 				//twitter
 				else{
@@ -166,17 +169,16 @@ module.exports = function (app) {
 					stat.shares=oraclesTwitter.shares;
 					stat.likes=oraclesTwitter.likes;
 					stat.views=oraclesTwitter.views;
+					stat.oracle = 'twitter'
 								}
 
 
 				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
-							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: {stat}})
-							stat=null;
+							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: stat})
 						} else{
 							console.log(stat, "stat script")
 							await app.db.campaign_link().insertOne(stat);
-							stat=null;
 						}
                          
 						if(prom.isAccepted){
@@ -698,37 +700,9 @@ module.exports = function (app) {
 		}
 	});
 
-	app.post('/campaign/fund', async function(req, response) {
-
-		var pass = req.body.pass;
-		var idCampaign = req.body.idCampaign;
-		var token = req.body.ERC20token;
-		var amount = req.body.amount;
-
-
-		try {
-			var res = await app.crm.auth(req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
-			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
-			if(ret.transactionHash){
-			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
-			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
-				 result.cost = new Big(result.cost).plus(new Big(amount))
-				 await app.db.campaignCrm().save(result);
-                ret.remaining = fundsInfo.funds[1]
-			 })
-			}
-			response.end(JSON.stringify(ret));
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-			app.account.lock(cred.address);
-		}
-	});
-/**
+	/**
  * @swagger
- * /v2/campaign/fund:
+ * /campaign/fund:
  *   post:
  *     summary: Increase budget.
  *     description: parametres acceptées :body{campaign} , headers{headers}.
@@ -745,19 +719,28 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-	app.post('/v2/campaign/fund', async function(req, response) {
+	app.post('/campaign/fund', async (req, response) =>{
 
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
-		var ERC20token = req.body.ERC20token;
+		var token = req.body.ERC20token;
 		var amount = req.body.amount;
-		let token = req.headers["authorization"].split(" ")[1];
-
+		let access_token = req.headers["authorization"].split(" ")[1];
 
 		try {
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			var ret = await app.campaign.fundCampaign(idCampaign,ERC20token,amount,cred);
+			var auth = await app.crm.auth(access_token);
+			var cred = await app.account.unlock(auth.id,pass);
+			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
+			if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+			ret.remaining = fundsInfo.funds[1]
+
+			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaignCrm().updateOne({hash:idCampaign}, {$set: {cost: budget}});
+			 })
+			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -766,6 +749,7 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	});
+
 	app.post('/campaign/price/ratio', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -892,7 +876,9 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-		let [token,res,id] = [req.headers["authorization"].split(" ")[1], await app.crm.auth(token),res.id];
+        let token = req.headers["authorization"].split(" ")[1]
+		let res = await app.crm.auth(token)
+		let id = res.id
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
@@ -1066,7 +1052,7 @@ module.exports = function (app) {
 									res.end(JSON.stringify(error))
 								} else {
 									console.log("email was sent")
-									res.end(JSON.stringify(ret))
+								return	res.end(JSON.stringify(ret))
 								}
 							  });
 							})
@@ -1375,6 +1361,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+
 			response.end(JSON.stringify({ error: err.message?err.message:err.error }));
 		}
 		finally {
@@ -1428,7 +1415,7 @@ module.exports = function (app) {
 
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
-			if(cmp.bounties.length) {
+			if(cmp.bounties && cmp.bounties.length) {
 
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
@@ -1474,7 +1461,9 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+			// response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
 			app.account.lock(cred2.address);
