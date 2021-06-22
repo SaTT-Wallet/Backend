@@ -1189,14 +1189,17 @@ module.exports = function (app) {
 
 			var token = req.params.token;
 			var spender = req.params.spender;
-			if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
+
+
+
+			/*if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.mainnet;
 			}
 			if(spender == app.config.ctrs.campaign.address.testnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.testnet;
-			}
+			}*/
 			var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
 
 			response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
@@ -1316,14 +1319,14 @@ module.exports = function (app) {
 			var res = await app.crm.auth( req.body.access_token);
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
+			/*if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.mainnet;
 			}
 			if(spender == app.config.ctrs.campaign.address.testnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.testnet;
-			}
+			}*/
 			var ret = await app.bep20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
