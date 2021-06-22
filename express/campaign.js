@@ -1386,7 +1386,7 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-	app.post('/v2/campaign/gains2', async function(req, response) {
+	app.post('/v2/campaign/gains2', async (req, response) =>  {
 		let token = req.headers["authorization"].split(" ")[1];
 
 		var pass = req.body.pass;
@@ -1412,8 +1412,11 @@ module.exports = function (app) {
 
 
 		  var gasPrice = await ctr.getGasPrice();
-			var prom = await ctr.methods.proms(idProm).call();
-
+			let prom = await ctr.methods.proms(idProm).call();
+             if(prom.funds.amount === "0"){
+				response.end(JSON.stringify({message : "No funds to claim"}));
+				return;
+			 }
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
 			if(cmp.bounties && cmp.bounties.length) {
@@ -2145,7 +2148,7 @@ module.exports = function (app) {
 		 let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
-	     const links =  await app.db.CampaignLinkStatistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
+	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
