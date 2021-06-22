@@ -109,12 +109,12 @@ module.exports = function (app) {
 
 
 
-/*
-	  cron.schedule('00 59 * * *',()=>{
+
+	  cron.schedule('*/30 * * * *',()=>{
 		updateStat();
 		 })
 
-		 */
+		
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
@@ -131,6 +131,7 @@ module.exports = function (app) {
 				stat.id_wallet = prom.influencer
 				stat.id_campaign = prom.idCampaign
 				stat.id_prom=idProm;
+				stat.fund = prom.funds.amount;
 				stat.idPost = prom.idPost
 				stat.idUser = prom.idUser
 				stat.isPayed = prom.isPayed;
@@ -172,10 +173,10 @@ module.exports = function (app) {
 					stat.oracle = 'twitter'
 								}
 
-
+                  let campaign_link = stat
 				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
-							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: stat})
+							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: campaign_link},{returnOriginal: false})
 						} else{
 							console.log(stat, "stat script")
 							await app.db.campaign_link().insertOne(stat);
@@ -1385,7 +1386,7 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-	app.post('/v2/campaign/gains2', async function(req, response) {
+	app.post('/v2/campaign/gains2', async (req, response) =>  {
 		let token = req.headers["authorization"].split(" ")[1];
 
 		var pass = req.body.pass;
@@ -1411,8 +1412,11 @@ module.exports = function (app) {
 
 
 		  var gasPrice = await ctr.getGasPrice();
-			var prom = await ctr.methods.proms(idProm).call();
-
+			let prom = await ctr.methods.proms(idProm).call();
+             if(prom.funds.amount === "0"){
+				response.end(JSON.stringify({message : "No funds to claim"}));
+				return;
+			 }
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
 			if(cmp.bounties && cmp.bounties.length) {
@@ -2113,6 +2117,7 @@ module.exports = function (app) {
 		const idProm = req.body.prom_id
 		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
         let stats = {};
+		stats.fund = prom.fund
 		stats.likes = prom.likes;
 		stats.shares = prom.shares;
 		stats.views = prom.views;
@@ -2144,7 +2149,7 @@ module.exports = function (app) {
 		 let token = req.headers["authorization"].split(" ")[1];
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
-	     const links =  await app.db.CampaignLinkStatistic().find({ $and: [ { idCampaign : campaign }, { status : "rejected"}]}).toArray();
+	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify(links)).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -2280,9 +2285,10 @@ module.exports = function (app) {
  */
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
-		let token = req.headers["authorization"].split(" ")[1];
-         await app.crm.auth(token);
+		// let token = req.headers["authorization"].split(" ")[1];
+        //  await app.crm.auth(token);
 		 let campaign = req.body;
+		 console.log(campaign);
 	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 	const updatedCampaign = result.value
 	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
