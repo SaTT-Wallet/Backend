@@ -1460,7 +1460,7 @@ module.exports = function (app) {
 
 
 			//console.log("getGains",idProm);
-			var ret = await app.campaign.getGains(idProm,cred2);
+			var ret = await app.campaign.getGains(idProm,cred2);		
 			//var ret = {}
 			response.end(JSON.stringify(ret));
 
