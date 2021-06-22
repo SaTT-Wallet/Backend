@@ -702,7 +702,7 @@ app.get('/auth/twitterlink', passport.authenticate('twitter_link', {scope: ['pro
 app.get('/auth/admin/:userId', async (req, res)=>{
   try {
     const userId = +req.params.userId;
-    if(userId === app.config.idNodeAdmin1 || userId === app.config.idNodeAdmin2){
+    if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(userId)){
     const token = await app.db.accessToken().findOne({user_id: userId});
     var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
       res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
@@ -1269,6 +1269,40 @@ app.get('/auth/admin/:userId', async (req, res)=>{
    }
   });
 
+    /**
+ * @swagger
+ * /deconnection/{social}:
+ *   post:
+ *     summary: deconnect from social.
+ *     description: parametres acceptées :{social}.
+ *     parameters:
+ *       - name: social
+ *         description: google,facebook or telegram.
+ *     responses:
+ *        "200":
+ *          description: message:deconnect successfully
+ */
+  app.put('/deconnection/:social', async  (req, res) => {
+    try{
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let id = auth.id;
+    const social=req.params.social;
+    if(social === 'telegram'){
+      let user = await app.db.sn_user().updateOne({ _id:Long.fromNumber(id)},{$set:{idOnSn3: null}});
+      res.end(JSON.stringify({message:"deconnect successfully from telegram"})).status(200);
+    }else if(social === 'facebook'){
+    let user = await app.db.sn_user().updateOne({ _id:Long.fromNumber(id)},{$set:{idOnSn: null}});
+    res.end(JSON.stringify({message:"deconnect successfully from facebook"})).status(200);
+    }else{
+      let user = await app.db.sn_user().updateOne({ _id:Long.fromNumber(id)},{$set:{idOnSn2: null}});
+      res.end(JSON.stringify({message:"deconnect successfully from google"})).status(200);
+    }
+   
+  } catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+   }
+  });
 
   app.post('/check/pass', async  (req, res) => {
     try{
