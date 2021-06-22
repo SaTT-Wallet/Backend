@@ -695,7 +695,7 @@ cron.schedule("03 04 * * 1", () =>{
         try{
 		let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
-		if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2){
+		if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(auth.id)){
 			let condition = req.params.condition
 		    await  app.account.BalanceUsersStats(condition);
 			res.send(JSON.stringify({message : 'runned'}))
@@ -708,7 +708,7 @@ cron.schedule("03 04 * * 1", () =>{
 
 	 app.get('/campaign/statistics/:idCampaign', async (req, res)=>{
 		try{
-
+	 
 	 const result = await app.db.campaignCrm().findOne({hash: req.params.idCampaign});
 	 const ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
      const element = await ctr.methods.campaigns(req.params.idCampaign).call()
