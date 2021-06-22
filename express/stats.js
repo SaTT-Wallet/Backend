@@ -714,7 +714,7 @@ cron.schedule("03 04 * * 1", () =>{
      const element = await ctr.methods.campaigns(req.params.idCampaign).call()
 	 const toPayBig = new Big(element.funds[1]);
 	 const bgBudget = new Big(result.cost)
-	 const spent =bgBudget.minus(toPayBig).toFixed()
+	 const spent =bgBudget.minus(toPayBig).toFixed();
 		 
      res.end(JSON.stringify({toPay : element.funds[1] , spent, initialBudget : result.cost}))
 		}catch (err) {

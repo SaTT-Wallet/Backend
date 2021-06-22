@@ -131,6 +131,7 @@ module.exports = function (app) {
 				stat.id_wallet = prom.influencer
 				stat.id_campaign = prom.idCampaign
 				stat.id_prom=idProm;
+				stat.fund = prom.funds.amount;
 				stat.idPost = prom.idPost
 				stat.idUser = prom.idUser
 				stat.isPayed = prom.isPayed;
@@ -172,10 +173,10 @@ module.exports = function (app) {
 					stat.oracle = 'twitter'
 								}
 
-
+                  let campaign_link = stat
 				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
                         if(result[0]){
-							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: stat})
+							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: campaign_link},{returnOriginal: false})
 						} else{
 							console.log(stat, "stat script")
 							await app.db.campaign_link().insertOne(stat);
@@ -2112,6 +2113,7 @@ module.exports = function (app) {
 		const idProm = req.body.prom_id
 		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
         let stats = {};
+		stats.fund = prom.fund
 		stats.likes = prom.likes;
 		stats.shares = prom.shares;
 		stats.views = prom.views;
@@ -2279,9 +2281,10 @@ module.exports = function (app) {
  */
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
-		let token = req.headers["authorization"].split(" ")[1];
-         await app.crm.auth(token);
+		// let token = req.headers["authorization"].split(" ")[1];
+        //  await app.crm.auth(token);
 		 let campaign = req.body;
+		 console.log(campaign);
 	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 	const updatedCampaign = result.value
 	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
