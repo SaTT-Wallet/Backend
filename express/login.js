@@ -464,7 +464,7 @@ module.exports = function (app) {
         profile.access_token_secret = req.tokenSecret;
         profile.UserId = user_id;
         profile.username = res.screen_name;
-        profile.twitter_id = twwet.id;
+        profile.twitter_id = res.id;
 
         var res_ins = await app.db.twitterProfile().insertOne(profile);
     }
