@@ -4,7 +4,8 @@ module.exports = function (app) {
 
 const cron =require('node-cron');
 const Big = require('big.js');
-const rp = require('request-promise');
+
+const allEqual = arr => arr.every( v => v === "0" )
 
 cron.schedule('00 01 * * *',  () => {
 	app.account.BalanceUsersStats("daily");
@@ -43,11 +44,26 @@ cron.schedule("03 04 * * 1", () =>{
 
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
+
+
 		var types = ratios[0];
 		var likes = ratios[1];
 		var shares = ratios[2];
 		var views = ratios[3];
-		var res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
+
+        let res = [];
+		let cmpRatio = cmpMetas[0].ratios
+		let counter = 0;
+        while(counter < cmpRatio.length){
+			let arr = Object.values(cmpRatio[counter])
+			arr.shift()
+			if(!allEqual(arr)){
+				res.push({typeSN:types[counter],likeRatio:likes[counter],shareRatio:shares[counter],viewRatio:views[counter]})
+			}
+			counter++;
+		}
+
+		//var res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 		result.ratios = res;
 		result.meta = cmpMetas[0];
 
@@ -714,7 +730,7 @@ cron.schedule("03 04 * * 1", () =>{
      const element = await ctr.methods.campaigns(req.params.idCampaign).call()
 	 const toPayBig = new Big(element.funds[1]);
 	 const bgBudget = new Big(result.cost)
-	 const spent =bgBudget.minus(toPayBig).toFixed();
+	 const spent =bgBudget.minus(toPayBig).abs().toFixed();
 		 
      res.end(JSON.stringify({toPay : element.funds[1] , spent, initialBudget : result.cost}))
 		}catch (err) {
@@ -728,7 +744,7 @@ cron.schedule("03 04 * * 1", () =>{
 	   let total;
 	   const idProm = req.params.idProm;
 	   const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
-	   const payedAmount = info.payedAmount || "not payed yet"
+	   const payedAmount = info.payedAmount || "not payed yet";
 	   const unPayed = info.fund;
 	   const campaign = await app.db.campaignCrm().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
