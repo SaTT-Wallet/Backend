@@ -189,7 +189,7 @@ module.exports = async function (app) {
 			});
 			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics"}); //, non_public_metrics
 			console.log(res);
-			var perf = {shares:res.public_metrics.retweet_count,likes:res.public_metrics.like_count,views:res.non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
+			var perf = {shares:res.data.public_metrics.retweet_count,likes:res.data.public_metrics.like_count,/*views:res.data.non_public_metrics.impression_count,*/date:Math.floor(Date.now()/1000)};
 
 			//var res = await tweet.get('statuses/show',{id:idPost});
 			//var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
