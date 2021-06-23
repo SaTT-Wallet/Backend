@@ -29,13 +29,18 @@ module.exports = function (app) {
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+  var express     = require('express');
 
   try {
+      app.use(express.session({ secret: 'fe3fF4FFGTSCSHT57UI8I8' })); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
     console.log(e)
   }
+
+
+
 
   var readHTMLFile = function(path, callback) {
     fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
@@ -436,7 +441,7 @@ module.exports = function (app) {
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
       callbackURL: app.config.baseUrl +'callback/twitter',
-      //passReqToCallback: true
+      passReqToCallback: true
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
     console.log(app.config.baseUrl +'callback/twitter')
