@@ -2055,14 +2055,13 @@ module.exports = function (app) {
 			idWallet:identifiant de la wallet
 	 @Output array of accepted links
      */
-	app.get('/campaign/owner_accepted_proms/:idCampaign',async(req, res)=>{
+	app.get('/campaign/proms/influencer/:idWallet',async(req, res)=>{
 		try {
-		const idCampaign = req.params.idCampaign;
+		const idwallet = req.params.idwallet;
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth( token);
-		const allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{status : "accepted"}]}).toArray();
-
-		res.send(allProms);
+		const allProms = await app.db.campaign_link().find({ id_wallet : idwallet }).toArray();
+		res.send(JSON.stringify({allProms}));
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
