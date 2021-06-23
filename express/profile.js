@@ -181,7 +181,7 @@ module.exports = function (app) {
 		 const date = new Date().toISOString();
 		 let token = req.headers["authorization"].split(" ")[1];
          const auth = await app.crm.auth(token);
-		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2 || auth.id === app.config.idNodeAdmin3){
+		 if([app.config.idNodeAdmin1,app.config.idNodeAdmin2,app.config.idNodeAdmin3].includes(auth.id)){
          const idLegal = req.params.idLegal;
 		 const file=await gfsUserLegal.files.findOne({ _id: app.ObjectId(idLegal) });
 		 const idNode="0" + file.idNode;
