@@ -165,7 +165,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			  var twitterProfile = await app.db.twitterProfile().findOne({username:userName  });
-				console.log(twitterProfile)
+
 				if(!twitterProfile)
 				{
 					var tweet = new Twitter({
@@ -188,6 +188,7 @@ module.exports = async function (app) {
 			  access_token_secret: twitterProfile.access_token_secret
 			});
 			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics"}); //, non_public_metrics
+			console.log(res);
 			var perf = {shares:res.public_metrics.retweet_count,likes:res.public_metrics.like_count,views:res.non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
 
 			//var res = await tweet.get('statuses/show',{id:idPost});
