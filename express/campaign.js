@@ -2466,16 +2466,27 @@ console.log(Links)
 	app.get('/campaign/invested', async (req, res)=>{
 		let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
+		let prices;
+		const sattPrice ={
+			url: app.config.xChangePricesUrl,
+			method: 'GET',
+			json: true
+		  };
+
+		prices = await rp(sattPrice);
+		let sattPrice$ = prices.SATT.price;
+
 	    let totalInvested = '0';
 		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 	
 		userCampaigns.forEach(elem=>{	
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
 		})
+		let totalInvestedUSD = sattPrice$ *parseFloat(new Big(totalInvested).div(etherInWei).toFixed(0))
 		totalInvested = new Big(totalInvested).toFixed()
 	
 
-		res.end(JSON.stringify({totalInvested}))
+		res.end(JSON.stringify({totalInvested,totalInvestedUSD}))
 	})
 
   //extract campaign/id/:id
