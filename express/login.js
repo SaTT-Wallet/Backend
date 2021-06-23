@@ -450,14 +450,14 @@ module.exports = function (app) {
     var tweet = new Twitter({
       consumer_key: app.config.twitter.consumer_key,
       consumer_secret: app.config.twitter.consumer_secret,
-      access_token_key: req.accessToken,
-      access_token_secret:req.tokenSecret
+      access_token_key: accessToken,
+      access_token_secret:tokenSecret
     });
     var res = await tweet.get('account/verify_credentials',{include_email :true});
 
     var twitterProfile = await app.db.twitterProfile().findOne({UserId:user_id  });
     if(twitterProfile) {
-      var res_ins = await app.db.twitterProfile().updateOne({UserId:user_id  }, { $set: {access_token_key:req.accessToken,access_token_secret:req.tokenSecret}});
+      var res_ins = await app.db.twitterProfile().updateOne({UserId:user_id  }, { $set: {access_token_key:accessToken,access_token_secret:tokenSecret}});
     }
     else {
         profile.access_token_key = req.accessToken;
