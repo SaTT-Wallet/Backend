@@ -29,10 +29,10 @@ module.exports = function (app) {
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
-  var express     = require('express');
+  var session     = require('express-session');
 
   try {
-      app.use(express.session({ secret: 'fe3fF4FFGTSCSHT57UI8I8' })); // session secret
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8' })); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
