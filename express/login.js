@@ -130,7 +130,7 @@ module.exports = function (app) {
             }
           });
         });
-
+        req.session.user = users[0]._id;
         return done(null, {id: users[0]._id, token: token, expires_in: date, noredirect: req.body.noredirect});
       };
     }
@@ -163,7 +163,7 @@ module.exports = function (app) {
           } else {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
           }
-          //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+          req.session.user = user._id;
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
         } else {
           var failed_count = user.failed_count? user.failed_count + 1 : 1;
@@ -187,9 +187,10 @@ module.exports = function (app) {
       clientID: app.config.appId,
       clientSecret: app.config.appSecret,
       callbackURL: app.config.baseUrl + "callback/facebook_signup",
-      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
+      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+      passReqToCallback: true
     },
-    async function (accessToken, refreshToken, profile, cb) {
+    async function (req,accessToken, refreshToken, profile, cb) {
 
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
@@ -224,6 +225,7 @@ module.exports = function (app) {
         });
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
         //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
+          req.session.user = users[0]._id;
         return cb(null, {id: users[0]._id, token: token, expires_in: date});
       }
     }));
@@ -231,9 +233,10 @@ module.exports = function (app) {
       clientID: app.config.appId,
       clientSecret: app.config.appSecret,
       callbackURL: app.config.baseUrl + "callback/facebook",
-      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
+      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+      passReqToCallback: true
     },
-    async function (accessToken, refreshToken, profile, cb) {
+    async function (req,accessToken, refreshToken, profile, cb) {
 
 
       var date = Math.floor(Date.now() / 1000) + 86400;
@@ -255,7 +258,8 @@ module.exports = function (app) {
         }
         /*var res = await app.db.query("delete from OAAccessToken where user_id='"+user._id+"' ");
         var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-*/        return cb(null, {id: user._id, token: token, expires_in: date});
+*/      req.session.user = users[0]._id;
+      return cb(null, {id: user._id, token: token, expires_in: date});
       } else {
         return cb('account_invalide') // (null, false, {error: true, message: 'account_invalide'});
       }
@@ -266,9 +270,10 @@ module.exports = function (app) {
         clientID: app.config.appId,
         clientSecret: app.config.appSecret,
         callbackURL: app.config.baseUrl + "callback/facebook_insta",
-        profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"]
+        profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+        passReqToCallback: true
       },
-      async function (accessToken, refreshToken, profile, cb) {
+      async function (req,accessToken, refreshToken, profile, cb) {
 
 
         var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
@@ -327,9 +332,10 @@ module.exports = function (app) {
   passport.use('signup_googleStrategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: app.config.baseUrl + "callback/google_signup"
+      callbackURL: app.config.baseUrl + "callback/google_signup",
+      passReqToCallback: true
     },
-    async function (accessToken, refreshToken, profile, cb) {
+    async function (req,accessToken, refreshToken, profile, cb) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -361,6 +367,7 @@ module.exports = function (app) {
         console.log(profile)
         var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit"});
+          req.session.user = users[0]._id;
         return cb(null, {id: profile.id, token: token, expires_in: date});
       }
     }));
@@ -368,9 +375,10 @@ module.exports = function (app) {
     passport.use('google_strategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: app.config.baseUrl + "callback/google"
+      callbackURL: app.config.baseUrl + "callback/google",
+      passReqToCallback: true
     },
-    async function (accessToken, refreshToken, profile, cb) {
+    async function (req,accessToken, refreshToken, profile, cb) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -389,6 +397,7 @@ module.exports = function (app) {
         } else {
           var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
         }
+          req.session.user = user._id;
         //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
         return cb(null, {id: user._id, token: token, expires_in: date});
       } else {
@@ -401,9 +410,10 @@ module.exports = function (app) {
     passport.use('google_strategy_link', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: app.config.baseUrl + "callback/googlelink"
+      callbackURL: app.config.baseUrl + "callback/googlelink",
+      passReqToCallback: true
     },
-    async function (accessToken, refreshToken, profile, cb) {
+    async function (req,accessToken, refreshToken, profile, cb) {
 
       var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
       if (users.length) {
@@ -446,7 +456,7 @@ module.exports = function (app) {
   async function(req, accessToken, tokenSecret, profile, cb) {
 
     console.log(req.session)
-    var user_id = req.query.state;
+    var user_id = req.session.user;
 
     var tweet = new Twitter({
       consumer_key: app.config.twitter.consumer_key,
@@ -479,9 +489,10 @@ module.exports = function (app) {
 
   passport.use('signup_telegramStrategy',
     new TelegramStrategy({
-        botToken: app.config.telegramBotToken
+        botToken: app.config.telegramBotToken,
+        passReqToCallback: true
       },
-      async function(profile, cb) {
+      async function(req,profile, cb) {
 
         var date = Math.floor(Date.now() / 1000) + 86400;
         var buff = Buffer.alloc(32);
@@ -513,6 +524,7 @@ module.exports = function (app) {
           });
           var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray();
           var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
+            req.session.user = users[0]._id;
           return cb(null, {id: users[0]._id, token: token, expires_in: date});
         }
       }
@@ -520,9 +532,10 @@ module.exports = function (app) {
 
   passport.use('telegramStrategy',
     new TelegramStrategy({
-      botToken: app.config.telegramBotToken
+      botToken: app.config.telegramBotToken,
+      passReqToCallback: true
     },
-    async function(profile, cb) {
+    async function(req,profile, cb) {
       console.log("telegram id",profile.id);
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
@@ -542,6 +555,7 @@ module.exports = function (app) {
         } else {
           var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
         }
+          req.session.user = user._id;
         //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
         return cb(null, {id: user._id, token: token, expires_in: date});
       } else {
