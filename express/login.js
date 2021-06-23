@@ -29,13 +29,18 @@ module.exports = function (app) {
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+  var session     = require('express-session');
 
   try {
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8' })); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
     console.log(e)
   }
+
+
+
 
   var readHTMLFile = function(path, callback) {
     fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
@@ -436,30 +441,31 @@ module.exports = function (app) {
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
       callbackURL: app.config.baseUrl +'callback/twitter',
-      //passReqToCallback: true
+      passReqToCallback: true
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
-    console.log(app.config.baseUrl +'callback/twitter')
+
+    console.log(req.session)
     var user_id = req.query.state;
 
     var tweet = new Twitter({
       consumer_key: app.config.twitter.consumer_key,
       consumer_secret: app.config.twitter.consumer_secret,
-      access_token_key: req.accessToken,
-      access_token_secret:req.tokenSecret
+      access_token_key: accessToken,
+      access_token_secret:tokenSecret
     });
     var res = await tweet.get('account/verify_credentials',{include_email :true});
 
     var twitterProfile = await app.db.twitterProfile().findOne({UserId:user_id  });
     if(twitterProfile) {
-      var res_ins = await app.db.twitterProfile().updateOne({UserId:user_id  }, { $set: {access_token_key:req.accessToken,access_token_secret:req.tokenSecret}});
+      var res_ins = await app.db.twitterProfile().updateOne({UserId:user_id  }, { $set: {access_token_key:accessToken,access_token_secret:tokenSecret}});
     }
     else {
         profile.access_token_key = req.accessToken;
         profile.access_token_secret = req.tokenSecret;
         profile.UserId = user_id;
         profile.username = res.screen_name;
-        profile.twitter_id = twwet.id;
+        profile.twitter_id = res.id;
 
         var res_ins = await app.db.twitterProfile().insertOne(profile);
     }
