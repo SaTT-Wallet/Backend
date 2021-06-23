@@ -1672,8 +1672,8 @@ app.post('/v2/profile/update', async function(req, response) {
 
 	app.get('/user/balance', async (req,res)=>{
 		try {
-			 let token = req.headers["authorization"].split(" ")[1];
-             const auth = await app.crm.auth(token);
+			let token = req.headers["authorization"].split(" ")[1];
+            const auth = await app.crm.auth(token);
 			const idUser = auth.id
 			const Fetch_crypto_price = {
 				method: 'GET',
