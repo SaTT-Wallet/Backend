@@ -2412,9 +2412,8 @@ console.log(Links)
 
 	const address = req.params.owner;
 
-	let[total,totalSpent,totalInvested, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,0,[],[],[],[]];
+	let[total,totalSpent, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
 
-    let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 
 	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
     
@@ -2452,10 +2451,6 @@ console.log(Links)
 			   }
 	})
 
-	       userCampaigns.forEach(elem=>{
-			   totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
-		   })
-
 	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
 
 	          totalSpent = Number((total).toFixed(2));
@@ -2471,13 +2466,15 @@ console.log(Links)
 	app.get('/campaign/invested', async (req, res)=>{
 		let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
-	    let totalInvested ='0';
+	    let totalInvested = '0';
 		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 	
 		userCampaigns.forEach(elem=>{	
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
 		})
-	   totalInvested = totalInvested.toFixed()
+		totalInvested = new Big(totalInvested).toFixed()
+	
+
 		res.end(JSON.stringify({totalInvested}))
 	})
 
