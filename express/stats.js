@@ -4,7 +4,8 @@ module.exports = function (app) {
 
 const cron =require('node-cron');
 const Big = require('big.js');
-const rp = require('request-promise');
+
+const allEqual = arr => arr.every( v => v === "0" )
 
 cron.schedule('00 01 * * *',  () => {
 	app.account.BalanceUsersStats("daily");
@@ -54,7 +55,9 @@ cron.schedule("03 04 * * 1", () =>{
 		let cmpRatio = cmpMetas[0].ratios
 		let counter = 0;
         while(counter < cmpRatio.length){
-			if(!Object.values(cmpRatio[counter]).includes(0)){
+			let arr = Object.values(cmpRatio[counter])
+			arr.shift()
+			if(!allEqual(arr)){
 				res.push({typeSN:types[counter],likeRatio:likes[counter],shareRatio:shares[counter],viewRatio:views[counter]})
 			}
 			counter++;
