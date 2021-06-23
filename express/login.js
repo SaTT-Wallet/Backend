@@ -471,8 +471,8 @@ module.exports = function (app) {
       var res_ins = await app.db.twitterProfile().updateOne({UserId:user_id  }, { $set: {access_token_key:accessToken,access_token_secret:tokenSecret}});
     }
     else {
-        profile.access_token_key = req.accessToken;
-        profile.access_token_secret = req.tokenSecret;
+        profile.access_token_key = accessToken;
+        profile.access_token_secret = tokenSecret;
         profile.UserId = user_id;
         profile.username = res.screen_name;
         profile.twitter_id = res.id;
