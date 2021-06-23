@@ -24,7 +24,7 @@ module.exports = async function (app) {
 		if(campaigns.length)
 		{
 
-			return campaignManager.getContract( campaigns[0].contract);
+			return campaignManager.getContract(campaigns[0].contract);
 		}
 		else
 			return false;
