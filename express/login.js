@@ -445,6 +445,7 @@ module.exports = function (app) {
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
     console.log(app.config.baseUrl +'callback/twitter')
+    console.log(req.query)
     var user_id = req.query.state;
 
     var tweet = new Twitter({
