@@ -2468,17 +2468,6 @@ console.log(Links)
 
 	})
 
-	app.get('campaign/invested', async (req, res)=>{
-		let token = req.headers["authorization"].split(" ")[1];
-		const auth = await app.crm.auth(token);
-		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
-		console.log(userCampaigns)
-		userCampaigns.forEach(elem=>{
-			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
-		})
-		console.log(totalInvested)
-		res.end({totalInvested})
-	})
 	app.get('/campaign/invested', async (req, res)=>{
 		let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
