@@ -436,7 +436,7 @@ module.exports = function (app) {
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
       callbackURL: app.config.baseUrl +'callback/twitter',
-      passReqToCallback: true
+      //passReqToCallback: true
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
     console.log(app.config.baseUrl +'callback/twitter')
