@@ -210,7 +210,7 @@ module.exports = async function (app) {
 
 			//var gasPrice = 4000000000;
 
-		//		var gasPrice = await ctr.getGasPrice();
+				var gasPrice = await ctr.getGasPrice();
 			//var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
 		//	if(isDoubled)
 			//{
