@@ -173,14 +173,8 @@ module.exports = function (app) {
 					stat.oracle = 'twitter'
 								}
 
-                  let campaign_link = stat
-				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
-                        if(result[0]){
-							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: campaign_link},{returnOriginal: false})
-						} else{
-							console.log(stat, "stat script")
-							await app.db.campaign_link().insertOne(stat);
-						}
+
+                    await app.campaign.UpdateStats(stat); //saving & updating proms in campaign_link.
 
 						if(prom.isAccepted){
 					let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
@@ -335,7 +329,6 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/create/all', async function(req, response) {
-	console.log(req.body);
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -877,7 +870,6 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-		let oracle = req.body.oracle;
         let token = req.headers["authorization"].split(" ")[1]
 		let res = await app.crm.auth(token)
 		let id = res.id
@@ -2116,7 +2108,7 @@ module.exports = function (app) {
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
 	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
-		res.send(JSON.stringify(links)).status(200);
+		res.send(JSON.stringify({links})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
