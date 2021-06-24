@@ -684,7 +684,6 @@ module.exports = async function (app) {
 				delete ret.btc
 				delete ret.version
 				for(const T_name in token_info){
-					console.log(T_name);
 					var network=token_info[T_name].network
 					 if(network=="ERC20"){
 						balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
