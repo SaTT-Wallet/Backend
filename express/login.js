@@ -691,7 +691,7 @@ module.exports = function (app) {
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/auth/fb_insta', passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'] }));
+  app.get('/link/fb_insta', passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'] }));
 
 
 
@@ -701,9 +701,9 @@ module.exports = function (app) {
 
   app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email',]}));
 
-  app.get('/auth/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}));
+  app.get('/link/google', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}));
 
-app.get('/auth/twitterlink', passport.authenticate('twitter_link', {scope: ['profile','email']}));
+app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}));
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
