@@ -86,6 +86,7 @@ module.exports = function (app) {
 				json: true,
 				gzip: true
 			  };
+			  
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const id = auth.id;
