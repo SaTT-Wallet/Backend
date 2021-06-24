@@ -124,7 +124,6 @@ module.exports = function (app) {
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			prom = await app.oracle.getPromDetails(idProm)
-			console.log(prom)
 				var stat={};
 
 				stat.status = prom.isAccepted
@@ -559,7 +558,6 @@ module.exports = function (app) {
 					}
 				}
 				let dynamic_html=ejs.render(html, data_);
-				console.log(dynamic_html)
 				var mailOptions = {
 			     from: app.config.mailSender,
 			     to: result.email,
@@ -571,7 +569,6 @@ module.exports = function (app) {
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
-					console.log("email was sent")
 					res.end(JSON.stringify(info.response))
 				}
 			  });
@@ -1044,7 +1041,6 @@ module.exports = function (app) {
 								if (error) {
 									res.end(JSON.stringify(error))
 								} else {
-									console.log("email was sent")
 									res.end(JSON.stringify(ret))
 									return;
 								}
@@ -2194,8 +2190,7 @@ module.exports = function (app) {
 					if (error) {
 						res.end(JSON.stringify(error))
 					} else {
-						console.log("email was sent")
-						res.end(JSON.stringify(info))
+						res.end(JSON.stringify({message : "link rejected"}))
 					}
 				  });
 				})
@@ -2316,7 +2311,6 @@ module.exports = function (app) {
 
 				}
 			}
-console.log(Links)
         if(Options.rejected){
 			res.end(JSON.stringify(Links.rejected))
 
