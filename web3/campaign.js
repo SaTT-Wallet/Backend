@@ -3,6 +3,8 @@ module.exports = async function (app) {
 	var fs = require("fs");
 	var child = require('child_process');
 	var BN = app.web3.utils.BN;
+	const Big = require('big.js');
+
 	var campaignManager = {};
 
 
@@ -612,6 +614,21 @@ module.exports = async function (app) {
 				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
 			}
 		})
+	}
+
+	campaignManager.campaignStats = async idCampaign =>{
+		return new Promise( async (resolve, reject) => {
+          try{
+			const result = await app.db.campaignCrm().findOne({hash: idCampaign});
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			const element = await ctr.methods.campaigns(idCampaign).call()
+			const toPayBig = new Big(element.funds[1]);
+			const bgBudget = new Big(result.cost)
+			const spent =bgBudget.minus(toPayBig).abs().toFixed();
+            resolve({toPay : element.funds[1] , spent, initialBudget : result.cost})
+		  }catch (e) {
+				reject({message:e.message});
+			}		})
 	}
 
 	app.campaign = campaignManager;
