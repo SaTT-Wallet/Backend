@@ -114,7 +114,7 @@ module.exports = function (app) {
 		updateStat();
 		 })
 
-		
+
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
@@ -886,13 +886,7 @@ module.exports = function (app) {
 		try {
 			var cred = await app.account.unlock(id,pass);
 
-			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
-			{
-				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
-				var ret = await app.db.apply().insertOne(applyLink);
-				response.end(JSON.stringify(ret.insertedId));
-			}*/
-		//	else {
+
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
 				if(ret.transactionHash){
@@ -1461,7 +1455,7 @@ module.exports = function (app) {
 
 
 			//console.log("getGains",idProm);
-			var ret = await app.campaign.getGains(idProm,cred2);		
+			var ret = await app.campaign.getGains(idProm,cred2);
 			//var ret = {}
 			response.end(JSON.stringify(ret));
 

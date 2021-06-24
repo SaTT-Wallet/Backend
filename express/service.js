@@ -16,7 +16,7 @@ module.exports = function (app) {
 	});
 
 	app.get("/instagram/:id", async function (req, response) {
-		
+
 		var res = await app.oracle.instagram(req.params.id);
 		response.end(JSON.stringify(res));
 	});
@@ -106,6 +106,56 @@ module.exports = function (app) {
 				if (cred) app.account.lock(cred.address);
 			}
 		});
+
+		app.get("/link/verify/:typeSN/:idUser/:idPost", async function (req, response) {
+			var userId = req.session.user;
+			var typeSN = req.params.typeSN;
+			var idUser = req.params.idUser;
+			var idPost = req.params.idPost;
+			if(!userId)
+				response.end('{error:"no user session"}')
+			var linked = false;
+			var res = false;
+			switch (typeSN) {
+				case "1":
+					fbProfile = await app.db.fbProfile().findOne({UserId:userId  });
+				  if(fbProfile) {
+						linked = true;
+						res = await app.oracle.verifyFacebook(userId,idUser);
+					}
+				break;
+				case "2":
+					googleProfile = await app.db.googleProfile().findOne({UserId:userId });
+	        if(googleProfile) {
+						linked = true;
+						res = await app.oracle.verifyYoutube(userId,idPost);
+					}
+				break;
+				case "3":
+				fbProfile = await app.db.fbProfile().findOne({UserId:userId  });
+				if(fbProfile && fbProfile.instagram_id) {
+					linked = true;
+					res = await app.oracle.verifyInsta(userId,idPost);
+				}
+				break;
+				case "4":
+				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  });
+					if(twitterProfile) {
+						linked = true;
+						res = await app.oracle.verifyTwitter(userId,idPost);
+					}
+
+				break;
+				default:
+
+			}
+			if(!linked)
+				response.end('{error:"account not linked"}')
+			else
+				response.end('{result:'+(res?"true":"false")+'}');
+		});
+
+
 
 	app.get("/", function (req, response) {
 		response.render("index");

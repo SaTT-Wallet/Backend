@@ -198,11 +198,75 @@ module.exports = async function (app) {
 
 			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,/*views:res.data[0].non_public_metrics.impression_count,*/date:Math.floor(Date.now()/1000)};
 
-		
+
 
 			resolve(perf);
 		})
 	};
+
+	oracleManager.verifyFacebook = async function (userId,pageName) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var page = await app.db.fbPage().findOne({username: pageName,UserId:userId});
+				resolve(page);
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
+
+	oracleManager.verifyYoutube = async function (userId,idPost) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"snippet"},json: true});
+				var channelId = res.items[0].snippet.channelId;
+				var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
+				resolve(googleProfile);
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
+
+	oracleManager.verifyInsta = async function (userId,idPost) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
+				if(!ig_media) {
+					resolve(false);
+				}
+				else {
+					var ig_user = ig_media.owner.id;
+					var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
+					resolve(fbProfile);
+				}
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
+
+	oracleManager.verifyTwitter = async function (userId,idPost) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  });
+				var tweet = new Twitter2({
+				  consumer_key: app.config.twitter.consumer_key,
+				  consumer_secret: app.config.twitter.consumer_secret,
+				  access_token_key: twitterProfile.access_token_key,
+				  access_token_secret: twitterProfile.access_token_secret
+				});
+				var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"author_id"});
+				resolve(res.data[0].author_id == twitterProfile.id)
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
 
 
 	oracleManager.getPromDetails = async function (idProm) {
