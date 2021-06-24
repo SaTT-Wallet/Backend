@@ -2137,7 +2137,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	     await app.db.campaign_link().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+	   const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
@@ -2180,12 +2180,8 @@ module.exports = function (app) {
 					 html: htmlToSend
 				};
 
-			  transporter.sendMail(mailOptions, function(error, info){
-					if (error) {
-						res.end(JSON.stringify(error))
-					} else {
-						res.end(JSON.stringify({message : "link rejected"}))
-					}
+			  transporter.sendMail(mailOptions, (error, info)=>{
+						res.end(JSON.stringify({message : "success", prom : rejectedLink.value}))				
 				  });
 				})
 
