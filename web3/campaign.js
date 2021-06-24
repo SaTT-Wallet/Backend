@@ -606,7 +606,9 @@ module.exports = async function (app) {
 
 	campaignManager.UpdateStats = async obj =>{
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
-			if(!result){await app.db.campaign_link().insertOne(obj);}
+			if(!result){await app.db.campaign_link().insertOne(obj);
+			return;
+			}
 			else{
 				if(result.status === "rejected"){
 				   return;
