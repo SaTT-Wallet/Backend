@@ -165,6 +165,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			  var twitterProfile = await app.db.twitterProfile().findOne({username:userName  });
+
 				if(!twitterProfile)
 				{
 					var tweet = new Twitter({
@@ -186,11 +187,18 @@ module.exports = async function (app) {
 			  access_token_key: twitterProfile.access_token_key,
 			  access_token_secret: twitterProfile.access_token_secret
 			});
-			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics, non_public_metrics"});
-			var perf = {shares:res.public_metrics.retweet_count,likes:res.public_metrics.like_count,views:res.non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
+			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics,non_public_metrics"});
+			if(res.errors)
+			{
+				res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics"});
+				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000)};
+				resolve(perf);
+				return;
+			}
 
-			//var res = await tweet.get('statuses/show',{id:idPost});
-			//var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
+			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,/*views:res.data[0].non_public_metrics.impression_count,*/date:Math.floor(Date.now()/1000)};
+
+		
 
 			resolve(perf);
 		})
