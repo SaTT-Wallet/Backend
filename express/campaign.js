@@ -124,7 +124,6 @@ module.exports = function (app) {
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			prom = await app.oracle.getPromDetails(idProm)
-			console.log(prom)
 				var stat={};
 
 				stat.status = prom.isAccepted
@@ -559,7 +558,6 @@ module.exports = function (app) {
 					}
 				}
 				let dynamic_html=ejs.render(html, data_);
-				console.log(dynamic_html)
 				var mailOptions = {
 			     from: app.config.mailSender,
 			     to: result.email,
@@ -571,7 +569,6 @@ module.exports = function (app) {
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
-					console.log("email was sent")
 					res.end(JSON.stringify(info.response))
 				}
 			  });
@@ -1038,7 +1035,6 @@ module.exports = function (app) {
 								if (error) {
 									res.end(JSON.stringify(error))
 								} else {
-									console.log("email was sent")
 									res.end(JSON.stringify(ret))
 									return;
 								}
@@ -2188,8 +2184,7 @@ module.exports = function (app) {
 					if (error) {
 						res.end(JSON.stringify(error))
 					} else {
-						console.log("email was sent")
-						res.end(JSON.stringify(info))
+						res.end(JSON.stringify({message : "link rejected"}))
 					}
 				  });
 				})
@@ -2310,7 +2305,6 @@ module.exports = function (app) {
 
 				}
 			}
-console.log(Links)
         if(Options.rejected){
 			res.end(JSON.stringify(Links.rejected))
 
@@ -2379,66 +2373,30 @@ console.log(Links)
 	*/
 
 
-	app.get('/campaign/totalSpent/:owner', async (req, res) => {
+	app.get('/campaign/totalSpent', async (req, res) => {
        try{
 
 		let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
 
-		let prices;
 		const sattPrice ={
 			url: app.config.xChangePricesUrl,
 			method: 'GET',
 			json: true
 		  };
-
-		  prices = await rp(sattPrice);
+		  
+         let total = "0";
+		 let prices = await rp(sattPrice);
 		 let sattPrice$ = prices.SATT.price;
 
-	const address = req.params.owner;
+         let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray(); 
+          userCampaigns.forEach(async campaign =>{
+			let result = await app.campaign.campaignStats(campaign.hash);
+			total = new Big(total).plus(new Big(result.spent));
+		  })
 
-	let[total,totalSpent, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
-
-
-	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
-    
-	campaignsCrm = await app.db.campaignCrm().find().toArray();
-	for (var i = 0;i<campaignsCrm.length;i++)
-	{
-		if(campaignsCrm[i].hash)
-			campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
-	}
-	for (var i = 0;i<campaigns.length;i++)
-	{
-		var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
-		if(!ctr.methods)
-		{
-			continue;
-		}
-
-		if(campaignsCrmbyId[campaigns[i].id])
-		{
-			campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
-			if(campaigns[i].meta.token.name == "SATTBEP20") {
-				campaigns[i].meta.token.name ="SATT";
-			}
-		}
-
-		rescampaigns.push(campaigns[i]);
-	}
-	            var campaignscentral = await app.campaign.campaignsByOwner(address);
-
-	            rescampaigns = rescampaigns.concat(campaignscentral);
-
-	            rescampaigns.forEach(elem =>{
-               if(elem.meta && elem.amount){
-				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
-			   }
-	})
-
-	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
-
-	          totalSpent = Number((total).toFixed(2));
+	        let  totalSpentInUSD = sattPrice$ *parseFloat(new Big(total).div(etherInWei).toFixed(0))
+	        let  totalSpent = new Big(total).toFixed();
 
 	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
 
