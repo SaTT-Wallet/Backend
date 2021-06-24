@@ -63,6 +63,7 @@ cron.schedule("03 04 * * 1", () =>{
 			counter++;
 		}
 
+
 		//var res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 		result.ratios = res;
 		result.meta = cmpMetas[0];
