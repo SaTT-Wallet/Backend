@@ -778,6 +778,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 							let id =idNode.substr(1);
 							user= await app.db.sn_user().findOne({_id:Number(id)});
 							if(user){
+							fileToSend._id=files[file]._id;	
 							fileToSend.idNode=files[file].idNode;
 							if(user.email){fileToSend.email=user.email;}
 							fileToSend.filename=files[file].filename;
@@ -794,6 +795,38 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 		})
+
+		app.get('/admin/userLegal/:id', async (req, res) => {
+			try{
+			   const userLegal = req.params.id
+			   gfsUserLegal.files.findOne({ _id:app.ObjectId(userLegal)}  , (err, file) => {
+				   if (!file || file.length === 0) {
+					 return res.status(404).json({
+					   err: 'No file exists'
+					 });
+				   }
+				   else {
+					   if(file.contentType){
+						   contentType = file.contentType
+					   }else{
+						   contentType=file.mimeType
+					   }
+						res.writeHead(200, {
+							'Content-type': contentType,
+							'Content-Length': file.length,
+							'Content-Disposition': `attachment; filename=${file.filename}`
+						})
+						const readstream = gfsUserLegal.createReadStream(file.filename);
+						  readstream.pipe(res);
+				   }
+				 });
+	
+			   }catch (err) {
+				   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			   }
+	
+	   })
+
 	return app;
 
 }
