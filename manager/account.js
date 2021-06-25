@@ -937,6 +937,23 @@ accountManager.handleId=async function () {
 	}
  }
 
+    accountManager.notificationManager = async (id, NotifType, label)=>{
+
+        let notification={
+			idNode:"0"+id,
+			type:NotifType,
+			status:"done",
+			label,
+			isSeen:false,
+			isSend:false,
+			attachedEls:{
+				id:id
+		  },
+		  created:new Date()
+		}
+		await app.db.notification().insertOne(notification);
+	}
+
 	app.account = accountManager;
 	return app;
 }
