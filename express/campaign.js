@@ -2038,12 +2038,11 @@ module.exports = function (app) {
 	})
 
 	/*
-     @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
-     @description: get accepted proms by owner
+     @link : /campaign/proms/influencer/:idWallet
+     @description: get all proms of influencer
      @params:
-	 @Input idCampaign : identifiant de la campaign
-			idWallet:identifiant de la wallet
-	 @Output array of accepted links
+	 @Input idWallet:identifiant de la wallet
+	 @Output array of links
      */
 	app.get('/campaign/proms/influencer/:idWallet',async(req, res)=>{
 		try {
