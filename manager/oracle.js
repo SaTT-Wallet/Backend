@@ -145,7 +145,7 @@ module.exports = async function (app) {
 					resolve({error:"media not found"});
 					return;
 				}
-					
+
 			  var ig_user = ig_media.owner.id;
 				var media_id = ig_media.id;
 				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
@@ -222,7 +222,10 @@ module.exports = async function (app) {
 	oracleManager.verifyYoutube = async function (userId,idPost) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"snippet"},json: true});
+				var googleProfile = await app.db.googleProfile().findOne({UserId:userId  });
+
+				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:googleProfile.accessToken,part:"snippet"},json: true});
+			
 				var channelId = res.items[0].snippet.channelId;
 				var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
 				resolve(googleProfile);
