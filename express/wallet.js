@@ -619,7 +619,7 @@ module.exports = function (app) {
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			if(ret.transactionHash){
 				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})	
-				const wallet = app.db.wallet().findOne({address : to.substring(2)});
+				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address})		
 				}	
@@ -1085,7 +1085,7 @@ module.exports = function (app) {
 			var ret = await app.erc20.transfer(token,to,amount,cred);
 			if(ret.transactionHash){
 				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )		
-				const wallet = app.db.wallet().findOne({address : to.substring(2)});
+				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address } )		
 				}
@@ -1226,7 +1226,7 @@ module.exports = function (app) {
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			if(ret.transactionHash){
 				await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
-				const wallet = app.db.wallet().findOne({address : to.substring(2)});
+				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )		
 				}
@@ -1478,7 +1478,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		if(ret.transactionHash){
 			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to})
-			const wallet = app.db.wallet().findOne({address : to.substring(2)});
+			const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address} )		
 				}

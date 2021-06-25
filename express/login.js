@@ -1378,7 +1378,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       } else{
         res.send(JSON.stringify({error : "wrong password"}));
       }
-    })}catch (err) {
+    })} catch (err) {
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
   })
