@@ -745,9 +745,9 @@ cron.schedule("03 04 * * 1", () =>{
        const ratio = campaign.ratios
 	   ratio.forEach(elem =>{
 		   if(elem.oracle === info.oracle){
-           let view =new Big(elem["view"]).times(info.view)
-		   let like =  new Big(elem["like"]).times(info.like)
-		   let share = new Big(elem["share"]).times(info.share)
+           let view =new Big(elem["view"]).times(info.views)
+		   let like =  new Big(elem["like"]).times(info.likes)
+		   let share = new Big(elem["share"]).times(info.shares)
 		   total = view.plus(like).plus(share).toFixed()
 		   }
 	   })
@@ -758,7 +758,7 @@ cron.schedule("03 04 * * 1", () =>{
 	 }
    })
     
-   
+
 	return app;
 
 }
