@@ -753,6 +753,47 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		 }  
 	  })
+
+	  /**
+ * @swagger
+ * /getAlluserLegal:
+ *   get:
+ *     summary: get all userLegal files.
+ *     description: parametres acceptées :headers{headers}.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+		app.get('/getAlluserLegal', async(req, res)=>{
+			try{
+				
+				files =await gfsUserLegal.files.find().toArray(); 
+					listOfFiles=[];
+					for(const file in files){
+						console.log();
+						
+							fileToSend={};
+							if(files[file].idNode){
+							let idNode=files[file].idNode;
+							let id =idNode.substr(1);
+							user= await app.db.sn_user().findOne({_id:Number(id)});
+							if(user){
+							fileToSend.idNode=files[file].idNode;
+							if(user.email){fileToSend.email=user.email;}
+							fileToSend.filename=files[file].filename;
+							fileToSend.type=files[file].type;
+							fileToSend.validate=files[file].validate;
+							listOfFiles.push(fileToSend)	
+							}
+						}
+							
+					}
+					res.send(listOfFiles)
+				
+		} catch (err) {
+				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+		})
 	return app;
 
 }

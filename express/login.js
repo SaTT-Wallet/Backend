@@ -1339,9 +1339,10 @@ app.get('/auth/admin/:userId', async (req, res)=>{
  
 
 
-  app.get('/getAllUser', async (req, res) => {
+  app.get('/getAllUser/:key', async (req, res) => {
     try{      
       listOfUser=[];
+      const key=req.params.key;
        users =await app.db.sn_user().find().toArray();
  
        for(const user in users){
@@ -1355,9 +1356,21 @@ app.get('/auth/admin/:userId', async (req, res)=>{
                   userToSend.wallet="0x"+userWallet.keystore.address;
 
         }
-        listOfUser.push(userToSend);
+        if(key !== 'all'){
+            if(userToSend.firstName && userToSend.firstName.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
+            userToSend.lastName && userToSend.lastName.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
+            userToSend.email && userToSend.email.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
+            userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
+            userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1 
+            ){
+              listOfUser.push(userToSend);
+            }
+          
+        }else{
+          listOfUser.push(userToSend);
+        }
        }
-    
+      
       res.send(listOfUser)
     }catch (err) {
       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
