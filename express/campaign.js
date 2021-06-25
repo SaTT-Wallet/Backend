@@ -571,7 +571,6 @@ module.exports = function (app) {
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
-					console.log("email was sent")
 					res.end(JSON.stringify(info.response))
 				}
 			  });
@@ -873,7 +872,7 @@ module.exports = function (app) {
         let token = req.headers["authorization"].split(" ")[1]
 		let res = await app.crm.auth(token)
 		let id = res.id
-		var ctr = await app.campaign.getCampaignContract(idCampaign);
+		await app.campaign.getCampaignContract(idCampaign);
 
 		try {
 			var cred = await app.account.unlock(id,pass);
@@ -903,7 +902,7 @@ module.exports = function (app) {
 
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
 			app.account.lock(cred.address);
@@ -1034,11 +1033,10 @@ module.exports = function (app) {
 								 html: htmlToSend
 							};
 
-						  transporter.sendMail(mailOptions, function(error, info){
+						  transporter.sendMail(mailOptions, (error, info)=>{
 								if (error) {
 									res.end(JSON.stringify(error))
 								} else {
-									console.log("email was sent")
 									res.end(JSON.stringify(ret))
 									return;
 								}
@@ -2147,7 +2145,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	     await app.db.campaign_link().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
@@ -2190,13 +2188,8 @@ module.exports = function (app) {
 					 html: htmlToSend
 				};
 
-			  transporter.sendMail(mailOptions, function(error, info){
-					if (error) {
-						res.end(JSON.stringify(error))
-					} else {
-						console.log("email was sent")
-						res.end(JSON.stringify(info))
-					}
+			  transporter.sendMail(mailOptions, (error, info)=>{
+						res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))	
 				  });
 				})
 
@@ -2243,10 +2236,9 @@ module.exports = function (app) {
  */
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
-		// let token = req.headers["authorization"].split(" ")[1];
-        //  await app.crm.auth(token);
+		let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
 		 let campaign = req.body;
-		 console.log(campaign);
 	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 	const updatedCampaign = result.value
 	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
@@ -2385,74 +2377,38 @@ console.log(Links)
 	*/
 
 
-	app.get('/campaign/totalSpent/:owner', async (req, res) => {
-       try{
-
-		let token = req.headers["authorization"].split(" ")[1];
-		const auth = await app.crm.auth(token);
-
-		let prices;
-		const sattPrice ={
-			url: app.config.xChangePricesUrl,
-			method: 'GET',
-			json: true
-		  };
-
-		  prices = await rp(sattPrice);
-		 let sattPrice$ = prices.SATT.price;
-
-	const address = req.params.owner;
-
-	let[total,totalSpent, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
-
-
-	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
-
-	campaignsCrm = await app.db.campaignCrm().find().toArray();
-	for (var i = 0;i<campaignsCrm.length;i++)
-	{
-		if(campaignsCrm[i].hash)
-			campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
-	}
-	for (var i = 0;i<campaigns.length;i++)
-	{
-		var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
-		if(!ctr.methods)
-		{
-			continue;
-		}
-
-		if(campaignsCrmbyId[campaigns[i].id])
-		{
-			campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
-			if(campaigns[i].meta.token.name == "SATTBEP20") {
-				campaigns[i].meta.token.name ="SATT";
-			}
-		}
-
-		rescampaigns.push(campaigns[i]);
-	}
-	            var campaignscentral = await app.campaign.campaignsByOwner(address);
-
-	            rescampaigns = rescampaigns.concat(campaignscentral);
-
-	            rescampaigns.forEach(elem =>{
-               if(elem.meta && elem.amount){
-				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
-			   }
-	})
-
-	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
-
-	          totalSpent = Number((total).toFixed(2));
-
-	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
-
-	   }catch(err){
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-	}
-
-	})
+	app.get('/campaign/totalSpent', async (req, res) => {
+		try{
+ 
+		 let token = req.headers["authorization"].split(" ")[1];
+		 const auth = await app.crm.auth(token);
+ 
+		 const sattPrice ={
+			 url: app.config.xChangePricesUrl,
+			 method: 'GET',
+			 json: true
+		   };
+		   
+		  let total = "0";
+		  let prices = await rp(sattPrice);
+		  let sattPrice$ = prices.SATT.price;
+ 
+		  let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray(); 
+		   userCampaigns.forEach(async campaign =>{
+			 let result = await app.campaign.campaignStats(campaign.hash);
+			 total = new Big(total).plus(new Big(result.spent));
+		   })
+ 
+			 let  totalSpentInUSD = sattPrice$ *parseFloat(new Big(total).div(etherInWei).toFixed(0))
+			 let  totalSpent = new Big(total).toFixed();
+ 
+				res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
+ 
+		}catch(err){
+		 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+ 
+	 })
 
 	app.get('/campaign/invested', async (req, res)=>{
 		let token = req.headers["authorization"].split(" ")[1];
