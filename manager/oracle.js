@@ -141,8 +141,11 @@ module.exports = async function (app) {
 				var perf = {shares:0,likes:0,views:0};
 
 				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
-				if(!ig_media)
+				if(!ig_media){
 					resolve({error:"media not found"});
+					return;
+				}
+					
 			  var ig_user = ig_media.owner.id;
 				var media_id = ig_media.id;
 				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});

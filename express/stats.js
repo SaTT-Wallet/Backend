@@ -725,15 +725,9 @@ cron.schedule("03 04 * * 1", () =>{
 
 	 app.get('/campaign/statistics/:idCampaign', async (req, res)=>{
 		try{
-	 
-	 const result = await app.db.campaignCrm().findOne({hash: req.params.idCampaign});
-	 const ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
-     const element = await ctr.methods.campaigns(req.params.idCampaign).call()
-	 const toPayBig = new Big(element.funds[1]);
-	 const bgBudget = new Big(result.cost)
-	 const spent =bgBudget.minus(toPayBig).abs().toFixed();
-		 
-     res.end(JSON.stringify({toPay : element.funds[1] , spent, initialBudget : result.cost}))
+	    const idCampaign = req.params.idCampaign
+		const result = await app.campaign.campaignStats(idCampaign)
+     res.end(JSON.stringify(result))
 		}catch (err) {
 		 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	  }
