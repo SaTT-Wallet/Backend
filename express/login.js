@@ -1371,8 +1371,8 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     let pass = req.body.pass
     await app.db.sn_user().findOne({ _id:Long.fromNumber(auth.id)},async(err, user) => {
       if(user.password === synfonyHash(pass)){
+        await app.db.sn_user_archived().insertOne(user);
         await app.db.sn_user().deleteOne({ _id:Long.fromNumber(auth.id)});
-        await app.db.wallet().deleteOne({UserId : auth.id});
         res.send(JSON.stringify({message : "account deleted"})).status(202);
       } else{
         res.send(JSON.stringify({error : "wrong password"}));

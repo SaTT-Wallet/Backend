@@ -621,7 +621,7 @@ module.exports = function (app) {
 				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})	
 				const wallet = app.db.walletUserNode().findOne({wallet : to});
 				if(wallet){
-					await app.account.notificationManager(wallet.idUser, "receive_transfer_event",{amount,currency :('ETH'),to} )		
+					await app.account.notificationManager(wallet.idUser, "receive_transfer_event",{amount,currency :('ETH'),to})		
 				}	
 			}
 			response.end(JSON.stringify(ret));
