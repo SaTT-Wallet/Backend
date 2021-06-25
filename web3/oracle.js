@@ -107,6 +107,27 @@ module.exports = async function (app) {
 			return res;
 	}
 
+	ContractToken.limitStats = async function (typeSN,stats,ratios,abos) {
+		var limits = ratios[4];
+		var limit = limits[parseInt(typeSN)-1];
+		if(limit>0)
+			{
+				limit = parseFloat(limit);
+				var max = limit*parseFloat(abos);
+				if(stats.views > max) {
+					stats.views = max
+				}
+				if(stats.likes > max) {
+					stats.likes = max
+				}
+				if(stats.shares > max) {
+					stats.shares = max
+				}
+			}
+
+			return stats;
+	}
+
 	ContractToken.checkAnswer = async function () {
 
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
@@ -184,7 +205,7 @@ module.exports = async function (app) {
 		 return gas;
 		}
 
-			
+
 			if(app.config.testnet) {
 				ContractToken.contractBep20 = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnetBep20);
 			}
