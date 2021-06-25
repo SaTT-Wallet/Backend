@@ -29,25 +29,25 @@ module.exports = function (app) {
 	app.get("/count/youtube/:id", async function (req, response) {
 		var id = req.params.id;
 		var res = await app.oracle.youtubeAbos(id);
-		response.end(res);
+		response.end(""+res);
 	});
 
 	app.get("/count/facebook/:user/:id", async function (req, response) {
 
 
 		var res = await app.oracle.facebookAbos(req.params.user, req.params.id);
-		response.end(res);
+		response.end(""+res);
 	});
 
 	app.get("/count/instagram/:id", async function (req, response) {
 
 		var res = await app.oracle.instagramAbos(req.params.id);
-		response.end(res);
+			response.end(""+res);
 	});
 
 	app.get("/count/twitter/:user/:id", async function (req, response) {
 		var res = await app.oracle.twitterAbos(req.params.user, req.params.id);
-		response.end(res);
+		response.end(""+res);
 	});
 
 
