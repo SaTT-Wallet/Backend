@@ -31,7 +31,7 @@ module.exports = async function (app) {
 				if(page) {
 					var token = page.token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
-			
+
 			resolve(res.fan_count);
 		}
 		else {
@@ -51,7 +51,7 @@ module.exports = async function (app) {
 
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-				var ig_media = await app.db.ig_media().findOne({shortCode: idPost});
+				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
 			var ig_user = ig_media.owner;
 			fbProfile = await app.db.fbProfile().findOne({instagram_id:ig_user  });
 
