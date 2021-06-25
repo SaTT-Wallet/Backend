@@ -1420,6 +1420,12 @@ module.exports = function (app) {
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+
+			var ratios = var cmp  = await ctr.methods.getRatios(prom.idCampaign).call();
+			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+			stats = app.oracleManager.limitStats(prom.typeSN,stats,ratio,abos);
+
+
 			//console.log(prevstat);
 
 			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
@@ -2401,7 +2407,7 @@ console.log(Links)
 
 
 	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
-    
+
 	campaignsCrm = await app.db.campaignCrm().find().toArray();
 	for (var i = 0;i<campaignsCrm.length;i++)
 	{
@@ -2463,13 +2469,13 @@ console.log(Links)
 
 	    let totalInvested = '0';
 		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
-	
-		userCampaigns.forEach(elem=>{	
+
+		userCampaigns.forEach(elem=>{
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
 		})
 		let totalInvestedUSD = sattPrice$ *parseFloat(new Big(totalInvested).div(etherInWei).toFixed(0))
 		totalInvested = new Big(totalInvested).toFixed()
-	
+
 
 		res.end(JSON.stringify({totalInvested,totalInvestedUSD}))
 	})
