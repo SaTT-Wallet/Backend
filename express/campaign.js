@@ -1421,7 +1421,7 @@ module.exports = function (app) {
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
 
-			var ratios = var cmp  = await ctr.methods.getRatios(prom.idCampaign).call();
+			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 			stats = app.oracleManager.limitStats(prom.typeSN,stats,ratio,abos);
 
