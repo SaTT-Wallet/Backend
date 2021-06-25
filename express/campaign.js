@@ -442,6 +442,7 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 
@@ -1017,6 +1018,7 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -1428,6 +1430,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred2.address);
 		}
 	});
