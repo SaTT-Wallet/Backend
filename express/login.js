@@ -1366,18 +1366,21 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   })
 
   app.post('/account/purged', async (req, res) => {
+    try{
     let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
     let pass = req.body.pass
     await app.db.sn_user().findOne({ _id:Long.fromNumber(auth.id)},async(err, user) => {
       if(user.password === synfonyHash(pass)){
+        await app.db.sn_user_archived().insertOne(user);
         await app.db.sn_user().deleteOne({ _id:Long.fromNumber(auth.id)});
-        await app.db.wallet().deleteOne({UserId : auth.id});
         res.send(JSON.stringify({message : "account deleted"})).status(202);
       } else{
         res.send(JSON.stringify({error : "wrong password"}));
       }
-    })
+    })} catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
   })
 
   return app;

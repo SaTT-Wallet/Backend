@@ -144,7 +144,9 @@ module.exports = async function (app) {
 		app.db.sn_user = function () {
             return db2.db(app.config.mongoBaseCrm).collection('sn_user');
         };
-
+        app.db.sn_user_archived = function () {
+            return db2.db(app.config.mongoBaseCrm).collection('sn_user_archived');
+        };
 		app.db.buy = function () {
 		return db2.db(app.config.mongoBaseCrm).collection('buy_satt');
 			};
