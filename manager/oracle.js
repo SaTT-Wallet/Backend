@@ -52,7 +52,7 @@ module.exports = async function (app) {
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
 				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
-			var ig_user = ig_media.owner;
+			var ig_user = ig_media.owner.id;
 			fbProfile = await app.db.fbProfile().findOne({instagram_id:ig_user  });
 
 			if(fbProfile) {
