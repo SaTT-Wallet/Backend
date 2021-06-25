@@ -870,7 +870,7 @@ module.exports = function (app) {
         let token = req.headers["authorization"].split(" ")[1]
 		let res = await app.crm.auth(token)
 		let id = res.id
-		var ctr = await app.campaign.getCampaignContract(idCampaign);
+		await app.campaign.getCampaignContract(idCampaign);
 
 		try {
 			var cred = await app.account.unlock(id,pass);
@@ -900,7 +900,7 @@ module.exports = function (app) {
 
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
 			app.account.lock(cred.address);
@@ -2137,7 +2137,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	   const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
+	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
