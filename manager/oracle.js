@@ -10,8 +10,8 @@ module.exports = async function (app) {
 	var jsdom = jsdomlib.JSDOM;
 
 	var tweet = new Twitter({
-	  consumer_key: app.config.twitter.consumer_key,
-	  consumer_secret: app.config.twitter.consumer_secret,
+	  consumer_key: app.config.twitter.consumer_key_alt,
+	  consumer_secret: app.config.twitter.consumer_secret_alt,
 	  access_token_key: app.config.twitter.access_token_key,
 	  access_token_secret: app.config.twitter.access_token_secret
 	});
@@ -31,7 +31,8 @@ module.exports = async function (app) {
 				if(page) {
 					var token = page.token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
-			resolve(res.data.fan_count);
+
+			resolve(res.fan_count);
 		}
 		else {
 				resolve(0);
@@ -50,8 +51,8 @@ module.exports = async function (app) {
 
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-				var ig_media = await app.db.ig_media().findOne({shortCode: idPost});
-			var ig_user = ig_media.owner;
+				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
+			var ig_user = ig_media.owner.id;
 			fbProfile = await app.db.fbProfile().findOne({instagram_id:ig_user  });
 
 			if(fbProfile) {
@@ -226,7 +227,7 @@ module.exports = async function (app) {
 
 
 				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,access_token :googleProfile.accessToken,part:"snippet"},json: true});
-			
+
 				if(res.items) {
 					var channelId = res.items[0].snippet.channelId;
 					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
