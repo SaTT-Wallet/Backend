@@ -223,8 +223,9 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var googleProfile = await app.db.googleProfile().findOne({UserId:userId  });
+			
 
-				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:googleProfile.accessToken,part:"snippet"},json: true});
+				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,access_token :googleProfile.accessToken,part:"snippet"},json: true});
 				if(res.items) {
 					var channelId = res.items[0].snippet.channelId;
 					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
