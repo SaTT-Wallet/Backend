@@ -618,19 +618,11 @@ module.exports = function (app) {
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			if(ret.transactionHash){
-				let notification={
-					idNode:"0"+res.id,
-					type:"transfer_event",
-					status:"done",
-					label:{amount,currency :('ETH'),to},
-					isSeen:false,
-					isSend:false,
-					attachedEls:{
-						id:res.id
-				  },
-				  created:new Date()
-				}
-				await app.db.notification().insertOne(notification);
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})	
+				const wallet = app.db.walletUserNode().findOne({wallet : to});
+				if(wallet){
+					await app.account.notificationManager(wallet.idUser, "receive_transfer_event",{amount,currency :('ETH'),to} )		
+				}	
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1092,19 +1084,12 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
 			if(ret.transactionHash){
-				let notification={
-					idNode:"0"+res.id,
-					type:"transfer_event",
-					status:"done",
-					label:{amount,currency,to},
-					isSeen:false,
-					isSend:false,
-					attachedEls:{
-						id:res.id
-				  },
-				  created:new Date()
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )		
+				const wallet = app.db.walletUserNode().findOne({wallet : to});
+				if(wallet){
+					await app.account.notificationManager(wallet.idUser, "receive_transfer_event",{amount,currency,to} )		
 				}
-				await app.db.notification().insertOne(notification);
+
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1240,19 +1225,12 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			if(ret.transactionHash){
-				let notification={
-					idNode:"0"+res.id,
-					type:"transfer_event",
-					status:"done",
-					label:{amount, network :('BEP20'), to :req.body.to},
-					isSeen:false,
-					isSend:false,
-					attachedEls:{
-						id:res.id
-				  },
-				  created:new Date()
+				await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
+				const wallet = app.db.walletUserNode().findOne({wallet : to});
+				if(wallet){
+					await app.account.notificationManager(wallet.idUser, "receive_transfer_event",{amount, network :('BEP20'), to :req.body.to} )		
 				}
-				await app.db.notification().insertOne(notification);
+				
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1499,19 +1477,11 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		if(ret.transactionHash){
-			let notification={
-				idNode:"0"+res.id,
-				type:"transfer_event",
-				status:"done",
-				label:{amount,currency :('BNB'),to},
-				isSeen:false,
-				isSend:false,
-				attachedEls:{
-					id:res.id
-			  },
-			  created:new Date()
-			}
-			await app.db.notification().insertOne(notification);
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to})
+			const wallet = app.db.walletUserNode().findOne({wallet : to});
+				if(wallet){
+					await app.account.notificationManager(wallet.idUser, "receive_transfer_event",{amount,currency :('BNB'),to} )		
+				}
 		}
 		response.end(JSON.stringify(ret));
 	} catch (err) {

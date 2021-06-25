@@ -532,19 +532,9 @@ module.exports = function (app) {
                campaign.title=element.title
 			   campaign.hash=element.hash
 			   manageTime()
-			   let notification={
-				idNode:campaign.owner,//owner id
-				type:"cmp_candidate_insert_link",//done
-				status:"done",//done
-				label:{cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash},
-				isSeen:false,//done
-				isSend:false,
-				attachedEls:{
-					id:campaign_id
-			  },
-			  created:new Date()
-			}
-		  await	app.db.notification().insertOne(notification)
+
+		  await app.account.notificationManager(campaign.owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash})		
+
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
 		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, html) => {
@@ -882,19 +872,7 @@ module.exports = function (app) {
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
 				if(ret.transactionHash){
 					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-					let notification={
-						idNode:"0"+id,
-						type:"apply_campaign",
-						status:"done",
-						label:{cmp_name :campaign.title},
-						isSeen:false,
-						isSend:false,
-						attachedEls:{
-							id:id
-					  },
-					  created:new Date()
-					}
-					await app.db.notification().insertOne(notification);
+					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})		
 				}
 				response.end(JSON.stringify(ret));
 		//	}
@@ -996,19 +974,8 @@ module.exports = function (app) {
 					const id = req.body.idUser;
                     const email = req.body.email;
 
-                    const notification={
-						idNode:"0"+id,
-						type:"cmp_candidate_accept_link",
-						status:"done",
-						label:{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash},
-						isSeen:false,
-						isSend:false,
-						attachedEls:{
-							id:id
-					  },
-					  created:new Date()
-					}
-					await app.db.notification().insertOne(notification);
+					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash})		
+
 
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 						if (err) {
@@ -1399,7 +1366,7 @@ module.exports = function (app) {
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
              if(prom.funds.amount === "0"){
-				response.end(JSON.stringify({message : "No funds to claim"}));
+				response.end(JSON.stringify({earnings : prom.funds.amount}));
 				return;
 			 }
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
@@ -2148,20 +2115,7 @@ module.exports = function (app) {
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
-
-		 const notification={
-			idNode:"0"+id,
-			type:"cmp_candidate_reject_link",
-			status:"done",
-			label:{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash},
-			isSeen:false,
-			isSend:false,
-			attachedEls:{
-				id:id
-		  },
-		  created:new Date()
-		}
-		await app.db.notification().insertOne(notification);
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash})		
 
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
