@@ -574,7 +574,6 @@ module.exports = function (app) {
   async function (req,accessToken, refreshToken, profile, done) {
 
     let user_id=+req.query.state;
-    console.log(user_id);
     let userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
     if(userExist.length){
 
@@ -1337,6 +1336,49 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   });
+ 
+
+
+  app.get('/getAllUser', async (req, res) => {
+    try{      
+      listOfUser=[];
+       users =await app.db.sn_user().find().toArray();
+ 
+       for(const user in users){
+        userToSend={};
+        let userWallet= await app.db.wallet().findOne({UserId:users[user]._id});
+        userToSend._id=users[user]._id;
+        userToSend.firstName=users[user].firstName;
+        userToSend.lastName=users[user].lastName;
+        userToSend.email=users[user].email;
+        if(userWallet){
+                  userToSend.wallet="0x"+userWallet.keystore.address;
+
+        }
+        listOfUser.push(userToSend);
+       }
+    
+      res.send(listOfUser)
+    }catch (err) {
+      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+     }
+    
+  })
+
+  app.post('/account/purged', async (req, res) => {
+    let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    let pass = req.body.pass
+    await app.db.sn_user().findOne({ _id:Long.fromNumber(auth.id)},async(err, user) => {
+      if(user.password === synfonyHash(pass)){
+        await app.db.sn_user().deleteOne({ _id:Long.fromNumber(auth.id)});
+        await app.db.wallet().deleteOne({UserId : auth.id});
+        res.send(JSON.stringify({message : "account deleted"})).status(202);
+      } else{
+        res.send(JSON.stringify({error : "wrong password"}));
+      }
+    })
+  })
 
   return app;
 }
