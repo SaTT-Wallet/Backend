@@ -319,7 +319,7 @@ module.exports = function (app) {
           for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
             for (var i =0;i<res.data.length;i++) {
               var media = res.data[i];
-              await app.db.ig_media().insertOne(media);
+              await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
             }
           }
 
@@ -723,7 +723,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     const token = await app.db.accessToken().findOne({user_id: userId});
     var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
       res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
-    
+
 } catch (err) {
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
