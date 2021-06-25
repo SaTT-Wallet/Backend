@@ -1366,6 +1366,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
   })
 
   app.post('/account/purged', async (req, res) => {
+    try{
     let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
     let pass = req.body.pass
@@ -1377,7 +1378,9 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       } else{
         res.send(JSON.stringify({error : "wrong password"}));
       }
-    })
+    })}catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
   })
 
   return app;
