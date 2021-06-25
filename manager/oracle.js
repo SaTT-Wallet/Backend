@@ -31,8 +31,8 @@ module.exports = async function (app) {
 				if(page) {
 					var token = page.token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
-				console.log(res);
-			resolve(res.data.fan_count);
+			
+			resolve(res.fan_count);
 		}
 		else {
 				resolve(0);
