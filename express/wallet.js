@@ -77,7 +77,7 @@ module.exports = function (app) {
      @response : Total Balance Object
      */
 
-    app.get('/v2/total_balance', async (req, res) =>{
+    app.get('/v2/total_balance', async (req, response) =>{
 
 		try {
 			const Fetch_crypto_price = {
@@ -112,10 +112,10 @@ module.exports = function (app) {
 			await app.db.sn_user().updateOne({_id : id}, {$set: user});
 		  }
 
-		  res.end(JSON.stringify({Total_balance, variation})).status(201);
+		  response.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	});
 
@@ -144,7 +144,8 @@ module.exports = function (app) {
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 		try {
-			const token = req.headers["authorization"].split(" ")[1];
+			//const token = req.headers["authorization"].split(" ")[1];
+			const token = req.params.token;
 			var res =	await app.crm.auth(token);
 
 			var count = await app.account.hasAccount(res.id);
@@ -361,7 +362,7 @@ module.exports = function (app) {
 		var pass = req.params.pass;
 
 		try {
-			
+
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -615,11 +616,11 @@ module.exports = function (app) {
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})	
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address})		
-				}	
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address})
+				}
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1080,7 +1081,7 @@ module.exports = function (app) {
 
 		try {
 
-			var token = req.body.token;
+			//var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1091,10 +1092,10 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )		
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address } )		
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address } )
 				}
 
 			}
@@ -1156,7 +1157,7 @@ module.exports = function (app) {
 
 		try {
 
-			var token = req.body.token;
+		//	var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
 			const token = req.headers["authorization"].split(" ")[1];
@@ -1222,7 +1223,7 @@ module.exports = function (app) {
 
 		try {
 
-			var token = req.body.token;
+			//var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1236,9 +1237,9 @@ module.exports = function (app) {
 				await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )		
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )
 				}
-				
+
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1275,7 +1276,7 @@ module.exports = function (app) {
 		 app.post('/v3/bep20/transfer',async function(req, response) {
 
 			try {
-	
+
 				var to = req.body.to;
 				var amount = req.body.amount;
 				var pass = req.body.pass;
@@ -1298,7 +1299,7 @@ module.exports = function (app) {
 
 		try {
 
-			var token = req.body.token;
+			//var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1491,7 +1492,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to})
 			const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address} )		
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address} )
 				}
 		}
 		response.end(JSON.stringify(ret));
@@ -1652,7 +1653,7 @@ app.post('/v2/profile/update', async function(req, response) {
 	 }
 	})
 
-	app.get('/user/balance', async (req,res)=>{
+	app.get('/user/balance', async (req,response)=>{
 		try {
 			const Fetch_crypto_price = {
 				method: 'GET',
@@ -1666,9 +1667,9 @@ app.post('/v2/profile/update', async function(req, response) {
 			const balance = await app.account.getListCryptoByUid(auth.id,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
 
-			res.send(JSON.stringify({listOfCrypto}))
+			response.send(JSON.stringify({listOfCrypto}))
 		}catch (err) {
-		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		   response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
