@@ -1081,7 +1081,6 @@ module.exports = function (app) {
 
 		try {
 
-			//var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1223,7 +1222,6 @@ module.exports = function (app) {
 
 		try {
 
-			//var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
