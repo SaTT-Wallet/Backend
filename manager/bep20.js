@@ -101,6 +101,9 @@ module.exports = async function (app) {
       var value = evt.returnValues.value;
 
 
+
+
+
       console.log("bsc to eth",from,to,value);
 
       if(to == nullAddress)
@@ -120,6 +123,16 @@ module.exports = async function (app) {
           return;
         }
 
+        var log = {
+          type:"BSC-ETH",
+          from:from,
+          to:to,
+          value:value,
+          bscTxHash:evt.transactionHash,
+          date :Math.floor(Date.now()/1000)
+        }
+        var ins = await app.db.bep20().insertOne(log);
+
 
 
           await bep20Manager.unlockOwner();
@@ -130,17 +143,10 @@ module.exports = async function (app) {
 
           var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr});
 
-          var log = {
-            type:"BSC-ETH",
-            from:from,
-            to:to,
-            value:value,
-            bscTxHash:evt.transactionHash,
-            burnTxHash:burnres.transactionHash,
-            ethTxHash:transferres.transactionHash,
-            date :Math.floor(Date.now()/1000)
-          }
-          var ins = await app.db.bep20().insertOne(log);
+
+        
+          var update = await app.db.bep20().updateOne({bscTxHash:evt.transactionHash}, {$set: {  burnTxHash:burnres.transactionHash,ethTxHash:transferres.transactionHash,}})
+
       }
     }
 
