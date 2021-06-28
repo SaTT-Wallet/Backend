@@ -61,12 +61,31 @@ module.exports = function (app) {
 		}
 	  });
 
+	  const storageCampaignLogo = new GridFsStorage({
+		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+			  const filename = file.originalname;
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'campaign_logo'
+			  };
+			  resolve(fileInfo);
+
+		  });
+		}
+	  });
+
+
 
 
 	  // here I used multer to upload files
       // you can add your validation here, such as file size, file extension and etc.
 	  const uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 	  const upload = multer({ storage });
+      const uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMemory: true}).single('file');
+
 
 
 
@@ -96,14 +115,18 @@ module.exports = function (app) {
 	  const conn=mongoose.createConnection(mongoURI);
 	  let gfs;
 	  let gfsKit;
+	  let gfsLogo;
+
 
 
 
 
 	  conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
+		gfsLogo = Grid(conn.db, mongoose.mongo);
 		gfsKit = Grid(conn.db, mongoose.mongo);
 		gfs.collection('campaign_cover');
+		gfsLogo.collection('campaign_logo');
 		gfsKit.collection('campaign_kit');
 	  });
 
@@ -214,6 +237,22 @@ module.exports = function (app) {
 	app.post('/updateStat', updateStat)
 
 
+	app.use(async(req, res, next) =>{
+		try {
+	if (!req.headers["authorization"]) {
+		return res.status(403).json({ error: 'No credentials sent!' });
+		 }
+	else{
+		const token = req.headers["authorization"].split(" ")[1];
+		const auth= await app.crm.auth(token);
+		req.idUser = auth.id;
+	}	
+		next();
+	} catch (err) {
+		response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	});
+
 	/*
 	@url : /stat/:idProm
 	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0)
@@ -225,8 +264,6 @@ module.exports = function (app) {
 	app.get('/stat/:idProm',async (req, response) => {
 		try {
 			const prom = req.params.idProm;
-			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
 			arrayOfProms=[];
 			const stat= await app.db.CampaignLinkStatistic().find({id_prom:prom}).toArray();
 			stat.forEach((statistic)=>{
@@ -276,8 +313,7 @@ module.exports = function (app) {
 		var reward = req.body.rewardType || 1;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.createCampaign(dataUrl,startDate,endDate,cred);
 			response.end(JSON.stringify(ret));
 
@@ -307,7 +343,6 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/create', async function(req, response) {
-		let token = req.headers["authorization"].split(" ")[1];
 
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
@@ -316,8 +351,7 @@ module.exports = function (app) {
 		var reward = req.body.rewardType || 1;
 
 		try {
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.createCampaign(dataUrl,startDate,endDate,cred);
 			response.end(JSON.stringify(ret));
 
@@ -340,9 +374,8 @@ module.exports = function (app) {
 
 		try {
 
-			var res = await app.crm.auth(req.body.token);
 
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 
 
 
@@ -404,7 +437,6 @@ module.exports = function (app) {
  */
 	app.post('/v2/campaign/create/all', async (req, res)=> {
 
-		let token = req.headers["authorization"].split(" ")[1];
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -415,8 +447,7 @@ module.exports = function (app) {
         let id =req.body.idCampaign
 		try {
 
-			var auth = await app.crm.auth(token);
-			var cred = await app.account.unlock(auth.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 
 
 			if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
@@ -477,7 +508,6 @@ module.exports = function (app) {
 	 *          description: data
 	 */
 		app.post('/v2/campaign/create/bounties', async function(req, response) {
-			let token = req.headers["authorization"].split(" ")[1];
 			var pass = req.body.pass;
 			var dataUrl = req.body.dataUrl;
 			var startDate = req.body.startDate;
@@ -488,8 +518,7 @@ module.exports = function (app) {
 
 			try {
 
-				var res = await app.crm.auth(token);
-				var cred = await app.account.unlock(res.id,pass);
+				var cred = await app.account.unlock(req.idUser,pass);
 
 				if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
 					ERC20token = app.config.ctrs.token.address.testnet;
@@ -598,8 +627,7 @@ module.exports = function (app) {
 		var viewRatio = req.body.viewRatio;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.createCampaignYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,cred);
 			response.end(JSON.stringify(ret));
 
@@ -624,8 +652,7 @@ module.exports = function (app) {
 
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred);
 			response.end(JSON.stringify(ret));
 
@@ -667,12 +694,10 @@ module.exports = function (app) {
 		var startDate = req.body.startDate;
 		var endDate = req.body.endDate;
 		var idCampaign = req.body.idCampaign;
-		let token = req.headers["authorization"].split(" ")[1];
 
 
 		try {
-			var res = await app.crm.auth( token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.modCampaign(idCampaign,dataUrl,startDate,endDate,reward,cred);
 			response.end(JSON.stringify(ret));
 
@@ -680,6 +705,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -709,10 +735,8 @@ module.exports = function (app) {
 		var idCampaign = req.body.idCampaign;
 		var token = req.body.ERC20token;
 		var amount = req.body.amount;
-		let access_token = req.headers["authorization"].split(" ")[1];
 		try {
-			var auth = await app.crm.auth(access_token);
-			var cred = await app.account.unlock(auth.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
 			if(ret.transactionHash){
 			const ctr = await app.campaign.getCampaignContract(idCampaign);
@@ -743,8 +767,7 @@ module.exports = function (app) {
 		var viewRatio = req.body.viewRatio;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.priceRatioCampaign(idCampaign,typeSN,likeRatio,shareRatio,viewRatio,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -808,8 +831,7 @@ module.exports = function (app) {
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
@@ -859,9 +881,7 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-        let token = req.headers["authorization"].split(" ")[1]
-		let res = await app.crm.auth(token)
-		let id = res.id
+		let id = req.idUser
 		await app.campaign.getCampaignContract(idCampaign);
 
 		try {
@@ -892,13 +912,11 @@ module.exports = function (app) {
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var idApply = req.body.idProm;
-        let token = req.headers["authorization"].split(" ")[1];
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
 
 		try {
-			var res = await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
 				var prom = await app.db.apply().findOne({_id:app.ObjectId(idApply)});
@@ -944,7 +962,6 @@ module.exports = function (app) {
 		let pass = req.body.pass;
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;
-		let token = req.headers["authorization"].split(" ")[1];
         let link = req.body.link
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
 
@@ -954,8 +971,7 @@ module.exports = function (app) {
 			const lang = req.query.lang || "en";
 			app.i18n.configureTranslation(lang);
 
-			var auth = await app.crm.auth(token);
-			var cred = await app.account.unlock(auth.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet) {
 
 				var prom = await app.db.apply().findOne({_id:app.ObjectId(idApply)});
@@ -1027,8 +1043,7 @@ module.exports = function (app) {
 		var idCampaign = req.body.idCampaign;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.startCampaign(idCampaign,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1340,7 +1355,6 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/gains2', async (req, response) =>  {
-		let token = req.headers["authorization"].split(" ")[1];
 
 		var pass = req.body.pass;
 		var idProm = req.body.idProm;
@@ -1358,8 +1372,7 @@ module.exports = function (app) {
 				return;
 			}
 
-			var res = await app.crm.auth(token);
-			var cred2 = await app.account.unlock(res.id,pass);
+			var cred2 = await app.account.unlock(req.idUser,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
 
@@ -1440,8 +1453,7 @@ module.exports = function (app) {
 		var idCampaign = req.body.idCampaign;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.campaign.getRemainingFunds(idCampaign,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1544,8 +1556,7 @@ module.exports = function (app) {
 		var allowance = new BN("100000000000000000000000000000");
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var cred = await app.account.unlock(res.id,pass);
+			var cred = await app.account.unlock(req.idUser,pass);
 			var ret = await app.token.approve(cred.address,spender,app.web3.utils.toHex(allowance));
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1576,8 +1587,7 @@ module.exports = function (app) {
 		var viewRatio = req.body.viewRatio;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var account = await app.db.wallet().findOne({UserId: parseInt(res.id)});
+			var account = await app.db.wallet().findOne({UserId: parseInt(req.idUser)});
 			var cred =  {address:"0x"+account.keystore.address};
 			var gas = await app.campaign.estimateCreateCampaignYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,cred);
 			response.end('{"gas":'+gas+'}');
@@ -1599,8 +1609,7 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 
 		try {
-			var res = await app.crm.auth( req.body.token);
-			var account = await app.db.wallet().findOne({UserId: parseInt(res.id)});
+			var account = await app.db.wallet().findOne({UserId: parseInt(req.idUser)});
 			var cred =  {address:"0x"+account.keystore.address};
 			var gas = await app.campaign.estimateFundCampaign(idCampaign,token,amount,cred);
 			response.end('{"gas":'+gas+'}');
@@ -1725,8 +1734,6 @@ module.exports = function (app) {
 
 	app.delete('/kit/:idKit', async (req, res) => {
 		try {
-			let token = req.headers["authorization"].split(" ")[1];
-            await app.crm.auth(token);
 			const idKit = req.params.idKit
 			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
 				res.send(JSON.stringify({message :'deleted'}))
@@ -1748,8 +1755,6 @@ module.exports = function (app) {
 	app.delete('/campaign/deleteDraft/:id', async (req, res) => {
 		try {
 			const id= req.params.id;
-			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth( token);
 			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
 			res.end(JSON.stringify({message :'Draft deleted'})).status(200);
 		} catch (err) {
@@ -1765,8 +1770,6 @@ module.exports = function (app) {
      */
 	 app.post('/addKits', upload.array('file'), async(req, res) => {
 		try {
-		let token = req.headers["authorization"].split(" ")[1];
-        await app.crm.auth(token);
 		files=req.files;
 		if(typeof req.body.link === "string"){
 			links=Array(req.body.link);
@@ -1810,8 +1813,6 @@ module.exports = function (app) {
      */
 	app.get('/kit/:id', async (req, res) => {
 		try{
-		   const token = req.headers["authorization"].split(" ")[1];
-		   await app.crm.auth(token);
 		   const kit = req.params.id
 		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
 			   if (!file.filename || file.length === 0) {
@@ -1852,8 +1853,6 @@ module.exports = function (app) {
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
 		try {
 		const idCampaign= req.params.idCampaign;
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
 		gfsKit.files.find({ 'campaign.$id':app.ObjectId(idCampaign)}).toArray(function (err, files) {
 		response.end(JSON.stringify(files));
 		})
@@ -1896,10 +1895,8 @@ module.exports = function (app) {
  */
 	app.post('/campaign/save', async (req, res) => {
 		try {
-			let token = req.headers["authorization"].split(" ")[1];
-            const auth = await app.crm.auth(token);
 		    const campaign = req.body
-		    campaign.idNode = "0" + auth.id
+		    campaign.idNode = "0" + req.idUser
 		const draft = await app.db.campaignCrm().insertOne(campaign);
 			res.end(JSON.stringify(draft.ops[0])).status(200);
 
@@ -1918,8 +1915,6 @@ module.exports = function (app) {
      */
 	app.delete('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
 			const campain = req.params.idCampaign
 			gfs.files.findOneAndDelete({ 'campaign.$id': app.ObjectId(campain) },(err, data)=>{
 				res.send(JSON.stringify({message :'delete'}))
@@ -1940,8 +1935,6 @@ module.exports = function (app) {
      */
 	app.get('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
 		const idCampaign = req.params.idCampaign;
 
 
@@ -1988,8 +1981,6 @@ module.exports = function (app) {
 	app.post('/campaign/:idCampaign/cover',uploadImage, async(req, res)=>{
 		try{
 			const idCampaign = req.params.idCampaign;
-			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
 			if(req.file){
 			await gfs.files.findOneAndDelete({'campaign.$id': app.ObjectId(idCampaign)});
 			await gfs.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
@@ -2016,8 +2007,6 @@ module.exports = function (app) {
 	app.get('/campaign/proms/influencer/:idWallet',async(req, res)=>{
 		try {
 		const idwallet = req.params.idwallet;
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth( token);
 		const allProms = await app.db.campaign_link().find({ id_wallet : idwallet }).toArray();
 		res.send(JSON.stringify({allProms}));
 		} catch (err) {
@@ -2036,8 +2025,6 @@ module.exports = function (app) {
      */
 	app.post('/campaign/stats_live', async(req, res)=>{
         try {
-	    let token = req.headers["authorization"].split(" ")[1];
-        await app.crm.auth(token);
 		const idProm = req.body.prom_id
 		const prom = await app.db.campaign_link().findOne({id_prom: idProm})
         let stats = {};
@@ -2070,8 +2057,6 @@ module.exports = function (app) {
  */
 	app.get('/campaign/links/:idCampaign', async(req, res)=>{
 		try {
-		 let token = req.headers["authorization"].split(" ")[1];
-         await app.crm.auth(token);
          const campaign = req.params.idCampaign
 	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
 		res.send(JSON.stringify({links})).status(200);
@@ -2106,8 +2091,6 @@ module.exports = function (app) {
         app.i18n.configureTranslation(lang);
 
 		try {
-		 let token = req.headers["authorization"].split(" ")[1];
-         await app.crm.auth(token)
          const reason =req.body.reason || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
@@ -2191,8 +2174,6 @@ module.exports = function (app) {
  */
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
-		let token = req.headers["authorization"].split(" ")[1];
-         await app.crm.auth(token);
 		 let campaign = req.body;
 	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 	const updatedCampaign = result.value
@@ -2293,8 +2274,6 @@ console.log(Links)
 	*/
 	app.get('/campaign/totalEarned/:addr', async (req, res)=>{
 		try{
-			let token = req.headers["authorization"].split(" ")[1];
-            await app.crm.auth(token);
 			let address=req.params.addr
 			let prices;
 			let sattPrice$;
@@ -2335,9 +2314,6 @@ console.log(Links)
 	app.get('/campaign/totalSpent', async (req, res) => {
 		try{
  
-		 let token = req.headers["authorization"].split(" ")[1];
-		 const auth = await app.crm.auth(token);
- 
 		 const sattPrice ={
 			 url: app.config.xChangePricesUrl,
 			 method: 'GET',
@@ -2348,7 +2324,7 @@ console.log(Links)
 		  let prices = await rp(sattPrice);
 		  let sattPrice$ = prices.SATT.price;
  
-		  let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray(); 
+		  let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+req.idUser,hash:{ $exists: true}}).toArray(); 
 		   userCampaigns.forEach(async campaign =>{
 			 let result = await app.campaign.campaignStats(campaign.hash);
 			 total = new Big(total).plus(new Big(result.spent));
@@ -2366,8 +2342,6 @@ console.log(Links)
 	 })
 
 	app.get('/campaign/invested', async (req, res)=>{
-		let token = req.headers["authorization"].split(" ")[1];
-		const auth = await app.crm.auth(token);
 		let prices;
 		const sattPrice ={
 			url: app.config.xChangePricesUrl,
@@ -2379,7 +2353,7 @@ console.log(Links)
 		let sattPrice$ = prices.SATT.price;
 
 	    let totalInvested = '0';
-		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
+		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+req.idUser,hash:{ $exists: true}}).toArray();
 
 		userCampaigns.forEach(elem=>{
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
@@ -2409,5 +2383,55 @@ console.log(Links)
 		}
 	})
 
+	/*
+     @url : /campaign/:idCampaign/logo
+     @description: Save campaign logo in db
+     @params:
+     @Input idCampaign : campaign id, file
+    */
+
+	 app.post('/campaign/:idCampaign/logo',uploadCampaignLogo, async(req, res)=>{
+		try{
+			if(req.file){
+			await gfsLogo.files.findOneAndDelete({'campaign.$id': app.ObjectId(req.params.idCampaign)});
+			await gfsLogo.files.updateOne({ _id: app.ObjectId(req.file.id) },{$set: { campaign : {
+				"$ref": "campaign",
+				"$id": app.ObjectId(req.params.idCampaign),
+				"$db": "atayen"
+			 }} })
+			res.json(JSON.stringify({message :'Logo added'}));
+			}
+			res.send(JSON.stringify({message :'No matching file found'}));
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+	})
+
+
+
+	/*
+     @link : /campaign/:idCampaign/cover
+     @description: récupère l'image d'un campaign s'il existe sinon il retourne une image par defaut
+     @params:
+     @Input idCampaign : identifiant de la campaign
+     */
+	 app.get('/campaign/:idCampaign/logo', async (req, res) => {
+		try {
+		       const idCampaign = req.params.idCampaign;
+				gfsLogo.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
+					  res.writeHead(200, {
+											'Content-Type': 'image/png',
+											'filename' : file.filename,
+											'Content-Disposition': `attachment; filename='${file.filename}`
+										});
+					  const readstream = gfsLogo.createReadStream(file.filename);
+					  readstream.pipe(res);
+				  });
+
+		}catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+
+		})
 	return app;
 }
