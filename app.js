@@ -77,6 +77,7 @@
 		  next();
 		});
 		app = await require("./express/login")(app);
+		app = await require("./express/back_office")(app);
 		app = await require("./express/service")(app);
 		app = await require("./express/campaign")(app);
 		
