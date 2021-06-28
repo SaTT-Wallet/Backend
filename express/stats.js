@@ -73,7 +73,7 @@ cron.schedule("03 04 * * 1", () =>{
 
 		var newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
         let rejectedProms = await app.db.campaign_link().find({$and: [ { id_campaign:idCampaign },{status : "rejected"}]}).toArray();
-   
+
 		if(idproms.length || newproms.length) {
 			var addresses = [];
 			var ids = [];
@@ -101,7 +101,7 @@ cron.schedule("03 04 * * 1", () =>{
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
 			}
 			//
-           
+
 			if(rejectedProms.length){
 				rejectedProms.forEach(element => {
 				proms.forEach(prom=>{
@@ -111,7 +111,7 @@ cron.schedule("03 04 * * 1", () =>{
 				})
 			})
 			}
-			
+
 
 			result.proms = proms;
 
@@ -134,7 +134,7 @@ cron.schedule("03 04 * * 1", () =>{
 			}
 
 		}
-       
+
 		var campaignsCrm = await app.db.campaignCrm().find({hash:idCampaign}).toArray();
 		if(campaignsCrm.length)
 			result.meta = campaignsCrm[0];
@@ -402,7 +402,7 @@ cron.schedule("03 04 * * 1", () =>{
 			var owner = req.params.addr;
 			var campaigns = [];
             let rescampaigns = [];
-			
+
 			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
 			var campaignsCrm = [];
 			var campaignsCrmbyId = [];
@@ -461,7 +461,7 @@ cron.schedule("03 04 * * 1", () =>{
 			}
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
-	
+
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
@@ -751,13 +751,13 @@ cron.schedule("03 04 * * 1", () =>{
 		   total = view.plus(like).plus(share).toFixed()
 		   }
 	   })
-       
+
 	   res.end(JSON.stringify({total, payedAmount,unPayed}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
    })
-    
+
 
 	return app;
 
