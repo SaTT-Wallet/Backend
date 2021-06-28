@@ -92,7 +92,7 @@ module.exports = async function (app) {
         return;
       }
 
-      console.log("bsc to eth",evt.transactionHash);
+
 
 
 
@@ -101,11 +101,8 @@ module.exports = async function (app) {
       var value = evt.returnValues.value;
 
 
+      console.log("bsc to eth",from,to,value);
 
-      if(to.toLowerCase() != app.config.SattBep20Addr.toLowerCase())
-      {
-        return;
-      }
 
 
       /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
@@ -287,6 +284,7 @@ module.exports = async function (app) {
       bep20Manager.initEventHandlers = async () => {
 
         bep20Manager.contractWS.events.allEvents  ( {filter:{to:app.config.SattBep20Addr}},async function(err,evt) {
+
           	await bep20Manager.eventBSCtoETH(err,evt)
         });
         //bep20Manager.contractWS.events.allEvents({filter:{to:app.config.SattBep20Addr}},console.log)
