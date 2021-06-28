@@ -105,8 +105,8 @@ module.exports = function (app) {
 	 app.get('/profile/pic', async (req, response) => {
          try{
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			const idUser = res.id;
+			var auth =	await app.crm.auth(token);
+			const idUser = auth.id;
 			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
 				  return response.json({
@@ -268,8 +268,8 @@ module.exports = function (app) {
 	  app.get('/notifications',async(req, response)=>{
 		  try{
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			const idNode= "0" + res.id;
+			var auth =	await app.crm.auth(token);
+			const idNode= "0" + auth.id;
 			const arrayNotifications= await app.db.notification().find({idNode}).sort({created:-1}).toArray()
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1;
@@ -313,14 +313,14 @@ module.exports = function (app) {
 	 app.post('/profile/userlegal',uploadUserLegal.single('file'), async(req, res)=>{
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-		  const idNode = "0" + res.id;
+			var auth =	await app.crm.auth(token);
+		  const idNode = "0" + auth.id;
 		  let type = req.body.type;
          if(type && req.file){
 			await gfsUserLegal.files.deleteMany({ $and : [{idNode}, {type}]});
             await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode, DataUser : {
 				"$ref": "sn_user",
-				"$id": Long.fromNumber(res.id),
+				"$id": Long.fromNumber(auth.id),
 				"$db": "atayen"
 			 }, validate : false, type} })
 
@@ -403,7 +403,9 @@ module.exports = function (app) {
      */
 app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	try{
-		const id = "0" + res.id;
+		const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+		const id = "0" + auth.id;
 		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : false }]}).forEach((elem)=>{
 			elem.isSend = true;
 			app.db.notification().save(elem)
@@ -431,8 +433,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			lang=req.query.lang;
 			app.i18n.configureTranslation(lang);
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			const id = res.id;
+			var auth =	await app.crm.auth(token);
+			const id = auth.id;
 			 let code = await QRCode.toDataURL(req.body.wallet);
 
 		 await app.account.notificationManager(id, "send_demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
@@ -534,8 +536,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	app.put('/profile/info/update', async (req, res) => {
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			const id = res.id;
+			var auth =	await app.crm.auth(token);
+			const id = auth.id;
 			let profile = req.body;
 
 			if(profile.email){
@@ -573,9 +575,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	   app.post('/user/interests',async (req, res)=>{
          try{
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			let userInterests = req.body;
-			userInterests._id = Long.fromNumber(res.id)
+			var auth =	await app.crm.auth(token);
+			let userInteauthts = req.body;
+			userInterests._id = Long.fromNumber(auth.id)
 			await app.db.interests().insertOne(userInterests);
 			res.send(JSON.stringify({message : "interests added"})).status(201);
 		 }catch (err) {
@@ -599,9 +601,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	app.put('/user/interests', async (req, res)=>{
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
-		var res =	await app.crm.auth(token);
+		var auth =	await app.crm.auth(token);
 			let userInterests = req.body.interests;
-			await app.db.interests().replaceOne({_id:Long.fromNumber(res.id)},{interests:userInterests});
+			await app.db.interests().replaceOne({_id:Long.fromNumber(auth.id)},{interests:userInterests});
 			res.send(JSON.stringify({message : "interests updated"})).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -621,8 +623,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	app.get('/user/interests', async (req, res)=>{
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
-		var res =	await app.crm.auth(token);
-		const interests = await app.db.interests().findOne({_id:Long.fromNumber(res.id)});
+		var auth =	await app.crm.auth(token);
+		const interests = await app.db.interests().findOne({_id:Long.fromNumber(auth.id)});
 		res.send(JSON.stringify(interests)).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -656,7 +658,10 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	app.put('/updateLastStep',async(req,res)=>{
 		try{
 
-		const id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+		const id = auth.id;
+
 
 		let profile = req.body;
 		let password=Math.random().toString(36).slice(-8);
