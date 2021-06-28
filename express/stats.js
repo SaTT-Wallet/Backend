@@ -499,15 +499,15 @@ cron.schedule("03 04 * * 1", () =>{
 	{headers}
 	@Output JSON object
 	*/
-	app.get('/campaign/OneDraft/:id', async (req,res)=>{
+	app.get('/campaign/OneDraft/:id', async (req,response)=>{
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			const idNode="0"+res.id;
 		const campaign = await app.db.campaignCrm().findOne({_id: app.ObjectId(req.params.id),idNode,hash:{ $exists: false}});
-		res.end(JSON.stringify(campaign));
+		response.end(JSON.stringify(campaign));
 	} catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	})
 
@@ -691,7 +691,7 @@ cron.schedule("03 04 * * 1", () =>{
 	 @parameters : header access token
      @response : object of arrays => different balance stats (daily, weekly, monthly)
      */
-	app.get("/balance/stats", async (req, res) => {
+	app.get("/balance/stats", async (req, response) => {
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
@@ -701,24 +701,24 @@ cron.schedule("03 04 * * 1", () =>{
 			if(user.daily && user.daily.length > 0){result.daily = user.daily}
 			if(user.weekly && user.weekly.length >0){result.weekly = user.weekly;}
 			if(user.monthly && user.monthly.length >0){result.monthly = user.monthly;}
-            res.end(JSON.stringify(result));
+            response.end(JSON.stringify(result));
 		}catch(err){
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
 
-	app.get('/script/balance/:condition', async (req, res) => {
+	app.get('/script/balance/:condition', async (req, response) => {
         try{
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 		if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(res.id)){
 			let condition = req.params.condition
 		    await  app.account.BalanceUsersStats(condition);
-			res.send(JSON.stringify({message : 'runned'}))
+			response.send(JSON.stringify({message : 'runned'}))
 		}
 		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }
 	   })
 
