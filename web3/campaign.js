@@ -3,6 +3,8 @@ module.exports = async function (app) {
 	var fs = require("fs");
 	var child = require('child_process');
 	var BN = app.web3.utils.BN;
+	const Big = require('big.js');
+
 	var campaignManager = {};
 
 
@@ -24,7 +26,7 @@ module.exports = async function (app) {
 		if(campaigns.length)
 		{
 
-			return campaignManager.getContract( campaigns[0].contract);
+			return campaignManager.getContract(campaigns[0].contract);
 		}
 		else
 			return false;
@@ -211,19 +213,19 @@ module.exports = async function (app) {
 			//var gasPrice = 4000000000;
 
 				var gasPrice = await ctr.getGasPrice();
-			var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
-			if(isDoubled)
-			{
-				reject({message:"Link already sent"});
-			}
-			else {
+			//var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
+		//	if(isDoubled)
+			//{
+				//reject({message:"Link already sent"});
+		//	}
+		//	else {
 				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
-				}
+			//	}
 			}
 			catch (err)
 			{
@@ -378,7 +380,6 @@ module.exports = async function (app) {
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
                 if(receipt.transactionHash){
                 			 await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
-
 				}
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);
@@ -600,6 +601,36 @@ module.exports = async function (app) {
 			campaigns[i].ratios = res;
 		}
 		return campaigns;
+	}
+
+
+	campaignManager.UpdateStats = async obj =>{
+		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
+			if(!result){await app.db.campaign_link().insertOne(obj);
+			return;
+			}
+			else{
+				if(result.status === "rejected"){
+				   return;
+				}
+				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
+			}
+		})
+	}
+
+	campaignManager.campaignStats = async idCampaign =>{
+		return new Promise( async (resolve, reject) => {
+          try{
+			const result = await app.db.campaignCrm().findOne({hash: idCampaign});
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			const element = await ctr.methods.campaigns(idCampaign).call()
+			const toPayBig = new Big(element.funds[1]);
+			const bgBudget = new Big(result.cost)
+			const spent =bgBudget.minus(toPayBig).abs().toFixed();
+            resolve({toPay : element.funds[1] , spent, initialBudget : result.cost})
+		  }catch (e) {
+				reject({message:e.message});
+			}		})
 	}
 
 	app.campaign = campaignManager;

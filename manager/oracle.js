@@ -10,8 +10,8 @@ module.exports = async function (app) {
 	var jsdom = jsdomlib.JSDOM;
 
 	var tweet = new Twitter({
-	  consumer_key: app.config.twitter.consumer_key,
-	  consumer_secret: app.config.twitter.consumer_secret,
+	  consumer_key: app.config.twitter.consumer_key_alt,
+	  consumer_secret: app.config.twitter.consumer_secret_alt,
 	  access_token_key: app.config.twitter.access_token_key,
 	  access_token_secret: app.config.twitter.access_token_secret
 	});
@@ -31,7 +31,8 @@ module.exports = async function (app) {
 				if(page) {
 					var token = page.token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
-			resolve(res.data.fan_count);
+
+			resolve(res.fan_count);
 		}
 		else {
 				resolve(0);
@@ -50,8 +51,8 @@ module.exports = async function (app) {
 
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-				var ig_media = await app.db.ig_media().findOne({shortCode: idPost});
-			var ig_user = ig_media.owner;
+				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
+			var ig_user = ig_media.owner.id;
 			fbProfile = await app.db.fbProfile().findOne({instagram_id:ig_user  });
 
 			if(fbProfile) {
@@ -141,8 +142,11 @@ module.exports = async function (app) {
 				var perf = {shares:0,likes:0,views:0};
 
 				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
-				if(!ig_media)
+				if(!ig_media){
 					resolve({error:"media not found"});
+					return;
+				}
+
 			  var ig_user = ig_media.owner.id;
 				var media_id = ig_media.id;
 				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
@@ -165,6 +169,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			  var twitterProfile = await app.db.twitterProfile().findOne({username:userName  });
+
 				if(!twitterProfile)
 				{
 					var tweet = new Twitter({
@@ -186,15 +191,95 @@ module.exports = async function (app) {
 			  access_token_key: twitterProfile.access_token_key,
 			  access_token_secret: twitterProfile.access_token_secret
 			});
-			var res = await tweet('tweets/'+idPost ,{'tweet.fields':"public_metrics, non_public_metrics"});
-			var perf = {shares:res.public_metrics.retweet_count,likes:res.public_metrics.like_count,views:res.non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
+			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics,non_public_metrics"});
+			if(res.errors)
+			{
+				res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics"});
+				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000)};
+				resolve(perf);
+				return;
+			}
 
-			//var res = await tweet.get('statuses/show',{id:idPost});
-			//var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
+			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,/*views:res.data[0].non_public_metrics.impression_count,*/date:Math.floor(Date.now()/1000)};
+
+
 
 			resolve(perf);
 		})
 	};
+
+	oracleManager.verifyFacebook = async function (userId,pageName) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var page = await app.db.fbPage().findOne({username: pageName,UserId:userId});
+				resolve(page);
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
+
+	oracleManager.verifyYoutube = async function (userId,idPost) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var googleProfile = await app.db.googleProfile().findOne({UserId:userId  });
+
+
+				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,access_token :googleProfile.accessToken,part:"snippet"},json: true});
+
+				if(res.items) {
+					var channelId = res.items[0].snippet.channelId;
+					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
+					resolve(googleProfile);
+			  }
+				else {
+					resolve(false);
+				}
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
+
+	oracleManager.verifyInsta = async function (userId,idPost) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
+				if(!ig_media) {
+					resolve(false);
+				}
+				else {
+					var ig_user = ig_media.owner.id;
+					var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
+					resolve(fbProfile);
+				}
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
+
+	oracleManager.verifyTwitter = async function (userId,idPost) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  });
+				var tweet = new Twitter2({
+				  consumer_key: app.config.twitter.consumer_key,
+				  consumer_secret: app.config.twitter.consumer_secret,
+				  access_token_key: twitterProfile.access_token_key,
+				  access_token_secret: twitterProfile.access_token_secret
+				});
+				var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"author_id"});
+				resolve(res.data[0].author_id == twitterProfile.id)
+
+			}catch (err) {
+				reject({message:err.message});
+			}
+		})
+	}
 
 
 	oracleManager.getPromDetails = async function (idProm) {
