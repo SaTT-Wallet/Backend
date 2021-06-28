@@ -716,9 +716,6 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     authErrorHandler);
 
 
-<<<<<<< HEAD
-
-=======
 app.get('/auth/admin/:userId', async (req, res)=>{
   try {
     const userId = +req.params.userId;
@@ -1339,15 +1336,15 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   });
- 
+
 
 
   app.get('/getAllUser/:key', async (req, res) => {
-    try{      
+    try{
       listOfUser=[];
       const key=req.params.key;
        users =await app.db.sn_user().find().toArray();
- 
+
        for(const user in users){
         userToSend={};
         let userWallet= await app.db.wallet().findOne({UserId:users[user]._id});
@@ -1364,21 +1361,21 @@ app.get('/auth/admin/:userId', async (req, res)=>{
             userToSend.lastName && userToSend.lastName.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
             userToSend.email && userToSend.email.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
             userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
-            userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1 
+            userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1
             ){
               listOfUser.push(userToSend);
             }
-          
+
         }else{
           listOfUser.push(userToSend);
         }
        }
-      
+
       res.send(listOfUser)
     }catch (err) {
       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
      }
-    
+
   })
 
   app.post('/account/purged', async (req, res) => {
@@ -1399,7 +1396,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
      }
   })
 
- 
+
 
 
   return app;
