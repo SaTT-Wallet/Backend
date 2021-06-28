@@ -86,8 +86,9 @@ module.exports = function (app) {
 				json: true,
 				gzip: true
 			  };
-			  
-		  const id = req.idUser;
+			  const token = req.headers["authorization"].split(" ")[1];
+			  var res =	await app.crm.auth(token);
+		  const id = res.id;
 		  let Crypto = await rp(Fetch_crypto_price);
 		  let date = Math.round(new Date().getTime()/1000);
 		  let today = (new Date()).toLocaleDateString("en-US");
@@ -129,8 +130,9 @@ module.exports = function (app) {
 			gzip: true
 			};
 
-
-		const id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+		const id = res.id;
 		let Crypto = await rp(Fetch_crypto_price);
 		Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		res.end(JSON.stringify({Total_balance})).status(201);
@@ -142,12 +144,14 @@ module.exports = function (app) {
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 
-			var count = await app.account.hasAccount(req.idUser);
+			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_account"};
 			if(count)
 			{
-				var ret = await app.account.getAccount(req.idUser);
+				var ret = await app.account.getAccount(res.id);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -176,13 +180,14 @@ module.exports = function (app) {
 		var pass = req.params.pass;
 
 		try {
-
-			var count = await app.account.hasAccount(req.idUser);
-			console.log("newwallet",req.idUser,req.connection.remoteAddress);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var count = await app.account.hasAccount(res.id);
+			console.log("newwallet",res.id,req.connection.remoteAddress);
 			var ret = {err:"account_exists"};
 			if(!count)
 			{
-				var ret = await app.account.createAccount(req.idUser,pass);
+				var ret = await app.account.createAccount(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -210,12 +215,12 @@ module.exports = function (app) {
 		var pass = req.body.pass;
 		try {
 
-			var count = await app.account.hasAccount(req.idUser);
-			console.log("newwallet",req.idUser,req.connection.remoteAddress);
+			var count = await app.account.hasAccount(res.id);
+			console.log("newwallet",res.id,req.connection.remoteAddress);
 			var ret = {err:"account_exists"};
 			if(!count)
 			{
-				var ret = await app.account.createAccount(req.idUser,pass);
+				var ret = await app.account.createAccount(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -248,11 +253,11 @@ module.exports = function (app) {
 		try {
 
 
-			var count = await app.account.hasAccount(req.idUser);
+			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
 			{
-				var ret = await app.account.printSeed(req.idUser,pass);
+				var ret = await app.account.printSeed(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -283,11 +288,11 @@ module.exports = function (app) {
 		try {
 
 
-			var count = await app.account.hasAccount(req.idUser);
+			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
 			{
-				var ret = await app.account.printSeed(req.idUser,pass);
+				var ret = await app.account.printSeed(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -307,13 +312,14 @@ module.exports = function (app) {
 		var pass = req.body.pass;
 
 		try {
-
-			var count = await app.account.hasAccount(req.idUser);
-			console.log("newwallet",req.idUser,req.connection.remoteAddress);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var count = await app.account.hasAccount(res.id);
+			console.log("newwallet",res.id,req.connection.remoteAddress);
 			var ret = {err:"account_exists"};
 			if(!count)
 			{
-				var ret = await app.account.createSeed(req.idUser,pass);
+				var ret = await app.account.createSeed(res.id,pass);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -326,7 +332,8 @@ module.exports = function (app) {
 
 
 	app.post('/v2/recover', async function(req, response) {
-
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
 		var pass = req.body.pass;
 		var oldpass = req.body.oldpass;
 		var wordlist = req.body.wordlist;
@@ -334,11 +341,11 @@ module.exports = function (app) {
 		try {
 
 
-			var count = await app.account.hasAccount(req.idUser);
+			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_account"};
 			if(count)
 			{
-				var ret = await app.account.recover(req.idUser,wordlist,oldpass,pass);
+				var ret = await app.account.recover(res.id,wordlist,oldpass,pass);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -354,18 +361,21 @@ module.exports = function (app) {
 		var pass = req.params.pass;
 
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
+			
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 			var ret = {err:"no_account"};
 
-			var acc = await app.account.getAccount(req.idUser)
+			var acc = await app.account.getAccount(res.id)
 			if(acc)
 			{
 
 				if(acc.version == 1) {
-				  ret = await app.account.createBtcAccount(req.idUser,pass);
+				  ret = await app.account.createBtcAccount(res.id,pass);
 				}
 				if(acc.version == 2) {
-					ret = await app.account.recoverBtc(req.idUser,pass);
+					ret = await app.account.recoverBtc(res.id,pass);
 				}
 			}
 
@@ -385,18 +395,20 @@ module.exports = function (app) {
 
 		var pass=req.body.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 			var ret = {err:"no_account"};
 
-			var acc = await app.account.getAccount(req.idUser)
+			var acc = await app.account.getAccount(res.id)
 			if(acc)
 			{
 
 				if(acc.version == 1) {
-				  ret = await app.account.createBtcAccount(req.idUser,pass);
+				  ret = await app.account.createBtcAccount(res.id,pass);
 				}
 				if(acc.version == 2) {
-					ret = await app.account.recoverBtc(req.idUser,pass);
+					ret = await app.account.recoverBtc(res.id,pass);
 				}
 			}
 
@@ -419,10 +431,12 @@ module.exports = function (app) {
 		try {
 
 			var ret = {err:"no_account"};
-			var count = await app.account.hasAccount(req.idUser);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var count = await app.account.hasAccount(res.id);
 			if(count)
 			{
-				var ret = await app.account.changePass(req.idUser,pass,req.params.newpass);
+				var ret = await app.account.changePass(res.id,pass,req.params.newpass);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -437,12 +451,13 @@ module.exports = function (app) {
 		var pass=req.body.pass;
 		var newpass=req.body.newpass;
 		try {
-
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var ret = {err:"no_account"};
-			var count = await app.account.hasAccount(req.idUser);
+			var count = await app.account.hasAccount(res.id);
 			if(count)
 			{
-				var ret = await app.account.changePass(req.idUser,pass,newpass);
+				var ret = await app.account.changePass(res.id,pass,newpass);
 			}
 			response.end(JSON.stringify(ret));
 
@@ -457,9 +472,11 @@ module.exports = function (app) {
 		response.attachment();
 
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 
-			var ret = await app.account.exportkey(req.idUser,pass);
+			var ret = await app.account.exportkey(res.id,pass);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -475,9 +492,11 @@ module.exports = function (app) {
 		response.attachment();
 
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 
-			var ret = await app.account.exportkey(req.idUser,pass);
+			var ret = await app.account.exportkey(res.id,pass);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -493,9 +512,11 @@ module.exports = function (app) {
 		response.attachment();
 
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 
-			var ret = await app.account.exportkeyBtc(req.idUser,pass);
+			var ret = await app.account.exportkeyBtc(res.id,pass);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -511,9 +532,11 @@ module.exports = function (app) {
 		response.attachment();
 
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 
-			var ret = await app.account.exportkeyBtc(req.idUser,pass);
+			var ret = await app.account.exportkeyBtc(res.id,pass);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -527,8 +550,10 @@ module.exports = function (app) {
 	app.get('/v2/transfer/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.token.transfer(to,amount,cred);
@@ -548,8 +573,10 @@ module.exports = function (app) {
 	app.get('/v3/transfer/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.body.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.token.transfer(to,amount,cred);
@@ -580,13 +607,15 @@ module.exports = function (app) {
 	app.get('/v2/transferether/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(req.idUser, "transfer_event",{amount,currency :('ETH'),to})	
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})	
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address})		
@@ -619,8 +648,10 @@ module.exports = function (app) {
 	app.get('/v3/transferether/:to/:val', async function(req, response) {
 		var pass = req.body.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
@@ -649,8 +680,11 @@ module.exports = function (app) {
 
 		var pass = req.params.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			var hash = await app.cryptoManager.sendBtc(req.idUser,pass, req.params.to,req.params.val);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+
+			var cred = await app.account.unlock(res.id,pass);
+			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
 
 			response.end(JSON.stringify({hash:hash}));
 		} catch (err) {
@@ -681,8 +715,10 @@ module.exports = function (app) {
 
 		var pass = req.body.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			var hash = await app.cryptoManager.sendBtc(req.idUser,pass, req.params.to,req.params.val);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
 			response.end(JSON.stringify({hash:hash}));
 
 		} catch (err) {
@@ -699,8 +735,10 @@ module.exports = function (app) {
 
 		var pass = req.params.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = await  app.account.getAddrByUid(req.params.uid);
 			var amount = req.params.val;
 			var ret = await app.token.transfer(to,amount,cred);
@@ -720,8 +758,10 @@ module.exports = function (app) {
 
 		var pass = req.body.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = await  app.account.getAddrByUid(req.params.uid);
 			var amount = req.params.val;
 			var ret = await app.token.transfer(to,amount,cred);
@@ -741,8 +781,10 @@ module.exports = function (app) {
 	app.get('/v2/transferetherbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.params.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = await  app.account.getAddrByUid(req.params.uid);
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
@@ -759,8 +801,10 @@ module.exports = function (app) {
 	app.get('/v3/transferetherbyuid/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 		var pass = req.body.pass;
 		try {
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var to = await  app.account.getAddrByUid(req.params.uid);
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
@@ -777,7 +821,9 @@ module.exports = function (app) {
 	app.get('/v2/receivewalleteth/:token', async function(req, response) {
 
 		try {
-			var addr = await app.cryptoManager.getReceiveEthWallet(req.idUser);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var addr = await app.cryptoManager.getReceiveEthWallet(res.id);
 			response.end(JSON.stringify({address:addr}));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -787,7 +833,9 @@ module.exports = function (app) {
 	app.get('/v2/receivewalletbtc/:token', async function(req, response) {
 
 		try {
-			var addr = await app.cryptoManager.getReceiveBtcWallet(req.idUser);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var addr = await app.cryptoManager.getReceiveBtcWallet(res.id);
 			response.end(JSON.stringify({address:addr}));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -799,7 +847,9 @@ module.exports = function (app) {
 	app.get('/v2/confirmselleth/:token',async function(req, response) {
 
 		try {
-			var res2 = await app.cryptoManager.receiveEthWallet(req.idUser);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var res2 = await app.cryptoManager.receiveEthWallet(res.id);
 			response.end(JSON.stringify(res2));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -809,7 +859,9 @@ module.exports = function (app) {
 
 	app.get('/v2/confirmsellbtc/:token',async function(req, response) {
 		try {
-			var res2 = await app.cryptoManager.receiveBtcWallet(req.idUser);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var res2 = await app.cryptoManager.receiveBtcWallet(res.id);
 			response.end(JSON.stringify(res2));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -829,7 +881,9 @@ module.exports = function (app) {
 	app.get('/v2/ethreceive/:token/:fbid', async function(req, response) {
 
 		try {
-			if(req.idUser != app.config.appAdminV2)
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			if(res.id != app.config.appAdminV2)
 			{
 				response.end('{"error":"admin required"}');
 			}
@@ -844,7 +898,9 @@ module.exports = function (app) {
 	app.get('/v2/btcreceive/:token/:fbid', async function(req, response) {
 
 		try {
-			if(req.idUser != app.config.appAdminV2)
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			if(res.id != app.config.appAdminV2)
 			{
 				response.end('{"error":"admin required"}');
 			}
@@ -1029,12 +1085,13 @@ module.exports = function (app) {
 			var amount = req.body.amount;
 			var pass = req.body.pass;
 			var currency=req.body.symbole;
-
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(req.idUser, "transfer_event",{amount,currency,to} )		
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )		
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address } )		
@@ -1080,9 +1137,10 @@ module.exports = function (app) {
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
-
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1101,9 +1159,11 @@ module.exports = function (app) {
 			var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var pass = req.body.pass;
-			var cred = await app.account.unlock(req.idUser,pass);
-			cred.from_id = req.idUser;
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			var ret = await app.erc20.approve(token,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1166,12 +1226,14 @@ module.exports = function (app) {
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 
-			var cred = await app.account.unlockBSC(req.idUser,pass);
-			cred.from_id = req.idUser;
+			var cred = await app.account.unlockBSC(res.id,pass);
+			cred.from_id = res.id;
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(req.idUser, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
+				await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )		
@@ -1213,13 +1275,14 @@ module.exports = function (app) {
 		 app.post('/v3/bep20/transfer',async function(req, response) {
 
 			try {
-
+	
 				var to = req.body.to;
 				var amount = req.body.amount;
 				var pass = req.body.pass;
-
-				var cred = await app.account.unlockBSC(req.idUser,pass);
-				cred.from_id = req.idUser;
+				const token = req.headers["authorization"].split(" ")[1];
+				var res =	await app.crm.auth(token);
+				var cred = await app.account.unlockBSC(res.id,pass);
+				cred.from_id = res.id;
 				var ret = await app.bep20.transferBEP(to,amount,cred);
 				response.end(JSON.stringify(ret));
 			} catch (err) {
@@ -1239,8 +1302,10 @@ module.exports = function (app) {
 			var spender = req.body.spender;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
-			var cred = await app.account.unlockBSC(req.idUser,pass);
-			cred.from_id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlockBSC(res.id,pass);
+			cred.from_id = res.id;
 			/*if(spender == app.config.ctrs.campaign.address.mainnet || spender == app.config.ctrs.campaignAdvFee.address.mainnet)
 			{
 				spender = app.config.ctrs.campaignBep20.address.mainnet;
@@ -1267,7 +1332,9 @@ module.exports = function (app) {
 		try {
 			var address = req.body.address;
 			var pass = req.body.pass;
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.account.getBonus(cred.address);
 			await app.db.sn_user().updateOne({_id: parseInt(res.id)}, {$set: {converted_sattv : "done"}});
 			response.end(JSON.stringify(ret));
@@ -1287,7 +1354,9 @@ module.exports = function (app) {
 		try {
 			var pass = req.body.pass;
 			var amount = req.body.amount;
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.account.wrapSatt(amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1306,7 +1375,9 @@ module.exports = function (app) {
 		try {
 			var pass = req.body.pass;
 			var amount = req.body.amount;
-			var cred = await app.account.unlock(req.idUser,pass);
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
 			var ret = await app.account.unWwrapSatt(amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1410,12 +1481,14 @@ app.get('/v2/feebtc', async function(req, response) {
 app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
 	var pass = req.params.pass;
 	try {
-		cred.from_id = req.idUser;
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		cred.from_id = res.id;
 		var to = req.params.to;
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		if(ret.transactionHash){
-			await app.account.notificationManager(req.idUser, "transfer_event",{amount,currency :('BNB'),to})
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to})
 			const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address} )		
@@ -1449,8 +1522,10 @@ app.get('/v3/transferbnb/:to/:val', async function(req, response) {
 	var pass = req.body.pass;
 
 	try {
-		var cred = await app.account.unlockBSC(req.idUser,pass);
-		cred.from_id = req.idUser;
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlockBSC(res.id,pass);
+		cred.from_id = res.id;
 		var to = req.params.to;
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
@@ -1585,8 +1660,10 @@ app.post('/v2/profile/update', async function(req, response) {
 				json: true,
 				gzip: true
 			  };
+			  const token = req.headers["authorization"].split(" ")[1];
+			  var res =	await app.crm.auth(token);
 			let Crypto = await rp(Fetch_crypto_price);
-			const balance = await app.account.getListCryptoByUid(req.idUser,Crypto);
+			const balance = await app.account.getListCryptoByUid(res.id,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
 
 			res.send(JSON.stringify({listOfCrypto}))
