@@ -1,9 +1,21 @@
 module.exports = function (app) {
+	const Grid = require('gridfs-stream');
+
+	const GridFsStorage = require('multer-gridfs-storage');
+	const mongoose = require('mongoose');
+	const mongoURI = app.config.mongoURI;
+
+	const conn=mongoose.createConnection(mongoURI);
+
+   	let gfsUserLegal;
+	conn.once('open', () => {
+		gfsUserLegal = Grid(conn.db, mongoose.mongo);
+		gfsUserLegal.collection('user_legal');
+  
+	  });
     app.get('/auth/admin/getAllUser/:key', async (req, res) => {
         try{   
-			console.log(app.config.auth_tokens)   
 			let token = req.headers["authorization"].split(" ")[1];
-			console.log(token)
 			if(app.config.auth_tokens.includes(token)){
           listOfUser=[];
           const key=req.params.key;
