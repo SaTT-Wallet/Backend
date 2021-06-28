@@ -377,9 +377,11 @@ cron.schedule("03 04 * * 1", () =>{
 
 				rescampaigns.push(campaigns[i]);
 			}
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 		//	var campaignscentral = await app.statcentral.campaignsByOwner(owner);
 	    //    let created_campaigns=rescampaigns.concat(campaignscentral)
-			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+req.idUser,hash:{ $exists: false}}).toArray();
+			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
 			})
@@ -457,8 +459,10 @@ cron.schedule("03 04 * * 1", () =>{
 
 				rescampaigns.push(campaigns[i]);
 			}
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 	
-			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+req.idUser,hash:{ $exists: false}}).toArray();
+			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
 			})
@@ -497,7 +501,9 @@ cron.schedule("03 04 * * 1", () =>{
 	*/
 	app.get('/campaign/OneDraft/:id', async (req,res)=>{
 		try {
-			const idNode="0"+req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			const idNode="0"+res.id;
 		const campaign = await app.db.campaignCrm().findOne({_id: app.ObjectId(req.params.id),idNode,hash:{ $exists: false}});
 		res.end(JSON.stringify(campaign));
 	} catch (err) {
@@ -687,7 +693,9 @@ cron.schedule("03 04 * * 1", () =>{
      */
 	app.get("/balance/stats", async (req, res) => {
 		try {
-			const id = req.idUser;
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			const id = res.id;
 			let result={};
 			let user = await app.db.sn_user().findOne({_id : id});
 			if(user.daily && user.daily.length > 0){result.daily = user.daily}
@@ -702,7 +710,9 @@ cron.schedule("03 04 * * 1", () =>{
 
 	app.get('/script/balance/:condition', async (req, res) => {
         try{
-		if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(req.idUser)){
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+		if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(res.id)){
 			let condition = req.params.condition
 		    await  app.account.BalanceUsersStats(condition);
 			res.send(JSON.stringify({message : 'runned'}))
