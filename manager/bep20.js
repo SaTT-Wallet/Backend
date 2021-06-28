@@ -70,7 +70,7 @@ module.exports = async function (app) {
     }
 
     bep20Manager.eventBSCtoETH = async (error, evt) => {
-
+      console.log("eventBSCtoETH")
       if(error)
       {
         console.log(error)
@@ -270,6 +270,7 @@ module.exports = async function (app) {
       bep20Manager.initEventHandlers =  () => {
         console.log("initEventHandlers",app.config.SattBep20Addr,bep20Manager.contractWS)
         bep20Manager.contractWS.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
+        bep20Manager.contractWS.events.allEvents({filter:{to:app.config.SattBep20Addr}},console.log)
 
         app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
       }
