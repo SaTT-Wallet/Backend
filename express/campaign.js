@@ -2401,9 +2401,9 @@ console.log(Links)
 		prices = await rp(sattPrice);
 		let sattPrice$ = prices.SATT.price;
 		const token = req.headers["authorization"].split(" ")[1];
-		var res =	await app.crm.auth(token);
+		var auth =	await app.crm.auth(token);
 	    let totalInvested = '0';
-		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: true}}).toArray();
+		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 
 		userCampaigns.forEach(elem=>{
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
