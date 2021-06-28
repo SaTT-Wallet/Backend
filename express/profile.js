@@ -1,5 +1,7 @@
+const { async } = require('hasha');
 const { result } = require('underscore');
 const config = require('../conf/config');
+const db = require('../db/db');
 
 module.exports = function (app) {
 	let ejs = require('ejs');
@@ -160,52 +162,7 @@ module.exports = function (app) {
 		}
 
 		})
-	/**
- * @swagger
- * /validateKYC/{idLegal}:
- *   put:
- *     summary: validate legal kyc .
- *     description: parametres acceptées :params{idLegal} , headers{headers}.
- *     parameters:
- *       - name: idLegal
- *         in: path
- *         description: id legal a valider.
- *     responses:
- *        "200":
- *          description: success message
- *        "500":
- *          description: error message
- */
-	 app.put('/validateKYC/:idLegal', async(req, res)=>{
-		try {
-		 const date = new Date().toISOString();
-		 let token = req.headers["authorization"].split(" ")[1];
-         const auth = await app.crm.auth(token);
-		 if(auth.id === app.config.idNodeAdmin1 || auth.id === app.config.idNodeAdmin2 || auth.id === app.config.idNodeAdmin3){
-         const idLegal = req.params.idLegal;
-		 const file=await gfsUserLegal.files.findOne({ _id: app.ObjectId(idLegal) });
-		 const idNode="0" + file.idNode;
-		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}});
-		 let notification={
-			idNode:idNode,
-			type:"validate_kyc",
-			status:"done",
-			label:{action : "validated kyc"},
-			isSeen:false,
-			created:new Date()
-		}
-		await app.db.notification().insertOne(notification)
-		
-
-			res.send('success').status(200);
-		 }else{
-			res.send('access_denied').status(200);
-
-		 }
-	} catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
-	}
-	})
+	
  	   /**
  * @swagger
  * /profile/userLegal:
@@ -259,7 +216,6 @@ module.exports = function (app) {
 
 
 	})
-
 
 
 
@@ -793,6 +749,10 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
 		 }  
 	  })
+
+
+
+	  
 	return app;
 
 }

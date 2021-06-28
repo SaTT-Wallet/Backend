@@ -699,18 +699,7 @@ app.get('/auth/twitterlink', passport.authenticate('twitter_link', {scope: ['pro
     authErrorHandler);
 
 
-app.get('/auth/admin/:userId', async (req, res)=>{
-  try {
-    const userId = +req.params.userId;
-    if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(userId)){
-    const token = await app.db.accessToken().findOne({user_id: userId});
-    var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
-      res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
-    }
-} catch (err) {
-	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
- }
-})
+
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
@@ -1229,7 +1218,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
   });
 
-
   app.put('/deconnect/facebook', async  (req, res) => {
     try{
     let token = req.headers["authorization"].split(" ")[1];
@@ -1320,6 +1308,9 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   });
+
+ 
+
 
   return app;
 }
