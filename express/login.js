@@ -1233,7 +1233,6 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
   });
 
-
   app.put('/deconnect/facebook', async  (req, res) => {
     try{
     let token = req.headers["authorization"].split(" ")[1];
@@ -1343,6 +1342,9 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
   })
+
+ 
+
 
   return app;
 }

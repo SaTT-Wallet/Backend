@@ -11,6 +11,7 @@ module.exports = async function (app) {
 
     if(app.web3Bep20Websocket)
     {
+      console.log("bsc ws",app.config.ctrs.bep20.address.mainnet)
       bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
     }
     // if(app.config.testnet){
@@ -37,7 +38,7 @@ module.exports = async function (app) {
           console.log("doublon infura :",evt.transactionHash)
           return;
         }
-        //console.log(evt);
+        console.log("eth to bsc",evt.transactionHash);
 
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
@@ -72,9 +73,16 @@ module.exports = async function (app) {
 
       if(error)
       {
+        console.log("evt error")
         console.log(error)
         return;
       }
+
+        if(evt.event != "Transfer")
+        {
+          console.log("no Transfer")
+          return;
+        }
 
       var dbl = await app.db.bep20().findOne({bscTxHash:evt.transactionHash});
       if(dbl)
@@ -83,9 +91,15 @@ module.exports = async function (app) {
         return;
       }
 
+      console.log("bsc to eth",evt.transactionHash);
+
+
+
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
+
+      console.log("from",from,nullAddress);
 
       /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
         console.log("recup hack",evt);
@@ -264,7 +278,12 @@ module.exports = async function (app) {
 
 
       bep20Manager.initEventHandlers =  () => {
-        bep20Manager.contractWS.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
+
+        bep20Manager.contractWS.events.allEvents  ( {filter:{to:app.config.SattBep20Addr}},async function(err,evt) {
+          	await bep20Manager.eventBSCtoETH(err,evt)
+        });
+        //bep20Manager.contractWS.events.allEvents({filter:{to:app.config.SattBep20Addr}},console.log)
+
         app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
       }
 
