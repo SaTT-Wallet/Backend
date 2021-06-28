@@ -80,8 +80,8 @@ module.exports = function (app) {
 *               amount:1000000000000000000
 *
 */
-		app.post("/SaTT/bridge", async function (req, res) {
-			let access_T = req.body.token;
+		app.post("/SaTT/bridge", async  (req, res) => {
+			let access_T = req.headers["authorization"].split(" ")[1];
 			let Direction = req.body.direction;
 			let pass = req.body.password;
 			let amount = req.body.amount;
@@ -107,19 +107,7 @@ module.exports = function (app) {
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
 				if(ret.transactionHash){
-					let notification={
-						idNode:"0"+auth.id,
-						type:"convert_event",
-						status:"done",
-						label:{amount,Direction},
-						isSeen:false,
-						isSend:false,
-						attachedEls:{
-							id:auth.id
-					  },
-					  created:new Date()
-					}
-					await app.db.notification().insertOne(notification);
+					await app.account.notificationManager(auth.id,"convert_event",{amount,Direction})		
 				}
 
 				res.end(JSON.stringify(ret));
