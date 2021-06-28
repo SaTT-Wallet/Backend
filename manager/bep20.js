@@ -100,7 +100,13 @@ module.exports = async function (app) {
       var to = evt.returnValues.to;
       var value = evt.returnValues.value;
 
-      console.log("from",from,nullAddress);
+
+
+      if(to.toLowerCase() != app.config.SattBep20Addr.toLowerCase())
+      {
+        return;
+      }
+
 
       /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
         console.log("recup hack",evt);
@@ -281,7 +287,6 @@ module.exports = async function (app) {
       bep20Manager.initEventHandlers = async () => {
 
         bep20Manager.contractWS.events.allEvents  ( {filter:{to:app.config.SattBep20Addr}},async function(err,evt) {
-            console.log("allEvents")
           	await bep20Manager.eventBSCtoETH(err,evt)
         });
         //bep20Manager.contractWS.events.allEvents({filter:{to:app.config.SattBep20Addr}},console.log)
