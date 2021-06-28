@@ -716,19 +716,6 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     authErrorHandler);
 
 
-app.get('/auth/admin/:userId', async (req, res)=>{
-  try {
-    const userId = +req.params.userId;
-    const token = await app.db.accessToken().findOne({user_id: userId});
-    var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
-      res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
-
-} catch (err) {
-	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
- }
-})
-
-
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
     function(req, res) {
@@ -1337,46 +1324,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
    }
   });
 
-
-
-  app.get('/getAllUser/:key', async (req, res) => {
-    try{
-      listOfUser=[];
-      const key=req.params.key;
-       users =await app.db.sn_user().find().toArray();
-
-       for(const user in users){
-        userToSend={};
-        let userWallet= await app.db.wallet().findOne({UserId:users[user]._id});
-        userToSend._id=users[user]._id;
-        userToSend.firstName=users[user].firstName;
-        userToSend.lastName=users[user].lastName;
-        userToSend.email=users[user].email;
-        if(userWallet){
-                  userToSend.wallet="0x"+userWallet.keystore.address;
-
-        }
-        if(key !== 'all'){
-            if(userToSend.firstName && userToSend.firstName.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
-            userToSend.lastName && userToSend.lastName.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
-            userToSend.email && userToSend.email.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
-            userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1 ||
-            userToSend.wallet && userToSend.wallet.toUpperCase().indexOf(key.toUpperCase())!==-1
-            ){
-              listOfUser.push(userToSend);
-            }
-
-        }else{
-          listOfUser.push(userToSend);
-        }
-       }
-
-      res.send(listOfUser)
-    }catch (err) {
-      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-     }
-
-  })
 
   app.post('/account/purged', async (req, res) => {
     try{
