@@ -1,5 +1,7 @@
+const { async } = require('hasha');
 const { result } = require('underscore');
 const config = require('../conf/config');
+const db = require('../db/db');
 
 module.exports = function (app) {
 	let ejs = require('ejs');
@@ -160,45 +162,7 @@ module.exports = function (app) {
 		}
 
 		})
-	/**
- * @swagger
- * /validateKYC/{idLegal}:
- *   put:
- *     summary: validate legal kyc .
- *     description: parametres acceptées :params{idLegal} , headers{headers}.
- *     parameters:
- *       - name: idLegal
- *         in: path
- *         description: id legal a valider.
- *     responses:
- *        "200":
- *          description: success message
- *        "500":
- *          description: error message
- */
-	 app.put('/validateKYC/:idLegal', async(req, res)=>{
-		try {
-		 const date = new Date().toISOString();
-		 let token = req.headers["authorization"].split(" ")[1];
-         const auth = await app.crm.auth(token);
-		 if([app.config.idNodeAdmin1,app.config.idNodeAdmin2,app.config.idNodeAdmin3].includes(auth.id)){
-         const idLegal = req.params.idLegal;
-		 const file=await gfsUserLegal.files.findOne({ _id: app.ObjectId(idLegal) });
-		 const idNode=Number(file.idNode.substring(1));
-		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'validate'}});
-
-		await app.account.notificationManager(idNode,"validate_kyc",{action : "validated kyc"})		
-
-
-			res.send('success').status(200);
-		 }else{
-			res.send('access_denied').status(200);
-
-		 }
-	} catch (err) {
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
-	}
-	})
+	
  	   /**
  * @swagger
  * /profile/userLegal:
@@ -252,7 +216,6 @@ module.exports = function (app) {
 
 
 	})
-
 
 
 
@@ -754,79 +717,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		 }  
 	  })
 
-	  /**
- * @swagger
- * /getAlluserLegal:
- *   get:
- *     summary: get all userLegal files.
- *     description: parametres acceptées :headers{headers}.
- *     responses:
- *        "200":
- *          description: data
- */
-		app.get('/getAlluserLegal', async(req, res)=>{
-			try{
-				
-				files =await gfsUserLegal.files.find().toArray(); 
-					listOfFiles=[];
-					for(const file in files){
-						console.log();
-						
-							fileToSend={};
-							if(files[file].idNode){
-							let idNode=files[file].idNode;
-							let id =idNode.substr(1);
-							user= await app.db.sn_user().findOne({_id:Number(id)});
-							if(user){
-							fileToSend._id=files[file]._id;	
-							fileToSend.idNode=files[file].idNode;
-							if(user.email){fileToSend.email=user.email;}
-							fileToSend.filename=files[file].filename;
-							fileToSend.type=files[file].type;
-							fileToSend.validate=files[file].validate;
-							listOfFiles.push(fileToSend)	
-							}
-						}
-							
-					}
-					res.send(listOfFiles)
-				
-		} catch (err) {
-				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-			}
-		})
 
-		app.get('/admin/userLegal/:id', async (req, res) => {
-			try{
-			   const userLegal = req.params.id
-			   gfsUserLegal.files.findOne({ _id:app.ObjectId(userLegal)}  , (err, file) => {
-				   if (!file || file.length === 0) {
-					 return res.status(404).json({
-					   err: 'No file exists'
-					 });
-				   }
-				   else {
-					   if(file.contentType){
-						   contentType = file.contentType
-					   }else{
-						   contentType=file.mimeType
-					   }
-						res.writeHead(200, {
-							'Content-type': contentType,
-							'Content-Length': file.length,
-							'Content-Disposition': `attachment; filename=${file.filename}`
-						})
-						const readstream = gfsUserLegal.createReadStream(file.filename);
-						  readstream.pipe(res);
-				   }
-				 });
-	
-			   }catch (err) {
-				   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-			   }
-	
-	   })
 
+	  
 	return app;
 
 }

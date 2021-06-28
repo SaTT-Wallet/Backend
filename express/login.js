@@ -716,6 +716,9 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     authErrorHandler);
 
 
+<<<<<<< HEAD
+
+=======
 app.get('/auth/admin/:userId', async (req, res)=>{
   try {
     const userId = +req.params.userId;
@@ -727,6 +730,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
 })
+>>>>>>> 06426cb5ac834a06fb7fb735dab72a58c3d1aea3
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
@@ -1245,7 +1249,6 @@ app.get('/auth/admin/:userId', async (req, res)=>{
     res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
   });
 
-
   app.put('/deconnect/facebook', async  (req, res) => {
     try{
     let token = req.headers["authorization"].split(" ")[1];
@@ -1395,6 +1398,9 @@ app.get('/auth/admin/:userId', async (req, res)=>{
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
   })
+
+ 
+
 
   return app;
 }
