@@ -11,6 +11,7 @@ module.exports = async function (app) {
 
     if(app.web3Bep20Websocket)
     {
+      console.log("bsc ws")
       bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
     }
     // if(app.config.testnet){
@@ -37,7 +38,7 @@ module.exports = async function (app) {
           console.log("doublon infura :",evt.transactionHash)
           return;
         }
-        //console.log(evt);
+        console.log("eth to bsc",evt.transactionHash);
 
         var to = evt.returnValues.to;
         var value = evt.returnValues.value;
@@ -82,6 +83,9 @@ module.exports = async function (app) {
         console.log("doublon binance :",evt.transactionHash)
         return;
       }
+
+      console.log("bsc to eth",evt.transactionHash);
+
 
       var from = evt.returnValues.from;
       var to = evt.returnValues.to;
