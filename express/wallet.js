@@ -1653,7 +1653,7 @@ app.post('/v2/profile/update', async function(req, response) {
 	 }
 	})
 
-	app.get('/user/balance', async (req,res)=>{
+	app.get('/user/balance', async (req,response)=>{
 		try {
 			const Fetch_crypto_price = {
 				method: 'GET',
@@ -1667,9 +1667,9 @@ app.post('/v2/profile/update', async function(req, response) {
 			const balance = await app.account.getListCryptoByUid(res.id,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
 
-			res.send(JSON.stringify({listOfCrypto}))
+			response.send(JSON.stringify({listOfCrypto}))
 		}catch (err) {
-		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		   response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
