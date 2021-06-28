@@ -534,7 +534,7 @@ module.exports = function (app) {
 			   campaign.hash=element.hash
 			   manageTime()
 
-		  await app.account.notificationManager(campaign.owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash})		
+		  await app.account.notificationManager(campaign.owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.date, cmp_hash:campaign.hash})		
 
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
@@ -550,7 +550,7 @@ module.exports = function (app) {
 					}
 				}
 				let dynamic_html=ejs.render(html, data_);
-				console.log(dynamic_html)
+
 				var mailOptions = {
 			     from: app.config.mailSender,
 			     to: result.email,
@@ -562,7 +562,7 @@ module.exports = function (app) {
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
-					res.end(JSON.stringify(info.response))
+					res.end(JSON.stringify({message : "succes"}))
 				}
 			  });
 			})
@@ -704,13 +704,12 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/campaign/fund', async (req, response) =>{
-
+	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var token = req.body.ERC20token;
 		var amount = req.body.amount;
 		let access_token = req.headers["authorization"].split(" ")[1];
-
 		try {
 			var auth = await app.crm.auth(access_token);
 			var cred = await app.account.unlock(auth.id,pass);
@@ -730,7 +729,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+		if(cred) app.account.lock(cred.address);
 		}
 	});
 
