@@ -103,7 +103,10 @@ module.exports = async function (app) {
 
       console.log("bsc to eth",from,to,value);
 
-
+      if(to == nullAddress)
+      {
+        return;
+      }
 
       /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
         console.log("recup hack",evt);
