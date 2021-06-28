@@ -894,10 +894,11 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-		let id = req.idUser
+		
 		await app.campaign.getCampaignContract(idCampaign);
 		const token = req.headers["authorization"].split(" ")[1];
 		var res =	await app.crm.auth(token);
+		let id = res.id
 		try {
 			var cred = await app.account.unlock(id,pass);
 
