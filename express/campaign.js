@@ -239,7 +239,7 @@ module.exports = function (app) {
 
 	app.use(async(req, res, next) =>{
 		try {
-	if (!req.headers["authorization"]) {
+	if(!req.headers["authorization"]) {
 		return res.status(403).json({ error: 'No credentials sent!' });
 		 }
 	else{
@@ -249,7 +249,7 @@ module.exports = function (app) {
 	}	
 		next();
 	} catch (err) {
-		response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
+		res.send('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	});
 
