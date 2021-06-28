@@ -105,6 +105,7 @@ module.exports = async function (app) {
 
       if(to == nullAddress)
       {
+        console.log("dropped")
         return;
       }
 
