@@ -598,8 +598,10 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.put('/user/interests', async (req, res)=>{
 		try{
+			const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
 			let userInterests = req.body.interests;
-			await app.db.interests().replaceOne({_id:Long.fromNumber(req.idUser)},{interests:userInterests});
+			await app.db.interests().replaceOne({_id:Long.fromNumber(res.id)},{interests:userInterests});
 			res.send(JSON.stringify({message : "interests updated"})).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
@@ -618,7 +620,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
  */
 	app.get('/user/interests', async (req, res)=>{
 		try{
-		const interests = await app.db.interests().findOne({_id:Long.fromNumber(req.idUser)});
+			const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		const interests = await app.db.interests().findOne({_id:Long.fromNumber(res.id)});
 		res.send(JSON.stringify(interests)).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
