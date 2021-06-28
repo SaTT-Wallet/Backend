@@ -727,7 +727,7 @@ app.get('/auth/admin/:userId', async (req, res)=>{
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
 })
->>>>>>> 06426cb5ac834a06fb7fb735dab72a58c3d1aea3
+
 
   app.get('/auth/telegram',
     passport.authenticate('telegramStrategy'),
