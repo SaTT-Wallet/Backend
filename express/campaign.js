@@ -114,7 +114,7 @@ module.exports = function (app) {
 		updateStat();
 		 })
 
-		
+
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
@@ -173,14 +173,8 @@ module.exports = function (app) {
 					stat.oracle = 'twitter'
 								}
 
-                  let campaign_link = stat
-				let result = await app.db.campaign_link().find({id_prom:stat.id_prom}).toArray()
-                        if(result[0]){
-							await app.db.campaign_link().updateOne({id_prom:stat.id_prom},{$set: campaign_link},{returnOriginal: false})
-						} else{
-							console.log(stat, "stat script")
-							await app.db.campaign_link().insertOne(stat);
-						}
+
+                    await app.campaign.UpdateStats(stat); //saving & updating proms in campaign_link.
 
 						if(prom.isAccepted){
 					let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
@@ -335,7 +329,6 @@ module.exports = function (app) {
 	});
 
 	app.post('/campaign/create/all', async function(req, response) {
-	console.log(req.body);
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -449,6 +442,7 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 
@@ -529,32 +523,22 @@ module.exports = function (app) {
      link : link
      */
 
-	 app.post('/campaign/insert_link_notification', async function(req, res) {
+	 app.post('/campaign/insert_link_notification', async (req, res)=> {
         try {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   let campaign={}
-		 await  app.db.campaignCrm().findOne({hash:campaign_id},async function (err, result) {
-			   campaign.owner= Number(result.idNode.substring(1))
-               campaign.title=result.title
-			   campaign.hash=result.hash
+		 await  app.db.campaignCrm().findOne({hash:campaign_id},async  (err, element)=> {
+			   let owner= Number(element.idNode.substring(1))
+               campaign.title=element.title
+			   campaign.hash=element.hash
 			   manageTime()
-			   let notification={
-				idNode:campaign.owner,//owner id
-				type:"cmp_candidate_insert_link",//done
-				status:"done",//done
-				label:{cmp_name :campaign.title,date :campaign.created, cmp_hash:campaign.hash},
-				isSeen:false,//done
-				isSend:false,
-				attachedEls:{
-					id:campaign_id
-			  },
-			  created:new Date()
-			}
-		  await	app.db.notification().insertOne(notification)
 
-		  await	app.db.sn_user().findOne({_id:campaign.owner}, function (err, result) {
-		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, data) => {
+		  await app.account.notificationManager(campaign.owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.date, cmp_hash:campaign.hash})		
+
+
+		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
+		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, html) => {
 				if (err) {
 				  console.error(err)
 				  return
@@ -565,8 +549,8 @@ module.exports = function (app) {
 						link:link
 					}
 				}
-				let dynamic_html=ejs.render(data, data_);
-				console.log(dynamic_html)
+				let dynamic_html=ejs.render(html, data_);
+
 				var mailOptions = {
 			     from: app.config.mailSender,
 			     to: result.email,
@@ -578,8 +562,7 @@ module.exports = function (app) {
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
-					console.log("email was sent")
-					res.end(JSON.stringify(info.response))
+					res.end(JSON.stringify({message : "succes"}))
 				}
 			  });
 			})
@@ -721,13 +704,12 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/campaign/fund', async (req, response) =>{
-
+	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var token = req.body.ERC20token;
 		var amount = req.body.amount;
 		let access_token = req.headers["authorization"].split(" ")[1];
-
 		try {
 			var auth = await app.crm.auth(access_token);
 			var cred = await app.account.unlock(auth.id,pass);
@@ -747,7 +729,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+		if(cred) app.account.lock(cred.address);
 		}
 	});
 
@@ -880,36 +862,17 @@ module.exports = function (app) {
         let token = req.headers["authorization"].split(" ")[1]
 		let res = await app.crm.auth(token)
 		let id = res.id
-
-		var ctr = await app.campaign.getCampaignContract(idCampaign);
+		await app.campaign.getCampaignContract(idCampaign);
 
 		try {
 			var cred = await app.account.unlock(id,pass);
 
-			/*if(ctr == app.config.ctrs.campaignAdvFee.address.mainnet)
-			{
-				var applyLink = {idCampaign:idCampaign,influencer:cred.address,typeSN:typeSN,idPost:idPost,idUser:idUser,date:Date.now(),isAccepted:false};
-				var ret = await app.db.apply().insertOne(applyLink);
-				response.end(JSON.stringify(ret.insertedId));
-			}*/
-		//	else {
+
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-                let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 				if(ret.transactionHash){
-					let notification={
-						idNode:"0"+id,
-						type:"apply_campaign",
-						status:"done",
-						label:{cmp_name :campaign.title},
-						isSeen:false,
-						isSend:false,
-						attachedEls:{
-							id:id
-					  },
-					  created:new Date()
-					}
-					await app.db.notification().insertOne(notification);
+					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})		
 				}
 				response.end(JSON.stringify(ret));
 		//	}
@@ -917,7 +880,7 @@ module.exports = function (app) {
 
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
 			app.account.lock(cred.address);
@@ -1011,19 +974,8 @@ module.exports = function (app) {
 					const id = req.body.idUser;
                     const email = req.body.email;
 
-                    const notification={
-						idNode:"0"+id,
-						type:"cmp_candidate_accept_link",
-						status:"done",
-						label:{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash},
-						isSeen:false,
-						isSend:false,
-						attachedEls:{
-							id:id
-					  },
-					  created:new Date()
-					}
-					await app.db.notification().insertOne(notification);
+					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash})		
+
 
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 						if (err) {
@@ -1048,12 +1000,12 @@ module.exports = function (app) {
 								 html: htmlToSend
 							};
 
-						  transporter.sendMail(mailOptions, function(error, info){
+						  transporter.sendMail(mailOptions, (error, info)=>{
 								if (error) {
 									res.end(JSON.stringify(error))
 								} else {
-									console.log("email was sent")
-								return	res.end(JSON.stringify(ret))
+									res.end(JSON.stringify(ret))
+									return;
 								}
 							  });
 							})
@@ -1065,6 +1017,7 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -1414,7 +1367,7 @@ module.exports = function (app) {
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
              if(prom.funds.amount === "0"){
-				response.end(JSON.stringify({message : "No funds to claim"}));
+				response.end(JSON.stringify({earnings : prom.funds.amount}));
 				return;
 			 }
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
@@ -1433,6 +1386,12 @@ module.exports = function (app) {
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+
+			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
+			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+			stats = app.oracleManager.limitStats(prom.typeSN,stats,ratio,abos);
+
+
 			//console.log(prevstat);
 
 			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
@@ -1470,6 +1429,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred2.address);
 		}
 	});
@@ -1797,41 +1757,6 @@ module.exports = function (app) {
 	});
 
 
-
-	 /*
-     @link : /addKit
-     @description: saving user kits & links
-     @params:
-     idCampaign : identifiant de la campaign req.body.campaign
-     */
-	app.post('/addKit', upload.single('file'), async(req, res) => {
-		try {
-		let token = req.headers["authorization"].split(" ")[1];
-        await app.crm.auth(token);
-		const idCampaign = req.body.campaign
-		const link = req.body.link
-		if(req.file){
-			 gfsKit.files.updateOne({ _id: req.file.id },{$set: { campaign : {
-			"$ref": "campaign",
-			"$id": app.ObjectId(idCampaign),
-			"$db": "atayen"
-		 }}, mimeType : req.file.contentType })
-		 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
-		} if(req.body.link){
-		   gfsKit.files.insert({ campaign : {
-				"$ref": "campaign",
-				"$id": app.ObjectId(idCampaign),
-				"$db": "atayen"
-			 }, link : link })
-			 res.send(JSON.stringify({message :'Kit uploaded'})).status(200);
-		}
-		res.send({message :'No matching data'}).status(404);
-		} catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
-	  });
-
-
-
 	/*
      @link : /addKits
      @description: saving user kits & links
@@ -1906,7 +1831,7 @@ module.exports = function (app) {
 						'Content-Disposition': `attachment; filename=${file.filename}`
 					});
 				 const readstream = gfsKit.createReadStream(file.filename);
-				 readstream.pipe(res);
+				 readstream.pipe(res)
 			   }
 			 });
 
@@ -2015,8 +1940,8 @@ module.exports = function (app) {
      */
 	app.get('/campaign/:idCampaign/cover', async (req, res) => {
 		try {
-		// const token = req.headers["authorization"].split(" ")[1];
-		// await app.crm.auth(token);
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
 		const idCampaign = req.params.idCampaign;
 
 
@@ -2073,6 +1998,7 @@ module.exports = function (app) {
 				"$db": "atayen"
 			 }} })
 			res.json(JSON.stringify({message :'Cover added'}));
+			return;
 			}
 			res.send(JSON.stringify({message :'No matching file found'}));
 		} catch (err) {
@@ -2081,21 +2007,19 @@ module.exports = function (app) {
 	})
 
 	/*
-     @link : /campaign/owner_accepted_proms/:idWallet/:idCampaign
-     @description: get accepted proms by owner
+     @link : /campaign/proms/influencer/:idWallet
+     @description: get all proms of influencer
      @params:
-	 @Input idCampaign : identifiant de la campaign
-			idWallet:identifiant de la wallet
-	 @Output array of accepted links
+	 @Input idWallet:identifiant de la wallet
+	 @Output array of links
      */
-	app.get('/campaign/owner_accepted_proms/:idCampaign',async(req, res)=>{
+	app.get('/campaign/proms/influencer/:idWallet',async(req, res)=>{
 		try {
-		const idCampaign = req.params.idCampaign;
+		const idwallet = req.params.idwallet;
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth( token);
-		const allProms=await app.db.campaign_link().find({ $and: [ { id_campaign : idCampaign },{status : "accepted"}]}).toArray();
-
-		res.send(allProms);
+		const allProms = await app.db.campaign_link().find({ id_wallet : idwallet }).toArray();
+		res.send(JSON.stringify({allProms}));
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
@@ -2150,7 +2074,7 @@ module.exports = function (app) {
          await app.crm.auth(token);
          const campaign = req.params.idCampaign
 	     const links =  await app.db.campaign_link().find({ $and: [ { id_campaign : campaign }, { status : "rejected"}]}).toArray();
-		res.send(JSON.stringify(links)).status(200);
+		res.send(JSON.stringify({links})).status(200);
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 
@@ -2189,24 +2113,11 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-	     await app.db.campaign_link().updateOne({ id_prom : idLink }, {$set: { status : "rejected"}});
+	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
 		 let id = +req.body.idUser
 
-
-		 const notification={
-			idNode:"0"+id,
-			type:"cmp_candidate_reject_link",
-			status:"done",
-			label:{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash},
-			isSeen:false,
-			isSend:false,
-			attachedEls:{
-				id:id
-		  },
-		  created:new Date()
-		}
-		await app.db.notification().insertOne(notification);
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash})		
 
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
@@ -2232,13 +2143,8 @@ module.exports = function (app) {
 					 html: htmlToSend
 				};
 
-			  transporter.sendMail(mailOptions, function(error, info){
-					if (error) {
-						res.end(JSON.stringify(error))
-					} else {
-						console.log("email was sent")
-						res.end(JSON.stringify(info))
-					}
+			  transporter.sendMail(mailOptions, (error, info)=>{
+						res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))	
 				  });
 				})
 
@@ -2285,10 +2191,9 @@ module.exports = function (app) {
  */
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
-		// let token = req.headers["authorization"].split(" ")[1];
-        //  await app.crm.auth(token);
+		let token = req.headers["authorization"].split(" ")[1];
+         await app.crm.auth(token);
 		 let campaign = req.body;
-		 console.log(campaign);
 	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 	const updatedCampaign = result.value
 	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
@@ -2427,8 +2332,42 @@ console.log(Links)
 	*/
 
 
-	app.get('/campaign/totalSpent/:owner', async (req, res) => {
-       try{
+	app.get('/campaign/totalSpent', async (req, res) => {
+		try{
+ 
+		 let token = req.headers["authorization"].split(" ")[1];
+		 const auth = await app.crm.auth(token);
+ 
+		 const sattPrice ={
+			 url: app.config.xChangePricesUrl,
+			 method: 'GET',
+			 json: true
+		   };
+		   
+		  let total = "0";
+		  let prices = await rp(sattPrice);
+		  let sattPrice$ = prices.SATT.price;
+ 
+		  let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray(); 
+		   userCampaigns.forEach(async campaign =>{
+			 let result = await app.campaign.campaignStats(campaign.hash);
+			 total = new Big(total).plus(new Big(result.spent));
+		   })
+ 
+			 let  totalSpentInUSD = sattPrice$ *parseFloat(new Big(total).div(etherInWei).toFixed(0))
+			 let  totalSpent = new Big(total).toFixed();
+ 
+				res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
+ 
+		}catch(err){
+		 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+ 
+	 })
+
+	app.get('/campaign/invested', async (req, res)=>{
+		let token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
 		let prices;
 		const sattPrice ={
 			url: app.config.xChangePricesUrl,
@@ -2436,62 +2375,21 @@ console.log(Links)
 			json: true
 		  };
 
-		  prices = await rp(sattPrice);
-		 let sattPrice$ = prices.SATT.price;
+		prices = await rp(sattPrice);
+		let sattPrice$ = prices.SATT.price;
 
-	const address = req.params.owner;
+	    let totalInvested = '0';
+		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 
-	let[total,totalSpent, totalSpentInUSD,campaigns, rescampaigns,campaignsCrm,campaignsCrmbyId] = [0,0,0,[],[],[],[]];
-
-	campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:address}).toArray();
-
-	campaignsCrm = await app.db.campaignCrm().find().toArray();
-	for (var i = 0;i<campaignsCrm.length;i++)
-	{
-		if(campaignsCrm[i].hash)
-			campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
-	}
-	for (var i = 0;i<campaigns.length;i++)
-	{
-		var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
-		if(!ctr.methods)
-		{
-			continue;
-		}
-
-		if(campaignsCrmbyId[campaigns[i].id])
-		{
-			campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
-			if(campaigns[i].meta.token.name == "SATTBEP20") {
-				campaigns[i].meta.token.name ="SATT";
-			}
-		}
-
-		rescampaigns.push(campaigns[i]);
-	}
-	            var campaignscentral = await app.campaign.campaignsByOwner(address);
-
-	            rescampaigns = rescampaigns.concat(campaignscentral);
-
-	            rescampaigns.forEach(elem =>{
-               if(elem.meta && elem.amount){
-				total = total + (elem.meta.cost - parseFloat(new Big(elem.amount).div(etherInWei).toFixed(0)));
-			   }
+		userCampaigns.forEach(elem=>{
+			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
+		})
+		let totalInvestedUSD = sattPrice$ *parseFloat(new Big(totalInvested).div(etherInWei).toFixed(0))
+		totalInvested = new Big(totalInvested).toFixed()
 
 
+		res.end(JSON.stringify({totalInvested,totalInvestedUSD}))
 	})
-	          totalSpentInUSD = Number((total * sattPrice$).toFixed(2));
-
-	          totalSpent = Number((total).toFixed(2));
-
-	           res.end(JSON.stringify({totalSpent,totalSpentInUSD })).status(200);
-
-	   }catch(err){
-		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-	}
-
-	})
-
 
   //extract campaign/id/:id
 	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
@@ -2510,5 +2408,6 @@ console.log(Links)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
 	return app;
 }

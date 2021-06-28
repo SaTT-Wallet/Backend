@@ -322,20 +322,10 @@ module.exports = function (app) {
 				"$ref": "sn_user",
 				"$id": Long.fromNumber(auth.id),
 				"$db": "atayen"
-			 }, validate : false, type : req.body.type} })
-			let notification={
-				  idNode:idNode,
-				  type:"save_legal_file_event",
-				  status:"done",
-				  label:{type},
-				  isSeen:false,
-				  isSend : false,
-				  attachedEls:{
-					  id:req.file.id
-				},
-				created:new Date()
-			  }
-			await	app.db.notification().insertOne(notification)
+			 }, validate : false, type} })
+
+			await app.account.notificationManager(auth.id,"save_legal_file_event",{type})		
+
 			res.end(JSON.stringify({message :'legal processed'})).status(201);
 		 }
 		}catch (err) {
@@ -444,38 +434,14 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			app.i18n.configureTranslation(lang)	
 			let token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			const id = "0" + auth.id;
+			const id = auth.id;
 			 let code = await QRCode.toDataURL(req.body.wallet);
-			let notification={
-				idNode:id,
-				type:"send_demande_satt_event",
-				status:"done",
-				label:{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency},
-				isSeen:false,
-				isSend:false,
-				attachedEls:{
-					id:auth.id
-			  },
-			  created:new Date()
-			}
-			 await app.db.notification().insertOne(notification);
+
+		 await app.account.notificationManager(id, "send_demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )		
+
 			 var result= await app.db.user().findOne({email:req.body.to});
 				 if(result){
-						 let notification={
-						idNode:"0"+result._id,
-						type:"demande_satt_event",
-						status:"done",
-						label:{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency},
-						isSeen:false,
-						isSend:false,
-						attachedEls:{
-							id:auth.id
-					  },
-					  created:new Date()
-					}
-					await app.db.notification().insertOne(notification);
-
-
+		await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )		
 				 }
 
 			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
@@ -487,6 +453,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 				var data_={
 					SaTT:{
+						imageUrl : app.config.baseEmailImgURl,
 						Url:app.config.baseUrl+'FAQ'
 					},
 					notification:{

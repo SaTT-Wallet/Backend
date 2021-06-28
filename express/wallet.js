@@ -86,6 +86,7 @@ module.exports = function (app) {
 				json: true,
 				gzip: true
 			  };
+			  
 		  let token = req.headers["authorization"].split(" ")[1];
 		  const auth = await app.crm.auth(token);
 		  const id = auth.id;
@@ -617,19 +618,11 @@ module.exports = function (app) {
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			if(ret.transactionHash){
-				let notification={
-					idNode:"0"+res.id,
-					type:"transfer_event",
-					status:"done",
-					label:{amount,currency :('ETH'),to},
-					isSeen:false,
-					isSend:false,
-					attachedEls:{
-						id:res.id
-				  },
-				  created:new Date()
-				}
-				await app.db.notification().insertOne(notification);
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to})	
+				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+				if(wallet){
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address})		
+				}	
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1091,19 +1084,12 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(token,to,amount,cred);
 			if(ret.transactionHash){
-				let notification={
-					idNode:"0"+res.id,
-					type:"transfer_event",
-					status:"done",
-					label:{amount,currency,to},
-					isSeen:false,
-					isSend:false,
-					attachedEls:{
-						id:res.id
-				  },
-				  created:new Date()
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )		
+				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+				if(wallet){
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address } )		
 				}
-				await app.db.notification().insertOne(notification);
+
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1239,19 +1225,12 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			if(ret.transactionHash){
-				let notification={
-					idNode:"0"+res.id,
-					type:"transfer_event",
-					status:"done",
-					label:{amount, network :('BEP20'), to :req.body.to},
-					isSeen:false,
-					isSend:false,
-					attachedEls:{
-						id:res.id
-				  },
-				  created:new Date()
+				await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
+				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+				if(wallet){
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )		
 				}
-				await app.db.notification().insertOne(notification);
+				
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1498,19 +1477,11 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		if(ret.transactionHash){
-			let notification={
-				idNode:"0"+res.id,
-				type:"transfer_event",
-				status:"done",
-				label:{amount,currency :('BNB'),to},
-				isSeen:false,
-				isSend:false,
-				attachedEls:{
-					id:res.id
-			  },
-			  created:new Date()
-			}
-			await app.db.notification().insertOne(notification);
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to})
+			const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+				if(wallet){
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address} )		
+				}
 		}
 		response.end(JSON.stringify(ret));
 	} catch (err) {
@@ -1672,8 +1643,8 @@ app.post('/v2/profile/update', async function(req, response) {
 
 	app.get('/user/balance', async (req,res)=>{
 		try {
-			 let token = req.headers["authorization"].split(" ")[1];
-             const auth = await app.crm.auth(token);
+			let token = req.headers["authorization"].split(" ")[1];
+            const auth = await app.crm.auth(token);
 			const idUser = auth.id
 			const Fetch_crypto_price = {
 				method: 'GET',
