@@ -87,8 +87,8 @@ module.exports = function (app) {
 				gzip: true
 			  };
 			  const token = req.headers["authorization"].split(" ")[1];
-			  var res =	await app.crm.auth(token);
-		  const id = res.id;
+			  var auth =	await app.crm.auth(token);
+		  const id = auth.id;
 		  let Crypto = await rp(Fetch_crypto_price);
 		  let date = Math.round(new Date().getTime()/1000);
 		  let today = (new Date()).toLocaleDateString("en-US");
@@ -182,13 +182,13 @@ module.exports = function (app) {
 
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var count = await app.account.hasAccount(res.id);
-			console.log("newwallet",res.id,req.connection.remoteAddress);
+			var auth =	await app.crm.auth(token);
+			var count = await app.account.hasAccount(auth.id);
+			console.log("newwallet",auth.id,req.connection.remoteAddress);
 			var ret = {err:"account_exists"};
 			if(!count)
 			{
-				var ret = await app.account.createAccount(res.id,pass);
+				var ret = await app.account.createAccount(auth.id,pass);
 			}
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -552,9 +552,9 @@ module.exports = function (app) {
 		var pass = req.params.pass;
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			cred.from_id = res.id;
+			var auth =	await app.crm.auth(token);
+			var cred = await app.account.unlock(auth.id,pass);
+			cred.from_id = auth.id;
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.token.transfer(to,amount,cred);
@@ -1653,7 +1653,7 @@ app.post('/v2/profile/update', async function(req, response) {
 	 }
 	})
 
-	app.get('/user/balance', async (req,res)=>{
+	app.get('/user/balance', async (req,response)=>{
 		try {
 			const Fetch_crypto_price = {
 				method: 'GET',
@@ -1662,14 +1662,14 @@ app.post('/v2/profile/update', async function(req, response) {
 				gzip: true
 			  };
 			  const token = req.headers["authorization"].split(" ")[1];
-			  var res =	await app.crm.auth(token);
+			  var auth =	await app.crm.auth(token);
 			let Crypto = await rp(Fetch_crypto_price);
-			const balance = await app.account.getListCryptoByUid(res.id,Crypto);
+			const balance = await app.account.getListCryptoByUid(auth.id,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
 
-			res.send(JSON.stringify({listOfCrypto}))
+			response.send(JSON.stringify({listOfCrypto}))
 		}catch (err) {
-		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		   response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
 
