@@ -1323,7 +1323,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   });
- 
+
 
   app.post('/account/purged', async (req, res) => {
     try{
@@ -1343,7 +1343,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
      }
   })
 
- 
+
 
 
   return app;
