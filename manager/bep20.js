@@ -11,7 +11,7 @@ module.exports = async function (app) {
 
     if(app.web3Bep20Websocket)
     {
-      console.log("bsc ws",app.config.ctrs.bep20.address.mainnet)
+      
       bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
     }
     // if(app.config.testnet){
@@ -144,7 +144,7 @@ module.exports = async function (app) {
           var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr});
 
 
-        
+
           var update = await app.db.bep20().updateOne({bscTxHash:evt.transactionHash}, {$set: {  burnTxHash:burnres.transactionHash,ethTxHash:transferres.transactionHash,}})
 
       }
