@@ -108,38 +108,40 @@ module.exports = async function (app) {
         console.log("dropped")
         return;
       }
+      else {
 
-      /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-        console.log("recup hack",evt);
-        return;
-      }*/
+        /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
+          console.log("recup hack",evt);
+          return;
+        }*/
 
-      if(from == nullAddress)
-      {
-        return;
-      }
-
-
-
-        await bep20Manager.unlockOwner();
-
-        var burnres = await bep20Manager.burn(value);
-
-        app.web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
-
-        var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr});
-
-        var log = {
-          type:"BSC-ETH",
-          from:from,
-          to:to,
-          value:value,
-          bscTxHash:evt.transactionHash,
-          burnTxHash:burnres.transactionHash,
-          ethTxHash:transferres.transactionHash,
-          date :Math.floor(Date.now()/1000)
+        if(from == nullAddress)
+        {
+          return;
         }
-        var ins = await app.db.bep20().insertOne(log);
+
+
+
+          await bep20Manager.unlockOwner();
+
+          var burnres = await bep20Manager.burn(value);
+
+          app.web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
+
+          var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr});
+
+          var log = {
+            type:"BSC-ETH",
+            from:from,
+            to:to,
+            value:value,
+            bscTxHash:evt.transactionHash,
+            burnTxHash:burnres.transactionHash,
+            ethTxHash:transferres.transactionHash,
+            date :Math.floor(Date.now()/1000)
+          }
+          var ins = await app.db.bep20().insertOne(log);
+      }
     }
 
     bep20Manager.mint = async  (amount) => {
