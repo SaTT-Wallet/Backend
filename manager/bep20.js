@@ -73,6 +73,7 @@ module.exports = async function (app) {
 
       if(error)
       {
+        console.log("evt error")
         console.log(error)
         return;
       }
