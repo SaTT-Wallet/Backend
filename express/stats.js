@@ -760,6 +760,14 @@ cron.schedule("03 04 * * 1", () =>{
 	 }
    })
 
+
+   	/*
+     @link : /campaign/:idCampaign/proms/all
+     @description: fetching all campaign proms with it's stats & update status
+     @params:
+	 @Input idCampaign:campaign hash
+	 @Output array of objects(proms)
+     */
    app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 	   try{	
 
