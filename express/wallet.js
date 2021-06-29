@@ -104,7 +104,6 @@ module.exports = function (app) {
 		   if(user.daily[0]){
 			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
 		   }
-
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
 			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
 			if(user.daily.length > 7){user.daily.pop()}
@@ -1158,7 +1157,6 @@ module.exports = function (app) {
 
 		try {
 
-		//	var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
 			const token = req.headers["authorization"].split(" ")[1];
@@ -1299,7 +1297,6 @@ module.exports = function (app) {
 
 		try {
 
-			//var token = req.body.token;
 			var spender = req.body.spender;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
