@@ -405,8 +405,8 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 	try{
 		const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
-		const id = "0" + auth.id;
-		await app.db.notification().find({ $and: [ { idNode : id }, { isSend : false }]}).forEach((elem)=>{
+		const idNode = "0" + auth.id;
+		await app.db.notification().find({ $and: [ {idNode}, { isSend : false }]}).forEach((elem)=>{
 			elem.isSend = true;
 			app.db.notification().save(elem)
 		})
