@@ -13,9 +13,13 @@ module.exports = function (app) {
 		gfsUserLegal.collection('user_legal');
   
 	  });
-    app.get('/auth/admin/getAllUser/:key', async (req, res) => {
+
+	
+	app.get('/auth/admin/getAllUser/:key', async (req, res) => {
         try{   
+			console.log(app.config.auth_tokens)   
 			let token = req.headers["authorization"].split(" ")[1];
+			console.log(token)
 			if(app.config.auth_tokens.includes(token)){
           listOfUser=[];
           const key=req.params.key;
@@ -120,7 +124,7 @@ module.exports = function (app) {
 									fileToSend.email=user.email;
 
 							}
-							fileToSend._id=file._id;
+							fileToSend._id=files[file]._id;
 							fileToSend.filename=files[file].filename;
 							fileToSend.type=files[file].type;
 							fileToSend.validate=files[file].validate;
@@ -170,6 +174,53 @@ module.exports = function (app) {
 			type:"validate_kyc",
 			status:"done",
 			label:{action : "validated kyc"},
+			isSeen:false,
+			created:new Date()
+		}
+		await app.db.notification().insertOne(notification)
+		
+
+			res.send('success').status(200);
+		 }else{
+			res.send('access_denied').status(401);
+
+		 }
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');	
+	}
+	})
+
+
+	  /**
+ * @swagger
+ * /rejectKYC/{idLegal}:
+ *   put:
+ *     summary: reject legal kyc .
+ *     description: parametres acceptées :params{idLegal} , headers{headers}.
+ *     parameters:
+ *       - name: idLegal
+ *         in: path
+ *         description: id legal a rejeter.
+ *     responses:
+ *        "200":
+ *          description: success message
+ *        "500":
+ *          description: error message
+ */
+	   app.put('/auth/admin/rejectKYC/:idLegal', async(req, res)=>{
+		try {
+		 const date = new Date().toISOString();
+		 let token = req.headers["authorization"].split(" ")[1];
+		 if(app.config.auth_tokens.includes(token)){
+         const idLegal = req.params.idLegal;
+		 const file=await gfsUserLegal.files.findOne({ _id: app.ObjectId(idLegal) });
+		 const idNode="0" + file.idNode;
+		 await gfsUserLegal.files.updateOne({ _id: app.ObjectId(idLegal) },{$set: { validate : 'reject'}});
+		 let notification={
+			idNode:idNode,
+			type:"reject_kyc",
+			status:"done",
+			label:{action : "reject kyc"},
 			isSeen:false,
 			created:new Date()
 		}
