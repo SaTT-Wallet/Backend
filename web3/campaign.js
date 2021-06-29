@@ -544,7 +544,7 @@ module.exports = async function (app) {
 				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
 			}
-			for (let i =0;i<proms.proms.length;i++)
+			for (let i =0;i<proms.length;i++)
 			{
 				proms[i].meta = userById[idByAddress[proms[i].influencer.toLowerCase()]];
 			}
