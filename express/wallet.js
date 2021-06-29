@@ -131,8 +131,8 @@ module.exports = function (app) {
 			};
 
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-		const id = res.id;
+			var auth =	await app.crm.auth(token);
+		const id = auth.id;
 		let Crypto = await rp(Fetch_crypto_price);
 		Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		res.end(JSON.stringify({Total_balance})).status(201);
@@ -364,19 +364,19 @@ module.exports = function (app) {
 		try {
 
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+			var auth =	await app.crm.auth(token);
+			var cred = await app.account.unlock(auth.id,pass);
 			var ret = {err:"no_account"};
 
-			var acc = await app.account.getAccount(res.id)
+			var acc = await app.account.getAccount(auth.id)
 			if(acc)
 			{
 
 				if(acc.version == 1) {
-				  ret = await app.account.createBtcAccount(res.id,pass);
+				  ret = await app.account.createBtcAccount(auth.id,pass);
 				}
 				if(acc.version == 2) {
-					ret = await app.account.recoverBtc(res.id,pass);
+					ret = await app.account.recoverBtc(auth.id,pass);
 				}
 			}
 
@@ -397,19 +397,19 @@ module.exports = function (app) {
 		var pass=req.body.pass;
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
+			var auth =	await app.crm.auth(token);
+			var cred = await app.account.unlock(auth.id,pass);
 			var ret = {err:"no_account"};
 
-			var acc = await app.account.getAccount(res.id)
+			var acc = await app.account.getAccount(auth.id)
 			if(acc)
 			{
 
 				if(acc.version == 1) {
-				  ret = await app.account.createBtcAccount(res.id,pass);
+				  ret = await app.account.createBtcAccount(auth.id,pass);
 				}
 				if(acc.version == 2) {
-					ret = await app.account.recoverBtc(res.id,pass);
+					ret = await app.account.recoverBtc(auth.id,pass);
 				}
 			}
 
@@ -1081,7 +1081,6 @@ module.exports = function (app) {
 
 		try {
 
-			//var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1223,7 +1222,6 @@ module.exports = function (app) {
 
 		try {
 
-			//var token = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;

@@ -378,10 +378,10 @@ cron.schedule("03 04 * * 1", () =>{
 				rescampaigns.push(campaigns[i]);
 			}
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
+			var auth =	await app.crm.auth(token);
 		//	var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-	    //    let created_campaigns=rescampaigns.concat(campaignscentral)
-			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
+	    //    let created_campaignauthcampaigns.concat(campaignscentral)
+			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
 			})
@@ -460,9 +460,9 @@ cron.schedule("03 04 * * 1", () =>{
 				rescampaigns.push(campaigns[i]);
 			}
 			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
+			var auth =	await app.crm.auth(token);
 
-			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
+			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
 			})

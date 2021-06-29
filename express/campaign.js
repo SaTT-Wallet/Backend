@@ -133,7 +133,7 @@ module.exports = function (app) {
 
 
 
-	  cron.schedule('*/30 * * * *',()=>{
+	  cron.schedule('*/26 * * * *',()=>{
 		updateStat();
 		 })
 
@@ -745,8 +745,8 @@ module.exports = function (app) {
 		var token = req.body.ERC20token;
 		var amount = req.body.amount;
 		try { 
-			const token = req.headers["authorization"].split(" ")[1];
-			var auth =	await app.crm.auth(token);
+			const access_t = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(access_t);
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
 			if(ret.transactionHash){
@@ -1758,7 +1758,7 @@ module.exports = function (app) {
 
 	app.delete('/kit/:idKit', async (req, res) => {
 		const token = req.headers["authorization"].split(" ")[1];
-		var auth =	await app.crm.auth(token);
+		await app.crm.auth(token);
 		try {
 			const idKit = req.params.idKit
 			gfsKit.files.findOneAndDelete({ _id: app.ObjectId(idKit) },(err, data)=>{
@@ -1780,7 +1780,7 @@ module.exports = function (app) {
      */
 	app.delete('/campaign/deleteDraft/:id', async (req, res) => {
 		const token = req.headers["authorization"].split(" ")[1];
-		var auth =	await app.crm.auth(token);
+		await app.crm.auth(token);
 		try {
 			const id= req.params.id;
 			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
@@ -1798,7 +1798,7 @@ module.exports = function (app) {
      */
 	 app.post('/addKits', upload.array('file'), async(req, res) => {
 		const token = req.headers["authorization"].split(" ")[1];
-		var auth =	await app.crm.auth(token);
+		await app.crm.auth(token);
 		try {
 		files=req.files;
 		if(typeof req.body.link === "string"){
@@ -1843,7 +1843,7 @@ module.exports = function (app) {
      */
 	app.get('/kit/:id', async (req, res) => {
 		const token = req.headers["authorization"].split(" ")[1];
-		var auth =	await app.crm.auth(token);
+		await app.crm.auth(token);
 		try{
 		   const kit = req.params.id
 		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
@@ -2401,9 +2401,9 @@ console.log(Links)
 		prices = await rp(sattPrice);
 		let sattPrice$ = prices.SATT.price;
 		const token = req.headers["authorization"].split(" ")[1];
-		var res =	await app.crm.auth(token);
+		var auth =	await app.crm.auth(token);
 	    let totalInvested = '0';
-		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: true}}).toArray();
+		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 
 		userCampaigns.forEach(elem=>{
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
