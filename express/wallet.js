@@ -144,7 +144,7 @@ module.exports = function (app) {
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 		try {
-			//const token = req.headers["authorization"].split(" ")[1];
+			
 			const token = req.params.token;
 			var res =	await app.crm.auth(token);
 
@@ -215,7 +215,8 @@ module.exports = function (app) {
 
 		var pass = req.body.pass;
 		try {
-
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var count = await app.account.hasAccount(res.id);
 			console.log("newwallet",res.id,req.connection.remoteAddress);
 			var ret = {err:"account_exists"};
@@ -253,7 +254,8 @@ module.exports = function (app) {
 
 		try {
 
-
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
