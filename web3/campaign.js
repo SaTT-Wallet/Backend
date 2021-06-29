@@ -514,10 +514,7 @@ module.exports = async function (app) {
 		let idproms = await ctr.methods.getProms(idCampaign).call();
 		let proms = [];
 
-		let newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
-
-
-		if(idproms.length || newproms.length) {
+		if(idproms.length) {
 			let addresses = [];
 			let ids = [];
 			let idByAddress = [];
@@ -534,18 +531,6 @@ module.exports = async function (app) {
 					addresses.push(prom.influencer.slice(2).toLowerCase());
 			}
 
-
-			for (let i =0;i<newproms.length;i++)
-			{
-				let newprom = newproms[i];
-				newprom.id = newprom._id;
-				proms.push(newprom);
-				if(addresses.indexOf(newprom.influencer) == -1)
-					addresses.push(newprom.influencer.slice(2).toLowerCase());
-			}
-
-			PassedProms.proms = proms;
-
 			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
 			for (let i =0;i<wallets.length;i++)
 			{
@@ -559,13 +544,13 @@ module.exports = async function (app) {
 				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
 			}
-			for (let i =0;i<PassedProms.proms.length;i++)
+			for (let i =0;i<proms.proms.length;i++)
 			{
-				PassedProms.proms[i].meta = userById[idByAddress[PassedProms.proms[i].influencer.toLowerCase()]];
+				proms[i].meta = userById[idByAddress[proms[i].influencer.toLowerCase()]];
 			}
 
 		}
-			resolve(PassedProms)
+			resolve(proms)
 
 
 	   }catch (err)
