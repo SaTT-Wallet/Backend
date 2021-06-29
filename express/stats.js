@@ -811,7 +811,7 @@ cron.schedule("03 04 * * 1", () =>{
 		
 	 })
 
-	res.send(allProms)
+	res.send(JSON.stringify({allProms}))
 }
 
 }catch (err) {
