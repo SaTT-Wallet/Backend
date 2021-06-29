@@ -1462,7 +1462,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
-			if(cred)
+			if(cred2)
 			app.account.lock(cred2.address);
 		}
 	});
@@ -1608,9 +1608,10 @@ module.exports = function (app) {
 		var amount = req.body.amount;
 		var likeRatio = req.body.likeRatio;
 		var viewRatio = req.body.viewRatio;
-
+		const access_t = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(access_t);
 		try {
-			var account = await app.db.wallet().findOne({UserId: parseInt(req.idUser)});
+			var account = await app.db.wallet().findOne({UserId: parseInt(auth.id)});
 			var cred =  {address:"0x"+account.keystore.address};
 			var gas = await app.campaign.estimateCreateCampaignYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,cred);
 			response.end('{"gas":'+gas+'}');
@@ -2367,7 +2368,7 @@ console.log(Links)
 			 json: true
 		   };
 		   const token = req.headers["authorization"].split(" ")[1];
-		   var auth =	await app.crm.auth(token);
+		   let auth = await app.crm.auth(token);
 		   
 		  let total = "0";
 		  let prices = await rp(sattPrice);
@@ -2376,7 +2377,7 @@ console.log(Links)
 		  let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray(); 
 		   userCampaigns.forEach(async campaign =>{
 			 let result = await app.campaign.campaignStats(campaign.hash);
-			 total = new Big(total).plus(new Big(result.spent));
+			 total = new Big(total).plus(new Big(result.spent));			 
 		   })
  
 			 let  totalSpentInUSD = sattPrice$ *parseFloat(new Big(total).div(etherInWei).toFixed(0))
