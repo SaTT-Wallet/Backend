@@ -768,56 +768,55 @@ cron.schedule("03 04 * * 1", () =>{
 	 @Input idCampaign:campaign hash
 	 @Output array of objects(proms)
      */
-   app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
-	   try{	
-
-	let ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
-	let allProms = [];
-	if(!ctr.methods) {
-		res.end("{}");
-		return;
-	}else{   
-	 allProms =  await app.campaign.campaignProms(req.params.idCampaign,allProms,ctr);
-	 const campaign = await app.db.campaignCrm().findOne({hash : req.params.idCampaign});
-	 const ratio = campaign.ratios
-	 const dbProms =await app.db.campaign_link().find({ id_campaign : req.params.idCampaign }).toArray() 
-	 dbProms.map(result=>{
-
-
-		for(let i = 0; i < allProms.length; i++){
-			 if(allProms[i].id === result.id_prom){
-			   if(result.status === "rejected"){
-			  allProms[i].isAccepted = "rejected"
-			  continue;
-		  }
-		  if(!allProms[i].isAccepted){continue;}
-           
-		  allProms[i].numberOfLikes = result.likes
-		  allProms[i].numberOfViews = result.views
-		  allProms[i].numberOfShares = result.shares
-		  allProms[i].unPayed = result.fund
-		  allProms[i].payedAmount = result.payedAmount || "not payed yet";
-
-		  ratio.forEach(num =>{
-			if(num.oracle === result.oracle){
-			let view =new Big(num["view"]).times(result.views);
-			let like =  new Big(num["like"]).times(result.likes);
-			let share = new Big(num["share"]).times(result.shares);
-			allProms[i].totalEarned = view.plus(like).plus(share).toFixed();
-			}
-		})
-		  }
-		}
-		
-	 })
-
-	res.send(JSON.stringify({allProms}))
-}
-
-}catch (err) {
-	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+     app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
+		try{	
+ 
+	 let ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
+	 let allProms = [];
+	 if(!ctr.methods) {
+		 res.end("{}");
+		 return;
+	 }else{   
+	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,allProms,ctr);
+	  const campaign = await app.db.campaignCrm().findOne({hash : req.params.idCampaign});
+	  const ratio = campaign.ratios
+	  const dbProms =await app.db.campaign_link().find({ id_campaign : req.params.idCampaign }).toArray() 
+	  dbProms.map(result=>{
+ 
+		 for(let i = 0; i < allProms.length; i++){
+			  if(allProms[i].id === result.id_prom){
+				if(result.status === "rejected"){
+			   allProms[i].isAccepted = "rejected"
+			   continue;
+		   }
+		   if(!allProms[i].isAccepted){continue;}
+			
+		   allProms[i].numberOfLikes = result.likes
+		   allProms[i].numberOfViews = result.views
+		   allProms[i].numberOfShares = result.shares
+		   allProms[i].unPayed = result.fund
+		   allProms[i].payedAmount = result.payedAmount || "not payed yet";
+ 
+		   ratio.forEach(num =>{
+			 if(num.oracle === result.oracle){
+			 let view =new Big(num["view"]).times(result.views);
+			 let like =  new Big(num["like"]).times(result.likes);
+			 let share = new Big(num["share"]).times(result.shares);
+			 allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
+			 }
+		 })
+		   }
+		 }		
+	  })
+ 
+	 res.send(JSON.stringify({allProms}))
  }
-   })
+ 
+ }catch (err) {
+	 console.log(err)
+	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+  }
+	})
 
 	return app;
 
