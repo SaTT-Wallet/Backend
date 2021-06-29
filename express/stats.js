@@ -792,7 +792,7 @@ cron.schedule("03 04 * * 1", () =>{
 		  }
 		  if(!allProms[i].isAccepted){continue;}
            
-		  allProms[i].numberofLikes = result.likes
+		  allProms[i].numberOfLikes = result.likes
 		  allProms[i].numberOfViews = result.views
 		  allProms[i].numberOfShares = result.shares
 		  allProms[i].unPayed = result.fund
