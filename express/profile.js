@@ -1,13 +1,9 @@
-const { async } = require('hasha');
-const { result } = require('underscore');
-const config = require('../conf/config');
-const db = require('../db/db');
 
 module.exports = function (app) {
 	let ejs = require('ejs');
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
-	app.use( bodyParser.json() )
+	app.use( bodyParser.urlencoded() )
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const multer = require('multer');
@@ -576,7 +572,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
          try{
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
-			let userInteauthts = req.body;
+			let userInterests = req.body;
 			userInterests._id = Long.fromNumber(auth.id)
 			await app.db.interests().insertOne(userInterests);
 			res.send(JSON.stringify({message : "interests added"})).status(201);

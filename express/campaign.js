@@ -2434,8 +2434,8 @@ console.log(Links)
 
 
 	/*
-     @link : /campaign/:idCampaign/cover
-     @description: récupère l'image d'un campaign s'il existe sinon il retourne une image par defaut
+     @link : /campaign/:idCampaign/logo
+     @description: récupère le logo d'une campagne s'il existe 
      @params:
      @Input idCampaign : identifiant de la campaign
      */
