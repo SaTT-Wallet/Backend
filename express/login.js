@@ -29,7 +29,7 @@ module.exports = function (app) {
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
-  var session     = require('express-session');
+  var session = require('express-session');
 
   try {
       app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true })); // session secret
