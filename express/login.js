@@ -32,7 +32,7 @@ module.exports = function (app) {
   var session     = require('express-session');
 
   try {
-      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8' })); // session secret
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true })); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
@@ -1301,11 +1301,11 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     try{
     let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
-    let pass = req.body.pass
-    let reason = req.body.reason
+    let pass = req.body.pass;
+    let reason = req.body.reason;
     await app.db.sn_user().findOne({ _id:Long.fromNumber(auth.id)},async(err, user) => {
       if(user.password === synfonyHash(pass)){
-        user.reason =reason;
+        if(reason) user.reason =reason;
         await app.db.sn_user_archived().insertOne(user);
         await app.db.sn_user().deleteOne({ _id:Long.fromNumber(auth.id)});
         res.send(JSON.stringify({message : "account deleted"})).status(202);
