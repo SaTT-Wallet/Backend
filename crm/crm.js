@@ -25,7 +25,7 @@ var tokens = [];
 
 
 				if(res) {
-					var UserId = res[0].user_id;
+					var UserId = res.user_id;
 					tokens[token] = {id:UserId}
 					resolve({id:UserId});
 
@@ -36,7 +36,7 @@ var tokens = [];
 					}
 
                     if(res && res.length){
-                        var UserId = res.user_id;
+                        var UserId = res[0].user_id;
 												tokens[token] = {id:UserId}
                         resolve({id:UserId});
                     }else{
