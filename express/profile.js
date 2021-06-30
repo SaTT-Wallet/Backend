@@ -3,7 +3,7 @@ module.exports = function (app) {
 	let ejs = require('ejs');
 	var fs = require('fs');
 	var bodyParser = require('body-parser');
-	app.use( bodyParser.urlencoded() )
+	app.use(bodyParser.urlencoded({ extended: true }));
 	const Grid = require('gridfs-stream');
 	const GridFsStorage = require('multer-gridfs-storage');
 	const multer = require('multer');
