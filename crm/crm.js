@@ -5,6 +5,7 @@ module.exports = async function (app) {
 
 	var crm = {};
 
+var tokens = [];
 
 
 	crm.auth = async function (token) {
