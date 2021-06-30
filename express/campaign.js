@@ -1383,11 +1383,11 @@ module.exports = function (app) {
 
 
 		  var gasPrice = await ctr.getGasPrice();
-			/*let prom = await ctr.methods.proms(idProm).call();
-             if(prom.funds.amount === "0"){
-				response.end(JSON.stringify({earnings : prom.funds.amount}));
-				return;
-			}*/
+			let prom = await ctr.methods.proms(idProm).call();
+            //  if(prom.funds.amount === "0"){
+			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
+			// 	return;
+			// }
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
 			if(cmp.bounties && cmp.bounties.length) {
