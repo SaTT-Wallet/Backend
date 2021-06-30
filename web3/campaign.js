@@ -506,7 +506,7 @@ module.exports = async function (app) {
 		})
 	}
 
-	campaignManager.campaignProms = async (idCampaign, PassedProms, ctrPassed)=>{
+	campaignManager.campaignProms = async (idCampaign, ctrPassed)=>{
 		return new Promise(async (resolve, reject) => {
 
        try{
