@@ -351,7 +351,7 @@ module.exports = function (app) {
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
 		var endDate = req.body.endDate;
-		var token = req.body.ERC20token;
+		var ERC20token = req.body.ERC20token;
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
 		let id =req.body.idCampaign
@@ -366,7 +366,7 @@ module.exports = function (app) {
 
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
-				token = app.config.ctrs.token.address.testnet;
+				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 
 
@@ -378,7 +378,7 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
+			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
 			if(ret){
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
@@ -902,6 +902,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -1383,10 +1384,7 @@ module.exports = function (app) {
 
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-             if(prom.funds.amount === "0"){
-				response.end(JSON.stringify({earnings : prom.funds.amount}));
-				return;
-			 }
+            
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
 			if(cmp.bounties && cmp.bounties.length) {
@@ -2443,6 +2441,7 @@ console.log(Links)
 		try {
 		       const idCampaign = req.params.idCampaign;
 				gfsLogo.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
+					if(file){
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
 											'filename' : file.filename,
@@ -2450,6 +2449,7 @@ console.log(Links)
 										});
 					  const readstream = gfsLogo.createReadStream(file.filename);
 					  readstream.pipe(res);
+									}
 				  });
 
 		}catch (err) {

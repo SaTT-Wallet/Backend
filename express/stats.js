@@ -369,9 +369,9 @@ cron.schedule("03 04 * * 1", () =>{
 		//	var campaignscentral = await app.statcentral.campaignsByOwner(owner);
 	    //    let created_campaignauthcampaigns.concat(campaignscentral)
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
-            draft_campaigns=draft_campaigns.map((c)=>{
-				return {...c,stat:'draft'}
-			})
+            // draft_campaigns=draft_campaigns.map((c)=>{
+			// 	return {...c,stat:'draft'}
+			// })
 
             let campaigns_=[...rescampaigns,...draft_campaigns];
 			response.end(JSON.stringify(campaigns_));
