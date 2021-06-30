@@ -51,7 +51,8 @@ module.exports = function (app) {
             }
            }
           
-          res.send(listOfUser)}
+          res.send(listOfUser)
+		}
 		  else{
 			res.send('access_denied').status(401);
 

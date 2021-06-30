@@ -234,23 +234,6 @@ module.exports = function (app) {
 
 	app.post('/updateStat', updateStat)
 
-
-	// app.use(async(req, res, next) =>{
-	// 	try {
-	// if(!req.headers["authorization"]) {
-	// 	return res.status(403).json({ error: 'No credentials sent!' });
-	// 	 }
-	// else{
-	// 	const token = req.headers["authorization"].split(" ")[1];
-	// 	const auth= await app.crm.auth(token);
-	// 	req.idUser = auth.id;
-	// }	
-	// 	next();
-	// } catch (err) {
-	// 	res.send('{"error":"'+(err.message?err.message:err.error)+'"}');
-	// }
-	// });
-
 	/*
 	@url : /stat/:idProm
 	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0)
@@ -543,6 +526,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {
+				if(cred)
 				app.account.lock(cred.address);
 			}
 
@@ -1785,7 +1769,7 @@ module.exports = function (app) {
 		try {
 			const id= req.params.id;
 			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
-			res.end(JSON.stringify({message :'Draft deleted'})).status(200);
+			res.end(JSON.stringify({message :'Draft deleted'})).status(202);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
@@ -1979,29 +1963,18 @@ module.exports = function (app) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 				gfs.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
-					if (!file || file.length === 0) {
-						const imageName = "default_cover.png"
-						const imagePath = path.join(__dirname,"../public/", imageName);
-
-						const { size } = fs.statSync(imagePath);
-
-						res.writeHead(200, {
-							'Content-Type': 'image/png',
-							'Content-Length': size,
-							'Content-Disposition': `attachment; filename='${imageName}`
-						});
-
-						fs.createReadStream(imagePath).pipe(res);
-					}
-					else {
+						if(file){
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
-											// 'Content-Length': file.length,
 											'Content-Disposition': `attachment; filename='${file.filename}`
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-					}
+									}
+									else{
+										res.send(JSON.stringify({message : "No file"}))
+									}
+
 				  });
 
 		}catch (err) {
