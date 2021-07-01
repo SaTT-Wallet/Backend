@@ -72,7 +72,6 @@ cron.schedule("03 04 * * 1", () =>{
 		var proms = [];
 
 		var newproms = await app.db.apply().find({idCampaign:idCampaign}).toArray();
-        // let rejectedProms = await app.db.campaign_link().find({$and: [ { id_campaign:idCampaign },{status : "rejected"}]}).toArray();
 
 		if(idproms.length || newproms.length) {
 			var addresses = [];
@@ -100,18 +99,6 @@ cron.schedule("03 04 * * 1", () =>{
 				if(-1==addresses.indexOf(newprom.influencer))
 					addresses.push(newprom.influencer.slice(2).toLowerCase());
 			}
-			//
-
-			// if(rejectedProms.length){
-			// 	rejectedProms.forEach(element => {
-			// 	proms.forEach(prom=>{
-			// 	   if(element.id_prom === prom.id){
-			// 		 prom.isAccepted = "rejected"
-			// 	   }
-			// 	})
-			// })
-			// }
-
 
 			result.proms = proms;
 
@@ -382,9 +369,9 @@ cron.schedule("03 04 * * 1", () =>{
 		//	var campaignscentral = await app.statcentral.campaignsByOwner(owner);
 	    //    let created_campaignauthcampaigns.concat(campaignscentral)
 			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
-            draft_campaigns=draft_campaigns.map((c)=>{
-				return {...c,stat:'draft'}
-			})
+            // draft_campaigns=draft_campaigns.map((c)=>{
+			// 	return {...c,stat:'draft'}
+			// })
 
             let campaigns_=[...rescampaigns,...draft_campaigns];
 			response.end(JSON.stringify(campaigns_));
@@ -760,7 +747,6 @@ cron.schedule("03 04 * * 1", () =>{
 	 }
    })
 
-
    	/*
      @link : /campaign/:idCampaign/proms/all
      @description: fetching all campaign proms with it's stats & update status
@@ -777,7 +763,7 @@ cron.schedule("03 04 * * 1", () =>{
 		 res.end("{}");
 		 return;
 	 }else{   
-	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,allProms,ctr);
+	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,ctr);
 	  const campaign = await app.db.campaignCrm().findOne({hash : req.params.idCampaign});
 	  const ratio = campaign.ratios
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : req.params.idCampaign }).toArray() 
@@ -805,13 +791,12 @@ cron.schedule("03 04 * * 1", () =>{
 			 allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
 			 }
 		 })
-		   }
-		 }		
+	    }
+	}		
 	  })
  
 	 res.send(JSON.stringify({allProms}))
- }
- 
+ } 
  }catch (err) {
 	 console.log(err)
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');

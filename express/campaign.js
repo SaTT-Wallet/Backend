@@ -234,23 +234,6 @@ module.exports = function (app) {
 
 	app.post('/updateStat', updateStat)
 
-
-	// app.use(async(req, res, next) =>{
-	// 	try {
-	// if(!req.headers["authorization"]) {
-	// 	return res.status(403).json({ error: 'No credentials sent!' });
-	// 	 }
-	// else{
-	// 	const token = req.headers["authorization"].split(" ")[1];
-	// 	const auth= await app.crm.auth(token);
-	// 	req.idUser = auth.id;
-	// }
-	// 	next();
-	// } catch (err) {
-	// 	res.send('{"error":"'+(err.message?err.message:err.error)+'"}');
-	// }
-	// });
-
 	/*
 	@url : /stat/:idProm
 	@description: récupère les stats d'un proms par jour(si un jours n'existe pas alors likes,shares,view=0)
@@ -368,7 +351,7 @@ module.exports = function (app) {
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
 		var endDate = req.body.endDate;
-		var token = req.body.ERC20token;
+		var ERC20token = req.body.ERC20token;
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
 		let id =req.body.idCampaign
@@ -383,7 +366,7 @@ module.exports = function (app) {
 
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
-				token = app.config.ctrs.token.address.testnet;
+				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 
 
@@ -395,7 +378,7 @@ module.exports = function (app) {
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}*/
 
-			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
+			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
 			if(ret){
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
@@ -543,6 +526,7 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {
+				if(cred)
 				app.account.lock(cred.address);
 			}
 
@@ -918,6 +902,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
+			if(cred)
 			app.account.lock(cred.address);
 		}
 	});
@@ -1398,11 +1383,11 @@ module.exports = function (app) {
 
 
 		  var gasPrice = await ctr.getGasPrice();
-			/*let prom = await ctr.methods.proms(idProm).call();
-             if(prom.funds.amount === "0"){
-				response.end(JSON.stringify({earnings : prom.funds.amount}));
-				return;
-			}*/
+			let prom = await ctr.methods.proms(idProm).call();
+            //  if(prom.funds.amount === "0"){
+			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
+			// 	return;
+			// }
 			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
 
 			if(cmp.bounties && cmp.bounties.length) {
@@ -1422,7 +1407,7 @@ module.exports = function (app) {
 
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
-			stats = app.oracleManager.limitStats(prom.typeSN,stats,ratio,abos);
+			stats = app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
 
 
 			//console.log(prevstat);
@@ -1785,7 +1770,7 @@ module.exports = function (app) {
 		try {
 			const id= req.params.id;
 			await app.db.campaignCrm().deleteOne({_id:app.ObjectId(id)});
-			res.end(JSON.stringify({message :'Draft deleted'})).status(200);
+			res.end(JSON.stringify({message :'Draft deleted'})).status(202);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
@@ -1979,29 +1964,18 @@ module.exports = function (app) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 				gfs.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
-					if (!file || file.length === 0) {
-						const imageName = "default_cover.png"
-						const imagePath = path.join(__dirname,"../public/", imageName);
-
-						const { size } = fs.statSync(imagePath);
-
-						res.writeHead(200, {
-							'Content-Type': 'image/png',
-							'Content-Length': size,
-							'Content-Disposition': `attachment; filename='${imageName}`
-						});
-
-						fs.createReadStream(imagePath).pipe(res);
-					}
-					else {
+						if(file){
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
-											// 'Content-Length': file.length,
 											'Content-Disposition': `attachment; filename='${file.filename}`
 										});
 					  const readstream = gfs.createReadStream(file.filename);
 					  readstream.pipe(res);
-					}
+									}
+									else{
+										res.send(JSON.stringify({message : "No file"}))
+									}
+
 				  });
 
 		}catch (err) {
@@ -2461,8 +2435,8 @@ console.log(Links)
 
 
 	/*
-     @link : /campaign/:idCampaign/cover
-     @description: récupère l'image d'un campaign s'il existe sinon il retourne une image par defaut
+     @link : /campaign/:idCampaign/logo
+     @description: récupère le logo d'une campagne s'il existe 
      @params:
      @Input idCampaign : identifiant de la campaign
      */
@@ -2470,6 +2444,7 @@ console.log(Links)
 		try {
 		       const idCampaign = req.params.idCampaign;
 				gfsLogo.files.findOne({ 'campaign.$id': app.ObjectId(idCampaign) }, (err, file) => {
+					if(file){
 					  res.writeHead(200, {
 											'Content-Type': 'image/png',
 											'filename' : file.filename,
@@ -2477,6 +2452,7 @@ console.log(Links)
 										});
 					  const readstream = gfsLogo.createReadStream(file.filename);
 					  readstream.pipe(res);
+									}
 				  });
 
 		}catch (err) {
