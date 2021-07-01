@@ -29,10 +29,10 @@ module.exports = function (app) {
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
-  var session     = require('express-session');
+  var session = require('express-session');
 
   try {
-      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8' })); // session secret
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true })); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
@@ -1156,35 +1156,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
        }
     })
-    /**
- * @swagger
- * /navigate/v1/{userId}:
- *   post:
- *     summary: redirect to v1 version.
- *     description: parametres acceptées :{userId}.
- *     parameters:
- *       - name: userId
- *         description: id user.
- *     responses:
- *        "redirect":
- *          description: redirect to v1 version
- */
-    app.get('/navigate/v1/:userId', async (req, res)=>{
-      try {
-        const userId = +req.params.userId;
-        OAAccessToken = await app.db.query("Select * from OAAccessToken where user_id = '"+userId+"'")
-        OARefreshToken = await app.db.query("Select * from OARefreshToken where user_id = '"+userId+"'")
-        var param ={"access_token":OAAccessToken[0].token,"expires_in":OAAccessToken[0].espires_at,
-        "token_type":"bearer","scope":"user",
-        "refresh_token":OARefreshToken[0].token}
-          res.redirect(app.config.v1Url +"?token=" + JSON.stringify(param))
-
-    } catch (err) {
-      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-     }
-    })
-
-
+ 
     app.get('/connect/google/:idUser', (req, res,next)=>{
       passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
     });
@@ -1329,9 +1301,11 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     try{
     let token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
-    let pass = req.body.pass
+    let pass = req.body.pass;
+    let reason = req.body.reason;
     await app.db.sn_user().findOne({ _id:Long.fromNumber(auth.id)},async(err, user) => {
       if(user.password === synfonyHash(pass)){
+        if(reason) user.reason =reason;
         await app.db.sn_user_archived().insertOne(user);
         await app.db.sn_user().deleteOne({ _id:Long.fromNumber(auth.id)});
         res.send(JSON.stringify({message : "account deleted"})).status(202);
