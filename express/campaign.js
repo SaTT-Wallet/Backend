@@ -1407,7 +1407,9 @@ module.exports = function (app) {
 
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+			console.log("before",stats,ratios,abos);
 			stats = app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
+			console.log("after",stats);
 
 
 			//console.log(prevstat);
@@ -2436,7 +2438,7 @@ console.log(Links)
 
 	/*
      @link : /campaign/:idCampaign/logo
-     @description: récupère le logo d'une campagne s'il existe 
+     @description: récupère le logo d'une campagne s'il existe
      @params:
      @Input idCampaign : identifiant de la campaign
      */
