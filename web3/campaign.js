@@ -387,7 +387,7 @@ module.exports = async function (app) {
 						 } else{
 							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed();
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
-						 }                     
+						 }
 					 })
 				}
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
