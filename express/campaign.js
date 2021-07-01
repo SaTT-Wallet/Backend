@@ -1407,9 +1407,9 @@ module.exports = function (app) {
 
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
-			console.log("before",stats,ratios,abos);
+
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-			console.log("after",stats);
+
 
 
 			//console.log(prevstat);
