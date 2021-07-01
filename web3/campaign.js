@@ -376,11 +376,12 @@ module.exports = async function (app) {
 
 
                 let prom = await ctr.methods.proms(idProm).call();
+				// await ctr.methods.results(prom.results.prevResult).call();
 
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 
                 if(receipt.transactionHash){
-					 await app.db.campaign_link.findOne({id_prom:idProm}, async(err, result)=>{
+					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
 						 if(!result.payedAmount){
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
 						 } else{
