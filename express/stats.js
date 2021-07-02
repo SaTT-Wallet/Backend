@@ -697,13 +697,13 @@ cron.schedule("03 04 * * 1", () =>{
 
 	app.get('/script/balance/:condition', async (req, response) => {
         try{
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-		if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(res.id)){
+			// const token = req.headers["authorization"].split(" ")[1];
+			// var res =	await app.crm.auth(token);
+		// if([app.config.idNodeAdmin1, app.config.idNodeAdmin2].includes(res.id)){
 			let condition = req.params.condition
 		    await  app.account.BalanceUsersStats(condition);
 			response.send(JSON.stringify({message : 'runned'}))
-		}
+		// }
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }
