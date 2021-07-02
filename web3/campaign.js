@@ -376,6 +376,7 @@ module.exports = async function (app) {
 
 
                 let prom = await ctr.methods.proms(idProm).call();
+				// await ctr.methods.results(prom.results.prevResult).call();
 
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 

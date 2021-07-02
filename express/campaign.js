@@ -1884,13 +1884,6 @@ module.exports = function (app) {
 
 	})
 
-	/*
-     @url : /campaign/save
-     @description: saving campaign informations into db
-     @params:
-     @Input Campaign : campaign informations
-	 @Output succeed message
-     */
 	/**
  * @swagger
  * /campaign/save:
