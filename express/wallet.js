@@ -1081,7 +1081,7 @@ module.exports = function (app) {
 	app.post('/v2/erc20/transfer',async function(req, response) {
 
 		try {
-
+            var tokenERC20 = req.body.token;
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1090,10 +1090,10 @@ module.exports = function (app) {
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
-			var ret = await app.erc20.transfer(token,to,amount,cred);
+			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
 			if(ret.transactionHash){
 				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to} )
-				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address } )
 				}
@@ -1497,6 +1497,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	finally {
+		if(cred)
 		app.account.lockBSC(cred.address);
 	}
 })
