@@ -776,13 +776,15 @@ cron.schedule("03 04 * * 1", () =>{
 			   continue;
 		   }
 		   if(!allProms[i].isAccepted){continue;}
-			
+
+		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes
 		   allProms[i].numberOfViews = result.views
 		   allProms[i].numberOfShares = result.shares
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "not payed yet";
- 
+           allProms[i].oracle = result.oracle;
+		   
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
 			 let view =new Big(num["view"]).times(result.views);
@@ -805,6 +807,7 @@ cron.schedule("03 04 * * 1", () =>{
 
 	app.get('/proms/verify/:idProm', async (req, res) => {
 		try{
+		let idProm = req.params.idProm;
 	    var ctr = await app.campaign.getPromContract(idProm);
 	    let prom = await ctr.methods.proms(idprom).call();
         let prevStats =  await ctr.methods.results(prom.prevResult).call();
@@ -821,7 +824,7 @@ cron.schedule("03 04 * * 1", () =>{
 		delete stats.date;
 		let actualStats = Object.values(stats);
 		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
-		if(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true) && prom.funds.amount !== "0"){
+		if(!(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true)) && prom.funds.amount !== "0"){
          res.send(JSON.stringify({disabled : false}))
 		}else {
 			res.send(JSON.stringify({disabled : true}))
@@ -831,7 +834,7 @@ cron.schedule("03 04 * * 1", () =>{
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
   }
 	})
-	
+
 	return app;
 
 }
