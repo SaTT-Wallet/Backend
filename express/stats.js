@@ -727,7 +727,7 @@ cron.schedule("03 04 * * 1", () =>{
 	   const idProm = req.params.idProm;
 
 	   const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
-	   const payedAmount = info.payedAmount || "not payed yet";
+	   const payedAmount = info.payedAmount || "0";
 	   const unPayed = info.fund;
 	   const campaign = await app.db.campaignCrm().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
@@ -772,17 +772,20 @@ cron.schedule("03 04 * * 1", () =>{
 		 for(let i = 0; i < allProms.length; i++){
 			  if(allProms[i].id === result.id_prom){
 				if(result.status === "rejected"){
-			   allProms[i].isAccepted = "rejected"
+			   allProms[i].isAccepted = "rejected";
+			   allProms[i].appliedDate = result.appliedDate;
 			   continue;
 		   }
-		   if(!allProms[i].isAccepted){continue;}
+		   if(!allProms[i].isAccepted){
+		   allProms[i].appliedDate = result.appliedDate
+		   continue;}
 
 		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes
 		   allProms[i].numberOfViews = result.views
 		   allProms[i].numberOfShares = result.shares
 		   allProms[i].unPayed = result.fund
-		   allProms[i].payedAmount = result.payedAmount || "not payed yet";
+		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   
 		   ratio.forEach(num =>{
