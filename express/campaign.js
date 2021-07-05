@@ -1,4 +1,5 @@
 const { async } = require('hasha');
+const db = require('../db/db');
 
 module.exports = function (app) {
 

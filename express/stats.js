@@ -776,13 +776,15 @@ cron.schedule("03 04 * * 1", () =>{
 			   continue;
 		   }
 		   if(!allProms[i].isAccepted){continue;}
-			
+
+		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes
 		   allProms[i].numberOfViews = result.views
 		   allProms[i].numberOfShares = result.shares
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "not payed yet";
- 
+           allProms[i].oracle = result.oracle;
+		   
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
 			 let view =new Big(num["view"]).times(result.views);
