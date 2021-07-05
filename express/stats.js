@@ -51,20 +51,20 @@ cron.schedule("03 04 * * 1", () =>{
 		var shares = ratios[2];
 		var views = ratios[3];
 
-        let res = [];
+        // let res = [];
 		let cmpRatio = cmpMetas[0].ratios
-		let counter = 0;
-        while(counter < cmpRatio.length){
-			let arr = Object.values(cmpRatio[counter]);
-			arr.shift()
-			if(!allEqual(arr)){
-				res.push({typeSN:types[counter],likeRatio:likes[counter],shareRatio:shares[counter],viewRatio:views[counter]})
-			}
-			counter++;
-		}
+		// let counter = 0;
+        // while(counter < cmpRatio.length){
+		// 	let arr = Object.values(cmpRatio[counter]);
+		// 	arr.shift()
+		// 	if(!allEqual(arr)){
+		// 		res.push({typeSN:types[counter],likeRatio:likes[counter],shareRatio:shares[counter],viewRatio:views[counter]})
+		// 	}
+		// 	counter++;
+		// }
 
 
-		//var res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
+		let res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 		result.ratios = res;
 		result.meta = cmpMetas[0];
 
@@ -776,13 +776,15 @@ cron.schedule("03 04 * * 1", () =>{
 			   continue;
 		   }
 		   if(!allProms[i].isAccepted){continue;}
-			
+
+		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes
 		   allProms[i].numberOfViews = result.views
 		   allProms[i].numberOfShares = result.shares
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "not payed yet";
- 
+           allProms[i].oracle = result.oracle;
+		   
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
 			 let view =new Big(num["view"]).times(result.views);
@@ -798,6 +800,36 @@ cron.schedule("03 04 * * 1", () =>{
 	 res.send(JSON.stringify({allProms}))
  } 
  }catch (err) {
+	 console.log(err)
+	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+  }
+	})
+
+	app.get('/proms/verify/:idProm', async (req, res) => {
+		try{
+		let idProm = req.params.idProm;
+	    var ctr = await app.campaign.getPromContract(idProm);
+	    let prom = await ctr.methods.proms(idprom).call();
+        let prevStats =  await ctr.methods.results(prom.prevResult).call();
+		var stats;
+		if(prom.typeSN == 1){
+		 stats = await app.oracle.facebook(prom.idUser,prom.idPost);
+		} else if(prom.typeSN == 2){
+		 stats = await app.oracle.youtube(prom.idPost);
+		} else if(prom.typeSN == 3){
+		 stats = await app.oracle.instagram(prom.idPost);
+		} else{
+		 stats = await app.oracle.twitter(prom.idUser,prom.idPost);
+		}
+		delete stats.date;
+		let actualStats = Object.values(stats);
+		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
+		if(!(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true)) && prom.funds.amount !== "0"){
+         res.send(JSON.stringify({disabled : false}))
+		}else {
+			res.send(JSON.stringify({disabled : true}))
+		}	
+		}catch (err) {
 	 console.log(err)
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
   }
