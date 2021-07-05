@@ -1,4 +1,6 @@
 module.exports = function (app) {
+
+  
 	app.get("/youtube/:id", async function (req, response) {
 		var id = req.params.id;
 		var res = await app.oracle.youtube(id);
@@ -119,7 +121,10 @@ module.exports = function (app) {
 		});
 
 		app.get("/link/verify/:typeSN/:idUser/:idPost", async function (req, response) {
-			var userId = req.session.user;
+			const token = req.headers["authorization"].split(" ")[1];
+	  		var res =	await app.crm.auth(token);
+			//var userId = req.session.user;
+			var userId=res.id;
 			var typeSN = req.params.typeSN;
 			var idUser = req.params.idUser;
 			var idPost = req.params.idPost;
