@@ -146,8 +146,9 @@ module.exports = function (app) {
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			prom = await app.oracle.getPromDetails(idProm)
-				var stat={};
 
+				var stat={};
+                stat.appliedDate = event.date;
 				stat.status = prom.isAccepted
 				stat.id_wallet = prom.influencer
 				stat.id_campaign = prom.idCampaign
