@@ -803,6 +803,35 @@ cron.schedule("03 04 * * 1", () =>{
   }
 	})
 
+	app.get('/proms/verify/:idProm', async (req, res) => {
+		try{
+	    var ctr = await app.campaign.getPromContract(idProm);
+	    let prom = await ctr.methods.proms(idprom).call();
+        let prevStats =  await ctr.methods.results(prom.prevResult).call();
+		var stats;
+		if(prom.typeSN == 1){
+		 stats = await app.oracle.facebook(prom.idUser,prom.idPost);
+		} else if(prom.typeSN == 2){
+		 stats = await app.oracle.youtube(prom.idPost);
+		} else if(prom.typeSN == 3){
+		 stats = await app.oracle.instagram(prom.idPost);
+		} else{
+		 stats = await app.oracle.twitter(prom.idUser,prom.idPost);
+		}
+		delete stats.date;
+		let actualStats = Object.values(stats);
+		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
+		if(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true) && prom.funds.amount !== "0"){
+         res.send(JSON.stringify({disabled : false}))
+		}else {
+			res.send(JSON.stringify({disabled : true}))
+		}	
+		}catch (err) {
+	 console.log(err)
+	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+  }
+	})
+	
 	return app;
 
 }
