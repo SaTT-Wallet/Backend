@@ -287,8 +287,7 @@ module.exports = async function (app) {
 		try {
 		var ctr = await app.campaign.getPromContract(idProm);
 		if(ctr){
-			ctr.methods.proms(idProm).call().then(function (results) {
-			delete(results.results)
+			ctr.methods.proms(idProm).call().then(function (results) {			
 			resolve(results);
 			});
 			};
