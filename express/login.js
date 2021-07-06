@@ -766,7 +766,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     app.get('/callback/facebook_insta',
       passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
-          response.end("ok")
+          response.end('{result:"ok"}');
         } catch (e) {
           console.log(e)
         }
@@ -789,7 +789,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
 
     app.get('/callback/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
       try {
-        response.end("ok")
+        response.end('{result:"ok"}');
       } catch (e) {
         console.log(e)
       }
@@ -800,7 +800,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
 
 
 
-          response.end("ok")
+          response.end('{result:"ok"}');
         } catch (e) {
           console.log(e)
         }
