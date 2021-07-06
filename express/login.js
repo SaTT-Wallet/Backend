@@ -289,6 +289,7 @@ module.exports = function (app) {
           var instagram_id = false;
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
           var res = await rp({uri:accountsUrl,json: true})
+
           while(true) {
 
             for (var i = 0;i<res.data.length;i++) {
@@ -297,7 +298,7 @@ module.exports = function (app) {
               }
               await app.db.fbPage().updateOne({id:res.data[i].id},{$set:{UserId:users[0]._id,username:res.data[i].username,token:res.data[i].access_token}},{ upsert: true });
             }
-            if( !res.paging.next)
+            if(!res.paging || !res.paging.next)
             {
               break;
             }
@@ -316,7 +317,7 @@ module.exports = function (app) {
          }
 
           var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
-          for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
+          for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging && res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
             for (var i =0;i<res.data.length;i++) {
               var media = res.data[i];
               await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
@@ -1156,7 +1157,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
        }
     })
- 
+
     app.get('/connect/google/:idUser', (req, res,next)=>{
       passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
     });
