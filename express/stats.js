@@ -778,6 +778,10 @@ cron.schedule("03 04 * * 1", () =>{
 		   }
 		   if(!allProms[i].isAccepted){
 		   allProms[i].appliedDate = result.appliedDate
+		   allProms[i].numberOfLikes = result.likes
+		   allProms[i].numberOfViews = result.views
+		   allProms[i].numberOfShares = result.shares
+		   allProms[i].oracle = result.oracle;
 		   continue;}
 
 		   allProms[i].appliedDate = result.appliedDate
