@@ -812,7 +812,7 @@ cron.schedule("03 04 * * 1", () =>{
 		try{
 		let idProm = req.params.idProm;
 	    var ctr = await app.campaign.getPromContract(idProm);
-	    let prom = await ctr.methods.proms(idprom).call();
+	    let prom = await ctr.methods.proms(idProm).call();
         let prevStats =  await ctr.methods.results(prom.prevResult).call();
 		var stats;
 		if(prom.typeSN == 1){
