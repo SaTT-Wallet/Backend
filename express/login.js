@@ -40,8 +40,6 @@ module.exports = function (app) {
   }
 
 
-
-
   var readHTMLFile = function(path, callback) {
     fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
       if (err) {
@@ -57,7 +55,6 @@ module.exports = function (app) {
 
   var synfonyHash = function (pass) {
     var salted = pass+"{"+app.config.symfonySalt+"}";
-
 
     var buff = hasha(salted, {encoding: "buffer"});
     var saltBuff = Buffer.from(salted);
@@ -315,7 +312,7 @@ module.exports = function (app) {
              profile.instagram_id = instagram_id;
              var res_ins = await app.db.fbProfile().insertOne(profile);
          }
-
+         if(instagram_id) {
           var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
           for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging && res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
             for (var i =0;i<res.data.length;i++) {
@@ -323,6 +320,7 @@ module.exports = function (app) {
               await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
             }
           }
+        }
 
           return cb(null, {id: users[0]._id, token: accessToken});
         }
