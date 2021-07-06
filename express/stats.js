@@ -828,9 +828,9 @@ cron.schedule("03 04 * * 1", () =>{
 		let actualStats = Object.values(stats);
 		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
 		if(!(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true)) && prom.funds.amount !== "0"){
-         res.send(JSON.stringify({disabled : false}))
+         res.send(JSON.stringify({disabled : false, fund:prom.funds.amount }))
 		}else {
-			res.send(JSON.stringify({disabled : true}))
+			res.send(JSON.stringify({disabled : true, fund : prom.funds.amount}))
 		}	
 		}catch (err) {
 	 console.log(err)
