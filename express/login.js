@@ -269,12 +269,7 @@ module.exports = function (app) {
         passReqToCallback: true
       },
       async function (req,accessToken, refreshToken, profile, cb) {
-
-
-        var users = await app.db.sn_user().find({idOnSn:  profile._json.token_for_business}).toArray()
-        if (!users.length) {
-          return cb('Error: no account')
-        } else {
+        var user_id = req.session.user;
           var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
           "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
           "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
@@ -293,7 +288,7 @@ module.exports = function (app) {
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
               }
-              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:{UserId:users[0]._id,username:res.data[i].username,token:res.data[i].access_token}},{ upsert: true });
+              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:{UserId:user_id,username:res.data[i].username,token:res.data[i].access_token}},{ upsert: true });
             }
             if(!res.paging || !res.paging.next)
             {
@@ -302,13 +297,13 @@ module.exports = function (app) {
             res = await rp({uri:res.paging.next,json: true})
          }
          var fbProfile = false;
-         fbProfile = await app.db.fbProfile().findOne({UserId:users[0]._id  });
+         fbProfile = await app.db.fbProfile().findOne({UserId:user_id  });
          if(fbProfile) {
-           var res_ins = await app.db.fbProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:longToken}});
+           var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
          }
          else {
              profile.accessToken = longToken;
-             profile.UserId = users[0]._id;
+             profile.UserId = user_id;
              profile.instagram_id = instagram_id;
              var res_ins = await app.db.fbProfile().insertOne(profile);
          }
@@ -321,9 +316,9 @@ module.exports = function (app) {
             }
           }
         }
-
-          return cb(null, {id: users[0]._id, token: accessToken});
-        }
+          
+          return cb(null, {id: user_id, token: accessToken});
+        
       }));
 
   passport.use('signup_googleStrategy', new GoogleStrategy({
@@ -411,36 +406,27 @@ module.exports = function (app) {
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
-
-      var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
-      if (users.length) {
-        var user = users[0];
-
-
+      var user_id = req.session.user;
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         var channelId = res.items[0].id;
 
 
 
         var googleProfile = false;
-        googleProfile = await app.db.googleProfile().findOne({UserId:users[0]._id  });
+        googleProfile = await app.db.googleProfile().findOne({UserId:user_id  });
         if(googleProfile) {
-          var res_ins = await app.db.googleProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:accessToken}});
+          var res_ins = await app.db.googleProfile().updateOne({UserId:user_id  }, { $set: {accessToken:accessToken}});
         }
         else {
             profile.accessToken = accessToken;
-            profile.UserId = users[0]._id;
+            profile.UserId = user_id;
             profile.google_id = profile.id;
             profile.channelId = channelId;
 
             var res_ins = await app.db.googleProfile().insertOne(profile);
         }
 
-        return cb(null, {id: user._id});
-      } else {
-        return cb ('Register First')
-
-      }
+        return cb(null, {id: user_id});
     }));
 
 
@@ -689,7 +675,9 @@ module.exports = function (app) {
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/link/fb_insta', passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'] }));
+  app.get('/link/fb_insta', (req, res,next)=>{
+    passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:req.params.idUser})(req,res,next)
+   });
 
 
 
