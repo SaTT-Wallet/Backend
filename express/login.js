@@ -269,7 +269,7 @@ module.exports = function (app) {
         passReqToCallback: true
       },
       async function (req,accessToken, refreshToken, profile, cb) {
-        let user_id=+req.query.state;
+        var user_id = req.session.user;
           var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
           "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
           "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
@@ -684,7 +684,7 @@ module.exports = function (app) {
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/link/fb_insta/:idUser', (req, res,next)=>{
+  app.get('/link/fb_insta', (req, res,next)=>{
     passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:req.params.idUser})(req,res,next)
    });
 
