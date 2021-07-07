@@ -406,36 +406,27 @@ module.exports = function (app) {
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
-
-      var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray()
-      if (users.length) {
-        var user = users[0];
-
-
+      var user_id = req.session.user;
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         var channelId = res.items[0].id;
 
 
 
         var googleProfile = false;
-        googleProfile = await app.db.googleProfile().findOne({UserId:users[0]._id  });
+        googleProfile = await app.db.googleProfile().findOne({UserId:user_id  });
         if(googleProfile) {
-          var res_ins = await app.db.googleProfile().updateOne({UserId:users[0]._id  }, { $set: {accessToken:accessToken}});
+          var res_ins = await app.db.googleProfile().updateOne({UserId:user_id  }, { $set: {accessToken:accessToken}});
         }
         else {
             profile.accessToken = accessToken;
-            profile.UserId = users[0]._id;
+            profile.UserId = user_id;
             profile.google_id = profile.id;
             profile.channelId = channelId;
 
             var res_ins = await app.db.googleProfile().insertOne(profile);
         }
 
-        return cb(null, {id: user._id});
-      } else {
-        return cb ('Register First')
-
-      }
+        return cb(null, {id: user_id});
     }));
 
 
