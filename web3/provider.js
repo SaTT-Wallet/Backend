@@ -24,9 +24,9 @@ module.exports = async function (app) {
 	app.web3Bep20 = new Web3(new Web3.providers.HttpProvider(app.config.web3UrlBep20,options));
   app.web3Bep20Websocket = false;
 
-  //if(app.config.web3UrlBep20Websocket) {
-	//	app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket,options));
-  //}
+  if(app.config.web3UrlBep20Websocket) {
+		app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket,options));
+  }
 
 
 	app.web3.transactionPollingTimeout = 600;
