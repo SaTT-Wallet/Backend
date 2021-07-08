@@ -141,6 +141,7 @@ module.exports = function (app) {
 
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
+        req.session.user = users[0]._id;
         var user = users[0];
         // if (user.idSn != 0) {
         //   return done(null, false, {error: true, message: 'account_already_used'});
@@ -675,8 +676,8 @@ module.exports = function (app) {
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/link/fb_insta', (req, res,next)=>{
-    passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:req.params.idUser})(req,res,next)
+  app.get('/link/fb_insta/:idCampaign', (req, res,next)=>{
+    passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:req.params.idCampaign})(req,res,next)
    });
 
 
@@ -754,7 +755,8 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     app.get('/callback/facebook_insta',
       passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
-          response.end('{result:"ok"}');
+          message="account_linked_with_success";
+          response.redirect(app.config.basedURl+'/myWallet/part/'+req.query.state+"&message="+message);
         } catch (e) {
           console.log(e)
         }
