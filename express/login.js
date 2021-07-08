@@ -141,6 +141,7 @@ module.exports = function (app) {
 
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
+        req.session.user = users[0]._id;
         var user = users[0];
         // if (user.idSn != 0) {
         //   return done(null, false, {error: true, message: 'account_already_used'});
@@ -242,6 +243,7 @@ module.exports = function (app) {
 
       if (users.length) {
         var user = users[0];
+        req.session.user = users[0]._id;
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
