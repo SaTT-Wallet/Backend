@@ -766,6 +766,9 @@ cron.schedule("03 04 * * 1", () =>{
 	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,ctr);
 	  const campaign = await app.db.campaignCrm().findOne({hash : req.params.idCampaign});
 	  const ratio = campaign.ratios
+	  let view;
+	  let share;
+	  let like;
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : req.params.idCampaign }).toArray() 
 	  dbProms.map(result=>{
  
@@ -785,9 +788,9 @@ cron.schedule("03 04 * * 1", () =>{
 		   continue;}
 
 		   allProms[i].appliedDate = result.appliedDate
-		   allProms[i].numberOfLikes = result.likes
-		   allProms[i].numberOfViews = result.views
-		   allProms[i].numberOfShares = result.shares
+		   allProms[i].numberOfLikes = result.likes || "0"
+		   allProms[i].numberOfViews = result.views || '0'
+		   allProms[i].numberOfShares = result.shares || '0'
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
@@ -795,15 +798,17 @@ cron.schedule("03 04 * * 1", () =>{
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
 				 if(result.views){
-				 view =new Big(num["view"]).times(result.views);
+					view =new Big(num["view"]).times(result.views)
 				 }
 				 if(result.likes){
-				 like =  new Big(num["like"]).times(result.likes);
+				 like =  new Big(num["like"]).times(result.likes) || "0";
 				 }
-				 if(result.shares){
-				 share = new Big(num["share"]).times(result.shares);
+				 if(result.shares){			 
+				 share = new Big(num["share"]).times(result.shares) || "0";		
 				 }
+				 if(view && share && like){	 
 				allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
+				 }
 			 }
 		 })
 	    }
