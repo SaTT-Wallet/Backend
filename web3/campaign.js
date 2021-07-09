@@ -213,19 +213,19 @@ module.exports = async function (app) {
 			//var gasPrice = 4000000000;
 
 				var gasPrice = await ctr.getGasPrice();
-			//var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
-		//	if(isDoubled)
-			//{
-				//reject({message:"Link already sent"});
-		//	}
-		//	else {
+			 var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
+			if(isDoubled)
+			{
+				reject({message:"Link already sent"});
+			}
+			else {
 				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
 				var prom = receipt.events.CampaignApplied.returnValues.prom;
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
-			//	}
+				}
 			}
 			catch (err)
 			{
@@ -542,7 +542,6 @@ module.exports = async function (app) {
 			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
 			for (let i =0;i<users.length;i++)
 			{
-				delete users[i].password;
 				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
 			}

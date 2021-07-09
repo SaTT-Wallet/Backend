@@ -794,10 +794,16 @@ cron.schedule("03 04 * * 1", () =>{
 		   
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
-			 let view =new Big(num["view"]).times(result.views);
-			 let like =  new Big(num["like"]).times(result.likes);
-			 let share = new Big(num["share"]).times(result.shares);
-			 allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
+				 if(result.views){
+				 view =new Big(num["view"]).times(result.views);
+				 }
+				 if(result.likes){
+				 like =  new Big(num["like"]).times(result.likes);
+				 }
+				 if(result.shares){
+				 share = new Big(num["share"]).times(result.shares);
+				 }
+				allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
 			 }
 		 })
 	    }
