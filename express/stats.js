@@ -785,24 +785,18 @@ cron.schedule("03 04 * * 1", () =>{
 		   continue;}
 
 		   allProms[i].appliedDate = result.appliedDate
-		   allProms[i].numberOfLikes = result.likes
-		   allProms[i].numberOfViews = result.views
-		   allProms[i].numberOfShares = result.shares
+		   allProms[i].numberOfLikes = result.likes || "0"
+		   allProms[i].numberOfViews = result.views || '0'
+		   allProms[i].numberOfShares = result.shares || '0'
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
-				 if(result.views){
-				 view =new Big(num["view"]).times(result.views);
-				 }
-				 if(result.likes){
-				 like =  new Big(num["like"]).times(result.likes);
-				 }
-				 if(result.shares){
-				 share = new Big(num["share"]).times(result.shares);
-				 }
+				 view =new Big(num["view"]).times(result.views) || "0"		
+				 like =  new Big(num["like"]).times(result.likes) || "0";			 
+				 share = new Big(num["share"]).times(result.shares) || "0";			 
 				allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
 			 }
 		 })
