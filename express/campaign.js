@@ -554,7 +554,7 @@ module.exports = function (app) {
 			   campaign.hash=element.hash
 			   manageTime()
 
-		  await app.account.notificationManager(campaign.owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.date, cmp_hash:campaign.hash})
+		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.date, cmp_hash:campaign.hash})
 
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
