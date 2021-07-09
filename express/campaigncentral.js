@@ -24,6 +24,7 @@ module.exports = function (app) {
 		var ratios = req.body.ratios;
 
 		try {
+			console.log("ratios,====+",ratios);
 
 			var res = await app.crm.auth( req.body.token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -34,7 +35,6 @@ module.exports = function (app) {
 			{
 				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
 			}
-
 			var ret = await app.campaignCentral.createCampaignAll(dataUrl,startDate,endDate,ratios,token,amount,cred);
 			response.end(JSON.stringify(ret));
 
