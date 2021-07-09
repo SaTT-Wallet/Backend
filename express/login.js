@@ -141,7 +141,6 @@ module.exports = function (app) {
 
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
-        req.session.user = users[0]._id;
         var user = users[0];
         // if (user.idSn != 0) {
         //   return done(null, false, {error: true, message: 'account_already_used'});
@@ -162,6 +161,7 @@ module.exports = function (app) {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
           }
           req.session.user = user._id;
+          console.log("email session",req.session.user);
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
         } else {
           var failed_count = user.failed_count? user.failed_count + 1 : 1;
@@ -270,7 +270,8 @@ module.exports = function (app) {
         passReqToCallback: true
       },
       async function (req,accessToken, refreshToken, profile, cb) {
-        var user_id = req.session.user;
+        let info=req.query.state.split(' ');
+        var user_id=+info[0];
           var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
           "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
           "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
@@ -407,12 +408,15 @@ module.exports = function (app) {
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
-      var user_id = req.session.user;
+      let info=req.query.state.split(' ');
+        var user_id=+info[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        if(res.pageInfo.totalResults ==0){
+          cb (null,profile,{
+            message: "channel obligatoire"
+        })
+        }
         var channelId = res.items[0].id;
-
-
-
         var googleProfile = false;
         googleProfile = await app.db.googleProfile().findOne({UserId:user_id  });
         if(googleProfile) {
@@ -638,6 +642,7 @@ module.exports = function (app) {
         }
 
         req.logIn(user, function(err) {
+          
           var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user"};
           return res.end(JSON.stringify(param))
           //return res.redirect('/');
@@ -660,6 +665,7 @@ module.exports = function (app) {
         }
 
         req.logIn(user, function(err) {
+          req.session.user = user.id;
           var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user"};
           return res.end(JSON.stringify(param))
           //return res.redirect('/');
@@ -676,8 +682,10 @@ module.exports = function (app) {
 
   app.get('/auth/fb', passport.authenticate('facebook_strategy'));
 
-  app.get('/link/fb_insta/:idCampaign', (req, res,next)=>{
-    passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:req.params.idCampaign})(req,res,next)
+  app.get('/link/fb_insta/:idUser/:idCampaign', (req, res,next)=>{
+    var state=req.params.idUser+" "+req.params.idCampaign;
+    
+    passport.authenticate('instalink_FbStrategy',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:state})(req,res,next)
    });
 
 
@@ -688,7 +696,11 @@ module.exports = function (app) {
 
   app.get('/auth/google', passport.authenticate('google_strategy', {scope: ['profile','email',]}));
 
-  app.get('/link/google', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}));
+  app.get('/link/google/:idUser/:idCampaign', (req, res,next)=>{
+    var state=req.params.idUser+" "+req.params.idCampaign;
+  
+  passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],state:state})(req,res,next)
+  });
 
 app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}));
 
@@ -756,7 +768,9 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
       passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
           message="account_linked_with_success";
-          response.redirect(app.config.basedURl+'/myWallet/part/'+req.query.state+"&message="+message);
+          let info=req.query.state.split(' ');
+          campaign_id=info[1];
+          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
         } catch (e) {
           console.log(e)
         }
@@ -779,7 +793,14 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
 
     app.get('/callback/googlelink', passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
       try {
-        response.end('{result:"ok"}');
+        if(req.authInfo.message){
+          message=req.authInfo.message;
+        }else{
+          message="account_linked_with_success";
+        }
+        let info=req.query.state.split(' ');
+        campaign_id=info[1];
+        response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
       } catch (e) {
         console.log(e)
       }
