@@ -143,10 +143,12 @@ module.exports = function (app) {
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 		try {
-			
+
 			const token = req.params.token;
 			var res =	await app.crm.auth(token);
 
+			req.session.user = res.id;
+			
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_account"};
 			if(count)
