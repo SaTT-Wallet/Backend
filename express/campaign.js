@@ -163,9 +163,9 @@ module.exports = function (app) {
 				if(stat.typeSN=="1"){
 				//tester si le lien facebook on recupere les stats de facebook;
 					oraclesFacebook = await app.oracle.facebook(prom.idUser,prom.idPost);
-					stat.shares=oraclesFacebook.shares;
-					stat.likes=oraclesFacebook.likes;
-					stat.views=oraclesFacebook.views;
+					stat.shares=oraclesFacebook.shares || '0'
+					stat.likes=oraclesFacebook.likes || '0'
+					stat.views=oraclesFacebook.views || '0'
 					stat.oracle = 'facebook'
 								}
 				//youtube
@@ -181,18 +181,18 @@ module.exports = function (app) {
 				else if(stat.typeSN=="3"){
 				//tester si le lien instagram on recupere les stats de instagram;
 					oraclesInstagram = await app.oracle.instagram(prom.idPost);
-					stat.shares=oraclesInstagram.shares;
-					stat.likes=oraclesInstagram.likes;
-					stat.views=oraclesInstagram.views;
+					stat.shares=oraclesInstagram.shares || '0';
+					stat.likes=oraclesInstagram.likes || '0';
+					stat.views=oraclesInstagram.views|| '0';
 					stat.oracle = 'instagram'
 								}
 				//twitter
 				else{
 				//tester si le lien twitter on recupere les stats de twitter;
 					oraclesTwitter= await app.oracle.twitter(prom.idUser,prom.idPost);
-					stat.shares=oraclesTwitter.shares;
-					stat.likes=oraclesTwitter.likes;
-					stat.views=oraclesTwitter.views;
+					stat.shares=oraclesTwitter.shares || '0';
+					stat.likes=oraclesTwitter.likes || '0';
+					stat.views=oraclesTwitter.views || '0';
 					stat.oracle = 'twitter'
 								}
 
@@ -2196,9 +2196,9 @@ module.exports = function (app) {
 		 let campaign = req.body;
 		 if(req.body.ratios){
         req.body.ratios.forEach(elem =>{
-			elem.view  = new Big(elem.view).times(etherInWei).toFixed(0)
-			elem.share = new Big(elem.share).times(etherInWei).toFixed(0)
-			elem.like = new Big(elem.like).times(etherInWei).toFixed(0)
+			elem.view  = new Big(elem.view).times(etherInWei).toFixed(0) || '0';
+			elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
+			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
 		})
 		 }
 	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})

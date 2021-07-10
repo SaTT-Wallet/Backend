@@ -1161,8 +1161,9 @@ module.exports = function (app) {
 
 			var spender = req.body.spender;
 			var amount = req.body.amount;
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
+			const acces = req.headers["authorization"].split(" ")[1];
+            const token = req.body.token
+			var res =	await app.crm.auth(acces);
 			var pass = req.body.pass;
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
