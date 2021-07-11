@@ -450,7 +450,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				var data_={
 					SaTT:{
 						imageUrl : app.config.baseEmailImgURl,
-						Url:app.config.baseUrl+'FAQ'
+						Url:app.config.basedURL+'FAQ'
 					},
 					notification:{
 						name:req.body.name,
