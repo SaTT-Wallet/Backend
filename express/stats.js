@@ -781,10 +781,11 @@ cron.schedule("03 04 * * 1", () =>{
 		   }
 		   if(!allProms[i].isAccepted){
 		   allProms[i].appliedDate = result.appliedDate
-		   allProms[i].numberOfLikes = result.likes
-		   allProms[i].numberOfViews = result.views
-		   allProms[i].numberOfShares = result.shares
 		   allProms[i].oracle = result.oracle;
+		   allProms[i].appliedDate = result.appliedDate
+		   allProms[i].numberOfLikes = result.likes || "0"
+		   allProms[i].numberOfViews = result.views || '0'
+		   allProms[i].numberOfShares = result.shares || '0'
 		   continue;}
 
 		   allProms[i].appliedDate = result.appliedDate
@@ -827,8 +828,14 @@ cron.schedule("03 04 * * 1", () =>{
 		try{
 		let idProm = req.params.idProm;
 	    var ctr = await app.campaign.getPromContract(idProm);
+		if(!ctr.methods) {
+			res.end("{}");
+			return;
+		}
 	    let prom = await ctr.methods.proms(idProm).call();
+
         let prevStats =  await ctr.methods.results(prom.prevResult).call();
+
 		var stats;
 		if(prom.typeSN == 1){
 		 stats = await app.oracle.facebook(prom.idUser,prom.idPost);
