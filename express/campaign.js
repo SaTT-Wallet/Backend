@@ -908,7 +908,7 @@ module.exports = function (app) {
 			
 			if(cred) app.account.lock(cred.address);
 		
-			if(ret.transactionHash && ret.idProm){
+			if(ret && ret.transactionHash && ret.idProm){
 					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
 					prom.id_prom = ret.idProm;
