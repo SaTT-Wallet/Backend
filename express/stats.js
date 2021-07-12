@@ -840,7 +840,13 @@ cron.schedule("03 04 * * 1", () =>{
 		 stats = await app.oracle.twitter(prom.idUser,prom.idPost);
 		}
 		
-		let actualStats = [stats.likes.toString(),stats.views.toString(),stats.shares.toString()];
+		let likes = '0';
+		if(stats.likes) likes = stats.likes.toString()
+		let views =  '0';
+		if(stats.views) views = stats.views.toString()
+		let shares =  '0';
+		if(stats.shares) shares = stats.shares.toString()
+		let actualStats = [likes,views,shares];
 		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
 
 		if(!actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true)){ // if previous stats are different from the ones from the oracle
