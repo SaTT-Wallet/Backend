@@ -875,15 +875,16 @@ module.exports = function (app) {
  */
 	app.post('/v2/campaign/apply', async function(req, response) {
 
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(token);
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-
+		let [prom, date] = [{},Math.floor(Date.now()/1000)];
 		await app.campaign.getCampaignContract(idCampaign);
-		const token = req.headers["authorization"].split(" ")[1];
-		var auth =	await app.crm.auth(token);
+		
 		let id = auth.id
 		try {
 			var cred = await app.account.unlock(id,pass);
@@ -891,10 +892,10 @@ module.exports = function (app) {
 
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-				if(ret.transactionHash){
-					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-				}
+				// if(ret.transactionHash){
+				// 	let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+				// 	await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+				// }
 				response.end(JSON.stringify(ret));
 		//	}
 
@@ -904,8 +905,20 @@ module.exports = function (app) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
-			if(cred)
-			app.account.lock(cred.address);
+			
+			if(cred) app.account.lock(cred.address);
+		
+			if(ret.transactionHash && ret.idProm){
+					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+					prom.id_prom = ret.idProm;
+					prom.typeSN = ret.typeSN.toString();
+                    prom.idUser = ret.idUser
+					prom.idPost = ret.idPost
+					prom.id_campaign = idCampaign
+					prom.appliedDate = date
+					await app.db.campaign_link().insertOne(prom);;
+			}
 		}
 	});
 
