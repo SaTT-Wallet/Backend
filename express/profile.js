@@ -449,6 +449,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 				var data_={
 					SaTT:{
+						faq : app.config.Satt_faq,
 						imageUrl : app.config.baseEmailImgURl,
 						Url:app.config.basedURL+'FAQ'
 					},
@@ -714,8 +715,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }
 	  })
-
-
 
 	return app;
 
