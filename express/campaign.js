@@ -917,7 +917,7 @@ module.exports = function (app) {
 					prom.idPost = ret.idPost
 					prom.id_campaign = idCampaign
 					prom.appliedDate = date
-					await app.campaign.UpdateStats(prom);
+					await app.db.campaign_link().insertOne(prom);;
 			}
 		}
 	});
