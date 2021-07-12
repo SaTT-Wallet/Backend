@@ -760,7 +760,7 @@ cron.schedule("03 04 * * 1", () =>{
 	 let ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
 	 let allProms = [];
 	 if(!ctr.methods) {
-		 res.end("{}");
+			 res.end("{}");
 		 return;
 	 }else{   
 	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,ctr);
@@ -779,15 +779,7 @@ cron.schedule("03 04 * * 1", () =>{
 			   allProms[i].appliedDate = result.appliedDate;
 			   continue;
 		   }
-		   if(!allProms[i].isAccepted){
-		   allProms[i].appliedDate = result.appliedDate
-		   allProms[i].oracle = result.oracle;
-		   allProms[i].appliedDate = result.appliedDate
-		   allProms[i].numberOfLikes = result.likes || "0"
-		   allProms[i].numberOfViews = result.views || '0'
-		   allProms[i].numberOfShares = result.shares || '0'
-		   continue;}
-
+		  
 		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes || "0"
 		   allProms[i].numberOfViews = result.views || '0'
@@ -824,6 +816,7 @@ cron.schedule("03 04 * * 1", () =>{
   }
 	})
 
+
 	app.get('/proms/verify/:idProm', async (req, res) => {
 		try{
 		let idProm = req.params.idProm;
@@ -849,11 +842,14 @@ cron.schedule("03 04 * * 1", () =>{
 		delete stats.date;
 		let actualStats = Object.values(stats);
 		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
-		if(!(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true)) && prom.funds.amount !== "0"){
+
+		if(!actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true)){ // if previous stats are different from the ones from the oracle
          res.send(JSON.stringify({disabled : false, fund:prom.funds.amount }))
-		}else {
-			res.send(JSON.stringify({disabled : true, fund : prom.funds.amount}))
-		}	
+		}else if(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true) && prom.funds.amount !== "0"){ //if we have same stats we need to check prom.fund.amount
+			res.send(JSON.stringify({disabled : false, fund:prom.funds.amount }))
+		}	else{
+			res.send(JSON.stringify({disabled : true, fund : prom.funds.amount})) //disable getGains method button
+		}
 		}catch (err) {
 	 console.log(err)
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
