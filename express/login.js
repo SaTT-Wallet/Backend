@@ -420,14 +420,14 @@ module.exports = function (app) {
         var googleProfile = false;
         googleProfile = await app.db.googleProfile().findOne({UserId:user_id  });
         if(googleProfile) {
-          var res_ins = await app.db.googleProfile().updateOne({UserId:user_id  }, { $set: {accessToken:accessToken}});
+          var res_ins = await app.db.googleProfile().updateOne({UserId:user_id  }, { $set: {accessToken:accessToken,refreshToken:refreshToken}});
         }
         else {
+            profile.refreshToken = refreshToken;
             profile.accessToken = accessToken;
             profile.UserId = user_id;
             profile.google_id = profile.id;
             profile.channelId = channelId;
-
             var res_ins = await app.db.googleProfile().insertOne(profile);
         }
 
