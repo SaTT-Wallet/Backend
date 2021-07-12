@@ -874,7 +874,7 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/apply', async function(req, response) {
-		
+
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		var pass = req.body.pass;
@@ -911,8 +911,8 @@ module.exports = function (app) {
 			if(ret.transactionHash && ret.idProm){
 					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-					prom.id_prom = ret.idProm
-					prom.typeSN = ret.typeSN
+					prom.id_prom = ret.idProm;
+					prom.typeSN = ret.typeSN.toString();
                     prom.idUser = ret.idUser
 					prom.idPost = ret.idPost
 					prom.id_campaign = idCampaign
