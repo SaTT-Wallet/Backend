@@ -604,9 +604,9 @@ module.exports = async function (app) {
 			return;
 			}
 			else{
-				// if(result.status === "rejected"){
-				//    return;
-				// }
+				if(result.status === "rejected"){
+				   return;
+				}
 				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
 			}
 		})
