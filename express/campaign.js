@@ -897,8 +897,10 @@ module.exports = function (app) {
 					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
 					prom.id_prom = ret.idProm;
 					prom.typeSN = ret.typeSN.toString();
-                    [prom.idUser,prom.idPost] = [ret.idUser,ret.idPost]
-					[prom.id_campaign,prom.appliedDate] = [idCampaign,date]
+                    prom.idUser  = ret.idUser 
+					prom.idPost = ret.idPost
+					prom.id_campaign  = idCampaign 
+					prom.appliedDate = date
 					await app.db.campaign_link().insertOne(prom);
 				}
 				response.end(JSON.stringify(ret));
