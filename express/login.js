@@ -420,15 +420,29 @@ module.exports = function (app) {
         var googleProfile = false;
         googleProfile = await app.db.googleProfile().findOne({UserId:user_id  });
         if(googleProfile) {
-          var res_ins = await app.db.googleProfile().updateOne({UserId:user_id  }, { $set: {accessToken:accessToken,refreshToken:refreshToken}});
+          var options = {
+            method: 'POST',
+            uri: 'https://oauth2.googleapis.com/token',
+            body: {
+              client_id:app.config.googleClientId,
+              client_secret:app.config.googleClientSecret,
+              refresh_token:refreshToken,
+              grant_type:"refresh_token"
+            },
+            json: true
+        };
+        result = await rp(options);
+        await app.db.googleProfile().updateOne({UserId:user_id  }, { $set: {accessToken:result.accessToken}});
+                        
         }
         else {
-            profile.refreshToken = refreshToken;
-            profile.accessToken = accessToken;
-            profile.UserId = user_id;
-            profile.google_id = profile.id;
-            profile.channelId = channelId;
-            var res_ins = await app.db.googleProfile().insertOne(profile);
+            user_google={};
+            user_google.refreshToken = refreshToken;
+            user_google.accessToken = accessToken;
+            user_google.UserId = user_id;
+            user_google.google_id = profile.id;
+            user_google.channelId = channelId;
+            var res_ins = await app.db.googleProfile().insertOne(user_google);
         }
 
         return cb(null, {id: user_id});
@@ -699,8 +713,12 @@ module.exports = function (app) {
   app.get('/link/google/:idUser/:idCampaign', (req, res,next)=>{
     var state=req.params.idUser+" "+req.params.idCampaign;
   
-  passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],state:state})(req,res,next)
+  passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
+	       accessType: 'offline',
+    	   prompt: 'consent',
+	  state:state})(req,res,next)
   });
+
 
 app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}));
 
