@@ -892,14 +892,16 @@ module.exports = function (app) {
 
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-				// if(ret.transactionHash){
-				// 	let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-				// 	await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-				// }
+				if(ret.transactionHash){
+					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+					prom.id_prom = ret.idProm;
+					prom.typeSN = ret.typeSN.toString();
+                    [prom.idUser,prom.idPost] = [ret.idUser,ret.idPost]
+					[prom.id_campaign,prom.appliedDate] = [idCampaign,date]
+					await app.db.campaign_link().insertOne(prom);
+				}
 				response.end(JSON.stringify(ret));
-		//	}
-
-
 
 		} catch (err) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
@@ -907,18 +909,6 @@ module.exports = function (app) {
 		finally {
 			
 			if(cred) app.account.lock(cred.address);
-		
-			if(ret && ret.transactionHash && ret.idProm){
-					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-					prom.id_prom = ret.idProm;
-					prom.typeSN = ret.typeSN.toString();
-                    prom.idUser = ret.idUser
-					prom.idPost = ret.idPost
-					prom.id_campaign = idCampaign
-					prom.appliedDate = date
-					await app.db.campaign_link().insertOne(prom);;
-			}
 		}
 	});
 
@@ -1388,7 +1378,7 @@ module.exports = function (app) {
 
 			var count = await app.db.ban().find({idProm:idProm}).count();
 			if(count) {
-				response.end('{"error":"oracle not available"}');
+				response.end('{"error":"oracle not available"}');auth
 				return;
 			}
 

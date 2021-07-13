@@ -773,10 +773,10 @@ cron.schedule("03 04 * * 1", () =>{
 	  dbProms.map(result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
+			 
 			  if(allProms[i].id === result.id_prom){
 				if(result.status === "rejected"){
 			   allProms[i].isAccepted = "rejected";
-			   allProms[i].appliedDate = result.appliedDate;
 			   continue;
 		   }
 		  
