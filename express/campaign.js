@@ -1378,7 +1378,7 @@ module.exports = function (app) {
 
 			var count = await app.db.ban().find({idProm:idProm}).count();
 			if(count) {
-				response.end('{"error":"oracle not available"}');auth
+				response.end('{"error":"oracle not available"}');
 				return;
 			}
 
