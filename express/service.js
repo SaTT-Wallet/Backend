@@ -1,6 +1,7 @@
 module.exports = function (app) {
 
-  
+    var rp = require('request-promise');
+
 	app.get("/youtube/:id", async function (req, response) {
 		var id = req.params.id;
 		var res = await app.oracle.youtube(id);
@@ -142,10 +143,33 @@ module.exports = function (app) {
 				break;
 				case "2":
 					googleProfile = await app.db.googleProfile().findOne({UserId:userId });
-	        if(googleProfile) {
-						linked = true;
-						res = await app.oracle.verifyYoutube(userId,idPost);
-					}
+	        
+				
+
+				if(googleProfile) {
+					var options = {
+					  method: 'POST',
+					  uri: 'https://oauth2.googleapis.com/token',
+					  body: {
+						client_id:app.config.googleClientId,
+						client_secret:app.config.googleClientSecret,
+						refresh_token:googleProfile.refreshToken,
+						grant_type:"refresh_token"
+					  },
+					  json: true
+				  };
+				  result = await rp(options);
+				  await app.db.googleProfile().updateOne({UserId:userId  }, { $set: {accessToken:result.access_token}});
+					linked = true;
+					res = await app.oracle.verifyYoutube(userId,idPost);
+				  }
+
+
+
+
+
+						
+					
 				break;
 				case "3":
 				fbProfile = await app.db.fbProfile().findOne({UserId:userId  });
