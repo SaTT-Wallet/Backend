@@ -892,17 +892,6 @@ module.exports = function (app) {
 
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-				if(ret.transactionHash){
-					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-					prom.id_prom = ret.idProm;
-					prom.typeSN = ret.typeSN.toString();
-                    prom.idUser  = ret.idUser 
-					prom.idPost = ret.idPost
-					prom.id_campaign  = idCampaign 
-					prom.appliedDate = date
-					await app.db.campaign_link().insertOne(prom);
-				}
 				response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -910,7 +899,18 @@ module.exports = function (app) {
 		}
 		finally {
 			
-			if(cred) app.account.lock(cred.address);
+			if(cred)app.account.lock(cred.address);
+			if(ret.transactionHash){
+				let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+				await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+				prom.id_prom = ret.idProm;
+				prom.typeSN = ret.typeSN.toString();
+				prom.idUser  = ret.idUser 
+				prom.idPost = ret.idPost
+				prom.id_campaign  = idCampaign 
+				prom.appliedDate = date
+				await app.db.campaign_link().insertOne(prom);
+			}
 		}
 	});
 
