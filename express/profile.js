@@ -99,10 +99,13 @@ module.exports = function (app) {
      id : identifiant de l'utilisateur'
      */
 	 app.get('/profile/pic', async (req, response) => {
+		
          try{
+			
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
-			const idUser = auth.id;
+
+			const idUser =   req.query.id ? +req.query.id : auth.id;
 			gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
 				if (!file || file.length === 0) {
 				  return response.json({
