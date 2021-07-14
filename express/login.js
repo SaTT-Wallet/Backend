@@ -457,7 +457,6 @@ module.exports = function (app) {
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
 
-    console.log(req.session)
     var user_id = req.session.user;
 
     var tweet = new Twitter({

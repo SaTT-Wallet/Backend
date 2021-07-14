@@ -43,8 +43,8 @@ module.exports = async function (app) {
 			const  addressbc1  = bitcoinjs.payments.p2wpkh({ pubkey: childBtcBc1.publicKey, network: app.config.networkSegWit }).address
 
 			var addressBuffer = ethUtil.privateToAddress(childEth.privateKey);
-			var checksumAddress = ethUtil.toChecksumAddress(addressBuffer.toString('hex'));
-			var addressEth = ethUtil.addHexPrefix(checksumAddress);
+			var checksumAddress = ethUtil.toChecksumAddress('0x'+addressBuffer.toString('hex'));
+			// var addressEth = ethUtil.addHexPrefix(checksumAddress);
 			var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'));
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
