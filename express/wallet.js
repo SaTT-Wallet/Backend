@@ -1304,6 +1304,7 @@ module.exports = function (app) {
 			var amount = req.body.amount;
 			var pass = req.body.pass;
 			const token = req.headers["authorization"].split(" ")[1];
+			const bep20TOken = req.body.token
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
@@ -1315,7 +1316,7 @@ module.exports = function (app) {
 			{
 				spender = app.config.ctrs.campaignBep20.address.testnet;
 			}*/
-			var ret = await app.bep20.approve(token,cred.address,spender,amount);
+			var ret = await app.bep20.approve(bep20TOken,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
