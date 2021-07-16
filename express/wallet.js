@@ -1236,21 +1236,21 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			console.log("token to",to);
 			var ret = await app.bep20.transferBEP(to,amount,cred);
-			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
-				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
-				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )
-				}
-
-			}
+			
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-				if(cred)
-			app.account.lockBSC(cred.address);
+	if(cred){app.account.lockBSC(cred.address);}
+	if(ret && ret.transactionHash){
+		await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to})
+		const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+		if(wallet){
+			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address} )
+		}
+
+	}
 		}
 	})
 
@@ -1307,6 +1307,7 @@ module.exports = function (app) {
 			var pass = req.body.pass;
 
 			const token = req.headers["authorization"].split(" ")[1];
+			const bep20TOken = req.body.token
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
@@ -1318,7 +1319,7 @@ module.exports = function (app) {
 			{
 				spender = app.config.ctrs.campaignBep20.address.testnet;
 			}*/
-			var ret = await app.bep20.approve(token,cred.address,spender,amount);
+			var ret = await app.bep20.approve(bep20TOken,cred.address,spender,amount);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1428,8 +1429,7 @@ module.exports = function (app) {
 				}
 
 				var response = app.prices.data;
-				// console.log(req.app.config.bwPrice)
-	    //   var bwSatt = await rp({uri:req.app.config.bwPrice,json: true});
+
         var prices = [];
         var str = "{";
         for(var i = 0;i<response.length;i++)

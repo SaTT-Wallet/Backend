@@ -892,32 +892,24 @@ module.exports = function (app) {
 
 
 				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
-				// if(ret.transactionHash){
-				// 	let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-				// 	await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-				// }
 				response.end(JSON.stringify(ret));
-		//	}
-
-
 
 		} catch (err) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {
 			
-			if(cred) app.account.lock(cred.address);
-		
-			if(ret.transactionHash && ret.idProm){
-					let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-					await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
-					prom.id_prom = ret.idProm;
-					prom.typeSN = ret.typeSN.toString();
-                    prom.idUser = ret.idUser
-					prom.idPost = ret.idPost
-					prom.id_campaign = idCampaign
-					prom.appliedDate = date
-					await app.db.campaign_link().insertOne(prom);;
+			if(cred)app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+				let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+				await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+				prom.id_prom = ret.idProm;
+				prom.typeSN = ret.typeSN.toString();
+				prom.idUser  = ret.idUser 
+				prom.idPost = ret.idPost
+				prom.id_campaign  = idCampaign 
+				prom.appliedDate = date
+				await app.db.campaign_link().insertOne(prom);
 			}
 		}
 	});
@@ -2442,6 +2434,9 @@ console.log(Links)
 		}
 	})
 
+
+	
+
 	/*
      @url : /campaign/:idCampaign/logo
      @description: Save campaign logo in db
@@ -2465,7 +2460,6 @@ console.log(Links)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 	})
-
 
 
 	/*

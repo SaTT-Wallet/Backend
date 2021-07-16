@@ -181,7 +181,7 @@ module.exports = async function (app) {
 
 
 			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-			   resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,token:token,amount:amount});
+			   resolve({transactionHash:receipt.transactionHash,idCampaign: idCampaign,token:token,amount:amount});
 			   console.log(receipt.transactionHash,"confirmed",idCampaign,"funded");
 			}
 			catch (err)
@@ -220,9 +220,10 @@ module.exports = async function (app) {
 			}
 			else {
 				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
+				       let prom = receipt.events.CampaignApplied.returnValues.prom;
+					resolve({transactionHash:receipt.transactionHash,idCampaign: idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
-				var prom = receipt.events.CampaignApplied.returnValues.prom;
+				
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
 				}
@@ -541,7 +542,7 @@ module.exports = async function (app) {
 			}
 			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
 			for (let i =0;i<users.length;i++)
-			{
+			{   
 				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
 			}

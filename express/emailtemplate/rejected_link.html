@@ -270,27 +270,27 @@
         <div class="mail-header">
             <div class="top">
                 <div class="col" align="left">
-                    <img src="{{imgUrl}}/logo.png" alt="">
+                    <img src="{{imgUrl}}/Satt_log_mail.png" alt="">
                 </div>
                 <div class="col" align="right">
                 </div>
             </div>
-                <img src="{{imgUrl}}rejected_link.svg" alt="">
-                <h2>Lien rejeté...</h2>
-                <p>Votre lien pour la campagne {{cmp_title}} a été rejeté par l'annonceur !</p>
+                <img src="{{imgUrl}}rejected_link.png" alt="">
+                <h2>{{__ "reject_link"}}</h2>
+                <p>{{__ "valid_mess"}} {{cmp_title}} {{__ "reject_cmp}}</p>
         </div>
         <div class="mail-body">
-          <h1 class="gains">Quelle est la raison de ce rejet ?</h1>
+          <h1 class="gains">{{__  "reject_reason"}}</h1>
           <div class="reason-content"><span class="reject_text">{{reject_reason}}</span></div>
-          <div style="text-align:center;"> <button class="apply-btn"><a class="text-btn" href="{{cmp_link}}">Poster un autre lien</a></button></div>
+          <div style="text-align:center;"> <button class="apply-btn"><a class="text-btn" href="{{cmp_link}}">{{__ "valid_post"}}</a></button></div>
     <div class="subtitle">
-        <p style="margin-top:22px;margin-bottom:33px;">En cas de question, n'hésitez pas à <span>nous contacter</span></p>
-        Toute l'équipe du SaTT vous remercie !
+        <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
+        {{__ "valid_wish"}}
     </div>
 </div>
         <div class="mail-footer">
-            <a href="{{satt_faq}}">À propos de SaTT</a>
-            <a class="border-l" href="{{satt_faq}}">Nous contacter</a>
+            <a href="{{satt_faq}}">{{__ "about"}}</a>
+            <a class="border-l" href="{{satt_faq}}">{{__ "contact"}}</a>
         </div>
     </div>
 </body>
