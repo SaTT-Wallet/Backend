@@ -382,6 +382,19 @@ module.exports = function (app) {
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
 			if(ret){
+				if(req.body.currency === "BEP20"){
+					let campaign = {}
+					campaign.id = ret;
+					campaign.blockchainType = "BEP20"
+					campaign.startDate = startDate
+					campaign.endDate = endDate
+					campaign.status = "created"
+					campaign.dataUrl = dataUrl
+					campaign.contract = "0x2beF0d7531f0aaE08ADc26A0442Ba8D0516590d0".toLowerCase();
+					campaign.owner = cred.address
+					await app.db.campaign().insertOne(campaign)
+				}
+
 				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
 			}
 
@@ -903,6 +916,19 @@ module.exports = function (app) {
 			if(ret && ret.transactionHash){
 				let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+
+				if(campaign.token.type === "bep20"){
+					var evt = {
+                   id : idCampaign,
+                  prom :ret.idProm,
+                  type : "applied",
+                    date :date,
+                   contract:"0x2beF0d7531f0aaE08ADc26A0442Ba8D0516590d0".toLowerCase(),
+          owner:cred.address.toLowerCase()
+}
+
+	await app.db.event().insertOne(evt);
+ }
 				prom.id_prom = ret.idProm;
 				prom.typeSN = ret.typeSN.toString();
 				prom.idUser  = ret.idUser 
