@@ -906,7 +906,8 @@ module.exports = function (app) {
 				prom.id_prom = ret.idProm;
 				prom.typeSN = ret.typeSN.toString();
 				prom.idUser  = ret.idUser 
-				prom.idPost = ret.idPost
+				prom.status = false;
+				prom.idPost = ret.idPost == '0' ? '' : ret.idPost
 				prom.id_campaign  = idCampaign 
 				prom.appliedDate = date
 				await app.db.campaign_link().insertOne(prom);
