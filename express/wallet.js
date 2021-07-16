@@ -1484,6 +1484,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 	try {
 		const token = req.headers["authorization"].split(" ")[1];
 		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlockBSC(res.id,pass);
 		cred.from_id = res.id;
 		var to = req.params.to;
 		var amount = req.params.val;
@@ -1500,7 +1501,8 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	finally {
-		if(cred)
+
+if(cred)
 		app.account.lockBSC(cred.address);
 	}
 })
