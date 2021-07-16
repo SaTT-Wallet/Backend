@@ -196,6 +196,16 @@ cron.schedule("03 04 * * 1", () =>{
 					campaigns[i].meta.token.name ="SATT";
 				}
 			}
+			if(campaigns[i].meta){
+				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
+				const readstream = gfs.createReadStream(file);
+				CampaignCover="";
+				for await (const chunk of readstream) {
+					CampaignCover=chunk.toString('base64');
+				}
+				campaigns[i].CampaignCover=CampaignCover;
+			}
+			
 			rescampaigns.push(campaigns[i]);
 		}
 		//var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
@@ -443,6 +453,13 @@ cron.schedule("03 04 * * 1", () =>{
 					if(prom.influencer.toLowerCase() == owner.toLowerCase())
 						campaigns[i].proms.push(prom);
 				}
+				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
+				const readstream = gfs.createReadStream(file);
+				CampaignCover="";
+				for await (const chunk of readstream) {
+					CampaignCover=chunk.toString('base64');
+				}
+				campaigns[i].CampaignCover=CampaignCover;
 
 				rescampaigns.push(campaigns[i]);
 			}
@@ -455,6 +472,9 @@ cron.schedule("03 04 * * 1", () =>{
 			})
 
             let Campaigns_=[...rescampaigns,...draft_campaigns]
+			Campaigns_.forEach(campaign => {
+								
+			});
 			response.end(JSON.stringify(Campaigns_));
 
 		}catch(err){

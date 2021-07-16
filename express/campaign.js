@@ -1993,6 +1993,23 @@ module.exports = function (app) {
 		}
 
 		})
+		app.get('/getAllcovers', async (req, res) => {
+		arrayOfImages=[];
+		files =await gfs.files.find().toArray();
+		for (let i = 0; i < files.length;i++){
+			const readstream = gfs.createReadStream(files[i]);
+			for await (const chunk of readstream) {
+				if(iles[i].campaign){
+				CampaignCover={};
+				CampaignCover.image=chunk.toString('base64');
+				CampaignCover.idCampaign=files[i].campaign.oid
+				arrayOfImages.push(CampaignCover);
+				}
+				
+			}
+		}
+		res.send({arrayOfImages});
+		})
 
 
 	/*

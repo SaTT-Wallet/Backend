@@ -28,6 +28,7 @@ module.exports = async function (app) {
 		};
 
 		if(ev.contract == app.config.ctrs.campaign.address.mainnetBep20 || ev.contract == app.config.ctrs.campaign.address.testnetBep20) {
+			
 			blockchainType = 'bep20'
 			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
 		}

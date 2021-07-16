@@ -282,6 +282,7 @@ module.exports = async function (app) {
   			try {
   				var receipt = await bep20Manager.contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
   				.once('transactionHash', function(transactionHash){
+            console.log("to ==",to)
   					console.log("transfer satt bep20 transactionHash",transactionHash)
   				})
   				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
