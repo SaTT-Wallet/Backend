@@ -100,14 +100,14 @@ module.exports = async function (app) {
 
 
 	app.campaign.contractBep20WS.events.allEvents  (async function(err,evt) {
-		if(evt.event != "CampaignCreated") {
+		if(evt.event == "CampaignCreated") {
 			await eventWatcher.campaignCreated(err,evt)
 		}
 
-			if(evt.event != "CampaignFundsSpent") {
+			if(evt.event == "CampaignFundsSpent") {
 				await eventWatcher.campaignFundsSpent(err,evt)
 			}
-			if(evt.event != "CampaignApplied") {
+			if(evt.event == "CampaignApplied") {
 				await eventWatcher.campaignApplied(err,evt)
 			}
 
