@@ -102,6 +102,7 @@ module.exports = async function (app) {
 	app.campaign.contractBep20WS.events.allEvents  (async function(err,evt) {
 		if(evt.event != "CampaignCreated") {
 			await eventWatcher.campaignCreated(err,evt)
+		}
 
 			if(evt.event != "campaignFundsSpent") {
 				await eventWatcher.campaignFundsSpent(err,evt)
