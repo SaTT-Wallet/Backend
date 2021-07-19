@@ -162,7 +162,8 @@ module.exports = function (app) {
 				stat.date=Date('Y-m-d H:i:s');
 				if(stat.typeSN=="1"){
 				//tester si le lien facebook on recupere les stats de facebook;
-					oraclesFacebook = await app.oracle.facebook(prom.idUser,prom.idPost);
+				    const idPost = prom.idPost.split(':')
+					oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
 					stat.shares=oraclesFacebook.shares || '0'
 					stat.likes=oraclesFacebook.likes || '0'
 					stat.views=oraclesFacebook.views || '0'
@@ -2125,7 +2126,7 @@ module.exports = function (app) {
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
-		 
+
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 
 		 let id = +req.body.idUser
