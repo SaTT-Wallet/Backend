@@ -27,12 +27,7 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase()
 		};
 
-<<<<<<< HEAD
-		if(ev.contract == app.config.ctrs.campaign.address.mainnetBep20 || ev.contract == app.config.ctrs.campaign.address.testnetBep20) {
-			
-=======
 		if(ev.contract == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase() || ev.contract == app.config.ctrs.campaign.address.testnetBep20.toLowerCase()) {
->>>>>>> 66f9ad43b320b3195ac0840b05aeb68c24e5b109
 			blockchainType = 'bep20'
 			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
 		}
