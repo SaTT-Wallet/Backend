@@ -104,11 +104,11 @@ module.exports = async function (app) {
 			await eventWatcher.campaignCreated(err,evt)
 		}
 
-			if(evt.event != "campaignFundsSpent") {
+			if(evt.event != "CampaignFundsSpent") {
 				await eventWatcher.campaignFundsSpent(err,evt)
 			}
 			if(evt.event != "CampaignApplied") {
-				await eventWatcher.CampaignApplied(err,evt)
+				await eventWatcher.campaignApplied(err,evt)
 			}
 
 
