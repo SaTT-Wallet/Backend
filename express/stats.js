@@ -975,7 +975,8 @@ const Grid = require('gridfs-stream');
 
 		var stats;
 		if(prom.typeSN == 1){
-		 stats = await app.oracle.facebook(prom.idUser,prom.idPost);
+	    const idPost = prom.idPost.split(':')
+		 stats = await app.oracle.facebook(prom.idUser,idPost[0]);
 		} else if(prom.typeSN == 2){
 		 stats = await app.oracle.youtube(prom.idPost);
 		} else if(prom.typeSN == 3){
@@ -984,12 +985,11 @@ const Grid = require('gridfs-stream');
 		 stats = await app.oracle.twitter(prom.idUser,prom.idPost);
 		}
 		
-		let likes = '0';
-		if(stats.likes) likes = stats.likes.toString()
-		let views =  '0';
-		if(stats.views) views = stats.views.toString()
-		let shares =  '0';
-		if(stats.shares) shares = stats.shares.toString()
+		
+		let likes = stats.likes ? stats.likes.toString() : '0';
+		let views  = stats.views ? stats.views.toString() :'0' ;
+		let shares =  stats.shares ? stats.shares.toString() : '0';
+
 		let actualStats = [likes,views,shares];
 		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
 
