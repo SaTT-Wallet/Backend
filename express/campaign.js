@@ -566,7 +566,9 @@ module.exports = function (app) {
 				var data_={
 					cmp:{
 						name:campaign.title,
-						link:link
+						link:link,
+						imgUrl : app.config.baseEmailImgURl,
+						satt_faq :app.config.Satt_faq
 					}
 				}
 				let dynamic_html=ejs.render(html, data_);
@@ -2118,12 +2120,14 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			await app.crm.auth(token);
          const reason =req.body.reason || "";
+		 const title = req.body.title || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
 		 const email = req.body.email
 		 let link = req.body.link
+		 
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
-		 let campaign = await app.db.campaignCrm().findOne({hash : idCampaign});
+
 		 let id = +req.body.idUser
 
 		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash})
@@ -2140,7 +2144,7 @@ module.exports = function (app) {
 				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
-				cmp_title: campaign.title,
+				cmp_title: title,
 				imgUrl: app.config.baseEmailImgURl
 				};
 					let htmlToSend = template(emailContent);
@@ -2162,7 +2166,6 @@ module.exports = function (app) {
 
 	}
 	})
-
 
 
 
