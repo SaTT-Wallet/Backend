@@ -33,7 +33,7 @@ cron.schedule("03 04 * * 1", () =>{
 		}*/
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
-
+      
 	 if(!ctr.methods) {
 		 response.end("{}");
 		 return;
@@ -41,7 +41,7 @@ cron.schedule("03 04 * * 1", () =>{
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
 
-
+      
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
 
