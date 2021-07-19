@@ -205,13 +205,18 @@ module.exports = async function (app) {
 		 return gas;
 		}
 
+		if(app.config.testnet)
+		{
+			ContractToken.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnetBep20);
+			ContractToken.contractBep20WS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnetBep20);
+		}
+		else
+		{
+			ContractToken.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnetBep20);
+			ContractToken.contractBep20WS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnetBep20);
+		}
 
-			if(app.config.testnet) {
-				ContractToken.contractBep20 = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.testnetBep20);
-			}
-			else {
-				ContractToken.contractBep20 = new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.ctrs.oracle.address.mainnetBep20);
-			}
+
 
 
 
@@ -224,9 +229,11 @@ module.exports = async function (app) {
 			await ContractToken.eventCallback(event);
 		});
 
-		ContractToken.contractBep20.events.AskRequest().on('data', async (event) => {
-			await ContractToken.eventCallback(event);
+		ContractToken.contractBep20WS.events.allEvents  (async function(err,evt) {
+					await ContractToken.eventCallback(evt);
 		});
+
+	
 		ContractToken.isDeplyed = true;
 
 	}
