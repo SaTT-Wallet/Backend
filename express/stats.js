@@ -46,7 +46,7 @@ const Grid = require('gridfs-stream');
 		}*/
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
-
+      
 	 if(!ctr.methods) {
 		 response.end("{}");
 		 return;
@@ -54,7 +54,7 @@ const Grid = require('gridfs-stream');
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
 
-
+      
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
 
