@@ -1177,6 +1177,7 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	})
+	
 
 	/////////////////
 	app.get('/v2/bep20/:token/approval/:addr/:spender',async function(req, response) {
@@ -1233,6 +1234,7 @@ module.exports = function (app) {
 
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
+			console.log("token to",to);
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			
 			response.end(JSON.stringify(ret));
@@ -1303,6 +1305,7 @@ module.exports = function (app) {
 			var spender = req.body.spender;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
+
 			const token = req.headers["authorization"].split(" ")[1];
 			const bep20TOken = req.body.token
 			var res =	await app.crm.auth(token);
