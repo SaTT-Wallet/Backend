@@ -46,7 +46,7 @@ const Grid = require('gridfs-stream');
 		}*/
 
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
-      
+
 	 if(!ctr.methods) {
 		 response.end("{}");
 		 return;
@@ -54,7 +54,7 @@ const Grid = require('gridfs-stream');
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
 
-      
+
 		var ratios = await ctr.methods.getRatios(idCampaign).call();
 		var cmpMetas = await app.db.campaignCrm().find({hash:idCampaign.toLowerCase()}).toArray();
 
@@ -209,15 +209,7 @@ const Grid = require('gridfs-stream');
 					campaigns[i].meta.token.name ="SATT";
 				}
 			}
-			if(campaigns[i].meta){
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
-				const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
-				campaigns[i].CampaignCover=CampaignCover;
-			}
+			
 			
 			rescampaigns.push(campaigns[i]);
 		}
@@ -586,14 +578,25 @@ const Grid = require('gridfs-stream');
 
 			campaignWithImage=Campaigns_.slice(startIndex, endIndex);
 			for (var i = 0;i<campaignWithImage.length;i++){
+				if (campaignWithImage[i].meta){
+					idCampaign=campaignWithImage[i].meta._id;
+				}else{
+					idCampaign=campaignWithImage[i]._id
+				}
 				
-				file =await gfs.files.findOne({$or: [ {'campaign.$id':campaignWithImage[i].meta._id},{'campaign.$id':campaignWithImage[i]._id}]});
-				const readstream = gfs.createReadStream(file);
+				file =await gfs.files.findOne({'campaign.$id':idCampaign});
+				if(file){
+					const readstream = gfs.createReadStream(file);
 				CampaignCover="";
 				for await (const chunk of readstream) {
 					CampaignCover=chunk.toString('base64');
 				}
 				campaignWithImage[i].CampaignCover=CampaignCover;
+				}else{
+					campaignWithImage[i].CampaignCover='';
+
+				}
+				
 			}
 			campaignsPaginator.campaigns=campaignWithImage;
 
