@@ -545,7 +545,7 @@ module.exports = async function (app) {
 			}
 			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
 			for (let i =0;i<users.length;i++)
-			{    
+      {
 				delete (users[i].password)
 				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
