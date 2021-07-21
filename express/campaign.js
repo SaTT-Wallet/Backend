@@ -2148,7 +2148,7 @@ module.exports = function (app) {
 
 		 let id = +req.body.idUser
 
-		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:campaign.title, action : "link_rejected", cmp_link : link, cmp_hash: campaign.hash})
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign})
 
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
