@@ -209,15 +209,6 @@ const Grid = require('gridfs-stream');
 					campaigns[i].meta.token.name ="SATT";
 				}
 			}
-			if(campaigns[i].meta){
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
-				const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
-				campaigns[i].CampaignCover=CampaignCover;
-			}
 			
 			rescampaigns.push(campaigns[i]);
 		}
@@ -466,12 +457,7 @@ const Grid = require('gridfs-stream');
 					if(prom.influencer.toLowerCase() == owner.toLowerCase())
 						campaigns[i].proms.push(prom);
 				}
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
-				const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
+				
 				campaigns[i].CampaignCover=CampaignCover;
 
 				rescampaigns.push(campaigns[i]);
