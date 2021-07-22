@@ -148,6 +148,7 @@ const Grid = require('gridfs-stream');
 	});
 
 	app.get('/campaign/all/:influencer', async function(req, response) {
+		
 		var address = req.params.influencer;
 
 		var campaigns = [];
@@ -216,27 +217,10 @@ const Grid = require('gridfs-stream');
 
 		//rescampaigns = rescampaigns.concat(campaignscentral);
 
-		let Ended_c=0
-		let Pending_c=0
-
 		var unowned = [...rescampaigns].filter((campaign) => address.toLowerCase() !== campaign.owner.toLowerCase())
 
-		for(var c=0;c<unowned.length;c++){
-
-			let endDate = new Date(+unowned[c].endDate * 1000);
-		     let startDate = new Date(+unowned[c].startDate * 1000)
-
-			  if (
-				Date.now() >= startDate.getTime() &&
-				Date.now() <= endDate.getTime()
-			  ) {
-				Pending_c++
-			  } else if (Date.now() > endDate.getTime()) {
-				Ended_c++
-			  }
-		}
-
-		response.end(JSON.stringify({allCampaign:unowned,ended:Ended_c,pending:Pending_c}));
+		response.end(JSON.stringify({allCampaign:unowned}));
+		
 	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
