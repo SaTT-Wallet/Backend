@@ -148,6 +148,7 @@ const Grid = require('gridfs-stream');
 	});
 
 	app.get('/campaign/all/:influencer', async function(req, response) {
+		
 		var address = req.params.influencer;
 
 		var campaigns = [];
@@ -210,34 +211,16 @@ const Grid = require('gridfs-stream');
 				}
 			}
 			
-			
 			rescampaigns.push(campaigns[i]);
 		}
 		//var campaignscentral = await app.statcentral.campaignsByInfluencer(address);
 
 		//rescampaigns = rescampaigns.concat(campaignscentral);
 
-		let Ended_c=0
-		let Pending_c=0
-
 		var unowned = [...rescampaigns].filter((campaign) => address.toLowerCase() !== campaign.owner.toLowerCase())
 
-		for(var c=0;c<unowned.length;c++){
-
-			let endDate = new Date(+unowned[c].endDate * 1000);
-		     let startDate = new Date(+unowned[c].startDate * 1000)
-
-			  if (
-				Date.now() >= startDate.getTime() &&
-				Date.now() <= endDate.getTime()
-			  ) {
-				Pending_c++
-			  } else if (Date.now() > endDate.getTime()) {
-				Ended_c++
-			  }
-		}
-
-		response.end(JSON.stringify({allCampaign:unowned,ended:Ended_c,pending:Pending_c}));
+		response.end(JSON.stringify({allCampaign:unowned}));
+		
 	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
@@ -458,12 +441,7 @@ const Grid = require('gridfs-stream');
 					if(prom.influencer.toLowerCase() == owner.toLowerCase())
 						campaigns[i].proms.push(prom);
 				}
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
-				const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
+				
 				campaigns[i].CampaignCover=CampaignCover;
 
 				rescampaigns.push(campaigns[i]);
