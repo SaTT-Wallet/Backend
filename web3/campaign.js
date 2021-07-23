@@ -82,7 +82,10 @@ module.exports = async function (app) {
 		 return gas;
 		}
 		if(app.config.testnet)
+		{
 			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			campaignManager.contractBep20WS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+		}
 		else
 		{
 			campaignManager.contractBep20 = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
@@ -223,7 +226,7 @@ module.exports = async function (app) {
 				       let prom = receipt.events.CampaignApplied.returnValues.prom;
 					resolve({transactionHash:receipt.transactionHash,idCampaign: idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
-				
+
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
 				}
@@ -542,7 +545,8 @@ module.exports = async function (app) {
 			}
 			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
 			for (let i =0;i<users.length;i++)
-			{   
+      {
+				delete (users[i].password)
 				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
 			}

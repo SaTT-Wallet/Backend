@@ -27,8 +27,7 @@ module.exports = async function (app) {
 			contract:evt.address.toLowerCase()
 		};
 
-		if(ev.contract == app.config.ctrs.campaign.address.mainnetBep20 || ev.contract == app.config.ctrs.campaign.address.testnetBep20) {
-			
+		if(ev.contract == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase() || ev.contract == app.config.ctrs.campaign.address.testnetBep20.toLowerCase()) {
 			blockchainType = 'bep20'
 			tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash);
 		}
@@ -99,15 +98,21 @@ module.exports = async function (app) {
 	app.campaign.contract.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
 	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
 
-	/*app.campaign.contractAdvFee.events.CampaignCreated ( eventWatcher.campaignCreated);
-	app.campaign.contractAdvFee.events.CampaignFundsSpent (eventWatcher.campaignFundsSpent);
-	app.campaign.contractAdvFee.events.CampaignApplied ( eventWatcher.campaignApplied);*/
 
-	 if(!app.config.testnet) {
-		app.campaign.contractBep20WS.events.CampaignCreated (eventWatcher.campaignCreated);
-		app.campaign.contractBep20WS.events.CampaignFundsSpent (eventWatcher.campaignFundsSpent);
-		app.campaign.contractBep20WS.events.CampaignApplied (eventWatcher.campaignApplied);
-	}
+	app.campaign.contractBep20WS.events.allEvents  (async function(err,evt) {
+		if(evt.event == "CampaignCreated") {
+			await eventWatcher.campaignCreated(err,evt)
+		}
+
+			if(evt.event == "CampaignFundsSpent") {
+				await eventWatcher.campaignFundsSpent(err,evt)
+			}
+			if(evt.event == "CampaignApplied") {
+				await eventWatcher.campaignApplied(err,evt)
+			}
+
+
+	});
 
 
 
