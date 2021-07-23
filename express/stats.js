@@ -19,6 +19,19 @@ cron.schedule("03 04 * * 1", () =>{
  app.account.BalanceUsersStats("weekly");
 });
 
+const Grid = require('gridfs-stream');
+
+	const GridFsStorage = require('multer-gridfs-storage');
+	const mongoose = require('mongoose');
+	const mongoURI = app.config.mongoURI;
+
+	const conn=mongoose.createConnection(mongoURI);
+
+   	let gfs;
+	conn.once('open', () => {
+		gfs = Grid(conn.db, mongoose.mongo);
+		gfs.collection('campaign_cover');
+	  });
 
 	app.get('/campaign/id/:id', async function(req, response) {
 
@@ -135,6 +148,7 @@ cron.schedule("03 04 * * 1", () =>{
 	});
 
 	app.get('/campaign/all/:influencer', async function(req, response) {
+		
 		var address = req.params.influencer;
 
 		var campaigns = [];
@@ -196,15 +210,6 @@ cron.schedule("03 04 * * 1", () =>{
 					campaigns[i].meta.token.name ="SATT";
 				}
 			}
-			if(campaigns[i].meta){
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i].meta._id});
-				const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
-				campaigns[i].CampaignCover=CampaignCover;
-			}
 			
 			rescampaigns.push(campaigns[i]);
 		}
@@ -212,27 +217,10 @@ cron.schedule("03 04 * * 1", () =>{
 
 		//rescampaigns = rescampaigns.concat(campaignscentral);
 
-		let Ended_c=0
-		let Pending_c=0
-
 		var unowned = [...rescampaigns].filter((campaign) => address.toLowerCase() !== campaign.owner.toLowerCase())
 
-		for(var c=0;c<unowned.length;c++){
-
-			let endDate = new Date(+unowned[c].endDate * 1000);
-		     let startDate = new Date(+unowned[c].startDate * 1000)
-
-			  if (
-				Date.now() >= startDate.getTime() &&
-				Date.now() <= endDate.getTime()
-			  ) {
-				Pending_c++
-			  } else if (Date.now() > endDate.getTime()) {
-				Ended_c++
-			  }
-		}
-
-		response.end(JSON.stringify({allCampaign:unowned,ended:Ended_c,pending:Pending_c}));
+		response.end(JSON.stringify({allCampaign:unowned}));
+		
 	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
@@ -471,6 +459,7 @@ cron.schedule("03 04 * * 1", () =>{
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
 
 
 	app.get('/v2/campaigns/list/:addr', async function(req, response) {
@@ -951,7 +940,8 @@ cron.schedule("03 04 * * 1", () =>{
 
 		var stats;
 		if(prom.typeSN == 1){
-		 stats = await app.oracle.facebook(prom.idUser,prom.idPost);
+	    const idPost = prom.idPost.split(':')
+		 stats = await app.oracle.facebook(prom.idUser,idPost[0]);
 		} else if(prom.typeSN == 2){
 		 stats = await app.oracle.youtube(prom.idPost);
 		} else if(prom.typeSN == 3){
@@ -960,12 +950,11 @@ cron.schedule("03 04 * * 1", () =>{
 		 stats = await app.oracle.twitter(prom.idUser,prom.idPost);
 		}
 		
-		let likes = '0';
-		if(stats.likes) likes = stats.likes.toString()
-		let views =  '0';
-		if(stats.views) views = stats.views.toString()
-		let shares =  '0';
-		if(stats.shares) shares = stats.shares.toString()
+		
+		let likes = stats.likes ? stats.likes.toString() : '0';
+		let views  = stats.views ? stats.views.toString() :'0' ;
+		let shares =  stats.shares ? stats.shares.toString() : '0';
+
 		let actualStats = [likes,views,shares];
 		let arrPrevStat = [prevStats.likes,prevStats.views,prevStats.shares];
 
