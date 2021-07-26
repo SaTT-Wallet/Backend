@@ -441,8 +441,6 @@ const Grid = require('gridfs-stream');
 					if(prom.influencer.toLowerCase() == owner.toLowerCase())
 						campaigns[i].proms.push(prom);
 				}
-				
-				campaigns[i].CampaignCover=CampaignCover;
 
 				rescampaigns.push(campaigns[i]);
 			}
@@ -455,15 +453,14 @@ const Grid = require('gridfs-stream');
 			})
 
             let Campaigns_=[...rescampaigns,...draft_campaigns]
-			Campaigns_.forEach(campaign => {
-								
-			});
 			response.end(JSON.stringify(Campaigns_));
 
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
+
 
 	app.get('/v2/campaigns/list/:addr', async function(req, response) {
 		try{
@@ -541,19 +538,9 @@ const Grid = require('gridfs-stream');
 			const startIndex=(page-1) * limit;
 			const endIndex=page * limit;
 			const campaignsPaginator = {}
-			if(endIndex < Campaigns_.length){
-				campaignsPaginator.next ={
-					page:page+1,
-					limit:limit
-				}
-			}
-			if(startIndex > 0){
-				campaignsPaginator.previous ={
-					page:page-1,
-					limit:limit
-				}
-			}
-
+			
+			campaignsPaginator.count =Campaigns_.length;
+					
 			campaignWithImage=Campaigns_.slice(startIndex, endIndex);
 			for (var i = 0;i<campaignWithImage.length;i++){
 				if (campaignWithImage[i].meta){
@@ -572,19 +559,19 @@ const Grid = require('gridfs-stream');
 				campaignWithImage[i].CampaignCover=CampaignCover;
 				}else{
 					campaignWithImage[i].CampaignCover='';
-
 				}
-				
 			}
 			campaignsPaginator.campaigns=campaignWithImage;
-
-
 			response.end(JSON.stringify(campaignsPaginator));
 
 		}catch(err){
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-	})
+	}) 
+
+
+
+
 	app.get('/proms/owner/:owner', async function(req, response) {
 		var owner = req.params.owner;
 		var proms = [];
