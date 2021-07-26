@@ -32,7 +32,7 @@ module.exports = function (app) {
   var session = require('express-session');
 
   try {
-      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true })); // session secret
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized: true })); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
