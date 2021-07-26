@@ -976,7 +976,7 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/validate', async function(req, res) {
-
+     
 		let pass = req.body.pass;
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;

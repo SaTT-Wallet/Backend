@@ -205,19 +205,19 @@
                 </div>
             </div>
                 <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
-                <h2>Lien ajouté !</h2>
-                <p>Un nouveau lien {{cmp_link}} a été ajouté à votre campagne {{cmp_name}}</p>
+                <h2>{{__ "link_added"}}</h2>
+                <p>{{__ "new_link"}} {{cmp_link}} {{__ "new_link_added"}} {{__ "new_link_campaign"}} {{cmp_name}}</p>
         </div>
         <div class="mail-body">
 
-        <p>N'hésitez pas à prendre contact avec nous si vous avez besoin d'assistance.</p>
+        <p>{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
     <div class="subtitle">
-        Toute l'équipe du SaTT vous souhaite bonne chance !
+        {{__ "valid_wish"}}
     </div>
 </div>
         <div class="mail-footer">
-            <a href="{{cmp_satt_faq}}">À propos de SaTT</a>
-            <a class="border-l" href="{{cmp_satt_faq}}">Nous contacter</a>
+            <a href="{{cmp_satt_faq}}">{{__ "about"}}</a>
+            <a class="border-l" href="{{cmp_satt_faq}}">{{__ "contact"}}</a>
         </div>
     </div>
 </body>
