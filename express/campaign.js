@@ -382,11 +382,11 @@ module.exports = function (app) {
 			}*/
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
-				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
+			if(ret.hash){
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret.hash}});
 			}
 
-			response.end(JSON.stringify({transactionHash : ret}));
+			response.end(JSON.stringify(ret));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -453,11 +453,11 @@ module.exports = function (app) {
 			}*/
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
-				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
+			if(ret.transactionHash){
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret.hash}});
 			}
 
-			res.end(JSON.stringify({transactionHash : ret}));
+			res.end(JSON.stringify(ret));
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');

@@ -64,19 +64,6 @@ const Grid = require('gridfs-stream');
 		var shares = ratios[2];
 		var views = ratios[3];
 
-        // let res = [];
-		let cmpRatio = cmpMetas[0].ratios
-		// let counter = 0;
-        // while(counter < cmpRatio.length){
-		// 	let arr = Object.values(cmpRatio[counter]);
-		// 	arr.shift()
-		// 	if(!allEqual(arr)){
-		// 		res.push({typeSN:types[counter],likeRatio:likes[counter],shareRatio:shares[counter],viewRatio:views[counter]})
-		// 	}
-		// 	counter++;
-		// }
-
-
 		let res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 		result.ratios = res;
 		result.meta = cmpMetas[0];
