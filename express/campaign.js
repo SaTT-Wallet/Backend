@@ -419,16 +419,6 @@ module.exports = function (app) {
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
-
-
-
-			/*var balance = await app.erc20.getBalance(token,cred.address);
-
-			if( (new BN(balance.amount)).lt(new BN(amount)) )
-			{
-				response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
-			}*/
-
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
 			if(ret){
 				var campaign = {
@@ -438,8 +428,7 @@ module.exports = function (app) {
 					dataUrl : dataUrl,
 					token:ERC20token,
 					amount:amount,
-					walletId:cred.address,
-					contract:"central"
+					walletId:cred.address
 				};
 				console.log(campaign)
 				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
