@@ -420,17 +420,16 @@ module.exports = function (app) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret.hash){
+			if(ret.hash && ret.transactionHash){
 				var campaign = {
 					hash : ret.hash,
-					startDate : startDate,
-					endDate : endDate,
-					dataUrl : dataUrl,
+					startDate,
+					endDate,
+					dataUrl,
 					token:ERC20token,
-					amount:amount,
+					amount,
 					walletId:cred.address
 				};
-				console.log(campaign)
 				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 			}
 
