@@ -396,6 +396,54 @@ module.exports = function (app) {
 		}
 
 	});
+
+	app.put('/v2/launchCampaign', async function(req, response) {
+		var pass = req.body.pass;
+		var dataUrl = req.body.dataUrl;
+		var startDate = req.body.startDate;
+		var endDate = req.body.endDate;
+		var ERC20token = req.body.ERC20token;
+		var amount = req.body.amount;
+		var ratios = req.body.ratios;
+		let id =req.body.idCampaign
+
+		try {
+
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+			var cred = await app.account.unlock(auth.id,pass);
+
+
+
+
+			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
+				ERC20token = app.config.ctrs.token.address.testnet;
+			}
+			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
+			if(ret){
+				var campaign = {
+					hash : ret,
+					startDate : startDate,
+					endDate : endDate,
+					dataUrl : dataUrl,
+					token:ERC20token,
+					amount:amount,
+					walletId:cred.address
+				};
+				console.log(campaign)
+				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+			}
+
+			response.end(JSON.stringify({transactionHash : ret}));
+
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			app.account.lock(cred.address);
+		}
+
+	});
 /**
  * @swagger
  * /v2/campaign/create/all:
@@ -2234,15 +2282,56 @@ module.exports = function (app) {
 			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
 		})
 		 }
-	const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
-	const updatedCampaign = result.value
-	res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
+		const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+		const updatedCampaign = result.value
+		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 } catch (err) {
 
 	console.error(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
    })
+
+   app.post('/v2/campaign/save', async (req, res) => {
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(token);
+		const campaign = req.body;
+		campaign.idNode = "0" + auth.id;
+		campaign.createdAt=Date.now();
+		campaign.updatedAt=Date.now();
+	const draft = await app.db.campaigns().insertOne(campaign);
+		res.end(JSON.stringify(draft.ops[0])).status(200);
+
+	} catch (err) {
+		res.end(JSON.stringify(err));
+	}
+
+});
+
+   app.put('/v2/campaign/update/:idCampaign', async (req, res) => {
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
+		let campaign = req.body;
+		campaign.updatedAt=Date.now();
+		if(req.body.ratios){
+        req.body.ratios.forEach(elem =>{
+			elem.view  = new Big(elem.view).times(etherInWei).toFixed(0) || '0';
+			elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
+			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
+		})
+		 }
+		const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+		const updatedCampaign = result.value
+		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
+		} catch (err) {
+
+			console.error(err)
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	})
+
 
 
         /*
