@@ -1,4 +1,5 @@
 const { VirtualConsole } = require('jsdom');
+const campaign = require('../web3/campaign');
 
 module.exports = function (app) {
 
@@ -147,6 +148,20 @@ const Grid = require('gridfs-stream');
 
 	});
 
+	app.get('/v2/campaign/id/:id', async function(req, response) {
+		var idCampaign = req.params.id;
+		var ctr = await app.campaign.getCampaignContract(idCampaign);
+		if(!ctr.methods) {
+			response.end("{}");
+			return;
+		}
+
+		var result = await ctr.methods.campaigns(idCampaign).call();
+		var campaign = await app.db.campaigns().findOne({hash:idCampaign.toLowerCase()});
+		campaign.remaining=result.funds[1];
+		response.end(JSON.stringify(campaign));
+	});
+
 	app.get('/campaign/all/:influencer', async function(req, response) {
 		
 		var address = req.params.influencer;
@@ -221,6 +236,52 @@ const Grid = require('gridfs-stream');
 
 		response.end(JSON.stringify({allCampaign:unowned}));
 		
+	})
+
+
+
+
+	app.get('/getCampaignsByInfluencer/:influencer', async function(req, response) {
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(token);
+		const limit=parseInt(req.query.limit) || 50;
+		const page=parseInt(req.query.page) || 1;
+		const skip=limit*(page-1);
+		const campaignsPaginator = {}
+		count = await app.db.campaigns().find({$and:[{walletId:{$ne : address},hash: { $exists: true}}]}).count();
+		campaignsPaginator.count =count;
+		var address = req.params.influencer;
+		allCampaigns=[];
+		campaigns = await app.db.campaigns().find({walletId:{$ne : address},hash: { $exists: true}}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+		for (var i = 0;i<campaigns.length;i++)
+		{
+			var ctr = await app.campaign.getCampaignContract(campaigns[i].hash);
+			if(!ctr.methods)
+			{
+				continue;
+			}
+			var result = await ctr.methods.campaigns(campaigns[i].hash).call();
+			campaigns[i].funds =  result.funds;
+			campaigns[i].nbProms =  result.nbProms;
+			campaigns[i].nbValidProms =  result.nbValidProms;
+			proms = await app.db.campaign_link().find({$and:[{id_campaign:campaigns[i].hash},{id_wallet:address}]}).toArray();
+			campaigns[i].proms =proms;
+				file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
+				if(file){
+				const readstream = gfs.createReadStream(file);
+				CampaignCover="";
+				for await (const chunk of readstream) {
+					CampaignCover=chunk.toString('base64');
+				}
+				campaigns[i].CampaignCover=CampaignCover;
+				}else{
+					campaigns[i].CampaignCover='';
+				}
+			allCampaigns.push(campaigns[i]);
+		}
+
+		campaignsPaginator.campaigns =allCampaigns;
+		response.end(JSON.stringify(campaignsPaginator));
 	})
 
 	app.get('/campaign/owner/:owner', async function(req, response) {
@@ -464,16 +525,19 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v2/campaigns/list/:addr', async function(req, response) {
 		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
 			const limit=parseInt(req.query.limit) || 50;
-			const page=parseInt(req.query.page) || 1
+			const page=parseInt(req.query.page) || 1;
+			const skip=limit*(page-1)
 			var owner = req.params.addr;
 			var campaigns = [];
             let rescampaigns = [];
 
-			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
+			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).skip(skip).limit(limit).toArray();
 			var campaignsCrm = [];
 			var campaignsCrmbyId = [];
-			campaignsCrm = await app.db.campaignCrm().find().toArray();
+			campaignsCrm = await app.db.campaignCrm().find({idNode:"0"+auth.id}).skip(skip).limit(limit).toArray();
 			for (var i = 0;i<campaignsCrm.length;i++)
 			{
 				if(campaignsCrm[i].hash)
@@ -525,10 +589,9 @@ const Grid = require('gridfs-stream');
 				}
 				rescampaigns.push(campaigns[i]);
 			}
-			const token = req.headers["authorization"].split(" ")[1];
-			var auth =	await app.crm.auth(token);
-
-			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).toArray();
+			
+			let count = await app.db.campaignCrm().find({idNode:"0"+auth.id}).count();
+			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).skip(skip).limit(limit).toArray();
             draft_campaigns=draft_campaigns.map((c)=>{
 				return {...c,stat:'draft'}
 			})
@@ -539,7 +602,7 @@ const Grid = require('gridfs-stream');
 			const endIndex=page * limit;
 			const campaignsPaginator = {}
 			
-			campaignsPaginator.count =Campaigns_.length;
+			campaignsPaginator.count =count;
 					
 			campaignWithImage=Campaigns_.slice(startIndex, endIndex);
 			for (var i = 0;i<campaignWithImage.length;i++){
@@ -570,6 +633,56 @@ const Grid = require('gridfs-stream');
 	}) 
 
 
+	app.get('/getCampaignByOwner', async function(req, response) {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+			const limit=parseInt(req.query.limit) || 50;
+			const page=parseInt(req.query.page) || 1;
+			const skip=limit*(page-1);
+			const campaignsPaginator = {}
+			
+			campaignsPaginator.count =count;
+			allCampaigns=[];
+			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).count();
+
+			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+			
+			for (var i = 0;i<campaigns.length;i++)
+			{
+			if(campaigns[i].hash){
+				var ctr = await app.campaign.getCampaignContract(campaigns[i].hash);
+				if(!ctr.methods)
+				{
+					continue;
+				}
+				var result = await ctr.methods.campaigns(campaigns[i].hash).call();
+				campaigns[i].funds =  result.funds;
+				campaigns[i].nbProms =  result.nbProms;
+				campaigns[i].nbValidProms =  result.nbValidProms;
+
+				file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
+				if(file){
+				const readstream = gfs.createReadStream(file);
+				CampaignCover="";
+				for await (const chunk of readstream) {
+					CampaignCover=chunk.toString('base64');
+				}
+				campaigns[i].CampaignCover=CampaignCover;
+				}else{
+					campaigns[i].CampaignCover='';
+				}
+	
+			}
+				allCampaigns.push(campaigns[i]);
+			}
+			campaignsPaginator.campaigns =allCampaigns;
+			response.end(JSON.stringify(campaignsPaginator));
+
+		}catch(err){
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	}) 
 
 
 	app.get('/proms/owner/:owner', async function(req, response) {
@@ -584,6 +697,12 @@ const Grid = require('gridfs-stream');
 	app.get('/campaign/draft/:token', async function(req, response) {
 		var res = await app.crm.auth( req.params.token);
 		var campaigns = await app.db.campaignCrm().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
+		response.end(JSON.stringify(campaigns));
+	})
+
+	app.get('/v2/campaign/draft/:token', async function(req, response) {
+		var res = await app.crm.auth( req.params.token);
+		var campaigns = await app.db.campaigns().find({idNode:"0"+res.id,hash:{ $exists: false}}).toArray();
 		response.end(JSON.stringify(campaigns));
 	})
 
