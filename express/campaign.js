@@ -420,9 +420,9 @@ module.exports = function (app) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
+			if(ret.hash){
 				var campaign = {
-					hash : ret,
+					hash : ret.hash,
 					startDate : startDate,
 					endDate : endDate,
 					dataUrl : dataUrl,
@@ -434,7 +434,7 @@ module.exports = function (app) {
 				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 			}
 
-			response.end(JSON.stringify({transactionHash : ret}));
+			response.end(JSON.stringify(ret));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
