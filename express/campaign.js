@@ -604,41 +604,46 @@ module.exports = function (app) {
      */
 
 	 app.post('/campaign/insert_link_notification', async (req, res)=> {
+
+		const lang = req.query.lang || "en";
+		app.i18n.configureTranslation(lang);
+
         try {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
-		   let campaign={}
+		   
 		 await  app.db.campaignCrm().findOne({hash:campaign_id},async  (err, element)=> {
 			   let owner= Number(element.idNode.substring(1))
-               campaign.title=element.title
-			   campaign.hash=element.hash
+               
 			   manageTime()
 
-		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :campaign.title,date :campaign.date, cmp_hash:campaign.hash})
+		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:element.hash});
 
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
-		fs.readFile(__dirname + '/emailtemplate/Email_Template_link_added.html', 'utf8' ,async(err, html) => {
+			readHTMLFile(__dirname + '/emailtemplate/Email_Template_link_added.html' ,async(err, html) => {
 				if (err) {
 				  console.error(err)
 				  return
 				}
-				var data_={
-					cmp:{
-						name:campaign.title,
-						link:link,
-						imgUrl : app.config.baseEmailImgURl,
-						satt_faq :app.config.Satt_faq
-					}
-				}
-				let dynamic_html=ejs.render(html, data_);
+				
+			let template = handlebars.compile(html);
+
+			let emailContent = {
+			cmp_name : element.title,
+			cmp_link : link,
+		    cmp_imgUrl: app.config.baseEmailImgURl,
+			cmp_satt_faq: app.config.Satt_faq
+			};
+				let htmlToSend = template(emailContent);
 
 				var mailOptions = {
-			     from: app.config.mailSender,
-			     to: result.email,
-			     subject: 'New link was added To your campaign',
-			     html: dynamic_html
-			};
+					from: app.config.mailSender,
+					to: result.email,
+					subject: 'New link was added To your campaign',
+					html: htmlToSend
+			   };
+	
 
 		 await transporter.sendMail(mailOptions, function(error, info){
 				if (error) {
@@ -1030,7 +1035,7 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/validate', async function(req, res) {
-
+     
 		let pass = req.body.pass;
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;
