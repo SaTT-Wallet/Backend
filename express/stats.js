@@ -241,7 +241,7 @@ const Grid = require('gridfs-stream');
 
 
 
-	app.get('/v2/getCampaignsByInfluencer/:influencer', async function(req, response) {
+	app.get('/v2/campaigns/influencer/:influencer', async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		const limit=parseInt(req.query.limit) || 50;
@@ -633,7 +633,7 @@ const Grid = require('gridfs-stream');
 	}) 
 
 
-	app.get('/v2/getCampaignByOwner', async function(req, response) {
+	app.get('/v2/campaigns/owner', async function(req, response) {
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
