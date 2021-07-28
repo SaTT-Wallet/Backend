@@ -2281,6 +2281,15 @@ module.exports = function (app) {
 			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
 		})
 		 }
+		 if(req.body.bounties){
+			req.body.bounties = req.body.bounties.map((bounty) => {
+				bounty.categories = bounty.categories.map((category) => {
+				  category.reward = new Big(category.reward).times(etherInWei).toFixed(0) || '0';	
+				  return category;
+				})
+				return bounty;
+			  })	
+		 }
 		const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
@@ -2514,27 +2523,6 @@ console.log(Links)
 
 		res.end(JSON.stringify({totalInvested,totalInvestedUSD}))
 	})
-
-  //extract campaign/id/:id
-	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
-		try{
-		let idCampaign = req.params.idCampaign;
-		let result = {}
-		let ctr = await app.campaign.getCampaignContract(idCampaign);
-		if(!ctr.methods) {
-			res.end("{}");
-			return;
-		}else{
-        result = await app.campaign.campaignProms(idCampaign,result,ctr)
-		res.send(JSON.stringify({result}));
-		}
-		}catch(err){
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-	})
-
-
-	
 
 	/*
      @url : /campaign/:idCampaign/logo
