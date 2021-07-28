@@ -382,11 +382,11 @@ module.exports = function (app) {
 			}*/
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
-				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
+			if(ret.hash){
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret.hash}});
 			}
 
-			response.end(JSON.stringify({transactionHash : ret}));
+			response.end(JSON.stringify(ret));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -420,21 +420,20 @@ module.exports = function (app) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
+			if(ret.hash && ret.transactionHash){
 				var campaign = {
-					hash : ret,
-					startDate : startDate,
-					endDate : endDate,
-					dataUrl : dataUrl,
+					hash : ret.hash,
+					startDate,
+					endDate,
+					dataUrl,
 					token:ERC20token,
-					amount:amount,
+					amount,
 					walletId:cred.address
 				};
-				console.log(campaign)
 				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 			}
 
-			response.end(JSON.stringify({transactionHash : ret}));
+			response.end(JSON.stringify(ret));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -501,11 +500,11 @@ module.exports = function (app) {
 			}*/
 
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
-				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret}});
+			if(ret.transactionHash){
+				await app.db.campaignCrm().updateOne({_id : app.ObjectId(id)},{$set:{hash : ret.hash}});
 			}
 
-			res.end(JSON.stringify({transactionHash : ret}));
+			res.end(JSON.stringify(ret));
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -2282,6 +2281,15 @@ module.exports = function (app) {
 			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
 		})
 		 }
+		 if(req.body.bounties){
+			req.body.bounties = req.body.bounties.map((bounty) => {
+				bounty.categories = bounty.categories.map((category) => {
+				  category.reward = new Big(category.reward).times(etherInWei).toFixed(0) || '0';	
+				  return category;
+				})
+				return bounty;
+			  })	
+		 }
 		const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
@@ -2515,27 +2523,6 @@ console.log(Links)
 
 		res.end(JSON.stringify({totalInvested,totalInvestedUSD}))
 	})
-
-  //extract campaign/id/:id
-	app.get('/campaign/topInfluencers/:idCampaign', async(req, res)=>{
-		try{
-		let idCampaign = req.params.idCampaign;
-		let result = {}
-		let ctr = await app.campaign.getCampaignContract(idCampaign);
-		if(!ctr.methods) {
-			res.end("{}");
-			return;
-		}else{
-        result = await app.campaign.campaignProms(idCampaign,result,ctr)
-		res.send(JSON.stringify({result}));
-		}
-		}catch(err){
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-	})
-
-
-	
 
 	/*
      @url : /campaign/:idCampaign/logo
