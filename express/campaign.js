@@ -2531,7 +2531,7 @@ console.log(Links)
      @Input idCampaign : campaign id, file
     */
 
-	 app.post('/campaign/:idCampaign/logo',uploadCampaignLogo, async(req, res)=>{
+	 app.post('/campaign/:idCampaign/logo',uploadCampaignLogo, async(req, res)=>{			
 		try{
 			if(req.file){
 			await gfsLogo.files.findOneAndDelete({'campaign.$id': app.ObjectId(req.params.idCampaign)});

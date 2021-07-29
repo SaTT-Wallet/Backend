@@ -29,8 +29,11 @@ const Grid = require('gridfs-stream');
 	const conn=mongoose.createConnection(mongoURI);
 
    	let gfs;
+	let gfsLogo;
 	conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
+		gfsLogo = Grid(conn.db, mongoose.mongo);
+		gfsLogo.collection('campaign_logo');
 		gfs.collection('campaign_cover');
 	  });
 
@@ -142,6 +145,30 @@ const Grid = require('gridfs-stream');
 			response.end("{}");
 			return;
 		}
+         
+		file =await gfs.files.findOne({'campaign.$id':campaign._id});
+				if(file){
+				const readstream = gfs.createReadStream(file);
+				CampaignCover="";
+				for await (const chunk of readstream) {
+					CampaignCover=chunk.toString('base64');
+				}
+				campaign.CampaignCover=CampaignCover;
+				}else{
+					campaign.CampaignCover='';
+				}
+
+			let	logo =await gfsLogo.files.findOne({'campaign.$id':campaign._id});
+				if(logo){
+				const readstream = gfsLogo.createReadStream(logo);
+				CampaignLogo="";
+				for await (const chunk of readstream) {
+					CampaignLogo=chunk.toString('base64');
+				}
+				campaign.CampaignLogo=CampaignLogo;
+				}else{
+					campaign.CampaignLogo='';
+				}
 
 		var result = await ctr.methods.campaigns(idCampaign).call();
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign.toLowerCase()});
@@ -971,20 +998,19 @@ const Grid = require('gridfs-stream');
      */
      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
- 
-	 let ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
+	const campaign = await app.db.campaigns.findOne({_id : app.ObjectId(req.params.idCampaign)});
+	 let ctr = await app.campaign.getCampaignContract(campaign.hash);
 	 let allProms = [];
 	 if(!ctr.methods) {
 			 res.end("{}");
 		 return;
 	 }else{   
-	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,ctr);
-	  const campaign = await app.db.campaignCrm().findOne({hash : req.params.idCampaign});
+	  allProms =  await app.campaign.campaignProms(rcampaign.hash,ctr);
 	  const ratio = campaign.ratios
 	  let view;
 	  let share;
 	  let like;
-	  const dbProms =await app.db.campaign_link().find({ id_campaign : req.params.idCampaign }).toArray() 
+	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray() 
 	  dbProms.map(result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
@@ -1002,7 +1028,7 @@ const Grid = require('gridfs-stream');
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
-		   
+		   if(ratio){
 		   ratio.forEach(num =>{
 			 if(num.oracle === result.oracle){
 				 if(result.views){
@@ -1018,7 +1044,8 @@ const Grid = require('gridfs-stream');
 				allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
 				 }
 			 }
-		 })
+		      })
+			}
 	    }
 	}		
 	  })
