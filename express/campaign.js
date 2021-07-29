@@ -150,9 +150,9 @@ module.exports = function (app) {
 
 				var stat={};
                 stat.appliedDate = event.date;
-				stat.status = prom.isAccepted
-				stat.id_wallet = prom.influencer
-				stat.id_campaign = prom.idCampaign
+				stat.status = prom.isAccepted;
+				stat.id_wallet = prom.influencer.toLowerCase();
+				stat.id_campaign = prom.idCampaign;
 				stat.id_prom=idProm;
 				stat.fund = prom.funds.amount;
 				stat.idPost = prom.idPost
@@ -423,7 +423,7 @@ module.exports = function (app) {
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
 			if(ret){
 				var campaign = {
-					hash : ret,
+					hash : ret.hash,
 					startDate : startDate,
 					endDate : endDate,
 					dataUrl : dataUrl,
@@ -435,7 +435,7 @@ module.exports = function (app) {
 				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 			}
 
-			response.end(JSON.stringify({transactionHash : ret}));
+			response.end(JSON.stringify(ret));
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1033,7 +1033,7 @@ module.exports = function (app) {
         let link = req.body.link
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
-		var ctr = await app.campaign.getCampaignContract(idCampaign);
+		 
 		try {
 			const lang = req.query.lang || "en";
 			app.i18n.configureTranslation(lang);

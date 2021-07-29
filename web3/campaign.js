@@ -140,7 +140,7 @@ module.exports = async function (app) {
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve(receipt.events.CampaignCreated.returnValues.id);
+					resolve({hash :receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash });
 
 
 			} catch (err) {
@@ -256,7 +256,7 @@ module.exports = async function (app) {
 			else {
 				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				       let prom = receipt.events.CampaignApplied.returnValues.prom;
-					resolve({transactionHash:receipt.transactionHash,idCampaign: idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
+					resolve({transactionHash:receipt.events.CampaignApplied.transactionHash,idCampaign: idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 
 
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
