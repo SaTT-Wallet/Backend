@@ -602,7 +602,7 @@ module.exports = function (app) {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   
-		 await  app.db.campaignCrm().findOne({hash:campaign_id},async  (err, element)=> {
+		 await  app.db.campaigns().findOne({_id:app.ObjectId(campaign_id)},async  (err, element)=> {
 			   let owner= Number(element.idNode.substring(1))
                
 			   manageTime()
