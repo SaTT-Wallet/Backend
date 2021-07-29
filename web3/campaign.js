@@ -31,15 +31,7 @@ module.exports = async function (app) {
 		else
 			return false;
 	}
-	campaignManager.CampaignContract = async function (idCampaign) {
-		var campaign = await app.db.campaigns().findOne({id:idCampaign});
-		if(campaign)
-		{
-			return campaignManager.getContract(campaign.contract);
-		}
-		else
-			return false;
-	}
+
 	campaignManager.getPromContract = async function (idProm) {
 
 
@@ -140,7 +132,7 @@ module.exports = async function (app) {
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve({hash :receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash });
+					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash});
 
 
 			} catch (err) {
@@ -150,31 +142,7 @@ module.exports = async function (app) {
 
 		})
 	}
-	campaignManager.launchCampaign = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
-		return new Promise(async (resolve, reject) => {
 
-
-
-			var ctr = await campaignManager.getContractToken(token);
-
-
-
-			var gasPrice = await ctr.getGasPrice();
-			var gas = 600000;
-			try {
-
-					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					console.log(receipt);
-					resolve(receipt.events.launchCampaign.returnValues.id);
-
-
-			} catch (err) {
-
-				reject(err)
-			}
-
-		})
-	}
 	campaignManager.createCampaignBounties = async function (dataUrl,startDate,endDate,bounties,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
@@ -652,7 +620,7 @@ module.exports = async function (app) {
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {
           try{
-			const result = await app.db.campaigns().findOne({_id: idCampaign});
+			const result = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 			if(result.hash){
 			const ctr = await app.campaign.getCampaignContract(result.hash);
 				const element = await ctr.methods.campaigns(result.hash).call()
