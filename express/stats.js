@@ -150,15 +150,20 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v2/campaign/id/:id', async function(req, response) {
 		var idCampaign = req.params.id;
-		var ctr = await app.campaign.getCampaignContract(idCampaign);
-		if(!ctr.methods) {
-			response.end("{}");
-			return;
-		}
+		
+		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
+		if(campaign.hash){
+			var ctr = await app.campaign.getCampaignContract(campaign.hash);
+			if(!ctr.methods) {
+				response.end("{}");
+				return;
+			}
+			var result = await ctr.methods.campaigns(campaign.hash).call();
+			campaign.remaining=result.funds[1];
 
-		var result = await ctr.methods.campaigns(idCampaign).call();
-		var campaign = await app.db.campaigns().findOne({hash:idCampaign.toLowerCase()});
-		campaign.remaining=result.funds[1];
+			
+		}
+	
 		response.end(JSON.stringify(campaign));
 	});
 
@@ -244,15 +249,15 @@ const Grid = require('gridfs-stream');
 	app.get('/v2/campaigns/influencer/:influencer', async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
+		var address = req.params.influencer;
 		const limit=parseInt(req.query.limit) || 50;
 		const page=parseInt(req.query.page) || 1;
 		const skip=limit*(page-1);
 		const campaignsPaginator = {}
-		count = await app.db.campaigns().find({$and:[{walletId:{$ne : address},hash: { $exists: true}}]}).count();
+		const count = await app.db.campaigns().find({$and:[{walletId:{$ne : address},hash: { $exists: true}}]}).count();
 		campaignsPaginator.count =count;
-		var address = req.params.influencer;
-		allCampaigns=[];
-		campaigns = await app.db.campaigns().find({walletId:{$ne : address},hash: { $exists: true}}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+		const allCampaigns=[];
+		const campaigns = await app.db.campaigns().find({walletId:{$ne : address},hash: { $exists: true}}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 		for (var i = 0;i<campaigns.length;i++)
 		{
 			var ctr = await app.campaign.getCampaignContract(campaigns[i].hash);
@@ -641,11 +646,9 @@ const Grid = require('gridfs-stream');
 			const page=parseInt(req.query.page) || 1;
 			const skip=limit*(page-1);
 			const campaignsPaginator = {}
-			
-			campaignsPaginator.count =count;
 			allCampaigns=[];
-			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).count();
-
+			count = await app.db.campaigns().find({idNode:"0"+auth.id}).count();
+			campaignsPaginator.count =count;
 			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 			
 			for (var i = 0;i<campaigns.length;i++)
@@ -660,7 +663,7 @@ const Grid = require('gridfs-stream');
 				campaigns[i].funds =  result.funds;
 				campaigns[i].nbProms =  result.nbProms;
 				campaigns[i].nbValidProms =  result.nbValidProms;
-
+			}
 				file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
 				if(file){
 				const readstream = gfs.createReadStream(file);
@@ -672,9 +675,7 @@ const Grid = require('gridfs-stream');
 				}else{
 					campaigns[i].CampaignCover='';
 				}
-	
-			}
-				allCampaigns.push(campaigns[i]);
+			allCampaigns.push(campaigns[i]);
 			}
 			campaignsPaginator.campaigns =allCampaigns;
 			response.end(JSON.stringify(campaignsPaginator));
@@ -984,20 +985,20 @@ const Grid = require('gridfs-stream');
      */
      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
- 
-	 let ctr = await app.campaign.getCampaignContract(req.params.idCampaign);
+const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
+	 let ctr = await app.campaign.getCampaignContract(campaign.hash);
 	 let allProms = [];
 	 if(!ctr.methods) {
 			 res.end("{}");
 		 return;
 	 }else{   
-	  allProms =  await app.campaign.campaignProms(req.params.idCampaign,ctr);
-	  const campaign = await app.db.campaignCrm().findOne({hash : req.params.idCampaign});
+	  allProms =  await app.campaign.campaignProms(campaign.hash,ctr);
+	  
 	  const ratio = campaign.ratios
 	  let view;
 	  let share;
 	  let like;
-	  const dbProms =await app.db.campaign_link().find({ id_campaign : req.params.idCampaign }).toArray() 
+	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray() 
 	  dbProms.map(result=>{
  
 		 for(let i = 0; i < allProms.length; i++){

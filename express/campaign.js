@@ -405,6 +405,7 @@ module.exports = function (app) {
 		var ERC20token = req.body.ERC20token;
 		var amount = req.body.amount;
 		var ratios = req.body.ratios;
+		var contract=req.body.contract;
 		let id =req.body.idCampaign
 
 		try {
@@ -426,8 +427,8 @@ module.exports = function (app) {
 					startDate : startDate,
 					endDate : endDate,
 					dataUrl : dataUrl,
-					token:ERC20token,
 					amount:amount,
+					contract:contract.toLowerCase(),
 					walletId:cred.address
 				};
 				console.log(campaign)
@@ -939,7 +940,9 @@ module.exports = function (app) {
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
 		let [prom, date] = [{},Math.floor(Date.now()/1000)];
-		await app.campaign.getCampaignContract(idCampaign);
+		const result=await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
+	
+		await app.campaign.getCampaignContract(result.hash);
 		
 		let id = auth.id
 		try {
@@ -947,7 +950,7 @@ module.exports = function (app) {
 
 
 
-				var ret = await app.campaign.applyCampaign(idCampaign,typeSN,idPost,idUser,cred)
+				var ret = await app.campaign.applyCampaign(result.hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -957,15 +960,14 @@ module.exports = function (app) {
 			
 			if(cred)app.account.lock(cred.address);
 			if(ret && ret.transactionHash){
-				let campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
-				await app.account.notificationManager(id, "apply_campaign",{cmp_name :campaign.title})
+				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title})
 
 				prom.id_prom = ret.idProm;
 				prom.typeSN = ret.typeSN.toString();
 				prom.idUser  = ret.idUser 
 				prom.status = false;
 				prom.idPost = ret.idPost
-				prom.id_campaign  = idCampaign 
+				prom.id_campaign  = result.hash 
 				prom.appliedDate = date
 				await app.db.campaign_link().insertOne(prom);
 			}
@@ -1032,10 +1034,7 @@ module.exports = function (app) {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		var ctr = await app.campaign.getCampaignContract(idCampaign);
-
-
 		try {
-
 			const lang = req.query.lang || "en";
 			app.i18n.configureTranslation(lang);
 
@@ -1054,7 +1053,7 @@ module.exports = function (app) {
 
                  if(ret.transactionHash){
 
-					const campaign = await app.db.campaignCrm().findOne({hash:idCampaign});
+					const campaign = await app.db.campaigns().findOne({hash:idCampaign});
 					const id = req.body.idUser;
                     const email = req.body.email;
 
@@ -1842,6 +1841,16 @@ module.exports = function (app) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
 	});
 
+	app.delete('/v2/campaign/deleteDraft/:id', async (req, res) => {
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
+		try {
+			const id= req.params.id;
+			await app.db.campaigns().deleteOne({_id:app.ObjectId(id)});
+			res.end(JSON.stringify({message :'Draft deleted'})).status(202);
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');}
+	});
 
 	/*
      @link : /addKits
