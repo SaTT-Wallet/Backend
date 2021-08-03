@@ -672,7 +672,7 @@ const Grid = require('gridfs-stream');
 			const allCampaigns=[];
 			const count = await app.db.campaigns().find({idNode:"0"+auth.id}).count();
 			campaignsPaginator.count =count;
-			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+			const campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 			
 			for (var i = 0;i<campaigns.length;i++)
 			{
@@ -687,7 +687,7 @@ const Grid = require('gridfs-stream');
 				campaigns[i].nbProms =  result.nbProms;
 				campaigns[i].nbValidProms =  result.nbValidProms;
 			}
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
+				const file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
 				if(file){
 				const readstream = gfs.createReadStream(file);
 				CampaignCover="";
