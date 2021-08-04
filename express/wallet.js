@@ -1696,7 +1696,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			let contractDecimal = await contract.methods.decimals().call();
 			const tokenName = await contract.methods.name().call();
 			const tokenSymbol = await contract.methods.symbol().call();
-            customToken._id = auth.id;
+            customToken._id = id;
 			customToken.decimal = contractDecimal;
 			customToken.tokenName = tokenName;
 			customToken.network = network.toUpperCase();
