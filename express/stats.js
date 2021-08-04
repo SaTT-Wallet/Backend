@@ -1005,7 +1005,7 @@ const Grid = require('gridfs-stream');
 			 res.end("{}");
 		 return;
 	 }else{   
-	  allProms =  await app.campaign.campaignProms(rcampaign.hash,ctr);
+	  allProms =  await app.campaign.campaignProms(campaign.hash,ctr);
 	  const ratio = campaign.ratios
 	  let view;
 	  let share;
