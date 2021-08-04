@@ -1688,19 +1688,16 @@ app.post('/v2/profile/update', async function(req, response) {
 
 			let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;
             
-            let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth
+            let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth;
 			let code = await networkToken.getCode(tokenAdress)
 			if(code === '0x'){res.send({error:'not a token address'})}
 			else{
 			let contract = new networkToken.Contract(abi,tokenAdress);
-			let contractDecimal = await contract.methods.decimals().call();
-			const tokenName = await contract.methods.name().call();
-			const tokenSymbol = await contract.methods.symbol().call();
-            customToken._id = id;
-			customToken.decimal = contractDecimal;
-			customToken.tokenName = tokenName;
+            customToken.idUser = id;
+			customToken.decimal = await contract.methods.decimals().call();
+			customToken.tokenName = await contract.methods.name().call();
 			customToken.network = network.toUpperCase();
-			customToken.symbol = tokenSymbol;
+			customToken.symbol = await contract.methods.symbol().call();
 			customToken.contract = tokenAdress;
 			await app.db.customToken().insertOne(customToken)
 			res.send({message : "Token added"})
