@@ -167,6 +167,9 @@ module.exports = async function (app) {
 		app.db.delta = function () {
 				return db.db(app.config.mongoBase).collection('delta');
 		};
+		app.db.customToken = function () {
+			return db.db(app.config.mongoBase).collection('custom_token');
+	    };
 
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
