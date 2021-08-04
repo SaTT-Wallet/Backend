@@ -22,11 +22,11 @@ module.exports = async function (app) {
 			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
-		var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
-		if(campaigns.length)
+		var campaign = await app.db.campaigns().findOne({hash:idCampaign});
+		if(campaign)
 		{
 
-			return campaignManager.getContract(campaigns[0].contract);
+			return campaignManager.getContract(campaign.contract);
 		}
 		else
 			return false;
@@ -132,7 +132,7 @@ module.exports = async function (app) {
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve({hash :receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash });
+					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash});
 
 
 			} catch (err) {
@@ -620,13 +620,18 @@ module.exports = async function (app) {
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {
           try{
-			const result = await app.db.campaignCrm().findOne({hash: idCampaign});
-			const ctr = await app.campaign.getCampaignContract(idCampaign);
-			const element = await ctr.methods.campaigns(idCampaign).call()
+			const result = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
+			if(result.hash){
+			const ctr = await app.campaign.getCampaignContract(result.hash);
+				const element = await ctr.methods.campaigns(result.hash).call()
 			const toPayBig = new Big(element.funds[1]);
 			const bgBudget = new Big(result.cost)
 			const spent =bgBudget.minus(toPayBig).abs().toFixed();
             resolve({toPay : element.funds[1] , spent, initialBudget : result.cost})
+			}else{
+				resolve({toPay : 0 , spent:0, initialBudget : 0})
+			}
+			
 		  }catch (e) {
 				reject({message:e.message});
 			}		})

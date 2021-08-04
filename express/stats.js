@@ -27,14 +27,13 @@ const Grid = require('gridfs-stream');
 	const mongoURI = app.config.mongoURI;
 
 	const conn=mongoose.createConnection(mongoURI);
-
+    let gfsLogo;
    	let gfs;
-	let gfsLogo;
 	conn.once('open', () => {
 		gfs = Grid(conn.db, mongoose.mongo);
+		gfs.collection('campaign_cover');
 		gfsLogo = Grid(conn.db, mongoose.mongo);
 		gfsLogo.collection('campaign_logo');
-		gfs.collection('campaign_cover');
 	  });
 
 	app.get('/campaign/id/:id', async function(req, response) {
@@ -67,6 +66,19 @@ const Grid = require('gridfs-stream');
 		var likes = ratios[1];
 		var shares = ratios[2];
 		var views = ratios[3];
+
+        // let res = [];
+		let cmpRatio = cmpMetas[0].ratios
+		// let counter = 0;
+        // while(counter < cmpRatio.length){
+		// 	let arr = Object.values(cmpRatio[counter]);
+		// 	arr.shift()
+		// 	if(!allEqual(arr)){
+		// 		res.push({typeSN:types[counter],likeRatio:likes[counter],shareRatio:shares[counter],viewRatio:views[counter]})
+		// 	}
+		// 	counter++;
+		// }
+
 
 		let res = [{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
 		result.ratios = res;
@@ -140,39 +152,41 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v2/campaign/id/:id', async function(req, response) {
 		var idCampaign = req.params.id;
-		var ctr = await app.campaign.getCampaignContract(idCampaign);
-		if(!ctr.methods) {
-			response.end("{}");
-			return;
+		
+		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
+		if(campaign.hash){
+			var ctr = await app.campaign.getCampaignContract(campaign.hash);
+			if(!ctr.methods) {
+				response.end("{}");
+				return;
+			}
+			var result = await ctr.methods.campaigns(campaign.hash).call();
+			campaign.remaining=result.funds[1];	
 		}
-         
 		file =await gfs.files.findOne({'campaign.$id':campaign._id});
-				if(file){
-				const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
-				campaign.CampaignCover=CampaignCover;
-				}else{
-					campaign.CampaignCover='';
-				}
+		if(file){
+		const readstream = gfs.createReadStream(file);
+		CampaignCover="";
+		for await (const chunk of readstream) {
+			CampaignCover=chunk.toString('base64');
+		}
+		campaign.CampaignCover=CampaignCover;
+		}else{
+			campaign.CampaignCover='';
+		}
 
-			let	logo =await gfsLogo.files.findOne({'campaign.$id':campaign._id});
-				if(logo){
-				const readstream = gfsLogo.createReadStream(logo);
-				CampaignLogo="";
-				for await (const chunk of readstream) {
-					CampaignLogo=chunk.toString('base64');
-				}
-				campaign.CampaignLogo=CampaignLogo;
-				}else{
-					campaign.CampaignLogo='';
-				}
-
-		var result = await ctr.methods.campaigns(idCampaign).call();
-		var campaign = await app.db.campaigns().findOne({hash:idCampaign.toLowerCase()});
-		campaign.remaining=result.funds[1];
+	let	logo =await gfsLogo.files.findOne({'campaign.$id':campaign._id});
+		if(logo){
+		const readstream = gfsLogo.createReadStream(logo);
+		CampaignLogo="";
+		for await (const chunk of readstream) {
+			CampaignLogo=chunk.toString('base64');
+		}
+		campaign.CampaignLogo=CampaignLogo;
+		}else{
+			campaign.CampaignLogo='';
+		}
+	
 		response.end(JSON.stringify(campaign));
 	});
 
@@ -258,15 +272,15 @@ const Grid = require('gridfs-stream');
 	app.get('/v2/campaigns/influencer/:influencer', async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
+		var address = req.params.influencer;
 		const limit=parseInt(req.query.limit) || 50;
 		const page=parseInt(req.query.page) || 1;
 		const skip=limit*(page-1);
 		const campaignsPaginator = {}
-		count = await app.db.campaigns().find({$and:[{walletId:{$ne : address},hash: { $exists: true}}]}).count();
+		const count = await app.db.campaigns().find({$and:[{walletId:{$ne : address},hash: { $exists: true}}]}).count();
 		campaignsPaginator.count =count;
-		var address = req.params.influencer;
-		allCampaigns=[];
-		campaigns = await app.db.campaigns().find({walletId:{$ne : address},hash: { $exists: true}}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+		const allCampaigns=[];
+		const campaigns = await app.db.campaigns().find({walletId:{$ne : address},hash: { $exists: true}}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 		for (var i = 0;i<campaigns.length;i++)
 		{
 			var ctr = await app.campaign.getCampaignContract(campaigns[i].hash);
@@ -655,12 +669,10 @@ const Grid = require('gridfs-stream');
 			const page=parseInt(req.query.page) || 1;
 			const skip=limit*(page-1);
 			const campaignsPaginator = {}
-			
+			const allCampaigns=[];
+			const count = await app.db.campaigns().find({idNode:"0"+auth.id}).count();
 			campaignsPaginator.count =count;
-			allCampaigns=[];
-			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).count();
-
-			campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+			const campaigns = await app.db.campaigns().find({idNode:"0"+auth.id}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 			
 			for (var i = 0;i<campaigns.length;i++)
 			{
@@ -674,8 +686,8 @@ const Grid = require('gridfs-stream');
 				campaigns[i].funds =  result.funds;
 				campaigns[i].nbProms =  result.nbProms;
 				campaigns[i].nbValidProms =  result.nbValidProms;
-
-				file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
+			}
+				const file =await gfs.files.findOne({'campaign.$id':campaigns[i]._id});
 				if(file){
 				const readstream = gfs.createReadStream(file);
 				CampaignCover="";
@@ -686,9 +698,7 @@ const Grid = require('gridfs-stream');
 				}else{
 					campaigns[i].CampaignCover='';
 				}
-	
-			}
-				allCampaigns.push(campaigns[i]);
+			allCampaigns.push(campaigns[i]);
 			}
 			campaignsPaginator.campaigns =allCampaigns;
 			response.end(JSON.stringify(campaignsPaginator));
@@ -998,14 +1008,15 @@ const Grid = require('gridfs-stream');
      */
      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
-	const campaign = await app.db.campaigns.findOne({_id : app.ObjectId(req.params.idCampaign)});
+	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
 	 let ctr = await app.campaign.getCampaignContract(campaign.hash);
 	 let allProms = [];
 	 if(!ctr.methods) {
 			 res.end("{}");
 		 return;
 	 }else{   
-	  allProms =  await app.campaign.campaignProms(campaign.hash,ctr);
+	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);
+	  
 	  const ratio = campaign.ratios
 	  let view;
 	  let share;
@@ -1029,23 +1040,24 @@ const Grid = require('gridfs-stream');
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   if(ratio){
-		   ratio.forEach(num =>{
-			 if(num.oracle === result.oracle){
-				 if(result.views){
-					view =new Big(num["view"]).times(result.views)
-				 }
-				 if(result.likes){
-				 like =  new Big(num["like"]).times(result.likes) || "0";
-				 }
-				 if(result.shares){			 
-				 share = new Big(num["share"]).times(result.shares) || "0";		
-				 }
-				 if(view && share && like){	 
-				allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
-				 }
-			 }
-		      })
-			}
+				ratio.forEach(num =>{
+							if(num.oracle === result.oracle){
+								if(result.views){
+									view =new Big(num["view"]).times(result.views)
+								}
+								if(result.likes){
+								like =  new Big(num["like"]).times(result.likes) || "0";
+								}
+								if(result.shares){			 
+								share = new Big(num["share"]).times(result.shares) || "0";		
+								}
+								if(view && share && like){	 
+								allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
+								}
+							}
+						})		
+		   }
+		
 	    }
 	}		
 	  })
