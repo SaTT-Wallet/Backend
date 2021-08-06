@@ -1698,9 +1698,20 @@ app.post('/v2/profile/update', async function(req, response) {
 			customToken.tokenName = await contract.methods.name().call();
 			customToken.network = network.toUpperCase();
 			customToken.symbol = await contract.methods.symbol().call();
+			const cryptoMetaData = {
+				method: 'GET',
+				uri: `https://pro-api.coinmarketcap.com/v1/cryptocurrency/info?symbol=${customToken.symbol}`,
+				headers : {
+			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+				},
+				json: true,
+				gzip: true
+			  };
+            let metaData = await rp(cryptoMetaData);
 			customToken.contract = tokenAdress;
+			customToken.picUrl = metaData.data[customToken.symbol].logo
 			await app.db.customToken().insertOne(customToken)
-			res.send({message : "Token added"})
+			res.send({message : "Token added", tokenName : customToken.tokenName , symbol :customToken.symbol})
 			}
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
