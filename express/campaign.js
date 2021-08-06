@@ -1053,11 +1053,11 @@ module.exports = function (app) {
 
                  if(ret.transactionHash){
 
-					const campaign = await app.db.campaigns().findOne({hash:idCampaign});
+					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 					const id = req.body.idUser;
                     const email = req.body.email;
 
-					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign.hash})
+					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
 
 
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
