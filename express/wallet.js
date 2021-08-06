@@ -1700,7 +1700,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			customToken.symbol = await contract.methods.symbol().call();
 			const cryptoMetaData = {
 				method: 'GET',
-				uri: `https://pro-api.coinmarketcap.com/v1/cryptocurrency/info?symbol=${customToken.symbol}`,
+				uri: app.config.cmcUrl + customToken.symbol,
 				headers : {
 			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
 				},
