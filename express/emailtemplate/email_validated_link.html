@@ -242,6 +242,30 @@
     letter-spacing: 0.01em;
     color: #F6F6FF!important;
         }
+        .text-title{
+font-family: Poppins;
+font-style: normal;
+font-weight: bold;
+font-size: 36px;
+line-height: 50px;
+text-align: center;
+letter-spacing: 1px;
+color: #FFFFFF;
+        }
+
+        .text-subtitle{
+            font-family: Poppins;
+font-style: normal;
+font-weight: bold;
+font-size: 16px;
+line-height: 120%;
+/* or 19px */
+
+text-align: center;
+letter-spacing: 0.03em;
+
+color: #FFFFFF;
+        }
     </style>
 </head>-
 <body>
@@ -255,14 +279,16 @@
                 </div>
             </div>
                 <img src="{{imgUrl}}accepted_link.png" alt="">
-                <h2 style="color:white;">{{{__ "link_valid"}}}</h2>
-                <p style="color:white;"> {{__ "valid_mess"}} {{cmp_title}} {{__ "valid_accepted"}}</p>
+                <h2 class="text-title">{{{__ "link_valid"}}}</h2>
+                <p class="text-subtitle"> {{__ "valid_mess"}} {{cmp_title}} {{__ "valid_accepted"}}</p>
         </div>
         <div class="mail-body">
           <h1 class="gains">{{__ "valid_question"}}</h1>
         <p style = "color: #1F2337!important;">{{__ "valid_gaz"}} </p>
         <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
-          <div style="text-align:center;"> <button class="apply-btn"><a class="text-btn" href="{{cmp_link}}">{{__ "valid_post"}}</a></button></div>
+        <div class="apply-btn">
+            <a  style="text-align:center;color:white;"href="{{cmp_link}}">{{__ "valid_post"}}</a>
+       </div>
     <div class="subtitle">
         {{__ "valid_wish"}}
     </div>
