@@ -966,6 +966,7 @@ module.exports = function (app) {
 				prom.typeSN = ret.typeSN.toString();
 				prom.idUser  = ret.idUser 
 				prom.status = false;
+				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = ret.idPost
 				prom.id_campaign  = result.hash 
 				prom.appliedDate = date
