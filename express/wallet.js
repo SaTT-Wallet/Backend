@@ -103,6 +103,7 @@ module.exports = function (app) {
 
 		   if(user.daily[0]){
 			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
+			if(!isFinite(variation)){variation = 0.00;}	
 		   }
 		  if(!user.daily[0] || user.daily[0].convertDate !== today){
 			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
@@ -619,10 +620,10 @@ module.exports = function (app) {
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to, transactionHash : ret.transactionHash})
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('ETH'),to, transactionHash : ret.transactionHash, network : "ERC20"})
 				const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address, transactionHash : ret.transactionHash})
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('ETH'),from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
 				}
 			}
 			response.end(JSON.stringify(ret));
@@ -1094,10 +1095,10 @@ module.exports = function (app) {
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
 			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "erc20"} )
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20"} )
 				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "erc20" } )
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20" } )
 				}
 
 			}
@@ -1244,10 +1245,10 @@ module.exports = function (app) {
 		finally {
 	if(cred){app.account.lockBSC(cred.address);}
 	if(ret && ret.transactionHash){
-		await app.account.notificationManager(res.id, "transfer_event",{amount, network :('BEP20'), to :req.body.to , transactionHash : ret.transactionHash})
+		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash})
 		const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 		if(wallet){
-			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :('BEP20'), from :cred.address , transactionHash : ret.transactionHash} )
+			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash} )
 		}
 
 	}
@@ -1493,10 +1494,10 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		if(ret.transactionHash){
-			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to , transactionHash : ret.transactionHash})
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :('BNB'),to , transactionHash : ret.transactionHash, network : "BEP20"})
 			const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address, transactionHash : ret.transactionHash} )
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :('BNB'),from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
 				}
 		}
 		response.end(JSON.stringify(ret));
