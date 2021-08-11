@@ -607,7 +607,7 @@ module.exports = function (app) {
                
 			   manageTime()
 
-		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:element.hash});
+		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:campaign_id});
 
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
@@ -960,7 +960,7 @@ module.exports = function (app) {
 			
 			if(cred)app.account.lock(cred.address);
 			if(ret && ret.transactionHash){
-				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title})
+				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title, cmp_hash : idCampaign})
 
 				prom.id_prom = ret.idProm;
 				prom.typeSN = ret.typeSN.toString();
@@ -971,6 +971,7 @@ module.exports = function (app) {
 				prom.id_campaign  = result.hash 
 				prom.appliedDate = date
 				await app.db.campaign_link().insertOne(prom);
+				updateStat();
 			}
 		}
 	});
