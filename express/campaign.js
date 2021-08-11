@@ -655,7 +655,7 @@ module.exports = function (app) {
 			var seconds = d.getSeconds();
 			var minutes = d.getMinutes();
 			var hour = d.getHours();
-			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
+			//campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
 		   }
 
         } catch (err) {
@@ -1053,11 +1053,11 @@ module.exports = function (app) {
 
                  if(ret.transactionHash){
 
-					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
+					const campaign = await app.db.campaigns().findOne({hash: idCampaign});
 					const id = req.body.idUser;
                     const email = req.body.email;
 
-					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
+					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : campaign._id})
 
 
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
@@ -1068,7 +1068,7 @@ module.exports = function (app) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
+							cmp_link : app.config.basedURl + 'mywallet/campaign/id/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
 							cmp_title: campaign.title,
@@ -2221,7 +2221,7 @@ module.exports = function (app) {
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
+				cmp_link : app.config.basedURl + 'mywallet/campaign/id/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,
