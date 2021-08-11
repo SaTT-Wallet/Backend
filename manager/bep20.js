@@ -11,7 +11,7 @@ module.exports = async function (app) {
 
     if(app.web3Bep20Websocket)
     {
-      
+
       bep20Manager.contractWS = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
     }
     // if(app.config.testnet){
@@ -106,7 +106,13 @@ module.exports = async function (app) {
 
       console.log("bsc to eth",from,to,value);
 
+
       if(to == nullAddress)
+      {
+        console.log("dropped")
+        return;
+      }
+      else if(to.toLowerCase() != app.config.SattBep20Addr.toLowerCase())
       {
         console.log("dropped")
         return;
