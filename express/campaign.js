@@ -2515,7 +2515,7 @@ console.log(Links)
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 	    let totalInvested = '0';
-		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
+		let userCampaigns = await app.db.campaigns().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 
 		userCampaigns.forEach(elem=>{
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
