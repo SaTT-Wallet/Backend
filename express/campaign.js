@@ -655,7 +655,7 @@ module.exports = function (app) {
 			var seconds = d.getSeconds();
 			var minutes = d.getMinutes();
 			var hour = d.getHours();
-			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
+			//campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
 		   }
 
         } catch (err) {
