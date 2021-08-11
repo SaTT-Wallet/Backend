@@ -162,14 +162,7 @@ module.exports = function (app) {
 				  await app.db.googleProfile().updateOne({UserId:userId  }, { $set: {accessToken:result.access_token}});
 					linked = true;
 					res = await app.oracle.verifyYoutube(userId,idPost);
-				  }
-
-
-
-
-
-						
-					
+				  }			
 				break;
 				case "3":
 				fbProfile = await app.db.fbProfile().findOne({UserId:userId  });

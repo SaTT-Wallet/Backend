@@ -32,7 +32,7 @@ module.exports = function (app) {
   var session = require('express-session');
 
   try {
-      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized: true })); // session secret
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true})); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
@@ -449,6 +449,34 @@ module.exports = function (app) {
     }));
 
 
+    passport.use('google_strategy_add_channel', new GoogleStrategy({
+      clientID: app.config.googleClientId,
+      clientSecret: app.config.googleClientSecret,
+      callbackURL: app.config.baseUrl + "callback/googleChannel",
+      passReqToCallback: true
+    },
+    async function (req,accessToken, refreshToken, profile, cb) {
+        var user_id=+req.query.state;      
+        var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        if(res.pageInfo.totalResults ==0){
+          cb (null,profile,{
+            message: "channel obligatoire"
+        })
+        }
+        var channelId = res.items[0].id;
+            user_google={};
+            user_google.refreshToken = refreshToken;
+            user_google.accessToken = accessToken;
+            user_google.UserId = user_id;
+            user_google.google_id = profile.id;
+            user_google.channelId = channelId;
+            await app.db.googleProfile().insertOne(user_google);
+
+        return cb(null, {id: user_id});
+    }));
+
+
+
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
@@ -575,8 +603,9 @@ module.exports = function (app) {
     passReqToCallback: true
   },
   async function (req,accessToken, refreshToken, profile, done) {
-
-    let user_id=+req.query.state;
+    let state=req.query.state.split('|');
+    let user_id=+state[0];
+    console.log("url=",state[1]);
     let userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
     if(userExist.length){
 
@@ -598,7 +627,8 @@ module.exports = function (app) {
     profileFields: ['id', 'email', "token_for_business"]
   },
   async function (req,accessToken, refreshToken, profile, cb) {
-    let user_id=+req.query.state;
+    let state=req.query.state.split('|');
+    let user_id=+state[0];
     let users = await app.db.sn_user().find({idOnSn:profile._json.token_for_business}).toArray()
     if(users.length){
       cb(null,profile,{
@@ -633,7 +663,7 @@ module.exports = function (app) {
 
 
   passport.serializeUser(function (user, cb) {
-    cb(null, user.id);
+    cb(null, user);
   });
 
   passport.deserializeUser(async function (id, cb) {
@@ -713,6 +743,17 @@ module.exports = function (app) {
     var state=req.params.idUser+" "+req.params.idCampaign;
   
   passport.authenticate('google_strategy_link', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
+	       accessType: 'offline',
+    	   prompt: 'consent',
+	  state:state})(req,res,next)
+  });
+
+
+
+  app.get('/addChannel/google/:idUser', (req, res,next)=>{
+    var state=req.params.idUser
+  
+  passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
 	       accessType: 'offline',
     	   prompt: 'consent',
 	  state:state})(req,res,next)
@@ -823,6 +864,22 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
       }
       });
 
+
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+        try {
+          if(req.authInfo.message){
+            message=req.authInfo.message;
+          }else{
+            message="account_linked_with_success";
+          }
+          let info=req.query.state.split(' ');
+          campaign_id=info[1];
+          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+        } catch (e) {
+          console.log(e)
+        }
+        });
+  
       app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
         try {
 
@@ -924,7 +981,15 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
   });
 
 
+app.get('/getAllPages', async function (req, response) {
+  const token = req.headers["authorization"].split(" ")[1];
+  var auth =	await app.crm.auth(token);
+  var id=+auth.id;
+  var pages = await app.db.fbPage().find({UserId:id}).toArray();
 
+
+
+  });
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
 
@@ -1185,21 +1250,27 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     })
 
     app.get('/connect/google/:idUser', (req, res,next)=>{
-      passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
+      let state=req.params.idUser+"/"+req.query.redirect;
+      passport.authenticate('connect_google', {scope: ['profile','email'],state:state})(req,res,next)
     });
 
   app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
-    let message = req.authInfo.message
-    res.redirect(app.config.basedURl +'/profile/networks?message=' + message);
+    let state=req.query.state.split('|');
+    let url=state[1];
+    let message = req.authInfo.message;
+    res.redirect(app.config.basedURl +url+'?message=' + message);
   });
 
   app.get('/connect/facebook/:idUser', (req, res,next)=>{
-    passport.authenticate('connect_facebook', {state:req.params.idUser})(req,res,next)
+    let state=req.params.idUser+"|"+req.query.redirect;
+    passport.authenticate('connect_facebook', {state:state})(req,res,next)
   });
 
 
   app.get('/callback/connect/facebook',passport.authenticate('connect_facebook'), async  (req, res)=> {
-    res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
+    let state=req.query.state.split('|');
+    let url=state[1];
+    res.redirect(app.config.basedURl +url+'?message=' + req.authInfo.message);
   });
 
   app.put('/updateUserEmail', async (req, res)=>{
@@ -1220,6 +1291,7 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     passport.authenticate('connect_telegram'),
     function(req, res) {
       try {
+        console.log(req)
         res.redirect(app.config.basedURl +"/profile/networks?message=" + req.authInfo.message)
       } catch (e) {
         console.log(e)
