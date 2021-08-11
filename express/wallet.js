@@ -92,7 +92,7 @@ module.exports = function (app) {
 		  let Crypto = await rp(Fetch_crypto_price);
 		  let date = Math.round(new Date().getTime()/1000);
 		  let today = (new Date()).toLocaleDateString("en-US");
-          let variation;
+          let variation = 0.00;
 		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
 
 
