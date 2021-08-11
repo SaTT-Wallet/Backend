@@ -46,6 +46,7 @@ module.exports = async function (app) {
 			});
 		});
 	}
+	
 	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
@@ -167,6 +168,9 @@ module.exports = async function (app) {
 		app.db.delta = function () {
 				return db.db(app.config.mongoBase).collection('delta');
 		};
+		app.db.customToken = function () {
+			return db.db(app.config.mongoBase).collection('custom_token');
+	    };
 
 		app.db.bep20 = function () {
           return db.db(app.config.mongoBase).collection(app.config.bep20Collection);
