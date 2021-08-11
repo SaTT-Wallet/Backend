@@ -1679,5 +1679,44 @@ app.post('/v2/profile/update', async function(req, response) {
 		}
 	})
 
+	app.post('/wallet/token', async (req, res) =>{
+		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			let auth = await app.crm.auth(token);
+            let id = auth.id
+			let [tokenAdress,network,customToken] = [req.body.token,req.body.network,{}];
+
+			let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;
+            
+            let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth;
+			let code = await networkToken.getCode(tokenAdress)
+			if(code === '0x'){res.send({error:'not a token address'})}
+			else{
+			let contract = new networkToken.Contract(abi,tokenAdress);
+            customToken.idUser = id;
+			customToken.decimal = await contract.methods.decimals().call();
+			customToken.tokenName = await contract.methods.name().call();
+			customToken.network = network.toUpperCase();
+			customToken.symbol = await contract.methods.symbol().call();
+			const cryptoMetaData = {
+				method: 'GET',
+				uri: app.config.cmcUrl + customToken.symbol,
+				headers : {
+			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+				},
+				json: true,
+				gzip: true
+			  };
+            let metaData = await rp(cryptoMetaData);
+			customToken.contract = tokenAdress;
+			customToken.picUrl = metaData.data[customToken.symbol].logo
+			await app.db.customToken().insertOne(customToken)
+			res.send({message : "Token added", tokenName : customToken.tokenName , symbol :customToken.symbol})
+			}
+		}catch (err) {
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	})
+
 	return app;
 }
