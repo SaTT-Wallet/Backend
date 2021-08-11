@@ -719,6 +719,28 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		 }
 	  })
 
+
+	  app.put('/updateUserNodeWallet', async (req, res) => {
+		try {
+			const wallets=await app.db.wallet().find().toArray();
+			wallets.forEach(async (wallet)=>{
+				let id_wallet="0x"+wallet.keystore.address;
+				let user_id=wallet.UserId;
+				walletUserNode=await app.db.walletUserNode().findOne({wallet:id_wallet});
+				if(!walletUserNode){
+					let userWallet={};
+					userWallet.wallet=id_wallet;
+					userWallet.idUser=user_id;
+					await app.db.walletUserNode().insertOne(userWallet);
+				}
+			})
+		   res.send(JSON.stringify({message:"success"})).status(201);
+
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+	   })
+
 	return app;
 
 }
