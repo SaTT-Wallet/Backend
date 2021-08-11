@@ -1686,9 +1686,9 @@ app.post('/v2/profile/update', async function(req, response) {
             let id = auth.id
 			let [tokenAdress,network,customToken] = [req.body.token,req.body.network,{}];
 
-			let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;
-            
+			let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;       
             let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth;
+
 			let code = await networkToken.getCode(tokenAdress)
 			if(code === '0x'){res.send({error:'not a token address'})}
 			else{
