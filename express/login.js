@@ -1344,8 +1344,5 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
      }
   })
 
-
-
-
   return app;
 }
