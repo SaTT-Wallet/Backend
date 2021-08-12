@@ -1226,7 +1226,7 @@ module.exports = function (app) {
 	app.post('/v2/bep20/transfer',async function(req, response) {
 
 		try {
-
+            let currency = req.body.symbole
 			var to = req.body.to;
 			var amount = req.body.amount;
 			var pass = req.body.pass;
@@ -1245,10 +1245,10 @@ module.exports = function (app) {
 		finally {
 	if(cred){app.account.lockBSC(cred.address);}
 	if(ret && ret.transactionHash){
-		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash})
+		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})
 		const wallet = app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 		if(wallet){
-			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash} )
+			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency} )
 		}
 
 	}

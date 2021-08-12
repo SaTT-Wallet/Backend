@@ -441,7 +441,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+		if(cred) app.account.lock(cred.address);
 		}
 
 	});
