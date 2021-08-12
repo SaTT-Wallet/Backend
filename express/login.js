@@ -575,8 +575,9 @@ module.exports = function (app) {
     passReqToCallback: true
   },
   async function (req,accessToken, refreshToken, profile, done) {
-
-    let user_id=+req.query.state;
+    let state=req.query.state.split('|');
+    let user_id=+state[0];
+    console.log("url=",state[1]);
     let userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
     if(userExist.length){
 
@@ -590,6 +591,7 @@ module.exports = function (app) {
     }
   }));
 
+
   passport.use("connect_facebook",new FbStrategy({
     clientID: app.config.appId,
     clientSecret: app.config.appSecret,
@@ -598,7 +600,8 @@ module.exports = function (app) {
     profileFields: ['id', 'email', "token_for_business"]
   },
   async function (req,accessToken, refreshToken, profile, cb) {
-    let user_id=+req.query.state;
+    let state=req.query.state.split('|');
+    let user_id=+state[0];
     let users = await app.db.sn_user().find({idOnSn:profile._json.token_for_business}).toArray()
     if(users.length){
       cb(null,profile,{
@@ -633,7 +636,7 @@ module.exports = function (app) {
 
 
   passport.serializeUser(function (user, cb) {
-    cb(null, user.id);
+    cb(null, user);
   });
 
   passport.deserializeUser(async function (id, cb) {
@@ -1184,22 +1187,29 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
        }
     })
 
-    app.get('/connect/google/:idUser', (req, res,next)=>{
-      passport.authenticate('connect_google', {scope: ['profile','email'],state:req.params.idUser})(req,res,next)
+app.get('/connect/google/:idUser', (req, res,next)=>{
+      let state=req.params.idUser+"|"+req.query.redirect;
+      passport.authenticate('connect_google', {scope: ['profile','email'],state:state})(req,res,next)
     });
 
-  app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
-    let message = req.authInfo.message
-    res.redirect(app.config.basedURl +'/profile/networks?message=' + message);
+app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
+    let state=req.query.state.split('|');
+    let url=state[1];
+    let message = req.authInfo.message;
+    res.redirect(app.config.basedURl +url+'?message=' + message);
   });
 
+
   app.get('/connect/facebook/:idUser', (req, res,next)=>{
-    passport.authenticate('connect_facebook', {state:req.params.idUser})(req,res,next)
+    let state=req.params.idUser+"|"+req.query.redirect;
+    passport.authenticate('connect_facebook', {state:state})(req,res,next)
   });
 
 
   app.get('/callback/connect/facebook',passport.authenticate('connect_facebook'), async  (req, res)=> {
-    res.redirect(app.config.basedURl +'/profile/networks?message=' + req.authInfo.message);
+    let state=req.query.state.split('|');
+    let url=state[1];
+    res.redirect(app.config.basedURl +url+'?message=' + req.authInfo.message);
   });
 
   app.put('/updateUserEmail', async (req, res)=>{
