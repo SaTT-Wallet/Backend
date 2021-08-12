@@ -636,7 +636,7 @@ module.exports = function (app) {
 
 
   passport.serializeUser(function (user, cb) {
-    cb(null, user.id);
+    cb(null, user);
   });
 
   passport.deserializeUser(async function (id, cb) {
