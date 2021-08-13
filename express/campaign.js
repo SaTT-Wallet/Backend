@@ -574,16 +574,15 @@ module.exports = function (app) {
 			finally {
 				if(cred) app.account.lock(cred.address);
 				if(ret.hash){
-					var campaign = {
+					let campaign = {
 						hash : ret.hash,
-						startDate : startDate,
-						endDate : endDate,
-						dataUrl : dataUrl,
-						amount:amount,
+						startDate,
+						endDate,
+						dataUrl,
+						amount,
 						contract:contract.toLowerCase(),
 						walletId:cred.address
 					};
-					console.log(campaign)
 					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 				}
 				
@@ -2339,6 +2338,15 @@ module.exports = function (app) {
 			elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
 			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
 		})
+		 }
+		 if(req.body.bounties){
+			req.body.bounties = req.body.bounties.map((bounty) => {
+				bounty.categories = bounty.categories.map((category) => {
+				  category.reward = new Big(category.reward ).times(etherInWei).toFixed(0) || '0';
+				  return category;
+				})		
+				return bounty;
+			  })
 		 }
 		const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
