@@ -12,7 +12,9 @@
 		app.set('view engine', 'ejs');
 		app = await require("./conf/config")(app);
 		app = await require("./conf/const")(app);
-
+		var bodyParser = require('body-parser');
+		app.use(bodyParser.json({limit: '4mb'}));
+		app.use(bodyParser.urlencoded({limit: '4mb', extended: true}));
 		const swaggerJSDoc = require('swagger-jsdoc');
 		const swaggerUi = require('swagger-ui-express');
 		const swaggerDefinition = {
