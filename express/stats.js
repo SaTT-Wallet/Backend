@@ -975,13 +975,11 @@ const Grid = require('gridfs-stream');
    app.get('/prom/stats/:idProm', async (req, res) => {
 	try{
 
-	   let total;
+	   let totalToEarn;
 	   const idProm = req.params.idProm;
-
 	   const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
 	   const payedAmount = info.payedAmount || "0";
-	   const unPayed = info.fund;
-	   const campaign = await app.db.campaignCrm().findOne({hash : info.id_campaign});
+	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
 
 	   ratio.forEach(elem =>{
@@ -989,11 +987,12 @@ const Grid = require('gridfs-stream');
            let view =new Big(elem["view"]).times(info.views)
 		   let like =  new Big(elem["like"]).times(info.likes)
 		   let share = new Big(elem["share"]).times(info.shares)
-		   total = view.plus(like).plus(share).toFixed()
+		   totalToEarn = view.plus(like).plus(share).toFixed()
 		   }
 	   })
+	   info.totalToEarn = new Big(totalToEarn).minus(new Big(payedAmount))
 
-	   res.end(JSON.stringify({total, payedAmount,unPayed}))
+	   res.end(JSON.stringify({prom : info}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
@@ -1116,6 +1115,5 @@ const Grid = require('gridfs-stream');
   }
 	})
 
-	return app;
-
+return app;
 }
