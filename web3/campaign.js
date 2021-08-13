@@ -152,9 +152,8 @@ module.exports = async function (app) {
 			var gas = 500000;
 			try {
 
-
 					var receipt = await  ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve(receipt.events.CampaignCreated.returnValues.id);
+					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash});
 
 
 			} catch (err) {
