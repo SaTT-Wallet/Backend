@@ -553,6 +553,7 @@ module.exports = function (app) {
 			var endDate = req.body.endDate;
 			var ERC20token = req.body.ERC20token;
 			var amount = req.body.amount;
+			let [id,contract] = [req.body.idCampaign,req.body.contract];
 			var bounties = req.body.bounties;
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
@@ -564,13 +565,6 @@ module.exports = function (app) {
 					ERC20token = app.config.ctrs.token.address.testnet;
 				}
 
-				/*var balance = await app.erc20.getBalance(token,cred.address);
-
-				if( (new BN(balance.amount)).lt(new BN(amount)) )
-				{
-					response.end('{"error":"Insufficient token amount expected '+amount+' got '+balance.amount+'"}');
-				}*/
-
 				var ret = await app.campaign.createCampaignBounties(dataUrl,startDate,endDate,bounties,ERC20token,amount,cred);
 				response.end(JSON.stringify(ret));
 
@@ -578,8 +572,21 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {
-				if(cred)
-				app.account.lock(cred.address);
+				if(cred) app.account.lock(cred.address);
+				if(ret.hash){
+					var campaign = {
+						hash : ret.hash,
+						startDate : startDate,
+						endDate : endDate,
+						dataUrl : dataUrl,
+						amount:amount,
+						contract:contract.toLowerCase(),
+						walletId:cred.address
+					};
+					console.log(campaign)
+					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+				}
+				
 			}
 
 		});
