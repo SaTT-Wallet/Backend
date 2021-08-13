@@ -1115,5 +1115,5 @@ const Grid = require('gridfs-stream');
   }
 	})
 
-
+return app;
 }
