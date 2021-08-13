@@ -94,7 +94,7 @@ module.exports = function (app) {
 			}
 			try {
 				var auth = await app.crm.auth(access_T);
-                const network;
+                let network;
 				var ret;
 				if (Direction == "ETB") {
 					network = "ERC20";
