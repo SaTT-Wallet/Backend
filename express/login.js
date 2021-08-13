@@ -642,6 +642,7 @@ module.exports = function (app) {
     }
   }));
 
+
   passport.use("connect_facebook",new FbStrategy({
     clientID: app.config.appId,
     clientSecret: app.config.appSecret,
@@ -1279,6 +1280,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     res.redirect(app.config.basedURl +url+'?message=' + message);
   });
 
+
   app.get('/connect/facebook/:idUser', (req, res,next)=>{
     let state=req.params.idUser+"|"+req.query.redirect;
     passport.authenticate('connect_facebook', {state:state})(req,res,next)
@@ -1433,9 +1435,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
   })
-
-
-
 
   return app;
 }

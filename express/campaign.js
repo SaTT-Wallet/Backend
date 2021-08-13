@@ -441,7 +441,7 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+		if(cred) app.account.lock(cred.address);
 		}
 
 	});
@@ -607,7 +607,7 @@ module.exports = function (app) {
                
 			   manageTime()
 
-		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:element.hash});
+		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:campaign_id});
 
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
@@ -655,7 +655,7 @@ module.exports = function (app) {
 			var seconds = d.getSeconds();
 			var minutes = d.getMinutes();
 			var hour = d.getHours();
-			campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
+			//campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
 		   }
 
         } catch (err) {
@@ -960,16 +960,18 @@ module.exports = function (app) {
 			
 			if(cred)app.account.lock(cred.address);
 			if(ret && ret.transactionHash){
-				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title})
+				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title, cmp_hash : idCampaign})
 
 				prom.id_prom = ret.idProm;
 				prom.typeSN = ret.typeSN.toString();
 				prom.idUser  = ret.idUser 
 				prom.status = false;
+				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = ret.idPost
 				prom.id_campaign  = result.hash 
 				prom.appliedDate = date
 				await app.db.campaign_link().insertOne(prom);
+				updateStat();
 			}
 		}
 	});
@@ -1068,7 +1070,7 @@ module.exports = function (app) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-							cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
+							cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
 							cmp_title: campaign.title,
@@ -2221,7 +2223,7 @@ module.exports = function (app) {
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + '/campaign/id/' + idCampaign,
+				cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,
@@ -2513,7 +2515,7 @@ console.log(Links)
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 	    let totalInvested = '0';
-		let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
+		let userCampaigns = await app.db.campaigns().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
 
 		userCampaigns.forEach(elem=>{
 			totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
