@@ -12,7 +12,6 @@ module.exports = function (app) {
 
 
 
-
 	app.post('/campaign/create/all', async function(req, response) {
 
 		var pass = req.body.pass;

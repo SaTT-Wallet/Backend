@@ -32,7 +32,7 @@ module.exports = function (app) {
   var session = require('express-session');
 
   try {
-      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized: true })); // session secret
+      app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true})); // session secret
     app.use(passport.initialize());
     app.use(passport.session());
   } catch (e) {
@@ -201,8 +201,9 @@ module.exports = function (app) {
         var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
+        var id=Long.fromNumber(await app.account.handleId())
         var insert = await app.db.sn_user().insertOne({
-          _id:Long.fromNumber(await app.account.handleId()),
+          _id:id,
           scopedId: profile.id,
           idOnSn: profile._json.token_for_business,
           email: profile.email,
@@ -219,10 +220,10 @@ module.exports = function (app) {
           picLink:profile.photos.length ? profile.photos[0].value : false,
           userSatt: true
         });
-        var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
+        var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: id, token: token, expires_at: date, scope: "user"});
         //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-          req.session.user = users[0]._id;
-        return cb(null, {id: users[0]._id, token: token, expires_in: date});
+          req.session.user = id;
+        return cb(null, {id: id, token: token, expires_in: date});
       }
     }));
   passport.use("facebook_strategy",new FbStrategy({
@@ -449,6 +450,56 @@ module.exports = function (app) {
     }));
 
 
+    passport.use('google_strategy_add_channel', new GoogleStrategy({
+      clientID: app.config.googleClientId,
+      clientSecret: app.config.googleClientSecret,
+      callbackURL: app.config.baseUrl + "callback/googleChannel",
+      passReqToCallback: true
+    },
+    async function (req,accessToken, refreshToken, profile, cb) {
+        var user_id=+req.query.state;      
+        var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        console.log("result",res);
+        if(res.pageInfo.totalResults ==0){
+          cb (null,profile,{
+            message: "channel obligatoire"
+        })
+        }
+        var channelId = res.items[0].id;
+            user_google={};
+            user_google.refreshToken = refreshToken;
+            user_google.accessToken = accessToken;
+            user_google.UserId = user_id;
+            user_google.google_id = profile.id;
+            user_google.channelId = channelId;
+            await app.db.googleProfile().insertOne(user_google);
+
+        return cb(null, {id: user_id});
+    }));
+
+    app.get('/googleChannels', async function (req, response) {
+      try{
+      const token = req.headers["authorization"].split(" ")[1];
+      var auth =	await app.crm.auth(token);
+      var id=+auth.id;
+      var channels = await app.db.googleProfile().find({UserId:id}).toArray(); 
+      response.send(JSON.stringify(channels))
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+      });
+
+      app.delete('/googleChannels/:id', async function (req, response) {
+        try{
+        const token = req.headers["authorization"].split(" ")[1];
+        auth =	await app.crm.auth(token);
+         var id=req.params.id; 
+        await app.db.googleProfile().deleteOne({_id:app.ObjectId(id)});
+        response.end(JSON.stringify({message : "deleted successfully"}))
+        }catch(err){
+          response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+         }
+        });
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
@@ -457,7 +508,8 @@ module.exports = function (app) {
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
 
-    var user_id = req.session.user;
+    let info=req.query.state.split(' ');
+    var user_id=+info[0];   
 
     var tweet = new Twitter({
       consumer_key: app.config.twitter.consumer_key,
@@ -480,7 +532,6 @@ module.exports = function (app) {
 
         var res_ins = await app.db.twitterProfile().insertOne(profile);
     }
-
     return cb(null, {id: user_id});
   }));
 
@@ -722,7 +773,24 @@ module.exports = function (app) {
   });
 
 
-app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}));
+
+  app.get('/addChannel/google/:idUser', (req, res,next)=>{
+    var state=req.params.idUser
+  
+  passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
+	       accessType: 'offline',
+    	   prompt: 'consent',
+	  state:state})(req,res,next)
+  });
+
+
+app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
+  var state=req.params.idUser+" "+req.params.idCampaign;
+   passport.authenticate('twitter_link', {scope: ['profile','email'],
+   accessType: 'offline',
+   prompt: 'consent',
+  state:state})(req,res,next)
+});
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
@@ -826,12 +894,26 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
       }
       });
 
+
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+        try {
+          response.send('ok');
+        } catch (e) {
+          console.log(e)
+        }
+        });
+  
       app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
         try {
+          if(req.authInfo.message){
+            message=req.authInfo.message;
+          }else{
+            message="account_linked_with_success";
+          }
+          let info=req.query.state.split(' ');
+          campaign_id=info[1];
+          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
 
-
-
-          response.end('{result:"ok"}');
         } catch (e) {
           console.log(e)
         }
@@ -925,7 +1007,6 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
     }
 
   });
-
 
 
   app.post('/auth/passlost', async function (req, response) {
@@ -1187,12 +1268,12 @@ app.get('/link/twitter', passport.authenticate('twitter_link', {scope: ['profile
        }
     })
 
-app.get('/connect/google/:idUser', (req, res,next)=>{
+    app.get('/connect/google/:idUser', (req, res,next)=>{
       let state=req.params.idUser+"|"+req.query.redirect;
       passport.authenticate('connect_google', {scope: ['profile','email'],state:state})(req,res,next)
     });
 
-app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
+  app.get('/callback/connect/google',passport.authenticate('connect_google'), async  (req, res)=> {
     let state=req.query.state.split('|');
     let url=state[1];
     let message = req.authInfo.message;
@@ -1230,6 +1311,7 @@ app.get('/callback/connect/google',passport.authenticate('connect_google'), asyn
     passport.authenticate('connect_telegram'),
     function(req, res) {
       try {
+        console.log(req)
         res.redirect(app.config.basedURl +"/profile/networks?message=" + req.authInfo.message)
       } catch (e) {
         console.log(e)
