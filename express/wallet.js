@@ -3,7 +3,7 @@ var Big = require('big.js');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
-	
+	app.use( bodyParser.json() )
 	var BN = require('bn.js');
 	var rp = require('request-promise');
 	const xChangePricesUrl = app.config.xChangePricesUrl;
