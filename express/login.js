@@ -507,10 +507,8 @@ module.exports = function (app) {
       passReqToCallback: true
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
-
-    let info=req.query.state.split(' ');
+    let info=req.session.state.split(' ');
     var user_id=+info[0];   
-
     var tweet = new Twitter({
       consumer_key: app.config.twitter.consumer_key,
       consumer_secret: app.config.twitter.consumer_secret,
@@ -786,10 +784,11 @@ module.exports = function (app) {
 
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   var state=req.params.idUser+" "+req.params.idCampaign;
-   passport.authenticate('twitter_link', {scope: ['profile','email'],
-   accessType: 'offline',
-   prompt: 'consent',
-  state:state})(req,res,next)
+  req.session.state=state;
+   passport.authenticate('twitter_link',{scope: ['profile','email'],
+   accessType:'offline',
+   prompt:'consent',
+   state:state})(req,res,next)
 });
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
@@ -910,7 +909,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           }else{
             message="account_linked_with_success";
           }
-          let info=req.query.state.split(' ');
+          let info=req.session.state.split(' ');
           campaign_id=info[1];
           response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
 
