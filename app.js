@@ -5,16 +5,18 @@
 		var express = require('express');
 		var app = express();
 		var cors = require('cors')
-
+        var bodyParser = require('body-parser');
+        app.use(bodyParser.json({limit: '4mb'}));
+        app.use(bodyParser.urlencoded({limit: '4mb', extended: true}));
 		app.use(cors())
-
+        
 		app.use('/assets', express.static('public'))
 		app.set('view engine', 'ejs');
 		app = await require("./conf/config")(app);
 		app = await require("./conf/const")(app);
-		var bodyParser = require('body-parser');
-		app.use(bodyParser.json({limit: '4mb'}));
-		app.use(bodyParser.urlencoded({limit: '4mb', extended: true}));
+        
+        
+
 		const swaggerJSDoc = require('swagger-jsdoc');
 		const swaggerUi = require('swagger-ui-express');
 		const swaggerDefinition = {
