@@ -414,26 +414,10 @@ module.exports = function (app) {
 			var auth =	await app.crm.auth(token);
 			var cred = await app.account.unlock(auth.id,pass);
 
-
-
-
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				ERC20token = app.config.ctrs.token.address.testnet;
 			}
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
-			if(ret){
-				var campaign = {
-					hash : ret.hash,
-					startDate : startDate,
-					endDate : endDate,
-					dataUrl : dataUrl,
-					amount:amount,
-					contract:contract.toLowerCase(),
-					walletId:cred.address
-				};
-				console.log(campaign)
-				await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
-			}
 
 			response.end(JSON.stringify(ret));
 
@@ -442,6 +426,18 @@ module.exports = function (app) {
 		}
 		finally {
 		if(cred) app.account.lock(cred.address);
+		if(ret && ret.hash){
+			var campaign = {
+				hash : ret.hash,
+				startDate,
+				endDate,
+				dataUrl,
+				amount,
+				contract:contract.toLowerCase(),
+				walletId:cred.address
+			};
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+		}
 		}
 
 	});
