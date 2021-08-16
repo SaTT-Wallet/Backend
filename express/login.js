@@ -1181,8 +1181,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
     })
 
-
-
     /**
  * @swagger
  * /auth/social:
