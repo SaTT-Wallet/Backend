@@ -149,7 +149,7 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getContractToken(token);
 
 			var gasPrice = await ctr.getGasPrice();
-			var gas = 500000;
+			var gas = await ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
@@ -630,7 +630,7 @@ module.exports = async function (app) {
 			}else{
 				resolve({toPay : 0 , spent:0, initialBudget : 0})
 			}
-			
+
 		  }catch (e) {
 				reject({message:e.message});
 			}		})
