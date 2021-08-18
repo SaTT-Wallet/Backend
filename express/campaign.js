@@ -1395,9 +1395,8 @@ module.exports = function (app) {
 			}
 
 
-			//console.log("getGains",idProm);
 			var ret = await app.campaign.getGains(idProm,cred2);
-			//var ret = {}
+
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -1429,6 +1428,7 @@ module.exports = function (app) {
 
 		var pass = req.body.pass;
 		var idProm = req.body.idProm;
+		var idCampaign=req.body.idCampaign;	
 
 
 		const token = req.headers["authorization"].split(" ")[1];
@@ -1505,9 +1505,16 @@ module.exports = function (app) {
 			}
 
 
-			//console.log("getGains",idProm);
 			var ret = await app.campaign.getGains(idProm,cred2);
-			//var ret = {}
+			var ctr = await app.campaign.getCampaignContract(idCampaign);
+			if(ctr.methods)
+			{			
+			var result = await ctr.methods.campaigns(idCampaign).call();
+			await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+				funds:result.funds,
+				nbProms:result.nbProms,
+				nbValidProms:result.nbValidProms}});
+			}
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
