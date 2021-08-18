@@ -507,8 +507,10 @@ module.exports = function (app) {
       passReqToCallback: true
     },
   async function(req, accessToken, tokenSecret, profile, cb) {
+
     let info=req.session.state.split(' ');
     var user_id=+info[0];   
+
     var tweet = new Twitter({
       consumer_key: app.config.twitter.consumer_key,
       consumer_secret: app.config.twitter.consumer_secret,
@@ -785,10 +787,10 @@ module.exports = function (app) {
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   var state=req.params.idUser+" "+req.params.idCampaign;
   req.session.state=state;
-   passport.authenticate('twitter_link',{scope: ['profile','email'],
-   accessType:'offline',
-   prompt:'consent',
-   state:state})(req,res,next)
+  passport.authenticate('twitter_link',{scope: ['profile','email'],
+  accessType:'offline',
+  prompt:'consent',
+  state:state})(req,res,next)
 });
 
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
@@ -1179,8 +1181,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
         return res.end(JSON.stringify(await app.account.HandleReferral(referral, userId)))
     })
-
-
 
     /**
  * @swagger

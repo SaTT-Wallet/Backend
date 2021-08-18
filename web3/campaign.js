@@ -149,7 +149,7 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getContractToken(token);
 
 			var gasPrice = await ctr.getGasPrice();
-			var gas = 500000;
+			var gas = await ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
@@ -333,6 +333,19 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 
 			var receipt = await ctr.methods.updatePromStats(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
+			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
+		})
+	}
+
+	campaignManager.updateBounty = async function (idProm,credentials) {
+		return new Promise(async (resolve, reject) => {
+
+			var gas = 200000;
+			var ctr =  await campaignManager.getPromContract(idProm);
+			var gasPrice = await ctr.getGasPrice();
+
+			var receipt = await ctr.methods.updateBounty(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
 			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
 		})
@@ -630,7 +643,7 @@ module.exports = async function (app) {
 			}else{
 				resolve({toPay : 0 , spent:0, initialBudget : 0})
 			}
-			
+
 		  }catch (e) {
 				reject({message:e.message});
 			}		})
