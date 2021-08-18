@@ -973,7 +973,6 @@ module.exports = function (app) {
 				prom.id_campaign  = result.hash 
 				prom.appliedDate = date
 				await app.db.campaign_link().insertOne(prom);
-				updateStat();
 			}
 		}
 	});
