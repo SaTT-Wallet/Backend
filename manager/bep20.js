@@ -303,7 +303,7 @@ module.exports = async function (app) {
       bep20Manager.initEventHandlers = async () => {
 
         bep20Manager.contractWS.events.allEvents  ( {filter:{to:app.config.SattBep20Addr}},async function(err,evt) {
-
+          console.log(evt);
           	await bep20Manager.eventBSCtoETH(err,evt)
         });
         //bep20Manager.contractWS.events.allEvents({filter:{to:app.config.SattBep20Addr}},console.log)
