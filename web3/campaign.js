@@ -338,6 +338,19 @@ module.exports = async function (app) {
 		})
 	}
 
+	campaignManager.updateBounty = async function (idProm,credentials) {
+		return new Promise(async (resolve, reject) => {
+
+			var gas = 200000;
+			var ctr =  await campaignManager.getPromContract(idProm);
+			var gasPrice = await ctr.getGasPrice();
+
+			var receipt = await ctr.methods.updateBounty(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
+			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
+		})
+	}
+
 	campaignManager.endCampaign = async function (idCampaign,credentials) {
 		return new Promise(async (resolve, reject) => {
       var ctr =  await campaignManager.getCampaignContract(idCampaign);
