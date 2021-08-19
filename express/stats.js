@@ -312,6 +312,63 @@ const Grid = require('gridfs-stream');
 		response.end(JSON.stringify(campaignsPaginator));
 	})
 
+
+
+	app.get('/v3/campaigns/influencer/:influencer', async function(req, response) {
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(token);
+		var address = req.params.influencer;
+		const limit=parseInt(req.query.limit) || 50;
+		const page=parseInt(req.query.page) || 1;
+		const title=req.query.searchTerm || '';
+		const status=req.query.status;
+		const blockchainType=req.query.blockchainType || '';
+		const skip=limit*(page-1);
+		const dateJour=new Date() /1000;
+		if(req.query.oracles == undefined){
+			oracles=["twitter","facebook","youtube","instagram"];
+		}
+		else if(typeof req.query.oracles === "string"){
+			oracles=Array(req.query.oracles);
+		}else{
+			oracles=req.query.oracles;
+		}
+		const remainingBudget=req.query.remainingBudget || [];
+		const campaignsPaginator = {};
+		var query = {};
+		query["$and"]=[];
+		query["$and"].push({"walletId":{$ne : address}});
+		query["$and"].push({"hash":{ $exists: true}});
+		query["$and"].push({"ratios.oracle":{ $in: oracles}});
+		if(title){
+		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
+		}
+		if(blockchainType){
+			query["$and"].push({"token.type":blockchainType});
+		}
+		if(status =="active" ){
+			if(remainingBudget.length==2){
+				query["$and"].push({"funds.1":{ $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
+			}
+			query["$and"].push({"endDate":{ $gte : dateJour }});
+		}
+		else if(status=="finished"){
+			query["$and"].push({"$or":[{"endDate":{ $lt : dateJour }},{"funds.1":{$eq: "0"}}]});
+		}
+		const count = await app.db.campaigns().find(query).count();
+		campaignsPaginator.count =count;
+		const allCampaigns=[];
+		const campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+		for (var i = 0;i<campaigns.length;i++)
+		{
+			proms = await app.db.campaign_link().find({$and:[{id_campaign:campaigns[i].hash},{id_wallet:address}]}).toArray();
+			campaigns[i].proms =proms;
+			allCampaigns.push(campaigns[i]);	
+		}	
+		campaignsPaginator.campaigns =allCampaigns;
+		response.end(JSON.stringify(campaignsPaginator));
+	})
+
 	app.get('/campaign/owner/:owner', async function(req, response) {
 		var owner = req.params.owner;
 		var campaigns = [];
