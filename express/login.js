@@ -8,6 +8,8 @@ module.exports = function (app) {
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
   var rp = require('request-promise');
+  const { createLogger, format, transports } = require('winston');
+  const { combine, timestamp, label, prettyPrint, myFormat } = format;
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
 
@@ -17,11 +19,8 @@ module.exports = function (app) {
   const fs = require('fs');
   var Twitter = require('twitter');
   var Twitter2 = require('twitter-v2');
-
-
   ObjectId = require('mongodb').ObjectID
   var Long = require('mongodb').Long;
-
   var passport = require('passport');
   var LocalStrategy = require('passport-local').Strategy;
   var emailStrategy = require('passport-local').Strategy;
@@ -39,6 +38,22 @@ module.exports = function (app) {
     console.log(e)
   }
 
+
+  const logger = createLogger({
+    format: format.combine(
+        format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        format.printf(info => `${info.timestamp} ${info.message}`)        
+    ),    
+    transports: [new transports.File({ filename: 'auth.log' })]
+    
+})
+
+ addAuthLog =(info)=>{
+   let pwd = info.pwd ? info.pwd : "";
+  logger.log('info',`${info.state} ${info.ip} ${info.mail} ${pwd}`);
+}
 
   var readHTMLFile = function(path, callback) {
     fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
@@ -137,8 +152,9 @@ module.exports = function (app) {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
-      var maxId = app.db.sn_user().find().sort({_id:-1}).limit(1)
-
+      
+      let logInfo = {};
+      const ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
@@ -160,10 +176,14 @@ module.exports = function (app) {
           } else {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
           }
+          [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
+          addAuthLog(logInfo)
           req.session.user = user._id;
           console.log("email session",req.session.user);
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
         } else {
+          [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, passwprd]
+          addAuthLog(logInfo)
           var failed_count = user.failed_count? user.failed_count + 1 : 1;
           var account_locked = false
           if (failed_count >= bad_login_limit) {
