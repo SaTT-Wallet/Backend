@@ -200,34 +200,34 @@ module.exports = function (app) {
 
                     await app.campaign.UpdateStats(stat); //saving & updating proms in campaign_link.
 
-						if(prom.isAccepted){
-					let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
-						if(element[0]){
-							if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
-								stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
-								stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
-								stat.viewsperDay=Number(stat.views)-Number(element[0].views);
-								try{
-								//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
-									await app.db.CampaignLinkStatistic().insertOne(stat);
-									stat=null;
-								}catch(err){
-									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-								}
-							}
-						}else{
-								stat.sharesperDay=stat.shares;
-								stat.likesperDay=stat.likes;
-								stat.viewsperDay=stat.views;
-								try{
-								//tester si le lien n'existe pas on ajoute un nouveau ligne;
-									await app.db.CampaignLinkStatistic().insertOne(stat);
-									stat=null;
-								}catch(err){
-									console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-											}
-								}
-						}
+					// 	if(prom.isAccepted){
+					// let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
+					// 	if(element[0]){
+					// 		if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
+					// 			stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
+					// 			stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
+					// 			stat.viewsperDay=Number(stat.views)-Number(element[0].views);
+					// 			try{
+					// 			//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
+					// 				await app.db.CampaignLinkStatistic().insertOne(stat);
+					// 				stat=null;
+					// 			}catch(err){
+					// 				console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+					// 			}
+					// 		}
+					// 	}else{
+					// 			stat.sharesperDay=stat.shares;
+					// 			stat.likesperDay=stat.likes;
+					// 			stat.viewsperDay=stat.views;
+					// 			try{
+					// 			//tester si le lien n'existe pas on ajoute un nouveau ligne;
+					// 				await app.db.CampaignLinkStatistic().insertOne(stat);
+					// 				stat=null;
+					// 			}catch(err){
+					// 				console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
+					// 						}
+					// 			}
+					// 	}
 
 
 	})
@@ -963,7 +963,6 @@ module.exports = function (app) {
 			if(cred)app.account.lock(cred.address);
 			if(ret && ret.transactionHash){
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title, cmp_hash : idCampaign})
-
 				prom.id_prom = ret.idProm;
 				prom.typeSN = ret.typeSN.toString();
 				prom.idUser  = ret.idUser 
@@ -1455,10 +1454,9 @@ module.exports = function (app) {
 			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
 			// 	return;
 			// }
-			var cmp  = await ctr.methods.campaigns(prom.idCampaign).call();
+			// await ctr.methods.campaigns(prom.idCampaign).call();
 
-			if(cmp.bounties && cmp.bounties.length) {
-
+			if(req.body.bounty) {
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
@@ -1466,7 +1464,6 @@ module.exports = function (app) {
 				var ret = await app.campaign.getGains(idProm,cred2);
 				response.end(JSON.stringify(ret));
 				return;
-
 			}
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
@@ -1932,7 +1929,6 @@ module.exports = function (app) {
 				}
 					res.writeHead(200, {
 						'Content-Type': contentType ,
-						'Content-Length': file.length,
 						'Content-Disposition': `attachment; filename=${file.filename}`
 					});
 				 const readstream = gfsKit.createReadStream(file.filename);
