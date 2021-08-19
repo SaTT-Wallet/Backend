@@ -1078,7 +1078,7 @@ const Grid = require('gridfs-stream');
 	  let like;
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray() 
 
-	  await dbProms.foreach(async result=>{
+	dbProms.foreach( result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
 			 
