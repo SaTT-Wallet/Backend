@@ -1054,7 +1054,6 @@ const Grid = require('gridfs-stream');
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
    })
-
    	/*
      @link : /campaign/:idCampaign/proms/all
      @description: fetching all campaign proms with it's stats & update status
@@ -1066,19 +1065,20 @@ const Grid = require('gridfs-stream');
 		try{	
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
 	 let ctr = await app.campaign.getCampaignContract(campaign.hash);
-	 let allProms = [];
 	 if(!ctr.methods) {
 			 res.end("{}");
 		 return;
 	 }else{   
 	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);
-	  
-	  const ratio = campaign.ratios
+	 
+	  const ratio = campaign.ratios;
+	  const bounties = campaign.bounties;
 	  let view;
 	  let share;
 	  let like;
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray() 
-	  dbProms.map(result=>{
+
+	dbProms.foreach( result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
 			 
@@ -1095,8 +1095,9 @@ const Grid = require('gridfs-stream');
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
-		   if(ratio){
-				ratio.forEach(num =>{
+		   
+		   if(ratio.length && allProms[i].isAccepted){
+				ratio.forEach( num =>{
 							if(num.oracle === result.oracle){
 								if(result.views){
 									view =new Big(num["view"]).times(result.views)
@@ -1113,6 +1114,19 @@ const Grid = require('gridfs-stream');
 							}
 						})		
 		   }
+
+		   if(bounties.length && allProms[i].isAccepted){
+			  allProms[i].abosNumber =  result.abosNumber
+		       bounties.forEach( bounty=>{
+              if(bounty.oracle === allProms[i].oracle){
+				bounty.categories.forEach( category=>{
+				 if( (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
+					allProms[i].reward = category.reward;					
+				 }
+				})	
+			     }			   
+		         })
+		 }
 		
 	    }
 	}		
