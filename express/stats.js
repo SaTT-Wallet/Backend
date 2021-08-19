@@ -1069,8 +1069,7 @@ const Grid = require('gridfs-stream');
 			 res.end("{}");
 		 return;
 	 }else{   
-	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);
-	 
+	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);	 
 	  const ratio = campaign.ratios;
 	  const bounties = campaign.bounties;
 	  let view;
