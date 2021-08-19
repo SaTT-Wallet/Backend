@@ -388,7 +388,7 @@ module.exports = async function (app) {
 						 if(!result.payedAmount){
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
 						 } else{
-							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed();
+							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed(2);
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
 						 }
 					 })
@@ -603,6 +603,10 @@ module.exports = async function (app) {
 
 
 	campaignManager.UpdateStats = async obj =>{
+		await app.db.campaigns().findOne({hash : obj.id_campaign}, async (err, result)=>{
+        obj.abosNumber = result && result.bounties && result.bounties.length && obj.status== true? await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser) : null;
+		})
+
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			return;
