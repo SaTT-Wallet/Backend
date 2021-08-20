@@ -144,6 +144,7 @@ module.exports = function (app) {
 		 console.log("debut de traitement")
 		let prom;
 		var Events = await app.db.event().find({ prom: { $exists: true} }).toArray();
+		
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			prom = await app.oracle.getPromDetails(idProm)
