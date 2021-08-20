@@ -412,6 +412,8 @@ module.exports = function (app) {
       let info=req.query.state.split(' ');
         var user_id=+info[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        console.log("profile details",profile);
+        console.log("channel details====",res);
         if(res.pageInfo.totalResults ==0){
           cb (null,profile,{
             message: "channel obligatoire"
@@ -437,13 +439,17 @@ module.exports = function (app) {
                         
         }
         else {
-            user_google={};
+          var result = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics,snippet"},json: true});
+        user_google={};
             user_google.refreshToken = refreshToken;
             user_google.accessToken = accessToken;
             user_google.UserId = user_id;
             user_google.google_id = profile.id;
+            user_google.channelTitle=result.items[0].snippet.title;
+            user_google.channelImage=result.items[0].snippet.thumbnails;
+            user_google.channelStatistics=result.items[0].statistics;
             user_google.channelId = channelId;
-            var res_ins = await app.db.googleProfile().insertOne(user_google);
+            await app.db.googleProfile().insertOne(user_google);
         }
 
         return cb(null, {id: user_id});
@@ -466,11 +472,15 @@ module.exports = function (app) {
         })
         }
         var channelId = res.items[0].id;
-            user_google={};
+        var result = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics,snippet"},json: true});
+        user_google={};
             user_google.refreshToken = refreshToken;
             user_google.accessToken = accessToken;
             user_google.UserId = user_id;
             user_google.google_id = profile.id;
+            user_google.channelTitle=result.items[0].snippet.title;
+            user_google.channelImage=result.items[0].snippet.thumbnails;
+            user_google.channelStatistics=result.items[0].statistics;
             user_google.channelId = channelId;
             await app.db.googleProfile().insertOne(user_google);
 
@@ -482,8 +492,10 @@ module.exports = function (app) {
       const token = req.headers["authorization"].split(" ")[1];
       var auth =	await app.crm.auth(token);
       var id=+auth.id;
-      var channels = await app.db.googleProfile().find({UserId:id}).toArray(); 
-      response.send(JSON.stringify(channels))
+      let networks={};
+      var channelsGoogle = await app.db.googleProfile().find({UserId:id}).toArray();
+        networks.google=channelsGoogle;
+      response.send(JSON.stringify(networks))
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
@@ -669,12 +681,14 @@ module.exports = function (app) {
   }))
 
 
-  passport.use("connect_telegram",new TelegramStrategy({
+  passport.use("connect_telegram",
+  new TelegramStrategy({
     botToken: app.config.telegramBotToken,
-    passReqToCallback: true,
+    passReqToCallback: true
   },
   async function (req,profile, cb) {
     let user_id=+req.params.idUser;
+
     let users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
     if(users.length){
       cb(null,profile,{message:"account exist"})
@@ -1111,6 +1125,31 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
       response.end('{error:"no account"}').status(500);
     }
 
+  });
+
+  app.put('/changeEmail', async function (req, response) {
+    var pass = req.body.pass;
+    var email = req.body.email;
+    const token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    var user = await app.db.sn_user().findOne({_id:Long.fromNumber(auth.id)});
+    if( user) {
+      if (user.password != synfonyHash(pass)) {
+        response.end(JSON.stringify("wrong password")).status(200);
+        return;
+      }
+      var existUser = await app.db.sn_user().findOne({email:email});
+      if(existUser){
+        response.end(JSON.stringify("duplicated email")).status(200);
+        return;
+      }else{
+          var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{email: email}});
+        response.end(JSON.stringify("email changed")).status(200);
+      }
+    
+    } else {
+      response.end(JSON.stringify("no account")).status(200);
+    }
   });
 
 	app.post('/auth/passrecover', async function (req, response) {
