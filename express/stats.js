@@ -1038,17 +1038,29 @@ const Grid = require('gridfs-stream');
 	   const payedAmount = info.payedAmount || "0";
 	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
-
+	   const bounties =campaign.bounties
+       if(ratio.length){
 	   ratio.forEach(elem =>{
 		   if(elem.oracle === info.oracle){
-           let view =new Big(elem["view"]).times(info.views)
+           let view =new Big(elem["view"]).times(info.views || "0")
 		   let like =  new Big(elem["like"]).times(info.likes)
 		   let share = new Big(elem["share"]).times(info.shares)
 		   totalToEarn = view.plus(like).plus(share).toFixed()
 		   }
 	   })
 	   info.totalToEarn = new Big(totalToEarn).minus(new Big(payedAmount))
-
+	}
+	  if(bounties.length){
+		bounties.forEach( bounty=>{
+			if(bounty.oracle === info.oracle){
+			  bounty.categories.forEach( category=>{
+			   if( (+category.minFollowers <= +info.abosNumber)  && (+info.abosNumber <= +category.maxFollowers) ){
+				  info.totalToEarn = category.reward;					
+			   }
+			  })	
+			   }			   
+			   })
+	  }
 	   res.end(JSON.stringify({prom : info}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
