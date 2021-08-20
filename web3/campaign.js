@@ -616,22 +616,24 @@ module.exports = async function (app) {
 
 
 	campaignManager.UpdateStats = async obj =>{
-		await app.db.campaigns().findOne({hash : obj.id_campaign}, async (err, result)=>{
-        obj.abosNumber = result && result.bounties && result.bounties.length && obj.status== true? await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser) : null;
-		})
-
+	let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
+	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
+	
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
-			if(!result){await app.db.campaign_link().insertOne(obj);
-			return;
+		if(!result){await app.db.campaign_link().insertOne(obj);
+		return;
+		}
+		else{
+			if(result.status === "rejected"){
+			   return;
 			}
-			else{
-				if(result.status === "rejected"){
-				   return;
-				}
-				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
-			}
-		})
-	}
+						if(obj.idPost == "TnqIXFHbvdg") console.log(obj)
+
+			await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
+		}
+	})
+}
+
 
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {

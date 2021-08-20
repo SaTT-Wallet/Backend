@@ -184,13 +184,14 @@ module.exports = function (app) {
         } else {
           [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, passwprd]
           addAuthLog(logInfo)
+          
           var failed_count = user.failed_count? user.failed_count + 1 : 1;
           var account_locked = false
           if (failed_count >= bad_login_limit) {
             account_locked = true
           }
           var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: account_locked, failed_count: failed_count}});
-          var users0 = await app.db.sn_user().find({_id: Long.fromNumber(user._id)}).toArray();
+          
           let login_limit = bad_login_limit - failed_count;
           return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
         }
