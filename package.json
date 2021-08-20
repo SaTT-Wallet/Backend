@@ -70,17 +70,8 @@
     "twitter": "^1.7.1",
     "twitter-v2": "^1.1.0",
     "underscore": ">=1.12.1",
-<<<<<<< HEAD
     "web3": "^1.5.2",
     "winston": "^3.3.3",
-=======
-
-    
-    "winston": "^3.3.3",
-
-    "web3": "^1.5.2",
-
->>>>>>> 87389e4ee7310e3bec3533b9ae1a8cb28012d104
     "ws": "^7.4.6",
     "xmldom": ">=0.7.0",
     "xmlhttprequest-ssl": ">=1.6.2"
