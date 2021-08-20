@@ -401,7 +401,7 @@ module.exports = async function (app) {
 						 if(!result.payedAmount){
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
 						 } else{
-							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed();
+							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed(2);
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
 						 }
 					 })
@@ -616,18 +616,24 @@ module.exports = async function (app) {
 
 
 	campaignManager.UpdateStats = async obj =>{
+	let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
+	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
+	
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
-			if(!result){await app.db.campaign_link().insertOne(obj);
-			return;
+		if(!result){await app.db.campaign_link().insertOne(obj);
+		return;
+		}
+		else{
+			if(result.status === "rejected"){
+			   return;
 			}
-			else{
-				if(result.status === "rejected"){
-				   return;
-				}
-				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
-			}
-		})
-	}
+						if(obj.idPost == "TnqIXFHbvdg") console.log(obj)
+
+			await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
+		}
+	})
+}
+
 
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {
