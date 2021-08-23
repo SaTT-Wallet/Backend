@@ -977,6 +977,19 @@ module.exports = function (app) {
 		}
 	});
 
+
+app.get('/userLinks',async function(req, response) {
+	try{
+		const id_wallet=req.body.id_wallet;
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
+		userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
+		response.end(JSON.stringify(userLinks));
+	}catch(err){
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		  }
+})
+
 	app.post('/campaign/validate', async function(req, response) {
 
 		var pass = req.body.pass;
