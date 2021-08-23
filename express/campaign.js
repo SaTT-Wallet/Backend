@@ -978,9 +978,9 @@ module.exports = function (app) {
 	});
 
 
-app.get('/userLinks',async function(req, response) {
+app.get('/userLinks/:id_wallet',async function(req, response) {
 	try{
-		const id_wallet=req.body.id_wallet;
+		const id_wallet=req.params.id_wallet;
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 		userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
