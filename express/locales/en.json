@@ -44,5 +44,7 @@
 	"wallet_of": "wallet of",
 	"is": "is",
 	"cmp_link": "cmp_link",
-	"cmp_title": "cmp_title"
+	"cmp_title": "cmp_title",
+	"changement_email_presque_terminé":"Votre demande de changement d'adresse email est presque terminée !",
+	"validation_code":"Votre code de validation"
 }
