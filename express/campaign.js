@@ -978,52 +978,69 @@ module.exports = function (app) {
 	});
 
 
-app.get('/userLinks/:id_wallet',async function(req, response) {
-	try{
-		const id_wallet=req.params.id_wallet;
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
-		var arrayOfLinks=[];
-		var userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
-		for (var i = 0;i<userLinks.length;i++){
-			let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
-		
-			if(campaign){
-				const ratio = campaign.ratios;
-				var link=userLinks[i];
-					if(ratio.length && userLinks[i].status === true){
-					ratio.forEach( num =>{
-											result=userLinks[i];
-											if(num.oracle === result.oracle){
-												if(result.views){
-													view =new Big(num["view"]).times(result.views)
+	app.get('/userLinks/:id_wallet',async function(req, response) {
+		try{
+			const id_wallet=req.params.id_wallet;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth(token);
+			var arrayOfLinks=[];
+			var userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
+			for (var i = 0;i<userLinks.length;i++){
+				let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
+			
+				if(campaign){
+					const ratio = campaign.ratios;
+					const bounties=campaign.bounties;
+					var link=userLinks[i];
+					cmp={};
+					cmp.title=campaign.title;
+					cmp.description=campaign.description;
+					cmp.cover=campaign.cover;
+					result=userLinks[i];
+						if(ratio.length && userLinks[i].status === true){
+						cmp.ratio=ratio;	
+						ratio.forEach( num =>{
+												
+												if(num.oracle === result.oracle){
+													if(result.views){
+														view =new Big(num["view"]).times(result.views)
+													}
+													if(result.likes){
+													like =  new Big(num["like"]).times(result.likes) || "0";
+													}
+													if(result.shares){			 
+													share = new Big(num["share"]).times(result.shares) || "0";		
+													}
+													link.totalToEarn = view.plus(like).plus(share).toFixed();
 												}
-												if(result.likes){
-												like =  new Big(num["like"]).times(result.likes) || "0";
-												}
-												if(result.shares){			 
-												share = new Big(num["share"]).times(result.shares) || "0";		
-												}
-												link.totalToEarn = view.plus(like).plus(share).toFixed();
-											}
-										})		
+											})		
+						}
+					if(bounties.length){
+						cmp.bounties=bounties;
+						link.abosNumber=result.abosNumber;
+						bounties.forEach( bounty=>{
+						if(bounty.oracle === result.oracle){
+							bounty.categories.forEach( category=>{
+							if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+								link.reward = category.reward;					
+							}
+							})	
+							}			   
+							})
+						
+					}
+					
+					link.campaign=cmp;
+					arrayOfLinks.push(link)
 				}
 				
-				cmp={};
-				cmp.title=campaign.title;
-				cmp.description=campaign.description;
-				cmp.cover=campaign.cover;
-				link.campaign=cmp;
-				arrayOfLinks.push(link)
 			}
 			
-		}
-		
-		response.end(JSON.stringify(arrayOfLinks));
-	}catch(err){
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		  }
-})
+			response.end(JSON.stringify(arrayOfLinks));
+		}catch(err){
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+	})
 
 	app.post('/campaign/validate', async function(req, response) {
 
