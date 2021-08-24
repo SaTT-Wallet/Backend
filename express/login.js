@@ -1153,25 +1153,80 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     var email = req.body.email;
     const token = req.headers["authorization"].split(" ")[1];
 		const auth = await app.crm.auth(token);
-    var user = await app.db.sn_user().findOne({_id:Long.fromNumber(auth.id)});
+    var user = await app.db.sn_user().findOne({_id:Long.fromNumber(+auth.id)});
     if( user) {
       if (user.password != synfonyHash(pass)) {
-        response.end(JSON.stringify("wrong password")).status(200);
+        response.end(JSON.stringify("wrong password"));
         return;
       }
       var existUser = await app.db.sn_user().findOne({email:email});
       if(existUser){
-        response.end(JSON.stringify("duplicated email")).status(200);
+        response.end(JSON.stringify("duplicated email"));
         return;
       }else{
-          var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{email: email}});
-        response.end(JSON.stringify("email changed")).status(200);
+          code=Math.floor(100000 + Math.random() * 900000);
+          newEmail={};
+          newEmail.email=email;
+          newEmail.expiring=Date.now() + (3600*20);
+          newEmail.code=code;
+          var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          const lang = req.query.lang || "en";
+
+        app.i18n.configureTranslation(lang);
+          readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', function(err, html) {
+            var template = handlebars.compile(html);
+            var replacements = {
+              satt_url: app.config.basedURl,
+              back_url: app.config.baseURl,
+              satt_faq : app.config.Satt_faq,
+              code:code,
+              imgUrl: app.config.baseEmailImgURl,
+            };
+            var htmlToSend = template(replacements);
+            var mailOptions = {
+              from: app.config.mailSender,
+              to: user.email,
+              subject: 'Satt wallet change email',
+              html: htmlToSend
+            };
+            transporter.sendMail(mailOptions, function (error, info) {
+              if (error) {
+                console.log(error);
+              } else {
+                response.end(JSON.stringify({'message' :'Email sent'}));
+              }
+    
+            })
+          })
+        response.end(JSON.stringify("success"));
       }
     
     } else {
-      response.end(JSON.stringify("no account")).status(200);
+      response.end(JSON.stringify("no account"));
     }
   });
+  app.put('/confirmChangeEmail', async function (req, response) {
+    try{
+      const token = req.headers["authorization"].split(" ")[1];
+      const auth = await app.crm.auth(token);
+      var id=+auth.id;
+      var code=req.body.code;
+      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)});
+      if(Date.now()>=user.newEmail.expiring){
+        response.end(JSON.stringify("code expired")).status(200);
+      }
+      else if(user.newEmail.code != code){
+        response.end(JSON.stringify("code incorrect")).status(200);
+      }else{
+        var newEmail=user.newEmail.email;
+        var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(id)},{ $set:{email: newEmail}});
+        response.end(JSON.stringify("email changed")).status(200);
+      }
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
 
 	app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;
@@ -1366,12 +1421,16 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   })
-  app.get('/connect/telegram/:idUser',
+  app.get('/connect/telegram/:idUser/:redirect',
     passport.authenticate('connect_telegram'),
     function(req, res) {
       try {
-        console.log(req)
-        res.redirect(app.config.basedURl +"/profile/networks?message=" + req.authInfo.message)
+        if(req.params.redirect == "security"){
+          url="/myWallet/profile/security";
+        }else{
+          url="/social-registration/monetize-telegram";
+        }
+        res.redirect(app.config.basedURl +url+"?message=" + req.authInfo.message)
       } catch (e) {
         console.log(e)
       }
