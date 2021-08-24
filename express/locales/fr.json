@@ -42,6 +42,9 @@
     "ask_to_send":"Vous demande de lui envoyer",
     "here_is_message":"Voici son message",
     "wallet_of":"la portefeuille de",
-    "is":"est"
+    "is":"est",
+    "changement_email_presque_terminé":"Votre demande de changement <br> d'adresse email est presque terminée !",
+	"validation_code":"Votre code de validation"
+
 
 }
