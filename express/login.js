@@ -477,6 +477,8 @@ return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);
       let info=req.query.state.split(' ');
         var user_id=+info[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
+        console.log("profile details",profile);
+        console.log("channel details====",res);
         if(res.pageInfo.totalResults ==0){
           cb (null,profile,{
             message: "channel obligatoire"
@@ -502,13 +504,17 @@ return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);
                         
         }
         else {
-            user_google={};
+          var result = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics,snippet"},json: true});
+        user_google={};
             user_google.refreshToken = refreshToken;
             user_google.accessToken = accessToken;
             user_google.UserId = user_id;
             user_google.google_id = profile.id;
+            user_google.channelTitle=result.items[0].snippet.title;
+            user_google.channelImage=result.items[0].snippet.thumbnails;
+            user_google.channelStatistics=result.items[0].statistics;
             user_google.channelId = channelId;
-            var res_ins = await app.db.googleProfile().insertOne(user_google);
+            await app.db.googleProfile().insertOne(user_google);
         }
 
         return cb(null, {id: user_id});
@@ -531,11 +537,15 @@ return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);
         })
         }
         var channelId = res.items[0].id;
-            user_google={};
+        var result = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics,snippet"},json: true});
+        user_google={};
             user_google.refreshToken = refreshToken;
             user_google.accessToken = accessToken;
             user_google.UserId = user_id;
             user_google.google_id = profile.id;
+            user_google.channelTitle=result.items[0].snippet.title;
+            user_google.channelImage=result.items[0].snippet.thumbnails;
+            user_google.channelStatistics=result.items[0].statistics;
             user_google.channelId = channelId;
             await app.db.googleProfile().insertOne(user_google);
 
@@ -547,8 +557,10 @@ return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);
       const token = req.headers["authorization"].split(" ")[1];
       var auth =	await app.crm.auth(token);
       var id=+auth.id;
-      var channels = await app.db.googleProfile().find({UserId:id}).toArray(); 
-      response.send(JSON.stringify(channels))
+      let networks={};
+      var channelsGoogle = await app.db.googleProfile().find({UserId:id}).toArray();
+        networks.google=channelsGoogle;
+      response.send(JSON.stringify(networks))
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
@@ -736,12 +748,14 @@ return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);
   }))
 
 
-  passport.use("connect_telegram",new TelegramStrategy({
+  passport.use("connect_telegram",
+  new TelegramStrategy({
     botToken: app.config.telegramBotToken,
-    passReqToCallback: true,
+    passReqToCallback: true
   },
   async function (req,profile, cb) {
     let user_id=+req.params.idUser;
+
     let users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray()
     if(users.length){
       cb(null,profile,{message:"account exist"})
@@ -1180,6 +1194,86 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   });
 
+  app.put('/changeEmail', async function (req, response) {
+    var pass = req.body.pass;
+    var email = req.body.email;
+    const token = req.headers["authorization"].split(" ")[1];
+		const auth = await app.crm.auth(token);
+    var user = await app.db.sn_user().findOne({_id:Long.fromNumber(+auth.id)});
+    if( user) {
+      if (user.password != synfonyHash(pass)) {
+        response.end(JSON.stringify("wrong password"));
+        return;
+      }
+      var existUser = await app.db.sn_user().findOne({email:email});
+      if(existUser){
+        response.end(JSON.stringify("duplicated email"));
+        return;
+      }else{
+          code=Math.floor(100000 + Math.random() * 900000);
+          newEmail={};
+          newEmail.email=email;
+          newEmail.expiring=Date.now() + (3600*20);
+          newEmail.code=code;
+          var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          const lang = req.query.lang || "en";
+
+        app.i18n.configureTranslation(lang);
+          readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', function(err, html) {
+            var template = handlebars.compile(html);
+            var replacements = {
+              satt_url: app.config.basedURl,
+              back_url: app.config.baseURl,
+              satt_faq : app.config.Satt_faq,
+              code:code,
+              imgUrl: app.config.baseEmailImgURl,
+            };
+            var htmlToSend = template(replacements);
+            var mailOptions = {
+              from: app.config.mailSender,
+              to: user.email,
+              subject: 'Satt wallet change email',
+              html: htmlToSend
+            };
+            transporter.sendMail(mailOptions, function (error, info) {
+              if (error) {
+                console.log(error);
+              } else {
+                response.end(JSON.stringify({'message' :'Email sent'}));
+              }
+    
+            })
+          })
+        response.end(JSON.stringify("success"));
+      }
+    
+    } else {
+      response.end(JSON.stringify("no account"));
+    }
+  });
+  app.put('/confirmChangeEmail', async function (req, response) {
+    try{
+      const token = req.headers["authorization"].split(" ")[1];
+      const auth = await app.crm.auth(token);
+      var id=+auth.id;
+      var code=req.body.code;
+      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)});
+      if(Date.now()>=user.newEmail.expiring){
+        response.end(JSON.stringify("code expired")).status(200);
+      }
+      else if(user.newEmail.code != code){
+        response.end(JSON.stringify("code incorrect")).status(200);
+      }else{
+        var newEmail=user.newEmail.email;
+        var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(id)},{ $set:{email: newEmail}});
+        response.end(JSON.stringify("email changed")).status(200);
+      }
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
+
 	app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;
 	  var code = req.body.code;
@@ -1373,12 +1467,16 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
    }
   })
-  app.get('/connect/telegram/:idUser',
+  app.get('/connect/telegram/:idUser/:redirect',
     passport.authenticate('connect_telegram'),
     function(req, res) {
       try {
-        console.log(req)
-        res.redirect(app.config.basedURl +"/profile/networks?message=" + req.authInfo.message)
+        if(req.params.redirect == "security"){
+          url="/myWallet/profile/security";
+        }else{
+          url="/social-registration/monetize-telegram";
+        }
+        res.redirect(app.config.basedURl +url+"?message=" + req.authInfo.message)
       } catch (e) {
         console.log(e)
       }
