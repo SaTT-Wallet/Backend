@@ -1087,9 +1087,8 @@ const Grid = require('gridfs-stream');
 	  let view;
 	  let share;
 	  let like;
-	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray() 
-
-	dbProms.foreach( result=>{
+	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
+			dbProms.forEach( result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
 			 
@@ -1142,6 +1141,8 @@ const Grid = require('gridfs-stream');
 	    }
 	}		
 	  })
+		
+	
  
 	 res.send(JSON.stringify({allProms}))
  } 

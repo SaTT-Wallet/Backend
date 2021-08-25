@@ -96,7 +96,7 @@
 
         .content .mail-header p {
             font-family: 'Poppins', sans-serif;
-            font-size: 146x;
+            font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
         }
@@ -122,9 +122,8 @@
         }
 
         .content .mail-body p {
-            font-family: 'Poppins', sans-serif;
             font-weight: normal;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 16px;
             text-align: center;
         }
@@ -174,7 +173,7 @@
         .content .mail-footer {
             border-top: 1px solid rgba(214, 214, 232, 1);
             text-align: center;
-            color: #797b9c !important;
+            color: #4048FF;
             padding: 25px;
             text-transform: uppercase;
             margin-left: 35px;
@@ -213,25 +212,27 @@
 
         }
         .apply-btn{
-    border:none !important;
+            padding-top: .5em;
+    margin-top: 4%;
+    border: none!important;
     border-radius: 30px;
     background: #4048FF;
     font-family: Poppins;
     font-size: 18px;
     font-style: normal;
+    margin-left: 232px;
     font-weight: 600;
     line-height: 27px;
     letter-spacing: 0.01em;
     text-align: center;
-    width: 30%;
-    margin: 0 auto;
+    width: 26%;
     align-items: center;
     color: #F6F6FF;
     text-align: center;
-    height: 36px;
+    height: 37px;
         }
         .text-btn{
-    padding-left:9%;
+    padding-left:7%;
     font-family: 'Poppins', sans-serif;
     font-style: normal;
     font-weight: 600;
@@ -243,54 +244,59 @@
     letter-spacing: 0.01em;
     color: #F6F6FF!important;
         }
-        .text-title{
-font-family: Poppins;
-font-style: normal;
-font-weight: bold;
-font-size: 36px;
-line-height: 50px;
-text-align: center;
-letter-spacing: 1px;
-color: #FFFFFF;
+        .reason-content{
+            background: #F6F6FF;
+              border-radius: 20px;
+               width: 507.73px;
+               margin-left: 85px;
+               margin-top: 5%;
+               display: flex;
         }
-
-        .text-subtitle{
-            font-family: Poppins;
-font-style: normal;
-font-weight: bold;
-font-size: 16px;
-line-height: 120%;
-/* or 19px */
-
-text-align: center;
-letter-spacing: 0.03em;
-
-color: #FFFFFF;
+        .code_text{
+            font-family: 'Poppins';
+            font-style: normal;
+            font-weight: bold;
+            margin: 0 auto;
+            padding: 2% 0%;
+            font-size: 36px;
+            line-height: 50px;
+            text-align: center;
+            letter-spacing: 1px;
+            color: #00CC9E;
+        }
+        .text-title{
+            font-family: 'Poppins';
+            font-style: normal;
+            font-weight: bold;
+            font-size: 16px;
+            line-height: 120%;
+            text-align: center;
+            letter-spacing: 0.03em;
+            color: #FFFFFF;
+            margin: 0 auto;
+            padding: 4% 23%;
         }
     </style>
-</head>-
+</head>
 <body>
     <div class="content">
         <div class="mail-header">
             <div class="top">
                 <div class="col" align="left">
-                    <img src="{{imgUrl}}/Satt_log_mail.png" alt="" width="100px;">
+                    <img src="{{imgUrl}}/logo.png" alt="">
                 </div>
                 <div class="col" align="right">
                 </div>
             </div>
-                <img src="{{imgUrl}}accepted_link.png" alt="">
-                <h2 class="text-title">{{{__ "link_valid"}}}</h2>
-                <p class="text-subtitle"> {{__ "valid_mess"}} {{cmp_title}} {{__ "valid_accepted"}}</p>
+                <img src="{{imgUrl}}/changemail.png" alt="">
+                <p class="text-title">{{__ "changement_email_presque_terminé"}}</p>
         </div>
         <div class="mail-body">
-          <h1 class="gains">{{__ "valid_question"}}</h1>
-        <p style = "color: #1F2337!important;">{{__ "valid_gaz"}} </p>
-        <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
-        <div class="apply-btn">
-            <a  style="text-align:center;color:white;"href="{{cmp_link}}">{{__ "valid_post"}}</a>
-       </div>
+          <h1 class="gains">{{__  "validation_code"}}</h1>
+          <div class="reason-content"><span class="code_text">{{code}}</span></div>
+         
     <div class="subtitle">
+        <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
         {{__ "valid_wish"}}
     </div>
 </div>
