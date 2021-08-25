@@ -3,7 +3,7 @@ const { async } = require('hasha');
 
 module.exports = function (app) {
   var nodemailer = require('nodemailer');
-  var bad_login_limit = 3;
+  
   var transporter = nodemailer.createTransport(app.config.mailerOptions);
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
@@ -174,8 +174,9 @@ module.exports = function (app) {
         }
         
         if (user.password == synfonyHash(password)) {
-
-           let validAuth = isBlocked(user,true)
+          [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
+          addAuthLog(logInfo)
+           let validAuth =  await app.account.isBlocked(user,true)
           if(!validAuth){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
@@ -184,21 +185,20 @@ module.exports = function (app) {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
 
           }
-          [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
-          addAuthLog(logInfo)
+          
           req.session.user = user._id;
-          console.log("email session",req.session.user);
+         
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
         } else{
           return done(null, false, {error: true, message: 'account_locked'});
         }
         } else {
-          validAuth=isBlocked(user,false)
-          [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
-          addAuthLog(logInfo)
-         
+          let validAuth = await app.account.isBlocked(user,false);
 
-          return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
+          [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
+          addAuthLog(logInfo)        
+          if(validAuth) return done(null, false, {error: true, message: 'account_locked'});
+           return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
       } else {
         return done(null, false, {error: true, message: 'account_invalide'});
@@ -206,40 +206,9 @@ module.exports = function (app) {
     }
   ));
 
-  isBlocked = async (user, auth)=>{
 
-    let dateNow = Math.floor(Date.now() / 1000);
-    var  res = false;
-    let logBlock = {};
-    if(auth){
-     if(user.account_locked){
-         if(differenceBetweenDates(user.date_locked, dateNow) < 30){        
-           logBlock.date_locked = dateNow
-           res = true
-         } else{
-          logBlock.failed_count = 0
-          logBlock.account_locked = false
-           res = false
-         }
-     } 
-    } else{
-      let failed_count = user.failed_count? user.failed_count + 1 : 1;    
-      logBlock.failed_count = failed_count 
-      if(failed_count == 1)logBlock.dateFirstAttempt =  dateNow;
-      if (failed_count >= bad_login_limit && differenceBetweenDates(user.dateFirstAttempt, dateNow) < 5 ) {
-        logBlock.account_locked = true
-        logBlock.date_locked = dateNow   
-        res= true
-      }   
-    }
-   await db.sn_user().updateOne({_id : user._id},{$set:logBlock})
-    return res;
-     
-  }
 
-  differenceBetweenDates=(authDate,dateNow)=>{
-return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);   
-  }
+ 
 
 
   passport.use('signup_FbStrategy',new FbStrategy({
