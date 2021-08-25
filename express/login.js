@@ -3,7 +3,7 @@ const { async } = require('hasha');
 
 module.exports = function (app) {
   var nodemailer = require('nodemailer');
-  var bad_login_limit = 5;
+  var bad_login_limit = 3;
   var transporter = nodemailer.createTransport(app.config.mailerOptions);
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
@@ -107,6 +107,8 @@ module.exports = function (app) {
           created: mongodate,
           updated: mongodate,
           idSn: 0,
+          account_locked: false, 
+          failed_count: 0,
           locale: "en",
           onBoarding : false,
           enabled: 0,
@@ -154,45 +156,48 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
       
       let logInfo = {};
-      const ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+      let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+      ip = ip.split(":")[3];
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
         // if (user.idSn != 0) {
         //   return done(null, false, {error: true, message: 'account_already_used'});
         // }
-        /*if (user.account_locked) {
-          return done(null, false, {error: true, message: 'account_locked'});
-        }*/
+        // if (user.account_locked) {
+        //   return done(null, false, {error: true, message: 'account_locked'});
+        // }
+        
         var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
         if (res.length && !user.password) {
           await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: res[0].password}});
         }
-        await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: false, failed_count: 0}});
+        
         if (user.password == synfonyHash(password)) {
+
+           let validAuth = isBlocked(user,true)
+          if(!validAuth){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
             var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
           } else {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+
           }
           [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
           addAuthLog(logInfo)
           req.session.user = user._id;
           console.log("email session",req.session.user);
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
+        } else{
+          return done(null, false, {error: true, message: 'account_locked'});
+        }
         } else {
+          validAuth=isBlocked(user,false)
           [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
           addAuthLog(logInfo)
-          
-          var failed_count = user.failed_count? user.failed_count + 1 : 1;
-          var account_locked = false
-          if (failed_count >= bad_login_limit) {
-            account_locked = true
-          }
-          var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: account_locked, failed_count: failed_count}});
-          
-          let login_limit = bad_login_limit - failed_count;
+         
+
           return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
         }
       } else {
@@ -200,6 +205,41 @@ module.exports = function (app) {
       }
     }
   ));
+
+  isBlocked = async (user, auth)=>{
+
+    let dateNow = Math.floor(Date.now() / 1000);
+    var  res = false;
+    let logBlock = {};
+    if(auth){
+     if(user.account_locked){
+         if(differenceBetweenDates(user.date_locked, dateNow) < 30){        
+           logBlock.date_locked = dateNow
+           res = true
+         } else{
+          logBlock.failed_count = 0
+          logBlock.account_locked = false
+           res = false
+         }
+     } 
+    } else{
+      let failed_count = user.failed_count? user.failed_count + 1 : 1;    
+      logBlock.failed_count = failed_count 
+      if(failed_count == 1)logBlock.dateFirstAttempt =  dateNow;
+      if (failed_count >= bad_login_limit && differenceBetweenDates(user.dateFirstAttempt, dateNow) < 5 ) {
+        logBlock.account_locked = true
+        logBlock.date_locked = dateNow   
+        res= true
+      }   
+    }
+   await db.sn_user().updateOne({_id : user._id},{$set:logBlock})
+    return res;
+     
+  }
+
+  differenceBetweenDates=(authDate,dateNow)=>{
+return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);   
+  }
 
 
   passport.use('signup_FbStrategy',new FbStrategy({
@@ -233,6 +273,8 @@ module.exports = function (app) {
           lastName: profile.displayName,
           created: mongodate,
           onBoarding : false,
+          account_locked: false, 
+          failed_count: 0,
           updated: mongodate,
           idSn: 1,
           locale: "en",
@@ -374,6 +416,8 @@ module.exports = function (app) {
           updated: mongodate,
           idSn: 2,
           onBoarding : false,
+          account_locked: false, 
+          failed_count: 0,
           enabled:1,
           locale: profile._json.locale,
           confirmation_token: code,
@@ -588,6 +632,8 @@ module.exports = function (app) {
             picLink: profile.photo_url,
             created: mongodate,
             onBoarding : false,
+            account_locked: false, 
+          failed_count: 0,
             updated: mongodate,
             idSn: 5,
             locale: "en",
