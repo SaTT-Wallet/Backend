@@ -12,7 +12,7 @@ module.exports = function (app) {
   const { combine, timestamp, label, prettyPrint, myFormat } = format;
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
-
+  const geoip = require('geoip-lite')
   const crypto = require('crypto');
   const hasha = require('hasha');
   var handlebars = require('handlebars');
@@ -1163,7 +1163,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   });
 
-  app.put('/changeEmail', async function (req, response) {
+  app.put('/changeEmail', async  (req, response)=> {
     var pass = req.body.pass;
     var email = req.body.email;
     const token = req.headers["authorization"].split(" ")[1];
@@ -1179,15 +1179,18 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
         response.end(JSON.stringify("duplicated email"));
         return;
       }else{
-          code=Math.floor(100000 + Math.random() * 900000);
+        const code = Math.floor(100000 + Math.random() * 900000);
           newEmail={};
           newEmail.email=email;
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
-          var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          
+          let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+          ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
+          app.i18n.configureTranslation(lang);
 
-        app.i18n.configureTranslation(lang);
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', function(err, html) {
             var template = handlebars.compile(html);
             var replacements = {
@@ -1241,7 +1244,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
   })
-
 
 	app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;
