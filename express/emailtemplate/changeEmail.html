@@ -51,7 +51,7 @@
         }
 
         .content .mail-header {
-            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
+            background-image: url("../../public/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -105,7 +105,7 @@
             color: #1F2337;
             font-style: normal;
             font-family: 'Poppins', sans-serif;
-            padding: 30px;
+            padding: 8px 67px;
         }
 
         .content .mail-body .subtitle {
@@ -260,7 +260,7 @@
             background: #F6F6FF;
               border-radius: 20px;
                width: 507.73px;
-               margin-left: 85px;
+               margin: 0 auto;
                margin-top: -1%;
                display: flex;
         }
@@ -298,6 +298,73 @@
     color: rgba(245, 32, 121, 1);
     margin-top: 1%;
         }
+        .ip-info{
+            display:flex;
+            background: #F6F6FF!important;
+            border-radius: 15px;
+            /* text-align: center; */
+            font-family: Poppins;
+            margin-bottom: 5px;
+
+        }
+        .vertical-separator::after{
+            content: "";
+    height: 50px;
+    width: 1px;
+    background-color: rgba(214, 214, 232, 1);
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+        }
+        .info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: left;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .dynamic-info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: center;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .request-email{
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            line-height: 120%;
+            text-align: center;
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .verification-code{
+            text-align: center;
+            color: #4048FF;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 22px;
+            line-height: 28px;
+            letter-spacing: 1px;
+            margin-top: 25px;
+            margin-bottom: 18px;
+        }
     </style>
 </head>
 <body>
@@ -314,6 +381,20 @@
                 <p class="text-title">{{__ "changement_email_presque_terminé"}}</p>
         </div>
         <div class="mail-body">
+            <div class="verification-code">{{__  "verif-code"}}</div>
+            <div class="request-email">
+                {{__  "request"}} <span style="font-weight: bold!important;;">{{__  "mail"}}</span>
+            </div>
+            <div class="request-email" style="margin-bottom: 29px!important;">{{__  "request-done"}}</div>
+            <div class="ip-info">
+            <span class="info"> <img src="../../public/dateRequest.png" style="margin-right: 22px;"> {{__  "time-request"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{requestDate}}</span>
+            </div>
+            <div class="ip-info">
+                <span class="info"> <img src="../../public/icons_ip.png" style="margin-right: 22px;"> IP</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{ip}}</span>
+            </div>
+            <div class="ip-info">
+                <span class="info"> <img src="../../public/location.png" style="margin-right: 22px;"> {{__  "Location"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{location}}</span>
+            </div>
           <h1 class="gains">{{__  "validation_code"}}</h1>
           <div class="reason-content"><span class="code_text">{{code}}</span></div>
            <div class="expire-text">{{__ "code-expire"}}</div>
