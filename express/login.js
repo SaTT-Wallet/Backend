@@ -3,7 +3,7 @@ const { async } = require('hasha');
 
 module.exports = function (app) {
   var nodemailer = require('nodemailer');
-  var bad_login_limit = 5;
+  
   var transporter = nodemailer.createTransport(app.config.mailerOptions);
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
@@ -12,7 +12,7 @@ module.exports = function (app) {
   const { combine, timestamp, label, prettyPrint, myFormat } = format;
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
-
+  const geoip = require('geoip-lite')
   const crypto = require('crypto');
   const hasha = require('hasha');
   var handlebars = require('handlebars');
@@ -107,6 +107,8 @@ module.exports = function (app) {
           created: mongodate,
           updated: mongodate,
           idSn: 0,
+          account_locked: false, 
+          failed_count: 0,
           locale: "en",
           onBoarding : false,
           enabled: 0,
@@ -154,52 +156,59 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
       
       let logInfo = {};
-      const ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+      let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+      ip = ip.split(":")[3];
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
         // if (user.idSn != 0) {
         //   return done(null, false, {error: true, message: 'account_already_used'});
         // }
-        /*if (user.account_locked) {
-          return done(null, false, {error: true, message: 'account_locked'});
-        }*/
+        // if (user.account_locked) {
+        //   return done(null, false, {error: true, message: 'account_locked'});
+        // }
+        
         var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
         if (res.length && !user.password) {
           await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: res[0].password}});
         }
-        await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: false, failed_count: 0}});
+        
         if (user.password == synfonyHash(password)) {
+          [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
+          addAuthLog(logInfo)
+           let validAuth =  await app.account.isBlocked(user,true)
+          if(!validAuth){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
             var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
           } else {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+
           }
-          [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
-          addAuthLog(logInfo)
+          
           req.session.user = user._id;
-          console.log("email session",req.session.user);
+         
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
+        } else{
+          return done(null, false, {error: true, message: 'account_locked'});
+        }
         } else {
+          let validAuth = await app.account.isBlocked(user,false);
+
           [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
-          addAuthLog(logInfo)
-          
-          var failed_count = user.failed_count? user.failed_count + 1 : 1;
-          var account_locked = false
-          if (failed_count >= bad_login_limit) {
-            account_locked = true
-          }
-          var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {account_locked: account_locked, failed_count: failed_count}});
-          
-          let login_limit = bad_login_limit - failed_count;
-          return done(null, false, {error: true, message: 'invalid_grant', login_limit: login_limit, account_locked:account_locked }); //done("auth failed",null);
+          addAuthLog(logInfo)        
+          if(validAuth) return done(null, false, {error: true, message: 'account_locked'});
+           return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
       } else {
         return done(null, false, {error: true, message: 'account_invalide'});
       }
     }
   ));
+
+
+
+ 
 
 
   passport.use('signup_FbStrategy',new FbStrategy({
@@ -233,6 +242,8 @@ module.exports = function (app) {
           lastName: profile.displayName,
           created: mongodate,
           onBoarding : false,
+          account_locked: false, 
+          failed_count: 0,
           updated: mongodate,
           idSn: 1,
           locale: "en",
@@ -374,6 +385,8 @@ module.exports = function (app) {
           updated: mongodate,
           idSn: 2,
           onBoarding : false,
+          account_locked: false, 
+          failed_count: 0,
           enabled:1,
           locale: profile._json.locale,
           confirmation_token: code,
@@ -600,6 +613,8 @@ module.exports = function (app) {
             picLink: profile.photo_url,
             created: mongodate,
             onBoarding : false,
+            account_locked: false, 
+          failed_count: 0,
             updated: mongodate,
             idSn: 5,
             locale: "en",
@@ -1148,7 +1163,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   });
 
-  app.put('/changeEmail', async function (req, response) {
+  app.put('/changeEmail', async  (req, response)=> {
     var pass = req.body.pass;
     var email = req.body.email;
     const token = req.headers["authorization"].split(" ")[1];
@@ -1164,15 +1179,18 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
         response.end(JSON.stringify("duplicated email"));
         return;
       }else{
-          code=Math.floor(100000 + Math.random() * 900000);
+        const code = Math.floor(100000 + Math.random() * 900000);
           newEmail={};
           newEmail.email=email;
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
-          var res_ins = await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          
+          let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+          ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
+          app.i18n.configureTranslation(lang);
 
-        app.i18n.configureTranslation(lang);
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', function(err, html) {
             var template = handlebars.compile(html);
             var replacements = {
@@ -1226,7 +1244,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
   })
-
 
 	app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;

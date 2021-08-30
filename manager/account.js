@@ -16,7 +16,8 @@ module.exports = async function (app) {
 	var rp = require('request-promise');
     const xChangePricesUrl = app.config.xChangePricesUrl;
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
-
+    const bad_login_limit = app.config.bad_login_limit;
+	
 	var ctrwSaTT =  new app.web3.eth.Contract(app.config.ctrs.wSaTT.abi,app.config.ctrs.wSaTT.address.mainnet);
 
 	var accountManager = {};
@@ -968,6 +969,43 @@ accountManager.handleId=async function () {
 		}
 		await app.db.notification().insertOne(notification);
 	}
+
+	accountManager.isBlocked = async (user, auth)=>{
+
+		let dateNow = Math.floor(Date.now() / 1000);
+		var  res = false;
+		let logBlock = {};
+		if(auth){
+		 if(user.account_locked){
+			 if(accountManager.differenceBetweenDates(user.date_locked, dateNow) < app.config.lockedPeriod){        
+			   logBlock.date_locked = dateNow
+			   res = true
+			 } else{
+			  logBlock.failed_count = 0
+			  logBlock.account_locked = false
+			   res = false
+			 }
+		 } 
+		} else{
+		  let failed_count = user.failed_count? user.failed_count + 1 : 1;    
+		  logBlock.failed_count = failed_count 
+		  if(failed_count == 1)logBlock.dateFirstAttempt =  dateNow;
+		  
+		  if (failed_count >= bad_login_limit && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval ) {
+			logBlock.account_locked = true
+			logBlock.date_locked = dateNow   
+			res= true
+		  }   
+		}
+	if(Object.keys(logBlock).length)  await app.db.sn_user().updateOne({_id : user._id},{$set:logBlock})
+		return res;
+		 
+	  }
+
+
+ accountManager.differenceBetweenDates=(authDate,dateNow)=>{
+	return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);   
+	  }
 
 	app.account = accountManager;
 	return app;
