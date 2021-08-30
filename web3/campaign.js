@@ -652,6 +652,69 @@ module.exports = async function (app) {
 			}		})
 	}
 
+	campaignManager.filterCampaign=(req, strangerDraft)=>{
+		
+		const title=req.query.searchTerm || '';
+		const status=req.query.status;
+		const blockchainType=req.query.blockchainType || '';
+		
+		const dateJour=new Date() /1000;
+		if(req.query.oracles == undefined){
+			oracles=["twitter","facebook","youtube","instagram"];
+		}
+		else if(typeof req.query.oracles === "string"){
+			oracles=Array(req.query.oracles);
+		}else{
+			oracles=req.query.oracles;
+		}
+		const remainingBudget=req.query.remainingBudget || [];
+		
+		var query = {};
+		query["$and"]=[];
+		query["$or"]=[];
+		if(req.params.influencer) query["$and"].push({"walletId":{$ne : req.params.influencer}});		
+		// query["$or"].push({"hash":{ $exists: true}});
+		query["$and"].push({"_id":{$nin:strangerDraft}})
+
+		query["$or"].push({"ratios.oracle":{ $in: oracles}});
+		query["$or"].push({"bounties.oracle":{ $in: oracles}});
+		if(title){
+		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
+		}
+		if(blockchainType && blockchainType !=="all"){
+			query["$and"].push({"token.type":blockchainType});
+		}
+		if(status =="active" ){
+			if(remainingBudget.length==2){
+				query["$and"].push({"funds.1":{ $gte : remainingBudget[0], $lte : remainingBudget[1]}});
+			}
+			query["$and"].push({"endDate":{ $gte : dateJour }});
+			query["$and"].push({"hash":{ $exists: true}});
+		}
+		else if(status=="finished"){
+			query["$or"].push({"endDate":{ $lt : dateJour }});
+			query["$or"].push({"funds.1":{$eq: "0"}});
+			query["$and"].push({"hash":{ $exists: true}});
+		}else if(status=="draft"){
+			query["$and"].push({"hash":{ $exists: false}});
+		}
+
+		return query
+	}
+
+	campaignManager.filterProms=(req, id_wallet)=>{
+		
+		const status=req.query.status;
+		var query = {};
+		query["$and"]=[];
+		query["$and"].push({id_wallet});
+		if(status == false)	query["$and"].push({"status":false});
+		if(status == "rejected") query["$and"].push({"status":"rejected"});
+        if(status == true) query["$and"].push({"status":true});
+
+		return query
+	}
+
 	app.campaign = campaignManager;
 	return app;
 }
