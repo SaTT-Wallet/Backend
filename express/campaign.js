@@ -1000,7 +1000,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				let link=userLinks[i];
 				let cmp = {}
 				cmp.bounties = bounties
-				cmp._id = campaign.id
+				cmp._id = campaign._id
 				cmp.title=campaign.title;
 				cmp.description=campaign.description;
 				cmp.cover=campaign.cover;
@@ -1016,10 +1016,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 												}
 												if(result.likes){
 												like =  new Big(num["like"]).times(result.likes) || "0";
-												}
-												if(result.shares){			 
-												share = new Big(num["share"]).times(result.shares) || "0";		
-												}
+												}														 
+												share = result.shares? new Big(num["share"]).times(result.shares):"0" ;														
 												link.totalToEarn = view.plus(like).plus(share).toFixed();
 											}
 										})
