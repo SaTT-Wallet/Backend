@@ -29,7 +29,7 @@ module.exports = function (app) {
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
   var session = require('express-session');
-  const { getName } = require('country-list');
+  const countryList = require('country-list');
   const geoip = require('geoip-lite');
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
@@ -1194,7 +1194,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           app.i18n.configureTranslation(lang);
           const geo = geoip.lookup(ip);
           let city = geo.city ? geo.city : geo.timezone
-          let country = getName(geo.country);
+          let country = countryList.getName(geo.country);
           let location = country +', '+city;
 
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
