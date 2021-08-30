@@ -47,7 +47,13 @@
 	"validation_code":"Votre code de validation",
     "code-expire":"Ce code de vérification ne sera valable que 5 minutes",
     "code-request":"Si vous n'avez pas demandé ce code, veuillez contacter",
-    "Support" : "le support."
+    "Support" : "le support.",
+    "time-request":"Moment de la requête",
+    "Location" : "Localisation",
+    "request-done":"a été faite.",
+    "request":"Une demande de réinitialisation de votre",
+    "mail":"adresse Mail",
+    "verif-code":"Code de vérification"
 
 
 }

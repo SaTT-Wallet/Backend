@@ -49,5 +49,11 @@
 	"changement_email_presque_terminé":"Votre demande de changement d'adresse email est presque terminée !",
 	"validation_code":"Your code",
 	"code-expire":"This verification code will only be valid for 5 minutes",
-	"code-request":"If you did not make request this code, please contact"
+	"code-request":"If you did not make request this code, please contact",
+	"time-request":"Time of request",
+	"Location" : "Location",
+	"request-done":"has been requested.",
+	"request":"A request to reset your",
+	"mail":"E-mail adress",
+	"verif-code":"Verification code"
 }
