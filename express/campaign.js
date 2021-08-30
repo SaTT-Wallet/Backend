@@ -150,7 +150,6 @@ module.exports = function (app) {
 			prom = await app.oracle.getPromDetails(idProm)
 
 				var stat={};
-                stat.appliedDate = event.date;
 				stat.status = prom.isAccepted;
 				stat.id_wallet = prom.influencer.toLowerCase();
 				stat.id_campaign = prom.idCampaign;
@@ -978,64 +977,67 @@ module.exports = function (app) {
 	});
 
 
-	app.get('/userLinks/:id_wallet',async function(req, response) {
-		try{
-			const id_wallet=req.params.id_wallet;
-			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
-			var arrayOfLinks=[];
-			var userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
-			for (var i = 0;i<userLinks.length;i++){
-				let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
-			
-				if(campaign){
-					const ratio = campaign.ratios;
-					const bounties=campaign.bounties;
-					var link=userLinks[i];
-					cmp={};
-					cmp.title=campaign.title;
-					cmp.description=campaign.description;
-					cmp.cover=campaign.cover;
-					result=userLinks[i];
-						if(ratio.length && userLinks[i].status === true){
-						cmp.ratio=ratio;	
-						ratio.forEach( num =>{
-												
-												if(num.oracle === result.oracle){
-													if(result.views){
-														view =new Big(num["view"]).times(result.views)
-													}
-													if(result.likes){
-													like =  new Big(num["like"]).times(result.likes) || "0";
-													}
-													if(result.shares){			 
-													share = new Big(num["share"]).times(result.shares) || "0";		
-													}
-													link.totalToEarn = view.plus(like).plus(share).toFixed();
+app.get('/userLinks/:id_wallet',async function(req, response) {
+	try{
+		const id_wallet=req.params.id_wallet;
+		const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);
+		let arrayOfLinks=[];
+
+		var userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
+
+		for (var i = 0;i<userLinks.length;i++){
+			let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
+		
+			if(campaign){
+				let contract = await app.campaign.getCampaignContract(campaign.hash);
+				 let fund = await contract.methods.campaigns(campaign.hash).call();
+				const ratio = campaign.ratios;
+				const bounties=campaign.bounties;
+				var link=userLinks[i];
+				let cmp = {}
+				cmp.bounties = bounties
+				cmp._id = campaign.id
+				cmp.title=campaign.title;
+				cmp.description=campaign.description;
+				cmp.cover=campaign.cover;
+				result=userLinks[i];
+					if(ratio.length && userLinks[i].status === true && fund.funds[1] !== '0'){
+					delete link.isPayed;	     
+					cmp.ratio=ratio;	
+					ratio.forEach( num =>{
+											
+											if(num.oracle === result.oracle){
+												if(result.views){
+													view =new Big(num["view"]).times(result.views)
 												}
-											})		
-						}
-					if(bounties.length){
-						cmp.bounties=bounties;
-						link.abosNumber=result.abosNumber;
-						bounties.forEach( bounty=>{
-						if(bounty.oracle === result.oracle){
-							bounty.categories.forEach( category=>{
-							if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
-								link.reward = category.reward;					
-							}
-							})	
-							}			   
-							})
-						
+												if(result.likes){
+												like =  new Big(num["like"]).times(result.likes) || "0";
+												}
+												if(result.shares){			 
+												share = new Big(num["share"]).times(result.shares) || "0";		
+												}
+												link.totalToEarn = view.plus(like).plus(share).toFixed();
+											}
+										})
+
 					}
-					
-					link.campaign=cmp;
-					arrayOfLinks.push(link)
-				}
-				
+				if(bounties.length && link.status === true && fund.funds[1] !== '0' && campaign.remuneration== "publication") {
+				cmp.bounties = bounties;
+				bounties.forEach( bounty=>{
+					if(bounty.oracle === link.oracle){
+					  bounty.categories.forEach( category=>{
+					   if( (+category.minFollowers <= +link.abosNumber)  && (+link.abosNumber <= +category.maxFollowers) ){
+						  link.totalToEarn = category.reward;
+					   }
+					  })
+					   }
+					   })
+			  }					
+				link.campaign=cmp;
+				arrayOfLinks.push(link)
 			}
-			
+		}
 			response.end(JSON.stringify(arrayOfLinks));
 		}catch(err){
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1569,15 +1571,11 @@ module.exports = function (app) {
 
 
 			var ret = await app.campaign.getGains(idProm,cred2);
-			var ctr = await app.campaign.getCampaignContract(idCampaign);
-			if(ctr.methods)
-			{			
-			var result = await ctr.methods.campaigns(idCampaign).call();
+			let contract = await app.campaign.getCampaignContract(idCampaign);			
+			var result = await contract.methods.campaigns(idCampaign).call();
 			await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
-				funds:result.funds,
-				nbProms:result.nbProms,
-				nbValidProms:result.nbValidProms}});
-			}
+				funds:result.funds}});
+			
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {

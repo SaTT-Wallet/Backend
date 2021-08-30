@@ -129,7 +129,7 @@ module.exports = async function (app) {
 			var res = JSON.parse(body);
 			if(res.items && res.items[0])
 			{
-				perf = {shares:res.items[0].statistics.commentCount,likes:res.items[0].statistics.likeCount,views:res.items[0].statistics.viewCount,date:Math.floor(Date.now()/1000)};
+				perf = {shares:0/*res.items[0].statistics.commentCount*/,likes:res.items[0].statistics.likeCount,views:res.items[0].statistics.viewCount,date:Math.floor(Date.now()/1000)};
 		 }
 
 			resolve(perf);
@@ -287,7 +287,7 @@ module.exports = async function (app) {
 		try {
 		var ctr = await app.campaign.getPromContract(idProm);
 		if(ctr){
-			ctr.methods.proms(idProm).call().then(function (results) {			
+			ctr.methods.proms(idProm).call().then(function (results) {
 			resolve(results);
 			});
 			};
