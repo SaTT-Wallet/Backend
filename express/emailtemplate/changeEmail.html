@@ -51,7 +51,7 @@
         }
 
         .content .mail-header {
-            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
+            background-image: url("../../public/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -105,12 +105,11 @@
             color: #1F2337;
             font-style: normal;
             font-family: 'Poppins', sans-serif;
-            padding: 30px;
+            padding: 8px 67px;
         }
 
         .content .mail-body .subtitle {
             margin-top: 41px;
-            margin-bottom: 15px;
             font-family: Poppins;
             font-style: normal;
             font-weight: normal;
@@ -119,6 +118,17 @@
             text-align: center;
             letter-spacing: 0.03em;
             color: #323754;
+        }
+        .support{
+            margin-bottom: 15px;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+             line-height: 120%;
+            text-align: center;
+            letter-spacing: 0.03em;
+            color: #4048FF;
         }
 
         .content .mail-body p {
@@ -173,7 +183,7 @@
         .content .mail-footer {
             border-top: 1px solid rgba(214, 214, 232, 1);
             text-align: center;
-            color: #4048FF;
+            color: rgba(64, 72, 255, 1);
             padding: 25px;
             text-transform: uppercase;
             margin-left: 35px;
@@ -197,12 +207,14 @@
         .gains{
             font-family: 'Poppins', sans-serif;
             font-style: normal;
-            font-weight: bold;
-            font-size: 22px;
+            font-weight: normal;
+            font-size: 16px;
             line-height: 28px;
+            letter-spacing: 0.03em;
             text-align: center;
             letter-spacing: 1px;
-            color: #1F2337; 
+            color: rgba(50, 55, 84, 1);
+
         }
         .Apply_again{
             background: #4048FF;
@@ -248,8 +260,8 @@
             background: #F6F6FF;
               border-radius: 20px;
                width: 507.73px;
-               margin-left: 85px;
-               margin-top: 5%;
+               margin: 0 auto;
+               margin-top: -1%;
                display: flex;
         }
         .code_text{
@@ -261,8 +273,9 @@
             font-size: 36px;
             line-height: 50px;
             text-align: center;
-            letter-spacing: 1px;
-            color: #00CC9E;
+            letter-spacing: 3px;
+            color: rgba(50, 55, 84, 1);
+
         }
         .text-title{
             font-family: 'Poppins';
@@ -276,6 +289,82 @@
             margin: 0 auto;
             padding: 4% 23%;
         }
+        .expire-text{
+    font-weight: normal;
+    font-family: Poppins;
+    font-size: 16px;
+    font-style: normal;
+    text-align: center;
+    color: rgba(245, 32, 121, 1);
+    margin-top: 1%;
+        }
+        .ip-info{
+            display:flex;
+            background: #F6F6FF!important;
+            border-radius: 15px;
+            /* text-align: center; */
+            font-family: Poppins;
+            margin-bottom: 5px;
+
+        }
+        .vertical-separator::after{
+            content: "";
+    height: 50px;
+    width: 1px;
+    background-color: rgba(214, 214, 232, 1);
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+        }
+        .info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: left;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .dynamic-info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: center;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .request-email{
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            line-height: 120%;
+            text-align: center;
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .verification-code{
+            text-align: center;
+            color: #4048FF;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 22px;
+            line-height: 28px;
+            letter-spacing: 1px;
+            margin-top: 25px;
+            margin-bottom: 18px;
+        }
     </style>
 </head>
 <body>
@@ -288,16 +377,32 @@
                 <div class="col" align="right">
                 </div>
             </div>
-                <img src="{{imgUrl}}/changemail.png" alt="">
+                <img src="../../public/code_change_email.svg" alt="">
                 <p class="text-title">{{__ "changement_email_presque_terminé"}}</p>
         </div>
         <div class="mail-body">
+            <div class="verification-code">{{__  "verif-code"}}</div>
+            <div class="request-email">
+                {{__  "request"}} <span style="font-weight: bold!important;;">{{__  "mail"}}</span>
+            </div>
+            <div class="request-email" style="margin-bottom: 29px!important;">{{__  "request-done"}}</div>
+            <div class="ip-info">
+            <span class="info"> <img src="../../public/dateRequest.png" style="margin-right: 22px;"> {{__  "time-request"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{requestDate}}</span>
+            </div>
+            <div class="ip-info">
+                <span class="info"> <img src="../../public/icons_ip.png" style="margin-right: 22px;"> IP</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{ip}}</span>
+            </div>
+            <div class="ip-info">
+                <span class="info"> <img src="../../public/location.png" style="margin-right: 22px;"> {{__  "Location"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{location}}</span>
+            </div>
           <h1 class="gains">{{__  "validation_code"}}</h1>
           <div class="reason-content"><span class="code_text">{{code}}</span></div>
-         
+           <div class="expire-text">{{__ "code-expire"}}</div>
     <div class="subtitle">
-        <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
-        {{__ "valid_wish"}}
+        {{__ "code-request"}}
+    </div>
+    <div class="support">
+        {{__ "Support"}}
     </div>
 </div>
         <div class="mail-footer">

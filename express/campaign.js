@@ -982,9 +982,12 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const id_wallet=req.params.id_wallet;
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
+		const limit=+req.query.limit || 50;
+		const page=+req.query.page || 1;
+		const skip=limit*(page-1);
 		let arrayOfLinks=[];
-
-		var userLinks=await app.db.campaign_link().find({id_wallet:id_wallet}).toArray();
+        let query= app.campaigns.filterProms(req,id_wallet)
+		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
 		for (var i = 0;i<userLinks.length;i++){
 			let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
@@ -994,10 +997,10 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				 let fund = await contract.methods.campaigns(campaign.hash).call();
 				const ratio = campaign.ratios;
 				const bounties=campaign.bounties;
-				var link=userLinks[i];
+				let link=userLinks[i];
 				let cmp = {}
 				cmp.bounties = bounties
-				cmp._id = campaign.id
+				cmp._id = campaign._id
 				cmp.title=campaign.title;
 				cmp.description=campaign.description;
 				cmp.cover=campaign.cover;
@@ -1013,10 +1016,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 												}
 												if(result.likes){
 												like =  new Big(num["like"]).times(result.likes) || "0";
-												}
-												if(result.shares){			 
-												share = new Big(num["share"]).times(result.shares) || "0";		
-												}
+												}														 
+												share = result.shares? new Big(num["share"]).times(result.shares):"0" ;														
 												link.totalToEarn = view.plus(like).plus(share).toFixed();
 											}
 										})
