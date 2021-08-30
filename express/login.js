@@ -12,7 +12,7 @@ module.exports = function (app) {
   const { combine, timestamp, label, prettyPrint, myFormat } = format;
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
-  const geoip = require('geoip-lite')
+  
   const crypto = require('crypto');
   const hasha = require('hasha');
   var handlebars = require('handlebars');
@@ -29,7 +29,8 @@ module.exports = function (app) {
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
   var session = require('express-session');
-
+  const { getName } = require('country-list');
+  const geoip = require('geoip-lite');
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
     app.use(passport.initialize());
@@ -1179,25 +1180,33 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
         response.end(JSON.stringify("duplicated email"));
         return;
       }else{
+        
         const code = Math.floor(100000 + Math.random() * 900000);
           newEmail={};
           newEmail.email=email;
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
           await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
-          
+          let requestDate =app.account.manageTime();
           let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
           ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
+          const geo = geoip.lookup(ip);
+          let city = geo.city ? geo.city : geo.timezone
+          let country = getName(geo.country);
+          let location = country +', '+city;
 
-          readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', function(err, html) {
+          readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
             var template = handlebars.compile(html);
             var replacements = {
+              ip,
+              requestDate,
+              location,
               satt_url: app.config.basedURl,
               back_url: app.config.baseURl,
               satt_faq : app.config.Satt_faq,
-              code:code,
+              code,
               imgUrl: app.config.baseEmailImgURl,
             };
             var htmlToSend = template(replacements);
@@ -1268,6 +1277,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 	  }
 
 	});
+
 
 
   app.post('/resend-confirmation-token/:email', async function (req, response) {

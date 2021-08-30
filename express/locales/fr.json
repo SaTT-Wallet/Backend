@@ -44,7 +44,10 @@
     "wallet_of":"la portefeuille de",
     "is":"est",
     "changement_email_presque_terminé":"Votre demande de changement <br> d'adresse email est presque terminée !",
-	"validation_code":"Votre code de validation"
+	"validation_code":"Votre code de validation",
+    "code-expire":"Ce code de vérification ne sera valable que 5 minutes",
+    "code-request":"Si vous n'avez pas demandé ce code, veuillez contacter",
+    "Support" : "le support."
 
 
 }

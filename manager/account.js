@@ -968,6 +968,7 @@ accountManager.handleId=async function () {
 		  created:new Date()
 		}
 		await app.db.notification().insertOne(notification);
+		
 	}
 
 	accountManager.isBlocked = async (user, auth)=>{
@@ -997,7 +998,7 @@ accountManager.handleId=async function () {
 			res= true
 		  }   
 		}
-	if(Object.keys(logBlock).length)  await app.db.sn_user().updateOne({_id : user._id},{$set:logBlock})
+	if(Object.keys(logBlock).length) await app.db.sn_user().updateOne({_id : user._id},{$set:logBlock})
 		return res;
 		 
 	  }
@@ -1006,6 +1007,17 @@ accountManager.handleId=async function () {
  accountManager.differenceBetweenDates=(authDate,dateNow)=>{
 	return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000)/60000);   
 	  }
+
+	  accountManager.manageTime =()=>{
+		var d = new Date();
+		var date = d.getDate();
+		var month = d.getMonth() + 1;
+		var year = d.getFullYear();
+		var seconds = d.getSeconds();
+		var minutes = d.getMinutes();
+		var hour = d.getHours();
+		return year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
+	   }
 
 	app.account = accountManager;
 	return app;
