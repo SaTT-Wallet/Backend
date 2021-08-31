@@ -319,7 +319,13 @@ const Grid = require('gridfs-stream');
 		const page=parseInt(req.query.page) || 1;
 		const skip=limit*(page-1);
 		const allCampaigns=[];
-		const campaigns = await app.db.campaigns().find().sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+         
+		let strangerDraft=[]
+        strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}})	
+        let query = app.campaign.filterCampaign(req,strangerDraft);
+
+		const campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+		
 		for (var i = 0;i<campaigns.length;i++)
 		{
 			proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash}).toArray();
