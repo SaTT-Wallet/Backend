@@ -59,7 +59,9 @@ module.exports = async function (app) {
 		app.db.campaigns= function () {
             return db2.db(app.config.mongoBaseCrm).collection('campaigns');
         };
-
+		app.db.captcha= function () {
+            return db2.db(app.config.mongoBaseCrm).collection('captcha');
+        };
         app.db.referral = function () {
 			return db2.db(app.config.mongoBaseCrm).collection('referral');
 	       };

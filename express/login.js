@@ -1581,5 +1581,33 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
      }
   })
 
+  app.post('/verifyCaptcha', async (req, res) => {
+    try{
+    let id = app.ObjectId(req.body._id);
+    let position=req.body.position;
+    let captcha =await app.db.captcha().findOne({$and:[{ _id:id},{position:{ $gte :  position-5, $lte : position+5}}]});
+    if(captcha){
+     res.send(JSON.stringify({message : "success"}));
+      } else{
+        res.send(JSON.stringify({error : "wrong captcha"}));
+      }
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+  app.get('/captcha', async (req, res) => {
+    try{
+    count =await app.db.captcha().count();
+    const random = Math.floor(Math.random()*count);
+    console.log(random)
+    let captchas = await app.db.captcha().find().limit(1).skip(random).toArray();
+    let captcha=captchas[0]
+    res.send(JSON.stringify({captcha}));
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
   return app;
 }

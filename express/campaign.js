@@ -1038,14 +1038,12 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				link.campaign=cmp;
 				arrayOfLinks.push(link)
 			}
-			
 		}
-		
-		response.end(JSON.stringify(arrayOfLinks));
-	}catch(err){
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		  }
-})
+			response.end(JSON.stringify(arrayOfLinks));
+		}catch(err){
+				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+	})
 
 	app.post('/campaign/validate', async function(req, response) {
 
