@@ -88,9 +88,8 @@ module.exports = async function (app) {
 				var token = page.token;
 				var idPage = page.id;
 
-				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares&access_token="+token,json: true});
+				var res2 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?fields=shares,full_picture&access_token="+token,json: true});
 				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token="+token,json: true});
-
 
 					var shares = 0;
 					if(res2.error || res3.error)
@@ -104,7 +103,7 @@ module.exports = async function (app) {
 					}
 					var likes = res3.data[0].values[0].value.like;
 					var views = res3.data[1].values[0].value;
-					var perf = {shares:shares,likes:likes,views:views,date:Math.floor(Date.now()/1000)};
+					var perf = {shares:shares,likes:likes,views:views,date:Math.floor(Date.now()/1000),media_url:res2.full_picture};
 
 					resolve(perf);
 				}
@@ -153,7 +152,8 @@ module.exports = async function (app) {
 				var token = fbProfile.accessToken;
 
 					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"/insights?metric=engagement,impressions&access_token="+token,json: true}).catch(async function (e) {
-						var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count&access_token="+token,json: true});
+						var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count,media_url&access_token="+token,json: true});
+						console.log("result instagram",cur);
 						resolve({shares:0,likes:cur.like_count,views:0})
 					});
 						resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
