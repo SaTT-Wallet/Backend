@@ -121,7 +121,7 @@ module.exports = function (app) {
         const lang = req.query.lang || "en";
 
         app.i18n.configureTranslation(lang);
-        readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
+        readHTMLFile(__dirname + '/../emails/welcome.html', (err, html) =>{
           var template = handlebars.compile(html);
           var replacements = {
             satt_faq : app.config.Satt_faq,
@@ -1060,7 +1060,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   });
 
-
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
 
@@ -1075,10 +1074,19 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
     var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
-
-    readHTMLFile(__dirname + '/../emails/reset_password.html', function(err, html) {
+    let requestDate =app.account.manageTime();
+    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+    ip = ip.split(":")[3]
+    const geo = geoip.lookup(ip);
+    let city = geo.city ? geo.city : geo.timezone
+    let country = countryList.getName(geo.country);
+    let location = country +', '+city;
+    readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
+        ip,
+        location,
+        requestDate,
         satt_url: app.config.basedURl,
         imgUrl: app.config.baseEmailImgURl,
         passrecover_url: app.config.baseUrl + 'auth/passrecover',
