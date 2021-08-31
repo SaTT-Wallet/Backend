@@ -1608,7 +1608,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     try{
     count =await app.db.captcha().count();
     const random = Math.floor(Math.random()*count);
-    console.log(random)
     let captchas = await app.db.captcha().find().limit(1).skip(random).toArray();
     let captcha=captchas[0]
     res.send(JSON.stringify({captcha}));
