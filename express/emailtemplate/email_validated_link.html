@@ -51,7 +51,7 @@
         }
 
         .content .mail-header {
-            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
+            background-image: url("../../public/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -105,7 +105,7 @@
             color: #1F2337;
             font-style: normal;
             font-family: 'Poppins', sans-serif;
-            padding: 30px;
+            padding: 8px 67px;
         }
 
         .content .mail-body .subtitle {
@@ -196,6 +196,7 @@
             border-left: solid 0.3px;
         }
         .gains{
+            margin-top: 25px;
             font-family: 'Poppins', sans-serif;
             font-style: normal;
             font-weight: bold;
@@ -267,6 +268,50 @@ letter-spacing: 0.03em;
 
 color: #FFFFFF;
         }
+        .ip-info{
+            display:flex;
+            background: #F6F6FF!important;
+            border-radius: 15px;
+            font-family: Poppins;
+            margin-bottom: 5px;
+
+        }
+        .dynamic-info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: center;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: left;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .vertical-separator::after{
+            content: "";
+    height: 50px;
+    width: 1px;
+    background-color: rgba(214, 214, 232, 1);
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+        }
     </style>
 </head>-
 <body>
@@ -284,9 +329,19 @@ color: #FFFFFF;
                 <p class="text-subtitle"> {{__ "valid_mess"}} {{cmp_title}} {{__ "valid_accepted"}}</p>
         </div>
         <div class="mail-body">
+            <div style="margin-bottom:38px;"></div>
+            <div class="ip-info">
+                <span class="info"> <img src="../../public/dateRequest.png" style="margin-right: 22px;"> {{__  "time-request"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{requestDate}}</span>
+                </div>
+                <div class="ip-info">
+                    <span class="info"> <img src="../../public/icons_ip.png" style="margin-right: 22px;"> IP</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{ip}}</span>
+                </div>
+                <div class="ip-info">
+                    <span class="info"> <img src="../../public/location.png" style="margin-right: 22px;"> {{__  "Location"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{location}}</span>
+                </div>
           <h1 class="gains">{{__ "valid_question"}}</h1>
-        <p style = "color: #1F2337!important;">{{__ "valid_gaz"}} </p>
-        <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
+        <p style = "color: #323754!important;">{{__ "valid_gaz"}} </p>
+        <p style="margin-top:22px;margin-bottom:33px;">{{__ "valid_need"}} <span style="color: #4048FF!important;">{{__ "valid_contact"}}</span></p>
         <div class="apply-btn">
             <a  style="text-align:center;color:white;"href="{{cmp_link}}">{{__ "valid_post"}}</a>
        </div>

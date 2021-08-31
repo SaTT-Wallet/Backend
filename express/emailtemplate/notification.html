@@ -9,8 +9,7 @@
     <title>Atayen</title>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap" rel="stylesheet">
-    <style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">    <style>
         .main {
             width: 100%;
             text-align: center;
@@ -51,7 +50,7 @@
         }
 
         .content .mail-header {
-            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
+            background-image: url("../../public/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -61,7 +60,7 @@
         }
 
         .content .mail-header h2 {
-            font-family: 'Lato', sans-serif;
+            font-family: 'Poppins', sans-serif;
             font-style: normal;
             font-weight: bold;
             font-size: 40px;
@@ -73,7 +72,7 @@
         }
 
         .content .mail-header a.btn {
-            font-family: 'Lato', sans-serif;
+            font-family: 'Poppins', sans-serif;
             font-style: normal;
             font-weight: 900;
             font-size: 18px;
@@ -84,18 +83,10 @@
             border-radius: 30px;
         }
 
-        .content .mail-header p.subtitle {
-            font-family: 'Lato', sans-serif;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 22px;
-            text-align: center;
-            letter-spacing: 0.02em;
-            color: #FFFFFF;
-        }
+     
 
         .content .mail-header p {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Poppins', sans-serif;
             font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
@@ -105,16 +96,21 @@
         .content .mail-body {
             color: #1F2337;
             font-style: normal;
-            font-family: 'Roboto', sans-serif;
-            padding: 30px;
+            font-family: 'Poppins', sans-serif;
+            padding: 8px 67px;
         }
 
         .content .mail-body .subtitle {
+            display: flex;
             margin-top: 15px;
             margin-bottom: 15px;
-            font-family: 'Lato', sans-serif;
+            background: #F6F6FF;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
             font-weight: bold;
             font-size: 18px;
+            height: 51px;
+            /* justify-content: center; */
             line-height: 22px;
             text-align: center;
             letter-spacing: 0.02em;
@@ -143,7 +139,7 @@
             width: auto;
             min-width: 245px;
             margin-top: 10px;
-            font-family: 'Lato', sans-serif;
+            font-family: 'Poppins', sans-serif;
             font-style: normal;
             font-weight: 900;
             font-size: 18px;
@@ -180,7 +176,7 @@
         }
 
         .content .mail-footer a {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Poppins', sans-serif;
             font-style: normal;
             font-weight: normal;
             font-size: 14px;
@@ -192,6 +188,84 @@
 
         .content .mail-footer a.border-l {
             border-left: solid 1px;
+        }
+        .ip-info{
+            display:flex;
+            background: #F6F6FF!important;
+            border-radius: 15px;
+            /* text-align: center; */
+            font-family: Poppins;
+            margin-bottom: 5px;
+
+        }
+        .dynamic-info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: center;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .info{
+            padding: 1em;
+            width: 100%; 
+            display: flex;
+            justify-content: left;
+            font-family: Poppins;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center; 
+            letter-spacing: 0.03em;
+            color: #323754;
+        }
+        .vertical-separator::after{
+            content: "";
+    height: 50px;
+    width: 1px;
+    background-color: rgba(214, 214, 232, 1);
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+        }
+        .apply-btn{
+    display:flex;        
+    border:none !important;
+    border-radius: 30px;
+    background: #4048FF;
+    font-family: Poppins;
+    
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 27px;
+    letter-spacing: 0.01em;
+    text-align: center;
+    width: 48%;
+    margin: 0 auto;
+    align-items: center;
+    color: #F6F6FF;
+    text-align: center;
+    height: 36px;
+        }
+        .text-btn{
+    padding-left:9%;
+    font-family: 'Poppins', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 27px;
+    display: flex;
+    align-items: center;
+    /* text-align: center; */
+    letter-spacing: 0.01em;
+    color: #F6F6FF!important;
         }
     </style>
 </head>
@@ -211,11 +285,25 @@
                 <p><strong>{{notification.wallet}}</strong></p>
         </div>
         <div class="mail-body">
-
+            <div style="margin-bottom:38px;"></div>
+            <div class="ip-info">
+                <span class="info"> <img src="../../public/dateRequest.png" style="margin-right: 22px;"> {{__  "time-request"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{requestDate}}</span>
+                </div>
+                <div class="ip-info">
+                    <span class="info"> <img src="../../public/icons_ip.png" style="margin-right: 22px;"> IP</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{ip}}</span>
+                </div>
+                <div class="ip-info">
+                    <span class="info"> <img src="../../public/location.png" style="margin-right: 22px;"> {{__  "Location"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{location}}</span>
+                </div>
         <p>{{{__ "here_is_message"}}}</p>
-    <div class="subtitle">
+    <div class="subtitle"">
+        <span style="padding-top: 13px;padding-left: 210px;">
         {{notification.message}}
+    </span>
     </div>
+    <div class="apply-btn">
+        <a  style="text-align:center;color:white;padding-left:75px;padding-top:4px;"href="{{SaTT.Url}}">Envoyer la somme</a>
+   </div>
 </div>
         <div class="mail-footer">
             <a href="{{SaTT.faq}}">{{{__ "about"}}}</a>

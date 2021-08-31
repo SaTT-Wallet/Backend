@@ -18,7 +18,9 @@ module.exports = function (app) {
 	const hasha = require('hasha');
     var Long = require('mongodb').Long;
 	const crypto = require('crypto');
-
+    const countryList = require('country-list');
+	const geoip = require('geoip-lite');
+	
 	let gfsprofilePic;
 	let gfsUserLegal;
 
@@ -91,6 +93,19 @@ module.exports = function (app) {
 		const base64 = buff.toString('base64');
 		return base64;
 	  }
+
+	  var readHTMLFile = function(path, callback) {
+		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
+		  if (err) {
+			throw err;
+			callback(err);
+		  }
+		  else {
+			callback(null, html);
+		  }
+		});
+	  };
+
      /*
      @link : /profile/pic/:id
      @description: récupère l'image d'un utilisateur
@@ -442,20 +457,31 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				 if(result){
 		await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
 				 }
+		  let requestDate =app.account.manageTime();
+          let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+          ip = ip.split(":")[3];
+          
+          const geo = geoip.lookup(ip);
+          let city = geo.city ? geo.city : geo.timezone
+          let country = countryList.getName(geo.country);
+          let location = country +', '+city;
 
-			fs.readFile(__dirname + '/emailtemplate/notification.html', 'utf8' ,async(err, data) => {
+			readHTMLFile(__dirname + '/emailtemplate/notification.html',async(err, data) => {
 				if (err) {
 				  console.error(err)
 				  return
 				}
-				var template = handlebars.compile(data);
+				let template = handlebars.compile(data);
 
 				var data_={
 					SaTT:{
 						faq : app.config.Satt_faq,
 						imageUrl : app.config.baseEmailImgURl,
-						Url:app.config.basedURL+'FAQ'
+						Url:app.config.basedURL
 					},
+					ip,
+					location,
+					requestDate,
 					notification:{
 						name:req.body.name,
 						price:req.body.price,
@@ -481,7 +507,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						]
 			   };
 
-		   transporter.sendMail(mailOptions, function(error, info){
+		   transporter.sendMail(mailOptions, (error, info)=>{
 				if (error) {
 					res.end(JSON.stringify(error))
 				} else {
@@ -736,6 +762,18 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			})
 		   res.send(JSON.stringify({message:"success"})).status(201);
 
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+	   })
+
+	   app.post('/profile/save-fcm-accessToken', async (req, res) => {
+		try {
+        const token = req.headers["authorization"].split(" ")[1];
+		const auth =	await app.crm.auth(token);
+		const data = req.body;
+		await app.db.sn_user().updateOne({_id:+auth.id}, {$set:{fireBaseAccessToken : data.fb_accesstoken}})
+		res.end(JSON.stringify({message : "success"}));
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
