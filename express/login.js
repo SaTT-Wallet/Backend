@@ -1194,7 +1194,9 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           newEmail.email=email;
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
+
           await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+
           let requestDate =app.account.manageTime();
           let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
           ip = ip.split(":")[3];
