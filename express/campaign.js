@@ -164,10 +164,12 @@ module.exports = function (app) {
 				//tester si le lien facebook on recupere les stats de facebook;
 				    const idPost = prom.idPost.split(':')
 					oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
+					console.log(oraclesFacebook);
 					stat.shares=oraclesFacebook.shares || '0'
 					stat.likes=oraclesFacebook.likes || '0'
 					stat.views=oraclesFacebook.views || '0'
 					stat.oracle = 'facebook'
+					stat.media_url=oraclesFacebook.media_url || ''
 								}
 				//youtube
 				else if(stat.typeSN=="2"){

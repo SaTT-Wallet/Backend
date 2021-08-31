@@ -1114,6 +1114,7 @@ const Grid = require('gridfs-stream');
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
+		   allProms[i].media_url=result.media_url;
 		   
 		   if(ratio.length && allProms[i].isAccepted){
 				ratio.forEach( num =>{
