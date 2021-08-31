@@ -675,9 +675,15 @@ module.exports = async function (app) {
 		if(req.params.influencer) query["$and"].push({"walletId":{$ne : req.params.influencer}});		
 		// query["$or"].push({"hash":{ $exists: true}});
 		query["$and"].push({"_id":{$nin:strangerDraft}})
-
+        
+		
 		query["$or"].push({"ratios.oracle":{ $in: oracles}});
 		query["$or"].push({"bounties.oracle":{ $in: oracles}});
+       if(status == "draft" || !status){
+		query["$or"].push({"ratios.oracle":{ $nin: oracles}});
+		query["$or"].push({"bounties.oracle":{ $nin: oracles}});
+	   }
+
 		if(title){
 		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
 		}
@@ -695,7 +701,7 @@ module.exports = async function (app) {
 			query["$or"].push({"endDate":{ $lt : dateJour }});
 			query["$or"].push({"funds.1":{$eq: "0"}});
 			query["$and"].push({"hash":{ $exists: true}});
-		}else if(status=="draft"){
+		}else if(status=="draft" ){
 			query["$and"].push({"hash":{ $exists: false}});
 		}
 
