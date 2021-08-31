@@ -968,7 +968,19 @@ accountManager.handleId=async function () {
 		  created:new Date()
 		}
 		await app.db.notification().insertOne(notification);
-		
+		let user = await app.db.sn_user().findOne({_id:+id});
+
+		if(user.fireBaseAccessToken){
+		let data= {
+			"message":{
+			  "token": user.fireBaseAccessToken,
+			  "data": {
+				  "obj":JSON.stringify(notification),                       
+			  }
+			}   
+		  }
+		  await app.notification.sendNotification(data)
+		}
 	}
 
 	accountManager.isBlocked = async (user, auth)=>{
