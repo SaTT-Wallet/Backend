@@ -24,9 +24,9 @@ module.exports = function (app) {
 	var rp = require('request-promise');
     const etherInWei = new Big(1000000000000000000);
     const handlebars = require('handlebars');
-
+	const countryList = require('country-list');
 	const nodemailer = require("nodemailer");
-
+    const geoip = require('geoip-lite');
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 
@@ -605,10 +605,7 @@ module.exports = function (app) {
 		   let link=req.body.link
 		   
 		 await  app.db.campaigns().findOne({_id:app.ObjectId(campaign_id)},async  (err, element)=> {
-			   let owner= Number(element.idNode.substring(1))
-               
-			   manageTime()
-
+		  let owner= Number(element.idNode.substring(1))               
 		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:campaign_id});
 
 
@@ -647,18 +644,6 @@ module.exports = function (app) {
 			})
 		  });
 			})
-
-
-		   function manageTime (){
-			var d = new Date();
-			var date = d.getDate();
-			var month = d.getMonth() + 1;
-			var year = d.getFullYear();
-			var seconds = d.getSeconds();
-			var minutes = d.getMinutes();
-			var hour = d.getHours();
-			//campaign.date=year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
-		   }
 
         } catch (err) {
 			res.end('{"error"console.log(link,campaign_id):"'+(err.message?err.message:err.error)+'"}');
@@ -1129,7 +1114,13 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 					const id = req.body.idUser;
                     const email = req.body.email;
-
+					let requestDate =app.account.manageTime();
+                    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+                    ip = ip.split(":")[3];
+					const geo = geoip.lookup(ip);
+					let city = geo.city ? geo.city : geo.timezone
+					let country = countryList.getName(geo.country);
+					let location = country +', '+city;
 					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
 
 
@@ -1141,6 +1132,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
+								ip,
+								location,
+								requestDate,
 							cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,

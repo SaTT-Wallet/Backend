@@ -121,7 +121,7 @@ module.exports = function (app) {
         const lang = req.query.lang || "en";
 
         app.i18n.configureTranslation(lang);
-        readHTMLFile(__dirname + '/../emails/welcome.html', function(err, html) {
+        readHTMLFile(__dirname + '/../emails/welcome.html', (err, html) =>{
           var template = handlebars.compile(html);
           var replacements = {
             satt_faq : app.config.Satt_faq,
@@ -1060,7 +1060,6 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   });
 
-
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
 
@@ -1075,10 +1074,19 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
     var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
-
-    readHTMLFile(__dirname + '/../emails/reset_password.html', function(err, html) {
+    let requestDate =app.account.manageTime();
+    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+    ip = ip.split(":")[3]
+    const geo = geoip.lookup(ip);
+    let city = geo.city ? geo.city : geo.timezone
+    let country = countryList.getName(geo.country);
+    let location = country +', '+city;
+    readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
+        ip,
+        location,
+        requestDate,
         satt_url: app.config.basedURl,
         imgUrl: app.config.baseEmailImgURl,
         passrecover_url: app.config.baseUrl + 'auth/passrecover',
@@ -1163,6 +1171,71 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     }
 
   });
+
+  app.get("/tesstess", async(req, res)=>{
+    const lang = req.query.lang || "en";
+    app.i18n.configureTranslation(lang);
+
+          let requestDate =app.account.manageTime();
+          // let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+          // ip = ip.split(":")[3];
+          ip ="163.172.70.225"
+          const geo = geoip.lookup(ip);
+          let city = geo.city ? geo.city : geo.timezone
+          let country = countryList.getName(geo.country);
+          let location = country +', '+city;
+         
+          readHTMLFile(__dirname + '/emailtemplate/notification.html',async(err, data) => {
+            if (err) {
+              console.error(err)
+              return
+            }
+            var template = handlebars.compile(data);
+    
+            var data_={
+              SaTT:{
+                faq : app.config.Satt_faq,
+                imageUrl : app.config.baseEmailImgURl,
+                Url:app.config.basedURL+'FAQ'
+              },
+              ip,
+              location,
+              requestDate,
+              notification:{
+                name:'req.body.name',
+                price:'req.body.price',
+                cryptoCurrency:'req.body.cryptoCurrency',
+                message:'req.body.message',
+                wallet:'req.body.wallet'
+              }
+            }
+    
+            var htmlToSend = template(data_);
+    
+            var mailOptions = {
+              from: app.config.mailSender,
+              to: "hamdi@atayen.us",
+              subject: 'nouvelle notification',
+              html: htmlToSend,
+              attachments: [
+                {
+                filename: "codeQr.jpg",
+                contentType:  'image/png',
+                content: "base64",
+                }
+                ]
+             };
+    
+           transporter.sendMail(mailOptions, (error, info)=>{
+            if (error) {
+              res.end(JSON.stringify(error))
+            } else {
+              res.end(JSON.stringify(info.response))
+            }
+            });
+          })
+
+  })
 
   app.put('/changeEmail', async  (req, response)=> {
     var pass = req.body.pass;
