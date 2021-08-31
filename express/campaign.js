@@ -971,7 +971,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
 		let arrayOfLinks=[];
-        let query= app.campaigns.filterProms(req,id_wallet)
+        let query= app.campaign.filterProms(req,id_wallet)
 		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
 		for (var i = 0;i<userLinks.length;i++){
@@ -2277,6 +2277,15 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign})
 
+		let requestDate =app.account.manageTime();
+		let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
+		ip = ip.split(":")[3];
+		
+		const geo = geoip.lookup(ip);
+		let city = geo.city ? geo.city : geo.timezone
+		let country = countryList.getName(geo.country);
+		let location = country +', '+city;
+
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
 				console.error(err)
@@ -2285,6 +2294,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			  let template = handlebars.compile(html);
 
 				let emailContent = {
+				ip,
+				location,
+				requestDate,
 				reject_reason : reason,
 				cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,

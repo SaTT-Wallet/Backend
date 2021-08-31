@@ -16,7 +16,7 @@ module.exports = async (app) => {
         null
       );
       jwtClient.authorize( (err, tokens)=> {
-        if (err) {-
+        if (err) {
           reject(err);
           return;
         }
@@ -26,6 +26,7 @@ module.exports = async (app) => {
   };
 
    notificationManager.sendNotification = async (data)=>{
+     
     let fireBaseAccessToken= await notificationManager.getAccessToken();
     console.log(fireBaseAccessToken, "fireBaseAccessToken")
     var clientServerOptions = {
