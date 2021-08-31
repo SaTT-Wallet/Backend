@@ -312,7 +312,7 @@ const Grid = require('gridfs-stream');
 		response.end(JSON.stringify(campaignsPaginator));
 	})
 
-	app.get('/v2/campaigns', async function(req, response) {
+	app.get('/v2/campaigns', async (req, response)=> {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		const limit=parseInt(req.query.limit) || 50;
@@ -325,7 +325,7 @@ const Grid = require('gridfs-stream');
         let query = app.campaign.filterCampaign(req,strangerDraft);
 
 		const campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
-		
+
 		for (var i = 0;i<campaigns.length;i++)
 		{
 			proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash}).toArray();
@@ -335,31 +335,6 @@ const Grid = require('gridfs-stream');
 		response.end(JSON.stringify(allCampaigns));
 	})
 
-	app.get('/v2/campaigns', async function(req, response) {
-		const token = req.headers["authorization"].split(" ")[1];
-		const auth =await app.crm.auth(token);
-		const limit=parseInt(req.query.limit) || 50;
-		const page=+req.query.page || 1;
-		const skip=limit*(page-1);
-
-		let strangerDraft=[]
-
-         strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}})
-		
-        let query = app.campaign.filterCampaign(req,strangerDraft);
-		const allCampaigns=[];
-		let campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
-         
-		for (var i = 0;i<campaigns.length;i++)
-		{
-			if(campaign.hash && campaign.idNode !== "0"+auth.id){
-			proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash}).toArray();
-			campaigns[i].proms =proms;
-			}
-			allCampaigns.push(campaigns[i]);
-		}
-		response.end(JSON.stringify(allCampaigns));
-	})
 
 	app.get('/v3/campaigns/influencer/:influencer', async function(req, response) {
 		// const token = req.headers["authorization"].split(" ")[1];

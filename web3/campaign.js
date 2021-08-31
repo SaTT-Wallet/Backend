@@ -672,7 +672,6 @@ module.exports = async function (app) {
 		var query = {};
 		query["$and"]=[];
 		query["$or"]=[];
-		if(req.params.influencer) query["$and"].push({"walletId":{$ne : req.params.influencer}});		
 		// query["$or"].push({"hash":{ $exists: true}});
 		query["$and"].push({"_id":{$nin:strangerDraft}})
         
