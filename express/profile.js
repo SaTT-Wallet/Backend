@@ -457,14 +457,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				 if(result){
 		await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
 				 }
-		  let requestDate =app.account.manageTime();
-          let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-          ip = ip.split(":")[3];
-          
-          const geo = geoip.lookup(ip);
-          let city = geo.city ? geo.city : geo.timezone
-          let country = countryList.getName(geo.country);
-          let location = country +', '+city;
 
 			readHTMLFile(__dirname + '/emailtemplate/notification.html',async(err, data) => {
 				if (err) {
@@ -479,9 +471,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						imageUrl : app.config.baseEmailImgURl,
 						Url:app.config.basedURL
 					},
-					ip,
-					location,
-					requestDate,
 					notification:{
 						name:req.body.name,
 						price:req.body.price,
@@ -496,7 +485,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				var mailOptions = {
 					from: app.config.mailSender,
 					to: req.body.to,
-					subject: 'nouvelle notification',
+					subject: 'Demande de paiement',
 					html: htmlToSend,
 					attachments: [
 						{
