@@ -142,12 +142,12 @@ module.exports = function (app) {
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
-		let prom;
 		var Events = await app.db.event().find({ prom: { $exists: true} }).toArray();
 		
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
-			prom = await app.oracle.getPromDetails(idProm)
+			const prom = await app.oracle.getPromDetails(idProm)
+			
 
 				var stat={};
 				stat.status = prom.isAccepted;
@@ -183,11 +183,15 @@ module.exports = function (app) {
 				//instagram
 				else if(stat.typeSN=="3"){
 				//tester si le lien instagram on recupere les stats de instagram;
-					oraclesInstagram = await app.oracle.instagram(prom.idPost);
+				    var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)});
+				    var UserId=	userWallet.UserId;
+					console.log("user id ===================",UserId);
+					oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
 					stat.shares=oraclesInstagram.shares || '0';
 					stat.likes=oraclesInstagram.likes || '0';
 					stat.views=oraclesInstagram.views|| '0';
-					stat.oracle = 'instagram'
+					stat.oracle = 'instagram';
+					await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 								}
 				//twitter
 				else{
@@ -1538,7 +1542,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-
+			console.log(stats);
 
 
 			//console.log(prevstat);
