@@ -55,5 +55,6 @@
 	"request-done":"has been requested.",
 	"request":"A request to reset your",
 	"mail":"E-mail adress",
-	"verif-code":"Verification code"
+	"verif-code":"Verification code",
+    "send-money":"Send the amount"
 }
