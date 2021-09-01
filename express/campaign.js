@@ -1114,15 +1114,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 					const id = req.body.idUser;
                     const email = req.body.email;
-					let requestDate =app.account.manageTime();
-                    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-                    ip = ip.split(":")[3];
-					const geo = geoip.lookup(ip);
-					let city = geo.city ? geo.city : geo.timezone
-					let country = countryList.getName(geo.country);
-					let location = country +', '+city;
-					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
 
+					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
 
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 						if (err) {
@@ -1132,9 +1125,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-								ip,
-								location,
-								requestDate,
 							cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
@@ -2279,15 +2269,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign})
 
-		let requestDate =app.account.manageTime();
-		let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-		ip = ip.split(":")[3];
-		
-		const geo = geoip.lookup(ip);
-		let city = geo.city ? geo.city : geo.timezone
-		let country = countryList.getName(geo.country);
-		let location = country +', '+city;
-
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
 				console.error(err)
@@ -2296,9 +2277,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			  let template = handlebars.compile(html);
 
 				let emailContent = {
-				ip,
-				location,
-				requestDate,
 				reject_reason : reason,
 				cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
