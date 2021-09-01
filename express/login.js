@@ -178,7 +178,7 @@ module.exports = function (app) {
           [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
           addAuthLog(logInfo)
            let validAuth =  await app.account.isBlocked(user,true)
-          if(!validAuth){
+          if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
             var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -191,14 +191,14 @@ module.exports = function (app) {
          
           return done(null, {id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect});
         } else{
-          return done(null, false, {error: true, message: 'account_locked'});
+          return done(null, false, {error: true, message: 'account_locked', blockedDate:validAuth.blockedDate});
         }
         } else {
           let validAuth = await app.account.isBlocked(user,false);
-
+          
           [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
           addAuthLog(logInfo)        
-          if(validAuth) return done(null, false, {error: true, message: 'account_locked'});
+          if(validAuth.res) return done(null, false, {error: true, message: 'account_locked', blockedDate:validAuth.blockedDate});
            return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
       } else {
