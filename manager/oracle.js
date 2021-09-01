@@ -51,21 +51,24 @@ module.exports = async function (app) {
 
 	oracleManager.instagramAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
-			var ig_user = ig_media.owner.id;
-			fbProfile = await app.db.fbProfile().findOne({instagram_id:ig_user  });
 
-			if(fbProfile) {
-				var token = fbProfile.accessToken;
-				var res3 = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+ig_user+"?access_token="+token+"&fields=followers_count",json: true});
-				resolve(res3.followers_count)
-			}
+		var followers=0;
+		var campaign_link = await app.db.campaign_link().findOne({idPost});
+		var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
 
+ 		var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
+			if(fbProfile && fbProfile.instagram_id){
+				var instagram_id=fbProfile.instagram_id;
+						var token = fbProfile.accessToken;
+						var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?access_token="+token+"&fields=followers_count",json: true});
+						followers=res.followers_count
+			}		
+			console.log("followers==========",followers);
+			
+				resolve(followers)
+			
+		
 
-
-			else {
-				resolve(0);
-		}
 		});
 	};
 
@@ -136,32 +139,31 @@ module.exports = async function (app) {
 
 	};
 
-	oracleManager.instagram = async function (idPost) {
+	oracleManager.instagram = async function (UserId,idPost) {
 		return new Promise(async (resolve, reject) => {
-				var perf = {shares:0,likes:0,views:0};
+			var perf = {shares:0,likes:0,views:0};
+			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
+			if(fbProfile && fbProfile.instagram_id){
+				var instagram_id=fbProfile.instagram_id;
+			var accessToken=fbProfile.accessToken;
+			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode&limit=100&access_token="+accessToken;
+			var resMedia = await rp({uri:media,json: true});
+			var data =resMedia.data;
+			for (let i=0;i<data.length;i++){
+				if(data[i].shortcode == idPost){
+					perf.likes=data[i].like_count;
+						await app.db.ig_media().updateOne({id:data[i].id},{$set:{shortcode:data[i].shortcode,like_count:data[i].like_count,owner:instagram_id}},{ upsert: true });
+						break;	
+					}
+			}
+			}
 
-				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
-				if(!ig_media){
-					resolve({error:"media not found"});
-					return;
+
+
+			resolve(perf);
+			return;
 				}
-
-			  var ig_user = ig_media.owner.id;
-				var media_id = ig_media.id;
-				var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
-				var token = fbProfile.accessToken;
-
-					var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"/insights?metric=engagement,impressions&access_token="+token,json: true}).catch(async function (e) {
-						var cur = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+media_id+"?fields=like_count,media_url&access_token="+token,json: true});
-						console.log("result instagram",cur);
-						resolve({shares:0,likes:cur.like_count,views:0})
-					});
-						resolve({shares:0,likes:cur.data[0].values[0].value,views:cur.data[1].values[0].value})
-
-				}
-
 		)
-
 	};
 
 	oracleManager.twitter = async function (userName,idPost) {
@@ -246,16 +248,15 @@ module.exports = async function (app) {
 	oracleManager.verifyInsta = async function (userId,idPost) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				var ig_media = await app.db.ig_media().findOne({shortcode: idPost});
-				if(!ig_media) {
+				var fbProfile = await app.db.fbProfile().findOne({UserId: userId});
+				var username=fbProfile.instagram_username;
+				var media = "https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/"+idPost;
+				var resMedia = await rp({uri:media,json: true});
+				if(resMedia.author_name != username){
 					resolve(false);
+				}else{
+					resolve(true);
 				}
-				else {
-					var ig_user = ig_media.owner.id;
-					var fbProfile = await app.db.fbProfile().findOne({instagram_id: ig_user});
-					resolve(fbProfile);
-				}
-
 			}catch (err) {
 				reject({message:err.message});
 			}

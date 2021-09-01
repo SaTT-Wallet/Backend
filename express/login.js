@@ -316,8 +316,9 @@ module.exports = function (app) {
 
           var instagram_id = false;
           var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
-          var res = await rp({uri:accountsUrl,json: true})
 
+          var res = await rp({uri:accountsUrl,json: true})
+          console.log(res);
           while(true) {
 
             for (var i = 0;i<res.data.length;i++) {
@@ -338,20 +339,23 @@ module.exports = function (app) {
            var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
          }
          else {
+           var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
+           var resMedia = await rp({uri:media,json: true})
              profile.accessToken = longToken;
              profile.UserId = user_id;
              profile.instagram_id = instagram_id;
+             profile.instagram_username = resMedia.username;
              var res_ins = await app.db.fbProfile().insertOne(profile);
          }
-         if(instagram_id) {
-          var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
-          for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging && res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
-            for (var i =0;i<res.data.length;i++) {
-              var media = res.data[i];
-              await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
-            }
-          }
-        }
+        //  if(instagram_id) {
+        //   var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
+        //   for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging && res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
+        //     for (var i =0;i<res.data.length;i++) {
+        //       var media = res.data[i];
+        //       await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
+        //     }
+        //   }
+        // }
           
           return cb(null, {id: user_id, token: accessToken});
         

@@ -1165,6 +1165,8 @@ const Grid = require('gridfs-stream');
 
 	app.get('/proms/verify/:idProm', async (req, res) => {
 		try{
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(token);
 		let idProm = req.params.idProm;
 	    var ctr = await app.campaign.getPromContract(idProm);
 		if(!ctr.methods) {
@@ -1182,7 +1184,8 @@ const Grid = require('gridfs-stream');
 		} else if(prom.typeSN == 2){
 		 stats = await app.oracle.youtube(prom.idPost);
 		} else if(prom.typeSN == 3){
-		 stats = await app.oracle.instagram(prom.idPost);
+
+		 stats = await app.oracle.instagram(auth.id,prom.idPost);
 		} else{
 		 stats = await app.oracle.twitter(prom.idUser,prom.idPost);
 		}
@@ -1200,6 +1203,7 @@ const Grid = require('gridfs-stream');
 		}else if(actualStats.reduce((a, b) => a && arrPrevStat.includes(b), true) && prom.funds.amount !== "0"){ //if we have same stats we need to check prom.fund.amount
 			res.send(JSON.stringify({disabled : false, fund:prom.funds.amount }))
 		}	else{
+			
 			res.send(JSON.stringify({disabled : true, fund : prom.funds.amount})) //disable getGains method button
 		}
 		}catch (err) {
