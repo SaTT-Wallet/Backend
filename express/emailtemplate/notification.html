@@ -189,51 +189,6 @@
         .content .mail-footer a.border-l {
             border-left: solid 1px;
         }
-        .ip-info{
-            display:flex;
-            background: #F6F6FF!important;
-            border-radius: 15px;
-            /* text-align: center; */
-            font-family: Poppins;
-            margin-bottom: 5px;
-
-        }
-        .dynamic-info{
-            padding: 1em;
-            width: 100%; 
-            display: flex;
-            justify-content: center;
-            font-family: Poppins;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 16px;
-            text-align: center; 
-            letter-spacing: 0.03em;
-            color: #323754;
-        }
-        .info{
-            padding: 1em;
-            width: 100%; 
-            display: flex;
-            justify-content: left;
-            font-family: Poppins;
-            font-style: normal;
-            font-weight: bold;
-            font-size: 16px;
-            text-align: center; 
-            letter-spacing: 0.03em;
-            color: #323754;
-        }
-        .vertical-separator::after{
-            content: "";
-    height: 50px;
-    width: 1px;
-    background-color: rgba(214, 214, 232, 1);
-    position: absolute;
-    right: 0px;
-    top: 50%;
-    transform: translateY(-50%);
-        }
         .apply-btn{
     display:flex;        
     border:none !important;
@@ -248,7 +203,9 @@
     letter-spacing: 0.01em;
     text-align: center;
     width: 48%;
-    margin: 0 auto;
+    margin-bottom: 27px;
+    margin-top: 21px;
+    margin-left: 165px;
     align-items: center;
     color: #F6F6FF;
     text-align: center;
@@ -285,16 +242,6 @@
                 <p><strong>{{notification.wallet}}</strong></p>
         </div>
         <div class="mail-body">
-            <div style="margin-bottom:38px;"></div>
-            <div class="ip-info">
-                <span class="info"> <img src="{{SaTT.imageUrl}}/dateRequest.png" style="margin-right: 22px;"> {{__  "time-request"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{requestDate}}</span>
-                </div>
-                <div class="ip-info">
-                    <span class="info"> <img src="{{SaTT.imageUrl}}/icons_ip.png" style="margin-right: 22px;"> IP</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{ip}}</span>
-                </div>
-                <div class="ip-info">
-                    <span class="info"> <img src="{{SaTT.imageUrl}}/location.png" style="margin-right: 22px;"> {{__  "Location"}}</span><span class="vertical-separator" style="position:relative;"></span><span class="dynamic-info">{{location}}</span>
-                </div>
         <p>{{{__ "here_is_message"}}}</p>
     <div class="subtitle"">
         <span style="padding-top: 13px;padding-left: 210px;">

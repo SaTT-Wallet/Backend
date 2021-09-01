@@ -969,7 +969,7 @@ accountManager.handleId=async function () {
 		}
 		await app.db.notification().insertOne(notification);
 		let user = await app.db.sn_user().findOne({_id:+id});
-
+           
 		if(user.fireBaseAccessToken){
 		let data= {
 			"message":{
@@ -983,35 +983,44 @@ accountManager.handleId=async function () {
 		}
 	}
 
-	accountManager.isBlocked = async (user, auth)=>{
+	accountManager.isBlocked = async (user, auth=false)=>{
 
 		let dateNow = Math.floor(Date.now() / 1000);
 		var  res = false;
 		let logBlock = {};
 		if(auth){
 		 if(user.account_locked){
+
 			 if(accountManager.differenceBetweenDates(user.date_locked, dateNow) < app.config.lockedPeriod){        
 			   logBlock.date_locked = dateNow
+			   logBlock.failed_count = 0
 			   res = true
 			 } else{
 			  logBlock.failed_count = 0
 			  logBlock.account_locked = false
 			   res = false
 			 }
+
 		 } 
 		} else{
-		  let failed_count = user.failed_count? user.failed_count + 1 : 1;    
+		  let failed_count = user.failed_count? user.failed_count + 1 : 1;  
 		  logBlock.failed_count = failed_count 
 		  if(failed_count == 1)logBlock.dateFirstAttempt =  dateNow;
-		  
-		  if (failed_count >= bad_login_limit && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval ) {
+		  if(user.account_locked){ 
+			  logBlock.date_locked = dateNow  
+			  logBlock.failed_count = 0
+			  res= true
+			}
+		  if (failed_count >= bad_login_limit && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval && !user.account_locked ) {
 			logBlock.account_locked = true
+			logBlock.failed_count = 0
 			logBlock.date_locked = dateNow   
 			res= true
 		  }   
 		}
 	if(Object.keys(logBlock).length) await app.db.sn_user().updateOne({_id : user._id},{$set:logBlock})
-		return res;
+        
+		return {res,blockedDate:dateNow, auth};
 		 
 	  }
 
