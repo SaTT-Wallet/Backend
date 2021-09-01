@@ -185,7 +185,6 @@ module.exports = function (app) {
 				//tester si le lien instagram on recupere les stats de instagram;
 				    var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)});
 				    var UserId=	userWallet.UserId;
-					console.log("user id ===================",UserId);
 					oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
 					stat.shares=oraclesInstagram.shares || '0';
 					stat.likes=oraclesInstagram.likes || '0';
@@ -1537,12 +1536,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
-
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
-
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-			console.log(stats);
 
 
 			//console.log(prevstat);
