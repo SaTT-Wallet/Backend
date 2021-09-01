@@ -53,7 +53,8 @@
     "request-done":"a été faite.",
     "request":"Une demande de réinitialisation de votre",
     "mail":"adresse Mail",
-    "verif-code":"Code de vérification"
+    "verif-code":"Code de vérification",
+    "send-money":"Envoyer la somme"
 
 
 }
