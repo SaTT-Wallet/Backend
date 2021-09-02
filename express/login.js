@@ -181,7 +181,7 @@ module.exports = function (app) {
           if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
-            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date, failed_count :0}});
           } else {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
 
@@ -1077,15 +1077,15 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     let requestDate =app.account.manageTime();
     let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
     ip = ip.split(":")[3]
-    const geo = geoip.lookup(ip);
-    let city = geo.city ? geo.city : geo.timezone
-    let country = countryList.getName(geo.country);
-    let location = country +', '+city;
+    // const geo = geoip.lookup(ip);
+    // let city = geo.city ? geo.city : geo.timezone
+    // let country = countryList.getName(geo.country);
+    // let location = country +', '+city;
     readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
         ip,
-        location,
+        // location,
         requestDate,
         satt_url: app.config.basedURl,
         imgUrl: app.config.baseEmailImgURl,
@@ -1202,17 +1202,17 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
-          const geo = geoip.lookup(ip);
-          let city = geo.city ? geo.city : geo.timezone
-          let country = countryList.getName(geo.country);
-          let location = country +', '+city;
+          // const geo = geoip.lookup(ip);
+          // let city = geo.city ? geo.city : geo.timezone
+          // let country = countryList.getName(geo.country);
+          // let location = country +', '+city;
 
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
             var template = handlebars.compile(html);
             var replacements = {
               ip,
               requestDate,
-              location,
+              // location,
               satt_url: app.config.basedURl,
               back_url: app.config.baseURl,
               satt_faq : app.config.Satt_faq,
