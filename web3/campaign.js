@@ -657,7 +657,7 @@ module.exports = async function (app) {
 		const title=req.query.searchTerm || '';
 		const status=req.query.status;
 		const blockchainType=req.query.blockchainType || '';
-		
+		 
 		const dateJour=new Date() /1000;
 		if(req.query.oracles == undefined){
 			oracles=["twitter","facebook","youtube","instagram"];
@@ -686,7 +686,7 @@ module.exports = async function (app) {
 		if(title){
 		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
 		}
-		if(blockchainType && blockchainType !=="all"){
+		if(blockchainType){
 			query["$and"].push({"token.type":blockchainType});
 		}
 		if(status =="active" ){
