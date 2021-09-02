@@ -66,7 +66,9 @@ module.exports = async function (app) {
 
 				break;
 				case "3" :
-					var res = await app.oracle.instagram(idPost)
+					var campaign_link = await app.db.campaign_link().findOne({idPost});
+					var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)});
+					var res = await app.oracle.instagram(userWallet.UserId,idPost);
 
 				break;
 				case "4" :
