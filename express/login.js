@@ -1082,6 +1082,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
     ip = ip.split(":")[3]
     // const geo = geoip.lookup(ip);
+    
     // let city = geo.city ? geo.city : geo.timezone
     // let country = countryList.getName(geo.country);
     // let location = country +', '+city;
