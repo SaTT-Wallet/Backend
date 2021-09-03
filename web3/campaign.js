@@ -210,17 +210,15 @@ module.exports = async function (app) {
 			var gas = 400000;
 			var ctr = await campaignManager.getCampaignContract(idCampaign);
 
-
-
 			//var gasPrice = 4000000000;
-
 				var gasPrice = await ctr.getGasPrice();
-			 var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
-			if(isDoubled)
-			{
-				reject({message:"Link already sent"});
-			}
-			else {
+            
+			// var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
+			// if(isDoubled)
+			// {
+			// 	reject({message:"Link already sent"});
+			// }
+			// else {
 				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				       let prom = receipt.events.CampaignApplied.returnValues.prom;
 					resolve({transactionHash:receipt.events.CampaignApplied.transactionHash,idCampaign: idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
@@ -228,7 +226,7 @@ module.exports = async function (app) {
 
 				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
 				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
-				}
+				// }
 			}
 			catch (err)
 			{
