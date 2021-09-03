@@ -652,7 +652,7 @@ module.exports = async function (app) {
 			}		})
 	}
 
-	campaignManager.filterCampaign=(req, strangerDraft)=>{
+	campaignManager.filterCampaign=(req,idNode, strangerDraft)=>{
 		
 		const title=req.query.searchTerm || '';
 		const status=req.query.status;
@@ -662,26 +662,20 @@ module.exports = async function (app) {
 		if(req.query.oracles == undefined){
 			oracles=["twitter","facebook","youtube","instagram"];
 		}
-		else if(typeof req.query.oracles === "string"){
-			oracles=Array(req.query.oracles);
-		}else{
-			oracles=req.query.oracles;
-		}
+
+	else if(typeof req.query.oracles === "string"){
+		oracles=Array(req.query.oracles);
+	}else{
+		oracles=req.query.oracles;
+	}
 		const remainingBudget=req.query.remainingBudget || [];
 		
 		var query = {};
 		query["$and"]=[];
-		query["$or"]=[];
-		// query["$or"].push({"hash":{ $exists: true}});
-		query["$and"].push({"_id":{$nin:strangerDraft}})
-        
 		
-		query["$or"].push({"ratios.oracle":{ $in: oracles}});
-		query["$or"].push({"bounties.oracle":{ $in: oracles}});
-       if(status == "draft" || !status){
-		query["$or"].push({"ratios.oracle":{ $nin: oracles}});
-		query["$or"].push({"bounties.oracle":{ $nin: oracles}});
-	   }
+	query["$and"].push({"_id":{$nin:strangerDraft}})		
+
+	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
 
 		if(title){
 		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
@@ -691,21 +685,23 @@ module.exports = async function (app) {
 		}
 		if(status =="active" ){
 			if(remainingBudget.length==2){
-				query["$and"].push({"funds.1":{ $gte : remainingBudget[0], $lte : remainingBudget[1]}});
+				query["$and"].push({"funds.1":{ $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
 			}
-			query["$and"].push({"endDate":{ $gte : dateJour }});
+			query["$and"].push({"$or":[{"endDate":{ $gte : dateJour }},{"funds.1":{$eq: "0"}}]});
 			query["$and"].push({"hash":{ $exists: true}});
 		}
 		else if(status=="finished"){
-			query["$or"].push({"endDate":{ $lt : dateJour }});
-			query["$or"].push({"funds.1":{$eq: "0"}});
+			query["$and"].push({"$or":[{"endDate":{ $lt : dateJour }},{"funds.1":{$eq: "0"}}]});
 			query["$and"].push({"hash":{ $exists: true}});
+
 		}else if(status=="draft" ){
 			query["$and"].push({"hash":{ $exists: false}});
+			query["$and"].push({"idNode": idNode});
 		}
 
 		return query
 	}
+
 
 	campaignManager.filterProms=(req, id_wallet)=>{
 		
