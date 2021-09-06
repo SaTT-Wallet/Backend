@@ -776,16 +776,24 @@ module.exports = async function (app) {
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
 
-			 let networkToken = network=="ERC20" ? app.erc20: app.bep20;
-             let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-             let key = T_name
+			    let networkToken = network=="ERC20" ? app.erc20: app.bep20;
+                let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
+				
+                let key = T_name
 			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
                 key = 'SATT'
 			 }
+			 
+			 if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))*1
-			        crypto.quantity=app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
+			 }else {
+				crypto.price = 0.00;
+				crypto.total_balance = 0.00;
+			 }
+
+			 crypto.quantity=app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
 			        listOfCrypto.push(crypto);
 
 			}
