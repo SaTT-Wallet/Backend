@@ -922,8 +922,7 @@ module.exports = function (app) {
  *        "200":
  *          description: data
  */
-	app.post('/v2/campaign/apply', async function(req, response) {
-
+	app.post('/v2/campaign/apply', async (req, response) =>{
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		var pass = req.body.pass;
@@ -931,35 +930,32 @@ module.exports = function (app) {
 		var typeSN = req.body.typeSN;
 		var idPost = req.body.idPost;
 		var idUser = req.body.idUser;
-		let [prom, date] = [{},Math.floor(Date.now()/1000)];
-		const result=await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
-	
-		await app.campaign.getCampaignContract(result.hash);
+		let title = req.body.title;
+		let [prom, date,hash] = [{},Math.floor(Date.now()/1000),req.body.hash];
 		
 		let id = auth.id
-		try {
-			var cred = await app.account.unlock(id,pass);
-
-
-
-				var ret = await app.campaign.applyCampaign(result.hash,typeSN,idPost,idUser,cred)
+		try {		
+			    let promExist = await app.db.campaign_link().findOne({id_campaign:hash, idPost});
+				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))	
+				
+			    var cred = await app.account.unlock(id,pass);
+				var ret = await app.campaign.applyCampaign(hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
 
 		} catch (err) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
-		finally {
-			
+		finally {		
 			if(cred)app.account.lock(cred.address);
-			if(ret && ret.transactionHash){
-				await app.account.notificationManager(id, "apply_campaign",{cmp_name :result.title, cmp_hash : idCampaign})
+			if(ret && ret.transactionHash){				
+				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
-				prom.typeSN = ret.typeSN.toString();
+				prom[typeSN] = typeSN.toString();
 				prom.idUser  = ret.idUser 
 				prom.status = false;
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = ret.idPost
-				prom.id_campaign  = result.hash 
+				prom.id_campaign  = hash
 				prom.appliedDate = date
 				await app.db.campaign_link().insertOne(prom);
 			}
