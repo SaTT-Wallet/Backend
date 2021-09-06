@@ -192,7 +192,6 @@ module.exports = async function (app) {
 			  access_token_key: twitterProfile.access_token_key,
 			  access_token_secret: twitterProfile.access_token_secret
 			});
-			console.log(tweet)
 			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics,non_public_metrics"});
 			if(res.errors)
 			{
