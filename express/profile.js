@@ -451,9 +451,9 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			const id = auth.id;
 			 let code = await QRCode.toDataURL(req.body.wallet);
 
-		 await app.account.notificationManager(id, "send_demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
+		 await app.account.notificationManager(id, "send_demande_satt_event",{name :req.body.to, price :req.body.price, currency :req.body.cryptoCurrency} )
 
-			 var result= await app.db.user().findOne({email:req.body.to});
+			 var result= await app.db.sn_user().findOne({email:req.body.to});
 				 if(result){
 		await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
 				 }

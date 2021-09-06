@@ -739,7 +739,7 @@ module.exports = async function (app) {
 			var token_info=  Object.assign({}, app.config.Tokens);
 			  delete token_info['SATT']
 			  delete token_info['BNB']
-			  var CryptoPrices = crypto;
+			  let CryptoPrices = crypto;
 			  var count = await accountManager.hasAccount(userId);
   
 			   var ret = {err:"no_account"};
@@ -753,52 +753,48 @@ module.exports = async function (app) {
 			  }
 
 			  let userTokens = await app.db.customToken().find({idUser: userId}).toArray()
+
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
+
                let symbol = userTokens[i].symbol
+
+			  
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].contract, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl   }
+			   
 				}  	  
 			  }
 
 			  for(let T_name in token_info){
+
 				let network=token_info[T_name].network;
-				crypto={};
+				let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
 				crypto.symbol=token_info[T_name].symbol;
 				crypto.name=token_info[T_name].name;
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
-				if(network=="ERC20"){
-				balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
-				   if(token_info[T_name].contract==token_info['WSATT'].contract){	
+
+			    let networkToken = network=="ERC20" ? app.erc20: app.bep20;
+                let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
 				
-					crypto.price=CryptoPrices['SATT'].price;
-					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-				   }else {
-					   
-					crypto.price=CryptoPrices[T_name].price;
-					crypto.variation=CryptoPrices[T_name].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
+                let key = T_name
+			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
+                key = 'SATT'
+			 }
+			 
+			 if(CryptoPrices.hasOwnProperty(key)){
+              		crypto.price=CryptoPrices[key].price;
+					crypto.variation=CryptoPrices[key].percent_change_24h;
+					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))*1
+			 }else {
+				crypto.price = 0.00;
+				crypto.total_balance = 0.00;
+			 }
 
-					}
-				}else{
-				balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
-					if( token_info[T_name].contract==token_info['SATT_BEP20'].contract){
-					crypto.price=CryptoPrices['SATT'].price;
-					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-
-				}	else {			
-					crypto.price=CryptoPrices[T_name].price;
-					crypto.variation=CryptoPrices[T_name].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-					
-				}
-			  }
-			  crypto.quantity=app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
-			  listOfCrypto.push(crypto);
+			 crypto.quantity=app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
+			        listOfCrypto.push(crypto);
 
 			}
 			for(const Amount in ret){
@@ -870,8 +866,6 @@ module.exports = async function (app) {
 	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices
 
 	      var users_;
-
-
 
 		if(condition === "daily"){
 		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
@@ -963,7 +957,7 @@ accountManager.handleId=async function () {
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
-				id:id
+				id
 		  },
 		  created:new Date()
 		}
