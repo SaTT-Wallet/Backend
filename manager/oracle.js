@@ -186,7 +186,6 @@ module.exports = async function (app) {
 					return;
 				}
 
-
 			var tweet = new Twitter2({
 			  consumer_key: app.config.twitter.consumer_key,
 			  consumer_secret: app.config.twitter.consumer_secret,
