@@ -1685,7 +1685,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
             let id = auth.id
-			let [tokenAdress,network,customToken] = [req.body.token,req.body.network,{}];
+			let [tokenAdress,network] = [req.body.tokenAdress,req.body.network];
 
 			let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;       
             let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth;
@@ -1693,13 +1693,31 @@ app.post('/v2/profile/update', async function(req, response) {
 			let code = await networkToken.getCode(tokenAdress)
 			if(code === '0x'){res.send({error:'not a token address'})}
 			else{
-			let contract = new networkToken.Contract(abi,tokenAdress);
-            customToken.idUser = id;
-			customToken.decimal = await contract.methods.decimals().call();
-			customToken.tokenName = await contract.methods.name().call();
-			customToken.network = network.toUpperCase();
-			customToken.symbol = await contract.methods.symbol().call();
-			const cryptoMetaData = {
+			let contract = new networkToken.Contract(abi,tokenAdress)
+			decimal = await contract.methods.decimals().call();
+			tokenName = await contract.methods.name().call();
+			network = network.toUpperCase();
+			symbol = await contract.methods.symbol().call();
+			res.send({message : "Token founded", tokenName, symbol,decimal,tokenAdress,network})
+			}
+		}catch (err) {
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	})
+
+
+	app.post('/wallet/add/token', async (req, res) =>{
+		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			let auth = await app.crm.auth(token);
+			let customToken = req.body;
+			customToken.idUser = auth.id
+			let tokenAdress = customToken.tokenAdress
+			let tokenExist =  await app.db.customToken().findOne({tokenAdress,idUser: auth.id});
+			if(tokenExist){
+				res.send(JSON.stringify({error:"token already added"}));
+			}
+             const cryptoMetaData = {
 				method: 'GET',
 				uri: app.config.cmcUrl + customToken.symbol,
 				headers : {
@@ -1709,15 +1727,13 @@ app.post('/v2/profile/update', async function(req, response) {
 				gzip: true
 			  };
             let metaData = await rp(cryptoMetaData);
-			customToken.contract = tokenAdress;
+			
 			customToken.picUrl = metaData.data[customToken.symbol].logo
 			await app.db.customToken().insertOne(customToken)
-			res.send({message : "Token added", tokenName : customToken.tokenName , symbol :customToken.symbol})
-			}
+			res.end(JSON.stringify({message:"token added"}))
 		}catch (err) {
-		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		 }
 	})
-
 	return app;
 }
