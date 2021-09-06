@@ -325,7 +325,7 @@ const Grid = require('gridfs-stream');
 		var idNode="0"+auth.id;
 
         let query = app.campaign.filterCampaign(req,idNode,strangerDraft);
-		console.log(query);
+		
 		const campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 
 		for (var i = 0;i<campaigns.length;i++)

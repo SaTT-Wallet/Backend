@@ -666,6 +666,7 @@ module.exports = async function (app) {
 	}else{
 		oracles=req.query.oracles;
 	}
+	
 		const remainingBudget=req.query.remainingBudget || [];
 		
 		var query = {};
