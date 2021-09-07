@@ -963,73 +963,75 @@ module.exports = function (app) {
 	});
 
 
-app.get('/userLinks/:id_wallet',async function(req, response) {
-	try{
-		const id_wallet=req.params.id_wallet;
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
-		const limit=+req.query.limit || 50;
-		const page=+req.query.page || 1;
-		const skip=limit*(page-1);
-		let arrayOfLinks=[];
-        let query= app.campaign.filterProms(req,id_wallet)
-		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
-
-		for (var i = 0;i<userLinks.length;i++){
-			let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
-		
-			if(campaign){
-				let contract = await app.campaign.getCampaignContract(campaign.hash);
-				 let fund = await contract.methods.campaigns(campaign.hash).call();
-				const ratio = campaign.ratios;
-				const bounties=campaign.bounties;
-				let link=userLinks[i];
-				let cmp = {}
-				cmp.bounties = bounties
-				cmp._id = campaign._id
-				cmp.title=campaign.title;
-				cmp.description=campaign.description;
-				cmp.cover=campaign.cover;
-				result=userLinks[i];
-					if(ratio.length && userLinks[i].status === true && fund.funds[1] !== '0'){
-					delete link.isPayed;	     
-					cmp.ratio=ratio;	
-					ratio.forEach( num =>{
-											
-											if(num.oracle === result.oracle){
-												if(result.views){
-													view =new Big(num["view"]).times(result.views)
+	app.get('/userLinks/:id_wallet',async function(req, response) {
+		try{
+			const id_wallet=req.params.id_wallet;
+			const token = req.headers["authorization"].split(" ")[1];
+			await app.crm.auth(token);
+			const limit=+req.query.limit || 50;
+			const page=+req.query.page || 1;
+			const skip=limit*(page-1);
+			let arrayOfLinks=[];
+			let query= app.campaign.filterProms(req,id_wallet);
+	
+			var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
+	
+			for (var i = 0;i<userLinks.length;i++){
+				var result=userLinks[i];
+				let campaign=await app.db.campaigns().findOne({hash:result.id_campaign});
+			
+				if(campaign){
+					const ratio = campaign.ratios;
+					const bounties=campaign.bounties;
+					
+					let cmp = {}
+					cmp.bounties = bounties
+					cmp._id = campaign._id
+					cmp.endDate=campaign.endDate;
+					cmp.startDate=campaign.startDate;
+					cmp.title=campaign.title;
+					let funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+	
+						if(ratio.length && result.status === true && funds !== "0"){
+						delete result.isPayed;	     
+						cmp.ratio=ratio;	
+						ratio.forEach( num =>{
+												
+												if(num.oracle === result.oracle){
+													if(result.views){
+														view =new Big(num["view"]).times(result.views)
+													}
+													if(result.likes){
+													like =  new Big(num["like"]).times(result.likes) || "0";
+													}														 
+													share = result.shares? new Big(num["share"]).times(result.shares):"0" ;														
+													result.totalToEarn = view.plus(like).plus(share).toFixed();
 												}
-												if(result.likes){
-												like =  new Big(num["like"]).times(result.likes) || "0";
-												}														 
-												share = result.shares? new Big(num["share"]).times(result.shares):"0" ;														
-												link.totalToEarn = view.plus(like).plus(share).toFixed();
-											}
-										})
-
-					}
-				if(bounties.length && link.status === true && fund.funds[1] !== '0' && campaign.remuneration== "publication") {
-				cmp.bounties = bounties;
-				bounties.forEach( bounty=>{
-					if(bounty.oracle === link.oracle){
-					  bounty.categories.forEach( category=>{
-					   if( (+category.minFollowers <= +link.abosNumber)  && (+link.abosNumber <= +category.maxFollowers) ){
-						  link.totalToEarn = category.reward;
-					   }
-					  })
-					   }
-					   })
-			  }					
-				link.campaign=cmp;
-				arrayOfLinks.push(link)
+											})
+	
+						}
+					if(bounties.length && result.status === true && funds !== "0") {
+					cmp.bounties = bounties;
+					bounties.forEach( bounty=>{
+						if(bounty.oracle === result.oracle){
+						  bounty.categories.forEach( category=>{
+						   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+							  result.totalToEarn = category.reward;
+						   }
+						  })
+						   }
+						   })
+				  }					
+					result.campaign=cmp;
+					arrayOfLinks.push(result)
+				}
 			}
-		}
-			response.end(JSON.stringify(arrayOfLinks));
-		}catch(err){
-				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-			}
-	})
+				response.end(JSON.stringify(arrayOfLinks));
+			}catch(err){
+					response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+				}
+		})
+	
 
 	app.post('/campaign/validate', async function(req, response) {
 
