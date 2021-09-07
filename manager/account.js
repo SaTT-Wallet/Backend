@@ -669,66 +669,49 @@ module.exports = async function (app) {
 
 
 	accountManager.getBalanceByUid = async  (userId, crypto) => {
-      return new Promise( async (resolve, reject) => {
-       try {
-
-		  var [ret,Total_balance,CryptoPrices] = [{err:"no_account"},0,crypto];
-		  var token_info=  Object.assign({}, app.config.Tokens);
-			delete token_info['SATT']
-			delete token_info['BNB']
-
-			var count = await accountManager.hasAccount(userId);
-
-            if(count){
-
-				let ret = await accountManager.getAccount(userId)
-				delete ret.btc
-				delete ret.version
-				for(const T_name in token_info){
-					var network=token_info[T_name].network
-					 if(network=="ERC20"){
-						balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
-						if(token_info[T_name].contract==token_info['WSATT'].contract){
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else{
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
+		return new Promise( async (resolve, reject) => {
+		 try {
+  
+			var [ret,Total_balance,CryptoPrices] = [{err:"no_account"},0,crypto];
+			var token_info=  Object.assign({}, app.config.Tokens);
+			  delete token_info['SATT']
+			  delete token_info['BNB']
+  
+			  var count = await accountManager.hasAccount(userId);
+			  if(count){
+				  let ret = await accountManager.getAccount(userId)
+				  delete ret.btc
+				  delete ret.version
+				  for(const T_name in token_info){
+  
+				  let network=token_info[T_name].network
+				  let networkToken = network=="ERC20" ? app.erc20: app.bep20;
+				  let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
+				  let key = T_name
+				  if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
+					 key = 'SATT'
+				  }
+				  Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price));
+					   }
+					   delete ret.address
+					   for(const Amount in ret){
+						  let tokenSymbol = Amount.split('_')[0].toUpperCase();
+						  tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
+						  let decimal =  tokenSymbol === "BTC" ? 8 : 18;
+						  Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(decimal)).toNumber() + "")*CryptoPrices[tokenSymbol].price))
 						}
-					  }else{
-						 balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
-						if(token_info[T_name].contract==token_info['SATT_BEP20'].contract){
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else{
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-						}
-					  }
-					 }
-
-					 for(const Amount in ret){
-						if(Amount=="ether_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-						}else if(Amount=="satt_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else if(Amount=="bnb_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-						}else if(Amount=="btc_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-						}
-					  }
-
-						Total_balance=Total_balance.toFixed(2)
-
-						return resolve({Total_balance});
-
-
-
-			}else{
-				resolve(ret);
-			}
-	   }catch (e) {
-				reject({message:e.message});
-			}
-	  })
-	}
+  
+						  Total_balance=Total_balance.toFixed(2)
+  
+						  return resolve({Total_balance});
+			  }else{
+				  resolve(ret);
+			  }
+		 }catch (e) {
+				  reject({message:e.message});
+			  }
+		})
+	  }
 
 
 
