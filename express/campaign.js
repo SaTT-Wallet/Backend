@@ -971,6 +971,7 @@ module.exports = function (app) {
 			const limit=+req.query.limit || 50;
 			const page=+req.query.page || 1;
 			const skip=limit*(page-1);
+			const date= Math.round(new Date().getTime()/1000);
 			let arrayOfLinks=[];
 			let query= app.campaign.filterProms(req,id_wallet);
 	
@@ -989,8 +990,10 @@ module.exports = function (app) {
 					cmp._id = campaign._id;
 					
 					cmp.title=campaign.title;
-					let funds = campaign.funds ? campaign.funds[1] : campaign.cost;
-					cmp.isFinished = (Date.now() > campaign.endDate) || funds == "0" ? true : false;
+					const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+					
+					
+					cmp.isFinished = (date > campaign.endDate) || funds == "0" ? true : false;
 						if(ratio.length && result.status === true && !cmp.isFinished){
 						delete result.isPayed;	     
 						cmp.ratio=ratio;	
