@@ -715,7 +715,7 @@ module.exports = async function (app) {
 
 
 
-	accountManager.getListCryptoByUid = async  (userId, crypto) => {
+	  accountManager.getListCryptoByUid = async  (userId, crypto) => {
 		return new Promise( async (resolve, reject) => {
 		 try {
 			let listOfCrypto=[];			
@@ -736,20 +736,14 @@ module.exports = async function (app) {
 			  }
 
 			  let userTokens = await app.db.customToken().find({idUser: userId}).toArray()
-
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
-
-               let symbol = userTokens[i].symbol
-
-			  
+               let symbol = userTokens[i].symbol		  
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].contract, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl   }
 			   
 				}  	  
 			  }
-
 			  for(let T_name in token_info){
-
 				let network=token_info[T_name].network;
 				let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
@@ -758,6 +752,7 @@ module.exports = async function (app) {
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
+                [crypto.price,crypto.total_balance] = Array(2).fill(0.00);
 
 			    let networkToken = network=="ERC20" ? app.erc20: app.bep20;
                 let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
@@ -771,16 +766,13 @@ module.exports = async function (app) {
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))*1
-			 }else {
-				crypto.price = 0.00;
-				crypto.total_balance = 0.00;
 			 }
 
 			 crypto.quantity=app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
 			        listOfCrypto.push(crypto);
 
 			}
-			for(const Amount in ret){
+			for(const Amount in ret){				
 				crypto={}
 				if(Amount=="ether_balance"){
 					[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("ETH");
