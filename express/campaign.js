@@ -950,7 +950,7 @@ module.exports = function (app) {
 			if(ret && ret.transactionHash){				
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
-				prom[typeSN] = typeSN.toString();
+				prom.typeSN = typeSN.toString();
 				prom.idUser  = ret.idUser 
 				prom.status = false;
 				prom.id_wallet = cred.address.toLowerCase();
