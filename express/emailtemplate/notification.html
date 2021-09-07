@@ -50,7 +50,7 @@
         }
 
         .content .mail-header {
-            background-image: url("https://satt.atayen.us/assets/Images/mail/public/changeEmail-bg.png");
+            background-image: url("https://testnet.satt.atayen.us/assets/Images/mail/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -109,7 +109,7 @@
             font-family: 'Poppins', sans-serif;
             font-weight: bold;
             font-size: 18px;
-            height: 51px;
+            min-height: 38px;
             /* justify-content: center; */
             line-height: 22px;
             text-align: center;
@@ -244,13 +244,13 @@
         <div class="mail-body">
         <p>{{{__ "here_is_message"}}}</p>
     <div class="subtitle"">
-        <span style="padding-top: 13px;padding-left: 210px;">
+        <span style="margin: 8px auto;">
         {{notification.message}}
     </span>
     </div>
-    <div class="apply-btn">
-        <a  style="text-align:center;color:white;padding-left:75px;padding-top:4px;"href="{{SaTT.Url}}">{{__ "send-money"}}</a>
-   </div>
+    <button class="apply-btn">
+        <a href="{{SaTT.Url}}" style="text-align:center;color:white;padding-left:75px;padding-top:4px;" >{{__ "send-money"}}</a>
+   </button>
 </div>
         <div class="mail-footer">
             <a href="{{SaTT.faq}}">{{{__ "about"}}}</a>
