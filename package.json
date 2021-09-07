@@ -77,7 +77,6 @@
     "web3": "^1.5.2",
     "winston": "^3.3.3",
     "ws": "^7.4.6",
-    "xmldom": ">=0.7.0",
     "xmlhttprequest-ssl": ">=1.6.2"
   },
   "devDependencies": {
