@@ -705,9 +705,16 @@ module.exports = async function (app) {
 	campaignManager.filterProms=(req, id_wallet)=>{
 		
 		const status=req.query.status;
+		
 		var query = {};
 		query["$and"]=[];
 		query["$and"].push({id_wallet});
+		
+		let oracles= req.query.oracles
+		 oracles= typeof oracles === "string" ? [oracles] : oracles;
+		console.log("oracles",oracles);
+		if (oracles) query["$and"].push({"oracle":{ $in: oracles}});
+
 		if(status == false)	query["$and"].push({"status":false});
 		if(status == "rejected") query["$and"].push({"status":"rejected"});
         if(status == true) query["$and"].push({"status":true});
