@@ -701,7 +701,6 @@ module.exports = async function (app) {
 		return query
 	}
 
-
 	campaignManager.filterProms=(req, id_wallet)=>{
 		
 		const status=req.query.status;
