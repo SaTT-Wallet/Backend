@@ -986,13 +986,12 @@ module.exports = function (app) {
 					
 					let cmp = {}
 					cmp.bounties = bounties
-					cmp._id = campaign._id
-					cmp.endDate=campaign.endDate;
-					cmp.startDate=campaign.startDate;
+					cmp._id = campaign._id;
+					
 					cmp.title=campaign.title;
 					let funds = campaign.funds ? campaign.funds[1] : campaign.cost;
-	
-						if(ratio.length && result.status === true && funds !== "0"){
+					cmp.isFinished = (Date.now() > campaign.endDate) || funds == "0" ? true : false;
+						if(ratio.length && result.status === true && !cmp.isFinished){
 						delete result.isPayed;	     
 						cmp.ratio=ratio;	
 						ratio.forEach( num =>{
@@ -1010,7 +1009,7 @@ module.exports = function (app) {
 											})
 	
 						}
-					if(bounties.length && result.status === true && funds !== "0") {
+					if(bounties.length && result.status === true && !cmp.isFinished) {
 					cmp.bounties = bounties;
 					bounties.forEach( bounty=>{
 						if(bounty.oracle === result.oracle){
