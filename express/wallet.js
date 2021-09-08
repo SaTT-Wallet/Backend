@@ -1235,7 +1235,7 @@ module.exports = function (app) {
 
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			console.log("token to",to);
+			
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			
 			response.end(JSON.stringify(ret));
