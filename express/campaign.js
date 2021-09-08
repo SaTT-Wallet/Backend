@@ -175,7 +175,7 @@ module.exports = function (app) {
 				else if(stat.typeSN=="2"){
 				//tester si le lien youtube on recupere les stats de youtube;
 					oraclesYoutube = await app.oracle.youtube(prom.idPost);
-					stat.shares=oraclesYoutube.shares;
+					stat.shares=oraclesYoutube.shares || '0';
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
 					stat.oracle = 'youtube'
