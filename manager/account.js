@@ -735,7 +735,7 @@ module.exports = async function (app) {
 				resolve(ret);
 			  }
 
-			  let userTokens = await app.db.customToken().find({idUser: userId}).toArray()
+			  let userTokens = await app.db.customToken().find({sn_users:  {$in: userId}}).toArray()
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                let symbol = userTokens[i].symbol		  

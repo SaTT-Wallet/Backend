@@ -1101,7 +1101,8 @@ const Grid = require('gridfs-stream');
      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
-	 let ctr = await app.campaign.getCampaignContract(campaign.hash);
+			
+	if(campaign && campaign.hash){let ctr = await app.campaign.getCampaignContract(campaign.hash);}
 	 if(!ctr.methods) {
 			 res.end("{}");
 		 return;
