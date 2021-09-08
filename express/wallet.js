@@ -1710,30 +1710,57 @@ app.post('/v2/profile/update', async function(req, response) {
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
-			let customToken = req.body;
-			customToken.idUser = auth.id
-			let tokenAdress = customToken.tokenAdress
-			let tokenExist =  await app.db.customToken().findOne({tokenAdress,idUser: auth.id});
+			let customToken = {};
+			let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,req.body.decimal,req.body.network]
+			
+			let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: auth.id} });
 			if(tokenExist){
 				res.send(JSON.stringify({error:"token already added"}));
+				return;
 			}
+
+			let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
+			if(!tokenFounded){
+				customToken = req.body;
+				customToken.sn_users = [auth.id]
+             if(!req.query.top){
              const cryptoMetaData = {
 				method: 'GET',
-				uri: app.config.cmcUrl + customToken.symbol,
+				uri: app.config.cmcUrl + symbol,
 				headers : {
 			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
 				},
 				json: true,
 				gzip: true
 			  };
-            let metaData = await rp(cryptoMetaData);
-			
+            let metaData = await rp(cryptoMetaData);			
 			customToken.picUrl = metaData.data[customToken.symbol].logo
+			 }
 			await app.db.customToken().insertOne(customToken)
+			res.end(JSON.stringify({message:"token added"}))
+			} else {
+				let id = tokenFounded._id
+				await app.db.customToken().updateOne({_id:app.ObjectId(id)},{$push:{sn_users:auth.id}});
+			}
 			res.end(JSON.stringify({message:"token added"}))
 		}catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }
 	})
+
+	app.post('/wallet/remove/token', async (req, res) =>{
+		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			let auth = await app.crm.auth(token);
+            let id = auth.id
+	        let tokenAdress = req.body.tokenAdress
+			await app.db.customToken().updateOne({tokenAdress},{$pull:{sn_users:id}});
+			res.end(JSON.stringify({message:"token removed"}));
+			}
+		catch (err) {
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+	})
+	
 	return app;
 }
