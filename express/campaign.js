@@ -987,8 +987,7 @@ module.exports = function (app) {
 					
 					let cmp = {}
 					cmp.bounties = bounties
-					cmp._id = campaign._id;
-					
+					cmp._id = campaign._id;		
 					cmp.title=campaign.title;
 					const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
 					

@@ -1207,17 +1207,13 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
-          // const geo = geoip.lookup(ip);
-          // let city = geo.city ? geo.city : geo.timezone
-          // let country = countryList.getName(geo.country);
-          // let location = country +', '+city;
+        
 
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
             var template = handlebars.compile(html);
             var replacements = {
               ip,
               requestDate,
-              // location,
               satt_url: app.config.basedURl,
               back_url: app.config.baseURl,
               satt_faq : app.config.Satt_faq,
