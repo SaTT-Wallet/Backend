@@ -339,13 +339,14 @@ module.exports = function (app) {
            var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
          }
          else {
-           var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
-           var resMedia = await rp({uri:media,json: true})
-             profile.accessToken = longToken;
-             profile.UserId = user_id;
-             profile.instagram_id = instagram_id;
-             profile.instagram_username = resMedia.username;
-             var res_ins = await app.db.fbProfile().insertOne(profile);
+          profile.accessToken = longToken;
+          profile.UserId = user_id;
+          if(instagram_id){
+            var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
+            var resMedia = await rp({uri:media,json: true})
+            profile.instagram_username = resMedia.username;
+            profile.instagram_id = instagram_id;
+          }
          }
         //  if(instagram_id) {
         //   var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
