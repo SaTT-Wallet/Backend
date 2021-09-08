@@ -1067,10 +1067,10 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
 
-	app.i18n.configureTranslation(lang);
+	  app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
-    var users = await app.db.sn_user().find({email: mail}).toArray();
+    var users = await app.db.sn_user().find({email: mail.toLowerCase()}).toArray();
     if (!users.length) {
       response.end('{error:"account not exists"}');
       return;
