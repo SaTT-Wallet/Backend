@@ -1127,7 +1127,7 @@ const Grid = require('gridfs-stream');
 		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes || "0"
 		   allProms[i].numberOfViews = result.views || '0'
-		   allProms[i].numberOfShares = result.shares || '0'
+		   allProms[i].numberOfShares = result.shares.toString() || '0'
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
@@ -1141,10 +1141,9 @@ const Grid = require('gridfs-stream');
 								}
 								if(result.likes){
 								like =  new Big(num["like"]).times(result.likes) || "0";
-								}
-								if(result.shares){			 
+								}							 
 								share = new Big(num["share"]).times(result.shares) || "0";		
-								}
+								
 								if(view && share && like){	 
 								allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
 								}
