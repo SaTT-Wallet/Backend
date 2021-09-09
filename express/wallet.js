@@ -1698,7 +1698,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			tokenName = await contract.methods.name().call();
 			network = network.toUpperCase();
 			symbol = await contract.methods.symbol().call();
-			res.send({message : "Token founded", tokenName, symbol,decimal,tokenAdress,network})
+			res.send({message : "Token found", tokenName, symbol,decimal,tokenAdress,network})
 			}
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1723,19 +1723,19 @@ app.post('/v2/profile/update', async function(req, response) {
 			if(!tokenFounded){
 				customToken = req.body;
 				customToken.sn_users = [auth.id]
-             if(!req.query.top){
-             const cryptoMetaData = {
-				method: 'GET',
-				uri: app.config.cmcUrl + symbol,
-				headers : {
-			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-				},
-				json: true,
-				gzip: true
-			  };
-            let metaData = await rp(cryptoMetaData);			
-			customToken.picUrl = metaData.data[customToken.symbol].logo
-			 }
+            //  if(!req.query.top){
+            //  const cryptoMetaData = {
+			// 	method: 'GET',
+			// 	uri: app.config.cmcUrl + symbol,
+			// 	headers : {
+			//      'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+			// 	},
+			// 	json: true,
+			// 	gzip: true
+			//   };
+            // let metaData = await rp(cryptoMetaData);			
+			// customToken.picUrl = metaData.data[customToken.symbol].logo
+			//  }
 			await app.db.customToken().insertOne(customToken)
 			res.end(JSON.stringify({message:"token added"}))
 			} else {

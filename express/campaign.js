@@ -179,6 +179,7 @@ module.exports = function (app) {
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
 					stat.oracle = 'youtube'
+					
 								}
 				//instagram
 				else if(stat.typeSN=="3"){
@@ -1018,7 +1019,9 @@ module.exports = function (app) {
 						  bounty.categories.forEach( category=>{
 						   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 							  result.totalToEarn = category.reward;
-						   }
+						   } else if(+result.abosNumber > +category.maxFollowers){
+							result.totalToEarn = category.reward;	
+						 }
 						  })
 						   }
 						   })
@@ -1507,11 +1510,7 @@ module.exports = function (app) {
 
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            //  if(prom.funds.amount === "0"){
-			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
-			// 	return;
-			// }
-			// await ctr.methods.campaigns(prom.idCampaign).call();
+            
 
 			if(req.body.bounty) {
 				var evts = await app.campaign.updateBounty(idProm,cred2);
@@ -1532,7 +1531,7 @@ module.exports = function (app) {
 
 			//console.log(prevstat);
 
-			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+			 requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
 
 			if(!requests.length)
 			{
@@ -1548,7 +1547,7 @@ module.exports = function (app) {
 							requests = [{id:idRequest}];
 				}
 			}
-			if(requests.length)
+			if(requests  && requests.length)
 			{
 				console.log("updateOracle",requests);
 				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
