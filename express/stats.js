@@ -154,7 +154,7 @@ const Grid = require('gridfs-stream');
 		var idCampaign = req.params.id;
 		
 		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
-		if(campaign.hash){
+		if(campaign && campaign.hash){
 			var ctr = await app.campaign.getCampaignContract(campaign.hash);
 			if(!ctr.methods) {
 				response.end("{}");
@@ -1081,7 +1081,9 @@ const Grid = require('gridfs-stream');
 			  bounty.categories.forEach( category=>{
 			   if( (+category.minFollowers <= +info.abosNumber)  && (+info.abosNumber <= +category.maxFollowers) ){
 				  info.totalToEarn = category.reward;					
-			   }
+			   }else if(+info.abosNumber > +category.maxFollowers){
+				info.totalToEarn = category.reward;	
+			 }
 			  })	
 			   }			   
 			   })
@@ -1127,7 +1129,7 @@ const Grid = require('gridfs-stream');
 		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes || "0"
 		   allProms[i].numberOfViews = result.views || '0'
-		   allProms[i].numberOfShares = result.shares.toString() || '0'
+		   allProms[i].numberOfShares = !result.shares ? '0' : result.shares +"";
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
@@ -1158,6 +1160,8 @@ const Grid = require('gridfs-stream');
 				bounty.categories.forEach( category=>{
 				 if( (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
 					allProms[i].reward = category.reward;					
+				 } else if(+allProms[i].abosNumber > +category.maxFollowers){
+					allProms[i].reward = category.reward;	
 				 }
 				})	
 			     }			   

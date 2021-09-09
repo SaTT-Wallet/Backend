@@ -23,7 +23,7 @@ module.exports = async function (app) {
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign});
-		if(campaign)
+		if(campaign && campaign.contract)
 		{
 
 			return campaignManager.getContract(campaign.contract);
@@ -711,7 +711,7 @@ module.exports = async function (app) {
 		
 		let oracles= req.query.oracles
 		 oracles= typeof oracles === "string" ? [oracles] : oracles;
-		console.log("oracles",oracles);
+		
 		if (oracles) query["$and"].push({"oracle":{ $in: oracles}});
 
 		if(status == false)	query["$and"].push({"status":false});
