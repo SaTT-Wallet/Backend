@@ -175,10 +175,11 @@ module.exports = function (app) {
 				else if(stat.typeSN=="2"){
 				//tester si le lien youtube on recupere les stats de youtube;
 					oraclesYoutube = await app.oracle.youtube(prom.idPost);
-					stat.shares=oraclesYoutube.shares;
+					stat.shares=oraclesYoutube.shares || '0';
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
 					stat.oracle = 'youtube'
+					
 								}
 				//instagram
 				else if(stat.typeSN=="3"){
@@ -1018,7 +1019,9 @@ module.exports = function (app) {
 						  bounty.categories.forEach( category=>{
 						   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 							  result.totalToEarn = category.reward;
-						   }
+						   } else if(+result.abosNumber > +category.maxFollowers){
+							result.totalToEarn = category.reward;	
+						 }
 						  })
 						   }
 						   })
@@ -1507,15 +1510,12 @@ module.exports = function (app) {
 
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            //  if(prom.funds.amount === "0"){
-			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
-			// 	return;
-			// }
-			// await ctr.methods.campaigns(prom.idCampaign).call();
+            
 
 			if(req.body.bounty) {
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+				
 				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
 				await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
 				var ret = await app.campaign.getGains(idProm,cred2);
@@ -1525,14 +1525,16 @@ module.exports = function (app) {
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-
-
+			stats.views = stats.views ?? 0
+            stats.shares = stats.shares ?? 0
+			stats.likes = stats.likes ?? 0
 			//console.log(prevstat);
 
-			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+			 requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
 
 			if(!requests.length)
 			{
@@ -1548,11 +1550,12 @@ module.exports = function (app) {
 							requests = [{id:idRequest}];
 				}
 			}
-			if(requests.length)
+			if(requests  && requests.length)
 			{
 				console.log("updateOracle",requests);
 				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
-				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
+				console.log({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views}, "answer Call logged data")
+				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views});
 			}
 
 
