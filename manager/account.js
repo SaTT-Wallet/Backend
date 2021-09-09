@@ -739,7 +739,7 @@ module.exports = async function (app) {
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                let symbol = userTokens[i].symbol		  
-			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].contract, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl   }
+			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl , addedToken:true}
 			   
 				}  	  
 			  }
@@ -750,6 +750,7 @@ module.exports = async function (app) {
 				crypto.symbol=token_info[T_name].symbol;
 				crypto.name=token_info[T_name].name;
 				crypto.network = network;
+				crypto.AddedToken = addedToken ?  token_info[T_name].contract : false;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
                 [crypto.price,crypto.total_balance] = Array(2).fill(0.00);
