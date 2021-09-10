@@ -201,7 +201,7 @@ module.exports = async function (app) {
 				return;
 			}
 
-			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,/*views:res.data[0].non_public_metrics.impression_count,*/date:Math.floor(Date.now()/1000)};
+			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,views:res.data[0].non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
 
 
 
