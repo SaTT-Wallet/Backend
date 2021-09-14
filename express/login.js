@@ -530,6 +530,19 @@ module.exports = function (app) {
         return cb(null, {id: user_id});
     }));
 
+    // passport.use('facebook_strategy_add_channel', new GoogleStrategy({
+    //  clientID: app.config.appId,
+    //   clientSecret: app.config.appSecret,
+    //   callbackURL: app.config.baseUrl + "callback/facebookChannel",
+    //   passReqToCallback: true
+    // },
+    // async function (req,accessToken, refreshToken, profile, cb) {
+    //     var user_id=+req.query.state;      
+      //var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts"
+
+    //     return cb(null, {id: user_id});
+    // }));
+
     app.get('/googleChannels', async function (req, response) {
       try{
       const token = req.headers["authorization"].split(" ")[1];
@@ -864,6 +877,15 @@ module.exports = function (app) {
     	   prompt: 'consent',
 	  state:state})(req,res,next)
   });
+
+  // app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
+  //   var state=req.params.idUser
+  
+  // passport.authenticate('facebook_strategy_add_channel', {scope: ['publish_actions', 'manage_pages'],
+	//        accessType: 'offline',
+  //   	   prompt: 'consent',
+	//   state:state})(req,res,next)
+  // });
 
 
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{

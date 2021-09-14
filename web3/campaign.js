@@ -613,9 +613,9 @@ module.exports = async function (app) {
 	}
 
 
-	campaignManager.UpdateStats = async obj =>{
+	campaignManager.UpdateStats = async (obj,campaign) =>{
 
-	let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
+	// let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
 	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
@@ -656,7 +656,7 @@ module.exports = async function (app) {
 		const status=req.query.status;
 		const blockchainType=req.query.blockchainType || '';
 		 
-		const dateJour=new Date() /1000;
+		const dateJour= Math.round(new Date().getTime()/1000);
 		if(req.query.oracles == undefined){
 			oracles=["twitter","facebook","youtube","instagram"];
 		}
@@ -686,7 +686,8 @@ module.exports = async function (app) {
 			if(remainingBudget.length==2){
 				query["$and"].push({"funds.1":{ $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
 			}
-			query["$and"].push({"$or":[{"endDate":{ $gte : dateJour }},{"funds.1":{$eq: "0"}}]});
+			query["$and"].push({"endDate":{ $gt : dateJour }});
+			query["$and"].push({"funds.1":{$ne: "0"}});
 			query["$and"].push({"hash":{ $exists: true}});
 		}
 		else if(status=="finished"){
