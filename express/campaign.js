@@ -1513,9 +1513,17 @@ module.exports = function (app) {
             
 
 			if(req.body.bounty) {
+                let campaign = await app.db.campaigns().findOne({hash:idCampaign});
+				let social={1:"facebook",2:"youtube",3:"instagram",4:"twitter"};
+				let bounty=campaign.bounties.find( bnty=> bnty.oracle == social[prom.typeSN]);
+				let maxBountieFollowers=bounty.categories[bounty.categories.length-1].maxFollowers;
+				
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
-				
+				if (+stats >= +maxBountieFollowers){
+					stats= (+maxBountieFollowers - 1).toString()
+				}
+
 				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
 				await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
 				var ret = await app.campaign.getGains(idProm,cred2);
@@ -1529,9 +1537,9 @@ module.exports = function (app) {
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-			stats.views = stats.views ?? 0
-            stats.shares = stats.shares ?? 0
-			stats.likes = stats.likes ?? 0
+			stats.views = stats.views || 0
+            stats.shares = stats.shares || 0
+			stats.likes = stats.likes || 0
 			//console.log(prevstat);
 
 			 requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
@@ -1560,11 +1568,7 @@ module.exports = function (app) {
 
 
 			var ret = await app.campaign.getGains(idProm,cred2);
-			let contract = await app.campaign.getCampaignContract(idCampaign);			
-			var result = await contract.methods.campaigns(idCampaign).call();
-			await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
-				funds:result.funds}});
-			
+						
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -1573,18 +1577,22 @@ module.exports = function (app) {
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
-			if(cred2)
-			app.account.lock(cred2.address);
+			if(cred2) app.account.lock(cred2.address);
+            if(ret.transactionHash){
+				let contract = await app.campaign.getCampaignContract(idCampaign);			
+			    var result = await contract.methods.campaigns(idCampaign).call();
+			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+				funds:result.funds}});
+			}
 		}
 	});
 
-	app.post('/campaign/remaining', async function(req, response) {
+	app.post('/campaign/remaining', async (req, response) =>{
 
 		var pass = req.body.pass;
-		var idCampaign = req.body.idCampaign;
+		let idCampaign = req.body.idCampaign;
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
-
 		try {
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.getRemainingFunds(idCampaign,cred);
@@ -1593,7 +1601,11 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+			if(cred)app.account.lock(cred.address);
+			if(ret.transactionHash){
+				await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+					funds:["","0"]}});
+			}
 		}
 	});
 
