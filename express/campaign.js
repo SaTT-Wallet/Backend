@@ -147,7 +147,9 @@ module.exports = function (app) {
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			const prom = await app.oracle.getPromDetails(idProm)
-			
+			let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign})
+			const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+            let isActiveProm = funds != "0" && prom.funds.amount != "0" ? true :false;
 
 				var stat={};
 				stat.status = prom.isAccepted;
@@ -160,7 +162,7 @@ module.exports = function (app) {
 				stat.isPayed = prom.isPayed;
 				stat.typeSN=prom.typeSN.toString();
 				stat.date=Date('Y-m-d H:i:s');
-				if(stat.typeSN=="1"){
+				if(stat.typeSN=="1" ){
 				//tester si le lien facebook on recupere les stats de facebook;
 				    const idPost = prom.idPost.split(':')
 					oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
@@ -172,7 +174,7 @@ module.exports = function (app) {
 					stat.media_url=oraclesFacebook.media_url || ''
 								}
 				//youtube
-				else if(stat.typeSN=="2"){
+				else if(stat.typeSN=="2" ){
 				//tester si le lien youtube on recupere les stats de youtube;
 					oraclesYoutube = await app.oracle.youtube(prom.idPost);
 					stat.shares=oraclesYoutube.shares || '0';
@@ -196,15 +198,17 @@ module.exports = function (app) {
 				//twitter
 				else{
 				//tester si le lien twitter on recupere les stats de twitter;
+				// if(isActiveProm){
 					oraclesTwitter= await app.oracle.twitter(prom.idUser,prom.idPost);
 					stat.shares=oraclesTwitter.shares || '0';
 					stat.likes=oraclesTwitter.likes || '0';
 					stat.views=oraclesTwitter.views || '0';
 					stat.oracle = 'twitter'
+				// }
 								}
 
 
-                    await app.campaign.UpdateStats(stat); //saving & updating proms in campaign_link.
+                    await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
 
 					// 	if(prom.isAccepted){
 					// let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
@@ -438,7 +442,7 @@ module.exports = function (app) {
 				startDate,
 				endDate,
 				dataUrl,
-				amount,
+				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
@@ -983,6 +987,8 @@ module.exports = function (app) {
 				let campaign=await app.db.campaigns().findOne({hash:result.id_campaign});
 			
 				if(campaign){
+					const ctr = await app.campaign.getPromContract(result.id_prom);
+					let prom = await ctr.methods.proms(result.id_prom).call();
 					const ratio = campaign.ratios;
 					const bounties=campaign.bounties;
 					
@@ -993,7 +999,7 @@ module.exports = function (app) {
 					const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
 					
 					
-					cmp.isFinished = (date > campaign.endDate) || funds == "0" ? true : false;
+					cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
 						if(ratio.length && result.status === true && !cmp.isFinished){
 						delete result.isPayed;	     
 						cmp.ratio=ratio;	

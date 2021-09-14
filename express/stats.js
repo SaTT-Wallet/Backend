@@ -1102,9 +1102,8 @@ const Grid = require('gridfs-stream');
      */
      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
-	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
-			
-	if(campaign && campaign.hash){let ctr = await app.campaign.getCampaignContract(campaign.hash);}
+	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});		
+	let ctr = await app.campaign.getCampaignContract(campaign.hash);
 	 if(!ctr.methods) {
 			 res.end("{}");
 		 return;
@@ -1130,7 +1129,6 @@ const Grid = require('gridfs-stream');
 		   allProms[i].numberOfLikes = result.likes || "0"
 		   allProms[i].numberOfViews = result.views || '0'
 		   allProms[i].numberOfShares = !result.shares ? '0' : result.shares +"";
-		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   allProms[i].media_url=result.media_url;
