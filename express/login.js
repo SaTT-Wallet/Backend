@@ -322,10 +322,13 @@ module.exports = function (app) {
           while(true) {
 
             for (var i = 0;i<res.data.length;i++) {
+
+              let fbObj = {UserId:user_id,username:res.data[i].username,token:res.data[i].access_token}
               if(res.data[i].instagram_business_account) {
                 instagram_id = res.data[i].instagram_business_account.id;
+                fbObj.instagram_id = instagram_id
               }
-              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:{UserId:user_id,username:res.data[i].username,token:res.data[i].access_token}},{ upsert: true });
+              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:fbObj},{ upsert: true });
             }
             if(!res.paging || !res.paging.next)
             {
@@ -552,6 +555,29 @@ module.exports = function (app) {
           response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
          }
         });
+
+        app.delete('/google/all/channels', async  (req, response) =>{
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          let auth =	await app.crm.auth(token);       
+          await app.db.googleProfile().delete({UserId:auth.id});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
+          app.delete('/facebook/all/channels', async  (req, response) =>{
+            try{
+            const token = req.headers["authorization"].split(" ")[1];
+            let auth =	await app.crm.auth(token);       
+            await app.db.fbPage().delete({UserId:auth.id});
+            response.end(JSON.stringify({message : "deleted successfully"}))
+            }catch(err){
+              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+             }
+            });
+
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
