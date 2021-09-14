@@ -950,14 +950,14 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-      response.redirect(app.config.basedURl +"/myWallet/login?token=" + JSON.stringify(param))
+      response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
 
   app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-      response.redirect(app.config.basedURl +"/myWallet/login?token=" + JSON.stringify(param))
+      response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
     },
     authSignInErrorHandler);
 
