@@ -124,7 +124,7 @@ module.exports = function (app) {
 			}
 		});
 
-		app.get("/link/verify/:typeSN/:idUser/:idPost", async function (req, response) {
+	app.get("/link/verify/:typeSN/:idUser/:idPost", async function (req, response) {
 			const token = req.headers["authorization"].split(" ")[1];
 	  		var res =	await app.crm.auth(token);
 			//var userId = req.session.user;
@@ -168,11 +168,12 @@ module.exports = function (app) {
 				  }			
 				break;
 				case "3":
-				fbProfile = await app.db.fbProfile().findOne({UserId:userId  });
-				if(fbProfile && fbProfile.instagram_id) {
+				page = await app.db.fbPage().findOne({$and:[{UserId:userId},{ instagram_id: { $exists: true} }]});
+				if(page) {
 					linked = true;
 					res = await app.oracle.verifyInsta(userId,idPost);
 				}
+				
 				break;
 				case "4":
 				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  });
@@ -189,9 +190,7 @@ module.exports = function (app) {
 				response.end('{error:"account not linked"}')
 			else
 				response.end('{result:'+(res?"true":"false")+'}');
-		});
-
-
+		});	
 
 	app.get("/", function (req, response) {
 		response.render("index");

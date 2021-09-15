@@ -154,7 +154,7 @@ const Grid = require('gridfs-stream');
 		var idCampaign = req.params.id;
 		
 		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
-		if(campaign.hash){
+		if(campaign && campaign.hash){
 			var ctr = await app.campaign.getCampaignContract(campaign.hash);
 			if(!ctr.methods) {
 				response.end("{}");
@@ -325,7 +325,7 @@ const Grid = require('gridfs-stream');
 		var idNode="0"+auth.id;
 
         let query = app.campaign.filterCampaign(req,idNode,strangerDraft);
-		
+	
 		const campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 
 		for (var i = 0;i<campaigns.length;i++)
@@ -1081,7 +1081,12 @@ const Grid = require('gridfs-stream');
 			  bounty.categories.forEach( category=>{
 			   if( (+category.minFollowers <= +info.abosNumber)  && (+info.abosNumber <= +category.maxFollowers) ){
 				  info.totalToEarn = category.reward;					
-			   }
+			    }else if(+info.abosNumber > +category.maxFollowers){
+				info.totalToEarn = category.reward;	
+			 }
+
+
+
 			  })	
 			   }			   
 			   })
@@ -1100,12 +1105,14 @@ const Grid = require('gridfs-stream');
      */
      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
+
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
-	 let ctr = await app.campaign.getCampaignContract(campaign.hash);
-	 if(!ctr.methods) {
+			let ctr = await app.campaign.getCampaignContract(campaign.hash)
+	 if(!ctr) {
 			 res.end("{}");
 		 return;
 	 }else{   
+	  const funds = campaign.funds ? campaign.funds[1] : campaign.cost;	 
 	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);	 
 	  const ratio = campaign.ratios;
 	  const bounties = campaign.bounties;
@@ -1113,51 +1120,64 @@ const Grid = require('gridfs-stream');
 	  let share;
 	  let like;
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
-			dbProms.forEach( result=>{
+			dbProms.forEach(result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
-			 
+		          
 			  if(allProms[i].id === result.id_prom){
 				if(result.status === "rejected"){
 			   allProms[i].isAccepted = "rejected";
 			   continue;
 		   }
-		  
+		    
 		   allProms[i].appliedDate = result.appliedDate
 		   allProms[i].numberOfLikes = result.likes || "0"
 		   allProms[i].numberOfViews = result.views || '0'
-		   allProms[i].numberOfShares = result.shares || '0'
+		   allProms[i].numberOfShares = !result.shares ? '0' : result.shares +"";
 		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   allProms[i].media_url=result.media_url;
 		   
-		   if(ratio.length && allProms[i].isAccepted){
+	
+		   let promDone = funds == "0" && result.fund =="0" ? true : false;
+		   if(ratio.length && allProms[i].isAccepted && !promDone){
+                              
 				ratio.forEach( num =>{
+					
 							if(num.oracle === result.oracle){
 								if(result.views){
 									view =new Big(num["view"]).times(result.views)
+								
 								}
 								if(result.likes){
 								like =  new Big(num["like"]).times(result.likes) || "0";
+									
 								}
-								if(result.shares){			 
-								share = new Big(num["share"]).times(result.shares) || "0";		
-								}
+								
+							
+								share = new Big(num["share"]).times(result.shares) || "0";
+									
+								
 								if(view && share && like){	 
 								allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
 								}
+							
 							}
 						})		
 		   }
 
-		   if(bounties.length && allProms[i].isAccepted){
+		   if(bounties.length && allProms[i].isAccepted && !promDone){
+			  
 			  allProms[i].abosNumber =  result.abosNumber
 		       bounties.forEach( bounty=>{
               if(bounty.oracle === allProms[i].oracle){
 				bounty.categories.forEach( category=>{
+			
 				 if( (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
 					allProms[i].reward = category.reward;					
+				 }else if(+allProms[i].abosNumber > +category.maxFollowers){
+				 allProms[i].reward = category.reward;
 				 }
 				})	
 			     }			   
