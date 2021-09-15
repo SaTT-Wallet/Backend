@@ -573,7 +573,7 @@ module.exports = function (app) {
           try{
           const token = req.headers["authorization"].split(" ")[1];
           let auth =	await app.crm.auth(token);       
-          await app.db.googleProfile().delete({UserId:auth.id});
+          await app.db.googleProfile().deleteMany({UserId:auth.id});
           response.end(JSON.stringify({message : "deleted successfully"}))
           }catch(err){
             response.end('{"error":"'+(err.message?err.message:err.error)+'"}');

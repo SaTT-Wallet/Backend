@@ -1108,6 +1108,7 @@ const Grid = require('gridfs-stream');
 			 res.end("{}");
 		 return;
 	 }else{   
+	 const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
 	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);	 
 	  const ratio = campaign.ratios;
 	  const bounties = campaign.bounties;
@@ -1132,8 +1133,11 @@ const Grid = require('gridfs-stream');
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   allProms[i].media_url=result.media_url;
+
 		   
-		   if(ratio.length && allProms[i].isAccepted){
+		   let promDone = funds == "0" && result.fund =="0" ? true : false;
+
+		   if(ratio.length && allProms[i].isAccepted && !promDone){
 				ratio.forEach( num =>{
 							if(num.oracle === result.oracle){
 								if(result.views){
@@ -1151,7 +1155,7 @@ const Grid = require('gridfs-stream');
 						})		
 		   }
 
-		   if(bounties.length && allProms[i].isAccepted){
+		   if(bounties.length && allProms[i].isAccepted && !promDone){
 			  allProms[i].abosNumber =  result.abosNumber
 		       bounties.forEach( bounty=>{
               if(bounty.oracle === allProms[i].oracle){
