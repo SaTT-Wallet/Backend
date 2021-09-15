@@ -592,7 +592,7 @@ module.exports = function (app) {
           try{
           const token = req.headers["authorization"].split(" ")[1];
           let auth =	await app.crm.auth(token);       
-          await app.db.googleProfile().delete({UserId:auth.id});
+          await app.db.googleProfile().deleteMany({UserId:auth.id});
           response.end(JSON.stringify({message : "deleted successfully"}))
           }catch(err){
             response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -896,6 +896,15 @@ module.exports = function (app) {
     	   prompt: 'consent',
 	  state:state})(req,res,next)
   });
+
+  // app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
+  //   var state=req.params.idUser
+  
+  // passport.authenticate('facebook_strategy_add_channel', {scope: ['publish_actions', 'manage_pages'],
+	//        accessType: 'offline',
+  //   	   prompt: 'consent',
+	//   state:state})(req,res,next)
+  // });
 
 
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
