@@ -291,79 +291,100 @@ module.exports = function (app) {
 */      req.session.user = users[0]._id;
       return cb(null, {id: user._id, token: token, expires_in: date});
       } else {
-        return cb('account_invalide') // (null, false, {error: true, message: 'account_invalide'});
+        return cb('Register First') // (null, false, {error: true, message: 'account_invalide'});
       }
     }))
 
 
-    passport.use('instalink_FbStrategy',new FbStrategy({
-        clientID: app.config.appId,
-        clientSecret: app.config.appSecret,
-        callbackURL: app.config.baseUrl + "callback/facebook_insta",
-        profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
-        passReqToCallback: true
-      },
-      async function (req,accessToken, refreshToken, profile, cb) {
-        let info=req.query.state.split(' ');
-        var user_id=+info[0];
-          var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
-          "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
-          "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
-          var resToken = await rp({uri:longTokenUrl,json: true});
-          var longToken = resToken.access_token;
+       passport.use('instalink_FbStrategy',new FbStrategy({
+      clientID: app.config.appId,
+      clientSecret: app.config.appSecret,
+      callbackURL: app.config.baseUrl + "callback/facebook_insta",
+      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+      passReqToCallback: true
+    },
+    async function (req,accessToken, refreshToken, profile, cb) {
+      let info=req.query.state.split(' ');
+      var user_id=+info[0];
+      var fbProfile = false;
+      var message="account_linked_with_success";
+      var isInsta=false;
+
+        var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
+        "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
+        "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
+        var resToken = await rp({uri:longTokenUrl,json: true});
+        var longToken = resToken.access_token;
 
 
 
-          var instagram_id = false;
-          var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
+        var instagram_id = false;
+        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
 
-          var res = await rp({uri:accountsUrl,json: true})
-          console.log(res);
-          while(true) {
-
-            for (var i = 0;i<res.data.length;i++) {
-
-              let fbObj = {UserId:user_id,username:res.data[i].username,token:res.data[i].access_token}
-              if(res.data[i].instagram_business_account) {
-                instagram_id = res.data[i].instagram_business_account.id;
-                fbObj.instagram_id = instagram_id
-              }
-              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:fbObj},{ upsert: true });
-            }
-            if(!res.paging || !res.paging.next)
-            {
-              break;
-            }
-            res = await rp({uri:res.paging.next,json: true})
-         }
-         var fbProfile = false;
-         fbProfile = await app.db.fbProfile().findOne({UserId:user_id  });
-         if(fbProfile) {
-           var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
-         }
-         else {
-          profile.accessToken = longToken;
-          profile.UserId = user_id;
-          if(instagram_id){
-            var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
-            var resMedia = await rp({uri:media,json: true})
-            profile.instagram_username = resMedia.username;
-            profile.instagram_id = instagram_id;
-          }
-         }
-        //  if(instagram_id) {
-        //   var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
-        //   for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging && res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
-        //     for (var i =0;i<res.data.length;i++) {
-        //       var media = res.data[i];
-        //       await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
-        //     }
-        //   }
-        // }
-          
-          return cb(null, {id: user_id, token: accessToken});
+        var res = await rp({uri:accountsUrl,json: true})
         
-      }));
+        while(true) {
+
+          for (var i = 0;i<res.data.length;i++) {
+            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token};
+            
+            if(res.data[i].instagram_business_account) {
+              if(!isInsta){
+                message+="_instagram_facebook";
+                isInsta=true;
+              }
+              instagram_id = res.data[i].instagram_business_account.id;
+              page.instagram_id=instagram_id;
+              var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
+              var resMedia = await rp({uri:media,json: true})
+              page.instagram_username = resMedia.username;
+            }
+            await app.db.fbPage().updateOne({id:res.data[i].id},{$set:page},{ upsert: true });
+          }
+          if(!res.paging || !res.paging.next)
+          {
+            break;
+          }
+          res = await rp({uri:res.paging.next,json: true})
+       }
+        fbProfile = await app.db.fbProfile().findOne({UserId:user_id  });
+       if(fbProfile) {
+         var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
+       }
+       else {
+           profile.accessToken = longToken;
+           profile.UserId = user_id;
+           }    
+ 
+           var res_ins = await app.db.fbProfile().insertOne(profile);
+     
+      if(!isInsta && res.data.length > 0)
+      message+="_facebook";
+      
+           return cb(null, {id: user_id, token: accessToken},{message:message});
+      
+    }));
+ app.delete('/google/all/channels', async  (req, response) =>{
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          let auth =	await app.crm.auth(token);
+          await app.db.googleProfile().deleteMany({UserId:auth.id});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
+          app.delete('/facebook/all/channels', async  (req, response) =>{
+            try{
+            const token = req.headers["authorization"].split(" ")[1];
+            let auth =	await app.crm.auth(token);
+            await app.db.fbPage().delete({UserId:auth.id});
+            response.end(JSON.stringify({message : "deleted successfully"}))
+            }catch(err){
+              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+             }
+            });
 
   passport.use('signup_googleStrategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
@@ -515,6 +536,13 @@ module.exports = function (app) {
         })
         }
         var channelId = res.items[0].id;
+	     var channelGoogle = await app.db.googleProfile().find({channelId:channelId}).toArray();
+        if(channelGoogle.length >0 )
+        {
+          cb (null,profile,{
+            message: "account exist"
+        })
+        }else{
         var result = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics,snippet"},json: true});
         user_google={};
             user_google.refreshToken = refreshToken;
@@ -528,29 +556,20 @@ module.exports = function (app) {
             await app.db.googleProfile().insertOne(user_google);
 
         return cb(null, {id: user_id});
+	}
     }));
 
-    // passport.use('facebook_strategy_add_channel', new GoogleStrategy({
-    //  clientID: app.config.appId,
-    //   clientSecret: app.config.appSecret,
-    //   callbackURL: app.config.baseUrl + "callback/facebookChannel",
-    //   passReqToCallback: true
-    // },
-    // async function (req,accessToken, refreshToken, profile, cb) {
-    //     var user_id=+req.query.state;      
-      //var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts"
-
-    //     return cb(null, {id: user_id});
-    // }));
-
-    app.get('/googleChannels', async function (req, response) {
+    app.get('/socialAccounts', async function (req, response) {
       try{
       const token = req.headers["authorization"].split(" ")[1];
       var auth =	await app.crm.auth(token);
       var id=+auth.id;
       let networks={};
       var channelsGoogle = await app.db.googleProfile().find({UserId:id}).toArray();
+	var channelsTwitter = await app.db.twitterProfile().find({UserId:id}).toArray();
+	      
         networks.google=channelsGoogle;
+	networks.twitter=channelsTwitter;
       response.send(JSON.stringify(networks))
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -960,8 +979,8 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     app.get('/callback/facebook_insta',
       passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
-          message="account_linked_with_success";
-          let info=req.query.state.split(' ');
+           message=req.authInfo.message;
+	let info=req.query.state.split(' ');
           campaign_id=info[1];
           response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
         } catch (e) {
@@ -1002,8 +1021,14 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
       app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
         try {
-          response.send('ok');
-        } catch (e) {
+      if(req.authInfo.message){
+            message=req.authInfo.message;
+          }else{
+            message="account_linked_with_success";
+          }
+		response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
+	
+	} catch (e) {
           console.log(e)
         }
         });

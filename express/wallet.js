@@ -623,6 +623,7 @@ module.exports = function (app) {
 				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
 				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
+				
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
 				}
 			}
@@ -1169,6 +1170,7 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.erc20.approve(token,cred.address,spender,amount);
+			console.log("ret",ret);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1246,8 +1248,9 @@ module.exports = function (app) {
 	if(cred){app.account.lockBSC(cred.address);}
 	if(ret && ret.transactionHash){
 		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})
-		
-		const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+		console.log(to.substring(2))
+		const wallet = await app.db.wallet().findOne({"keystore.$address" : to.substring(2)});
+		console.log(wallet)
 		if(wallet){
 			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency} )
 		}
@@ -1496,7 +1499,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		if(ret.transactionHash){
 			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
-			const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+			const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 				if(wallet){
 					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'BNB',from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
 				}
@@ -1705,42 +1708,49 @@ app.post('/v2/profile/update', async function(req, response) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-
-
-	app.post('/wallet/add/token', async (req, res) =>{
+app.post('/wallet/add/token', async (req, res) =>{
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
 			let customToken = {};
 			let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,req.body.decimal,req.body.network]
 			
-			let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: auth.id} });
+			let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: [auth.id]} });
 			if(tokenExist){
 				res.send(JSON.stringify({error:"token already added"}));
 				return;
 			}
+			const Fetch_crypto_price = {
+				method: 'GET',
+				uri: xChangePricesUrl,
+				json: true,
+				gzip: true
+			  };
+			  let CryptoPrices = await rp(Fetch_crypto_price);
 
 			let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
 			if(!tokenFounded){
 				customToken = req.body;
 				customToken.sn_users = [auth.id]
-            //  if(!req.query.top){
-            //  const cryptoMetaData = {
-			// 	method: 'GET',
-			// 	uri: app.config.cmcUrl + symbol,
-			// 	headers : {
-			//      'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-			// 	},
-			// 	json: true,
-			// 	gzip: true
-			//   };
-            // let metaData = await rp(cryptoMetaData);			
-			// customToken.picUrl = metaData.data[customToken.symbol].logo
-			//  }
+            if(CryptoPrices.hasOwnProperty(symbol)){
+            const cryptoMetaData = {
+				method: 'GET',
+				uri: app.config.cmcUrl + symbol,
+				headers : {
+			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+				},
+				json: true,
+				gzip: true
+			  };
+           let metaData = await rp(cryptoMetaData);			
+			customToken.picUrl = metaData.data[customToken.symbol].logo
+			 }
 			await app.db.customToken().insertOne(customToken)
 			res.end(JSON.stringify({message:"token added"}))
+				return;
 			} else {
 				let id = tokenFounded._id
+			//	tokenFounded.sn_users.push(auth.id)
 				await app.db.customToken().updateOne({_id:app.ObjectId(id)},{$push:{sn_users:auth.id}});
 			}
 			res.end(JSON.stringify({message:"token added"}))
@@ -1749,7 +1759,7 @@ app.post('/v2/profile/update', async function(req, response) {
 		 }
 	})
 
-	app.post('/wallet/remove/token', async (req, res) =>{
+app.post('/wallet/remove/token', async (req, res) =>{
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
@@ -1762,6 +1772,5 @@ app.post('/v2/profile/update', async function(req, response) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-	
 	return app;
 }
