@@ -43,7 +43,7 @@ module.exports = async function (app) {
 	oracleManager.youtubeAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
 			var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"snippet"},json: true});
-			var channelId = res.items[0].snippet.channelId;
+			var channelId = res.items[0]?.snippet.channelId;
 			var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics"},json: true});
 			resolve(res.items[0].statistics.subscriberCount);
 		});
@@ -193,7 +193,7 @@ module.exports = async function (app) {
 			  access_token_key: twitterProfile.access_token_key,
 			  access_token_secret: twitterProfile.access_token_secret
 			});
-			console.log(tweet)
+			
 			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics,non_public_metrics"});
 			if(res.errors)
 			{
@@ -203,7 +203,7 @@ module.exports = async function (app) {
 				return;
 			}
 
-			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,/*views:res.data[0].non_public_metrics.impression_count,*/date:Math.floor(Date.now()/1000)};
+			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,views:res.data[0].non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
 
 
 
@@ -245,23 +245,34 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
 	oracleManager.verifyInsta = async function (userId,idPost) {
+
 		return new Promise(async (resolve, reject) => {
+
 			try {
-				var fbProfile = await app.db.fbProfile().findOne({UserId: userId});
-				var username=fbProfile.instagram_username;
+
 				var media = "https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/"+idPost;
+
 				var resMedia = await rp({uri:media,json: true});
-				if(resMedia.author_name != username){
-					resolve(false);
-				}else{
-					resolve(true);
-				}
+
+				page = await app.db.fbPage().findOne({$and:[{UserId:userId  },{instagram_username:resMedia.author_name}]});
+
+				if (page)
+
+				resolve(true);
+
+				else 
+
+				resolve(false);
+
 			}catch (err) {
+
 				reject({message:err.message});
+
 			}
+
 		})
+
 	}
 
 	oracleManager.verifyTwitter = async function (userId,idPost) {
