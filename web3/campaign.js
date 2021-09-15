@@ -385,7 +385,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var ctr = await campaignManager.getPromContract(idProm);
-				var gas = 200000;
+				var gas = 2000000;
 				var gasPrice = await ctr.getGasPrice();
 
 
@@ -534,8 +534,8 @@ module.exports = async function (app) {
 			let ids = [];
 			let idByAddress = [];
 			let userById = [];
-
-			for (let i =0;i<idproms.length;i++)
+                         console.log(idproms)
+       			for (let i =0;i<idproms.length;i++)
 			{
 				let prom = await ctr.methods.proms(idproms[i]).call();
 				let count = await app.db.ban().find({idProm:idproms[i]}).count();
@@ -666,7 +666,6 @@ module.exports = async function (app) {
 	}else{
 		oracles=req.query.oracles;
 	}
-	
 		const remainingBudget=req.query.remainingBudget || [];
 		
 		var query = {};
@@ -684,7 +683,9 @@ module.exports = async function (app) {
 		}
 		if(status =="active" ){
 			if(remainingBudget.length==2){
-				query["$and"].push({"funds.1":{ $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
+		//	query["$and"].push({"funds.1": { $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
+//			query["$and"].push({ $expr: { $gte: [ { $toDouble: "funds.1" }, remainingBudget[0] ] },{ $lte: [ { $toDouble: "funds.1" }, remainingBudget[1] ] } })
+
 			}
 			query["$and"].push({"endDate":{ $gt : dateJour }});
 			query["$and"].push({"funds.1":{$ne: "0"}});
@@ -712,16 +713,14 @@ module.exports = async function (app) {
 		
 		let oracles= req.query.oracles
 		 oracles= typeof oracles === "string" ? [oracles] : oracles;
-		
 		if (oracles) query["$and"].push({"oracle":{ $in: oracles}});
 
-		if(status == false)	query["$and"].push({"status":false});
+		if(status == "false")	query["$and"].push({"status":false});
 		if(status == "rejected") query["$and"].push({"status":"rejected"});
-        if(status == true) query["$and"].push({"status":true});
+        if(status == "true") query["$and"].push({"status":true});
 
 		return query
 	}
-
 	app.campaign = campaignManager;
 	return app;
 }
