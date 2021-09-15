@@ -738,7 +738,7 @@ module.exports = async function (app) {
 
 
 
-	accountManager.getListCryptoByUid = async  (userId, crypto) => {
+	  accountManager.getListCryptoByUid = async  (userId, crypto) => {
 		return new Promise( async (resolve, reject) => {
 		 try {
 			let listOfCrypto=[];			
@@ -766,7 +766,6 @@ module.exports = async function (app) {
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
 				}  	  
 			  }
-
 			  for(let T_name in token_info){
 				let network=token_info[T_name].network;
 			        let crypto={};
@@ -775,6 +774,7 @@ module.exports = async function (app) {
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
 				crypto.network = network;
+				crypto.AddedToken = addedToken ?  token_info[T_name].contract : false;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
                                 [crypto.price,crypto.total_balance] = Array(2).fill(0.00);
@@ -924,7 +924,7 @@ module.exports = async function (app) {
 accountManager.handleId=async function () {
 	var Collection=await app.db.UsersId().findOne()
 	var id =Collection.UserId
-	console.log(id)
+	
 	var UpdateCollection = await app.db.UsersId().replaceOne({UserId:id},{UserId:(id+1)})
 	let userId=UpdateCollection.ops[0].UserId
 	if(UpdateCollection.result.nModified){
