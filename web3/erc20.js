@@ -8,11 +8,13 @@ module.exports = async function (app) {
 			var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
 			var gasPrice = await app.web3.eth.getGasPrice();
 			var gas = await contract.methods.approve(spender,amount).estimateGas({from:addr});
-
+			console.log("gas=======================================",gas);
 			var receipt = await contract.methods.approve(spender,amount).send({from:addr,gas:gas,gasPrice: gasPrice})
 			.once('transactionHash', function(transactionHash){
 				console.log("approve transactionHash",transactionHash)
 			});
+						console.log("receipt",receipt)
+
 			resolve({transactionHash:receipt.transactionHash,address:addr,spender:spender});
 			console.log(receipt.transactionHash,"confirmed approval from",addr,"to",spender);
 		});
