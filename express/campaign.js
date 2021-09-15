@@ -796,9 +796,9 @@ module.exports = function (app) {
 			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
 			ret.remaining = fundsInfo.funds[1]
 
-			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
+			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
 				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
-                 await app.db.campaignCrm().updateOne({hash:idCampaign}, {$set: {cost: budget}});
+                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget}});
 			 })
 			}
 			response.end(JSON.stringify(ret));
