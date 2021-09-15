@@ -774,7 +774,6 @@ module.exports = async function (app) {
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
 				crypto.network = network;
-				crypto.AddedToken = addedToken ?  token_info[T_name].contract : false;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
                                 [crypto.price,crypto.total_balance] = Array(2).fill(0.00);
