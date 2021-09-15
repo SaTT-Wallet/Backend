@@ -1237,7 +1237,7 @@ module.exports = function (app) {
 
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			console.log("token to",to);
+			
 			var ret = await app.bep20.transferBEP(to,amount,cred);
 			
 			response.end(JSON.stringify(ret));
@@ -1702,7 +1702,7 @@ app.post('/v2/profile/update', async function(req, response) {
 			tokenName = await contract.methods.name().call();
 			network = network.toUpperCase();
 			symbol = await contract.methods.symbol().call();
-			res.send({message : "Token founded", tokenName, symbol,decimal,tokenAdress,network})
+			res.send({message : "Token found", tokenName, symbol,decimal,tokenAdress,network})
 			}
 		}catch (err) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1765,6 +1765,5 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-
 	return app;
 }

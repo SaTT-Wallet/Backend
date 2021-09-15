@@ -587,6 +587,29 @@ module.exports = function (app) {
           response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
          }
         });
+
+        app.delete('/google/all/channels', async  (req, response) =>{
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          let auth =	await app.crm.auth(token);       
+          await app.db.googleProfile().delete({UserId:auth.id});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
+          app.delete('/facebook/all/channels', async  (req, response) =>{
+            try{
+            const token = req.headers["authorization"].split(" ")[1];
+            let auth =	await app.crm.auth(token);       
+            await app.db.fbPage().delete({UserId:auth.id});
+            response.end(JSON.stringify({message : "deleted successfully"}))
+            }catch(err){
+              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+             }
+            });
+
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
@@ -1109,7 +1132,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   app.post('/auth/passlost', async function (req, response) {
     const lang = req.query.lang || "en";
 
-	app.i18n.configureTranslation(lang);
+	  app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
     var users = await app.db.sn_user().find({email: mail.toLowerCase()}).toArray();
@@ -1249,17 +1272,13 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
-          // const geo = geoip.lookup(ip);
-          // let city = geo.city ? geo.city : geo.timezone
-          // let country = countryList.getName(geo.country);
-          // let location = country +', '+city;
+        
 
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
             var template = handlebars.compile(html);
             var replacements = {
               ip,
               requestDate,
-              // location,
               satt_url: app.config.basedURl,
               back_url: app.config.baseURl,
               satt_faq : app.config.Satt_faq,

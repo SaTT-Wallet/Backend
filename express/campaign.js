@@ -174,7 +174,7 @@ module.exports = function (app) {
 				else if(stat.typeSN=="2"){
 				//tester si le lien youtube on recupere les stats de youtube;
 					oraclesYoutube = await app.oracle.youtube(prom.idPost);
-					stat.shares=oraclesYoutube.shares;
+					stat.shares=oraclesYoutube.shares || '0';
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
 					stat.oracle = 'youtube'
@@ -1544,11 +1544,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            //  if(prom.funds.amount === "0"){
-			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
-			// 	return;
-			// }
-			// await ctr.methods.campaigns(prom.idCampaign).call();
+            
 
 			if(req.body.bounty) {
 				let social={"1":"facebook","2":"youtube","3":"instagram","4":"twitter"};
@@ -1571,6 +1567,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
@@ -1607,11 +1604,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 
 			var ret = await app.campaign.getGains(idProm,cred2);
-			let contract = await app.campaign.getCampaignContract(idCampaign);			
-			var result = await contract.methods.campaigns(idCampaign).call();
-			await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
-				funds:result.funds}});
-			
+						
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -1620,18 +1613,22 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
-			if(cred2)
-			app.account.lock(cred2.address);
+			if(cred2) app.account.lock(cred2.address);
+            if(ret.transactionHash){
+				let contract = await app.campaign.getCampaignContract(idCampaign);			
+			    var result = await contract.methods.campaigns(idCampaign).call();
+			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+				funds:result.funds}});
+			}
 		}
 	});
 
-	app.post('/campaign/remaining', async function(req, response) {
+	app.post('/campaign/remaining', async (req, response) =>{
 
 		var pass = req.body.pass;
-		var idCampaign = req.body.idCampaign;
+		let idCampaign = req.body.idCampaign;
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
-
 		try {
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.getRemainingFunds(idCampaign,cred);
