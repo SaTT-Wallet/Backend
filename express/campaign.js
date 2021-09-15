@@ -1018,6 +1018,10 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				const ratio = campaign.ratios;
 				const bounties=campaign.bounties;
 				var ctr = await app.campaign.getPromContract(result.id_prom);
+				if(!ctr.methods)
+					{
+						continue;
+					}
 				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
 				cmp.bounties = bounties
