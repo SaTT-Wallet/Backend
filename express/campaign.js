@@ -1608,7 +1608,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		}
 		finally {
 			if(cred2) app.account.lock(cred2.address);
-            if(ret.transactionHash){
+            if(ret && ret.transactionHash){
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
