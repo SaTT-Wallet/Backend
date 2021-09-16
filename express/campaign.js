@@ -994,7 +994,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const limit=+req.query.limit || 50;
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
-		const date= Math.round(new Date().getTime()/1000);
+		//const date= Math.round(new Date().getTime()/1000);
 
 		let arrayOfLinks=[];
         let query= app.campaign.filterProms(req,id_wallet);
@@ -1567,7 +1567,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
                         stats.views = stats.views ?? 0
                         stats.shares = stats.shares ?? 0
-			stats.likes = stats.likes ?? 0
+			            stats.likes = stats.likes ?? 0
 
 			//console.log(prevstat);
 
