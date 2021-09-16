@@ -1134,10 +1134,10 @@ const Grid = require('gridfs-stream');
 		   allProms[i].numberOfLikes = result.likes || "0"
 		   allProms[i].numberOfViews = result.views || '0'
 		   allProms[i].numberOfShares = !result.shares ? '0' : result.shares +"";
-		   allProms[i].unPayed = result.fund
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   allProms[i].media_url=result.media_url;
+
 		   
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
@@ -1167,8 +1167,7 @@ const Grid = require('gridfs-stream');
 						})		
 		   }
 
-		   if(bounties.length && allProms[i].isAccepted && !promDone){
-			  
+		   if(bounties.length && allProms[i].isAccepted && !promDone){		  
 			  allProms[i].abosNumber =  result.abosNumber
 		       bounties.forEach( bounty=>{
               if(bounty.oracle === allProms[i].oracle){
