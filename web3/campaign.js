@@ -343,7 +343,7 @@ module.exports = async function (app) {
 
 	campaignManager.updateBounty = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
-
+			try{
 			var gas = 200000;
 			var ctr =  await campaignManager.getPromContract(idProm);
 			var gasPrice = await ctr.getGasPrice();
@@ -351,6 +351,11 @@ module.exports = async function (app) {
 			var receipt = await ctr.methods.updateBounty(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
 			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
+		}
+		catch (err)
+		{
+			reject(err);
+		}
 		})
 	}
 
