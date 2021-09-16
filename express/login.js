@@ -364,6 +364,32 @@ module.exports = function (app) {
            return cb(null, {id: user_id, token: accessToken},{message:message});
       
     }));
+
+    passport.use('facebook_strategy_add_channel', new GoogleStrategy({
+      clientID: app.config.appId,
+      clientSecret: app.config.appSecret,
+      callbackURL: app.config.baseUrl + "callback/facebookChannel",
+      profileFields: ['publish_actions', 'manage_pages','id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+      passReqToCallback: true
+    },
+    async (req,accessToken, refreshToken, profile, cb) => {
+      // let info=req.query.state.split(' ');
+      var user_id=+info;
+      var message="account_linked_with_success";
+      var isInsta=false;     
+      var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
+        "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
+        "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
+        var resToken = await rp({uri:longTokenUrl,json: true});
+        var longToken = resToken.access_token;
+        let accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
+
+        var res = await rp({uri:accountsUrl,json: true})
+        console.log(res)
+
+
+    }));
+
  app.delete('/google/all/channels', async  (req, response) =>{
           try{
           const token = req.headers["authorization"].split(" ")[1];
@@ -379,7 +405,7 @@ module.exports = function (app) {
             try{
             const token = req.headers["authorization"].split(" ")[1];
             let auth =	await app.crm.auth(token);
-            await app.db.fbPage().delete({UserId:auth.id});
+            await app.db.fbPage().deleteMany({UserId:auth.id});
             response.end(JSON.stringify({message : "deleted successfully"}))
             }catch(err){
               response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -558,6 +584,9 @@ module.exports = function (app) {
         return cb(null, {id: user_id});
 	}
     }));
+
+
+
 
     app.get('/socialAccounts', async function (req, response) {
       try{
@@ -906,6 +935,10 @@ module.exports = function (app) {
 	//   state:state})(req,res,next)
   // });
 
+  app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
+    const state=req.params.idUser;  
+    passport.authenticate('facebook_strategy_add_channel',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state:state})(req,res,next)
+   });
 
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   var state=req.params.idUser+" "+req.params.idCampaign;
@@ -1032,6 +1065,16 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           console.log(e)
         }
         });
+
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', {scope: ['profile','email']}), async  (req, response) =>{
+          try {   
+            //  req.authInfo.message;
+      response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
+    
+    } catch (e) {
+            console.log(e)
+          }
+          });
   
       app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
         try {
