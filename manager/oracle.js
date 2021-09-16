@@ -56,13 +56,13 @@ module.exports = async function (app) {
 		var campaign_link = await app.db.campaign_link().findOne({idPost});
 		var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
 
- 		var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
-			if(fbProfile && fbProfile.instagram_id){
-				var instagram_id=fbProfile.instagram_id;
+ 		var fbPage = await app.db.fbPage().findOne({$and:[{UserId:userWallet.UserId },{ instagram_id: { $exists: true} }]});
+				var instagram_id=fbPage.instagram_id;
+				var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
 						var token = fbProfile.accessToken;
 						var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?access_token="+token+"&fields=followers_count",json: true});
 						followers=res.followers_count
-			}		
+					
 			
 			
 				resolve(followers)
@@ -138,15 +138,26 @@ module.exports = async function (app) {
 		})
 
 	};
-
+oracleManager.getInstagramUserName= async function(shortcode){
+	return new Promise(async (resolve, reject) => {
+		var media = "https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/"+shortcode;
+		var resMedia = await rp({uri:media,json: true});
+		resolve(resMedia.author_name);
+	})			
+}
 	oracleManager.instagram = async function (UserId,idPost) {
 		return new Promise(async (resolve, reject) => {
 			var perf = {shares:0,likes:0,views:0};
+		
+			let instagramUserName=await app.oracle.getInstagramUserName(idPost);
+				
+			var fbPage = await app.db.fbPage().findOne({instagram_username: instagramUserName});
+
+			if(fbPage && fbPage.instagram_id){
+			var instagram_id=fbPage.instagram_id;
 			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
-			if(fbProfile && fbProfile.instagram_id){
-				var instagram_id=fbProfile.instagram_id;
 			var accessToken=fbProfile.accessToken;
-			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode&limit=100&access_token="+accessToken;
+			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode&limit=50&access_token="+accessToken;
 			var resMedia = await rp({uri:media,json: true});
 			var data =resMedia.data;
 			for (let i=0;i<data.length;i++){
