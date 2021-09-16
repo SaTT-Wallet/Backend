@@ -232,7 +232,7 @@ module.exports = async function (app) {
 				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,access_token :googleProfile.accessToken,part:"snippet"},json: true});
 
 				if(res.items) {
-					var channelId = res.items[0].snippet.channelId;
+					var channelId = res.items[0]?.snippet.channelId;
 					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
 					resolve(googleProfile);
 			  }
