@@ -186,7 +186,6 @@ module.exports = function (app) {
 				    var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)});
 				    var UserId=	userWallet.UserId;
 					oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
-					console.log(oraclesInstagram)
 					stat.shares=oraclesInstagram.shares || '0';
 					stat.likes=oraclesInstagram.likes || '0';
 					stat.views=oraclesInstagram.views|| '0';
@@ -961,6 +960,7 @@ module.exports = function (app) {
 				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))	
 				
 			    var cred = await app.account.unlock(id,pass);
+				
 				var ret = await app.campaign.applyCampaign(hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
 
@@ -979,6 +979,7 @@ module.exports = function (app) {
 				prom.idPost = ret.idPost
 				prom.id_campaign  = hash
 				prom.appliedDate = date
+				
 				await app.db.campaign_link().insertOne(prom);
 			
 				let event={id:hash,prom:ret.idProm,type:"applied",date:date,txhash:ret.transactionHash,contract:contract._address.toLowerCase(),owner:contract._address.toLowerCase()};
@@ -1560,7 +1561,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				if (+stats >= +maxBountieFollowers){
 					stats= (+maxBountieFollowers - 1).toString()
 				}
-							console.log(typeof stats, stats)
 			
 				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
 				await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
