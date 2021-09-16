@@ -613,9 +613,9 @@ module.exports = async function (app) {
 	}
 
 
-	campaignManager.UpdateStats = async obj =>{
+	campaignManager.UpdateStats = async (obj,campaign) =>{
 
-	let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
+	// let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
 	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
@@ -687,7 +687,8 @@ module.exports = async function (app) {
 //			query["$and"].push({ $expr: { $gte: [ { $toDouble: "funds.1" }, remainingBudget[0] ] },{ $lte: [ { $toDouble: "funds.1" }, remainingBudget[1] ] } })
 
 			}
-			query["$and"].push({"endDate":{ $gt : dateJour }},{"funds.1":{$eq: "0"}});
+			query["$and"].push({"endDate":{ $gt : dateJour }});
+			query["$and"].push({"funds.1":{$ne: "0"}});
 			query["$and"].push({"hash":{ $exists: true}});
 		}
 		else if(status=="finished"){

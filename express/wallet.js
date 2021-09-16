@@ -1720,24 +1720,31 @@ app.post('/wallet/add/token', async (req, res) =>{
 				res.send(JSON.stringify({error:"token already added"}));
 				return;
 			}
+			const Fetch_crypto_price = {
+				method: 'GET',
+				uri: xChangePricesUrl,
+				json: true,
+				gzip: true
+			  };
+			  let CryptoPrices = await rp(Fetch_crypto_price);
 
 			let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
 			if(!tokenFounded){
 				customToken = req.body;
 				customToken.sn_users = [auth.id]
-           //  if(!req.query.top){
-            // const cryptoMetaData = {
-	//			method: 'GET',
-	//			uri: app.config.cmcUrl + symbol,
-	//			headers : {
-	//		     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-	//			},
-	//			json: true,
-	//			gzip: true
-	//		  };
-          //  let metaData = await rp(cryptoMetaData);			
-	//		customToken.picUrl = metaData.data[customToken.symbol].logo
-	//		 }
+            if(CryptoPrices.hasOwnProperty(symbol)){
+            const cryptoMetaData = {
+				method: 'GET',
+				uri: app.config.cmcUrl + symbol,
+				headers : {
+			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+				},
+				json: true,
+				gzip: true
+			  };
+           let metaData = await rp(cryptoMetaData);			
+			customToken.picUrl = metaData.data[customToken.symbol].logo
+			 }
 			await app.db.customToken().insertOne(customToken)
 			res.end(JSON.stringify({message:"token added"}))
 				return;
@@ -1758,7 +1765,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			let auth = await app.crm.auth(token);
             let id = auth.id
 	        let tokenAdress = req.body.tokenAdress
-			await app.db.customToken().remove({tokenAdress},{$pull:{sn_users:id}});
+			await app.db.customToken().updateOne({tokenAdress},{$pull:{sn_users:id}});
 			res.end(JSON.stringify({message:"token removed"}));
 			}
 		catch (err) {
