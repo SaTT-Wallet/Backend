@@ -343,7 +343,7 @@ module.exports = async function (app) {
 
 	campaignManager.updateBounty = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
-			try{
+			try {
 			var gas = 200000;
 			var ctr =  await campaignManager.getPromContract(idProm);
 			var gasPrice = await ctr.getGasPrice();

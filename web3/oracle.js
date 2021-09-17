@@ -302,7 +302,7 @@ try{
 
 	ContractToken.answerBounty = async function (opts) {
 		return new Promise(async (resolve, reject) => {
-			try{
+			try {
 			var ctr;
 		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
 			ctr = ContractToken.contract;
@@ -325,7 +325,6 @@ try{
 		{
 			reject(err);
 		}
-
 		});
 
 	}
