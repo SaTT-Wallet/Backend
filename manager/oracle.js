@@ -74,8 +74,9 @@ module.exports = async function (app) {
 
 	oracleManager.twitterAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-			var res = await tweet.get('users/show',{screen_name :pageName});
-			resolve(res.followers_count);
+
+			var tweet_res = await tweet.get('statuses/show',{id:idPost});
+			resolve(tweet_res.user.followers_count);
 		});
 	};
 
@@ -250,7 +251,7 @@ oracleManager.getInstagramUserName= async function(shortcode){
 				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,access_token :googleProfile.accessToken,part:"snippet"},json: true});
 
 				if(res.items) {
-					var channelId = res.items[0].snippet.channelId;
+					var channelId = res.items[0]?.snippet.channelId;
 					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
 					resolve(googleProfile);
 			  }
