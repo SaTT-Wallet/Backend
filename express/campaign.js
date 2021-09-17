@@ -1000,6 +1000,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		let arrayOfLinks=[];
         let query= app.campaign.filterProms(req,id_wallet);
+		var count=await app.db.campaign_link().find({id_wallet:id_wallet}).count();
 
 		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
@@ -1061,8 +1062,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				arrayOfLinks.push(result)
 			}
 		}
-		
-			response.end(JSON.stringify(arrayOfLinks));
+		var Links ={Links:arrayOfLinks,count:count}
+			response.end(JSON.stringify(Links));
 		}catch(err){
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
