@@ -365,7 +365,7 @@ module.exports = function (app) {
       
     }));
 
-    passport.use('facebook_strategy_add_channel', new GoogleStrategy({
+    passport.use('facebook_strategy_add_channel', new FbStrategy({
       clientID: app.config.appId,
       clientSecret: app.config.appSecret,
       callbackURL: app.config.baseUrl + "callback/facebookChannel",
