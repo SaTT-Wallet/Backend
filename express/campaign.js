@@ -180,7 +180,7 @@ module.exports = function (app) {
 					stat.shares=oraclesYoutube.shares || '0';
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
-					stat.oracle = 'youtube'
+					stat.oracle = 'youtube';
 				//	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 								}
 				//instagram
@@ -193,7 +193,8 @@ module.exports = function (app) {
 					stat.likes=oraclesInstagram.likes || '0';
 					stat.views=oraclesInstagram.views|| '0';
 					stat.oracle = 'instagram';
-					
+					stat.media_url=oraclesInstagram.media_url || ''
+
 					await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 								}
 				//twitter
@@ -205,6 +206,7 @@ module.exports = function (app) {
 					stat.likes=oraclesTwitter.likes || '0';
 					stat.views=oraclesTwitter.views || '0';
 					stat.oracle = 'twitter'
+					stat.media_url=oraclesTwitter.media_url || ''
 				// }
 								}
 
