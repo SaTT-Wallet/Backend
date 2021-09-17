@@ -176,7 +176,7 @@ module.exports = async function (app) {
 	}
 
 	ContractToken.checkAnswerBounty = async function () {
-
+try{
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 
@@ -190,6 +190,11 @@ module.exports = async function (app) {
 			await ContractToken.answerBounty({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idProm:request.id,nbAbos:nbAbos});
 
 		}
+	}
+	catch (err)
+	{
+		reject(err);
+	}
 	}
 
 
@@ -315,13 +320,11 @@ module.exports = async function (app) {
 			//var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
 			var receipt = await  ctr.methods.answerBounty(opts.campaignContract,opts.idProm,opts.nbAbos).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerBounty transactionHash",hash)});
 			resolve({result : "OK",hash:receipt.hash});
-
 		}
 		catch (err)
 		{
 			reject(err);
 		}
-
 		});
 
 	}
