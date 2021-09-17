@@ -74,8 +74,9 @@ module.exports = async function (app) {
 
 	oracleManager.twitterAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-			var res = await tweet.get('users/show',{screen_name :pageName});
-			resolve(res.followers_count);
+
+			var tweet_res = await tweet.get('statuses/show',{id:idPost});
+			resolve(tweet_res.user.followers_count);
 		});
 	};
 
