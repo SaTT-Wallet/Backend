@@ -929,10 +929,9 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/apply', async (req, response) =>{
-		console.log(req.body)
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
-               console.log("id user",auth.id)	
+              	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var typeSN = req.body.typeSN;
