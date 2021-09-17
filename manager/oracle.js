@@ -148,7 +148,7 @@ oracleManager.getInstagramUserName= async function(shortcode){
 }
 	oracleManager.instagram = async function (UserId,idPost) {
 		return new Promise(async (resolve, reject) => {
-			var perf = {shares:0,likes:0,views:0};
+			var perf = {shares:0,likes:0,views:0,media_url:''};
 		
 			let instagramUserName=await app.oracle.getInstagramUserName(idPost);
 				
@@ -158,12 +158,14 @@ oracleManager.getInstagramUserName= async function(shortcode){
 			var instagram_id=fbPage.instagram_id;
 			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
 			var accessToken=fbProfile.accessToken;
-			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode&limit=50&access_token="+accessToken;
+			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode,media_url&limit=50&access_token="+accessToken;
 			var resMedia = await rp({uri:media,json: true});
 			var data =resMedia.data;
+			console.log("data====",data)
 			for (let i=0;i<data.length;i++){
 				if(data[i].shortcode == idPost){
 					perf.likes=data[i].like_count;
+					perf.media_url=data[i].media_url;
 						await app.db.ig_media().updateOne({id:data[i].id},{$set:{shortcode:data[i].shortcode,like_count:data[i].like_count,owner:instagram_id}},{ upsert: true });
 						break;	
 					}
@@ -192,8 +194,8 @@ oracleManager.getInstagramUserName= async function(shortcode){
 						access_token_key: app.config.access_token_key,
 						access_token_secret: app.config.access_token_secret
 					});
-					var res = await tweet.get('statuses/show',{id:idPost});
-					var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000)};
+					var res = await tweet.get('statuses/show',{id:idPost,'expansions':'attachments.media_keys','media.fields':'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text'});
+					var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
 					resolve(perf);
 					return;
 				}
@@ -206,16 +208,21 @@ oracleManager.getInstagramUserName= async function(shortcode){
 			  access_token_secret: twitterProfile.access_token_secret
 			});
 			
-			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics,non_public_metrics"});
+			var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics,non_public_metrics",'expansions':'attachments.media_keys','media.fields':'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text'});
+			
+
 			if(res.errors)
 			{
-				res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics"});
-				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000)};
+				res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics",'expansions':'attachments.media_keys','media.fields':'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text'});
+
+
+				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
 				resolve(perf);
 				return;
 			}
 
-			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,views:res.data[0].non_public_metrics.impression_count,date:Math.floor(Date.now()/1000)};
+
+			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,views:res.data[0].non_public_metrics.impression_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
 
 
 
