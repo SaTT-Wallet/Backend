@@ -996,7 +996,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const limit=+req.query.limit || 50;
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
-		const date= Math.round(new Date().getTime()/1000);
+		//const date= Math.round(new Date().getTime()/1000);
 
 		let arrayOfLinks=[];
         let query= app.campaign.filterProms(req,id_wallet);
@@ -1150,7 +1150,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 					const id = req.body.idUser;
                     const email = req.body.email;
-
+					await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{status:true}});
 					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
 
 					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
@@ -1569,7 +1569,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
                         stats.views = stats.views ?? 0
                         stats.shares = stats.shares ?? 0
-			stats.likes = stats.likes ?? 0
+			            stats.likes = stats.likes ?? 0
 
 			//console.log(prevstat);
 
@@ -1610,12 +1610,13 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		}
 		finally {
 			if(cred2) app.account.lock(cred2.address);
-            if(ret.transactionHash){
+            if(ret && ret.transactionHash){
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
 				funds:result.funds}});
-			}
+                if(req.body.bounty) await app.db.campaign_link().updateOne({id_prom:idProm},{$set:{isPayed:true}});
+			}		
 		}
 	});
 
