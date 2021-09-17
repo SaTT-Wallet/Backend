@@ -549,7 +549,7 @@ module.exports = function (app) {
     passport.use('google_strategy_add_channel', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
-      callbackURL: app.config.basedUrl + "callback/googleChannel",
+      callbackURL: app.config.baseUrl + "callback/googleChannel",
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
