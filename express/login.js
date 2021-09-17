@@ -617,6 +617,18 @@ module.exports = function (app) {
          }
         });
 
+        app.delete('/twitter/:id', async function (req, response) {
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          auth =	await app.crm.auth(token);
+           var id=req.params.id; 
+          await app.db.twitterProfile().deleteOne({_id:app.ObjectId(id)});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
         app.delete('/google/all/channels', async  (req, response) =>{
           try{
           const token = req.headers["authorization"].split(" ")[1];
@@ -638,6 +650,18 @@ module.exports = function (app) {
               response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
              }
             });
+
+            app.delete('/twitter/all', async  (req, response) =>{
+              try{
+              const token = req.headers["authorization"].split(" ")[1];
+              let auth =	await app.crm.auth(token);       
+              await app.db.twitterProfile().deleteMany({UserId:auth.id});
+              response.end(JSON.stringify({message : "deleted successfully"}))
+              }catch(err){
+                response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+               }
+              });
+    
 
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
@@ -674,6 +698,43 @@ module.exports = function (app) {
     return cb(null, {id: user_id});
   }));
 
+
+  passport.use('add_twitter_link',new TwitterStrategy({
+    consumerKey:app.config.twitter.consumer_key,
+    consumerSecret:app.config.twitter.consumer_secret,
+    callbackURL: app.config.baseUrl +'callback/add/twitter',
+    passReqToCallback: true
+  },
+async function(req, accessToken, tokenSecret, profile, cb) {
+
+  let user_id=+req.session.state;
+  
+  var tweet = new Twitter({
+    consumer_key: app.config.twitter.consumer_key,
+    consumer_secret: app.config.twitter.consumer_secret,
+    access_token_key: accessToken,
+    access_token_secret:tokenSecret
+  });
+  var res = await tweet.get('account/verify_credentials',{include_email :true});
+
+  var twitterProfile = await app.db.twitterProfile().findOne({$and:[{UserId:user_id },{twitter_id:res.id}]});
+  if(twitterProfile) {
+    cb(null,profile,{
+      status: false,
+      message: "account exist"
+  })
+  }
+  else {
+      profile.access_token_key = accessToken;
+      profile.access_token_secret = tokenSecret;
+      profile.UserId = user_id;
+      profile.username = res.screen_name;
+      profile.twitter_id = res.id;
+
+      var res_ins = await app.db.twitterProfile().insertOne(profile);
+  }
+  return cb(null, {id: user_id});
+}));
 
 
 
@@ -949,6 +1010,15 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   state:state})(req,res,next)
 });
 
+app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
+  var state=req.params.idUser;
+  req.session.state=state;
+  passport.authenticate('add_twitter_link',{scope: ['profile','email'],
+  accessType:'offline',
+  prompt:'consent',
+  state:state})(req,res,next)
+});
+
   app.get('/auth/signup_telegram', passport.authenticate('signup_telegramStrategy'),
     function(req, res) {
       try {
@@ -1091,7 +1161,19 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           console.log(e)
         }
         });
-
+        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', {scope: ['profile','email']}), async function (req, response) {
+          try {
+            if(req.authInfo.message){
+              message=req.authInfo.message;
+            }else{
+              message="account_linked_with_success";
+            }
+            response.redirect(app.config.basedURl+'/myWallet/social-networks/?message='+message);
+  
+          } catch (e) {
+            console.log(e)
+          }
+          });
 
   // route for logging out
   app.get('/logout', function(req, res) {
