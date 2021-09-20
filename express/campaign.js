@@ -981,11 +981,7 @@ module.exports = function (app) {
 		}
 	});
 
-		app.get('/tesstess', async (req, res)=>{
-		const ctr = await app.campaign.getPromContract("0x10ed72a3ec51af4034a0de445859f74ac28a6f0dbbce34e2b0f647cf0700bd55");
-					let prom = await ctr.methods.proms("0x10ed72a3ec51af4034a0de445859f74ac28a6f0dbbce34e2b0f647cf0700bd55").call();
-					res.send(JSON.stringify({fund:prom.funds.amount }))
-	})
+
 
 app.get('/userLinks/:id_wallet',async function(req, response) {
 	try{
@@ -1145,47 +1141,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			else {*/
 				let ret = await app.campaign.validateProm(idApply,cred);
 
-                 if(ret.transactionHash){
-
-					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
-					const id = req.body.idUser;
-                    const email = req.body.email;
-					await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{status:true}});
-					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
-
-					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
-						if (err) {
-							console.error(err)
-							return
-						  }
-						  let template = handlebars.compile(html);
-
-						    let emailContent = {
-							cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
-							satt_faq : app.config.Satt_faq,
-							satt_url: app.config.basedURl,
-							cmp_title: campaign.title,
-							imgUrl: app.config.baseEmailImgURl
-						    };
-								let htmlToSend = template(emailContent);
-
-								let mailOptions = {
-								 from: app.config.mailSender,
-								 to: email,
-								 subject: 'Your link has been accepted in a campaign',
-								 html: htmlToSend
-							};
-
-						  transporter.sendMail(mailOptions, (error, info)=>{
-								if (error) {
-									res.end(JSON.stringify(error))
-								} else {
-									res.end(JSON.stringify(ret))
-									return;
-								}
-							  });
-							})
-				 }
+               
 
 			res.end(JSON.stringify(ret));
 
@@ -1193,8 +1149,48 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			if(cred)
-			app.account.lock(cred.address);
+			if(cred) app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+
+				const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
+				const id = req.body.idUser;
+				const email = req.body.email;
+				await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{status:true}});
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
+
+				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
+					if (err) {
+						console.error(err)
+						return
+					  }
+					  let template = handlebars.compile(html);
+
+						let emailContent = {
+						cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+						satt_faq : app.config.Satt_faq,
+						satt_url: app.config.basedURl,
+						cmp_title: campaign.title,
+						imgUrl: app.config.baseEmailImgURl
+						};
+							let htmlToSend = template(emailContent);
+
+							let mailOptions = {
+							 from: app.config.mailSender,
+							 to: email,
+							 subject: 'Your link has been accepted in a campaign',
+							 html: htmlToSend
+						};
+
+					  transporter.sendMail(mailOptions, (error, info)=>{
+							if (error) {
+								res.end(JSON.stringify(error))
+							} else {
+								res.end(JSON.stringify(ret))
+								return;
+							}
+						  });
+						})
+			 }
 		}
 	});
 	app.post('/campaign/start', async function(req, response) {
@@ -2350,8 +2346,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 	}
 	})
-
-
 
 
 /**

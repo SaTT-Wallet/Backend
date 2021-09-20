@@ -1282,8 +1282,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     var token = crypto.randomFillSync(buff).toString('hex');
     var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
     let requestDate =app.account.manageTime();
-    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-    ip = ip.split(":")[3]
+    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
+    if(ip) ip = ip.split(":")[3]
     // const geo = geoip.lookup(ip);
     
     // let city = geo.city ? geo.city : geo.timezone
@@ -1410,8 +1410,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
-        
-
+          
+          // let subject = (lang == "en") ? "Satt wallet change email" : "";
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
             var template = handlebars.compile(html);
             var replacements = {
@@ -1427,7 +1427,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
             var mailOptions = {
               from: app.config.mailSender,
               to: user.email,
-              subject: 'Satt wallet change email',
+              subject: "Satt wallet change email",
               html: htmlToSend
             };
             transporter.sendMail(mailOptions, function (error, info) {
