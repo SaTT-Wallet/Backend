@@ -180,7 +180,7 @@ module.exports = function (app) {
 					stat.shares=oraclesYoutube.shares || '0';
 					stat.likes=oraclesYoutube.likes;
 					stat.views=oraclesYoutube.views;
-					stat.oracle = 'youtube'
+					stat.oracle = 'youtube';
 				//	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 								}
 				//instagram
@@ -193,7 +193,8 @@ module.exports = function (app) {
 					stat.likes=oraclesInstagram.likes || '0';
 					stat.views=oraclesInstagram.views|| '0';
 					stat.oracle = 'instagram';
-					
+					stat.media_url=oraclesInstagram.media_url || ''
+
 					await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 								}
 				//twitter
@@ -205,6 +206,7 @@ module.exports = function (app) {
 					stat.likes=oraclesTwitter.likes || '0';
 					stat.views=oraclesTwitter.views || '0';
 					stat.oracle = 'twitter'
+					stat.media_url=oraclesTwitter.media_url || ''
 				// }
 								}
 
@@ -929,10 +931,9 @@ module.exports = function (app) {
  *          description: data
  */
 	app.post('/v2/campaign/apply', async (req, response) =>{
-		console.log(req.body)
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
-               console.log("id user",auth.id)	
+              	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var typeSN = req.body.typeSN;
@@ -998,6 +999,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		let arrayOfLinks=[];
         let query= app.campaign.filterProms(req,id_wallet);
+		var count=await app.db.campaign_link().find({id_wallet:id_wallet}).count();
 
 		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
@@ -1059,8 +1061,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				arrayOfLinks.push(result)
 			}
 		}
-		
-			response.end(JSON.stringify(arrayOfLinks));
+		var Links ={Links:arrayOfLinks,count:count}
+			response.end(JSON.stringify(Links));
 		}catch(err){
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
@@ -1159,7 +1161,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-							cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
+							cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
 							cmp_title: campaign.title,
@@ -2323,7 +2325,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
+				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,
