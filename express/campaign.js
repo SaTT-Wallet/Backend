@@ -1155,14 +1155,13 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 				const id = req.body.idUser;
 				const email = req.body.email;
-				await app.db.campaign_link().findOne({id_prom:idApply},(err, link) =>{	
-					let socialOracle = {}
+				await app.db.campaign_link().findOne({id_prom:idApply}, async (err, link) =>{	
+					let socialOracle = {status:true}
                     if(link.oracle == "facebook" || link.oracle == "twitter") socialOracle = await app.oracle[link.oracle](link.idUser,link.idPost)
 			        if(link.oracle == "youtube") socialOracle = await app.oracle[link.oracle](link.idPost);
 			        else{
 				   socialOracle = await app.oracle[link.oracle](auth.id,link.idPost);
 			       }
-			       socialOracle.status = true;
 			       await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{socialOracle}});
 				})
 				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
