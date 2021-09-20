@@ -374,12 +374,23 @@ module.exports = function (app) {
     },
     async (req,accessToken, refreshToken, profile, cb) => {
       
-      let user_id=+req.query.state;
+      const longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
+      "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
+      "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
+      let resToken = await rp({uri:longTokenUrl,json: true});
+      let longToken = resToken.access_token;
+
+      let UserId=+req.query.state;
       
-      var isInsta=false;     
-    let message =   await app.account.getFacebookPages(user_id,accessToken,isInsta) 
-     
-      return cb(null, {id: user_id, token: accessToken},{message});
+      let isInsta=false;     
+      let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
+      let fbProfile = await app.db.fbProfile().findOne({UserId});
+    if(fbProfile){await app.db.fbProfile().updateOne({UserId}, { $set: {accessToken:longToken}});}
+    else{  
+        [profile.accessToken,profile.UserId] = [longToken,UserId];
+        await app.db.fbProfile().insertOne(profile);
+    }
+      return cb(null, {id: UserId, token: accessToken},{message});
 
     }));
 
@@ -651,6 +662,7 @@ module.exports = function (app) {
               auth =	await app.crm.auth(token);
                var id=req.params.id; 
               await app.db.fbPage().deleteOne({_id:app.ObjectId(id)});
+              response.end(JSON.stringify({message : "deleted successfully"}))
             }catch(err){
               response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
              }
