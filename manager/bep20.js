@@ -257,6 +257,7 @@ module.exports = async function (app) {
     bep20Manager.approve = async function (token,addr,spender,amount) {
   		return new Promise(async (resolve, reject) => {
         console.log("approve",token,addr,spender,amount)
+        try{
   			var contract = new web3.eth.Contract(app.config.ctrs.token.abi,token);
 
   			var gasPrice = await web3.eth.getGasPrice();
@@ -268,6 +269,10 @@ module.exports = async function (app) {
   			});
   			resolve({transactionHash:receipt.transactionHash,address:addr,spender:spender});
   			console.log(receipt.transactionHash,"confirmed approval from",addr,"to",spender);
+      } catch (err) {
+
+				reject(err)
+			}
   		});
   	}
 
