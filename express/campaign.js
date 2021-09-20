@@ -1161,7 +1161,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 						  let template = handlebars.compile(html);
 
 						    let emailContent = {
-							cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
+							cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
 							satt_faq : app.config.Satt_faq,
 							satt_url: app.config.basedURl,
 							cmp_title: campaign.title,
@@ -2325,7 +2325,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
+				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,

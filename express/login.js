@@ -1002,7 +1002,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
 
   app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
     const state=req.params.idUser;  
-    passport.authenticate('facebook_strategy_add_channel',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],states})(req,res,next)
+    passport.authenticate('facebook_strategy_add_channel',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state})(req,res,next)
    });
 
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
