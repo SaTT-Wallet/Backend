@@ -1567,9 +1567,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-                        stats.views = stats.views ?? 0
-                        stats.shares = stats.shares ?? 0
-			            stats.likes = stats.likes ?? 0
+                        stats.views = stats.views || 0
+                        stats.shares = stats.shares || 0
+			            stats.likes = stats.likes || 0
 
 			//console.log(prevstat);
 
