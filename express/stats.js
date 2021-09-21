@@ -1145,7 +1145,7 @@ const Grid = require('gridfs-stream');
                               
 				ratio.forEach( num =>{
 					
-							if(num.oracle === result.oracle){
+							if((num.oracle === result.oracle) || (num.typeSN === result.typeSN)){
 								if(result.views){
 									view =new Big(num["view"]).times(result.views)
 								
@@ -1156,7 +1156,7 @@ const Grid = require('gridfs-stream');
 								}
 								
 							
-								share = new Big(num["share"]).times(result.shares) || "0";
+								share = new Big(num["share"]).times(result.shares.toString()) || "0";
 									
 								
 								if(view && share && like){	 
@@ -1170,7 +1170,7 @@ const Grid = require('gridfs-stream');
 		   if(bounties.length && allProms[i].isAccepted && !promDone){		  
 			  allProms[i].abosNumber =  result.abosNumber
 		       bounties.forEach( bounty=>{
-              if(bounty.oracle === allProms[i].oracle){
+              if((bounty.oracle === allProms[i].oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 				bounty.categories.forEach( category=>{
 			
 				 if( (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
