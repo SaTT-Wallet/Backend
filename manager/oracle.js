@@ -57,12 +57,13 @@ module.exports = async function (app) {
 		var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
 
  		var fbPage = await app.db.fbPage().findOne({$and:[{UserId:userWallet.UserId },{ instagram_id: { $exists: true} }]});
+		 if(fbPage){
 				var instagram_id=fbPage.instagram_id;
 				var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
 						var token = fbProfile.accessToken;
 						var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?access_token="+token+"&fields=followers_count",json: true});
 						followers=res.followers_count
-					
+		 }
 			
 			
 				resolve(followers)
@@ -139,21 +140,25 @@ module.exports = async function (app) {
 		})
 
 	};
-oracleManager.getInstagramUserName= async function(shortcode){
+
+
+oracleManager.getInstagramUserName= async (shortcode)=>{
 	return new Promise(async (resolve, reject) => {
 		var media = "https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/"+shortcode;
 		var resMedia = await rp({uri:media,json: true});
 		resolve(resMedia.author_name);
 	})			
 }
+
 	oracleManager.instagram = async function (UserId,idPost) {
 		return new Promise(async (resolve, reject) => {
+                 try{
 			var perf = {shares:0,likes:0,views:0,media_url:''};
 		
-			let instagramUserName=await app.oracle.getInstagramUserName(idPost);
+			let instagramUserName=await oracleManager.getInstagramUserName(idPost);
 				
 			var fbPage = await app.db.fbPage().findOne({instagram_username: instagramUserName});
-
+              
 			if(fbPage && fbPage.instagram_id){
 			var instagram_id=fbPage.instagram_id;
 			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
@@ -161,7 +166,7 @@ oracleManager.getInstagramUserName= async function(shortcode){
 			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode,media_url&limit=50&access_token="+accessToken;
 			var resMedia = await rp({uri:media,json: true});
 			var data =resMedia.data;
-			console.log("data====",data)
+			
 			for (let i=0;i<data.length;i++){
 				if(data[i].shortcode == idPost){
 					perf.likes=data[i].like_count;
@@ -171,11 +176,11 @@ oracleManager.getInstagramUserName= async function(shortcode){
 					}
 			}
 			}
-
-
-
 			resolve(perf);
 			return;
+		}catch (err) {
+			reject({message:err.message});
+		}
 				}
 		)
 	};

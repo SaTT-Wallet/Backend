@@ -1765,7 +1765,9 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			let auth = await app.crm.auth(token);
             let id = auth.id
 	        let tokenAdress = req.body.tokenAdress
-			await app.db.customToken().updateOne({tokenAdress},{$pull:{sn_users:id}});
+			let token = await app.db.customToken().findOne({tokenAdress})
+			let splicedArray = token.sn_users.filter(item => item !== id)
+			await app.db.customToken().updateOne({tokenAdress},{$set:{sn_users:splicedArray}});
 			res.end(JSON.stringify({message:"token removed"}));
 			}
 		catch (err) {
