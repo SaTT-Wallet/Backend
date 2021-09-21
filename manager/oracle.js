@@ -328,6 +328,15 @@ oracleManager.getInstagramUserName= async function(shortcode){
 		}
 		})
 	};
+	oracleManager.findBountyOracle=(typeSN)=>{
+       let oracle;
+	   if(typeSN == "1") oracle = 'facebook'
+	   if(typeSN == "2") oracle = 'youtube'
+	   if(typeSN == "3") oracle = 'instagram'
+	   if(typeSN == "4")oracle = 'twitter'
+	  return oracle
+	}
+
 	app.oracle = oracleManager;
 	return app;
 }
