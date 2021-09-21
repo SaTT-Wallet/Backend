@@ -79,11 +79,11 @@ module.exports = async function (app) {
         return;
       }
 
-        /*if(evt.event != "Transfer")
+        if(evt.event != "Transfer")
         {
           console.log("no Transfer")
           return;
-        }*/
+        }
 
       var dbl = await app.db.bep20().findOne({bscTxHash:evt.transactionHash});
       if(dbl)
