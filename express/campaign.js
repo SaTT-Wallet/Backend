@@ -1013,7 +1013,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					}
 				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
-				cmp.bounties = bounties
+				
 				cmp._id = campaign._id
 				cmp.title=campaign.title;
 				cmp.description=campaign.description;
@@ -1025,14 +1025,14 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					cmp.ratio=ratio;	
 					ratio.forEach( num =>{
 											
-											if(num.oracle === result.oracle){
+											if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
 												if(result.views){
 													view =new Big(num["view"]).times(result.views)
 												}
 												if(result.likes){
 												like =  new Big(num["like"]).times(result.likes) || "0";
 												}														 
-												share = result.shares? new Big(num["share"]).times(result.shares):"0" ;						
+												share = result.shares? new Big(num["share"]).times(result.shares.toString()) :"0" ;						
 												result.totalToEarn = view.plus(like).plus(share).toFixed();
 											}
 										})
@@ -1041,7 +1041,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				if(bounties.length && result.status === true && !cmp.isFinished) {
 				cmp.bounties = bounties;
 				bounties.forEach( bounty=>{
-					if(bounty.oracle === result.oracle){
+					if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 					  bounty.categories.forEach( category=>{
 					   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 						  result.totalToEarn = category.reward;
@@ -1125,7 +1125,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		var auth =	await app.crm.auth(token);
 		 
 		try {
-			const lang = req.query.lang || "en";
+			const lang = /*req.query.lang ||*/ "en";
 			app.i18n.configureTranslation(lang);
 
 			var cred = await app.account.unlock(auth.id,pass);
@@ -1155,17 +1155,19 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
 				const id = req.body.idUser;
 				const email = req.body.email;
-				await app.db.campaign_link().findOne({id_prom:idApply}, async (err, link) =>{	
-					let socialOracle = {status:true}
-                    if(link.oracle == "facebook" || link.oracle == "twitter") socialOracle = await app.oracle[link.oracle](link.idUser,link.idPost)
-			        if(link.oracle == "youtube") socialOracle = await app.oracle[link.oracle](link.idPost);
-			        else{
-				   socialOracle = await app.oracle[link.oracle](auth.id,link.idPost);
-			       }
-			       await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{socialOracle}});
-				})
-				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
+				let socialOracle = {}
+				let link = await app.db.campaign_link().findOne({id_prom:idApply});	
+                    if(link.typeSN =="4")socialOracle = await app.oracle.twitter(link.idUser,link.idPost);
+			        if(link.typeSN =="1")socialOracle = await app.oracle.facebook(link.idUser,link.idPost); 
+			        else if(link.typeSN == "2") socialOracle = await app.oracle.youtube(link.idPost);
+			        else if(link.typeSN == "3") socialOracle = await app.oracle.instagram(auth.id,link.idPost);
+					socialOracle.status = true;
+					delete socialOracle.date
+			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{socialOracle}});
+				
 
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
+                
 				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 					if (err) {
 						console.error(err)
