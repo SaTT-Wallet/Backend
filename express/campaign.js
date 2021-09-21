@@ -970,6 +970,7 @@ module.exports = function (app) {
 				prom.idPost = ret.idPost
 				prom.id_campaign  = hash
 				prom.appliedDate = date
+				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
 				
 				await app.db.campaign_link().insertOne(prom);
 			
