@@ -113,7 +113,7 @@ module.exports = async function (app) {
 		if(limit>0)
 			{
 				limit = parseFloat(limit);
-				var max = limit*parseFloat(abos);
+				var max = limit*parseFloat(abos)/100;
 				if(stats.views > max) {
 					stats.views = max
 				}
