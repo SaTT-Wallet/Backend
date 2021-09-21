@@ -1156,7 +1156,7 @@ const Grid = require('gridfs-stream');
 								}
 								
 							
-								share = new Big(num["share"]).times(result.shares.toString()) || "0";
+							  if(result.shares)	share = new Big(num["share"]).times(result.shares.toString()) || "0";
 									
 								
 								if(view && share && like){	 
