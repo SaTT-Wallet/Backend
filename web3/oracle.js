@@ -45,8 +45,6 @@ module.exports = async function (app) {
 			await app.db.request().insertOne(answer);
 
 
-
-
 		}
 		else {
 			console.log("response already sent");
