@@ -79,11 +79,11 @@ module.exports = async function (app) {
         return;
       }
 
-        if(evt.event != "Transfer")
+        /*if(evt.event != "Transfer")
         {
           console.log("no Transfer")
           return;
-        }
+        }*/
 
       var dbl = await app.db.bep20().findOne({bscTxHash:evt.transactionHash});
       if(dbl)
@@ -139,7 +139,7 @@ module.exports = async function (app) {
         }
         var ins = await app.db.bep20().insertOne(log);
 
-
+        var gasPrice = await web3.eth.getGasPrice();
 
           await bep20Manager.unlockOwner();
 
@@ -147,7 +147,7 @@ module.exports = async function (app) {
 
           app.web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
 
-          var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr});
+          var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr/*gasPrice*/});
 
 
 
@@ -302,7 +302,7 @@ module.exports = async function (app) {
 
       bep20Manager.initEventHandlers = async () => {
 
-        bep20Manager.contractWS.events.allEvents  ( /*{filter:{to:app.config.SattBep20Addr}*/{topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",false,"0x000000000000000000000000655371c0622cacc22732e872a68034f38e04d6e5"]},async function(err,evt) {
+        bep20Manager.contractWS.events.allEvents  ( /*{filter:{to:app.config.SattBep20Addr}*/{topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"/*,false,"0x000000000000000000000000655371c0622cacc22732e872a68034f38e04d6e5"*/]},async function(err,evt) {
           console.log(evt);
           	await bep20Manager.eventBSCtoETH(err,evt)
         });
