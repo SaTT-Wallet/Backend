@@ -1160,7 +1160,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
                     if(link.typeSN =="4")socialOracle = await app.oracle.twitter(link.idUser,link.idPost);
 			        if(link.typeSN =="1")socialOracle = await app.oracle.facebook(link.idUser,link.idPost); 
 			        else if(link.typeSN == "2") socialOracle = await app.oracle.youtube(link.idPost);
-			        else socialOracle = await app.oracle.instagram(auth.id,link.idPost);
+			        else if(link.typeSN == "3") socialOracle = await app.oracle.instagram(auth.id,link.idPost);
 					socialOracle.status = true;
 					delete socialOracle.date
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{socialOracle}});
