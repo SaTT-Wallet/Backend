@@ -427,7 +427,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
-			lang=req.query.lang;
+			let lang= /*req.query.lang ??*/ "en";
 			app.i18n.configureTranslation(lang);
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
@@ -468,7 +468,7 @@ console.log(data_.SaTT.Url)
 				var mailOptions = {
 					from: app.config.mailSender,
 					to: req.body.to,
-					subject: 'Demande de paiement',
+					subject: 'Payment request',
 					html: htmlToSend,
 					attachments: [
 						{

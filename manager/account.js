@@ -1016,7 +1016,7 @@ accountManager.handleId=async function () {
 			  logBlock.failed_count = 0
 			  res= true
 			}
-		  if (failed_count >= bad_login_limit && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval && !user.account_locked ) {
+		 else if (!user.account_locked  && (failed_count >= bad_login_limit) && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval ) {
 			logBlock.account_locked = true
 			logBlock.failed_count = 0
 			logBlock.date_locked = dateNow   
