@@ -231,14 +231,14 @@
                 </div>
             </div>
                 <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
-                <h2>{{notification.name}}  !</h2>
+                <h2>{{notification.name}}...</h2>
                 <p>{{{__ "ask_to_send"}}} </p>
                 <p>{{notification.price}}  {{notification.cryptoCurrency }}</p>
-                <p>{{{__ "wallet_of"}}} {{notification.name}} {{{__ "is"}}} : </p>
+                <p> {{notification.name}}'s {{{__ "wallet_of"}}} : </p>
                 <p><strong>{{notification.wallet}}</strong></p>
         </div>
         <div class="mail-body">
-        <p>{{{__ "here_is_message"}}}</p>
+        <p>{{notification.name}}'s {{{__ "here_is_message"}}}</p>
     <div class="subtitle"">
         <span>
         {{notification.message}}
@@ -250,7 +250,9 @@
         <a href="{{SaTT.Url}}"  >{{__ "send-money"}}</a>
    </div>
    
-
+   <p>Does something look incorrect? If so, we recommend holding off from fulfilling the
+    request.</p>
+  
  
 </div>
         <div class="mail-footer">

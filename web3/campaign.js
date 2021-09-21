@@ -544,7 +544,6 @@ module.exports = async function (app) {
 			let ids = [];
 			let idByAddress = [];
 			let userById = [];
-                         console.log(idproms)
        			for (let i =0;i<idproms.length;i++)
 			{
 				let prom = await ctr.methods.proms(idproms[i]).call();
