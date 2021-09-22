@@ -1035,7 +1035,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 												let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 												let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 												let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
-												result.totalToEarn = view.plus(like).plus(share).toFixed();
+												result.totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 											}
 										})
 
@@ -1159,6 +1159,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				const email = req.body.email;
 				let socialOracle = {}
 				let link = await app.db.campaign_link().findOne({id_prom:idApply});	
+				socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
                     if(link.typeSN =="4")socialOracle = await app.oracle.twitter(link.idUser,link.idPost);
 			        if(link.typeSN =="1")socialOracle = await app.oracle.facebook(link.idUser,link.idPost); 
 			        else if(link.typeSN == "2") socialOracle = await app.oracle.youtube(link.idPost);
