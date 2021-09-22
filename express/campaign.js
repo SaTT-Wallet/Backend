@@ -1028,8 +1028,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",result.abosNumber,reachLimit);
 					delete result.isPayed;	     
 					cmp.ratio=ratio;	
-					ratio.forEach( num =>{
-											
+					ratio.forEach( num =>{											
 											if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
 
 												let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
