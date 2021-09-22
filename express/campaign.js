@@ -1164,7 +1164,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			        else if(link.typeSN == "3") socialOracle = await app.oracle.instagram(auth.id,link.idPost);
 					socialOracle.status = true;
 					delete socialOracle.date
-			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:{socialOracle}});
+			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
 
 				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
@@ -1567,9 +1567,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
 			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-                        stats.views = stats.views ?? 0
-                        stats.shares = stats.shares ?? 0
-			            stats.likes = stats.likes ?? 0
+                        stats.views = stats.views || 0
+                        stats.shares = stats.shares || 0
+			            stats.likes = stats.likes || 0
 
 			//console.log(prevstat);
 
