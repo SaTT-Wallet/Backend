@@ -690,9 +690,8 @@ module.exports = async function (app) {
 		}
 		if(status =="active" ){
 			if(remainingBudget.length==2){
-		//	query["$and"].push({"funds.1": { $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
-//			query["$and"].push({ $expr: { $gte: [ { $toDouble: "funds.1" }, remainingBudget[0] ] },{ $lte: [ { $toDouble: "funds.1" }, remainingBudget[1] ] } })
-
+			query["$and"].push({"funds.1":{ $exists: true}});
+			query["$and"].push({"funds.1": { $gte :  remainingBudget[0],$lte :  remainingBudget[1]}});
 			}
 			query["$and"].push({"endDate":{ $gt : dateJour }});
 			query["$and"].push({"funds.1":{$ne: "0"}});
