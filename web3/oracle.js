@@ -45,8 +45,6 @@ module.exports = async function (app) {
 			await app.db.request().insertOne(answer);
 
 
-
-
 		}
 		else {
 			console.log("response already sent");
@@ -115,7 +113,7 @@ module.exports = async function (app) {
 		if(limit>0)
 			{
 				limit = parseFloat(limit);
-				var max = limit*parseFloat(abos);
+				var max = Math.ceil(limit*parseFloat(abos)/100);
 				if(stats.views > max) {
 					stats.views = max
 				}
