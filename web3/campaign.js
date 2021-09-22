@@ -621,9 +621,13 @@ module.exports = async function (app) {
 		return campaigns;
 	}
 
-
+	campaignManager.getReachLimit=(campaignRatio,oracle)=>{
+		let ratio=campaignRatio.find(item=>item.oracle==oracle);
+		if(ratio)return ratio.reachLimit
+		return;
+	}
 	campaignManager.UpdateStats = async (obj,campaign) =>{
-	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
+	if(campaign && (campaign.bounties.length || (campaign.ratios && campaignManager.getReachLimit(campaign.ratios,obj.oracle)))) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			return;
@@ -636,7 +640,7 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+		
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {
           try{
