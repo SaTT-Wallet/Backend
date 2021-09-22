@@ -1312,6 +1312,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         passrecover_url: app.config.baseUrl + 'auth/passrecover',
         user_id: users[0]._id,
         token_: token,
+        satt_faq : app.config.Satt_faq,
         expiring: Math.floor(Date.now() / 1000) + (60*60)
       };
 
