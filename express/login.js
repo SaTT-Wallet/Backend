@@ -667,7 +667,7 @@ module.exports = function (app) {
               response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
              }
             });
-            app.delete('/twitter/all', async  (req, response) =>{
+            app.get('/twitter/all', async  (req, response) =>{
               try{
               const token = req.headers["authorization"].split(" ")[1];
               let auth =	await app.crm.auth(token);       
@@ -1138,7 +1138,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       });
 
 
-      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
         try {
       if(req.authInfo.message){
             message=req.authInfo.message;
@@ -1152,7 +1152,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         });
 
-        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', {scope: ['profile','email']}), async  (req, response) =>{
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
           try {   
             let message =req.authInfo.message;
       response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
@@ -1177,7 +1177,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           console.log(e)
         }
         });
-        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', {scope: ['profile','email']}), async function (req, response) {
+        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
           try {
             if(req.authInfo.message){
               message=req.authInfo.message;
@@ -1312,6 +1312,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         passrecover_url: app.config.baseUrl + 'auth/passrecover',
         user_id: users[0]._id,
         token_: token,
+        satt_faq : app.config.Satt_faq,
         expiring: Math.floor(Date.now() / 1000) + (60*60)
       };
 
