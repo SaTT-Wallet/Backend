@@ -1120,7 +1120,7 @@ const Grid = require('gridfs-stream');
 	  let share;
 	  let like;
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
-			dbProms.forEach(result=>{
+			dbProms.forEach( result=>{
  
 		 for(let i = 0; i < allProms.length; i++){
 		          
@@ -1137,44 +1137,44 @@ const Grid = require('gridfs-stream');
 		   allProms[i].payedAmount = result.payedAmount || "0";
            allProms[i].oracle = result.oracle;
 		   allProms[i].media_url=result.media_url;
-
+           allProms[i].abosNumber =  result.abosNumber ?? 0;
 		   
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
 		   if(ratio.length && allProms[i].isAccepted && !promDone){
-                              
+                let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
+				if(reachLimit) result=  app.oracleManager.limitStats("",result,"",result.abosNumber,reachLimit);           
 				ratio.forEach( num =>{
 					
 							if((num.oracle === result.oracle) || (num.typeSN === result.typeSN)){
-								if(result.views){
-									view =new Big(num["view"]).times(result.views)
+
+								let	view =result.views ?new Big(num["view"]).times(result.views):"0";
 								
-								}
-								if(result.likes){
-								like =  new Big(num["like"]).times(result.likes) || "0";
+								
+								
+							let	like = result.likes ? new Big(num["like"]).times(result.likes) : "0";
 									
-								}
-								
-								
-								share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";
+						
+					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";
+
 							
 									
 								
-								if(view && share && like){	 
+								// if(view && share && like){	 
 								allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
-								}
+								// }
 							
 							}
 						})		
 		   }
 
 		   if(bounties.length && allProms[i].isAccepted && !promDone){		  
-			  allProms[i].abosNumber =  result.abosNumber
+			  
 		       bounties.forEach( bounty=>{
               if((bounty.oracle === allProms[i].oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 				bounty.categories.forEach( category=>{
 			
-				 if( (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
+				 if( allProms[i].abosNumber && (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
 					allProms[i].reward = category.reward;					
 				 }else if(+allProms[i].abosNumber > +category.maxFollowers){
 				 allProms[i].reward = category.reward;
