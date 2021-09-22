@@ -1161,7 +1161,7 @@ const Grid = require('gridfs-stream');
 									
 								
 								// if(view && share && like){	 
-								allProms[i].totalToEarn = view.plus(like).plus(share).toFixed();
+								allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 								// }
 							
 							}
