@@ -621,9 +621,13 @@ module.exports = async function (app) {
 		return campaigns;
 	}
 
-
+	campaignManager.getReachLimit=(campaignRatio,oracle)=>{
+		let ratio=campaignRatio.find(item=>item.oracle==oracle);
+		if(ratio)return ratio.reachLimit
+		return;
+	}
 	campaignManager.UpdateStats = async (obj,campaign) =>{
-	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
+	if(campaign && (campaign.bounties.length || (campaign.ratios && campaignManager.getReachLimit(campaign.ratios,obj.oracle)))) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			return;
@@ -636,7 +640,7 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+		
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {
           try{
@@ -690,9 +694,8 @@ module.exports = async function (app) {
 		}
 		if(status =="active" ){
 			if(remainingBudget.length==2){
-		//	query["$and"].push({"funds.1": { $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
-//			query["$and"].push({ $expr: { $gte: [ { $toDouble: "funds.1" }, remainingBudget[0] ] },{ $lte: [ { $toDouble: "funds.1" }, remainingBudget[1] ] } })
-
+			query["$and"].push({"funds.1":{ $exists: true}});
+			query["$and"].push({"funds.1": { $gte :  remainingBudget[0],$lte :  remainingBudget[1]}});
 			}
 			query["$and"].push({"endDate":{ $gt : dateJour }});
 			query["$and"].push({"funds.1":{$ne: "0"}});
