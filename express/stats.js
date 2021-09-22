@@ -1148,21 +1148,11 @@ const Grid = require('gridfs-stream');
 					
 							if((num.oracle === result.oracle) || (num.typeSN === result.typeSN)){
 
-								let	view =result.views ?new Big(num["view"]).times(result.views):"0";
-								
-								
-								
+						    let	view =result.views ?new Big(num["view"]).times(result.views):"0";	
 							let	like = result.likes ? new Big(num["like"]).times(result.likes) : "0";
-									
-						
-					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";
+					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";	 
+							allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 
-							
-									
-								
-								// if(view && share && like){	 
-								allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
-								// }
 							
 							}
 						})		
