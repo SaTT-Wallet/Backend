@@ -1064,12 +1064,16 @@ const Grid = require('gridfs-stream');
 	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
 	   const bounties =campaign.bounties
+	   let abosNumber =  info.abosNumber ?? 0;
        if(ratio.length){
+		let socialStats = {likes: info.likes, shares:info.shares,views:info.views}
+		let reachLimit =  app.campaign.getReachLimit(ratio,info.oracle); 
+		if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",abosNumber,reachLimit); 
 	   ratio.forEach(elem =>{
 		   if(elem.oracle === info.oracle){
-           let view =new Big(elem["view"]).times(info.views || "0")
-		   let like =  new Big(elem["like"]).times(info.likes)
-		   let share = new Big(elem["share"]).times(info.shares)
+           let view =new Big(elem["view"]).times(socialStats.views || "0")
+		   let like =  new Big(elem["like"]).times(socialStats.likes || '0')
+		   let share = new Big(elem["share"]).times(socialStats.shares || '0')
 		   totalToEarn = view.plus(like).plus(share).toFixed()
 		   }
 	   })
@@ -1079,9 +1083,9 @@ const Grid = require('gridfs-stream');
 		bounties.forEach( bounty=>{
 			if(bounty.oracle === info.oracle){
 			  bounty.categories.forEach( category=>{
-			   if( (+category.minFollowers <= +info.abosNumber)  && (+info.abosNumber <= +category.maxFollowers) ){
+			   if( (+category.minFollowers <= +abosNumber)  && (+abosNumber <= +category.maxFollowers) ){
 				  info.totalToEarn = category.reward;					
-			    }else if(+info.abosNumber > +category.maxFollowers){
+			    }else if(+abosNumber > +category.maxFollowers){
 				info.totalToEarn = category.reward;	
 			 }
 
