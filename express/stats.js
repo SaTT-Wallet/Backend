@@ -1077,7 +1077,7 @@ const Grid = require('gridfs-stream');
 		   totalToEarn = view.plus(like).plus(share).toFixed()
 		   }
 	   })
-	   info.totalToEarn = new Big(totalToEarn).minus(new Big(payedAmount))
+	   info.totalToEarn = totalToEarn
 	}
 	  if(bounties.length){
 		bounties.forEach( bounty=>{
