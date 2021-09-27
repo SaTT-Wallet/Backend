@@ -333,7 +333,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		}
 		})
 	};
-	oracleManager.findBountyOracle=(typeSN)=>{
+	oracleManager.findBountyOracle = typeSN =>{
        let oracle;
 	   if(typeSN == "1") oracle = 'facebook'
 	   if(typeSN == "2") oracle = 'youtube'
