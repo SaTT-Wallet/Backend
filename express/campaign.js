@@ -1545,6 +1545,11 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
             
 
 			if(req.body.bounty) {
+				if(prom.funds.amount > 0 && prom.isPayed) {
+					var ret = await app.campaign.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
 				let social={"1":"facebook","2":"youtube","3":"instagram","4":"twitter"};
 				let campaign=await app.db.campaigns().findOne({hash:idCampaign});
 				let bountie=campaign.bounties.find( b=> b.oracle == social[prom.typeSN]);;
