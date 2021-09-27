@@ -184,7 +184,7 @@ module.exports = function (app) {
             await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token, expires_at: date}});
             await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {failed_count :0}});
           } else {
-            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token, expires_at: date, scope: "user"});
 
           }
           
