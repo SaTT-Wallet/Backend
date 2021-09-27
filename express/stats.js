@@ -1107,7 +1107,90 @@ const Grid = require('gridfs-stream');
 	 @Input idCampaign:campaign hash
 	 @Output array of objects(proms)
      */
-     app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
+//      app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
+// 		try{	
+
+// 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
+// 			let ctr = await app.campaign.getCampaignContract(campaign.hash)
+// 	 if(!ctr) {
+// 			 res.end("{}");
+// 		 return;
+// 	 }else{   
+// 	  const funds = campaign.funds ? campaign.funds[1] : campaign.cost;	 
+// 	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);	 
+// 	  const ratio = campaign.ratios;
+// 	  const bounties = campaign.bounties;
+	
+// 	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
+// 			dbProms.forEach( result=>{
+ 
+// 		 for(let i = 0; i < allProms.length; i++){
+		          
+// 			  if(allProms[i].id === result.id_prom){
+// 				if(result.status === "rejected"){
+// 			   allProms[i].isAccepted = "rejected";
+// 			   continue;
+// 		   }
+		    
+// 		   allProms[i].appliedDate = result.appliedDate
+// 		   allProms[i].numberOfLikes = result.likes || "0"
+// 		   allProms[i].numberOfViews = result.views || '0'
+// 		   allProms[i].numberOfShares = !result.shares ? '0' : result.shares +"";
+// 		   allProms[i].payedAmount = result.payedAmount || "0";
+//            allProms[i].oracle = result.oracle;
+// 		   allProms[i].media_url=result.media_url;
+//            allProms[i].abosNumber =  result.abosNumber ?? 0;
+		   
+	
+// 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
+// 		   if(ratio.length && allProms[i].isAccepted && !promDone){
+//                 let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
+// 				if(reachLimit) result=  app.oracleManager.limitStats("",result,"",result.abosNumber,reachLimit);           
+// 				ratio.forEach( num =>{
+					
+// 							if((num.oracle === result.oracle) || (num.typeSN === result.typeSN)){
+
+// 						    let	view =result.views ?new Big(num["view"]).times(result.views):"0";	
+// 							let	like = result.likes ? new Big(num["like"]).times(result.likes) : "0";
+// 					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";	 
+// 							allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+
+							
+// 							}
+// 						})		
+// 		   }
+
+// 		   if(bounties.length && allProms[i].isAccepted && !promDone){		  
+			  
+// 		       bounties.forEach( bounty=>{
+//               if((bounty.oracle === allProms[i].oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
+// 				bounty.categories.forEach( category=>{
+			
+// 				 if( allProms[i].abosNumber && (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
+// 					allProms[i].reward = category.reward;					
+// 				 }else if(+allProms[i].abosNumber > +category.maxFollowers){
+// 				 allProms[i].reward = category.reward;
+// 				 }
+// 				})	
+// 			     }			   
+// 		         })
+// 		 }
+		
+// 	    }
+// 	}		
+// 	  })
+		
+	
+ 
+// 	 res.send(JSON.stringify({allProms}))
+//  } 
+//  }catch (err) {
+// 	 console.log(err)
+// 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+//   }
+// 	})
+
+	app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
 
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
@@ -1117,30 +1200,25 @@ const Grid = require('gridfs-stream');
 		 return;
 	 }else{   
 	  const funds = campaign.funds ? campaign.funds[1] : campaign.cost;	 
-	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);	 
+	 
 	  const ratio = campaign.ratios;
 	  const bounties = campaign.bounties;
-	
-	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
-			dbProms.forEach( result=>{
+	 let allLinks;
+	 if(req.query.influencer)  allLinks =await app.db.campaign_link().find({ $and:[{id_campaign : campaign.hash, id_wallet: req.query.influencer}] }).toArray();
+	 if(!req.query.influencer)  allLinks =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
+      const allProms = await app.campaign.influencersLinks(allLinks)
  
-		 for(let i = 0; i < allProms.length; i++){
-		          
-			  if(allProms[i].id === result.id_prom){
-				if(result.status === "rejected"){
-			   allProms[i].isAccepted = "rejected";
-			   continue;
-		   }
-		    
-		   allProms[i].appliedDate = result.appliedDate
-		   allProms[i].numberOfLikes = result.likes || "0"
-		   allProms[i].numberOfViews = result.views || '0'
-		   allProms[i].numberOfShares = !result.shares ? '0' : result.shares +"";
-		   allProms[i].payedAmount = result.payedAmount || "0";
-           allProms[i].oracle = result.oracle;
-		   allProms[i].media_url=result.media_url;
-           allProms[i].abosNumber =  result.abosNumber ?? 0;
-		   
+		 for(let i = 0; i < allProms.length; i++){ 		             
+		   if(allProms[i].status == "rejected") continue;
+         
+		   allProms[i].isAccepted = allProms[i].status
+		   allProms[i].numberOfLikes = allProms[i].likes || "0"
+		   allProms[i].numberOfViews = allProms[i].views || '0'
+		   allProms[i].numberOfShares = !allProms[i].shares ? '0' : String(allProms[i].shares);
+		   allProms[i].payedAmount = allProms[i].payedAmount ?? "0";
+           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;
+		   allProms[i].influencer = allProms[i].id_wallet
+		   let result = allProms[i]
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
 		   if(ratio.length && allProms[i].isAccepted && !promDone){
@@ -1176,12 +1254,7 @@ const Grid = require('gridfs-stream');
 		         })
 		 }
 		
-	    }
-	}		
-	  })
-		
-	
- 
+	}	
 	 res.send(JSON.stringify({allProms}))
  } 
  }catch (err) {
