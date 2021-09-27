@@ -1121,7 +1121,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		let pass = req.body.pass;
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;
-        let link = req.body.link
+        let linkProm = req.body.link
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		 
@@ -1168,7 +1168,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
 
-				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign})
                 
 				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 					if (err) {
