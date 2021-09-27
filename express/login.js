@@ -181,7 +181,8 @@ module.exports = function (app) {
           if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
-            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date, failed_count :0}});
+            await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token, expires_at: date}});
+            await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {failed_count :0}});
           } else {
             var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
 
