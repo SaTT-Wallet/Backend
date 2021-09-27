@@ -1101,7 +1101,7 @@ const Grid = require('gridfs-stream');
 	 }
    })
    	/*
-     @link : /campaign/:idCampaign/proms/all
+     @link : /campaign/:idCampaign/proms/all/
      @description: fetching all campaign proms with it's stats & update status
      @params:
 	 @Input idCampaign:campaign hash
@@ -1120,9 +1120,7 @@ const Grid = require('gridfs-stream');
 	  const allProms =  await app.campaign.campaignProms(campaign.hash,ctr);	 
 	  const ratio = campaign.ratios;
 	  const bounties = campaign.bounties;
-	  let view;
-	  let share;
-	  let like;
+	
 	  const dbProms =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
 			dbProms.forEach( result=>{
  
