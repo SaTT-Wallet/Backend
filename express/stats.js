@@ -1208,16 +1208,17 @@ const Grid = require('gridfs-stream');
 	 if(!req.query.influencer)  allLinks =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
       const allProms = await app.campaign.influencersLinks(allLinks)
  
-		 for(let i = 0; i < allProms.length; i++){ 		             
-		   if(allProms[i].status == "rejected") continue;
-		   allProms[i].id = allProms[i].id_prom
-		   allProms[i].isAccepted = allProms[i].status
+		 for(let i = 0; i < allProms.length; i++){ 	
+			allProms[i].isAccepted = allProms[i].status	
+			allProms[i].influencer = allProms[i].id_wallet             
+		    if(allProms[i].status == "rejected") continue;
+		   
+		   allProms[i].id = allProms[i].id_prom;		   
 		   allProms[i].numberOfLikes = allProms[i].likes || "0"
 		   allProms[i].numberOfViews = allProms[i].views || '0'
 		   allProms[i].numberOfShares = !allProms[i].shares ? '0' : String(allProms[i].shares);
 		   allProms[i].payedAmount = allProms[i].payedAmount ?? "0";
-           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;
-		   allProms[i].influencer = allProms[i].id_wallet
+           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;	   
 		   let result = allProms[i]
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
