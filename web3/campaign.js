@@ -587,6 +587,63 @@ module.exports = async function (app) {
 		})
 	}
 
+
+	campaignManager.influencersLinks = async (links)=>{
+		return new Promise(async (resolve, reject) => {
+
+       try{
+        
+		// let idproms = await ctr.methods.getProms(idCampaign).call();
+		let proms = [];
+
+		if(links.length) {
+			let addresses = [];
+			let ids = [];
+			let idByAddress = [];
+			let userById = [];
+       			for (let i =0;i<links.length;i++)
+			{
+				// let prom = await ctr.methods.proms(idproms[i]).call();
+				// let count = await app.db.ban().find({idProm:idproms[i]}).count();
+				// prom.id =links[i];
+				
+				proms.push(links[i]);
+				if(addresses.indexOf(links[i].id_wallet)== -1)
+					addresses.push(links[i].id_wallet.slice(2).toLowerCase());
+			}
+
+			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
+			for (let i =0;i<wallets.length;i++)
+			{
+				idByAddress["0x"+wallets[i].keystore.address] ="id#"+wallets[i].UserId;
+				if(ids.indexOf(wallets[i].UserId)== -1)
+					ids.push(wallets[i].UserId);
+			}
+			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
+			for (let i =0;i<users.length;i++)
+      {
+				delete (users[i].password)
+				delete(users[i].accessToken)
+				userById["id#"+users[i]._id] = users[i];
+			}
+			for (let i =0;i<proms.length;i++)
+			{
+				proms[i].meta = userById[idByAddress[proms[i].id_wallet.toLowerCase()]];
+			}
+
+		}
+			resolve(proms)
+
+
+	   }catch (err)
+			{
+				reject(err);
+			}
+
+
+		})
+	}
+
 	campaignManager.campaignsByOwner = async (owner) => {
 
 		var campaigns = [];
