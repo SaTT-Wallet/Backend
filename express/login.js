@@ -1279,9 +1279,10 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   });
 
-  app.post('/auth/passlost', async function (req, response) {
+  app.post('/auth/passlost', async  (req, response) => {
+    try{
+    let dateNow = Math.floor(Date.now() / 1000);
     const lang = req.query.lang || "en";
-
 	  app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
@@ -1290,22 +1291,21 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       response.end('{error:"account not exists"}');
       return;
     }
+    if(users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod){
+      response.end(JSON.stringify({error: true, message: 'account_locked'}));
+      return;
+    }
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
+    await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
     let requestDate =app.account.manageTime();
     let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
     if(ip) ip = ip.split(":")[3]
-    // const geo = geoip.lookup(ip);
-    
-    // let city = geo.city ? geo.city : geo.timezone
-    // let country = countryList.getName(geo.country);
-    // let location = country +', '+city;
+   
     readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
         ip,
-        // location,
         requestDate,
         satt_url: app.config.basedURl,
         imgUrl: app.config.baseEmailImgURl,
@@ -1313,7 +1313,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         user_id: users[0]._id,
         token_: token,
         satt_faq : app.config.Satt_faq,
-        expiring: Math.floor(Date.now() / 1000) + (60*60)
+        expiring: dateNow + (60*60)
       };
 
       var htmlToSend = template(replacements);
@@ -1331,6 +1331,10 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
       });
     });
+  }catch (err)
+     {
+      response.end(JSON.stringify({error:err.message?err.message:err.error}));
+    }
   });
 
   app.post('/auth/passchange', async function (req, response) {

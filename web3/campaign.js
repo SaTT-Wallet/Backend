@@ -601,13 +601,12 @@ module.exports = async function (app) {
 			let ids = [];
 			let idByAddress = [];
 			let userById = [];
+			proms = links;
        			for (let i =0;i<links.length;i++)
 			{
 				// let prom = await ctr.methods.proms(idproms[i]).call();
 				// let count = await app.db.ban().find({idProm:idproms[i]}).count();
 				// prom.id =links[i];
-				
-				proms.push(links[i]);
 				if(addresses.indexOf(links[i].id_wallet)== -1)
 					addresses.push(links[i].id_wallet.slice(2).toLowerCase());
 			}
