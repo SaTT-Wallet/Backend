@@ -1210,7 +1210,7 @@ const Grid = require('gridfs-stream');
  
 		 for(let i = 0; i < allProms.length; i++){ 		             
 		   if(allProms[i].status == "rejected") continue;
-         
+		   allProms[i].id = allProms[i].id_prom
 		   allProms[i].isAccepted = allProms[i].status
 		   allProms[i].numberOfLikes = allProms[i].likes || "0"
 		   allProms[i].numberOfViews = allProms[i].views || '0'
