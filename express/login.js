@@ -1292,7 +1292,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       return;
     }
     if(users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod){
-      response.end(JSON.stringify({error: true, message: 'account_locked'}));
+      response.end(JSON.stringify({error: true, message: 'account_locked', blockedDate:users[0].date_locked}));
       return;
     }
     var buff = Buffer.alloc(64);
