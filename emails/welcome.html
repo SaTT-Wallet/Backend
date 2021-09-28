@@ -128,6 +128,7 @@
         }
 
         .content .mail-body {
+            text-align: center;
             color: #1F2337;
             font-style: normal;
             font-family: 'Poppins', sans-serif;
@@ -234,7 +235,7 @@
             border-left: solid 1px;
         }
 
-        .mail-body .col.img {
+        .mail-body .col.img, .moon-boy {
             width: 30%;
             text-align: center;
             display: inline-block;
@@ -289,7 +290,7 @@
             letter-spacing: 0.04em;
             color: #FFFFFF
         }
-
+         
         .footer {
             padding: 30px 40px;
             background: #1F2337;
@@ -316,6 +317,7 @@
             font-weight: 549;
         }
         .text-contact{
+color: #fff!important;
             padding: 0 100px;
 font-family: Poppins;
 font-size: 14px;
@@ -349,30 +351,30 @@ text-align: center;
             </div>
             <img src="{{imgUrl}}/password.png" alt="">
             <h2 class="title">{{{__ "welcome"}}} </h2>
-            <p>{{{__ "finished_inscription"}}}</p> 
+            <p style="color: #fff!important;">{{{__ "finished_inscription"}}}</p> 
             <div class="actions">
                 <a href="{{validation_url}}" class="primary">{{{__ "validate_mail"}}}</a>
-                <h6 class="text-contact">{{{__ "contact_support"}}}</h6>
+                <h6 class="text-contact">{{{__ "contact_support"}}} </h6>
             </div>
 
         </div>
         <div class="mail-body">
             <div>
-                <div ><img src="{{imgUrl}}/wallet.png" alt="" style="margin-left: -21%!important;float: unset;"></div>
+                <div ><img src="{{imgUrl}}/wallet.png" alt="" style="float: unset;"></div>
                 <div class="col text">
                     <div class="subtitle" align="left">{{{__ "create_portfolio"}}}</div>
                     <p>{{{__ "create_secure"}}} </p>
                 </div>
             </div>
             <div>
-                <div ><img src="{{imgUrl}}/audience.png" alt="" style="margin-left: -10%!important;float: unset;"></div>
+                <div ><img src="{{imgUrl}}/MoonboyMail.png" class="moon-boy" alt="" style="float: unset;width: 16%!important;"></div>
                 <div class="col text">
                     <div class="subtitle" align="left"> {{{__ "monetisez"}}}</div>
                     <p>{{{__ "monetisez_description"}}}</p>
                 </div>
             </div>
             <div>
-                <div ><img src="{{imgUrl}}/campaign.png" alt="" style="float: unset;margin-left: -10%!important;"></div>
+                <div ><img src="{{imgUrl}}/campaign.png" alt="" style="float: unset;"></div>
                 <div class="col text">
                     <div class="subtitle" align="left"> {{{__ "automate_campaign"}}}</div>
                     <p>{{{__ "automate_campaign_description"}}}</p>

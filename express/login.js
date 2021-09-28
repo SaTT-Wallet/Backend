@@ -122,7 +122,7 @@ module.exports = function (app) {
           "userSatt": true
         });
 
-        var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
+        let users = insert.ops;
         const lang = req.query.lang || "en";
 
         app.i18n.configureTranslation(lang);
@@ -186,9 +186,10 @@ module.exports = function (app) {
           if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
-            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date, failed_count :0}});
+            await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token, expires_at: date}});
+            await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {failed_count :0}});
           } else {
-            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token, expires_at: date, scope: "user"});
 
           }
           
@@ -459,7 +460,7 @@ module.exports = function (app) {
           picLink:profile.photos.length ? profile.photos[0].value : false
         });
         console.log(profile)
-        var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
+        var users = insert.ops;
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit"});
           req.session.user = users[0]._id;
         return cb(null, {id: profile.id, token: token, expires_in: date});
@@ -511,8 +512,7 @@ module.exports = function (app) {
       let info=req.query.state.split(' ');
         var user_id=+info[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
-        console.log("profile details",profile);
-        console.log("channel details====",res);
+       
         if(res.pageInfo.totalResults ==0){
           cb (null,profile,{
             message: "channel obligatoire"
@@ -672,7 +672,7 @@ module.exports = function (app) {
               response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
              }
             });
-            app.delete('/twitter/all', async  (req, response) =>{
+            app.get('/twitter/all', async  (req, response) =>{
               try{
               const token = req.headers["authorization"].split(" ")[1];
               let auth =	await app.crm.auth(token);       
@@ -797,7 +797,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
             enabled:1,
             userSatt: true
           });
-          var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray();
+          var users = insert.ops;
           var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
             req.session.user = users[0]._id;
           return cb(null, {id: users[0]._id, token: token, expires_in: date});
@@ -1143,7 +1143,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       });
 
 
-      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
         try {
           if(req.query['error']){}
           if(req.authInfo.message){
@@ -1158,7 +1158,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         });
 
-        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', {scope: ['profile','email']}), async  (req, response) =>{
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
           try {   
             let message =req.authInfo.message;
       response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
@@ -1183,7 +1183,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           console.log(e)
         }
         });
-        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', {scope: ['profile','email']}), async function (req, response) {
+        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
           try {
             redirect=req.session.state.split('|')[1];
             console.log("redirect,,,,,,,,",redirect);
@@ -1287,9 +1287,10 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   });
 
-  app.post('/auth/passlost', async function (req, response) {
+  app.post('/auth/passlost', async  (req, response) => {
+    try{
+    let dateNow = Math.floor(Date.now() / 1000);
     const lang = req.query.lang || "en";
-
 	  app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
@@ -1298,29 +1299,29 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       response.end('{error:"account not exists"}');
       return;
     }
+    if(users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod){
+      response.end(JSON.stringify({error: true, message: 'account_locked', blockedDate:users[0].date_locked}));
+      return;
+    }
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
+    await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
     let requestDate =app.account.manageTime();
     let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
     if(ip) ip = ip.split(":")[3]
-    // const geo = geoip.lookup(ip);
-    
-    // let city = geo.city ? geo.city : geo.timezone
-    // let country = countryList.getName(geo.country);
-    // let location = country +', '+city;
+   
     readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
         ip,
-        // location,
         requestDate,
         satt_url: app.config.basedURl,
         imgUrl: app.config.baseEmailImgURl,
         passrecover_url: app.config.baseUrl + 'auth/passrecover',
         user_id: users[0]._id,
         token_: token,
-        expiring: Math.floor(Date.now() / 1000) + (60*60)
+        satt_faq : app.config.Satt_faq,
+        expiring: dateNow + (60*60)
       };
 
       var htmlToSend = template(replacements);
@@ -1338,6 +1339,10 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
       });
     });
+  }catch (err)
+     {
+      response.end(JSON.stringify({error:err.message?err.message:err.error}));
+    }
   });
 
   app.post('/auth/passchange', async function (req, response) {
@@ -1423,7 +1428,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
 
-          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail}});
 
           let requestDate =app.account.manageTime();
           let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
