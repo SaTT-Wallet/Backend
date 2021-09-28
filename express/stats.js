@@ -1208,16 +1208,17 @@ const Grid = require('gridfs-stream');
 	 if(!req.query.influencer)  allLinks =await app.db.campaign_link().find({ id_campaign : campaign.hash }).toArray();
       const allProms = await app.campaign.influencersLinks(allLinks)
  
-		 for(let i = 0; i < allProms.length; i++){ 		             
-		   if(allProms[i].status == "rejected") continue;
-		   allProms[i].id = allProms[i].id_prom
-		   allProms[i].isAccepted = allProms[i].status
+		 for(let i = 0; i < allProms.length; i++){ 	
+			allProms[i].isAccepted = allProms[i].status	
+			allProms[i].influencer = allProms[i].id_wallet             
+		    if(allProms[i].status == "rejected") continue;
+		   
+		   allProms[i].id = allProms[i].id_prom;		   
 		   allProms[i].numberOfLikes = allProms[i].likes || "0"
 		   allProms[i].numberOfViews = allProms[i].views || '0'
 		   allProms[i].numberOfShares = !allProms[i].shares ? '0' : String(allProms[i].shares);
 		   allProms[i].payedAmount = allProms[i].payedAmount ?? "0";
-           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;
-		   allProms[i].influencer = allProms[i].id_wallet
+           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;	   
 		   let result = allProms[i]
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
@@ -1312,6 +1313,45 @@ const Grid = require('gridfs-stream');
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
   }
 	})
+
+
+	function calcSNStat(objNw,link){
+		objNw.total++;
+		  if(link.views) objNw.views+=Number(link.views);
+		  if(link.likes) objNw.likes+=Number(link.likes);
+		  if(link.shares) objNw.shares+=Number(link.shares);
+		  if(link.status===true) objNw.accepted++;
+		  if(link.status===false) objNw.pending++;
+		  if(link.status==="rejected") objNw.rejected++;
+		  return objNw;
+	  }
+	  function initStat(){
+		  return {total:0,views:0,likes:0,shares:0,accepted:0,pending:0,rejected:0}
+
+	  }
+	app.get('/statLinkCampaign/:hash', async (req, res) => {
+		try{
+			var hash=req.params.hash;
+			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
+			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
+			for(i=0;i<links.length;i++){
+				let link=links[i];
+				if(link.typeSN=="1"){
+					result.facebook=calcSNStat(result.facebook,link);
+				}else if(link.typeSN =="2"){
+					result.youtube=calcSNStat(result.youtube,link);
+				}else if(link.typeSN =="3"){	
+					result.instagram=calcSNStat(result.instagram,link);
+				}else{	
+					result.twitter=calcSNStat(result.twitter,link);
+				}
+			}			
+		  res.send(JSON.stringify({stat:result}));
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  })
+	 
 
 return app;
 }
