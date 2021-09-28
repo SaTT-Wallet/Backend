@@ -189,7 +189,7 @@ module.exports = function (app) {
  */
 	app.get('/profile/userLegal', async(req, res)=>{
 		try{
-console.log("ok");
+
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
 			const limit=parseInt(req.query.limit) || 50;
@@ -462,7 +462,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 						wallet:req.body.wallet
 					}
 				}
-console.log(data_.SaTT.Url)
+
 				var htmlToSend = template(data_);
 
 				var mailOptions = {
