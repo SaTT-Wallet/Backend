@@ -1505,7 +1505,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
     if(cred) app.account.lockBSC(cred.address);
     if(ret.transactionHash){
 	await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
-	const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)}).project({UserId:1});
+	const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)});
 		if(wallet){
 			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'BNB',from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
 		}
