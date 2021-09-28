@@ -31,6 +31,11 @@ module.exports = function (app) {
   var session = require('express-session');
   const countryList = require('country-list');
   const geoip = require('geoip-lite');
+  const speakeasy =require('speakeasy');
+  const qrcode =require('qrcode');
+  var secret =speakeasy.generateSecret({
+    name:"SaTT"
+  });
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
     app.use(passport.initialize());
@@ -723,7 +728,7 @@ module.exports = function (app) {
   },
 async function(req, accessToken, tokenSecret, profile, cb) {
 
-  let user_id=+req.session.state;
+  let user_id=+req.session.state.split('|')[0];
   
   var tweet = new Twitter({
     consumer_key: app.config.twitter.consumer_key,
@@ -1027,7 +1032,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 });
 
 app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
-  var state=req.params.idUser;
+  var state=req.params.idUser+"|"+req.query.redirect
   req.session.state=state;
   passport.authenticate('add_twitter_link',{scope: ['profile','email'],
   accessType:'offline',
@@ -1140,7 +1145,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
       app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
         try {
-      if(req.authInfo.message){
+          if(req.query['error']){}
+          if(req.authInfo.message){
             message=req.authInfo.message;
           }else{
             message="account_linked_with_success";
@@ -1179,12 +1185,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         });
         app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', {scope: ['profile','email']}), async function (req, response) {
           try {
+            redirect=req.session.state.split('|')[1];
+            console.log("redirect,,,,,,,,",redirect);
             if(req.authInfo.message){
               message=req.authInfo.message;
             }else{
               message="account_linked_with_success";
             }
-            response.redirect(app.config.basedURl+'/myWallet/social-networks/?message='+message);
+            response.redirect(app.config.basedURl+redirect+'/?message='+message);
   
           } catch (e) {
             console.log(e)
@@ -1212,7 +1220,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
       var token = req.header('authorization').split(' ')[1]
       var AccessT = await app.db.accessToken().findOne({token:token});
-   if(AccessT){
+      if(AccessT){
       if(!expiringToken(AccessT.expires_at)){
 
         if(!AccessT['token']){
@@ -1829,6 +1837,33 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     let captchas = await app.db.captcha().find().limit(1).skip(random).toArray();
     let captcha=captchas[0]
     res.send(JSON.stringify({captcha}));
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+  app.get('/qrCode', async (req, res) => {
+    try{
+   
+    qrcode.toDataURL(secret.otpauth_url,function(err,data){
+    res.send(JSON.stringify({qrCode:data}));
+    })
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+
+  app.post('/verifyQrCode', async (req, res) => {
+    try{
+      var code=req.body.code;
+      var verified =speakeasy.totp.verify({
+        secret:secret.ascii,
+        encoding:'ascii',
+        token:code
+      })
+      res.send(JSON.stringify({verifiedCode:verified}));
+
     } catch (err) {
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
