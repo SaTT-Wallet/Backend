@@ -94,7 +94,7 @@ module.exports = function (app) {
 			}
 			try {
 				var auth = await app.crm.auth(access_T);
-                let network;
+                var network;
 				var ret;
 				if (Direction == "ETB") {
 					network = "ERC20";
@@ -111,16 +111,16 @@ module.exports = function (app) {
 					var cred = await app.account.unlockBSC(auth.id,pass);
 					ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
 				}
-				if(ret.transactionHash){
-	
-					await app.account.notificationManager(auth.id,"convert_event",{amount,Direction,transactionHash : ret.transactionHash,currency :'SATT', network})		
-				}
+				
 
 				res.end(JSON.stringify(ret));
 			} catch (err) {
 				res.end(JSON.stringify(err));
 			} finally {
 				if (cred) app.account.lock(cred.address);
+				if(ret.transactionHash){
+					await app.account.notificationManager(auth.id,"convert_event",{amount,Direction,transactionHash : ret.transactionHash,currency :'SATT', network})		
+				}
 			}
 		});
 

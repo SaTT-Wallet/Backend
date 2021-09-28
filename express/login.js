@@ -117,7 +117,7 @@ module.exports = function (app) {
           "userSatt": true
         });
 
-        var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
+        let users = insert.ops;
         const lang = req.query.lang || "en";
 
         app.i18n.configureTranslation(lang);
@@ -455,7 +455,7 @@ module.exports = function (app) {
           picLink:profile.photos.length ? profile.photos[0].value : false
         });
         console.log(profile)
-        var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
+        var users = insert.ops;
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit"});
           req.session.user = users[0]._id;
         return cb(null, {id: profile.id, token: token, expires_in: date});
@@ -507,8 +507,7 @@ module.exports = function (app) {
       let info=req.query.state.split(' ');
         var user_id=+info[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
-        console.log("profile details",profile);
-        console.log("channel details====",res);
+       
         if(res.pageInfo.totalResults ==0){
           cb (null,profile,{
             message: "channel obligatoire"
@@ -793,7 +792,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
             enabled:1,
             userSatt: true
           });
-          var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray();
+          var users = insert.ops;
           var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
             req.session.user = users[0]._id;
           return cb(null, {id: users[0]._id, token: token, expires_in: date});
@@ -1421,7 +1420,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
 
-          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail}});
 
           let requestDate =app.account.manageTime();
           let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
