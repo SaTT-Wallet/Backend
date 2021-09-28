@@ -619,21 +619,21 @@ module.exports = function (app) {
 			var to = req.params.to;
 			var amount = req.params.val;
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
-			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
-				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
-				if(wallet){
-				
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
-				}
-			}
+		
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-				if(cred)
-			app.account.lock(cred.address);
+				if(cred) app.account.lock(cred.address);
+				if(ret.transactionHash){
+					await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+					const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+					if(wallet){
+					
+						await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+					}
+				}
 		}
 	})
 /**
@@ -1095,21 +1095,21 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
-			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20"} )
-				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
-				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20" } )
-				}
-
-			}
+			
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-				if(cred)
-			app.account.lock(cred.address);
+				if(cred) app.account.lock(cred.address);
+				if(ret.transactionHash){
+					await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20"} )
+					const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)});
+					if(wallet){
+						await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20" } )
+					}
+	
+				}
 		}
 	})
 
@@ -1247,8 +1247,7 @@ module.exports = function (app) {
 		finally {
 	if(cred){app.account.lockBSC(cred.address);}
 	if(ret && ret.transactionHash){
-		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})
-		console.log(to.substring(2))
+		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})	
 		const wallet = await app.db.wallet().findOne({"keystore.$address" : to.substring(2)});
 		console.log(wallet)
 		if(wallet){
@@ -1497,21 +1496,20 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		var to = req.params.to;
 		var amount = req.params.val;
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
-		if(ret.transactionHash){
-			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
-			const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)});
-				if(wallet){
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'BNB',from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
-				}
-		}
+		
 		response.end(JSON.stringify(ret));
 	} catch (err) {
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	finally {
-
-if(cred)
-		app.account.lockBSC(cred.address);
+    if(cred) app.account.lockBSC(cred.address);
+    if(ret.transactionHash){
+	await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
+	const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)}).project({UserId:1});
+		if(wallet){
+			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'BNB',from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
+		}
+}
 	}
 })
 
