@@ -189,16 +189,19 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 		return new Promise(async (resolve, reject) => {
 
-			  var twitterProfile = await app.db.twitterProfile().findOne({username:userName  });
+			var tweet = new Twitter({
+				consumer_key: app.config.twitter.consumer_key_alt,
+				consumer_secret: app.config.twitter.consumer_secret_alt,
+				access_token_key: app.config.access_token_key,
+				access_token_secret: app.config.access_token_secret
+			});
+
+			var tweet_res = await tweet.get('statuses/show',{id:idPost});
+			var twitterProfile = await app.db.twitterProfile().findOne({username:tweet_res.user.screen_name });
 
 				if(!twitterProfile)
 				{
-					var tweet = new Twitter({
-						consumer_key: app.config.twitter.consumer_key_alt,
-						consumer_secret: app.config.twitter.consumer_secret_alt,
-						access_token_key: app.config.access_token_key,
-						access_token_secret: app.config.access_token_secret
-					});
+					
 					var res = await tweet.get('statuses/show',{id:idPost,'expansions':'attachments.media_keys','media.fields':'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text'});
 					var perf = {shares:res.retweet_count,likes:res.favorite_count,views:0,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
 					resolve(perf);
