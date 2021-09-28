@@ -996,7 +996,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		let arrayOfLinks=[];
         let query= app.campaign.filterProms(req,id_wallet);
-		var count=await app.db.campaign_link().find({id_wallet:id_wallet}).count();
 
 		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
@@ -1058,7 +1057,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				arrayOfLinks.push(result)
 			}
 		}
-		var Links ={Links:arrayOfLinks,count:count}
+		var Links ={Links:arrayOfLinks}
 			response.end(JSON.stringify(Links));
 		}catch(err){
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1545,6 +1544,11 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
             
 
 			if(req.body.bounty) {
+				if(prom.funds.amount > 0 && prom.isPayed) {
+					var ret = await app.campaign.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
 				let social={"1":"facebook","2":"youtube","3":"instagram","4":"twitter"};
 				let campaign=await app.db.campaigns().findOne({hash:idCampaign});
 				let bountie=campaign.bounties.find( b=> b.oracle == social[prom.typeSN]);;
