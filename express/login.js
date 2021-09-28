@@ -1186,7 +1186,6 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
           try {
             redirect=req.session.state.split('|')[1];
-            console.log("redirect,,,,,,,,",redirect);
             if(req.authInfo.message){
               message=req.authInfo.message;
             }else{
