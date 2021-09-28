@@ -618,11 +618,11 @@ module.exports = async function (app) {
 				if(ids.indexOf(wallets[i].UserId)== -1)
 					ids.push(wallets[i].UserId);
 			}
-			let users = await app.db.user().find({_id: { $in: ids } }).toArray();
+			//let users = await app.db.user().find({_id: { $in: ids } },{_id :1},{email:1}).toArray();
+			let users = await app.db.user().find({_id: { $in: ids } }).project({email:1,_id:1,picLink:1,lastName:1,firstName:1}).toArray()
+			
 			for (let i =0;i<users.length;i++)
       {
-				delete (users[i].password)
-				delete(users[i].accessToken)
 				userById["id#"+users[i]._id] = users[i];
 			}
 			for (let i =0;i<proms.length;i++)
