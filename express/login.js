@@ -325,14 +325,14 @@ module.exports = function (app) {
 
 
         var instagram_id = false;
-        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
+        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,picture&access_token="+accessToken;
 
         var res = await rp({uri:accountsUrl,json: true})
         
         while(true) {
 
           for (var i = 0;i<res.data.length;i++) {
-            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token};
+            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url};
             
             if(res.data[i].instagram_business_account) {
               if(!isInsta){
@@ -343,8 +343,9 @@ module.exports = function (app) {
               page.instagram_id=instagram_id;
               var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
               var resMedia = await rp({uri:media,json: true})
-              page.instagram_username = resMedia.username;
+              page.instagram_username = resMedia.username;              
             }
+
             await app.db.fbPage().updateOne({id:res.data[i].id},{$set:page},{ upsert: true });
           }
           if(!res.paging || !res.paging.next)
