@@ -31,6 +31,11 @@ module.exports = function (app) {
   var session = require('express-session');
   const countryList = require('country-list');
   const geoip = require('geoip-lite');
+  const speakeasy =require('speakeasy');
+  const qrcode =require('qrcode');
+  var secret =speakeasy.generateSecret({
+    name:"SaTT"
+  });
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
     app.use(passport.initialize());
@@ -383,7 +388,7 @@ module.exports = function (app) {
       let resToken = await rp({uri:longTokenUrl,json: true});
       let longToken = resToken.access_token;
 
-      let UserId=+req.query.state;
+      let UserId=+req.query.state.split('|')[0];
       
       let isInsta=false;     
       let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
@@ -559,7 +564,7 @@ module.exports = function (app) {
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
-        var user_id=+req.query.state;      
+        var user_id=+req.query.state.split('|')[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         console.log("result",res);
         if(res.pageInfo.totalResults ==0){
@@ -725,7 +730,7 @@ module.exports = function (app) {
   },
 async function(req, accessToken, tokenSecret, profile, cb) {
 
-  let user_id=+req.session.state;
+  let user_id=+req.session.state.split('|')[0];
   
   var tweet = new Twitter({
     consumer_key: app.config.twitter.consumer_key,
@@ -997,7 +1002,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
 
 
   app.get('/addChannel/google/:idUser', (req, res,next)=>{
-    var state=req.params.idUser
+    var state=req.params.idUser+'|'+req.query.redirect
   
   passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
 	       accessType: 'offline',
@@ -1015,7 +1020,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
   // });
 
   app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
-    const state=req.params.idUser;  
+    const state=req.params.idUser+'|'+req.query.redirect;  
     passport.authenticate('facebook_strategy_add_channel',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state})(req,res,next)
    });
 
@@ -1029,7 +1034,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 });
 
 app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
-  var state=req.params.idUser;
+  var state=req.params.idUser+"|"+req.query.redirect
   req.session.state=state;
   passport.authenticate('add_twitter_link',{scope: ['profile','email'],
   accessType:'offline',
@@ -1142,12 +1147,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
       app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
         try {
-      if(req.authInfo.message){
+          redirect=req.query.state.split('|')[1]
+          if(req.authInfo.message){
             message=req.authInfo.message;
           }else{
             message="account_linked_with_success";
           }
-		response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
+		response.redirect(app.config.basedURl+redirect+'?message='+message); 
 	
 	} catch (e) {
           console.log(e)
@@ -1155,9 +1161,10 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         });
 
         app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
-          try {   
+          try {  
+            redirect=req.query.state.split('|')[1];
             let message =req.authInfo.message;
-      response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
+      response.redirect(app.config.basedURl+redirect+'?message='+message); 
     
     } catch (e) {
             console.log(e)
@@ -1181,12 +1188,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         });
         app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
           try {
+            redirect=req.session.state.split('|')[1];
             if(req.authInfo.message){
               message=req.authInfo.message;
             }else{
               message="account_linked_with_success";
             }
-            response.redirect(app.config.basedURl+'/myWallet/social-networks/?message='+message);
+            response.redirect(app.config.basedURl+redirect+'?message='+message);
   
           } catch (e) {
             console.log(e)
@@ -1214,7 +1222,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
       var token = req.header('authorization').split(' ')[1]
       var AccessT = await app.db.accessToken().findOne({token:token});
-   if(AccessT){
+      if(AccessT){
       if(!expiringToken(AccessT.expires_at)){
 
         if(!AccessT['token']){
@@ -1890,6 +1898,51 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     } catch (err) {
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
+  })
+
+  app.get('/qrCode', async (req, res) => {
+    try{
+   
+    qrcode.toDataURL(secret.otpauth_url,function(err,data){
+    res.send(JSON.stringify({qrCode:data}));
+    })
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+
+  app.post('/verifyQrCode', async (req, res) => {
+    try{
+      var code=req.body.code;
+      var verified =speakeasy.totp.verify({
+        secret:secret.ascii,
+        encoding:'ascii',
+        token:code
+      })
+      res.send(JSON.stringify({verifiedCode:verified}));
+
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+  app.post('/confirmCode', async function (req, response) {
+    try{
+    
+      let [email,code,type]=[req.body.email,req.body.code,req.body.type];
+      var user = await app.db.sn_user().findOne({email:email});
+      if (user.secureCode.code != code) 
+      response.end(JSON.stringify({message:"code incorrect"})).status(200);  
+      else if (Date.now()>=user.secureCode.expiring) 
+      response.end(JSON.stringify({message :"code expired"})).status(200);       
+      else {
+        if(type=='activation') await app.db.sn_user().updateOne({email},{$set:{enabled:1}});
+        response.end(JSON.stringify({message:"code match"})).status(200);
+      }
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
   })
 
   return app;
