@@ -97,10 +97,10 @@ module.exports = function (app) {
         return done(null, false, {error: true, message: 'account_already_used'});
       } else {
         var mongodate = new Date().toISOString();
-        var mydate = mongodate.slice(0, 19).replace('T', ' ');
-        var buff2 = Buffer.alloc(32);
-        var code = crypto.randomFillSync(buff2).toString('hex');
-        var insert = await app.db.sn_user().insertOne({
+         var mydate = mongodate.slice(0, 19).replace('T', ' ');
+         var buff2 = Buffer.alloc(32);
+         var code = crypto.randomFillSync(buff2).toString('hex');
+         let insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           username: username.toLowerCase(),
           email: username.toLowerCase(),
@@ -119,15 +119,16 @@ module.exports = function (app) {
 
         let users = insert.ops;
         const lang = req.query.lang || "en";
-
+        // const code = await app.account.updateAndGenerateCode(users[0]._id,"validation");
         app.i18n.configureTranslation(lang);
         readHTMLFile(__dirname + '/../emails/welcome.html', (err, html) =>{
           var template = handlebars.compile(html);
           var replacements = {
             satt_faq : app.config.Satt_faq,
             satt_url: app.config.basedURl,
+            // code,
             imgUrl: app.config.baseEmailImgURl,
-            validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
+             validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
           };
 
           var htmlToSend = template(replacements);
@@ -150,6 +151,7 @@ module.exports = function (app) {
       };
     }
   ));
+
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
     async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
@@ -1224,10 +1226,9 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           UserId = AccessT['user_id']
         }
 
-        var user = await app.db.sn_user().findOne({'_id':UserId})
+        var user = await app.db.sn_user().findOne({'_id':UserId},{ 'fields': { 'password': 0}})
 
         if(user){
-            delete(user.password)
             res.end(JSON.stringify(user))
         }
         else{
@@ -1301,7 +1302,6 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     let requestDate =app.account.manageTime();
     let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
     if(ip) ip = ip.split(":")[3]
-   
     readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
@@ -1324,6 +1324,59 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         html: htmlToSend
       };
       transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+        } else {
+          response.end(JSON.stringify({'message' :'Email was sent to ' + users[0].email}));
+        }
+      });
+    });
+  }catch (err)
+     {
+      response.end(JSON.stringify({error:err.message?err.message:err.error}));
+    }
+  });
+
+  app.post('/v2/auth/passlost', async  (req, response) => {
+    try{
+    let dateNow = Math.floor(Date.now() / 1000);
+    const lang = req.query.lang || "en";
+	  app.i18n.configureTranslation(lang);
+    let email = req.body.mail.toLowerCase();
+   
+    let users = await app.db.sn_user().find({email}).toArray();
+    if (!users.length) {
+      response.end('{error:"account not exists"}');
+      return;
+    }
+    if(users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod){
+      response.end(JSON.stringify({error: true, message: 'account_locked', blockedDate:users[0].date_locked}));
+      return;
+    }
+
+    let requestDate =app.account.manageTime();
+    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
+    if(ip) ip = ip.split(":")[3]
+    const code = await app.account.updateAndGenerateCode(users[0]._id,"reset");
+    readHTMLFile(__dirname + '/../emails/reset_password_code.html', (err, html)=> {
+      let template = handlebars.compile(html);
+      let replacements = {
+        ip,
+        code,
+        requestDate,
+        satt_url: app.config.basedURl,
+        imgUrl: app.config.baseEmailImgURl,
+        satt_faq : app.config.Satt_faq,
+      };
+
+      let htmlToSend = template(replacements);
+      let mailOptions = {
+        from: app.config.resetpassword_Email,
+        to: users[0].email,
+        subject: 'Satt wallet password recover',
+        html: htmlToSend
+      };
+      transporter.sendMail(mailOptions,  (error, info) =>{
         if (error) {
           console.log(error);
         } else {
