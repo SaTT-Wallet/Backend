@@ -386,7 +386,7 @@ module.exports = function (app) {
       let resToken = await rp({uri:longTokenUrl,json: true});
       let longToken = resToken.access_token;
 
-      let UserId=+req.query.state;
+      let UserId=+req.query.state.split('|')[0];
       
       let isInsta=false;     
       let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
@@ -562,7 +562,7 @@ module.exports = function (app) {
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
-        var user_id=+req.query.state;      
+        var user_id=+req.query.state.split('|')[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         console.log("result",res);
         if(res.pageInfo.totalResults ==0){
@@ -1000,7 +1000,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
 
 
   app.get('/addChannel/google/:idUser', (req, res,next)=>{
-    var state=req.params.idUser
+    var state=req.params.idUser+'|'+req.query.redirect
   
   passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
 	       accessType: 'offline',
@@ -1018,7 +1018,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
   // });
 
   app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
-    const state=req.params.idUser;  
+    const state=req.params.idUser+'|'+req.query.redirect;  
     passport.authenticate('facebook_strategy_add_channel',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state})(req,res,next)
    });
 
@@ -1145,13 +1145,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
       app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
         try {
-          if(req.query['error']){}
+          redirect=req.query.state.split('|')[1]
           if(req.authInfo.message){
             message=req.authInfo.message;
           }else{
             message="account_linked_with_success";
           }
-		response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
+		response.redirect(app.config.basedURl+redirect+'?message='+message); 
 	
 	} catch (e) {
           console.log(e)
@@ -1159,9 +1159,10 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         });
 
         app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
-          try {   
+          try {  
+            redirect=req.query.state.split('|')[1];
             let message =req.authInfo.message;
-      response.redirect(app.config.basedURl+'/myWallet/social-networks?message='+message); 
+      response.redirect(app.config.basedURl+redirect+'?message='+message); 
     
     } catch (e) {
             console.log(e)
@@ -1192,7 +1193,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
             }else{
               message="account_linked_with_success";
             }
-            response.redirect(app.config.basedURl+redirect+'/?message='+message);
+            response.redirect(app.config.basedURl+redirect+'?message='+message);
   
           } catch (e) {
             console.log(e)
