@@ -1874,5 +1874,23 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
      }
   })
 
+  app.post('/confirmCode', async function (req, response) {
+    try{
+    
+      let [email,code,type]=[req.body.email,req.body.code,req.body.type];
+      var user = await app.db.sn_user().findOne({email:email});
+      if (user.secureCode.code != code) 
+      response.end(JSON.stringify({message:"code incorrect"})).status(200);  
+      else if (Date.now()>=user.secureCode.expiring) 
+      response.end(JSON.stringify({message :"code expired"})).status(200);       
+      else {
+        if(type=='activation') await app.db.sn_user().updateOne({email},{$set:{enabled:1}});
+        response.end(JSON.stringify({message:"code match"})).status(200);
+      }
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
   return app;
 }
