@@ -792,22 +792,22 @@ module.exports = function (app) {
 			var auth =	await app.crm.auth(access_t);
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
-			if(ret.transactionHash){
-			const ctr = await app.campaign.getCampaignContract(idCampaign);
-			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
-			ret.remaining = fundsInfo.funds[1]
-
-			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
-				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
-                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget}});
-			 })
-			}
+		
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
 		if(cred) app.account.lock(cred.address);
+		if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+
+			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget, funds : fundsInfo.funds}});
+			 })
+			}
 		}
 	});
 
