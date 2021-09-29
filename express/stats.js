@@ -1078,6 +1078,7 @@ const Grid = require('gridfs-stream');
 		   }
 	   })
 	   info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;
+	   if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1]
 	}
 	  if(bounties.length){
 		bounties.forEach( bounty=>{
