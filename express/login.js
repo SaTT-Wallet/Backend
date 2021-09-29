@@ -418,7 +418,9 @@ module.exports = function (app) {
             try{
             const token = req.headers["authorization"].split(" ")[1];
             let auth =	await app.crm.auth(token);
-            await app.db.fbPage().deleteMany({UserId:auth.id});
+            let UserId = auth.id
+            await app.db.fbPage().deleteMany({UserId});
+            await app.db.fbProfile().deleteMany({UserId});
             response.end(JSON.stringify({message : "deleted successfully"}))
             }catch(err){
               response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
