@@ -562,7 +562,7 @@ module.exports = function (app) {
 			var endDate = req.body.endDate;
 			var ERC20token = req.body.ERC20token;
 			var amount = req.body.amount;
-			let [id,contract] = [req.body.idCampaign,req.body.contract];
+			let [id,contract] = [req.body.idCampaign,req.body.contract.toLowerCase()];
 			var bounties = req.body.bounties;
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
@@ -588,8 +588,8 @@ module.exports = function (app) {
 						startDate,
 						endDate,
 						dataUrl,
-						amount,
-						contract:contract.toLowerCase(),
+						funds :[contract,amount],
+						contract:contract,
 						walletId:cred.address
 					};
 					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
@@ -792,22 +792,22 @@ module.exports = function (app) {
 			var auth =	await app.crm.auth(access_t);
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
-			if(ret.transactionHash){
-			const ctr = await app.campaign.getCampaignContract(idCampaign);
-			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
-			ret.remaining = fundsInfo.funds[1]
-
-			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
-				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
-                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget}});
-			 })
-			}
+		
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
 		if(cred) app.account.lock(cred.address);
+		if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+
+			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget, funds : fundsInfo.funds}});
+			 })
+			}
 		}
 	});
 
@@ -996,6 +996,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		let arrayOfLinks=[];
         let query= app.campaign.filterProms(req,id_wallet);
+		var count=await app.db.campaign_link().find({id_wallet:id_wallet}).count();
 
 		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
@@ -1057,7 +1058,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				arrayOfLinks.push(result)
 			}
 		}
-		var Links ={Links:arrayOfLinks}
+		var Links ={Links:arrayOfLinks,count:count}
 			response.end(JSON.stringify(Links));
 		}catch(err){
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');

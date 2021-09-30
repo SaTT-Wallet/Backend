@@ -1078,6 +1078,7 @@ const Grid = require('gridfs-stream');
 		   }
 	   })
 	   info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;
+	   if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1]
 	}
 	  if(bounties.length){
 		bounties.forEach( bounty=>{
@@ -1242,7 +1243,7 @@ const Grid = require('gridfs-stream');
 		   if(bounties.length && allProms[i].isAccepted && !promDone){		  
 			  
 		       bounties.forEach( bounty=>{
-              if((bounty.oracle === allProms[i].oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
+               if((bounty.oracle === allProms[i].oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 				bounty.categories.forEach( category=>{
 			
 				 if( allProms[i].abosNumber && (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
