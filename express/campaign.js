@@ -562,7 +562,7 @@ module.exports = function (app) {
 			var endDate = req.body.endDate;
 			var ERC20token = req.body.ERC20token;
 			var amount = req.body.amount;
-			let [id,contract] = [req.body.idCampaign,req.body.contract];
+			let [id,contract] = [req.body.idCampaign,req.body.contract.toLowerCase()];
 			var bounties = req.body.bounties;
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
@@ -588,8 +588,8 @@ module.exports = function (app) {
 						startDate,
 						endDate,
 						dataUrl,
-						amount,
-						contract:contract.toLowerCase(),
+						funds :[contract,amount],
+						contract:contract,
 						walletId:cred.address
 					};
 					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
