@@ -1315,15 +1315,16 @@ const Grid = require('gridfs-stream');
   }
 	})
 
-
 	function calcSNStat(objNw,link){
-		objNw.total++;
+		  objNw.total++;
+		 
 		  if(link.views) objNw.views+=Number(link.views);
 		  if(link.likes) objNw.likes+=Number(link.likes);
 		  if(link.shares) objNw.shares+=Number(link.shares);
 		  if(link.status===true) objNw.accepted++;
 		  if(link.status===false) objNw.pending++;
 		  if(link.status==="rejected") objNw.rejected++;
+		  
 		  return objNw;
 	  }
 	  function initStat(){
@@ -1333,7 +1334,9 @@ const Grid = require('gridfs-stream');
 	app.get('/statLinkCampaign/:hash', async (req, res) => {
 		try{
 			var hash=req.params.hash;
-			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
+			arrayOfUser=[];
+			arrayOfnbAbos=[];
+			let result={nbTotalUser:0,totalAbos:0,facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
 			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
 			for(i=0;i<links.length;i++){
 				let link=links[i];
@@ -1345,6 +1348,16 @@ const Grid = require('gridfs-stream');
 					result.instagram=calcSNStat(result.instagram,link);
 				}else{	
 					result.twitter=calcSNStat(result.twitter,link);
+				}
+				if(arrayOfUser.indexOf(link.id_wallet)===-1) {
+					result.nbTotalUser++;
+					arrayOfUser.push(link.id_wallet);
+				  }
+				  if(arrayOfnbAbos.indexOf(link.id_wallet+'|'+link.typeSN)===-1) {
+				  if(link.abosNumber)
+					result.totalAbos+=+link.abosNumber;
+					arrayOfUser.push(link.id_wallet+'|'+link.typeSN);
+
 				}
 			}			
 		  res.send(JSON.stringify({stat:result}));
