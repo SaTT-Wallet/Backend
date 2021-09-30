@@ -689,7 +689,7 @@ module.exports = async function (app) {
 			return;
 			}
 			else{
-				if(result.status === "rejected"){
+				if(result.status === "rejected" || !obj.status){
 				   return;
 				}
 				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
@@ -724,6 +724,7 @@ module.exports = async function (app) {
 		const blockchainType=req.query.blockchainType || '';
 		 
 		const dateJour= Math.round(new Date().getTime()/1000);
+		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
 		if(req.query.oracles == undefined){
 			oracles=["twitter","facebook","youtube","instagram"];
 		}
@@ -787,6 +788,22 @@ module.exports = async function (app) {
 
 		return query
 	}
+
+	campaignManager.getPromApplyStats= async(oracles, link,id)=>{
+		return new Promise( async (resolve, reject) => {
+			try{
+		let socialOracle = {}
+		if(oracles == "facebook" || oracles == "twitter") socialOracle = await app.oracle[oracles](link.idUser,link.idPost);
+		else if(oracles == "youtube") socialOracle = await app.oracle.youtube(link.idPost);
+		else  socialOracle = await app.oracle.instagram(id,link.idPost)
+         delete socialOracle.date
+		 resolve(socialOracle)
+		}catch (e) {
+				reject({message:e.message});
+			}
+	})
+}
+
 	app.campaign = campaignManager;
 	return app;
 }
