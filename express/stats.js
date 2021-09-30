@@ -1064,7 +1064,7 @@ const Grid = require('gridfs-stream');
 	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
 	   const bounties =campaign.bounties
-	   let abosNumber =  info.abosNumber ?? 0;
+	   let abosNumber =  info.abosNumber || 0;
        if(ratio.length){
 		let socialStats = {likes: info.likes, shares:info.shares,views:info.views}
 		let reachLimit =  app.campaign.getReachLimit(ratio,info.oracle); 
@@ -1218,8 +1218,8 @@ const Grid = require('gridfs-stream');
 		   allProms[i].numberOfLikes = allProms[i].likes || "0"
 		   allProms[i].numberOfViews = allProms[i].views || '0'
 		   allProms[i].numberOfShares = !allProms[i].shares ? '0' : String(allProms[i].shares);
-		   allProms[i].payedAmount = allProms[i].payedAmount ?? "0";
-           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;	   
+		   allProms[i].payedAmount = allProms[i].payedAmount || "0";
+           allProms[i].abosNumber =  allProms[i].abosNumber || 0;	   
 		   let result = allProms[i]
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
