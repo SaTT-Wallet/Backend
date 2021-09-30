@@ -1329,12 +1329,14 @@ const Grid = require('gridfs-stream');
 		  return {total:0,views:0,likes:0,shares:0,accepted:0,pending:0,rejected:0}
 
 	  }
-	app.get('/statLinkCampaign/:hash', async (req, res) => {
+	  app.get('/statLinkCampaign/:hash', async (req, res) => {
 		try{
 			var hash=req.params.hash;
-			arrayOfUser=[];
-			arrayOfnbAbos=[];
-			let result={nbTotalUser:0,totalAbos:0,facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
+			var arrayOfUser=[];
+			var arrayOfnbAbos=[];
+			var nbTotalUser=0;
+			var totalAbos=0;
+			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
 			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
 			for(i=0;i<links.length;i++){
 				let link=links[i];
@@ -1348,17 +1350,17 @@ const Grid = require('gridfs-stream');
 					result.twitter=calcSNStat(result.twitter,link);
 				}
 				if(arrayOfUser.indexOf(link.id_wallet)===-1) {
-					result.nbTotalUser++;
+					nbTotalUser++;
 					arrayOfUser.push(link.id_wallet);
 				  }
 				  if(arrayOfnbAbos.indexOf(link.id_wallet+'|'+link.typeSN)===-1) {
 				  if(link.abosNumber)
-					result.totalAbos+=+link.abosNumber;
+					totalAbos+=+link.abosNumber;
 					arrayOfUser.push(link.id_wallet+'|'+link.typeSN);
 
 				}
 			}			
-		  res.send(JSON.stringify({stat:result}));
+		  res.send(JSON.stringify({stat:result,creatorParticipate:nbTotalUser,reachTotal:totalAbos}));
 		} catch (err) {
 		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		 }
