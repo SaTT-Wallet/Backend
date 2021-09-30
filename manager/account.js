@@ -1089,7 +1089,19 @@ accountManager.handleId=async function () {
 				}
 		})
 	   }
-
+	   accountManager.updateAndGenerateCode = async (_id,type) =>{
+		return new Promise( async (resolve, reject) => {
+			try{
+				const code = Math.floor(100000 + Math.random() * 900000);
+				let secureCode = {}
+				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20))*5,secureCode.type = type;
+				await app.db.sn_user().updateOne({_id},{$set:{secureCode}})
+				resolve(code)
+			}catch (e) {
+					reject({message:e.message});
+				}
+		}) 
+	   }
 	app.account = accountManager;
 	return app;
 }
