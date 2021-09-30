@@ -594,14 +594,14 @@ module.exports = async function (app) {
        try{
         
 		// let idproms = await ctr.methods.getProms(idCampaign).call();
-		let proms = [];
+		let proms = links;
 
 		if(links.length) {
 			let addresses = [];
 			let ids = [];
 			let idByAddress = [];
 			let userById = [];
-			proms = links;
+			
        			for (let i =0;i<links.length;i++)
 			{
 				// let prom = await ctr.methods.proms(idproms[i]).call();

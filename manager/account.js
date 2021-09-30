@@ -1052,14 +1052,14 @@ accountManager.handleId=async function () {
 			try {
 			let message="account_linked_with_success";
 			var instagram_id = false;
-				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
+				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,picture&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
 				   
 				   while(true) {
 		   
 					 for (var i = 0;i<res.data.length;i++) {
-					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token};
+					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url};
 					   
 					   if(res.data[i].instagram_business_account) {
 						 if(!isInsta){
@@ -1089,7 +1089,19 @@ accountManager.handleId=async function () {
 				}
 		})
 	   }
-
+	   accountManager.updateAndGenerateCode = async (_id,type) =>{
+		return new Promise( async (resolve, reject) => {
+			try{
+				const code = Math.floor(100000 + Math.random() * 900000);
+				let secureCode = {}
+				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20))*5,secureCode.type = type;
+				await app.db.sn_user().updateOne({_id},{$set:{secureCode}})
+				resolve(code)
+			}catch (e) {
+					reject({message:e.message});
+				}
+		}) 
+	   }
 	app.account = accountManager;
 	return app;
 }
