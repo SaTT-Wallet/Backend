@@ -1643,8 +1643,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-		       if(cred)app.account.lock(cred.address);
-			if(ret.transactionHash){
+		       if(cred) app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
 				await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
 					funds:["","0"]}});
 			}
