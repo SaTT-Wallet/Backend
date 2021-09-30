@@ -1064,7 +1064,7 @@ const Grid = require('gridfs-stream');
 	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign});
        const ratio = campaign.ratios
 	   const bounties =campaign.bounties
-	   let abosNumber =  info.abosNumber ?? 0;
+	   let abosNumber =  info.abosNumber || 0;
        if(ratio.length){
 		let socialStats = {likes: info.likes, shares:info.shares,views:info.views}
 		let reachLimit =  app.campaign.getReachLimit(ratio,info.oracle); 
@@ -1218,8 +1218,8 @@ const Grid = require('gridfs-stream');
 		   allProms[i].numberOfLikes = allProms[i].likes || "0"
 		   allProms[i].numberOfViews = allProms[i].views || '0'
 		   allProms[i].numberOfShares = !allProms[i].shares ? '0' : String(allProms[i].shares);
-		   allProms[i].payedAmount = allProms[i].payedAmount ?? "0";
-           allProms[i].abosNumber =  allProms[i].abosNumber ?? 0;	   
+		   allProms[i].payedAmount = allProms[i].payedAmount || "0";
+           allProms[i].abosNumber =  allProms[i].abosNumber || 0;	   
 		   let result = allProms[i]
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
@@ -1315,24 +1315,29 @@ const Grid = require('gridfs-stream');
   }
 	})
 
-
 	function calcSNStat(objNw,link){
-		objNw.total++;
+		  objNw.total++;
+		 
 		  if(link.views) objNw.views+=Number(link.views);
 		  if(link.likes) objNw.likes+=Number(link.likes);
 		  if(link.shares) objNw.shares+=Number(link.shares);
 		  if(link.status===true) objNw.accepted++;
 		  if(link.status===false) objNw.pending++;
 		  if(link.status==="rejected") objNw.rejected++;
+		  
 		  return objNw;
 	  }
 	  function initStat(){
 		  return {total:0,views:0,likes:0,shares:0,accepted:0,pending:0,rejected:0}
 
 	  }
-	app.get('/statLinkCampaign/:hash', async (req, res) => {
+	  app.get('/statLinkCampaign/:hash', async (req, res) => {
 		try{
 			var hash=req.params.hash;
+			var arrayOfUser=[];
+			var arrayOfnbAbos=[];
+			var nbTotalUser=0;
+			var totalAbos=0;
 			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
 			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
 			for(i=0;i<links.length;i++){
@@ -1346,8 +1351,18 @@ const Grid = require('gridfs-stream');
 				}else{	
 					result.twitter=calcSNStat(result.twitter,link);
 				}
+				if(arrayOfUser.indexOf(link.id_wallet)===-1) {
+					nbTotalUser++;
+					arrayOfUser.push(link.id_wallet);
+				  }
+				  if(arrayOfnbAbos.indexOf(link.id_wallet+'|'+link.typeSN)===-1) {
+				  if(link.abosNumber)
+					totalAbos+=+link.abosNumber;
+					arrayOfUser.push(link.id_wallet+'|'+link.typeSN);
+
+				}
 			}			
-		  res.send(JSON.stringify({stat:result}));
+		  res.send(JSON.stringify({stat:result,creatorParticipate:nbTotalUser,reachTotal:totalAbos}));
 		} catch (err) {
 		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		 }
