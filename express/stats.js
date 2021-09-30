@@ -326,7 +326,7 @@ const Grid = require('gridfs-stream');
 
         let query = app.campaign.filterCampaign(req,idNode,strangerDraft);
 	
-		const campaigns = await app.db.campaigns().find(query).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
+		const campaigns = await app.db.campaigns().find(query,{ 'fields': { 'logo': 0,resume:0,description:0,tags:0}}).sort({createdAt: -1}).skip(skip).limit(limit).toArray();
 
 		for (var i = 0;i<campaigns.length;i++)
 		{
@@ -1224,18 +1224,16 @@ const Grid = require('gridfs-stream');
 	
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
 		   if(ratio.length && allProms[i].isAccepted && !promDone){
+			    delete allProms[i].isPayed;
                 let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
 				if(reachLimit) result=  app.oracleManager.limitStats("",result,"",result.abosNumber,reachLimit);           
 				ratio.forEach( num =>{
 					
 							if((num.oracle === result.oracle) || (num.typeSN === result.typeSN)){
-
 						    let	view =result.views ?new Big(num["view"]).times(result.views):"0";	
 							let	like = result.likes ? new Big(num["like"]).times(result.likes) : "0";
 					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";	 
-							allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
-
-							
+							allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();							
 							}
 						})		
 		   }
