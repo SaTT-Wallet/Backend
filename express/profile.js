@@ -370,8 +370,8 @@ module.exports = function (app) {
 
 
 		  var mailOptions = {
-			  from: email,
-			  to:app.config.SupportMail,
+			  from: app.config.notificationMail,
+			  to:app.config.contactMail,
 			  subject: 'customer service',
 			  html: dynamic_html
 		 };
