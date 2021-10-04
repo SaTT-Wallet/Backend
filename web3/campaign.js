@@ -22,7 +22,7 @@ module.exports = async function (app) {
 			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
-		var campaign = await app.db.campaigns().findOne({hash:idCampaign});
+		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
 		if(campaign && campaign.contract)
 		{
 
