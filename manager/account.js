@@ -842,7 +842,7 @@ module.exports = async function (app) {
 				if(tokenSymbol == "BTC") crypto.name='Bitcoin';
 				if(tokenSymbol == "ETH") crypto.name='Ethereum';
 				if(tokenSymbol == "SATT") crypto.name='SaTT';
-				else crypto.name='BNB';
+				else if(tokenSymbol == 'BNB')crypto.name='BNB';
 				[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill(tokenSymbol);
 					crypto.price=CryptoPrices[tokenSymbol].price;
 					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;
