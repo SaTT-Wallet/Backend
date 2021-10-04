@@ -88,34 +88,25 @@ module.exports = function (app) {
 			  };
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
-		  const id = auth.id;
+		      var id = auth.id;
 		  let Crypto = await rp(Fetch_crypto_price);
-		  let date = Math.round(new Date().getTime()/1000);
-		  let today = (new Date()).toLocaleDateString("en-US");
-          let variation = 0.00;
-		  Total_balance = await app.account.getBalanceByUid(id, Crypto);
-
-
-		  const user =  await app.db.sn_user().findOne({_id : id});
-
-		  if(!user.daily){user.daily = []}
-
-
-		   if(user.daily[0]){
-			variation =  app.token.calculateVariation(Total_balance.Total_balance, user.daily[0].Balance)
-			if(!isFinite(variation)){variation = 0.00;}	
-		   }
-		  if(!user.daily[0] || user.daily[0].convertDate !== today){
-			user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
-			if(user.daily.length > 7){user.daily.pop()}
-			delete user._id
-			await app.db.sn_user().updateOne({_id : id}, {$set: user});
-		  }
-
+		  let variation = 0.00
+		  var Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally{
+			let date = Math.round(new Date().getTime()/1000);
+			var today = (new Date()).toLocaleDateString("en-US");
+			const user =  await app.db.sn_user().findOne({_id : auth.id},{ 'fields': { '_id': 0}});
+			if(!user.daily){user.daily = []}
+			if(!user.daily[0] || user.daily[0].convertDate !== today){
+			  user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
+			  if(user.daily.length > 7){user.daily.pop()}
+			  await app.db.sn_user().updateOne({_id : auth.id}, {$set: user});
+			}
 		}
 	});
 

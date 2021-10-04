@@ -1154,14 +1154,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				const id = req.body.idUser;
 				const email = req.body.email;
 				
-				let link = await app.db.campaign_link().findOne({id_prom:idApply});	
-                    // if(link.typeSN =="4")socialOracle = await app.oracle.twitter(link.idUser,link.idPost);
-			        // if(link.typeSN =="1")socialOracle = await app.oracle.facebook(link.idUser,link.idPost); 
-			        // else if(link.typeSN == "2") socialOracle = await app.oracle.youtube(link.idPost);
-			        // else if(link.typeSN == "3") socialOracle = await app.oracle.instagram(auth.id,link.idPost);
+				    let link = await app.db.campaign_link().findOne({id_prom:idApply});	
                     let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id);
 					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
-
 					socialOracle.status = true;
 					
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
