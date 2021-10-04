@@ -1061,7 +1061,7 @@ const Grid = require('gridfs-stream');
 	   const idProm = req.params.idProm;
 	   const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
 	   const payedAmount = info.payedAmount || "0";
-	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign});
+	   const campaign = await app.db.campaigns().findOne({hash : info.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
        const ratio = campaign.ratios
 	   const bounties =campaign.bounties
 	   let abosNumber =  info.abosNumber || 0;
@@ -1194,7 +1194,7 @@ const Grid = require('gridfs-stream');
 	app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
 
-	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)});
+	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 			let ctr = await app.campaign.getCampaignContract(campaign.hash)
 	 if(!ctr) {
 			 res.end("{}");
