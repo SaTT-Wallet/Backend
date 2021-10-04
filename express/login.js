@@ -1533,7 +1533,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       const auth = await app.crm.auth(token);
       var id=+auth.id;
       var code=req.body.code;
-      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)});
+      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)},{projection: { newEmail: true }});
       if(Date.now()>=user.newEmail.expiring){
         response.end(JSON.stringify("code expired")).status(200);
       }
@@ -1844,7 +1844,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 		const auth = await app.crm.auth(token);
     let walletpass = req.body.password;
     let id = auth.id;
-    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)});
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)},{projection: { password: true }});
       if (user.password != synfonyHash(walletpass)) {
       res.end(JSON.stringify({message:"Not the same password"})).status(200);
     } else {
@@ -1934,7 +1934,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     try{
     
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
-      var user = await app.db.sn_user().findOne({email:email});
+      var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
       if (user.secureCode.code != code) 
       response.end(JSON.stringify({message:"code incorrect"})).status(200);  
       else if (Date.now()>=user.secureCode.expiring) 
