@@ -1239,7 +1239,7 @@ module.exports = function (app) {
 	if(cred){app.account.lockBSC(cred.address);}
 	if(ret && ret.transactionHash){
 		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})	
-		const wallet = await app.db.wallet().findOne({"keystore.$address" : to.substring(2)},{projection: { UserId: true }});
+		const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
 		if(wallet){
 			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency} )
 		}
