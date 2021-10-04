@@ -684,21 +684,24 @@ module.exports = async function (app) {
 				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
+
+				let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
+			    if(userTokens.length){
+				for(let i = 0; i < userTokens.length; i++){
+                let symbol = userTokens[i].symbol
+			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
+				}  	  
+			  }
+
 				for(const T_name in token_info){
-					var network=token_info[T_name].network
-					let networkToken = network=="ERC20" ? app.erc20: app.bep20;
-
+				var network=token_info[T_name].network
+				let networkToken = network=="ERC20" ? app.erc20: app.bep20;
                 let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-
 				let key = T_name
-
 				if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
-
 				   key = 'SATT'
-
 				}
-
-				Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))
+                 if(CryptoPrices.hasOwnProperty(key)) Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))
 					 }
                      delete ret.address
 					 for(const Amount in ret){
