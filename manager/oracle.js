@@ -189,7 +189,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		)
 	};
 
-	oracleManager.twitter =   (userName,idPost) =>{
+	oracleManager.twitter =   async (userName,idPost) =>{
 		return new Promise(async (resolve, reject) => {
             try{
 			var tweet = new Twitter({
