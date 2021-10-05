@@ -972,7 +972,7 @@ accountManager.handleId=async function () {
 		}
 	    
 		await app.db.notification().insertOne(notification);
-		let user = await app.db.sn_user().findOne({_id:+id});
+		let user = await app.db.sn_user().findOne({_id:+id},{projection: { fireBaseAccessToken: true,_id:false }});
                
 		if(user.fireBaseAccessToken){
 		let data= {
