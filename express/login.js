@@ -1930,7 +1930,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
      }
   })
 
-  app.post('/confirmCode', async function (req, response) {
+  app.post('/confirmCode', async  (req, response) =>{
     try{
     
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
@@ -1939,10 +1939,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       response.end(JSON.stringify({message:"code incorrect"})).status(200);  
       else if (Date.now()>=user.secureCode.expiring) 
       response.end(JSON.stringify({message :"code expired"})).status(200);       
-      else {
-        if(type=='activation') await app.db.sn_user().updateOne({email},{$set:{enabled:1}});
-        response.end(JSON.stringify({message:"code match"})).status(200);
+      else if(user.secureCode.type== type =='activation'){
+         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
+      response.end(JSON.stringify({message:"code match"})).status(200);
+      
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
