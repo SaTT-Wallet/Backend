@@ -22,7 +22,7 @@ module.exports = async function (app) {
 			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
-		var campaign = await app.db.campaigns().findOne({hash:idCampaign});
+		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
 		if(campaign && campaign.contract)
 		{
 
@@ -395,7 +395,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var ctr = await campaignManager.getPromContract(idProm);
-				var gas = 2000000;
+				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
 
 
