@@ -142,7 +142,7 @@ module.exports = function (app) {
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
-		var Events = await app.db.event().find({ prom: { $exists: true} }).toArray();
+		var Events = await app.db.event().find({ prom: { $exists: true} },{projection: { prom: true, _id:false }}).toArray();
 		
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;

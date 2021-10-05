@@ -98,14 +98,16 @@ module.exports = function (app) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally{
+			if(id){
 			let date = Math.round(new Date().getTime()/1000);
 			var today = (new Date()).toLocaleDateString("en-US");
-			const user =  await app.db.sn_user().findOne({_id : auth.id},{ 'fields': { '_id': 0}});
+			const user =  await app.db.sn_user().findOne({_id : id},{ 'fields': { '_id': 0}});
 			if(!user.daily){user.daily = []}
 			if(!user.daily[0] || user.daily[0].convertDate !== today){
 			  user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
 			  if(user.daily.length > 7){user.daily.pop()}
-			  await app.db.sn_user().updateOne({_id : auth.id}, {$set: user});
+			  await app.db.sn_user().updateOne({_id : id}, {$set: user});
+			}
 			}
 		}
 	});
