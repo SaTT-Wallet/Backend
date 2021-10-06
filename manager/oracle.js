@@ -124,6 +124,7 @@ module.exports = async function (app) {
 
 	oracleManager.youtube = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
+			try{
 			if( -1 != idPost.indexOf("&"))
 			{
 				idPost = idPost.split("&")[0];
@@ -137,6 +138,9 @@ module.exports = async function (app) {
 		 }
 
 			resolve(perf);
+		}catch (err) {
+			reject({message:err.message});
+		}
 		})
 
 	};
@@ -185,10 +189,9 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		)
 	};
 
-	oracleManager.twitter = async function (userName,idPost) {
-
+	oracleManager.twitter =   async (userName,idPost) =>{
 		return new Promise(async (resolve, reject) => {
-
+            try{
 			var tweet = new Twitter({
 				consumer_key: app.config.twitter.consumer_key_alt,
 				consumer_secret: app.config.twitter.consumer_secret_alt,
@@ -235,6 +238,9 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 
 			resolve(perf);
+		}catch (err) {
+			reject({message:err.message});
+		}
 		})
 	};
 
@@ -305,7 +311,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 	oracleManager.verifyTwitter = async function (userId,idPost) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  });
+				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  },{projection: { access_token_key: true,access_token_secret:true,id:true }});
 				var tweet = new Twitter2({
 				  consumer_key: app.config.twitter.consumer_key,
 				  consumer_secret: app.config.twitter.consumer_secret,
