@@ -327,14 +327,14 @@ module.exports = function (app) {
 
 
         var instagram_id = false;
-        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,picture&access_token="+accessToken;
+        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token="+accessToken;
 
         var res = await rp({uri:accountsUrl,json: true})
         
         while(true) {
 
           for (var i = 0;i<res.data.length;i++) {
-            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url};
+            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};
             
             if(res.data[i].instagram_business_account) {
               if(!isInsta){
@@ -1932,7 +1932,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
      }
   })
 
-  app.post('/confirmCode', async function (req, response) {
+  app.post('/confirmCode', async  (req, response) =>{
     try{
     
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
@@ -1941,10 +1941,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       response.end(JSON.stringify({message:"code incorrect"})).status(200);  
       else if (Date.now()>=user.secureCode.expiring) 
       response.end(JSON.stringify({message :"code expired"})).status(200);       
-      else {
-        if(type=='activation') await app.db.sn_user().updateOne({email},{$set:{enabled:1}});
-        response.end(JSON.stringify({message:"code match"})).status(200);
+      else if(user.secureCode.type== type =='activation'){
+         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
+      response.end(JSON.stringify({message:"code match"})).status(200);
+      
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
