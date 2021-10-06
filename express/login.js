@@ -327,14 +327,14 @@ module.exports = function (app) {
 
 
         var instagram_id = false;
-        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,picture&access_token="+accessToken;
+        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token="+accessToken;
 
         var res = await rp({uri:accountsUrl,json: true})
         
         while(true) {
 
           for (var i = 0;i<res.data.length;i++) {
-            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url};
+            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};
             
             if(res.data[i].instagram_business_account) {
               if(!isInsta){
@@ -1533,7 +1533,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       const auth = await app.crm.auth(token);
       var id=+auth.id;
       var code=req.body.code;
-      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)});
+      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)},{projection: { newEmail: true }});
       if(Date.now()>=user.newEmail.expiring){
         response.end(JSON.stringify("code expired")).status(200);
       }
@@ -1844,7 +1844,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 		const auth = await app.crm.auth(token);
     let walletpass = req.body.password;
     let id = auth.id;
-    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)});
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)},{projection: { password: true }});
       if (user.password != synfonyHash(walletpass)) {
       res.end(JSON.stringify({message:"Not the same password"})).status(200);
     } else {
@@ -1930,19 +1930,20 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
      }
   })
 
-  app.post('/confirmCode', async function (req, response) {
+  app.post('/confirmCode', async  (req, response) =>{
     try{
     
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
-      var user = await app.db.sn_user().findOne({email:email});
+      var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
       if (user.secureCode.code != code) 
       response.end(JSON.stringify({message:"code incorrect"})).status(200);  
       else if (Date.now()>=user.secureCode.expiring) 
       response.end(JSON.stringify({message :"code expired"})).status(200);       
-      else {
-        if(type=='activation') await app.db.sn_user().updateOne({email},{$set:{enabled:1}});
-        response.end(JSON.stringify({message:"code match"})).status(200);
+      else if(user.secureCode.type== type =='activation'){
+         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
+      response.end(JSON.stringify({message:"code match"})).status(200);
+      
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }

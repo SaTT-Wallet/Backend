@@ -705,16 +705,6 @@ module.exports = async function (app) {
 					 }
                      delete ret.address
 					 for(const Amount in ret){
-
-					/*	if(Amount=="ether_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-						}else if(Amount=="satt_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else if(Amount=="bnb_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-						}else if(Amount=="btc_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-						}*/
 						let tokenSymbol = Amount.split('_')[0].toUpperCase();
 						tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
                         let decimal =  tokenSymbol === "BTC" ? 8 : 18;
@@ -837,7 +827,9 @@ module.exports = async function (app) {
 				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
 				// 	listOfCrypto.push(crypto);
 				// }
+				
 				let tokenSymbol = Amount.split('_')[0].toUpperCase();
+				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
 				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
 				if(tokenSymbol == "BTC") crypto.name='Bitcoin';
 				if(tokenSymbol == "ETH") crypto.name='Ethereum';
@@ -846,8 +838,8 @@ module.exports = async function (app) {
 				[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill(tokenSymbol);
 					crypto.price=CryptoPrices[tokenSymbol].price;
 					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices[tokenSymbol].price))*1
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
+					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber())*CryptoPrices[tokenSymbol].price))
+					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber());
 					listOfCrypto.push(crypto);
 			  }
 					resolve({listOfCrypto});
@@ -980,7 +972,7 @@ accountManager.handleId=async function () {
 		}
 	    
 		await app.db.notification().insertOne(notification);
-		let user = await app.db.sn_user().findOne({_id:+id});
+		let user = await app.db.sn_user().findOne({_id:+id},{projection: { fireBaseAccessToken: true,_id:false }});
                
 		if(user.fireBaseAccessToken){
 		let data= {
@@ -1059,14 +1051,14 @@ accountManager.handleId=async function () {
 			try {
 			let message="account_linked_with_success";
 			var instagram_id = false;
-				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,picture&access_token="+accessToken;
+				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
 				   
 				   while(true) {
 		   
 					 for (var i = 0;i<res.data.length;i++) {
-					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url};
+					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};
 					   
 					   if(res.data[i].instagram_business_account) {
 						 if(!isInsta){
