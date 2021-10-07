@@ -34,7 +34,7 @@ module.exports = function (app) {
   const speakeasy =require('speakeasy');
   const qrcode =require('qrcode');
   var secret =speakeasy.generateSecret({
-    name:"SaTT"
+    name:"SaTT_Token"
   });
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
@@ -716,6 +716,7 @@ module.exports = function (app) {
         profile.access_token_key = accessToken;
         profile.access_token_secret = tokenSecret;
         profile.UserId = user_id;
+        profile.subscibers=res.followers_count;
         profile.username = res.screen_name;
         profile.twitter_id = res.id;
 
@@ -742,7 +743,6 @@ async function(req, accessToken, tokenSecret, profile, cb) {
     access_token_secret:tokenSecret
   });
   var res = await tweet.get('account/verify_credentials',{include_email :true});
-
   var twitterProfile = await app.db.twitterProfile().findOne({$and:[{UserId:user_id },{twitter_id:res.id}]});
   if(twitterProfile) {
     cb(null,profile,{
@@ -755,6 +755,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
       profile.access_token_secret = tokenSecret;
       profile.UserId = user_id;
       profile.username = res.screen_name;
+      profile.subscibers=res.followers_count;
       profile.twitter_id = res.id;
 
       var res_ins = await app.db.twitterProfile().insertOne(profile);
@@ -1905,7 +1906,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.get('/qrCode', async (req, res) => {
     try{
-   
+     
     qrcode.toDataURL(secret.otpauth_url,function(err,data){
     res.send(JSON.stringify({qrCode:data}));
     })
@@ -1917,6 +1918,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.post('/verifyQrCode', async (req, res) => {
     try{
+      
       var code=req.body.code;
       var verified =speakeasy.totp.verify({
         secret:secret.ascii,
