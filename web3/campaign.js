@@ -682,8 +682,7 @@ module.exports = async function (app) {
 		if(ratio)return ratio.reachLimit
 		return;
 	}
-	campaignManager.UpdateStats = async (obj,campaign) =>{
-	if(campaign.isFinished  || !obj.status) return ;	
+	campaignManager.UpdateStats = async (obj,campaign) =>{	
 	if(campaign && (campaign.bounties.length || (campaign.ratios && campaignManager.getReachLimit(campaign.ratios,obj.oracle)))) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
