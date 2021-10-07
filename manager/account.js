@@ -838,7 +838,7 @@ module.exports = async function (app) {
 				[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill(tokenSymbol);
 					crypto.price=CryptoPrices[tokenSymbol].price;
 					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber() + "")*CryptoPrices[tokenSymbol].price))
+					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber()+"")*CryptoPrices[tokenSymbol].price))
 					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber());
 					listOfCrypto.push(crypto);
 			  }
@@ -1051,14 +1051,14 @@ accountManager.handleId=async function () {
 			try {
 			let message="account_linked_with_success";
 			var instagram_id = false;
-				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token="+accessToken;
+				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
 				   
 				   while(true) {
 		   
 					 for (var i = 0;i<res.data.length;i++) {
-					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};
+					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name,subscribers:res.data[i].fan_count};
 					   
 					   if(res.data[i].instagram_business_account) {
 						 if(!isInsta){
