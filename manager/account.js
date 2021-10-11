@@ -684,35 +684,31 @@ module.exports = async function (app) {
 				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
-				for(const T_name in token_info){
-					var network=token_info[T_name].network
-					 if(network=="ERC20"){
-						balance = await app.erc20.getBalance(token_info[T_name].contract,ret.address);
-						if(token_info[T_name].contract==token_info['WSATT'].contract){
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else{
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-						}
-					  }else{
-						 balance = await app.bep20.getBalance(token_info[T_name].contract,ret.address);
-						if(token_info[T_name].contract==token_info['SATT_BEP20'].contract){
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else{
-							Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[T_name].price))*1
-						}
-					  }
-					 }
 
+				let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
+			    if(userTokens.length){
+				for(let i = 0; i < userTokens.length; i++){
+                let symbol = userTokens[i].symbol
+			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
+				}  	  
+			  }
+
+				for(const T_name in token_info){
+				var network=token_info[T_name].network
+				let networkToken = network=="ERC20" ? app.erc20: app.bep20;
+                let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
+				let key = T_name
+				if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
+				   key = 'SATT'
+				}
+                 if(CryptoPrices.hasOwnProperty(key)) Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))
+					 }
+                     delete ret.address
 					 for(const Amount in ret){
-						if(Amount=="ether_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-						}else if(Amount=="satt_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-						}else if(Amount=="bnb_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-						}else if(Amount=="btc_balance"){
-							Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-						}
+						let tokenSymbol = Amount.split('_')[0].toUpperCase();
+						tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
+                        let decimal =  tokenSymbol === "BTC" ? 8 : 18;
+						Total_balance+=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(decimal)).toNumber() + "")*CryptoPrices[tokenSymbol].price))
 					  }
 
 						Total_balance=Total_balance.toFixed(2)
@@ -732,14 +728,14 @@ module.exports = async function (app) {
 
 
 
-	accountManager.getListCryptoByUid = async  (userId, crypto) => {
+	  accountManager.getListCryptoByUid = async  (userId, crypto) => {
 		return new Promise( async (resolve, reject) => {
 		 try {
 			let listOfCrypto=[];			
 			var token_info=  Object.assign({}, app.config.Tokens);
 			  delete token_info['SATT']
 			  delete token_info['BNB']
-			  let CryptoPrices = crypto;
+			  var CryptoPrices = crypto;
 			  var count = await accountManager.hasAccount(userId);
   
 			   var ret = {err:"no_account"};
@@ -752,88 +748,99 @@ module.exports = async function (app) {
 				resolve(ret);
 			  }
 
-			  let userTokens = await app.db.customToken().find({idUser: userId}).toArray()
-
+			 let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
-
                let symbol = userTokens[i].symbol
-
-			  
-			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].contract, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl   }
-			   
+	
+			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
 				}  	  
 			  }
-
 			  for(let T_name in token_info){
-
 				let network=token_info[T_name].network;
-				let crypto={};
+			        let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
 				crypto.symbol=token_info[T_name].symbol;
 				crypto.name=token_info[T_name].name;
+				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
+                [crypto.price,crypto.total_balance] = Array(2).fill(0.00);
 
-			    let networkToken = network=="ERC20" ? app.erc20: app.bep20;
-                let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-				
-                let key = T_name
+             let networkToken = network=="ERC20" ? app.erc20: app.bep20;
+             let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
+                       let key = T_name
+
 			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
+
                 key = 'SATT'
+
 			 }
-			 
-			 if(CryptoPrices.hasOwnProperty(key)){
+				  if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))*1
-			 }else {
-				crypto.price = 0.00;
-				crypto.total_balance = 0.00;
-			 }
+					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))*1		
+				  }		
+			     crypto.quantity=app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
 
-			 crypto.quantity=app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
-			        listOfCrypto.push(crypto);
+
+			  listOfCrypto.push(crypto);
 
 			}
+			delete ret.address
 			for(const Amount in ret){
-				crypto={}
-				if(Amount=="ether_balance"){
-					[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("ETH");
-					crypto.name='Ethereum';
-					crypto.price=CryptoPrices['ETH'].price;
-					crypto.variation=CryptoPrices['ETH'].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
+				
+			      let crypto={}
+				// if(Amount=="ether_balance"){
+				// 	[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("ETH");
+				// 	crypto.name='Ethereum';
+				// 	crypto.price=CryptoPrices['ETH'].price;
+				// 	crypto.variation=CryptoPrices['ETH'].percent_change_24h;
+				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
+				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
+				// 	listOfCrypto.push(crypto);
+				// }else if(Amount=="satt_balance"){
+				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
+				// 	crypto.name='SaTT';
+                //     [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("SATT");
+				// 	crypto.price=CryptoPrices['SATT'].price;
+				// 	crypto.variation=CryptoPrices['SATT'].percent_change_24h;
+				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
+				// 	listOfCrypto.push(crypto);
+				// }else if(Amount=="bnb_balance"){
+				// 	crypto.symbol='BNB';
+				// 	crypto.name='BNB';
+				// 	crypto.undername='(SMART CHAIN)';
+				// 	crypto.undername2='BNB';
+				// 	crypto.price=CryptoPrices['BNB'].price;
+				// 	crypto.variation=CryptoPrices['BNB'].percent_change_24h;
+				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
+				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
+				// 	listOfCrypto.push(crypto);
+				// }else if(Amount=="btc_balance"){
+				// 	crypto.name='Bitcoin';
+                //     [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("BTC");
+				// 	crypto.price=CryptoPrices['BTC'].price;
+				// 	crypto.variation=CryptoPrices['BTC'].percent_change_24h;
+				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
+				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
+				// 	listOfCrypto.push(crypto);
+				// }
+				
+				let tokenSymbol = Amount.split('_')[0].toUpperCase();
+				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
+				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
+				if(tokenSymbol == "BTC") crypto.name='Bitcoin';
+				if(tokenSymbol == "ETH") crypto.name='Ethereum';
+				if(tokenSymbol == "SATT") crypto.name='SaTT';
+				else if(tokenSymbol == 'BNB')crypto.name='BNB';
+				[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill(tokenSymbol);
+					crypto.price=CryptoPrices[tokenSymbol].price;
+					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;
+					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber()+"")*CryptoPrices[tokenSymbol].price))
+					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber());
 					listOfCrypto.push(crypto);
-				}else if(Amount=="satt_balance"){
-					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-					crypto.name='SaTT';
-                    [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("SATT");
-					crypto.price=CryptoPrices['SATT'].price;
-					crypto.variation=CryptoPrices['SATT'].percent_change_24h;
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
-					listOfCrypto.push(crypto);
-				}else if(Amount=="bnb_balance"){
-					crypto.symbol='BNB';
-					crypto.name='BNB';
-					crypto.undername='(SMART CHAIN)';
-					crypto.undername2='BNB';
-					crypto.price=CryptoPrices['BNB'].price;
-					crypto.variation=CryptoPrices['BNB'].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
-					listOfCrypto.push(crypto);
-				}else if(Amount=="btc_balance"){
-					crypto.name='Bitcoin';
-                    [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("BTC");
-					crypto.price=CryptoPrices['BTC'].price;
-					crypto.variation=CryptoPrices['BTC'].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
-					listOfCrypto.push(crypto);
-				}
 			  }
 					resolve({listOfCrypto});
 		 }catch (e) {
@@ -866,6 +873,8 @@ module.exports = async function (app) {
 	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices
 
 	      var users_;
+
+
 
 		if(condition === "daily"){
 		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
@@ -914,7 +923,7 @@ module.exports = async function (app) {
 accountManager.handleId=async function () {
 	var Collection=await app.db.UsersId().findOne()
 	var id =Collection.UserId
-	console.log(id)
+	
 	var UpdateCollection = await app.db.UsersId().replaceOne({UserId:id},{UserId:(id+1)})
 	let userId=UpdateCollection.ops[0].UserId
 	if(UpdateCollection.result.nModified){
@@ -957,13 +966,14 @@ accountManager.handleId=async function () {
 			isSeen:false,
 			isSend:false,
 			attachedEls:{
-				id
+				id:id
 		  },
 		  created:new Date()
 		}
+	    
 		await app.db.notification().insertOne(notification);
-		let user = await app.db.sn_user().findOne({_id:+id});
-           
+		let user = await app.db.sn_user().findOne({_id:+id},{projection: { fireBaseAccessToken: true,_id:false }});
+               
 		if(user.fireBaseAccessToken){
 		let data= {
 			"message":{
@@ -1005,7 +1015,7 @@ accountManager.handleId=async function () {
 			  logBlock.failed_count = 0
 			  res= true
 			}
-		  if (failed_count >= bad_login_limit && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval && !user.account_locked ) {
+		 else if (!user.account_locked  && (failed_count >= bad_login_limit) && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval ) {
 			logBlock.account_locked = true
 			logBlock.failed_count = 0
 			logBlock.date_locked = dateNow   
@@ -1034,6 +1044,63 @@ accountManager.handleId=async function () {
 		return year+ "-" + month + "-" + date+" "+hour+":"+minutes+":"+seconds
 	   }
 
+
+
+	   accountManager.getFacebookPages= async (UserId,accessToken, isInsta=false)=>{
+		return new Promise( async (resolve, reject) => {
+			try {
+			let message="account_linked_with_success";
+			var instagram_id = false;
+				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token="+accessToken;
+		   
+				   var res = await rp({uri:accountsUrl,json: true})
+				   
+				   while(true) {
+		   
+					 for (var i = 0;i<res.data.length;i++) {
+					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name,subscribers:res.data[i].fan_count};
+					   
+					   if(res.data[i].instagram_business_account) {
+						 if(!isInsta){
+						   message+="_instagram_facebook";
+						   isInsta=true;
+						 }
+						 instagram_id = res.data[i].instagram_business_account.id;
+						 page.instagram_id=instagram_id;
+						 var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
+						 var resMedia = await rp({uri:media,json: true})
+						 page.instagram_username = resMedia.username;
+					   }
+					   await app.db.fbPage().updateOne({id:res.data[i].id,UserId},{$set:page},{ upsert: true });
+					 }
+					 if(!res.paging || !res.paging.next)
+					 {
+					   break;
+					 }
+					 res = await rp({uri:res.paging.next,json: true})
+				  }	   
+		
+				 if(!isInsta && res.data.length > 0) message+="_facebook";
+				 resolve(message)
+
+				}catch (e) {
+					reject({message:e.message});
+				}
+		})
+	   }
+	   accountManager.updateAndGenerateCode = async (_id,type) =>{
+		return new Promise( async (resolve, reject) => {
+			try{
+				const code = Math.floor(100000 + Math.random() * 900000);
+				let secureCode = {}
+				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20))*5,secureCode.type = type;
+				await app.db.sn_user().updateOne({_id},{$set:{secureCode}})
+				resolve(code)
+			}catch (e) {
+					reject({message:e.message});
+				}
+		}) 
+	   }
 	app.account = accountManager;
 	return app;
 }

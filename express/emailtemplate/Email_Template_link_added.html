@@ -5,11 +5,12 @@
 <html lang="en">
 <!--<![endif]-->
 <head>
-    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Atayen</title>
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <style>
         .main {
             width: 100%;
@@ -33,7 +34,7 @@
 
         .content .top {
             color: #FFF;
-            padding: 15px 10px;
+            padding: 3% 6%;
             margin-bottom: 20px;
         }
 
@@ -51,13 +52,13 @@
         }
 
         .content .mail-header {
-            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
+            background-image: url("https://satt.atayen.us/assets/Images/mail/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
             text-align: center;
             width: 100%;
-            padding-bottom: 35px;
+            padding-bottom: 12%;
         }
 
         .content .mail-header h2 {
@@ -105,7 +106,7 @@
             color: #1F2337;
             font-style: normal;
             font-family: 'Roboto', sans-serif;
-            padding: 30px;
+            padding: 6%;
         }
 
         .content .mail-body .subtitle {
@@ -147,7 +148,6 @@
             font-weight: 900;
             font-size: 18px;
             line-height: 22px;
-            padding: 15px 35px;
             align-items: center;
             text-align: center;
             letter-spacing: 0.03em;
@@ -186,7 +186,7 @@
             line-height: 16px;
             text-align: center;
             letter-spacing: 0.03em;
-            padding: 1px 10px;
+            padding: 1% 3%;;
         }
 
         .content .mail-footer a.border-l {
@@ -194,7 +194,7 @@
         }
     </style>
 </head>
-<body>
+<body class="main" align="center">
     <div class="content">
         <div class="mail-header">
             <div class="top">
@@ -206,18 +206,18 @@
             </div>
                 <img src="https://wallet-preprod.iframe-apps.com:3014/public/img_mail/link-accepted.png" alt="">
                 <h2>{{__ "link_added"}}</h2>
-                <p>{{__ "new_link"}} {{cmp_link}} {{__ "new_link_added"}} {{__ "new_link_campaign"}} {{cmp_name}}</p>
+                <p>{{__ "new_link"}} {{cmp_link}} to {{cmp_name}} {{__ "new_link_campaign"}} </p>
         </div>
         <div class="mail-body">
 
-        <p>{{__ "valid_need"}} <span>{{__ "valid_contact"}}</span></p>
+        <p>{{__ "insert-question"}}</p>
     <div class="subtitle">
         {{__ "valid_wish"}}
     </div>
 </div>
         <div class="mail-footer">
             <a href="{{cmp_satt_faq}}">{{__ "about"}}</a>
-            <a class="border-l" href="{{cmp_satt_faq}}">{{__ "contact"}}</a>
+            <a class="border-l" href="mailto:contact@satt-token.com?subject=I%20contact%20you%20from%20Satt-token.com">{{__ "contact"}}</a>
         </div>
     </div>
 </body>

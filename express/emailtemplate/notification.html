@@ -50,7 +50,7 @@
         }
 
         .content .mail-header {
-            background-image: url("https://satt.atayen.us/assets/Images/mail/public/changeEmail-bg.png");
+            background-image: url("https://satt.atayen.us/assets/Images/mail/changeEmail-bg.png");
             background-size: 100% 100%;
             background-repeat: no-repeat;
             align-items: center;
@@ -97,19 +97,19 @@
             color: #1F2337;
             font-style: normal;
             font-family: 'Poppins', sans-serif;
-            padding: 8px 67px;
+            padding: 8px 0;
         }
-
-        .content .mail-body .subtitle {
-            display: flex;
-            margin-top: 15px;
-            margin-bottom: 15px;
+        .content .mail-body .subtitle{
+            margin: 25px 0;
+        }
+        .content .mail-body .subtitle span{
+            padding:10px 30px;
             background: #F6F6FF;
             border-radius: 20px;
             font-family: 'Poppins', sans-serif;
             font-weight: bold;
             font-size: 18px;
-            height: 51px;
+         
             /* justify-content: center; */
             line-height: 22px;
             text-align: center;
@@ -169,10 +169,9 @@
             border-top: 1px solid #D6D6E8;
             text-align: center;
             color: #4048FF;
-            padding: 25px;
+            padding: 25px 0;
             text-transform: uppercase;
-            margin-left: 35px;
-            margin-right: 35px;
+
         }
 
         .content .mail-footer a {
@@ -190,26 +189,23 @@
             border-left: solid 1px;
         }
         .apply-btn{
-    display:flex;        
+            margin-bottom: 27px;
+            margin-top: 21px;
+        }
+        .apply-btn a{
     border:none !important;
     border-radius: 30px;
     background: #4048FF;
     font-family: Poppins;
-    
+    cursor:pointer;
     font-size: 18px;
+    padding: 10px 20px;
     font-style: normal;
     font-weight: 600;
-    line-height: 27px;
     letter-spacing: 0.01em;
-    text-align: center;
-    width: 48%;
-    margin-bottom: 27px;
-    margin-top: 21px;
-    margin-left: 165px;
-    align-items: center;
+
     color: #F6F6FF;
-    text-align: center;
-    height: 36px;
+
         }
         .text-btn{
     padding-left:9%;
@@ -226,7 +222,7 @@
         }
     </style>
 </head>
-<body>
+<body class="main" align="center">
     <div class="content">
         <div class="mail-header">
             <div class="top">
@@ -235,26 +231,33 @@
                 </div>
             </div>
                 <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
-                <h2>{{notification.name}}  !</h2>
+                <h2>{{notification.name}}...</h2>
                 <p>{{{__ "ask_to_send"}}} </p>
                 <p>{{notification.price}}  {{notification.cryptoCurrency }}</p>
-                <p>{{{__ "wallet_of"}}} {{notification.name}} {{{__ "is"}}} : </p>
+                <p> {{notification.name}}'s {{{__ "wallet_of"}}} : </p>
                 <p><strong>{{notification.wallet}}</strong></p>
         </div>
         <div class="mail-body">
-        <p>{{{__ "here_is_message"}}}</p>
+        <p>{{notification.name}}'s {{{__ "here_is_message"}}}</p>
     <div class="subtitle"">
-        <span style="padding-top: 13px;padding-left: 210px;">
+        <span>
         {{notification.message}}
     </span>
     </div>
-    <div class="apply-btn">
-        <a  style="text-align:center;color:white;padding-left:75px;padding-top:4px;"href="{{SaTT.Url}}">{{__ "send-money"}}</a>
+   
+        
+   <div class="apply-btn">
+        <a href="{{SaTT.Url}}"  >{{__ "send-money"}}</a>
    </div>
+   
+   <p>Does something look incorrect? If so, we recommend holding off from fulfilling the
+    request.</p>
+  
+ 
 </div>
         <div class="mail-footer">
             <a href="{{SaTT.faq}}">{{{__ "about"}}}</a>
-            <a class="border-l" href="{{SaTT.faq}}">{{__ "contact"}}</a>
+            <a class="border-l" href="mailto:contact@satt-token.com?subject=I%20contact%20you%20from%20Satt-token.com">{{__ "contact"}}</a>
         </div>
     </div>
 </body>
