@@ -1624,12 +1624,12 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		finally {
 			if(cred2) app.account.lock(cred2.address);
             if(ret && ret.transactionHash){
-			let campaign = await app.db.campaigns().findOne({hash:idProm},{projection: { token: true,_id:false }})
+			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
 			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
 			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
 			let updatedFUnds = {};
 					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
-                      if(req.body.bounty)	updatedFUnds.isPayed = true; 
+                      if(req.body.bounty) updatedFUnds.isPayed = true; 
                       if(!result.payedAmount) updatedFUnds.payedAmount = amount;
                       else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
 					  await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
