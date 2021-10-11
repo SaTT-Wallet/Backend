@@ -195,35 +195,18 @@ module.exports = function (app) {
 			const limit=parseInt(req.query.limit) || 50;
 			const page=parseInt(req.query.page) || 1
 			const idNode="0"+auth.id;
-			gfsUserLegal.files.find({idNode}).toArray( (err, files) => {
-				const startIndex=(page-1) * limit;
-				const endIndex=page * limit;
-				const userLegal = {}
-				if(endIndex < files.length){
-					userLegal.next ={
-						page:page+1,
-						limit:limit
-					}
-				}
-				if(startIndex > 0){
-						userLegal.previous ={
-						page:page-1,
-						limit:limit
-					}
-				}
-
-			userLegal.legal=files.slice(startIndex, endIndex)
+			const files = await gfsUserLegal.files.find({idNode}).toArray()
+			userLegal={};
+			userLegal.legal=files;
 			for (var i = 0;i<userLegal.legal.length;i++) {
 				if(userLegal.legal[i].validate == "validate") {
 					userLegal.legal[i].validate = true;
 				}
 			}
-
+				
 				res.send(userLegal);
 
-			})
-
-
+			
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -387,8 +370,8 @@ module.exports = function (app) {
 
 
 		  var mailOptions = {
-			  from: email,
-			  to:app.config.SupportMail,
+			  from: app.config.notificationMail,
+			  to:app.config.contactMail,
 			  subject: 'customer service',
 			  html: dynamic_html
 		 };
@@ -444,7 +427,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
      */
 	 app.post('/recieveMoney', async (req, res) =>{
 		try{
-			lang=req.query.lang;
+			let lang= /*req.query.lang ??*/ "en";
 			app.i18n.configureTranslation(lang);
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
@@ -453,7 +436,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 		 await app.account.notificationManager(id, "send_demande_satt_event",{name :req.body.to, price :req.body.price, currency :req.body.cryptoCurrency} )
 
-			 var result= await app.db.sn_user().findOne({email:req.body.to});
+			 var result= await app.db.user().findOne({email:req.body.to});
 				 if(result){
 		await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
 				 }
@@ -469,7 +452,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 					SaTT:{
 						faq : app.config.Satt_faq,
 						imageUrl : app.config.baseEmailImgURl,
-						Url:app.config.basedURL
+						Url:app.config.basedURl
 					},
 					notification:{
 						name:req.body.name,
@@ -485,7 +468,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				var mailOptions = {
 					from: app.config.mailSender,
 					to: req.body.to,
-					subject: 'Demande de paiement',
+					subject: 'Payment request',
 					html: htmlToSend,
 					attachments: [
 						{

@@ -45,8 +45,6 @@ module.exports = async function (app) {
 			await app.db.request().insertOne(answer);
 
 
-
-
 		}
 		else {
 			console.log("response already sent");
@@ -109,20 +107,22 @@ module.exports = async function (app) {
 			return res;
 	}
 
-	ContractToken.limitStats = async function (typeSN,stats,ratios,abos) {
+	ContractToken.limitStats = (typeSN,stats,ratios,abos, limit="") =>{
+       if(!limit){
 		var limits = ratios[4];
-		var limit = limits[parseInt(typeSN)-1];
+		limit = limits[parseInt(typeSN)-1];
+	   }
 		if(limit>0)
 			{
 				limit = parseFloat(limit);
-				var max = limit*parseFloat(abos);
-				if(stats.views > max) {
-					stats.views = max
+				var max = Math.ceil(limit*parseFloat(abos)/100);
+				if(+stats.views > max) {
+					stats.views = max;
 				}
-				if(stats.likes > max) {
+				if(+stats.likes > max) {
 					stats.likes = max
 				}
-				if(stats.shares > max) {
+				if(+stats.shares > max) {
 					stats.shares = max
 				}
 			}
@@ -176,7 +176,7 @@ module.exports = async function (app) {
 	}
 
 	ContractToken.checkAnswerBounty = async function () {
-
+try{
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 
@@ -190,6 +190,11 @@ module.exports = async function (app) {
 			await ContractToken.answerBounty({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idProm:request.id,nbAbos:nbAbos});
 
 		}
+	}
+	catch (err)
+	{
+		reject(err);
+	}
 	}
 
 
@@ -297,6 +302,7 @@ module.exports = async function (app) {
 
 	ContractToken.answerBounty = async function (opts) {
 		return new Promise(async (resolve, reject) => {
+			try {
 			var ctr;
 		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
 			ctr = ContractToken.contract;
@@ -312,10 +318,13 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 
 			//var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
-
 			var receipt = await  ctr.methods.answerBounty(opts.campaignContract,opts.idProm,opts.nbAbos).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerBounty transactionHash",hash)});
 			resolve({result : "OK",hash:receipt.hash});
-
+		}
+		catch (err)
+		{
+			reject(err);
+		}
 		});
 
 	}

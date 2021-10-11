@@ -73,7 +73,7 @@ module.exports = async function (app) {
 
 		app.db.event().insertOne(evt);
 	}
-
+/*
 	eventWatcher.campaignApplied = function (error, evt){
 
 		var idCampaign = evt.returnValues.id;
@@ -92,11 +92,11 @@ module.exports = async function (app) {
 		app.db.event().insertOne(evt);
 
 	}
-
+*/
 
 	app.campaign.contract.events.CampaignCreated ( /*{fromBlock:9467559},*/eventWatcher.campaignCreated);
 	app.campaign.contract.events.CampaignFundsSpent ( /*{fromBlock:0},*/eventWatcher.campaignFundsSpent);
-	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
+//	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
 
 
 	app.campaign.contractBep20WS.events.allEvents  (async function(err,evt) {
@@ -107,10 +107,10 @@ module.exports = async function (app) {
 			if(evt.event == "CampaignFundsSpent") {
 				await eventWatcher.campaignFundsSpent(err,evt)
 			}
-			if(evt.event == "CampaignApplied") {
+		/*	if(evt.event == "CampaignApplied") {
 				await eventWatcher.campaignApplied(err,evt)
 			}
-
+*/
 
 	});
 

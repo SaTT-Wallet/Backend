@@ -31,6 +31,9 @@ module.exports = function (app) {
   var session = require('express-session');
   const countryList = require('country-list');
   const geoip = require('geoip-lite');
+  const speakeasy =require('speakeasy');
+  const qrcode =require('qrcode');
+
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
     app.use(passport.initialize());
@@ -97,10 +100,10 @@ module.exports = function (app) {
         return done(null, false, {error: true, message: 'account_already_used'});
       } else {
         var mongodate = new Date().toISOString();
-        var mydate = mongodate.slice(0, 19).replace('T', ' ');
-        var buff2 = Buffer.alloc(32);
-        var code = crypto.randomFillSync(buff2).toString('hex');
-        var insert = await app.db.sn_user().insertOne({
+         var mydate = mongodate.slice(0, 19).replace('T', ' ');
+         var buff2 = Buffer.alloc(32);
+         var code = crypto.randomFillSync(buff2).toString('hex');
+         let insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           username: username.toLowerCase(),
           email: username.toLowerCase(),
@@ -117,17 +120,18 @@ module.exports = function (app) {
           "userSatt": true
         });
 
-        var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
+        let users = insert.ops;
         const lang = req.query.lang || "en";
-
+        // const code = await app.account.updateAndGenerateCode(users[0]._id,"validation");
         app.i18n.configureTranslation(lang);
         readHTMLFile(__dirname + '/../emails/welcome.html', (err, html) =>{
           var template = handlebars.compile(html);
           var replacements = {
             satt_faq : app.config.Satt_faq,
             satt_url: app.config.basedURl,
+            // code,
             imgUrl: app.config.baseEmailImgURl,
-            validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
+             validation_url: app.config.baseUrl + 'auth/activate/' + users[0]._id + "/" + code,
           };
 
           var htmlToSend = template(replacements);
@@ -150,6 +154,7 @@ module.exports = function (app) {
       };
     }
   ));
+
   passport.use('emailStrategy', new emailStrategy({passReqToCallback: true},
     async function (req, username, password, done) {
       var date = Math.floor(Date.now() / 1000) + 86400;
@@ -181,9 +186,10 @@ module.exports = function (app) {
           if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
           if (oldToken) {
-            var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date, failed_count :0}});
+            await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token, expires_at: date}});
+            await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {failed_count :0}});
           } else {
-            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token, expires_at: date, scope: "user"});
 
           }
           
@@ -291,75 +297,133 @@ module.exports = function (app) {
 */      req.session.user = users[0]._id;
       return cb(null, {id: user._id, token: token, expires_in: date});
       } else {
-        return cb('account_invalide') // (null, false, {error: true, message: 'account_invalide'});
+        return cb('Register First') // (null, false, {error: true, message: 'account_invalide'});
       }
     }))
 
 
-    passport.use('instalink_FbStrategy',new FbStrategy({
-        clientID: app.config.appId,
-        clientSecret: app.config.appSecret,
-        callbackURL: app.config.baseUrl + "callback/facebook_insta",
-        profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
-        passReqToCallback: true
-      },
-      async function (req,accessToken, refreshToken, profile, cb) {
-        let info=req.query.state.split(' ');
-        var user_id=+info[0];
-          var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
-          "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
-          "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
-          var resToken = await rp({uri:longTokenUrl,json: true});
-          var longToken = resToken.access_token;
+       passport.use('instalink_FbStrategy',new FbStrategy({
+      clientID: app.config.appId,
+      clientSecret: app.config.appSecret,
+      callbackURL: app.config.baseUrl + "callback/facebook_insta",
+      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+      passReqToCallback: true
+    },
+    async function (req,accessToken, refreshToken, profile, cb) {
+      let info=req.query.state.split(' ');
+      var user_id=+info[0];
+      var fbProfile = false;
+      var message="account_linked_with_success";
+      var isInsta=false;
+
+        var longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
+        "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
+        "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
+        var resToken = await rp({uri:longTokenUrl,json: true});
+        var longToken = resToken.access_token;
 
 
 
-          var instagram_id = false;
-          var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username&access_token="+accessToken;
+        var instagram_id = false;
+        var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token="+accessToken;
 
-          var res = await rp({uri:accountsUrl,json: true})
-          console.log(res);
-          while(true) {
-
-            for (var i = 0;i<res.data.length;i++) {
-              if(res.data[i].instagram_business_account) {
-                instagram_id = res.data[i].instagram_business_account.id;
-              }
-              await app.db.fbPage().updateOne({id:res.data[i].id},{$set:{UserId:user_id,username:res.data[i].username,token:res.data[i].access_token}},{ upsert: true });
-            }
-            if(!res.paging || !res.paging.next)
-            {
-              break;
-            }
-            res = await rp({uri:res.paging.next,json: true})
-         }
-         var fbProfile = false;
-         fbProfile = await app.db.fbProfile().findOne({UserId:user_id  });
-         if(fbProfile) {
-           var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
-         }
-         else {
-           var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
-           var resMedia = await rp({uri:media,json: true})
-             profile.accessToken = longToken;
-             profile.UserId = user_id;
-             profile.instagram_id = instagram_id;
-             profile.instagram_username = resMedia.username;
-             var res_ins = await app.db.fbProfile().insertOne(profile);
-         }
-        //  if(instagram_id) {
-        //   var mesdiaUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=shortcode,like_count,owner&access_token="+accessToken;
-        //   for (var res = await rp({uri:mesdiaUrl,json: true}); res.paging && res.paging.next;  res = await rp({uri:res.paging.next,json: true})) {
-        //     for (var i =0;i<res.data.length;i++) {
-        //       var media = res.data[i];
-        //       await app.db.ig_media().updateOne({id:media.id},{$set:{shortcode:media.shortcode,like_count:media.like_count,owner:media.owner}},{ upsert: true });
-        //     }
-        //   }
-        // }
-          
-          return cb(null, {id: user_id, token: accessToken});
+        var res = await rp({uri:accountsUrl,json: true})
         
-      }));
+        while(true) {
+
+          for (var i = 0;i<res.data.length;i++) {
+            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};
+            
+            if(res.data[i].instagram_business_account) {
+              if(!isInsta){
+                message+="_instagram_facebook";
+                isInsta=true;
+              }
+              instagram_id = res.data[i].instagram_business_account.id;
+              page.instagram_id=instagram_id;
+              var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
+              var resMedia = await rp({uri:media,json: true})
+              page.instagram_username = resMedia.username;              
+            }
+
+            await app.db.fbPage().updateOne({id:res.data[i].id},{$set:page},{ upsert: true });
+          }
+          if(!res.paging || !res.paging.next)
+          {
+            break;
+          }
+          res = await rp({uri:res.paging.next,json: true})
+       }
+        fbProfile = await app.db.fbProfile().findOne({UserId:user_id  });
+       if(fbProfile) {
+         var res_ins = await app.db.fbProfile().updateOne({UserId:user_id  }, { $set: {accessToken:longToken}});
+       }
+       else {
+           profile.accessToken = longToken;
+           profile.UserId = user_id;
+           }    
+ 
+           var res_ins = await app.db.fbProfile().insertOne(profile);
+     
+      if(!isInsta && res.data.length > 0)
+      message+="_facebook";
+      
+           return cb(null, {id: user_id, token: accessToken},{message:message});
+      
+    }));
+
+    passport.use('facebook_strategy_add_channel', new FbStrategy({
+      clientID: app.config.appId,
+      clientSecret: app.config.appSecret,
+      callbackURL: app.config.baseUrl + "callback/facebookChannel",
+      profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+      passReqToCallback: true
+    },
+    async (req,accessToken, refreshToken, profile, cb) => {
+      
+      const longTokenUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+
+      "/oauth/access_token?grant_type=fb_exchange_token&client_id="+app.config.appId+
+      "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
+      let resToken = await rp({uri:longTokenUrl,json: true});
+      let longToken = resToken.access_token;
+
+      let UserId=+req.query.state.split('|')[0];
+      
+      let isInsta=false;     
+      let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
+      let fbProfile = await app.db.fbProfile().findOne({UserId});
+    if(fbProfile){await app.db.fbProfile().updateOne({UserId}, { $set: {accessToken:longToken}});}
+    else{  
+        [profile.accessToken,profile.UserId] = [longToken,UserId];
+        await app.db.fbProfile().insertOne(profile);
+    }
+      return cb(null, {id: UserId, token: accessToken},{message});
+
+    }));
+
+ app.delete('/google/all/channels', async  (req, response) =>{
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          let auth =	await app.crm.auth(token);
+          await app.db.googleProfile().deleteMany({UserId:auth.id});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
+          app.delete('/facebook/all/channels', async  (req, response) =>{
+            try{
+            const token = req.headers["authorization"].split(" ")[1];
+            let auth =	await app.crm.auth(token);
+            let UserId = auth.id
+            await app.db.fbPage().deleteMany({UserId});
+            await app.db.fbProfile().deleteMany({UserId});
+            response.end(JSON.stringify({message : "deleted successfully"}))
+            }catch(err){
+              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+             }
+            });
 
   passport.use('signup_googleStrategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
@@ -399,7 +463,7 @@ module.exports = function (app) {
           picLink:profile.photos.length ? profile.photos[0].value : false
         });
         console.log(profile)
-        var users = await app.db.sn_user().find({idOnSn2: profile.id}).toArray();
+        var users = insert.ops;
         var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit"});
           req.session.user = users[0]._id;
         return cb(null, {id: profile.id, token: token, expires_in: date});
@@ -451,8 +515,7 @@ module.exports = function (app) {
       let info=req.query.state.split(' ');
         var user_id=+info[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
-        console.log("profile details",profile);
-        console.log("channel details====",res);
+       
         if(res.pageInfo.totalResults ==0){
           cb (null,profile,{
             message: "channel obligatoire"
@@ -502,7 +565,7 @@ module.exports = function (app) {
       passReqToCallback: true
     },
     async function (req,accessToken, refreshToken, profile, cb) {
-        var user_id=+req.query.state;      
+        var user_id=+req.query.state.split('|')[0];      
         var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{access_token:accessToken,part:"snippet",mine:true},json: true});
         console.log("result",res);
         if(res.pageInfo.totalResults ==0){
@@ -511,6 +574,13 @@ module.exports = function (app) {
         })
         }
         var channelId = res.items[0].id;
+	     var channelGoogle = await app.db.googleProfile().find({channelId:channelId}).toArray();
+        if(channelGoogle.length >0 )
+        {
+          cb (null,profile,{
+            message: "account exist"
+        })
+        }else{
         var result = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics,snippet"},json: true});
         user_google={};
             user_google.refreshToken = refreshToken;
@@ -524,16 +594,24 @@ module.exports = function (app) {
             await app.db.googleProfile().insertOne(user_google);
 
         return cb(null, {id: user_id});
+	}
     }));
 
-    app.get('/googleChannels', async function (req, response) {
+
+
+
+    app.get('/socialAccounts', async function (req, response) {
       try{
       const token = req.headers["authorization"].split(" ")[1];
       var auth =	await app.crm.auth(token);
-      var id=+auth.id;
+      var UserId=+auth.id;
       let networks={};
-      var channelsGoogle = await app.db.googleProfile().find({UserId:id}).toArray();
+      var channelsGoogle = await app.db.googleProfile().find({UserId}).toArray();
+	    var channelsTwitter = await app.db.twitterProfile().find({UserId}).toArray();
+	    let channelsFacebook = await app.db.fbPage().find({UserId}).toArray();
         networks.google=channelsGoogle;
+	      networks.twitter=channelsTwitter;
+        networks.facebook=channelsFacebook;
       response.send(JSON.stringify(networks))
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -551,6 +629,64 @@ module.exports = function (app) {
           response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
          }
         });
+
+        app.delete('/twitter/:id', async function (req, response) {
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          auth =	await app.crm.auth(token);
+           var id=req.params.id; 
+          await app.db.twitterProfile().deleteOne({_id:app.ObjectId(id)});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
+        app.delete('/google/all/channels', async  (req, response) =>{
+          try{
+          const token = req.headers["authorization"].split(" ")[1];
+          let auth =	await app.crm.auth(token);       
+          await app.db.googleProfile().deleteMany({UserId:auth.id});
+          response.end(JSON.stringify({message : "deleted successfully"}))
+          }catch(err){
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+           }
+          });
+
+          app.delete('/facebook/all/channels', async  (req, response) =>{
+            try{
+            const token = req.headers["authorization"].split(" ")[1];
+            let auth =	await app.crm.auth(token);       
+            await app.db.fbPage().delete({UserId:auth.id});
+            response.end(JSON.stringify({message : "deleted successfully"}))
+            }catch(err){
+              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+             }
+            });
+
+            app.delete('/facebookChannels/:id', async function (req, response) {
+              try{
+              const token = req.headers["authorization"].split(" ")[1];
+              auth =	await app.crm.auth(token);
+               var id=req.params.id; 
+              await app.db.fbPage().deleteOne({_id:app.ObjectId(id)});
+              response.end(JSON.stringify({message : "deleted successfully"}))
+            }catch(err){
+              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+             }
+            });
+            app.get('/twitter/all', async  (req, response) =>{
+              try{
+              const token = req.headers["authorization"].split(" ")[1];
+              let auth =	await app.crm.auth(token);       
+              await app.db.twitterProfile().deleteMany({UserId:auth.id});
+              response.end(JSON.stringify({message : "deleted successfully"}))
+              }catch(err){
+                response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+               }
+              });
+    
+
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
       consumerSecret:app.config.twitter.consumer_secret,
@@ -578,6 +714,7 @@ module.exports = function (app) {
         profile.access_token_key = accessToken;
         profile.access_token_secret = tokenSecret;
         profile.UserId = user_id;
+        profile.subscibers=res.followers_count;
         profile.username = res.screen_name;
         profile.twitter_id = res.id;
 
@@ -586,6 +723,43 @@ module.exports = function (app) {
     return cb(null, {id: user_id});
   }));
 
+
+  passport.use('add_twitter_link',new TwitterStrategy({
+    consumerKey:app.config.twitter.consumer_key,
+    consumerSecret:app.config.twitter.consumer_secret,
+    callbackURL: app.config.baseUrl +'callback/add/twitter',
+    passReqToCallback: true
+  },
+async function(req, accessToken, tokenSecret, profile, cb) {
+
+  let user_id=+req.session.state.split('|')[0];
+  
+  var tweet = new Twitter({
+    consumer_key: app.config.twitter.consumer_key,
+    consumer_secret: app.config.twitter.consumer_secret,
+    access_token_key: accessToken,
+    access_token_secret:tokenSecret
+  });
+  var res = await tweet.get('account/verify_credentials',{include_email :true});
+  var twitterProfile = await app.db.twitterProfile().findOne({$and:[{UserId:user_id },{twitter_id:res.id}]});
+  if(twitterProfile) {
+    cb(null,profile,{
+      status: false,
+      message: "account exist"
+  })
+  }
+  else {
+      profile.access_token_key = accessToken;
+      profile.access_token_secret = tokenSecret;
+      profile.UserId = user_id;
+      profile.username = res.screen_name;
+      profile.subscibers=res.followers_count;
+      profile.twitter_id = res.id;
+
+      var res_ins = await app.db.twitterProfile().insertOne(profile);
+  }
+  return cb(null, {id: user_id});
+}));
 
 
 
@@ -627,7 +801,7 @@ module.exports = function (app) {
             enabled:1,
             userSatt: true
           });
-          var users = await app.db.sn_user().find({idOnSn3: profile.id}).toArray();
+          var users = insert.ops;
           var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user"});
             req.session.user = users[0]._id;
           return cb(null, {id: users[0]._id, token: token, expires_in: date});
@@ -830,7 +1004,7 @@ module.exports = function (app) {
 
 
   app.get('/addChannel/google/:idUser', (req, res,next)=>{
-    var state=req.params.idUser
+    var state=req.params.idUser+'|'+req.query.redirect
   
   passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"],
 	       accessType: 'offline',
@@ -838,11 +1012,33 @@ module.exports = function (app) {
 	  state:state})(req,res,next)
   });
 
+  // app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
+  //   var state=req.params.idUser
+  
+  // passport.authenticate('facebook_strategy_add_channel', {scope: ['publish_actions', 'manage_pages'],
+	//        accessType: 'offline',
+  //   	   prompt: 'consent',
+	//   state:state})(req,res,next)
+  // });
+
+  app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
+    const state=req.params.idUser+'|'+req.query.redirect;  
+    passport.authenticate('facebook_strategy_add_channel',{ scope: ['email', 'read_insights','read_audience_network_insights','pages_show_list','instagram_basic','instagram_manage_insights','pages_read_engagement'],state})(req,res,next)
+   });
 
 app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
   var state=req.params.idUser+" "+req.params.idCampaign;
   req.session.state=state;
   passport.authenticate('twitter_link',{scope: ['profile','email'],
+  accessType:'offline',
+  prompt:'consent',
+  state:state})(req,res,next)
+});
+
+app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
+  var state=req.params.idUser+"|"+req.query.redirect
+  req.session.state=state;
+  passport.authenticate('add_twitter_link',{scope: ['profile','email'],
   accessType:'offline',
   prompt:'consent',
   state:state})(req,res,next)
@@ -911,8 +1107,8 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     app.get('/callback/facebook_insta',
       passport.authenticate('instalink_FbStrategy'), async function (req, response) {
         try {
-          message="account_linked_with_success";
-          let info=req.query.state.split(' ');
+           message=req.authInfo.message;
+	let info=req.query.state.split(' ');
           campaign_id=info[1];
           response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
         } catch (e) {
@@ -951,13 +1147,31 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
       });
 
 
-      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', {scope: ['profile','email',"https://www.googleapis.com/auth/youtube.readonly"]}), async function (req, response) {
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
         try {
-          response.send('ok');
-        } catch (e) {
+          redirect=req.query.state.split('|')[1]
+          if(req.authInfo.message){
+            message=req.authInfo.message;
+          }else{
+            message="account_linked_with_success";
+          }
+		response.redirect(app.config.basedURl+redirect+'?message='+message); 
+	
+	} catch (e) {
           console.log(e)
         }
         });
+
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
+          try {  
+            redirect=req.query.state.split('|')[1];
+            let message =req.authInfo.message;
+      response.redirect(app.config.basedURl+redirect+'?message='+message); 
+    
+    } catch (e) {
+            console.log(e)
+          }
+          });
   
       app.get('/callback/twitter', passport.authenticate('twitter_link', {scope: ['profile','email']}), async function (req, response) {
         try {
@@ -974,7 +1188,20 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           console.log(e)
         }
         });
-
+        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
+          try {
+            redirect=req.session.state.split('|')[1];
+            if(req.authInfo.message){
+              message=req.authInfo.message;
+            }else{
+              message="account_linked_with_success";
+            }
+            response.redirect(app.config.basedURl+redirect+'?message='+message);
+  
+          } catch (e) {
+            console.log(e)
+          }
+          });
 
   // route for logging out
   app.get('/logout', function(req, res) {
@@ -997,7 +1224,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
       var token = req.header('authorization').split(' ')[1]
       var AccessT = await app.db.accessToken().findOne({token:token});
-   if(AccessT){
+      if(AccessT){
       if(!expiringToken(AccessT.expires_at)){
 
         if(!AccessT['token']){
@@ -1009,10 +1236,9 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           UserId = AccessT['user_id']
         }
 
-        var user = await app.db.sn_user().findOne({'_id':UserId})
+        var user = await app.db.sn_user().findOne({'_id':UserId},{ 'fields': { 'password': 0}})
 
         if(user){
-            delete(user.password)
             res.end(JSON.stringify(user))
         }
         else{
@@ -1064,40 +1290,40 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 
   });
 
-  app.post('/auth/passlost', async function (req, response) {
+  app.post('/auth/passlost', async  (req, response) => {
+    try{
+    let dateNow = Math.floor(Date.now() / 1000);
     const lang = req.query.lang || "en";
-
-	app.i18n.configureTranslation(lang);
+	  app.i18n.configureTranslation(lang);
     var mail = req.body.mail;
     // var res = await app.db.query("Select id from user where email='" + mail + "' ");
-    var users = await app.db.sn_user().find({email: mail}).toArray();
+    var users = await app.db.sn_user().find({email: mail.toLowerCase()}).toArray();
     if (!users.length) {
       response.end('{error:"account not exists"}');
       return;
     }
+    if(users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod){
+      response.end(JSON.stringify({error: true, message: 'account_locked', blockedDate:users[0].date_locked}));
+      return;
+    }
     var buff = Buffer.alloc(64);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var update = await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
+    await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
     let requestDate =app.account.manageTime();
-    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-    ip = ip.split(":")[3]
-    // const geo = geoip.lookup(ip);
-    
-    // let city = geo.city ? geo.city : geo.timezone
-    // let country = countryList.getName(geo.country);
-    // let location = country +', '+city;
+    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
+    if(ip) ip = ip.split(":")[3]
     readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
         ip,
-        // location,
         requestDate,
         satt_url: app.config.basedURl,
         imgUrl: app.config.baseEmailImgURl,
         passrecover_url: app.config.baseUrl + 'auth/passrecover',
         user_id: users[0]._id,
         token_: token,
-        expiring: Math.floor(Date.now() / 1000) + (60*60)
+        satt_faq : app.config.Satt_faq,
+        expiring: dateNow + (60*60)
       };
 
       var htmlToSend = template(replacements);
@@ -1115,6 +1341,63 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
         }
       });
     });
+  }catch (err)
+     {
+      response.end(JSON.stringify({error:err.message?err.message:err.error}));
+    }
+  });
+
+  app.post('/v2/auth/passlost', async  (req, response) => {
+    try{
+    let dateNow = Math.floor(Date.now() / 1000);
+    const lang = req.query.lang || "en";
+	  app.i18n.configureTranslation(lang);
+    let email = req.body.mail.toLowerCase();
+   
+    let users = await app.db.sn_user().find({email}).toArray();
+    if (!users.length) {
+      response.end('{error:"account not exists"}');
+      return;
+    }
+    if(users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod){
+      response.end(JSON.stringify({error: true, message: 'account_locked', blockedDate:users[0].date_locked}));
+      return;
+    }
+
+    let requestDate =app.account.manageTime();
+    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
+    if(ip) ip = ip.split(":")[3]
+    const code = await app.account.updateAndGenerateCode(users[0]._id,"reset");
+    readHTMLFile(__dirname + '/../emails/reset_password_code.html', (err, html)=> {
+      let template = handlebars.compile(html);
+      let replacements = {
+        ip,
+        code,
+        requestDate,
+        satt_url: app.config.basedURl,
+        imgUrl: app.config.baseEmailImgURl,
+        satt_faq : app.config.Satt_faq,
+      };
+
+      let htmlToSend = template(replacements);
+      let mailOptions = {
+        from: app.config.resetpassword_Email,
+        to: users[0].email,
+        subject: 'Satt wallet password recover',
+        html: htmlToSend
+      };
+      transporter.sendMail(mailOptions,  (error, info) =>{
+        if (error) {
+          console.log(error);
+        } else {
+          response.end(JSON.stringify({'message' :'Email was sent to ' + users[0].email}));
+        }
+      });
+    });
+  }catch (err)
+     {
+      response.end(JSON.stringify({error:err.message?err.message:err.error}));
+    }
   });
 
   app.post('/auth/passchange', async function (req, response) {
@@ -1200,24 +1483,20 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
           newEmail.expiring=Date.now() + (3600*20);
           newEmail.code=code;
 
-          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail: newEmail}});
+          await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail}});
 
           let requestDate =app.account.manageTime();
           let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
           ip = ip.split(":")[3];
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
-          // const geo = geoip.lookup(ip);
-          // let city = geo.city ? geo.city : geo.timezone
-          // let country = countryList.getName(geo.country);
-          // let location = country +', '+city;
-
+          
+          // let subject = (lang == "en") ? "Satt wallet change email" : "";
           readHTMLFile(__dirname + '/emailtemplate/changeEmail.html', (err, html) =>{
             var template = handlebars.compile(html);
             var replacements = {
               ip,
               requestDate,
-              // location,
               satt_url: app.config.basedURl,
               back_url: app.config.baseURl,
               satt_faq : app.config.Satt_faq,
@@ -1228,7 +1507,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
             var mailOptions = {
               from: app.config.mailSender,
               to: user.email,
-              subject: 'Satt wallet change email',
+              subject: "Satt wallet change email",
               html: htmlToSend
             };
             transporter.sendMail(mailOptions, function (error, info) {
@@ -1253,7 +1532,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
       const auth = await app.crm.auth(token);
       var id=+auth.id;
       var code=req.body.code;
-      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)});
+      var user = await app.db.sn_user().findOne({_id:Long.fromNumber(id)},{projection: { newEmail: true }});
       if(Date.now()>=user.newEmail.expiring){
         response.end(JSON.stringify("code expired")).status(200);
       }
@@ -1564,7 +1843,7 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
 		const auth = await app.crm.auth(token);
     let walletpass = req.body.password;
     let id = auth.id;
-    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)});
+    let user = await app.db.sn_user().findOne({ _id:Long.fromNumber(id)},{projection: { password: true }});
       if (user.password != synfonyHash(walletpass)) {
       res.end(JSON.stringify({message:"Not the same password"})).status(200);
     } else {
@@ -1621,6 +1900,56 @@ app.get('/link/twitter/:idUser/:idCampaign', (req, res,next)=>{
     } catch (err) {
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
      }
+  })
+
+  app.get('/qrCode/:id', async (req, res) => {
+    try{
+      let id =req.params.id
+      var secret =speakeasy.generateSecret({
+        name:"SaTT_Token "+id
+      });
+    qrcode.toDataURL(secret.otpauth_url,function(err,data){
+    res.send(JSON.stringify({qrCode:data,secret:secret.ascii}));
+    })
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+
+  app.post('/verifyQrCode', async (req, res) => {
+    try{
+      var secret=req.body.secret;
+      var code=req.body.code;
+      var verified =speakeasy.totp.verify({
+        secret:secret,
+        encoding:'ascii',
+        token:code
+      })
+      res.send(JSON.stringify({verifiedCode:verified}));
+
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+  })
+
+  app.post('/confirmCode', async  (req, response) =>{
+    try{
+    
+      let [email,code,type]=[req.body.email,req.body.code,req.body.type];
+      var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
+      if (user.secureCode.code != code) 
+      response.end(JSON.stringify({message:"code incorrect"})).status(200);  
+      else if (Date.now()>=user.secureCode.expiring) 
+      response.end(JSON.stringify({message :"code expired"})).status(200);       
+      else if(user.secureCode.type== type =='activation'){
+         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
+      }
+      response.end(JSON.stringify({message:"code match"})).status(200);
+      
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
   })
 
   return app;

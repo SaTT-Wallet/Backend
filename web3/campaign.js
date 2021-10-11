@@ -546,7 +546,7 @@ module.exports = async function (app) {
 			let ids = [];
 			let idByAddress = [];
 			let userById = [];
-       		for (let i =0;i<idproms.length;i++)
+       			for (let i =0;i<idproms.length;i++)
 			{
 				let prom = await ctr.methods.proms(idproms[i]).call();
 				let count = await app.db.ban().find({idProm:idproms[i]}).count();

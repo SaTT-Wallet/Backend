@@ -142,68 +142,79 @@ module.exports = function (app) {
 
 	  let updateStat= async ()=>{
 		 console.log("debut de traitement")
-		var Events = await app.db.event().find({ prom: { $exists: true} }).toArray();
-		
+		var Events = await app.db.event().find({ prom: { $exists: true} },{projection: { prom: true, _id:false }}).toArray();
+		let dateNow = Math.floor(Date.now() / 1000)
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 			const prom = await app.oracle.getPromDetails(idProm)
-			
-
-				var stat={};
+			let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}})
+            campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
+				var stat={};		
 				stat.status = prom.isAccepted;
 				stat.id_wallet = prom.influencer.toLowerCase();
 				stat.id_campaign = prom.idCampaign;
 				stat.id_prom=idProm;
-				stat.fund = prom.funds.amount;
-				stat.idPost = prom.idPost
-				stat.idUser = prom.idUser
-				stat.isPayed = prom.isPayed;
 				stat.typeSN=prom.typeSN.toString();
-				stat.date=Date('Y-m-d H:i:s');
-				if(stat.typeSN=="1"){
-				//tester si le lien facebook on recupere les stats de facebook;
-				    const idPost = prom.idPost.split(':')
-					oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
-					console.log(oraclesFacebook);
-					stat.shares=oraclesFacebook.shares || '0'
-					stat.likes=oraclesFacebook.likes || '0'
-					stat.views=oraclesFacebook.views || '0'
-					stat.oracle = 'facebook'
-					stat.media_url=oraclesFacebook.media_url || ''
-								}
-				//youtube
-				else if(stat.typeSN=="2"){
-				//tester si le lien youtube on recupere les stats de youtube;
-					oraclesYoutube = await app.oracle.youtube(prom.idPost);
-					stat.shares=oraclesYoutube.shares;
-					stat.likes=oraclesYoutube.likes;
-					stat.views=oraclesYoutube.views;
-					stat.oracle = 'youtube'
-								}
-				//instagram
-				else if(stat.typeSN=="3"){
-				//tester si le lien instagram on recupere les stats de instagram;
-				    var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)});
-				    var UserId=	userWallet.UserId;
-					oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
-					stat.shares=oraclesInstagram.shares || '0';
-					stat.likes=oraclesInstagram.likes || '0';
-					stat.views=oraclesInstagram.views|| '0';
-					stat.oracle = 'instagram';
-					await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
-								}
-				//twitter
-				else{
-				//tester si le lien twitter on recupere les stats de twitter;
-					oraclesTwitter= await app.oracle.twitter(prom.idUser,prom.idPost);
-					stat.shares=oraclesTwitter.shares || '0';
-					stat.likes=oraclesTwitter.likes || '0';
-					stat.views=oraclesTwitter.views || '0';
-					stat.oracle = 'twitter'
-								}
+				stat.fund = prom.funds.amount;
+				stat.idPost = stat.typeSN=="1"? prom.idPost.split(':')[0] :prom.idPost
+				stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
+
+				let userWallet =  stat.status && stat.typeSN=="3" && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+				    			
+                let socialOracle = stat.status && !campaign.isFinished && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(prom.typeSN),stat,userWallet.UserId)
+				    stat.shares= stat.status && socialOracle && socialOracle.shares || '0';
+					stat.likes= stat.status && socialOracle && socialOracle.likes || '0';
+					stat.views= stat.status && socialOracle && socialOracle.views || '0';
+					stat.media_url= stat.status && socialOracle && socialOracle.media_url || '';
+					stat.status && stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
+				// stat.oracle = app.oracle.findBountyOracle(prom.typeSN);
+
+				// if(stat.typeSN=="1" && stat.status){
+				
+				//     const idPost = prom.idPost.split(':')
+				// 	oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
+				
+				// 	stat.shares=oraclesFacebook.shares || '0'
+				// 	stat.likes=oraclesFacebook.likes || '0'
+				// 	stat.views=oraclesFacebook.views || '0'
+				// 	stat.media_url=oraclesFacebook.media_url || ''
+				// 				}
+			
+				// else if(stat.typeSN=="2"  && stat.status){
+				
+				// 	oraclesYoutube = await app.oracle.youtube(prom.idPost);
+				// 	stat.shares=oraclesYoutube.shares || '0';
+				// 	stat.likes=oraclesYoutube.likes;
+				// 	stat.views=oraclesYoutube.views;
+				
+				// 				}
+				
+				// else if(stat.typeSN=="3" && stat.status){
+				
+				//     var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+				//     var UserId=	userWallet.UserId;
+				// 	oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
+				// 	stat.shares=oraclesInstagram.shares || '0';
+				// 	stat.likes=oraclesInstagram.likes || '0';
+				// 	stat.views=oraclesInstagram.views|| '0';
+				// 	stat.media_url=oraclesInstagram.media_url || ''
+
+				// 	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
+				// 				}
+				
+				// else{
+				
+				
+				// 	oraclesTwitter= stat.status && await app.oracle.twitter(prom.idUser,prom.idPost);
+				// 	stat.shares=oraclesTwitter?.shares || '0';
+				// 	stat.likes=oraclesTwitter?.likes || '0';
+				// 	stat.views=oraclesTwitter?.views || '0';
+				// 	stat.media_url=oraclesTwitter?.media_url || ''
+				
+				// 				}
 
 
-                    await app.campaign.UpdateStats(stat); //saving & updating proms in campaign_link.
+               if(socialOracle) await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
 
 					// 	if(prom.isAccepted){
 					// let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
@@ -437,7 +448,7 @@ module.exports = function (app) {
 				startDate,
 				endDate,
 				dataUrl,
-				amount,
+				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
@@ -554,7 +565,7 @@ module.exports = function (app) {
 			var endDate = req.body.endDate;
 			var ERC20token = req.body.ERC20token;
 			var amount = req.body.amount;
-			let [id,contract] = [req.body.idCampaign,req.body.contract];
+			let [id,contract] = [req.body.idCampaign,req.body.contract.toLowerCase()];
 			var bounties = req.body.bounties;
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
@@ -580,8 +591,8 @@ module.exports = function (app) {
 						startDate,
 						endDate,
 						dataUrl,
-						amount,
-						contract:contract.toLowerCase(),
+						funds :[contract,amount],
+						contract:contract,
 						walletId:cred.address
 					};
 					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
@@ -609,7 +620,7 @@ module.exports = function (app) {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
 		   
-		 await  app.db.campaigns().findOne({_id:app.ObjectId(campaign_id)},async  (err, element)=> {
+		 await  app.db.campaigns().findOne({_id:app.ObjectId(campaign_id)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}},async  (err, element)=> {
 		  let owner= Number(element.idNode.substring(1))               
 		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:campaign_id});
 
@@ -784,22 +795,22 @@ module.exports = function (app) {
 			var auth =	await app.crm.auth(access_t);
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
-			if(ret.transactionHash){
-			const ctr = await app.campaign.getCampaignContract(idCampaign);
-			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
-			ret.remaining = fundsInfo.funds[1]
-
-			 await app.db.campaignCrm().findOne({hash : idCampaign},async (err, result)=>{
-				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
-                 await app.db.campaignCrm().updateOne({hash:idCampaign}, {$set: {cost: budget}});
-			 })
-			}
+		
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
 		if(cred) app.account.lock(cred.address);
+		if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+
+			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget, funds : fundsInfo.funds}});
+			 })
+			}
 		}
 	});
 
@@ -925,6 +936,7 @@ module.exports = function (app) {
 	app.post('/v2/campaign/apply', async (req, response) =>{
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
+              	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var typeSN = req.body.typeSN;
@@ -932,13 +944,17 @@ module.exports = function (app) {
 		var idUser = req.body.idUser;
 		let title = req.body.title;
 		let [prom, date,hash] = [{},Math.floor(Date.now()/1000),req.body.hash];
-		
+	
+	
+		let contract =await app.campaign.getCampaignContract(hash);
+			
 		let id = auth.id
 		try {		
 			    let promExist = await app.db.campaign_link().findOne({id_campaign:hash, idPost});
 				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))	
 				
 			    var cred = await app.account.unlock(id,pass);
+				
 				var ret = await app.campaign.applyCampaign(hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
 
@@ -950,82 +966,106 @@ module.exports = function (app) {
 			if(ret && ret.transactionHash){				
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
-				prom[typeSN] = typeSN.toString();
+				prom.typeSN = typeSN.toString();
 				prom.idUser  = ret.idUser 
 				prom.status = false;
 				prom.id_wallet = cred.address.toLowerCase();
-				prom.idPost = ret.idPost
+				prom.idPost = idPost;
 				prom.id_campaign  = hash
-				prom.appliedDate = date
-				await app.db.campaign_link().insertOne(prom);
+				prom.appliedDate = date		
+				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
+				var insert = await app.db.campaign_link().insertOne(prom);
+				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser)
+				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id)
+				prom.views= socialOracle.views,prom.likes= socialOracle.likes,prom.shares= socialOracle.shares || '0';
+			    await app.db.campaign_link().updateOne({_id : app.ObjectId(insert.ops[0]._id)},{$set:prom})
+			
+				let event={id:hash,prom:ret.idProm,type:"applied",date:date,txhash:ret.transactionHash,contract:contract._address.toLowerCase(),owner:contract._address.toLowerCase()};
+				
+				console.log("event",event);
+				await app.db.event().insertOne(event);
 			}
 		}
 	});
 
 
+
 app.get('/userLinks/:id_wallet',async function(req, response) {
 	try{
 		const id_wallet=req.params.id_wallet;
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
+		 const token = req.headers["authorization"].split(" ")[1];
+		 await app.crm.auth(token);
 		const limit=+req.query.limit || 50;
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
+		//const date= Math.round(new Date().getTime()/1000);
+
 		let arrayOfLinks=[];
-        let query= app.campaign.filterProms(req,id_wallet)
+        let query= app.campaign.filterProms(req,id_wallet);
+		var count=await app.db.campaign_link().find({id_wallet}).count();
+
 		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
 
 		for (var i = 0;i<userLinks.length;i++){
-			let campaign=await app.db.campaigns().findOne({hash:userLinks[i].id_campaign});
+			var result=userLinks[i];
+			let campaign=await app.db.campaigns().findOne({hash:result.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 		
 			if(campaign){
-				let contract = await app.campaign.getCampaignContract(campaign.hash);
-				 let fund = await contract.methods.campaigns(campaign.hash).call();
 				const ratio = campaign.ratios;
 				const bounties=campaign.bounties;
-				let link=userLinks[i];
+				var ctr = await app.campaign.getPromContract(result.id_prom);
+				if(!ctr.methods)
+					{
+						continue;
+					}
+				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
-				cmp.bounties = bounties
+				
 				cmp._id = campaign._id
 				cmp.title=campaign.title;
-				cmp.description=campaign.description;
-				cmp.cover=campaign.cover;
-				result=userLinks[i];
-					if(ratio.length && userLinks[i].status === true && fund.funds[1] !== '0'){
-					delete link.isPayed;	     
+				// cmp.description=campaign.description;
+				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+				cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
+
+				if(ratio.length && result.status === true && !cmp.isFinished){
+					result.abosNumber = result.abosNumber || 0;
+					let socialStats = {likes: result.likes, shares:result.shares,views:result.views}
+					let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
+					if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",result.abosNumber,reachLimit);
+					delete result.isPayed;	     
 					cmp.ratio=ratio;	
-					ratio.forEach( num =>{
-											
-											if(num.oracle === result.oracle){
-												if(result.views){
-													view =new Big(num["view"]).times(result.views)
-												}
-												if(result.likes){
-												like =  new Big(num["like"]).times(result.likes) || "0";
-												}														 
-												share = result.shares? new Big(num["share"]).times(result.shares):"0" ;														
-												link.totalToEarn = view.plus(like).plus(share).toFixed();
+					ratio.forEach( num =>{											
+											if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
+
+												let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
+												let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
+												let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
+												result.totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 											}
 										})
 
 					}
-				if(bounties.length && link.status === true && fund.funds[1] !== '0' && campaign.remuneration== "publication") {
+				if(bounties.length && result.status === true && !cmp.isFinished) {
 				cmp.bounties = bounties;
 				bounties.forEach( bounty=>{
-					if(bounty.oracle === link.oracle){
+					if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 					  bounty.categories.forEach( category=>{
-					   if( (+category.minFollowers <= +link.abosNumber)  && (+link.abosNumber <= +category.maxFollowers) ){
-						  link.totalToEarn = category.reward;
-					   }
+					   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+						  result.totalToEarn = category.reward;
+					   }else if(+result.abosNumber > +category.maxFollowers){
+					result.totalToEarn = category.reward;	
+				 }
+
 					  })
 					   }
 					   })
 			  }					
-				link.campaign=cmp;
-				arrayOfLinks.push(link)
+				result.campaign=cmp;
+				arrayOfLinks.push(result)
 			}
 		}
-			response.end(JSON.stringify(arrayOfLinks));
+		var Links ={Links:arrayOfLinks,count:count}
+			response.end(JSON.stringify(Links));
 		}catch(err){
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
@@ -1087,12 +1127,12 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		let pass = req.body.pass;
 		let idCampaign = req.body.idCampaign;
 		let idApply = req.body.idProm;
-        let link = req.body.link
+        let linkProm = req.body.link
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
 		 
 		try {
-			const lang = req.query.lang || "en";
+			const lang = /*req.query.lang ||*/ "en";
 			app.i18n.configureTranslation(lang);
 
 			var cred = await app.account.unlock(auth.id,pass);
@@ -1106,49 +1146,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 			}
 			else {*/
-				let ret = await app.campaign.validateProm(idApply,cred);
-
-                 if(ret.transactionHash){
-
-					const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)});
-					const id = req.body.idUser;
-                    const email = req.body.email;
-
-					await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : link, cmp_hash : idCampaign})
-
-					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
-						if (err) {
-							console.error(err)
-							return
-						  }
-						  let template = handlebars.compile(html);
-
-						    let emailContent = {
-							cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
-							satt_faq : app.config.Satt_faq,
-							satt_url: app.config.basedURl,
-							cmp_title: campaign.title,
-							imgUrl: app.config.baseEmailImgURl
-						    };
-								let htmlToSend = template(emailContent);
-
-								let mailOptions = {
-								 from: app.config.mailSender,
-								 to: email,
-								 subject: 'Your link has been accepted in a campaign',
-								 html: htmlToSend
-							};
-
-						  transporter.sendMail(mailOptions, (error, info)=>{
-								if (error) {
-									res.end(JSON.stringify(error))
-								} else {
-									res.end(JSON.stringify(ret))
-									return;
-								}
-							  });
-							})
-				 }
+				var ret = await app.campaign.validateProm(idApply,cred);
+               
+               
 
 			res.end(JSON.stringify(ret));
 
@@ -1156,8 +1156,49 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			if(cred)
-			app.account.lock(cred.address);
+			if(cred) app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+
+				const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+				const id = req.body.idUser;
+				const email = req.body.email;
+				
+				    let link = await app.db.campaign_link().findOne({id_prom:idApply});	
+                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id);
+					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
+					socialOracle.status = true;
+					
+			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
+				
+
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign})
+                
+				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
+					if (err) {
+						console.error(err)
+						return
+					  }
+					  let template = handlebars.compile(html);
+
+						let emailContent = {
+						cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+						satt_faq : app.config.Satt_faq,
+						satt_url: app.config.basedURl,
+						cmp_title: campaign.title,
+						imgUrl: app.config.baseEmailImgURl
+						};
+							let htmlToSend = template(emailContent);
+
+							let mailOptions = {
+							 from: app.config.mailSender,
+							 to: email,
+							 subject: 'Your link has been accepted in a campaign',
+							 html: htmlToSend
+						};
+
+					  transporter.sendMail(mailOptions);
+						})
+			 }
 		}
 	});
 	app.post('/campaign/start', async function(req, response) {
@@ -1504,32 +1545,48 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		  var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            //  if(prom.funds.amount === "0"){
-			// 	response.end(JSON.stringify({earnings : prom.funds.amount}));
-			// 	return;
-			// }
-			// await ctr.methods.campaigns(prom.idCampaign).call();
+            
 
 			if(req.body.bounty) {
+				if(prom.funds.amount > 0 && prom.isPayed) {
+					var ret = await app.campaign.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
+				let social={"1":"facebook","2":"youtube","3":"instagram","4":"twitter"};
+				let campaign=await app.db.campaigns().findOne({hash:idCampaign},{projection: { bounties: true }});
+				let bountie=campaign.bounties.find( b=> b.oracle == social[prom.typeSN]);;
+				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+				if (+stats >= +maxBountieFollowers){
+					stats= (+maxBountieFollowers - 1).toString()
+				}
+			
 				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
-				await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
+				try {
+					await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
+				}
+				finally {
 				var ret = await app.campaign.getGains(idProm,cred2);
 				response.end(JSON.stringify(ret));
 				return;
+				}
 			}
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
-			stats = await app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos);
-
+		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
+                        stats.views = stats.views || 0
+                        stats.shares = stats.shares || 0
+			            stats.likes = stats.likes || 0
 
 			//console.log(prevstat);
 
-			requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+		      requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
 
 			if(!requests.length)
 			{
@@ -1545,20 +1602,18 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 							requests = [{id:idRequest}];
 				}
 			}
-			if(requests.length)
+			if(requests && requests.length)
 			{
 				console.log("updateOracle",requests);
 				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+								console.log({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views}, "answer Call logged data")
+
 				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
 			}
 
 
 			var ret = await app.campaign.getGains(idProm,cred2);
-			let contract = await app.campaign.getCampaignContract(idCampaign);			
-			var result = await contract.methods.campaigns(idCampaign).call();
-			await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
-				funds:result.funds}});
-			
+						
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
@@ -1567,18 +1622,23 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
 		finally {
-			if(cred2)
-			app.account.lock(cred2.address);
+			if(cred2) app.account.lock(cred2.address);
+            if(ret && ret.transactionHash){
+				let contract = await app.campaign.getCampaignContract(idCampaign);			
+			    var result = await contract.methods.campaigns(idCampaign).call();
+			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+				funds:result.funds}});
+                if(req.body.bounty) await app.db.campaign_link().updateOne({id_prom:idProm},{$set:{isPayed:true}});
+			}		
 		}
 	});
 
-	app.post('/campaign/remaining', async function(req, response) {
+	app.post('/campaign/remaining', async (req, response) =>{
 
 		var pass = req.body.pass;
-		var idCampaign = req.body.idCampaign;
+		let idCampaign = req.body.idCampaign;
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth =	await app.crm.auth(token);
-
 		try {
 			var cred = await app.account.unlock(auth.id,pass);
 			var ret = await app.campaign.getRemainingFunds(idCampaign,cred);
@@ -1587,7 +1647,11 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-			app.account.lock(cred.address);
+		       if(cred) app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+				await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+					funds:["","0"]}});
+			}
 		}
 	});
 
@@ -2274,7 +2338,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + 'myWallet/campaign/' + idCampaign,
+				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,
@@ -2299,8 +2363,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 	}
 	})
-
-
 
 
 /**
