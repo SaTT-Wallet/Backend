@@ -22,8 +22,8 @@ module.exports = async function (app) {
 			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
-		var campaign = await app.db.campaigns().findOne({hash:idCampaign});
-		if(campaign)
+		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
+		if(campaign && campaign.contract)
 		{
 
 			return campaignManager.getContract(campaign.contract);
@@ -35,7 +35,7 @@ module.exports = async function (app) {
 	campaignManager.getPromContract = async function (idProm) {
 
 
-		var proms = await app.db.event().find({prom:idProm}).toArray();
+		var proms = await app.db.event().find({prom:idProm},{projection: { contract: true, _id:false }}).toArray();
 		//console.log("log",proms)
 		if(proms.length) {
 			return 	 campaignManager.getContract(proms[0].contract);
@@ -47,11 +47,13 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
-		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() )
+		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase() )
 			return campaignManager.contract;
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase())
 				return campaignManager.contractBep20;
-		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() )
+		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase())
 				return campaignManager.contract;
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
 				return campaignManager.contractBep20;
@@ -325,7 +327,7 @@ module.exports = async function (app) {
 
 	campaignManager.updatePromStats = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
-
+          try{
 			var gas = 200000;
 			var ctr =  await campaignManager.getPromContract(idProm);
 			var gasPrice = await ctr.getGasPrice();
@@ -333,12 +335,17 @@ module.exports = async function (app) {
 			var receipt = await ctr.methods.updatePromStats(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
 			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
+		}
+		catch (err)
+		{
+			reject(err);
+		}
 		})
 	}
 
 	campaignManager.updateBounty = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
-
+			try {
 			var gas = 200000;
 			var ctr =  await campaignManager.getPromContract(idProm);
 			var gasPrice = await ctr.getGasPrice();
@@ -346,6 +353,11 @@ module.exports = async function (app) {
 			var receipt = await ctr.methods.updateBounty(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			resolve({transactionHash:receipt.transactionHash,idProm:idProm,events:receipt.events});
 			console.log(receipt.transactionHash,"confirmed",idProm,"stats updated ");
+		}
+		catch (err)
+		{
+			reject(err);
+		}
 		})
 	}
 
@@ -399,7 +411,7 @@ module.exports = async function (app) {
 						 if(!result.payedAmount){
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
 						 } else{
-							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed();
+							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed(2);
 							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
 						 }
 					 })
@@ -534,8 +546,7 @@ module.exports = async function (app) {
 			let ids = [];
 			let idByAddress = [];
 			let userById = [];
-
-			for (let i =0;i<idproms.length;i++)
+       		for (let i =0;i<idproms.length;i++)
 			{
 				let prom = await ctr.methods.proms(idproms[i]).call();
 				let count = await app.db.ban().find({idProm:idproms[i]}).count();
@@ -563,6 +574,62 @@ module.exports = async function (app) {
 			for (let i =0;i<proms.length;i++)
 			{
 				proms[i].meta = userById[idByAddress[proms[i].influencer.toLowerCase()]];
+			}
+
+		}
+			resolve(proms)
+
+
+	   }catch (err)
+			{
+				reject(err);
+			}
+
+
+		})
+	}
+
+
+	campaignManager.influencersLinks = async (links)=>{
+		return new Promise(async (resolve, reject) => {
+
+       try{
+        
+		// let idproms = await ctr.methods.getProms(idCampaign).call();
+		let proms = links;
+
+		if(links.length) {
+			let addresses = [];
+			let ids = [];
+			let idByAddress = [];
+			let userById = [];
+			
+       			for (let i =0;i<links.length;i++)
+			{
+				// let prom = await ctr.methods.proms(idproms[i]).call();
+				// let count = await app.db.ban().find({idProm:idproms[i]}).count();
+				// prom.id =links[i];
+				if(addresses.indexOf(links[i].id_wallet)== -1)
+					addresses.push(links[i].id_wallet.slice(2).toLowerCase());
+			}
+
+			let wallets = await app.db.wallet().find({"keystore.address": { $in: addresses } }).toArray();
+			for (let i =0;i<wallets.length;i++)
+			{
+				idByAddress["0x"+wallets[i].keystore.address] ="id#"+wallets[i].UserId;
+				if(ids.indexOf(wallets[i].UserId)== -1)
+					ids.push(wallets[i].UserId);
+			}
+			//let users = await app.db.user().find({_id: { $in: ids } },{_id :1},{email:1}).toArray();
+			let users = await app.db.user().find({_id: { $in: ids } }).project({email:1,_id:1,picLink:1,lastName:1,firstName:1}).toArray()
+			
+			for (let i =0;i<users.length;i++)
+      {
+				userById["id#"+users[i]._id] = users[i];
+			}
+			for (let i =0;i<proms.length;i++)
+			{
+				proms[i].meta = userById[idByAddress[proms[i].id_wallet.toLowerCase()]];
 			}
 
 		}
@@ -612,11 +679,13 @@ module.exports = async function (app) {
 		return campaigns;
 	}
 
-
-	campaignManager.UpdateStats = async obj =>{
-
-	let campaign = await app.db.campaigns().findOne({hash : obj.id_campaign});
-	if(campaign && campaign.bounties.length) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
+	campaignManager.getReachLimit=(campaignRatio,oracle)=>{
+		let ratio=campaignRatio.find(item=>item.oracle==oracle);
+		if(ratio)return ratio.reachLimit
+		return;
+	}
+	campaignManager.UpdateStats = async (obj,campaign) =>{	
+	if(campaign && (campaign.bounties.length || (campaign.ratios && campaignManager.getReachLimit(campaign.ratios,obj.oracle)))) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			return;
@@ -629,7 +698,7 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+		
 	campaignManager.campaignStats = async idCampaign =>{
 		return new Promise( async (resolve, reject) => {
           try{
@@ -656,7 +725,8 @@ module.exports = async function (app) {
 		const status=req.query.status;
 		const blockchainType=req.query.blockchainType || '';
 		 
-		const dateJour=new Date() /1000;
+		const dateJour= Math.round(new Date().getTime()/1000);
+		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
 		if(req.query.oracles == undefined){
 			oracles=["twitter","facebook","youtube","instagram"];
 		}
@@ -666,7 +736,6 @@ module.exports = async function (app) {
 	}else{
 		oracles=req.query.oracles;
 	}
-	
 		const remainingBudget=req.query.remainingBudget || [];
 		
 		var query = {};
@@ -684,9 +753,11 @@ module.exports = async function (app) {
 		}
 		if(status =="active" ){
 			if(remainingBudget.length==2){
-				query["$and"].push({"funds.1":{ $gte :  remainingBudget[0], $lte : remainingBudget[1]}});
+			query["$and"].push({"funds.1":{ $exists: true}});
+			query["$and"].push({"funds.1": { $gte :  remainingBudget[0],$lte :  remainingBudget[1]}});
 			}
-			query["$and"].push({"$or":[{"endDate":{ $gte : dateJour }},{"funds.1":{$eq: "0"}}]});
+			query["$and"].push({"endDate":{ $gt : dateJour }});
+			query["$and"].push({"funds.1":{$ne: "0"}});
 			query["$and"].push({"hash":{ $exists: true}});
 		}
 		else if(status=="finished"){
@@ -701,19 +772,39 @@ module.exports = async function (app) {
 		return query
 	}
 
-
 	campaignManager.filterProms=(req, id_wallet)=>{
 		
 		const status=req.query.status;
+		
 		var query = {};
 		query["$and"]=[];
 		query["$and"].push({id_wallet});
-		if(status == false)	query["$and"].push({"status":false});
+		
+		let oracles= req.query.oracles
+		 oracles= typeof oracles === "string" ? [oracles] : oracles;
+		if (oracles) query["$and"].push({"oracle":{ $in: oracles}});
+
+		if(status == "false")	query["$and"].push({"status":false});
 		if(status == "rejected") query["$and"].push({"status":"rejected"});
-        if(status == true) query["$and"].push({"status":true});
+        if(status == "true") query["$and"].push({"status":true});
 
 		return query
 	}
+
+	campaignManager.getPromApplyStats= async(oracles, link,id)=>{
+		return new Promise( async (resolve, reject) => {
+			try{
+		let socialOracle = {}
+		if(oracles == "facebook" || oracles == "twitter") socialOracle = await app.oracle[oracles](link.idUser,link.idPost);
+		else if(oracles == "youtube") socialOracle = await app.oracle.youtube(link.idPost);
+		else  socialOracle = await app.oracle.instagram(id,link.idPost)
+         delete socialOracle.date
+		 resolve(socialOracle)
+		}catch (e) {
+				reject({message:e.message});
+			}
+	})
+}
 
 	app.campaign = campaignManager;
 	return app;
