@@ -48,14 +48,22 @@ module.exports = async function (app) {
 	campaignManager.getContractToken = async function (token) {
 
 		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() ||
-		 token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase() )
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase()||
+		 token.toLowerCase() == app.config.ctrs.token.address.daiMainnet.toLowerCase()
+		 )
 			return campaignManager.contract;
-		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase())
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase() ||
+		token.toLowerCase() == app.config.ctrs.bep20.address.busdMainnet.toLowerCase()
+		)
 				return campaignManager.contractBep20;
 		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() ||
-		 token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase())
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.daiTesnet.toLowerCase()
+		 )
 				return campaignManager.contract;
-		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase()||
+		token.toLowerCase() == app.config.ctrs.bep20.address.busdTestnet.toLowerCase()
+		)
 				return campaignManager.contractBep20;
 
 			}
