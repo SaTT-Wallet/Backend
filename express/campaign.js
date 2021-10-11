@@ -162,11 +162,11 @@ module.exports = function (app) {
 				let userWallet =  stat.status && stat.typeSN=="3" && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 				    			
                 let socialOracle = stat.status && !campaign.isFinished && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(prom.typeSN),stat,userWallet.UserId)
-				    stat.shares= stat.status && socialOracle && socialOracle.shares || '0';
-					stat.likes= stat.status && socialOracle && socialOracle.likes || '0';
-					stat.views= stat.status && socialOracle && socialOracle.views || '0';
-					stat.media_url= stat.status && socialOracle && socialOracle.media_url || '';
-					stat.status && stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
+				    stat.shares=  socialOracle && socialOracle.shares || '0';
+					stat.likes=  socialOracle && socialOracle.likes || '0';
+					stat.views=  socialOracle && socialOracle.views || '0';
+					stat.media_url=  socialOracle && socialOracle.media_url || '';
+					 stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 				// stat.oracle = app.oracle.findBountyOracle(prom.typeSN);
 
 				// if(stat.typeSN=="1" && stat.status){
@@ -967,7 +967,7 @@ module.exports = function (app) {
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
 				prom.typeSN = typeSN.toString();
-				prom.idUser  = ret.idUser 
+				prom.idUser  = idUser 
 				prom.status = false;
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
@@ -1624,14 +1624,26 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		finally {
 			if(cred2) app.account.lock(cred2.address);
             if(ret && ret.transactionHash){
+			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
+			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
+			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
+			let updatedFUnds = {};
+					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
+                      if(req.body.bounty) updatedFUnds.isPayed = true; 
+                      if(!result.payedAmount) updatedFUnds.payedAmount = amount;
+                      else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
+					  await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
+					 })
+				
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
 				funds:result.funds}});
-                if(req.body.bounty) await app.db.campaign_link().updateOne({id_prom:idProm},{$set:{isPayed:true}});
+                // if(req.body.bounty) await app.db.campaign_link().updateOne({id_prom:idProm},{$set:{isPayed:true}});
 			}		
 		}
 	});
+
 
 	app.post('/campaign/remaining', async (req, response) =>{
 

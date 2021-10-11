@@ -1020,7 +1020,8 @@ accountManager.handleId=async function () {
 			logBlock.failed_count = 0
 			logBlock.date_locked = dateNow   
 			res= true
-		  }   
+		  } 
+		  else if(failed_count >= bad_login_limit) logBlock.failed_count = 1
 		}
 	if(Object.keys(logBlock).length) await app.db.sn_user().updateOne({_id : user._id},{$set:logBlock})
         
