@@ -399,23 +399,7 @@ module.exports = async function (app) {
 				var ctr = await campaignManager.getPromContract(idProm);
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
-
-
-                let prom = await ctr.methods.proms(idProm).call();
-				// await ctr.methods.results(prom.results.prevResult).call();
-
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-
-                if(receipt.transactionHash){
-					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
-						 if(!result.payedAmount){
-							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
-						 } else{
-							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed(2);
-							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
-						 }
-					 })
-				}
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);
 			}
@@ -806,6 +790,18 @@ module.exports = async function (app) {
 		}catch (e) {
 				reject({message:e.message});
 			}
+	})
+}
+
+campaignManager.getTransactionAmount = async (transactionHash, network) =>{
+	return new Promise( async (resolve, reject) => {
+		try{
+	let data = 	await network.getTransactionReceipt(transactionHash)
+	let hex = network == app.web3.eth ? await app.web3.utils.hexToNumberString(data.logs[0].data) : await app.web3Bep20.utils.hexToNumberString(data.logs[0].data)
+	resolve(hex)
+}catch (e) {
+		reject({message:e.message});
+}
 	})
 }
 
