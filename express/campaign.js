@@ -1624,6 +1624,19 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		finally {
 			if(cred2) app.account.lock(cred2.address);
             if(ret && ret.transactionHash){
+			let campaign = await app.db.campaigns().findOne({hash:idProm},{projection: { token: true,_id:false }})
+			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
+			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
+			
+					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
+						 if(!result.payedAmount){
+							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : amount}});
+						 } else{
+							let payed = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
+							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
+						 }
+					 })
+				
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
@@ -1632,6 +1645,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			}		
 		}
 	});
+
 
 	app.post('/campaign/remaining', async (req, response) =>{
 
