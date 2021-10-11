@@ -288,6 +288,10 @@ module.exports = function (app) {
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
+        if(user.account_locked){ 
+          let message = `account_locked:${user.date_locked}`
+          return cb ({error: true, message, blockedDate:user.date_locked}) 
+      }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -491,6 +495,10 @@ module.exports = function (app) {
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
+        if(user.account_locked){ 
+          let message = `account_locked:${user.date_locked}`
+          return cb ({error: true, message, blockedDate:user.date_locked}) 
+      }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -830,6 +838,10 @@ async function(req, accessToken, tokenSecret, profile, cb) {
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
+        if(user.account_locked){ 
+          let message = `account_locked:${user.date_locked}`
+          return cb ({error: true, message, blockedDate:user.date_locked}) 
+      }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -1550,7 +1562,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
   })
 
-	app.post('/auth/passrecover', async function (req, response) {
+
+  app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;
 	  var code = req.body.code;
 	  var id = req.body.id;
@@ -1573,6 +1586,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 	  }
 
 	});
+
+
+	// app.post('/auth/passrecover', async  (req, response) =>{
+	//   let [newpass,email] = [req.body.newpass,req.body.email];
+	//   let user = await app.db.sn_user().findOne({ email},{projection: { _id: true }});
+	//   user &&  await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: synfonyHash(newpass),enabled:1}});
+	// 	response.end(JSON.stringify('successfully'));
+	// });
 
 
 
