@@ -33,9 +33,7 @@ module.exports = function (app) {
   const geoip = require('geoip-lite');
   const speakeasy =require('speakeasy');
   const qrcode =require('qrcode');
-  var secret =speakeasy.generateSecret({
-    name:"SaTT_Token"
-  });
+
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
     app.use(passport.initialize());
@@ -1925,9 +1923,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
      }
   })
 
-  app.get('/qrCode', async (req, res) => {
+  app.get('/qrCode/:id', async (req, res) => {
     try{
-     
+      let id =+req.params.id
+      var secret =speakeasy.generateSecret({
+        name:"SaTT_Token "+id
+      });
+      await app.db.sn_user().updateOne({_id:id},{$set:{secret:secret.ascii}});
     qrcode.toDataURL(secret.otpauth_url,function(err,data){
     res.send(JSON.stringify({qrCode:data}));
     })
@@ -1939,10 +1941,12 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.post('/verifyQrCode', async (req, res) => {
     try{
-      
+      let id =+req.body.id
+      let user=await app.db.sn_user().findOne({_id:id})
+       secret=user.secret;
       var code=req.body.code;
       var verified =speakeasy.totp.verify({
-        secret:secret.ascii,
+        secret:secret,
         encoding:'ascii',
         token:code
       })
