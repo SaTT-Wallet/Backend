@@ -304,7 +304,24 @@ module.exports = async function (app) {
   		});
   	}
 
-
+    bep20Manager.sendBep20 = async function (token,to,amount,credentials) {
+      return new Promise(async (resolve, reject) => {
+  
+        try {
+          var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
+          var gasPrice = await app.web3Bep20.eth.getGasPrice();
+          var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
+  
+          var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
+          resolve({transactionHash:receipt.transactionHash,address:credentials.address,to:to,amount:amount});
+          console.log(receipt.transactionHash,"confirmed transfer from",credentials.address,"to",to,"amount",amount);
+        }
+        catch (err) {
+          
+          reject(err)
+        }
+      });
+    }
       bep20Manager.initEventHandlers = async () => {
 
         web3.eth.transactionBlockTimeout = 100;
