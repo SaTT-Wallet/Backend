@@ -47,11 +47,13 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
-		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() )
+		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase() )
 			return campaignManager.contract;
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase())
 				return campaignManager.contractBep20;
-		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() )
+		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase())
 				return campaignManager.contract;
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
 				return campaignManager.contractBep20;
