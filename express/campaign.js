@@ -162,11 +162,11 @@ module.exports = function (app) {
 				let userWallet =  stat.status && stat.typeSN=="3" && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 				    			
                 let socialOracle = stat.status && !campaign.isFinished && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(prom.typeSN),stat,userWallet.UserId)
-				    stat.shares= stat.status && socialOracle && socialOracle.shares || '0';
-					stat.likes= stat.status && socialOracle && socialOracle.likes || '0';
-					stat.views= stat.status && socialOracle && socialOracle.views || '0';
-					stat.media_url= stat.status && socialOracle && socialOracle.media_url || '';
-					stat.status && stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
+				    stat.shares=  socialOracle && socialOracle.shares || '0';
+					stat.likes=  socialOracle && socialOracle.likes || '0';
+					stat.views=  socialOracle && socialOracle.views || '0';
+					stat.media_url=  socialOracle && socialOracle.media_url || '';
+					 stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
 				// stat.oracle = app.oracle.findBountyOracle(prom.typeSN);
 
 				// if(stat.typeSN=="1" && stat.status){
@@ -967,7 +967,7 @@ module.exports = function (app) {
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
 				prom.typeSN = typeSN.toString();
-				prom.idUser  = ret.idUser 
+				prom.idUser  = idUser 
 				prom.status = false;
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
