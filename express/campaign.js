@@ -141,7 +141,7 @@ module.exports = function (app) {
 
 
 	  let updateStat= async ()=>{
-		 console.log("debut de traitement")
+
 		var Events = await app.db.event().find({ prom: { $exists: true} },{projection: { prom: true, _id:false }}).toArray();
 		let dateNow = Math.floor(Date.now() / 1000)
 		Events.forEach(async (event)=>{
@@ -1020,10 +1020,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					}
 				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
-				
-				cmp._id = campaign._id
-				cmp.title=campaign.title;
-				// cmp.description=campaign.description;
+								
+				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title;
 				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
 				cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
 
@@ -1553,9 +1551,8 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					response.end(JSON.stringify(ret));
 					return;
 				}
-				let social={"1":"facebook","2":"youtube","3":"instagram","4":"twitter"};
 				let campaign=await app.db.campaigns().findOne({hash:idCampaign},{projection: { bounties: true }});
-				let bountie=campaign.bounties.find( b=> b.oracle == social[prom.typeSN]);;
+				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));;
 				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
@@ -1628,18 +1625,17 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
 			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
 			let updatedFUnds = {};
-					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
-                      if(req.body.bounty) updatedFUnds.isPayed = true; 
-                      if(!result.payedAmount) updatedFUnds.payedAmount = amount;
-                      else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
-					  await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
-					 })
+			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
+               if(req.body.bounty) updatedFUnds.isPayed = true; 
+               if(!result.payedAmount) updatedFUnds.payedAmount = amount;
+               else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
+			   await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
+		     })
 				
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
 				funds:result.funds}});
-                // if(req.body.bounty) await app.db.campaign_link().updateOne({id_prom:idProm},{$set:{isPayed:true}});
 			}		
 		}
 	});

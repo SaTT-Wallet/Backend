@@ -971,6 +971,8 @@ async function(req, accessToken, tokenSecret, profile, cb) {
         return done(null, false, {error: true, message: 'account_already_used'});
       } else {
         var mongodate = new Date().toISOString();
+        var buff2 = Buffer.alloc(32);
+        var codex = crypto.randomFillSync(buff2).toString('hex');
          let insert = await app.db.sn_user().insertOne({
           _id:Long.fromNumber(await app.account.handleId()),
           username: username.toLowerCase(),
@@ -984,7 +986,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
           locale: "en",
           onBoarding : false,
           enabled: 0,
-          confirmation_token: code,
+          confirmation_token: codex,
           "userSatt": true
         });
 
@@ -1042,7 +1044,6 @@ async function(req, accessToken, tokenSecret, profile, cb) {
 
       })(req, res, next);
   });
-
 
 
   app.post('/auth/email', (req, res, next) => {
