@@ -33,9 +33,7 @@ module.exports = function (app) {
   const geoip = require('geoip-lite');
   const speakeasy =require('speakeasy');
   const qrcode =require('qrcode');
-  var secret =speakeasy.generateSecret({
-    name:"SaTT_Token"
-  });
+
   try {
     app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8',resave: true, saveUninitialized :true})); // session secret
     app.use(passport.initialize());
@@ -288,6 +286,10 @@ module.exports = function (app) {
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
+        if(user.account_locked){ 
+          let message = `account_locked:${user.date_locked}`
+          return cb ({error: true, message, blockedDate:user.date_locked}) 
+      }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -491,6 +493,10 @@ module.exports = function (app) {
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
+        if(user.account_locked){ 
+          let message = `account_locked:${user.date_locked}`
+          return cb ({error: true, message, blockedDate:user.date_locked}) 
+      }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -830,6 +836,10 @@ async function(req, accessToken, tokenSecret, profile, cb) {
         // if(!user.enabled){
         //   return cb('account not verified')
         // }
+        if(user.account_locked){ 
+          let message = `account_locked:${user.date_locked}`
+          return cb ({error: true, message, blockedDate:user.date_locked}) 
+      }
         var oldToken = await app.db.accessToken().findOne({user_id: user._id});
         if (oldToken) {
           var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
@@ -949,6 +959,91 @@ async function(req, accessToken, tokenSecret, profile, cb) {
       })(req, res, next);
   });
 
+  passport.use( 'signup_emailStrategy_code',new LocalStrategy({passReqToCallback: true},
+    async function (req, username, password, done) {
+      var date = Math.floor(Date.now() / 1000) + 86400;
+      var buff = Buffer.alloc(32);
+
+      var token = crypto.randomFillSync(buff).toString('hex');
+      var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
+
+      if (users.length) {
+        return done(null, false, {error: true, message: 'account_already_used'});
+      } else {
+        var mongodate = new Date().toISOString();
+        var buff2 = Buffer.alloc(32);
+        var codex = crypto.randomFillSync(buff2).toString('hex');
+         let insert = await app.db.sn_user().insertOne({
+          _id:Long.fromNumber(await app.account.handleId()),
+          username: username.toLowerCase(),
+          email: username.toLowerCase(),
+          password: synfonyHash(password),
+          created: mongodate,
+          updated: mongodate,
+          idSn: 0,
+          account_locked: false, 
+          failed_count: 0,
+          locale: "en",
+          onBoarding : false,
+          enabled: 0,
+          confirmation_token: codex,
+          "userSatt": true
+        });
+
+        let users = insert.ops;
+        const lang = req.query.lang || "en";
+        const code = await app.account.updateAndGenerateCode(users[0]._id,"validation");
+        app.i18n.configureTranslation(lang);
+        readHTMLFile(__dirname + '/emailtemplate/email_validated_code.html', (err, html) =>{
+          var template = handlebars.compile(html);
+          var replacements = {
+            satt_faq : app.config.Satt_faq,
+            satt_url: app.config.basedURl,
+            code,
+            imgUrl: app.config.baseEmailImgURl,
+          };
+
+          var htmlToSend = template(replacements);
+          var mailOptions = {
+            from: app.config.mailSender,
+            to: users[0].email.toLowerCase(),
+            subject: 'Satt wallet activation',
+            html: htmlToSend
+          };
+          transporter.sendMail(mailOptions,  (error, info) =>{
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' );
+            }
+          });
+        });
+        req.session.user = users[0]._id;
+        return done(null, {id: users[0]._id, token: token, expires_in: date, noredirect: req.body.noredirect});
+      };
+    }
+  ));
+
+  app.post('/v2/auth/signup', (req, res, next) => {
+    passport.authenticate('signup_emailStrategy_code',
+      (err, user, info) => {
+        if (err) {
+          return res.end(JSON.stringify(err))
+        }
+
+        if (!user) {
+          return res.end(JSON.stringify(info))
+        }
+
+        req.logIn(user, function(err) {
+          
+          var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user"};
+          return res.end(JSON.stringify(param))
+          //return res.redirect('/');
+        });
+
+      })(req, res, next);
+  });
 
 
   app.post('/auth/email', (req, res, next) => {
@@ -1550,7 +1645,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
   })
 
-	app.post('/auth/passrecover', async function (req, response) {
+
+  app.post('/auth/passrecover', async function (req, response) {
 	  var newpass = req.body.newpass;
 	  var code = req.body.code;
 	  var id = req.body.id;
@@ -1572,6 +1668,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 		return;
 	  }
 
+	});
+
+
+	app.post('/v2/auth/passrecover', async  (req, response) =>{
+	  let [newpass,email] = [req.body.newpass,req.body.email];
+	  let user = await app.db.sn_user().findOne({ email},{projection: { _id: true }});
+	  user &&  await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: synfonyHash(newpass),enabled:1}});
+		response.end(JSON.stringify('successfully'));
 	});
 
 
@@ -1904,9 +2008,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
      }
   })
 
-  app.get('/qrCode', async (req, res) => {
+  app.get('/qrCode/:id', async (req, res) => {
     try{
-     
+      let id =+req.params.id
+      var secret =speakeasy.generateSecret({
+        name:"SaTT_Token "+id
+      });
+      await app.db.sn_user().updateOne({_id:id},{$set:{secret:secret.ascii}});
     qrcode.toDataURL(secret.otpauth_url,function(err,data){
     res.send(JSON.stringify({qrCode:data}));
     })
@@ -1918,10 +2026,12 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.post('/verifyQrCode', async (req, res) => {
     try{
-      
+      let id =+req.body.id
+      let user=await app.db.sn_user().findOne({_id:id})
+       secret=user.secret;
       var code=req.body.code;
       var verified =speakeasy.totp.verify({
-        secret:secret.ascii,
+        secret:secret,
         encoding:'ascii',
         token:code
       })

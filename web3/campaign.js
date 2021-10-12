@@ -47,13 +47,23 @@ module.exports = async function (app) {
 
 	campaignManager.getContractToken = async function (token) {
 
-		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() )
+		if(token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase()||
+		 token.toLowerCase() == app.config.ctrs.token.address.daiMainnet.toLowerCase()
+		 )
 			return campaignManager.contract;
-		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase())
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase() ||
+		token.toLowerCase() == app.config.ctrs.bep20.address.busdMainnet.toLowerCase()
+		)
 				return campaignManager.contractBep20;
-		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() )
+		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
+		 token.toLowerCase() == app.config.ctrs.token.address.daiTesnet.toLowerCase()
+		 )
 				return campaignManager.contract;
-		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase())
+		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase()||
+		token.toLowerCase() == app.config.ctrs.bep20.address.busdTesnet.toLowerCase()
+		)
 				return campaignManager.contractBep20;
 
 			}
@@ -397,23 +407,7 @@ module.exports = async function (app) {
 				var ctr = await campaignManager.getPromContract(idProm);
 				var gas = 200000;
 				var gasPrice = await ctr.getGasPrice();
-
-
-                let prom = await ctr.methods.proms(idProm).call();
-				// await ctr.methods.results(prom.results.prevResult).call();
-
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-
-                if(receipt.transactionHash){
-					 await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
-						 if(!result.payedAmount){
-							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : prom.funds.amount}});
-						 } else{
-							let payed = new Big(result.payedAmount).plus(new Big(prom.funds.amount)).toFixed(2);
-							await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:{payedAmount : payed}});
-						 }
-					 })
-				}
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
 				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);
 			}
@@ -682,14 +676,14 @@ module.exports = async function (app) {
 		if(ratio)return ratio.reachLimit
 		return;
 	}
-	campaignManager.UpdateStats = async (obj,campaign) =>{
+	campaignManager.UpdateStats = async (obj,campaign) =>{	
 	if(campaign && (campaign.bounties.length || (campaign.ratios && campaignManager.getReachLimit(campaign.ratios,obj.oracle)))) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			return;
 			}
 			else{
-				if(result.status === "rejected" || !obj.status){
+				if(result.status === "rejected"){
 				   return;
 				}
 				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
@@ -801,6 +795,18 @@ module.exports = async function (app) {
 		}catch (e) {
 				reject({message:e.message});
 			}
+	})
+}
+
+campaignManager.getTransactionAmount = async (transactionHash, network) =>{
+	return new Promise( async (resolve, reject) => {
+		try{
+	let data = 	await network.getTransactionReceipt(transactionHash)
+	let hex = network == app.web3.eth ? await app.web3.utils.hexToNumberString(data.logs[0].data) : await app.web3Bep20.utils.hexToNumberString(data.logs[0].data)
+	resolve(hex)
+}catch (e) {
+		reject({message:e.message});
+}
 	})
 }
 
