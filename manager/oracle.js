@@ -49,14 +49,14 @@ module.exports = async function (app) {
 		});
 	};
 
-	oracleManager.instagramAbos = async function (idPost) {
+	oracleManager.instagramAbos = async  (idPost) =>{
 		return new Promise(async (resolve, reject) => {
 
 		var followers=0;
 		var campaign_link = await app.db.campaign_link().findOne({idPost});
 		var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
 
- 		var fbPage = await app.db.fbPage().findOne({$and:[{UserId:userWallet.UserId },{ instagram_id: { $exists: true} }]});
+ 		var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{ instagram_id: { $exists: true} }]});
 		 if(fbPage){
 				var instagram_id=fbPage.instagram_id;
 				var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
@@ -343,12 +343,13 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		})
 	};
 	oracleManager.findBountyOracle = typeSN =>{
-       let oracle;
-	   if(typeSN == "1") oracle = 'facebook'
-	   if(typeSN == "2") oracle = 'youtube'
-	   if(typeSN == "3") oracle = 'instagram'
-	   if(typeSN == "4")oracle = 'twitter'
-	  return oracle
+	  return (
+		typeSN =='1' ? "facebook" : 
+		typeSN =='2' ? "youtube" : 
+		typeSN == '3' ? "instagram" : 
+		typeSN == "4" ? "twitter":
+		null // else
+	  );
 	}
 
 	app.oracle = oracleManager;

@@ -44,7 +44,7 @@ module.exports = function (app) {
 
 	app.get("/count/instagram/:id", async function (req, response) {
 
-		var res = await app.oracle.instagramAbos(req.params.id);
+		var res = await app.oracle.instagramAbos(req.params.id,"");
 			response.end(""+res);
 	});
 
