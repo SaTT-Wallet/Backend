@@ -1065,6 +1065,7 @@ const Grid = require('gridfs-stream');
        const ratio = campaign.ratios
 	   const bounties =campaign.bounties
 	   let abosNumber =  info.abosNumber || 0;
+	   info.currency = campaign.token.name
        if(ratio.length){
 		let socialStats = {likes: info.likes, shares:info.shares,views:info.views}
 		let reachLimit =  app.campaign.getReachLimit(ratio,info.oracle); 
@@ -1213,7 +1214,7 @@ const Grid = require('gridfs-stream');
 			allProms[i].isAccepted = allProms[i].status	
 			allProms[i].influencer = allProms[i].id_wallet             
 		    if(allProms[i].status == "rejected") continue;
-		   
+		
 		   allProms[i].id = allProms[i].id_prom;		   
 		   allProms[i].numberOfLikes = allProms[i].likes || "0"
 		   allProms[i].numberOfViews = allProms[i].views || '0'

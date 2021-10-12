@@ -62,7 +62,7 @@ module.exports = async function (app) {
 		 )
 				return campaignManager.contract;
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase()||
-		token.toLowerCase() == app.config.ctrs.bep20.address.busdTestnet.toLowerCase()
+		token.toLowerCase() == app.config.ctrs.bep20.address.busdTesnet.toLowerCase()
 		)
 				return campaignManager.contractBep20;
 
