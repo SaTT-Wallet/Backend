@@ -2407,13 +2407,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
    app.put('/campaign/:idCampaign/update', async (req, res) => {
 	try {
 		 let campaign = req.body;
-		 if(req.body.ratios){
-        req.body.ratios.forEach(elem =>{
-			elem.view  = new Big(elem.view).times(etherInWei).toFixed(0) || '0';
-			elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
-			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
-		})
-		 }
 		const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
