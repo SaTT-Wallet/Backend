@@ -56,7 +56,7 @@ module.exports = function (app) {
 
  addAuthLog =(info)=>{
    let pwd = info.pwd ? info.pwd : "";
-  logger.log('info',`${info.state} ${info.ip} ${info.mail} ${pwd}`);
+  logger.log('info',`${info.ip} ${info.state} ${info.mail} ${pwd}`);
 }
 
   var readHTMLFile = function(path, callback) {
@@ -87,6 +87,13 @@ module.exports = function (app) {
     const base64 = buff.toString('base64');
     return base64;
   }
+
+  app.use((req, res, next)=>{
+   let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
+   if(ip) ip = ip.split(":")[3];
+   req.addressIp = ip
+   next()
+  })
 
   passport.use( 'signup_emailStrategy',new LocalStrategy({passReqToCallback: true},
     async function (req, username, password, done) {
@@ -162,8 +169,8 @@ module.exports = function (app) {
       var token = crypto.randomFillSync(buff).toString('hex');
       
       let logInfo = {};
-      let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-      ip = ip.split(":")[3];
+      let ip = req.addressIp;
+      
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
@@ -1407,8 +1414,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     var token = crypto.randomFillSync(buff).toString('hex');
     await app.db.sn_user().updateOne({_id: Long.fromNumber(users[0]._id)}, {$set: {confirmation_token: token}});
     let requestDate =app.account.manageTime();
-    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
-    if(ip) ip = ip.split(":")[3]
+    let ip = req.addressIp;
+    
     readHTMLFile(__dirname + '/../emails/reset_password.html', (err, html)=> {
       var template = handlebars.compile(html);
       var replacements = {
@@ -1462,8 +1469,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
 
     let requestDate =app.account.manageTime();
-    let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || "";
-    if(ip) ip = ip.split(":")[3]
+    let ip = req.addressIp;
+    
     const code = await app.account.updateAndGenerateCode(users[0]._id,"reset");
     readHTMLFile(__dirname + '/../emails/reset_password_code.html', (err, html)=> {
       let template = handlebars.compile(html);
@@ -1583,8 +1590,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           await app.db.sn_user().updateOne({_id:Long.fromNumber(auth.id)},{ $set:{newEmail}});
 
           let requestDate =app.account.manageTime();
-          let ip = req.headers['x-forwarded-for'] ||req.socket.remoteAddress || null;
-          ip = ip.split(":")[3];
+          let ip = req.addressIp;
+          
           const lang = req.query.lang || "en";
           app.i18n.configureTranslation(lang);
           
@@ -1716,6 +1723,42 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
 
     })
+
+
+    app.post('/v2/resend-confirmation-token/:email', async  (req, response) => {
+      try{
+        const email=req.params.email;
+        const user = await app.db.sn_user().findOne({email: email},{projection: { email: true}});
+        const code = await app.account.updateAndGenerateCode(user._id,"validation");
+        const lang = req.query.lang || "en";
+        app.i18n.configureTranslation(lang);
+        readHTMLFile(__dirname + '/emailtemplate/email_validated_code.html', (err, html) =>{
+          var template = handlebars.compile(html);
+          var replacements = {
+            satt_faq : app.config.Satt_faq,
+            satt_url: app.config.basedURl,
+            code,
+            imgUrl: app.config.baseEmailImgURl,
+          };
+          var htmlToSend = template(replacements);
+          var mailOptions = {
+            from: app.config.mailSender,
+            to: user.email,
+            subject: 'Satt wallet activation',
+            html: htmlToSend
+          };
+          transporter.sendMail(mailOptions,  (error, info) =>{
+            if (error) {
+              console.log(error);
+            } else {
+              response.end(JSON.stringify({'message' :'Email sent'}));
+            }
+          });
+        });
+      }catch(err){
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+      } 
+      })
 
     app.get('/referral', async (req, res) => {
       let referral = req.query.code
