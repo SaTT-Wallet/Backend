@@ -1169,7 +1169,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
 
-				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign})
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign, hash:ret.transactionHash})
                 
 				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 					if (err) {
@@ -2404,16 +2404,17 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
  *        "200":
  *          description: success:updated
  */
-   app.put('/campaign/:idCampaign/update', async (req, res) => {
+   app.put('/campaign/update/:idCampaign', async (req, res) => {
 	try {
 		 let campaign = req.body;
-		 if(req.body.ratios){
-        req.body.ratios.forEach(elem =>{
-			elem.view  = new Big(elem.view).times(etherInWei).toFixed(0) || '0';
-			elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
-			elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
-		})
-		 }
+		 campaign.updatedAt=Date.now();
+		//  if(req.body.ratios){
+        // req.body.ratios.forEach(elem =>{
+		// 	elem.view  = new Big(elem.view).times(etherInWei).toFixed(0) || '0';
+		// 	elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
+		// 	elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
+		// })
+		//  }
 		const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
@@ -2447,7 +2448,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		await app.crm.auth(token);
 		let campaign = req.body;
 		campaign.updatedAt=Date.now();
-	/*	if(req.body.ratios){
+		if(req.body.ratios){
         req.body.ratios.forEach(elem =>{
 			elem.view  = new Big(elem.view).times(etherInWei).toFixed(0) || '0';
 			elem.share = new Big(elem.share).times(etherInWei).toFixed(0) || '0';
@@ -2462,7 +2463,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				})		
 				return bounty;
 			  })
-		 }*/
+		 }
 		const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
