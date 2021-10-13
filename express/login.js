@@ -43,20 +43,11 @@ module.exports = function (app) {
   }
 
 
-  const logger = createLogger({
-    format: format.combine(
-        format.timestamp({
-            format: 'YYYY-MM-DD HH:mm:ss'
-        }),
-        format.printf(info => `${info.timestamp} ${info.message}`)        
-    ),    
-    transports: [new transports.File({ filename: 'auth.log' })]
-    
-})
+
 
  addAuthLog =(info)=>{
    let pwd = info.pwd ? info.pwd : "";
-  logger.log('info',`${info.ip} ${info.state} ${info.mail} ${pwd}`);
+  app.account.logger.log('info',`${info.ip} ${info.state} ${info.mail} ${pwd}`);
 }
 
   var readHTMLFile = function(path, callback) {
