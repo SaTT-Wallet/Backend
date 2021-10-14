@@ -1102,6 +1102,34 @@ accountManager.handleId=async function () {
 				}
 		}) 
 	   }
+	   accountManager.logger = createLogger({
+			format: format.combine(
+				format.timestamp({
+					format: 'YYYY-MM-DD HH:mm:ss'
+				}),
+				format.printf(info => `${info.timestamp} ${info.message}`)        
+			),    
+			transports: [new transports.File({ filename: '/var/log/node-satt/app.log' })]		
+		})
+		accountManager.errorLogger = createLogger({
+			format: format.combine(
+				format.timestamp({
+					format: 'YYYY-MM-DD HH:mm:ss'
+				}),
+				format.printf(info => `${info.timestamp} ${info.message}`)        
+			),    
+			transports: [new transports.File({ filename: '/var/log/node-satt/app-error.log' })]		
+		})
+	   accountManager.sysLog = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+		if(app.config.testnet /*|| level=="highest"*/){
+			accountManager.logger.log('info',` ${origin} FN_${source} ${data}`);
+		}
+	   }
+	   accountManager.sysLogError = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+		if(app.config.testnet /*|| level=="highest"*/){
+			accountManager.logger.log('error',` ${origin} FN_${source} ${data}`);
+		}
+	   }
 	app.account = accountManager;
 	return app;
 }
