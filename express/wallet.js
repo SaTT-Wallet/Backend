@@ -1230,7 +1230,7 @@ module.exports = function (app) {
 
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			
+			req.body.token = !req.body.token ?"0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
 			var ret = await app.bep20.sendBep20(req.body.token,to,amount,cred);
 			
 			response.end(JSON.stringify(ret));
