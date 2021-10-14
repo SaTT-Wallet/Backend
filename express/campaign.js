@@ -2416,7 +2416,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		// 	elem.like = new Big(elem.like).times(etherInWei).toFixed(0) || '0';
 		// })
 		//  }
-		const result = await app.db.campaignCrm().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+		const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 } catch (err) {
