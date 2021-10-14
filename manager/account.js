@@ -17,11 +17,13 @@ module.exports = async function (app) {
     const xChangePricesUrl = app.config.xChangePricesUrl;
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
     const bad_login_limit = app.config.bad_login_limit;
-	
+	const { createLogger, format, transports } = require('winston');
+	const { combine, timestamp, label, prettyPrint, myFormat } = format;
+
 	var ctrwSaTT =  new app.web3.eth.Contract(app.config.ctrs.wSaTT.abi,app.config.ctrs.wSaTT.address.mainnet);
 
 	var accountManager = {};
-
+	
 	app.prices = false;
 
 	accountManager.createSeed = async function (userId,pass) {
