@@ -17,10 +17,32 @@ module.exports = async function (app) {
     const xChangePricesUrl = app.config.xChangePricesUrl;
 	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
     const bad_login_limit = app.config.bad_login_limit;
-	
+	const { createLogger, format, transports } = require('winston');
+	const { combine, timestamp, label, prettyPrint, myFormat } = format;
+
 	var ctrwSaTT =  new app.web3.eth.Contract(app.config.ctrs.wSaTT.abi,app.config.ctrs.wSaTT.address.mainnet);
 
 	var accountManager = {};
+
+	accountManager.logger = createLogger({
+
+		format: format.combine(
+
+			format.timestamp({
+
+				format: 'YYYY-MM-DD HH:mm:ss'
+
+			}),
+
+			format.printf(info => `${info.timestamp} ${info.message}`)        
+
+		),    
+
+		transports: [new transports.File({ filename: 'auth.log' })]
+
+		
+
+	})
 
 	app.prices = false;
 
@@ -1101,6 +1123,46 @@ accountManager.handleId=async function () {
 					reject({message:e.message});
 				}
 		}) 
+	   }
+
+	   /*logger object of application logs */
+	   accountManager.sysLogger = createLogger({
+			format: format.combine(
+				format.timestamp({
+					format: 'YYYY-MM-DD HH:mm:ss'
+				}),
+				format.printf(info => `${info.timestamp} ${info.message}`)        
+			),    
+			transports: [new transports.File({ filename: '/var/log/node-satt/app.log' })]		
+		})
+
+		/*logger object of application errors log */
+		accountManager.errorLogger = createLogger({
+			format: format.combine(
+				format.timestamp({
+					format: 'YYYY-MM-DD HH:mm:ss'
+				}),
+				format.printf(info => `${info.timestamp} ${info.message}`)        
+			),    
+			transports: [new transports.File({ filename: '/var/log/node-satt/app-error.log' })]		
+		})
+
+		/*global function to write into "app.log" all application's logs
+			log: dateTime origin FN_name log's_data
+		*/
+	   	accountManager.sysLog = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+		if(app.config.testnet /*|| level=="highest"*/){
+			accountManager.sysLogger.log('info',` ${origin} FN_${source} ${data}`);
+		}
+	   }
+	   
+	   /*global function to write into "app-error.log" all application's logs error 
+	   		log: dateTime origin FN_name log's_data
+	   */
+	   accountManager.sysLogError = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+		if(app.config.testnet /*|| level=="highest"*/){
+			accountManager.errorLogger.log('error',` ${origin} FN_${source} ${data}`);
+		}
 	   }
 	app.account = accountManager;
 	return app;
