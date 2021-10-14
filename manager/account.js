@@ -1104,6 +1104,7 @@ accountManager.handleId=async function () {
 				}
 		}) 
 	   }
+	   /*logger object of application logs */
 	   accountManager.logger = createLogger({
 			format: format.combine(
 				format.timestamp({
@@ -1113,6 +1114,7 @@ accountManager.handleId=async function () {
 			),    
 			transports: [new transports.File({ filename: '/var/log/node-satt/app.log' })]		
 		})
+		/*logger object of application errors log */
 		accountManager.errorLogger = createLogger({
 			format: format.combine(
 				format.timestamp({
@@ -1122,11 +1124,17 @@ accountManager.handleId=async function () {
 			),    
 			transports: [new transports.File({ filename: '/var/log/node-satt/app-error.log' })]		
 		})
-	   accountManager.sysLog = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+		/*global function to write into "app.log" all application's logs
+			log: dateTime origin FN_name log's_data
+		*/
+	   	accountManager.sysLog = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
 		if(app.config.testnet /*|| level=="highest"*/){
 			accountManager.logger.log('info',` ${origin} FN_${source} ${data}`);
 		}
 	   }
+	   /*global function to write into "app-error.log" all application's logs error 
+	   		log: dateTime origin FN_name log's_data
+	   */
 	   accountManager.sysLogError = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
 		if(app.config.testnet /*|| level=="highest"*/){
 			accountManager.logger.log('error',` ${origin} FN_${source} ${data}`);
