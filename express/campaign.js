@@ -448,12 +448,11 @@ module.exports = function (app) {
 				startDate,
 				endDate,
 				dataUrl,
-				coverSrc:null,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
-			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
 		}
 		}
 
@@ -596,7 +595,7 @@ module.exports = function (app) {
 						contract:contract,
 						walletId:cred.address
 					};
-					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
 				}
 				
 			}
