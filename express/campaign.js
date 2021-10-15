@@ -448,12 +448,11 @@ module.exports = function (app) {
 				startDate,
 				endDate,
 				dataUrl,
-				coverSrc:null,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
-			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
 		}
 		}
 
@@ -596,7 +595,7 @@ module.exports = function (app) {
 						contract:contract,
 						walletId:cred.address
 					};
-					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
 				}
 				
 			}
@@ -1022,7 +1021,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
 								
-				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title;
+				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=campaign.funds[1];
 				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
 				cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
 
@@ -1170,7 +1169,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
 
-				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign, hash:ret.transactionHash})
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign, hash:ret.transactionHash,promHash:idApply})
                 
 				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 					if (err) {
@@ -2336,7 +2335,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		 let id = +req.body.idUser
 
-		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign})
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign,promHash:idLink})
 
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
@@ -2730,6 +2729,45 @@ console.log(Links)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 
+		})
+
+
+		/*
+     @link : /campaign/:idCampaign/stats
+     @description: récupère le stat d'une campagne s'il existe
+     @params:
+     @Input idCampaign : identifiant de la campaign
+     */
+	 app.get('/campaign/:idCampaign/stats/:impression', async (req, res) => {
+		try {
+		       const idCampaign = req.params.idCampaign;
+			   const minImpression =+req.params.impression
+			   let campaignLink=[];  
+				const links= await app.db.campaign_link().find({$and:[{id_campaign:idCampaign},{"views": { $gte :  minImpression}}]}).toArray();
+				for (let i=0;i<links.length;i++){
+				let link=links[i];
+						
+				let userWallet= await app.db.wallet().findOne({"keystore.address":link.id_wallet.substr(2)});
+				let user=await app.db.sn_user().findOne({_id:userWallet.UserId});
+				let lienTweet="https://twitter.com/"+link.idUser+"/status/"+link.idPost
+				let gainsRetire =new Big(link.payedAmount).div(10**18);
+				 let obj={
+					 nombre_impression:link.views,
+				 	usernameSaTT:user.username,
+				 	emailSaTT:user.email,
+				 	usernameTwitter:link.idUser,
+				 	nombreFollowersTwitter:link.abosNumber,
+					lienTweet,
+					gainsRetire
+				 }
+				 campaignLink.push(obj);
+				}
+			
+				res.send(JSON.stringify({links :campaignLink}));
+
+		}catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
 		})
 	return app;
 }
