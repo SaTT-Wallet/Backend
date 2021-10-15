@@ -448,6 +448,7 @@ module.exports = function (app) {
 				startDate,
 				endDate,
 				dataUrl,
+				coverSrc:null,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
