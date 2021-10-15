@@ -111,6 +111,7 @@ module.exports = function (app) {
           idSn: 0,
           account_locked: false, 
           failed_count: 0,
+
           locale: "en",
           onBoarding : false,
           enabled: 0,
@@ -2086,6 +2087,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       else if (Date.now()>=user.secureCode.expiring) 
       response.end(JSON.stringify({message :"code expired"})).status(200);       
       else if(user.secureCode.type== type =='activation'){
+       
          await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
       response.end(JSON.stringify({message:"code match"})).status(200);
