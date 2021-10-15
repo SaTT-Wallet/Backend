@@ -111,6 +111,7 @@ module.exports = function (app) {
           idSn: 0,
           account_locked: false, 
           failed_count: 0,
+
           locale: "en",
           onBoarding : false,
           enabled: 0,
@@ -179,7 +180,7 @@ module.exports = function (app) {
         
         if (user.password == synfonyHash(password)) {
           [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
-          addAuthLog(logInfo)
+         // addAuthLog(logInfo)
            let validAuth =  await app.account.isBlocked(user,true)
           if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
@@ -201,7 +202,7 @@ module.exports = function (app) {
           let validAuth = await app.account.isBlocked(user,false);
           
           [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
-          addAuthLog(logInfo)        
+         // addAuthLog(logInfo)        
           if(validAuth.res) return done(null, false, {error: true, message: 'account_locked', blockedDate:validAuth.blockedDate});
            return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
@@ -2050,7 +2051,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       });
       await app.db.sn_user().updateOne({_id:id},{$set:{secret:secret.ascii}});
     qrcode.toDataURL(secret.otpauth_url,function(err,data){
-    res.send(JSON.stringify({qrCode:data}));
+    res.send(JSON.stringify({qrCode:data, secret:secret.base32, googleAuthName: `SaTT_Token ${req.params.id}`}));
     })
     } catch (err) {
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
@@ -2078,20 +2079,22 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.post('/confirmCode', async  (req, response) =>{
     try{
-	    var date = Math.floor(Date.now() / 1000) + 86400;
-         var buff = Buffer.alloc(32);
-      var token = crypto.randomFillSync(buff).toString('hex');
+      var authMethod = {message:"code match"}
+      var buff = Buffer.alloc(32);
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
       var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
       if (user.secureCode.code != code) 
       response.end(JSON.stringify({message:"code incorrect"})).status(200);  
       else if (Date.now()>=user.secureCode.expiring) 
       response.end(JSON.stringify({message :"code expired"})).status(200);       
-      else if(user.secureCode.type === type){
-	    await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token:token, expires_at: date, scope: "user"});     
-         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
+      else if(user.secureCode.type =="validation" && type == "validation"){
+        let date = Math.floor(Date.now() / 1000) + 86400;     
+        let token = crypto.randomFillSync(buff).toString('hex');
+        authMethod.token = token, authMethod.expires_in = date,
+	      await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token:token, expires_at: date, scope: "user"});     
+        await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
-      response.end(JSON.stringify({message:"code match",token, expires_in: date})).status(200);
+      response.end(JSON.stringify(authMethod)).status(200);
       
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
