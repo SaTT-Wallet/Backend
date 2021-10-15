@@ -448,12 +448,11 @@ module.exports = function (app) {
 				startDate,
 				endDate,
 				dataUrl,
-				coverSrc:null,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
-			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
 		}
 		}
 
@@ -596,7 +595,7 @@ module.exports = function (app) {
 						contract:contract,
 						walletId:cred.address
 					};
-					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
 				}
 				
 			}
@@ -1022,7 +1021,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
 								
-				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title;
+				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=campaign.funds[1];
 				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
 				cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
 

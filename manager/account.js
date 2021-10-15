@@ -24,26 +24,6 @@ module.exports = async function (app) {
 
 	var accountManager = {};
 
-	accountManager.logger = createLogger({
-
-		format: format.combine(
-
-			format.timestamp({
-
-				format: 'YYYY-MM-DD HH:mm:ss'
-
-			}),
-
-			format.printf(info => `${info.timestamp} ${info.message}`)        
-
-		),    
-
-		transports: [new transports.File({ filename: 'auth.log' })]
-
-		
-
-	})
-
 	app.prices = false;
 
 	accountManager.createSeed = async function (userId,pass) {

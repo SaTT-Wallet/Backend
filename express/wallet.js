@@ -1250,7 +1250,6 @@ module.exports = function (app) {
 		}
 	})
 
-
 		/**
  * @swagger
  * /v3/bep20/transfer:
