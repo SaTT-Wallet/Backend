@@ -2051,7 +2051,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       });
       await app.db.sn_user().updateOne({_id:id},{$set:{secret:secret.ascii}});
     qrcode.toDataURL(secret.otpauth_url,function(err,data){
-    res.send(JSON.stringify({qrCode:data}));
+    res.send(JSON.stringify({qrCode:data, secret:secret.base32, googleAuthName: `SaTT_Token ${req.params.id}`}));
     })
     } catch (err) {
       res.end(JSON.stringify({"error":err.message?err.message:err.error}));
