@@ -1170,7 +1170,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
 
-				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign, hash:ret.transactionHash})
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProm, cmp_hash : idCampaign, hash:ret.transactionHash,promHash:idApply})
                 
 				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
 					if (err) {
@@ -2336,7 +2336,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		 let id = +req.body.idUser
 
-		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign})
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign,promHash:idLink})
 
 		readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
