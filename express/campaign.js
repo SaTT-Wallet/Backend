@@ -2731,5 +2731,44 @@ console.log(Links)
 		}
 
 		})
+
+
+		/*
+     @link : /campaign/:idCampaign/stats
+     @description: récupère le stat d'une campagne s'il existe
+     @params:
+     @Input idCampaign : identifiant de la campaign
+     */
+	 app.get('/campaign/:idCampaign/stats/:impression', async (req, res) => {
+		try {
+		       const idCampaign = req.params.idCampaign;
+			   const minImpression =+req.params.impression
+			   let campaignLink=[];  
+				const links= await app.db.campaign_link().find({$and:[{id_campaign:idCampaign},{"views": { $gte :  minImpression}}]}).toArray();
+				for (let i=0;i<links.length;i++){
+				let link=links[i];
+						
+				let userWallet= await app.db.wallet().findOne({"keystore.address":link.id_wallet.substr(2)});
+				let user=await app.db.sn_user().findOne({_id:userWallet.UserId});
+				let lienTweet="https://twitter.com/"+link.idUser+"/status/"+link.idPost
+				let gainsRetire =new Big(link.payedAmount).div(10**18);
+				 let obj={
+					 nombre_impression:link.views,
+				 	usernameSaTT:user.username,
+				 	emailSaTT:user.email,
+				 	usernameTwitter:link.idUser,
+				 	nombreFollowersTwitter:link.abosNumber,
+					lienTweet,
+					gainsRetire
+				 }
+				 campaignLink.push(obj);
+				}
+			
+				res.send(JSON.stringify({links :campaignLink}));
+
+		}catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		})
 	return app;
 }
