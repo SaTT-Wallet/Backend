@@ -1144,6 +1144,12 @@ accountManager.handleId=async function () {
 			accountManager.errorLogger.log('error',` ${origin} FN_${source} ${data}`);
 		}
 	   }
+
+	   accountManager.log = (...arguments)=>{
+        let logInfo = arguments.map((element)=>{ return JSON.stringify(element)}).join(' ');
+		if(app.config.testnet) accountManager.sysLogger.log('info',logInfo);	
+	   }
+
 	app.account = accountManager;
 	return app;
 }
