@@ -1130,7 +1130,7 @@ accountManager.handleId=async function () {
 		/*global function to write into "app.log" all application's logs
 			log: dateTime origin FN_name log's_data
 		*/
-	   	accountManager.sysLog = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+	   	accountManager.sysLog = (source,data,origin/*,level="medium"*/)=>{
 		if(app.config.testnet /*|| level=="highest"*/){
 			accountManager.sysLogger.log('info',` ${origin} FN_${source} ${data}`);
 		}
@@ -1139,7 +1139,7 @@ accountManager.handleId=async function () {
 	   /*global function to write into "app-error.log" all application's logs error 
 	   		log: dateTime origin FN_name log's_data
 	   */
-	   accountManager.sysLogError = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
+	   accountManager.sysLogError = (source,data,origin/*,level="medium"*/)=>{
 		if(app.config.testnet /*|| level=="highest"*/){
 			accountManager.errorLogger.log('error',` ${origin} FN_${source} ${data}`);
 		}
