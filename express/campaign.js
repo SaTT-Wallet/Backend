@@ -447,12 +447,13 @@ module.exports = function (app) {
 				hash : ret.hash,
 				startDate,
 				endDate,
+				coverSrc:null,
 				dataUrl,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
-			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 		}
 		}
 

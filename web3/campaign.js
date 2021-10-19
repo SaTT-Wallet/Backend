@@ -149,6 +149,9 @@ module.exports = async function (app) {
 
 				reject(err)
 			}
+			finally{
+				// receipt.transactionHash && 	app.account.sysLog("createCampaignAll", credentials.address, `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`);
+			}
 
 		})
 	}
@@ -194,11 +197,13 @@ module.exports = async function (app) {
 
 			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 			   resolve({transactionHash:receipt.transactionHash,idCampaign: idCampaign,token:token,amount:amount});
-			   console.log(receipt.transactionHash,"confirmed",idCampaign,"funded");
 			}
 			catch (err)
 			{
 				reject(err);
+			}
+			finally{
+				// receipt.transactionHash && 	app.account.sysLog("fundCampaign", credentials.address, `${receipt.transactionHash} confirmed campaign ${idCampaign} funded`);
 			}
 		})
 	}
@@ -241,6 +246,9 @@ module.exports = async function (app) {
 			catch (err)
 			{
 				reject(err);
+			}
+			finally{
+				// app.account.sysLog("applyCampaign", credentials.address, `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${idProm} ${idCampaign}`);
 			}
 		})
 	}
@@ -293,6 +301,9 @@ module.exports = async function (app) {
 			catch (err)
 			{
 				reject(err);
+			}
+			finally{
+				// app.account.sysLog("validateProm", credentials.address, `${receipt.transactionHash} confirmed validated prom ${idProm}`);
 			}
 		})
 	}
@@ -409,11 +420,13 @@ module.exports = async function (app) {
 				var gasPrice = await ctr.getGasPrice();
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
-				console.log(receipt.transactionHash,"confirmed gains transfered for",idProm);
 			}
 			catch (err)
 			{
 				reject(err);
+			}
+			finally{
+				// receipt.transactionHash && app.account.sysLog("getGains", credentials.address, `${receipt.transactionHash} confirmed gains transfered for ${idProm}`);
 			}
 		})
 	}
