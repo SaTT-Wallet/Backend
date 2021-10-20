@@ -438,6 +438,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+			app.account.sysLogError(err)
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
@@ -1616,7 +1617,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-
+			app.account.sysLogError(err)
 			// response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
@@ -2422,7 +2423,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 } catch (err) {
 
-	console.error(err)
+	app.account.sysLogError(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
    })
@@ -2449,6 +2450,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 		let campaign = req.body;
+		var token_info=  app.config.Tokens;
 		campaign.updatedAt=Date.now();
 		if(req.body.ratios){
         req.body.ratios.forEach(elem =>{
@@ -2470,8 +2472,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 		} catch (err) {
-
-			console.error(err)
+			app.account.sysLogError(err)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
