@@ -306,6 +306,7 @@ module.exports = async function (app) {
 
 			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			account = account[0];
+			
 			var address = "0x"+account.keystore.address;
 
 			var ether_balance = await app.web3.eth.getBalance(address);
@@ -738,17 +739,10 @@ module.exports = async function (app) {
 			  delete token_info['SATT']
 			  delete token_info['BNB']
 			  var CryptoPrices = crypto;
-			  var count = await accountManager.hasAccount(userId);
-  
-			   var ret = {err:"no_account"};
-			  if(count)
-			  {
+
 				  var ret = await accountManager.getAccount(userId)
 				  delete ret.btc
 				  delete ret.version
-			  }else{
-				resolve(ret);
-			  }
 
 			 let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
 			  if(userTokens.length){
