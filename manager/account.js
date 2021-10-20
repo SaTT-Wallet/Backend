@@ -1148,7 +1148,7 @@ accountManager.handleId=async function () {
 
 	   accountManager.log = (...arguments)=>{
         let logInfo = arguments.map((element)=>{ return JSON.stringify(element)}).join(' ');
-		if(app.config.testnet) accountManager.sysLogger.log('info',logInfo);	
+		accountManager.sysLogger.log('info',logInfo);	
 	   }
 
 	app.account = accountManager;
