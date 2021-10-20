@@ -582,6 +582,7 @@ module.exports = function (app) {
 				response.end(JSON.stringify(ret));
 
 			} catch (err) {
+				app.account.sysLogError(err);
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {

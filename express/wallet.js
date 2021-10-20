@@ -312,8 +312,7 @@ module.exports = function (app) {
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
-			var count = await app.account.hasAccount(res.id);
-			console.log("newwallet",res.id,req.connection.remoteAddress);
+			var count = await app.account.hasAccount(res.id);			
 			var ret = {err:"account_exists"};
 			if(!count)
 			{
@@ -324,6 +323,8 @@ module.exports = function (app) {
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}finally{
+           !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
 		}
 
 	});
@@ -1535,7 +1536,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	finally {
-		if(cred) app.account.lockBSC(cred.address);
+		cred && app.account.lockBSC(cred.address);
 		if(ret.transactionHash){
 		await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
 		const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
