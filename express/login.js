@@ -133,11 +133,11 @@ module.exports = function (app) {
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
-          transporter.sendMail(mailOptions, function (error, info) {
+          transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              console.log('Email sent: ' );
+              app.account.log('Email sent: ',users[0].email.toLowerCase() )
             }
           });
         });
@@ -991,9 +991,9 @@ async function(req, accessToken, tokenSecret, profile, cb) {
           };
           transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              console.log('Email sent: ' );
+              app.account.log('Email sent: ',users[0].email.toLowerCase() );
             }
           });
         });
