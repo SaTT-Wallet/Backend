@@ -203,7 +203,7 @@ module.exports = async function (app) {
 
   			try {
   				var receipt = await bep20Manager.contract.methods.transfer(to,amount).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPrice})
-  				.once('transactionHash', function(transactionHash){
+  				.once('transactionHash', (transactionHash)=>{
             app.account.sysLog('transfer',credentials.address,`transfer satt bep20 transactionHash :${transactionHash}`);
   				})
   				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
@@ -280,7 +280,7 @@ module.exports = async function (app) {
   		return new Promise(async (resolve, reject) => {
   			var contract = new web3.eth.Contract(app.config.ctrs.token.abi,token);
   			var amount = await contract.methods.allowance(addr,spender).call();
-  			console.log("approval",addr,"for",spender,amount.toString());
+        app.account.log("approval",addr,"for",spender,amount.toString())
   			resolve({amount:amount.toString()});
   		});
   	}
@@ -313,7 +313,7 @@ module.exports = async function (app) {
   
           var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
           resolve({transactionHash:receipt.transactionHash,address:credentials.address,to:to,amount:amount});
-          app.account.sysLog('transferBEP',credentials.address,`transfer confirmed transactionHash :${transactionHash} ${amount}`);
+          app.account.sysLog('transferBEP',credentials.address,`transfer confirmed transactionHash :${receipt.transactionHash} ${amount}`);
         }
         catch (err) {
           reject(err)
