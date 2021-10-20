@@ -143,7 +143,7 @@ module.exports = async function (app) {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash});
-                    receipt.transactionHash && 	app.account.sysLog("createCampaignAll", credentials.address, `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`);
+                    receipt.transactionHash && app.account.sysLog("createCampaignAll", credentials.address, `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`);
 			} catch (err) {
 
 				reject(err)

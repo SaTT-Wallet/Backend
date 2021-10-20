@@ -204,7 +204,7 @@ module.exports = async function (app) {
   			try {
   				var receipt = await bep20Manager.contract.methods.transfer(to,amount).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPrice})
   				.once('transactionHash', function(transactionHash){
-  					console.log("transfer satt bep20 transactionHash",transactionHash)
+            app.account.sysLog('transfer',credentials.address,`transfer satt bep20 transactionHash :${transactionHash}`);
   				})
   				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
   			}
@@ -221,8 +221,8 @@ module.exports = async function (app) {
 
   			try {
           var receipt = await web3.eth.sendTransaction({from: credentials.address,value:amount, gas: gas,to:to,gasPrice: gasPrice})
-  				.once('transactionHash', function(transactionHash){
-  					console.log("transfer satt bep20 transactionHash",transactionHash)
+  				.once('transactionHash', (transactionHash)=>{
+            app.account.sysLog('transferNativeBNB',credentials.address,`transfer BNB transactionHash :${transactionHash}`);
   				})
   				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
   			}
@@ -292,9 +292,8 @@ module.exports = async function (app) {
 
   			try {
   				var receipt = await bep20Manager.contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
-  				.once('transactionHash', function(transactionHash){
-            console.log("to ==",to)
-  					console.log("transfer satt bep20 transactionHash",transactionHash)
+  				.once('transactionHash', (transactionHash)=>{
+            app.account.sysLog('transferBEP',credentials.address,`transfer bep20 transactionHash :${transactionHash}`);
   				})
   				resolve({transactionHash:receipt.transactionHash,to:to,amount:amount});
   			}
@@ -314,10 +313,9 @@ module.exports = async function (app) {
   
           var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
           resolve({transactionHash:receipt.transactionHash,address:credentials.address,to:to,amount:amount});
-          console.log(receipt.transactionHash,"confirmed transfer from",credentials.address,"to",to,"amount",amount);
+          app.account.sysLog('transferBEP',credentials.address,`transfer confirmed transactionHash :${transactionHash} ${amount}`);
         }
         catch (err) {
-          
           reject(err)
         }
       });
