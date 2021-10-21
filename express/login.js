@@ -43,13 +43,6 @@ module.exports = function (app) {
   }
 
 
-
-
- addAuthLog =(info)=>{
-   let pwd = info.pwd ? info.pwd : "";
-  app.account.logger.log('info',`${info.ip} ${info.state} ${info.mail} ${pwd}`);
-}
-
   var readHTMLFile = function(path, callback) {
     fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
       if (err) {
@@ -140,11 +133,11 @@ module.exports = function (app) {
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
-          transporter.sendMail(mailOptions, function (error, info) {
+          transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              console.log('Email sent: ' );
+              app.account.log('Email sent: ',users[0].email.toLowerCase() )
             }
           });
         });
@@ -160,27 +153,17 @@ module.exports = function (app) {
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
       
-      let logInfo = {};
-      let ip = req.addressIp;
-      
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
-        // if (user.idSn != 0) {
-        //   return done(null, false, {error: true, message: 'account_already_used'});
-        // }
-        // if (user.account_locked) {
-        //   return done(null, false, {error: true, message: 'account_locked'});
-        // }
-        
+
         var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
         if (res.length && !user.password) {
           await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: res[0].password}});
         }
         
         if (user.password == synfonyHash(password)) {
-          [logInfo.state, logInfo.ip, logInfo.mail] = ["valid", ip,username]
-         // addAuthLog(logInfo)
+           app.account.sysLog("authentification", req.addressIp, `valid ${username}`);
            let validAuth =  await app.account.isBlocked(user,true)
           if(!validAuth.res && validAuth.auth == true){
           var oldToken = await app.db.accessToken().findOne({user_id: user._id});
@@ -188,8 +171,7 @@ module.exports = function (app) {
             await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token, expires_at: date}});
             await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {failed_count :0}});
           } else {
-            var insert = await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token, expires_at: date, scope: "user"});
-
+          await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token, expires_at: date, scope: "user"});
           }
           
           req.session.user = user._id;
@@ -199,10 +181,8 @@ module.exports = function (app) {
           return done(null, false, {error: true, message: 'account_locked', blockedDate:validAuth.blockedDate});
         }
         } else {
-          let validAuth = await app.account.isBlocked(user,false);
-          
-          [logInfo.state, logInfo.ip, logInfo.mail, logInfo.pwd] = ["invalid", ip,username, password]
-         // addAuthLog(logInfo)        
+          let validAuth = await app.account.isBlocked(user,false);       
+          app.account.sysLog("authentification", req.addressIp, `invalid ${username} ${password}`); 
           if(validAuth.res) return done(null, false, {error: true, message: 'account_locked', blockedDate:validAuth.blockedDate});
            return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
@@ -1011,9 +991,9 @@ async function(req, accessToken, tokenSecret, profile, cb) {
           };
           transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              console.log('Email sent: ' );
+              app.account.log('Email sent: ',users[0].email.toLowerCase() );
             }
           });
         });

@@ -306,6 +306,7 @@ module.exports = async function (app) {
 
 			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			account = account[0];
+			
 			var address = "0x"+account.keystore.address;
 
 			var ether_balance = await app.web3.eth.getBalance(address);
@@ -749,17 +750,10 @@ module.exports = async function (app) {
 			  delete token_info['SATT']
 			  delete token_info['BNB']
 			  var CryptoPrices = crypto;
-			  var count = await accountManager.hasAccount(userId);
-  
-			   var ret = {err:"no_account"};
-			  if(count)
-			  {
+
 				  var ret = await accountManager.getAccount(userId)
 				  delete ret.btc
 				  delete ret.version
-			  }else{
-				resolve(ret);
-			  }
 
 			 let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
 			  if(userTokens.length){
@@ -1145,20 +1139,27 @@ accountManager.handleId=async function () {
 		/*global function to write into "app.log" all application's logs
 			log: dateTime origin FN_name log's_data
 		*/
-	   	accountManager.sysLog = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
-		if(app.config.testnet /*|| level=="highest"*/){
+	   	accountManager.sysLog = (source,origin,data/*,level="medium"*/)=>{
+		//if(app.config.testnet /*|| level=="highest"*/){
 			accountManager.sysLogger.log('info',` ${origin} FN_${source} ${data}`);
-		}
+		//}
 	   }
 	   
 	   /*global function to write into "app-error.log" all application's logs error 
 	   		log: dateTime origin FN_name log's_data
 	   */
-	   accountManager.sysLogError = (source,data,origin=req.addressIp/*,level="medium"*/)=>{
-		if(app.config.testnet /*|| level=="highest"*/){
-			accountManager.errorLogger.log('error',` ${origin} FN_${source} ${data}`);
-		}
+	   accountManager.sysLogError = (data)=>{
+		//if(app.config.testnet /*|| level=="highest"*/){
+			let error = data.message?data.message:data.error
+			accountManager.errorLogger.log('error',` ${error}`);
+		//}
 	   }
+
+	   accountManager.log = (...arguments)=>{
+        let logInfo = arguments.map((element)=>{ return JSON.stringify(element)}).join(' ');
+		accountManager.sysLogger.log('info',logInfo);	
+	   }
+
 	app.account = accountManager;
 	return app;
 }
