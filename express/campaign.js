@@ -2450,7 +2450,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 		let campaign = req.body;
-		var token_info=  app.config.Tokens;
+	
 		campaign.updatedAt=Date.now();
 		if(req.body.ratios){
         req.body.ratios.forEach(elem =>{
