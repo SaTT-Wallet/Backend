@@ -447,12 +447,13 @@ module.exports = function (app) {
 				hash : ret.hash,
 				startDate,
 				endDate,
+				coverSrc:null,
 				dataUrl,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
 				walletId:cred.address
 			};
-			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 		}
 		}
 
@@ -581,6 +582,7 @@ module.exports = function (app) {
 				response.end(JSON.stringify(ret));
 
 			} catch (err) {
+				app.account.sysLogError(err);
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {
@@ -2751,7 +2753,8 @@ console.log(Links)
 				let userWallet= await app.db.wallet().findOne({"keystore.address":link.id_wallet.substr(2)});
 				let user=await app.db.sn_user().findOne({_id:userWallet.UserId});
 				let lienTweet="https://twitter.com/"+link.idUser+"/status/"+link.idPost
-				let gainsRetire =new Big(link.payedAmount).div(10**18);
+				
+				let gainsRetire = (link.payedAmount) ? new Big(link.payedAmount).div(10**18) : 0;
 				 let obj={
 					 nombre_impression:link.views,
 				 	usernameSaTT:user.username,
