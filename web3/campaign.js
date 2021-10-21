@@ -1,3 +1,5 @@
+const { number } = require("bitcoinjs-lib/src/script");
+
 module.exports = async function (app) {
 
 	var fs = require("fs");
@@ -436,7 +438,44 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+	campaignManager.getButtonStatus = async function (link,wallet) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var type = '';
+				var totalToEarn='0';
+				link.payedAmount= link.payedAmount || '0';
+				if(link.totalToEarn)
+				totalToEarn=link.totalToEarn;
+				if(link.reward)
+				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
+				if(link.status === 'rejected' && !(link.campaign.isFinished)) 
+				type='rejected';
+				else if(link.status === false && !(link.campaign.isFinished))
+				type='waiting_for_validation';
+				else if(link.status === true && link.id_wallet!==wallet)
+				type='already_accepted';
+				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
+				link.campaign.isFinished)
+				type="not_enough_budget";
+				else if((link.isPayed === true)||
+				(link.payedAmount !=='0' && 
+				new Big(totalToEarn).eq(new Big(link.payedAmount))))
+				type='already_recovered';
+				else if(totalToEarn==='0' && link.payedAmount ==='0')
+				type='no_gains';
+				else if(!(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.ratio?.length ||
+				(link.isPayed ===false && !(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.bounties?.length))
+				type='harvest';
+				else 
+				type="unknown_type";				
+				resolve(type);
+			}
+			catch (err)
+			{
+				reject(err);
+			}
+		})
+	}
 
 
 
