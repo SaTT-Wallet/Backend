@@ -1402,53 +1402,30 @@ module.exports = function (app) {
 
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
-					}
+			res.end(JSON.stringify(app.prices.data));
+		}
+		else {
+			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+			var response = JSON.parse(r);
+			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+          	var responseSattJet = JSON.parse(r2);
+			response.data.push(responseSattJet.data.SATT);
+			response.data.push(responseSattJet.data.JET);
 
-					else {
-
-						const requestOptions = {
-						  method: 'GET',
-						  uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
-						  qs: {
-							start: 1,
-							limit: 200,
-							convert: 'USD'
-						  },
-						  headers: {
-							'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-						  },
-						  json: true,
-						  gzip: true
-						};
-						var p = await rp(requestOptions);
-						app.prices = p;
+			for(var i=0;i<app.config.token200;i++)
+			{
+				var token = app.config.token200[i];
+				if(response.data[token.symbol]) {
+					response.data[token.symbol].network = token.platform.network;
+					response.data[token.symbol].tokenAddress = token.platform.network.token_address;
+					response.data[token.symbol].logo = "https://s2.coinmarketcap.com/static/img/coins/128x128/"+token.id+".png";
 				}
+			}
+		}
+		app.prices = response;
 
-				var response = app.prices.data;
-
-        var prices = [];
-        var str = "{";
-        for(var i = 0;i<response.length;i++)
-        {
-                var price = {
-                        price:response[i].quote.USD.price,
-                        percent_change_24h:response[i].quote.USD.percent_change_24h,
-                        market_cap:response[i].quote.USD.market_cap,
-                        volume_24h:response[i].quote.USD.volume_24h,
-                        circulating_supply:response[i].circulating_supply,
-                        total_supply:response[i].total_supply,
-                        max_supply:response[i].max_supply
-                }
-                prices[""+response[i].symbol] = price;
-                str += '"'+response[i].symbol+'":'+JSON.stringify(price)+",";
-        }
-		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
-		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
-        // prices["SATT"] = {price:bwSatt.datas[1]};
-				response=str.substring(0, str.length-1);
-		 		response+="}"
-				res.end(response)
-})
+		res.end(JSON.stringify(response.data))
+	})
 
 app.get('/v2/feebtc', async function(req, response) {
 
