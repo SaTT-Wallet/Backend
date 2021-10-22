@@ -1264,7 +1264,7 @@ const Grid = require('gridfs-stream');
 	 res.send(JSON.stringify({allProms}))
  } 
  }catch (err) {
-	 console.log(err)
+	app.account.sysLogError(err)
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
   }
 	})
