@@ -1000,7 +1000,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const limit=+req.query.limit || 50;
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
-		var wallet=req.params.id_wallet;
+		var id_wallet=req.params.id_wallet;
 				
 		//const date= Math.round(new Date().getTime()/1000);
 
@@ -1063,7 +1063,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					   })
 			  }					
 				result.campaign=cmp;
-				result.type=await app.campaign.getButtonStatus(result,wallet)
+				result.type=await app.campaign.getButtonStatus(result,id_wallet)
 				arrayOfLinks.push(result)
 			}
 		}
