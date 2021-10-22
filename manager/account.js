@@ -669,7 +669,18 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+	accountManager.getWalletBydIdUser = async function (userId) {
+		return new Promise( async (resolve, reject) => {
+			try {
+				var res = await app.db.wallet().findOne({UserId: parseInt(userId)});
+				var wallet='0x'+res.keystore.address;
+				resolve(wallet);
+			}
+			catch (e) {
+				reject({message:e.message});
+			}
+		})
+	}
 
 	accountManager.getBalanceByUid = async  (userId, crypto) => {
       return new Promise( async (resolve, reject) => {
@@ -928,6 +939,10 @@ accountManager.handleId=async function () {
 		return "error"
 	}
   }
+
+
+
+
 
   accountManager.HandleReferral = async function (referral, userId) {
 	let user = await app.db.sn_user().findOne({ _id: Long.fromNumber(referral) })
