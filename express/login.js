@@ -1476,7 +1476,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
   });
 
-  app.post('/auth/passchange', async function (req, response) {
+  app.post('/auth/passchange', async  (req, response) => {
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
     var id = req.body.id;
