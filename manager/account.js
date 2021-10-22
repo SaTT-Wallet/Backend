@@ -773,7 +773,7 @@ module.exports = async function (app) {
 				crypto.symbol=token_info[T_name].symbol.split("_")[0];
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
-
+                crypto.decimal = token_info[T_name].dicimal
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
