@@ -1415,7 +1415,7 @@ module.exports = function (app) {
 
 			var priceMap = response.data.map((elem) =>{
 				var obj = {};
-				obj[elem.symbol] = {
+				obj = {symbol:elem.symbol,
 					price:elem.quote.USD.price,
 					percent_change_24h:elem.quote.USD.percent_change_24h,
                     market_cap:elem.quote.USD.market_cap,
@@ -1427,13 +1427,19 @@ module.exports = function (app) {
 				}
 				return obj;
 			})
+			var finalMap = {};
+			for(var i=0;i<priceMap.length;i++)
+			{
+				finalMap[priceMap[i].symbol] = priceMap[i];
+				delete(finalMap[priceMap[i].symbol].symbol);
+			}
 
-			for(var i=0;i<app.config.token200;i++)
+			for(var i=0;i<app.config.token200.length;i++)
 			{
 				var token = app.config.token200[i];
-				if(priceMap[token.symbol]) {
-					priceMap[token.symbol].network = token.platform.network;
-					priceMap[token.symbol].tokenAddress = token.platform.network.token_address;
+				if(finalMap[token.symbol]) {
+					finalMap[token.symbol].network = token.platform.network;
+					finalMap[token.symbol].tokenAddress = token.platform.network.token_address;
 				}
 			}
 		}
