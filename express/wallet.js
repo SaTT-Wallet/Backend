@@ -1441,6 +1441,7 @@ module.exports = function (app) {
 				if(finalMap[token.symbol]) {
 					finalMap[token.symbol].network = token.platform.network;
 					finalMap[token.symbol].tokenAddress = token.platform.token_address;
+					finalMap[token.symbol].decimals = token.platform.decimals;
 				}
 			}
 		}
