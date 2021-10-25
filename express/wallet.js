@@ -1439,7 +1439,7 @@ module.exports = function (app) {
 				var token = app.config.token200[i];
 				if(finalMap[token.symbol]) {
 					finalMap[token.symbol].network = token.platform.network;
-					finalMap[token.symbol].tokenAddress = token.platform.network.token_address;
+					finalMap[token.symbol].tokenAddress = token.platform.token_address;
 				}
 			}
 		}
