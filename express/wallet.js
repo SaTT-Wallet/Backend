@@ -1,5 +1,6 @@
 const { async } = require('hasha');
 var Big = require('big.js');
+var proc = require('child_process');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -1412,19 +1413,34 @@ module.exports = function (app) {
 			response.data.push(responseSattJet.data.SATT);
 			response.data.push(responseSattJet.data.JET);
 
+			var priceMap = response.data.map((elem) =>{
+				var obj = {};
+				obj[elem.symbol] = {
+					price:elem.quote.USD.price,
+					percent_change_24h:elem.quote.USD.percent_change_24h,
+                    market_cap:elem.quote.USD.market_cap,
+                    volume_24h:elem.quote.USD.volume_24h,
+                    circulating_supply:elem.circulating_supply,
+                    total_supply:elem.total_supply,
+                    max_supply:elem.max_supply,
+					logo: "https://s2.coinmarketcap.com/static/img/coins/128x128/"+elem.id+".png"
+				}
+				return obj;
+			})
+
 			for(var i=0;i<app.config.token200;i++)
 			{
 				var token = app.config.token200[i];
-				if(response.data[token.symbol]) {
-					response.data[token.symbol].network = token.platform.network;
-					response.data[token.symbol].tokenAddress = token.platform.network.token_address;
-					response.data[token.symbol].logo = "https://s2.coinmarketcap.com/static/img/coins/128x128/"+token.id+".png";
+				if(priceMap[token.symbol]) {
+					priceMap[token.symbol].network = token.platform.network;
+					priceMap[token.symbol].tokenAddress = token.platform.network.token_address;
 				}
 			}
 		}
+		response.data = priceMap;
 		app.prices = response;
 
-		res.end(JSON.stringify(response.data))
+		res.end(JSON.stringify(priceMap))
 	})
 
 app.get('/v2/feebtc', async function(req, response) {
