@@ -1443,10 +1443,10 @@ module.exports = function (app) {
 				}
 			}
 		}
-		response.data = priceMap;
+		response.data = finalMap;
 		app.prices = response;
 
-		res.end(JSON.stringify(priceMap))
+		res.end(JSON.stringify(finalMap))
 	})
 
 app.get('/v2/feebtc', async function(req, response) {
