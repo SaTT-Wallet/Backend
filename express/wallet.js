@@ -1416,6 +1416,7 @@ module.exports = function (app) {
 			var priceMap = response.data.map((elem) =>{
 				var obj = {};
 				obj = {symbol:elem.symbol,
+					name:elem.name,
 					price:elem.quote.USD.price,
 					percent_change_24h:elem.quote.USD.percent_change_24h,
                     market_cap:elem.quote.USD.market_cap,
