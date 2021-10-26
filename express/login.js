@@ -133,11 +133,11 @@ module.exports = function (app) {
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
-          transporter.sendMail(mailOptions, function (error, info) {
+          transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              console.log('Email sent: ' );
+              app.account.log('Email sent: ',users[0].email.toLowerCase() )
             }
           });
         });
@@ -991,9 +991,9 @@ async function(req, accessToken, tokenSecret, profile, cb) {
           };
           transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              console.log('Email sent: ' );
+              app.account.log('Email sent: ',users[0].email.toLowerCase() );
             }
           });
         });
@@ -1476,7 +1476,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
   });
 
-  app.post('/auth/passchange', async function (req, response) {
+  app.post('/auth/passchange', async  (req, response) => {
     var newpass = req.body.newpass;
     var oldpass = req.body.oldpass;
     var id = req.body.id;
@@ -2064,9 +2064,9 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
       var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
       if (user.secureCode.code != code) 
-      response.end(JSON.stringify({message:"code incorrect"})).status(200);  
+      response.end(JSON.stringify({message:"code incorrect"}));  
       else if (Date.now()>=user.secureCode.expiring) 
-      response.end(JSON.stringify({message :"code expired"})).status(200);       
+      response.end(JSON.stringify({message :"code expired"}));       
       else if(user.secureCode.type =="validation" && type == "validation"){
         let date = Math.floor(Date.now() / 1000) + 86400;     
         let token = crypto.randomFillSync(buff).toString('hex');
@@ -2074,8 +2074,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 	      await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token:token, expires_at: date, scope: "user"});     
         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
-      response.end(JSON.stringify(authMethod)).status(200);
-      
+      response.end(JSON.stringify(authMethod));
+
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }

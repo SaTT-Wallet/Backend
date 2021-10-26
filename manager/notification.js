@@ -39,9 +39,8 @@ module.exports = async (app) => {
     }
     }
     request(clientServerOptions,  (error, response) =>{
-    console.log('eeerrroooor send notification',error)
-    console.log("booodyyy send notification",response.body);
-
+    // console.log('eeerrroooor send notification',error)
+    error && app.account.sysLogError(error)
     return;
     });
     }

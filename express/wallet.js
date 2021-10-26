@@ -1,5 +1,6 @@
 const { async } = require('hasha');
 var Big = require('big.js');
+var proc = require('child_process');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -312,8 +313,7 @@ module.exports = function (app) {
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
-			var count = await app.account.hasAccount(res.id);
-			console.log("newwallet",res.id,req.connection.remoteAddress);
+			var count = await app.account.hasAccount(res.id);			
 			var ret = {err:"account_exists"};
 			if(!count)
 			{
@@ -324,6 +324,8 @@ module.exports = function (app) {
 
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}finally{
+           !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
 		}
 
 	});
@@ -1401,53 +1403,53 @@ module.exports = function (app) {
 
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
-					}
+			res.end(JSON.stringify(app.prices.data));
+		}
+		else {
+			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+			var response = JSON.parse(r);
+			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+          	var responseSattJet = JSON.parse(r2);
+			response.data.push(responseSattJet.data.SATT);
+			response.data.push(responseSattJet.data.JET);
 
-					else {
-
-						const requestOptions = {
-						  method: 'GET',
-						  uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
-						  qs: {
-							start: 1,
-							limit: 200,
-							convert: 'USD'
-						  },
-						  headers: {
-							'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-						  },
-						  json: true,
-						  gzip: true
-						};
-						var p = await rp(requestOptions);
-						app.prices = p;
+			var priceMap = response.data.map((elem) =>{
+				var obj = {};
+				obj = {symbol:elem.symbol,
+					name:elem.name,
+					price:elem.quote.USD.price,
+					percent_change_24h:elem.quote.USD.percent_change_24h,
+                    market_cap:elem.quote.USD.market_cap,
+                    volume_24h:elem.quote.USD.volume_24h,
+                    circulating_supply:elem.circulating_supply,
+                    total_supply:elem.total_supply,
+                    max_supply:elem.max_supply,
+					logo: "https://s2.coinmarketcap.com/static/img/coins/128x128/"+elem.id+".png"
 				}
+				return obj;
+			})
+			var finalMap = {};
+			for(var i=0;i<priceMap.length;i++)
+			{
+				finalMap[priceMap[i].symbol] = priceMap[i];
+				delete(finalMap[priceMap[i].symbol].symbol);
+			}
 
-				var response = app.prices.data;
+			for(var i=0;i<app.config.token200.length;i++)
+			{
+				var token = app.config.token200[i];
+				if(finalMap[token.symbol]) {
+					finalMap[token.symbol].network = token.platform.network;
+					finalMap[token.symbol].tokenAddress = token.platform.token_address;
+					finalMap[token.symbol].decimals = token.platform.decimals;
+				}
+			}
+		}
+		response.data = finalMap;
+		app.prices = response;
 
-        var prices = [];
-        var str = "{";
-        for(var i = 0;i<response.length;i++)
-        {
-                var price = {
-                        price:response[i].quote.USD.price,
-                        percent_change_24h:response[i].quote.USD.percent_change_24h,
-                        market_cap:response[i].quote.USD.market_cap,
-                        volume_24h:response[i].quote.USD.volume_24h,
-                        circulating_supply:response[i].circulating_supply,
-                        total_supply:response[i].total_supply,
-                        max_supply:response[i].max_supply
-                }
-                prices[""+response[i].symbol] = price;
-                str += '"'+response[i].symbol+'":'+JSON.stringify(price)+",";
-        }
-		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
-		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
-        // prices["SATT"] = {price:bwSatt.datas[1]};
-				response=str.substring(0, str.length-1);
-		 		response+="}"
-				res.end(response)
-})
+		res.end(JSON.stringify(finalMap))
+	})
 
 app.get('/v2/feebtc', async function(req, response) {
 
@@ -1535,7 +1537,7 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
 	finally {
-		if(cred) app.account.lockBSC(cred.address);
+		cred && app.account.lockBSC(cred.address);
 		if(ret.transactionHash){
 		await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
 		const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});

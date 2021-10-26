@@ -1,3 +1,5 @@
+const { number } = require("bitcoinjs-lib/src/script");
+
 module.exports = async function (app) {
 
 	var fs = require("fs");
@@ -143,16 +145,11 @@ module.exports = async function (app) {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash});
-
-
+                    receipt.transactionHash && app.account.sysLog("createCampaignAll", credentials.address, `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`);
 			} catch (err) {
 
 				reject(err)
 			}
-			finally{
-				// receipt.transactionHash && 	app.account.sysLog("createCampaignAll", credentials.address, `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`);
-			}
-
 		})
 	}
 
@@ -166,7 +163,9 @@ module.exports = async function (app) {
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash :receipt.events.CampaignCreated.transactionHash});
+					let transactionHash = receipt.events.CampaignCreated.transactionHash
+					resolve({hash : receipt.events.CampaignCreated.returnValues.id, transactionHash});
+					transactionHash && app.account.sysLog("createCampaignBounties", credentials.address, `${transactionHash} confirmed campaignBounty ${receipt.events.CampaignCreated.returnValues.id} launched`);
 
 
 			} catch (err) {
@@ -196,15 +195,16 @@ module.exports = async function (app) {
 
 
 			var receipt = await ctr.methods.fundCampaign(idCampaign,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
+
 			   resolve({transactionHash:receipt.transactionHash,idCampaign: idCampaign,token:token,amount:amount});
+               receipt.transactionHash && app.account.sysLog("fundCampaign", credentials.address, `${receipt.transactionHash} confirmed campaign ${idCampaign} funded`);
+
 			}
 			catch (err)
 			{
 				reject(err);
 			}
-			finally{
-				// receipt.transactionHash && 	app.account.sysLog("fundCampaign", credentials.address, `${receipt.transactionHash} confirmed campaign ${idCampaign} funded`);
-			}
+			
 		})
 	}
 
@@ -237,19 +237,17 @@ module.exports = async function (app) {
 				var receipt = await ctr.methods.applyCampaign(idCampaign,typeSN,idPost,idUser).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				       let prom = receipt.events.CampaignApplied.returnValues.prom;
 					resolve({transactionHash:receipt.events.CampaignApplied.transactionHash,idCampaign: idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
+					receipt.events.CampaignApplied.transactionHash && app.account.sysLog("applyCampaign", credentials.address, `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${idProm} ${idCampaign}`);
 
-
-				//resolve({transactionHash:receipt.transactionHash,idCampaign:idCampaign,typeSN:typeSN,idPost:idPost,idUser:idUser,idProm:prom});
-				console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
-				// }
+			
+				// console.log(receipt.transactionHash,"confirmed",idCampaign," prom ",prom);
+		
 			}
 			catch (err)
 			{
 				reject(err);
 			}
-			finally{
-				// app.account.sysLog("applyCampaign", credentials.address, `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${idProm} ${idCampaign}`);
-			}
+
 		})
 	}
 
@@ -296,14 +294,12 @@ module.exports = async function (app) {
 					var gasPrice = await ctr.getGasPrice();
 				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
-				console.log(receipt.transactionHash,"confirmed validated prom ",idProm);
+                receipt.transactionHash && app.account.sysLog("validateProm", credentials.address, `${receipt.transactionHash} confirmed validated prom ${idProm}`);
+			//	console.log(receipt.transactionHash,"confirmed validated prom ",idProm);
 			}
 			catch (err)
 			{
 				reject(err);
-			}
-			finally{
-				// app.account.sysLog("validateProm", credentials.address, `${receipt.transactionHash} confirmed validated prom ${idProm}`);
 			}
 		})
 	}
@@ -420,13 +416,11 @@ module.exports = async function (app) {
 				var gasPrice = await ctr.getGasPrice();
 				var receipt = await  ctr.methods.getGains(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
+			   receipt.transactionHash && app.account.sysLog("getGains", credentials.address, `${receipt.transactionHash} confirmed gains transfered for ${idProm}`);
 			}
 			catch (err)
 			{
 				reject(err);
-			}
-			finally{
-				// receipt.transactionHash && app.account.sysLog("getGains", credentials.address, `${receipt.transactionHash} confirmed gains transfered for ${idProm}`);
 			}
 		})
 	}
@@ -449,7 +443,44 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+	campaignManager.getButtonStatus = async function (link,wallet) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				var type = '';
+				var totalToEarn='0';
+				link.payedAmount= link.payedAmount || '0';
+				if(link.totalToEarn)
+				totalToEarn=link.totalToEarn;
+				if(link.reward)
+				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
+				if(link.status === 'rejected' && !(link.campaign.isFinished)) 
+				type='rejected';
+				else if(link.status === false && !(link.campaign.isFinished))
+				type='waiting_for_validation';
+				else if(link.status === true && link.id_wallet!==wallet)
+				type='already_accepted';
+				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
+				link.campaign.isFinished)
+				type="not_enough_budget";
+				else if((link.isPayed === true)||
+				(link.payedAmount !=='0' && 
+				new Big(totalToEarn).eq(new Big(link.payedAmount))))
+				type='already_recovered';
+				else if(totalToEarn==='0' && link.payedAmount ==='0')
+				type='no_gains';
+				else if(!(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.ratio?.length ||
+				(link.isPayed ===false && !(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.bounties?.length))
+				type='harvest';
+				else 
+				type="unknown_type";				
+				resolve(type);
+			}
+			catch (err)
+			{
+				reject(err);
+			}
+		})
+	}
 
 
 

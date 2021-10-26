@@ -1194,6 +1194,8 @@ const Grid = require('gridfs-stream');
 
 	app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
+			const token = req.headers["authorization"].split(" ")[1];
+			var res=await app.crm.auth(token);
 
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 			let ctr = await app.campaign.getCampaignContract(campaign.hash)
@@ -1236,7 +1238,8 @@ const Grid = require('gridfs-stream');
 					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";	 
 							allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();							
 							}
-						})		
+						})	
+	
 		   }
 
 		   if(bounties.length && allProms[i].isAccepted && !promDone){		  
@@ -1251,15 +1254,17 @@ const Grid = require('gridfs-stream');
 				 allProms[i].reward = category.reward;
 				 }
 				})	
-			     }			   
+			     }	
+		   
 		         })
-		 }
-		
+
+			 }
+
 	}	
 	 res.send(JSON.stringify({allProms}))
  } 
  }catch (err) {
-	 console.log(err)
+	app.account.sysLogError(err)
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
   }
 	})
@@ -1332,6 +1337,8 @@ const Grid = require('gridfs-stream');
 	  }
 	  app.get('/statLinkCampaign/:hash', async (req, res) => {
 		try{
+			const token = req.headers["authorization"].split(" ")[1];
+		    var auth =	await app.crm.auth(token);
 			var hash=req.params.hash;
 			var arrayOfUser=[];
 			var arrayOfnbAbos=[];
@@ -1358,7 +1365,6 @@ const Grid = require('gridfs-stream');
 				  if(link.abosNumber)
 					totalAbos+=+link.abosNumber;
 					arrayOfUser.push(link.id_wallet+'|'+link.typeSN);
-
 				}
 			}			
 		  res.send(JSON.stringify({stat:result,creatorParticipate:nbTotalUser,reachTotal:totalAbos}));
