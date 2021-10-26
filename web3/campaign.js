@@ -453,7 +453,7 @@ module.exports = async function (app) {
 				totalToEarn=link.totalToEarn;
 				if(link.reward)
 				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
-				if(link.status === 'rejected' && !(link.campaign.isFinished)) 
+				if(link.status === 'rejected') 
 				type='rejected';
 				else if(link.status === false && !(link.campaign.isFinished))
 				type='waiting_for_validation';
@@ -482,7 +482,52 @@ module.exports = async function (app) {
 		})
 	}
 
+	campaignManager.getTotalToEarn = async function (socialStats,result,ratio) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				ratio.forEach( num =>{		
+					console.log(num.oracle,'|',result.oracle);
+					console.log(num.typeSN,'|',result.typeSN);									
+					if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
+						console.log(true);
+						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
+						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
+						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
+						let totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+						resolve (totalToEarn);
+					}
+				})
+			}catch{
+				reject(err);
 
+			}
+		}
+			)}
+
+
+			campaignManager.getReward = async function (result,bounties) {
+				return new Promise(async (resolve, reject) => {
+					try {
+						bounties.forEach( bounty=>{
+							let totalToEarn='0';
+							if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
+							  bounty.categories.forEach( category=>{
+							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+								  totalToEarn = category.reward;
+							   }else if(+result.abosNumber > +category.maxFollowers){
+								  totalToEarn = category.reward;	
+						 }
+						 		resolve(totalToEarn);
+		
+							  })
+							   }
+							   })
+					}catch{
+						reject(err);
+		
+					}
+				}
+					)}		
 
 	campaignManager.estimateCreateCampaignYt = async function (dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {

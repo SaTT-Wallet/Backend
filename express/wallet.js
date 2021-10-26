@@ -194,7 +194,7 @@ module.exports = function (app) {
 /**
  * @swagger
  * /v3/newallet:
- *   get:
+ *   post:
  *     summary: create password wallet.
  *     description: parametres acceptées :body , headers{headers}.
  *     parameters:
@@ -206,7 +206,7 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/newallet', async function(req, response) {
+	app.post('/v3/newallet', async function(req, response) {
 
 		var pass = req.body.pass;
 		try {
@@ -280,12 +280,12 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/printseed', async function(req, response) {
+	app.post('/v3/printseed', async function(req, response) {
 
 		var pass = req.body.pass;
 		try {
-
-
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
@@ -390,7 +390,7 @@ module.exports = function (app) {
 		}
 	});
 
-	app.get('/v3/newalletbtc', async function(req, response) {
+	app.post('/v3/newalletbtc', async function(req, response) {
 
 		var pass=req.body.pass;
 		try {
@@ -445,7 +445,7 @@ module.exports = function (app) {
 
 	});
 
-	app.get('/v3/resetpass', async function(req, response) {
+	app.post('/v3/resetpass', async function(req, response) {
 
 		var pass=req.body.pass;
 		var newpass=req.body.newpass;
@@ -486,7 +486,7 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/export',async function(req, response) {
+	app.post('/v3/export',async function(req, response) {
 		var pass = req.body.pass;
 		response.attachment();
 
@@ -526,7 +526,7 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/exportbtc', async function(req, response) {
+	app.post('/v3/exportbtc', async function(req, response) {
 		var pass = req.body.pass;
 		response.attachment();
 
@@ -569,15 +569,16 @@ module.exports = function (app) {
 
 	})
 
-	app.get('/v3/transfer/:to/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	app.post('/v3/transfer', async function(req, response) {
 		var pass = req.body.pass;
+		var amount = req.body.val;
+		var to = req.body.to;
+
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
-			var to = req.params.to;
-			var amount = req.params.val;
 			var ret = await app.token.transfer(to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -645,24 +646,32 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferether/:to/:val', async function(req, response) {
+	app.post('/v3/transferether', async function(req, response) {
 		var pass = req.body.pass;
+		var to = req.body.to;
+		var amount = req.body.val;
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
-			var to = req.params.to;
-			var amount = req.params.val;
+			
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-				if(cred)
-			app.account.lock(cred.address);
-		}
+			if(cred) app.account.lock(cred.address);
+			if(ret.transactionHash){
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+				if(wallet){
+				
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+				}
+			}
+	}
 	})
 /**
  * @swagger
@@ -711,18 +720,17 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferbtc/:to/:val', async function(req, response) {
+	app.post('/v3/transferbtc', async function(req, response) {
 
 		var pass = req.body.pass;
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
-			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
+			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
 			response.end(JSON.stringify({hash:hash}));
 
 		} catch (err) {
-			console.log(err.message?err.message:err.error);
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
@@ -754,16 +762,17 @@ module.exports = function (app) {
 
 	})
 
-	app.get('/v3/transferbyuid/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	app.post('/v3/transferbyuid', async function(req, response) {
 
 		var pass = req.body.pass;
+		var amount = req.body.val;
+
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
-			var to = await  app.account.getAddrByUid(req.params.uid);
-			var amount = req.params.val;
+			var to = await  app.account.getAddrByUid(req.body.uid);
 			var ret = await app.token.transfer(to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -798,15 +807,15 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/transferetherbyuid/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
+	app.post('/v3/transferetherbyuid', async function(req, response) {
 		var pass = req.body.pass;
+		var amount = req.body.val;
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
-			var to = await  app.account.getAddrByUid(req.params.uid);
-			var amount = req.params.val;
+			var to = await  app.account.getAddrByUid(req.body.uid);
 			var ret = await app.cryptoManager.transfer(to,amount,cred);
 			response.end(JSON.stringify(ret));
 		} catch (err) {
@@ -1771,5 +1780,33 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
+	app.get('/getMnemo', async (req, res) => {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			let auth = await app.crm.auth(token);
+		    let wallet=await app.db.wallet().findOne({UserId:auth.id})
+		    let mnemo=wallet.mnemo;
+	
+		    res.send(JSON.stringify({mnemo}));
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  })
+
+	  app.post('/verifyMnemo', async (req, res) => {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			let auth = await app.crm.auth(token);
+			let mnemo = req.body.mnemo;
+		    let wallet=await app.db.wallet().findOne({$and:[{UserId:auth.id},{mnemo:mnemo}]})
+			let verify = wallet ? true : false;
+		    res.send(JSON.stringify({verify}));
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  })
+
+
 	return app;
 }
