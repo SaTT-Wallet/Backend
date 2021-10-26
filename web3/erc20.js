@@ -52,7 +52,7 @@ module.exports = async function (app) {
 			try {
 				var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
 				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas  = await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
+				var gas  = 60000 //await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
 
 				var receipt = await contract.methods.transfer(to,amount).send({from:credentials.address,gas:gas,gasPrice: gasPrice})
 
