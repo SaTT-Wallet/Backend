@@ -166,54 +166,32 @@ module.exports = function (app) {
 					stat.likes=  socialOracle && socialOracle.likes || '0';
 					stat.views=  socialOracle && socialOracle.views || '0';
 					stat.media_url=  socialOracle && socialOracle.media_url || '';
-					 stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
-				// stat.oracle = app.oracle.findBountyOracle(prom.typeSN);
+					stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
+					
 
-				// if(stat.typeSN=="1" && stat.status){
-				
-				//     const idPost = prom.idPost.split(':')
-				// 	oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
-				
-				// 	stat.shares=oraclesFacebook.shares || '0'
-				// 	stat.likes=oraclesFacebook.likes || '0'
-				// 	stat.views=oraclesFacebook.views || '0'
-				// 	stat.media_url=oraclesFacebook.media_url || ''
-				// 				}
+				if(campaign.ratios.length && stat.status === true ){
+					console.log("ratios");
+
+					let socialStats = {likes: stat.likes, shares:stat.shares,views:stat.views}
+					ratio=campaign.ratios;
+					stat.totalToEarn=await app.campaign.getTotalToEarn(socialStats,stat,ratio);
+					}
+				if(campaign.bounties.length && stat.status === true ) {
+					console.log("bounties");
+
+				 bounties=campaign.bounties;
+				 stat.totalToEarn=await app.campaign.getReward(stat,bounties);
+
+				}
+
+
+
+
+
+
+
+
 			
-				// else if(stat.typeSN=="2"  && stat.status){
-				
-				// 	oraclesYoutube = await app.oracle.youtube(prom.idPost);
-				// 	stat.shares=oraclesYoutube.shares || '0';
-				// 	stat.likes=oraclesYoutube.likes;
-				// 	stat.views=oraclesYoutube.views;
-				
-				// 				}
-				
-				// else if(stat.typeSN=="3" && stat.status){
-				
-				//     var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
-				//     var UserId=	userWallet.UserId;
-				// 	oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
-				// 	stat.shares=oraclesInstagram.shares || '0';
-				// 	stat.likes=oraclesInstagram.likes || '0';
-				// 	stat.views=oraclesInstagram.views|| '0';
-				// 	stat.media_url=oraclesInstagram.media_url || ''
-
-				// 	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
-				// 				}
-				
-				// else{
-				
-				
-				// 	oraclesTwitter= stat.status && await app.oracle.twitter(prom.idUser,prom.idPost);
-				// 	stat.shares=oraclesTwitter?.shares || '0';
-				// 	stat.likes=oraclesTwitter?.likes || '0';
-				// 	stat.views=oraclesTwitter?.views || '0';
-				// 	stat.media_url=oraclesTwitter?.media_url || ''
-				
-				// 				}
-
-
                if(socialOracle) await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
 
 					// 	if(prom.isAccepted){
@@ -999,7 +977,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const limit=+req.query.limit || 50;
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
-		var wallet=req.params.id_wallet;
+		var id_wallet=req.params.id_wallet;
 				
 		//const date= Math.round(new Date().getTime()/1000);
 
@@ -1034,35 +1012,39 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
 					if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",result.abosNumber,reachLimit);
 					delete result.isPayed;	     
-					cmp.ratio=ratio;	
-					ratio.forEach( num =>{											
-											if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
+					cmp.ratio=ratio;
+						
+					// ratio.forEach( num =>{											
+					// 						if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
 
-												let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
-												let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
-												let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
-												result.totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
-											}
-										})
+					// 							let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
+					// 							let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
+					// 							let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
+					// 							result.totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+					// 						}
+					// 					})
+					result.totalToEarn=await app.campaign.getTotalToEarn(socialStats,result,ratio);
 
 					}
 				if(bounties.length && result.status === true && !cmp.isFinished) {
 				cmp.bounties = bounties;
-				bounties.forEach( bounty=>{
-					if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
-					  bounty.categories.forEach( category=>{
-					   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
-						  result.totalToEarn = category.reward;
-					   }else if(+result.abosNumber > +category.maxFollowers){
-					result.totalToEarn = category.reward;	
-				 }
+				// bounties.forEach( bounty=>{
+				// 	if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
+				// 	  bounty.categories.forEach( category=>{
+				// 	   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+				// 		  result.totalToEarn = category.reward;
+				// 	   }else if(+result.abosNumber > +category.maxFollowers){
+				// 	result.totalToEarn = category.reward;	
+				//  }
 
-					  })
-					   }
-					   })
+				// 	  })
+				// 	   }
+				// 	   })
+					result.totalToEarn=await app.campaign.getReward(result,bounties);
+
 			  }					
 				result.campaign=cmp;
-				result.type=await app.campaign.getButtonStatus(result,wallet)
+				result.type=await app.campaign.getButtonStatus(result,id_wallet)
 				arrayOfLinks.push(result)
 			}
 		}
@@ -1072,7 +1054,29 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 	})
+app.get('/filterLinks',async(req,res)=>{
+	let result=await app.db.campaign_link().aggregate([{
+		$match: {
+			_id: {
+				$in: [ObjectId('6139dc315653b245e6fe599d'), ObjectId('6139dca05653b245e6fe59ff')]
+			}
+		}
+	}, {
+		$addFields: {
+			sort: {
+				$indexOfArray: [
+					[ObjectId('6139dca05653b245e6fe59ff'), ObjectId('6139dc315653b245e6fe599d')], "$_id"
+				]
+			}
+		}
+	},{
+		$sort: {
+			sort: 1
+		}
+	}]).toArray()
+	res.end(JSON.stringify(result));
 
+})
 	app.post('/campaign/validate', async function(req, response) {
 
 		var pass = req.body.pass;

@@ -838,10 +838,22 @@ module.exports = async function (app) {
 				let tokenSymbol = Amount.split('_')[0].toUpperCase();
 				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
 				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
-				if(tokenSymbol == "BTC") crypto.name='Bitcoin';
-				if(tokenSymbol == "ETH") crypto.name='Ethereum';
-				if(tokenSymbol == "SATT") crypto.name='SaTT';
-				else if(tokenSymbol == 'BNB')crypto.name='BNB';
+				if(tokenSymbol == "BTC") {
+					crypto.name='Bitcoin'
+					crypto.network='BTC';
+				};
+				if(tokenSymbol == "ETH"){
+					crypto.name='Ethereum';
+					crypto.network='ERC20';
+				} 
+				if(tokenSymbol == "SATT") {
+					crypto.name='SaTT'
+					crypto.network='ERC20';
+				}
+				else if(tokenSymbol == 'BNB'){
+					crypto.name='BNB';
+					crypto.network='BEP20';
+				}
 				[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill(tokenSymbol);
 					crypto.price=CryptoPrices[tokenSymbol].price;
 					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;
