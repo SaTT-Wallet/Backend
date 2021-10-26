@@ -438,6 +438,7 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+			app.account.sysLogError(err)
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
@@ -582,6 +583,7 @@ module.exports = function (app) {
 				response.end(JSON.stringify(ret));
 
 			} catch (err) {
+				app.account.sysLogError(err);
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {
@@ -993,12 +995,13 @@ module.exports = function (app) {
 
 app.get('/userLinks/:id_wallet',async function(req, response) {
 	try{
-		const id_wallet=req.params.id_wallet;
 		 const token = req.headers["authorization"].split(" ")[1];
-		 await app.crm.auth(token);
+		 var res=await app.crm.auth(token);
 		const limit=+req.query.limit || 50;
 		const page=+req.query.page || 1;
 		const skip=limit*(page-1);
+		var id_wallet=req.params.id_wallet;
+				
 		//const date= Math.round(new Date().getTime()/1000);
 
 		let arrayOfLinks=[];
@@ -1021,9 +1024,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					}
 				let prom = await ctr.methods.proms(result.id_prom).call();
 				let cmp = {}
-								
-				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=campaign.funds[1];
 				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+			
+				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=funds;
 				cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
 
 				if(ratio.length && result.status === true && !cmp.isFinished){
@@ -1060,6 +1063,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					   })
 			  }					
 				result.campaign=cmp;
+				result.type=await app.campaign.getButtonStatus(result,id_wallet)
 				arrayOfLinks.push(result)
 			}
 		}
@@ -1615,7 +1619,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-
+			app.account.sysLogError(err)
 			// response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
@@ -2421,7 +2425,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 } catch (err) {
 
-	console.error(err)
+	app.account.sysLogError(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
    })
@@ -2448,6 +2452,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 		let campaign = req.body;
+	
 		campaign.updatedAt=Date.now();
 		if(req.body.ratios){
         req.body.ratios.forEach(elem =>{
@@ -2469,8 +2474,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		const updatedCampaign = result.value
 		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
 		} catch (err) {
-
-			console.error(err)
+			app.account.sysLogError(err)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
@@ -2747,7 +2751,6 @@ console.log(Links)
 				const links= await app.db.campaign_link().find({$and:[{id_campaign:idCampaign},{"views": { $gte :  minImpression}}]}).toArray();
 				for (let i=0;i<links.length;i++){
 				let link=links[i];
-						
 				let userWallet= await app.db.wallet().findOne({"keystore.address":link.id_wallet.substr(2)});
 				let user=await app.db.sn_user().findOne({_id:userWallet.UserId});
 				let lienTweet="https://twitter.com/"+link.idUser+"/status/"+link.idPost

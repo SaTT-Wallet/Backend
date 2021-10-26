@@ -306,6 +306,7 @@ module.exports = async function (app) {
 
 			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
 			account = account[0];
+			
 			var address = "0x"+account.keystore.address;
 
 			var ether_balance = await app.web3.eth.getBalance(address);
@@ -668,7 +669,18 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
+	accountManager.getWalletBydIdUser = async function (userId) {
+		return new Promise( async (resolve, reject) => {
+			try {
+				var res = await app.db.wallet().findOne({UserId: parseInt(userId)});
+				var wallet='0x'+res.keystore.address;
+				resolve(wallet);
+			}
+			catch (e) {
+				reject({message:e.message});
+			}
+		})
+	}
 
 	accountManager.getBalanceByUid = async  (userId, crypto) => {
       return new Promise( async (resolve, reject) => {
@@ -691,6 +703,7 @@ module.exports = async function (app) {
 			    if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                 let symbol = userTokens[i].symbol
+				if(token_info[symbol]) symbol = `${symbol}_${userTokens[i].network}`
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
 				}  	  
 			  }
@@ -699,7 +712,7 @@ module.exports = async function (app) {
 				var network=token_info[T_name].network
 				let networkToken = network=="ERC20" ? app.erc20: app.bep20;
                 let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-				let key = T_name
+				let key = T_name.split('_')[0];
 				if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
 				   key = 'SATT'
 				}
@@ -738,33 +751,29 @@ module.exports = async function (app) {
 			  delete token_info['SATT']
 			  delete token_info['BNB']
 			  var CryptoPrices = crypto;
-			  var count = await accountManager.hasAccount(userId);
-  
-			   var ret = {err:"no_account"};
-			  if(count)
-			  {
+
 				  var ret = await accountManager.getAccount(userId)
 				  delete ret.btc
 				  delete ret.version
-			  }else{
-				resolve(ret);
-			  }
 
 			 let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                let symbol = userTokens[i].symbol
-	
+			   if(token_info[symbol]) symbol = `${symbol}_${userTokens[i].network}`
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
+
 				}  	  
 			  }
+
 			  for(let T_name in token_info){
 				let network=token_info[T_name].network;
 			        let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
-				crypto.symbol=token_info[T_name].symbol;
+				crypto.symbol=token_info[T_name].symbol.split("_")[0];
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
+                crypto.decimal = token_info[T_name].dicimal
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
@@ -772,12 +781,10 @@ module.exports = async function (app) {
 
              let networkToken = network=="ERC20" ? app.erc20: app.bep20;
              let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-                       let key = T_name
+                       let key = T_name.split("_")[0];
 
 			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
-
                 key = 'SATT'
-
 			 }
 				  if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;
@@ -934,6 +941,10 @@ accountManager.handleId=async function () {
 		return "error"
 	}
   }
+
+
+
+
 
   accountManager.HandleReferral = async function (referral, userId) {
 	let user = await app.db.sn_user().findOne({ _id: Long.fromNumber(referral) })
@@ -1130,7 +1141,7 @@ accountManager.handleId=async function () {
 		/*global function to write into "app.log" all application's logs
 			log: dateTime origin FN_name log's_data
 		*/
-	   	accountManager.sysLog = (source,data,origin/*,level="medium"*/)=>{
+	   	accountManager.sysLog = (source,origin,data/*,level="medium"*/)=>{
 		//if(app.config.testnet /*|| level=="highest"*/){
 			accountManager.sysLogger.log('info',` ${origin} FN_${source} ${data}`);
 		//}
@@ -1148,7 +1159,7 @@ accountManager.handleId=async function () {
 
 	   accountManager.log = (...arguments)=>{
         let logInfo = arguments.map((element)=>{ return JSON.stringify(element)}).join(' ');
-		if(app.config.testnet) accountManager.sysLogger.log('info',logInfo);	
+		accountManager.sysLogger.log('info',logInfo);	
 	   }
 
 	app.account = accountManager;
