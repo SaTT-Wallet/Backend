@@ -464,7 +464,7 @@ module.exports = async function (app) {
 				type="not_enough_budget";
 				else if((link.isPayed === true)||
 				(link.payedAmount !=='0' && 
-				new Big(totalToEarn).eq(new Big(link.payedAmount))))
+				new Big(totalToEarn).lte(new Big(link.payedAmount))))
 				type='already_recovered';
 				else if(totalToEarn==='0' && link.payedAmount ==='0')
 				type='no_gains';
