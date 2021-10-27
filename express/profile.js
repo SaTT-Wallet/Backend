@@ -192,8 +192,6 @@ module.exports = function (app) {
 
 			const token = req.headers["authorization"].split(" ")[1];
 			const auth = await app.crm.auth(token);
-			const limit=parseInt(req.query.limit) || 50;
-			const page=parseInt(req.query.page) || 1
 			const idNode="0"+auth.id;
 			const files = await gfsUserLegal.files.find({idNode}).toArray()
 			userLegal={};
