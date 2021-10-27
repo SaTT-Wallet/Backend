@@ -2063,10 +2063,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       var buff = Buffer.alloc(32);
       let [email,code,type]=[req.body.email,req.body.code,req.body.type];
       var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
-      if (user.secureCode.code != code) 
-      response.end(JSON.stringify({message:"code incorrect"}));  
-      else if (Date.now()>=user.secureCode.expiring) 
-      response.end(JSON.stringify({message :"code expired"}));       
+      if (user.secureCode.code != code) authMethod.message = "code incorrect";
+      else if (Date.now()>=user.secureCode.expiring) authMethod.message = "code expired";
       else if(user.secureCode.type =="validation" && type == "validation"){
         let date = Math.floor(Date.now() / 1000) + 86400;     
         let token = crypto.randomFillSync(buff).toString('hex');
