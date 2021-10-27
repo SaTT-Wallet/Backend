@@ -453,7 +453,7 @@ module.exports = async function (app) {
 				totalToEarn=link.totalToEarn;
 				if(link.reward)
 				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
-				if(link.status === 'rejected' && !(link.campaign.isFinished)) 
+				if(link.status === 'rejected') 
 				type='rejected';
 				else if(link.status === false && !(link.campaign.isFinished))
 				type='waiting_for_validation';
@@ -464,7 +464,7 @@ module.exports = async function (app) {
 				type="not_enough_budget";
 				else if((link.isPayed === true)||
 				(link.payedAmount !=='0' && 
-				new Big(totalToEarn).eq(new Big(link.payedAmount))))
+				new Big(totalToEarn).lte(new Big(link.payedAmount))))
 				type='already_recovered';
 				else if(totalToEarn==='0' && link.payedAmount ==='0')
 				type='no_gains';
