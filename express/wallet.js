@@ -281,12 +281,12 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/printseed', async function(req, response) {
+	app.post('/v3/printseed', async function(req, response) {
 
 		var pass = req.body.pass;
 		try {
-
-
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
@@ -487,7 +487,7 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/export',async function(req, response) {
+	app.post('/v3/export',async function(req, response) {
 		var pass = req.body.pass;
 		response.attachment();
 
@@ -527,7 +527,7 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/exportbtc', async function(req, response) {
+	app.post('/v3/exportbtc', async function(req, response) {
 		var pass = req.body.pass;
 		response.attachment();
 
@@ -646,25 +646,33 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferether/:to/:val', async function(req, response) {
-		var pass = req.body.pass;
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			cred.from_id = res.id;
-			var to = req.params.to;
-			var amount = req.params.val;
-			var ret = await app.cryptoManager.transfer(to,amount,cred);
-			response.end(JSON.stringify(ret));
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ app.post('/v3/transferether', async function(req, response) {
+	var pass = req.body.pass;
+	var to = req.body.to;
+	var amount = req.body.val;
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlock(res.id,pass);
+		cred.from_id = res.id;
+		
+		var ret = await app.cryptoManager.transfer(to,amount,cred);
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		if(cred) app.account.lock(cred.address);
+		if(ret.transactionHash){
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+			const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+			if(wallet){
+			
+				await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+			}
 		}
-		finally {
-				if(cred)
-			app.account.lock(cred.address);
-		}
-	})
+}
+})
 /**
  * @swagger
  * /v2/transferbtc/{token}/{pass}/{to}/{val}:
@@ -712,25 +720,24 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferbtc/:to/:val', async function(req, response) {
+ app.post('/v3/transferbtc', async function(req, response) {
 
-		var pass = req.body.pass;
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
-			response.end(JSON.stringify({hash:hash}));
+	var pass = req.body.pass;
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlock(res.id,pass);
+		var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
+		response.end(JSON.stringify({hash:hash}));
 
-		} catch (err) {
-			console.log(err.message?err.message:err.error);
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-				if(cred)
-			app.account.lock(cred.address);
-		}
-	})
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+			if(cred)
+		app.account.lock(cred.address);
+	}
+})
 
 	app.get('/v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 
@@ -1085,6 +1092,7 @@ module.exports = function (app) {
 			var amount = req.body.amount;
 			var pass = req.body.pass;
 			var currency=req.body.symbole;
+			var decimal = req.body.decimal;
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -1096,12 +1104,12 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-				if(cred) app.account.lock(cred.address);
-				if(ret.transactionHash){
-					await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20"} )
+				cred && app.account.lock(cred.address);
+				if(ret && ret.transactionHash){
+					await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
 					const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
 					if(wallet){
-						await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20" } )
+						await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
 					}
 	
 				}
@@ -1226,6 +1234,7 @@ module.exports = function (app) {
             var currency = req.body.symbole
 			var to = req.body.to;
 			var amount = req.body.amount;
+			var decimal = req.body.decimal;
 			var pass = req.body.pass;
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
@@ -1240,12 +1249,12 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-	if(cred){app.account.lockBSC(cred.address);}
+	cred && app.account.lockBSC(cred.address)
 	if(ret && ret.transactionHash){
-		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})	
+		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency, decimal})	
 		const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
 		if(wallet){
-			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency} )
+			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency,decimal} )
 		}
 
 	}
@@ -1772,5 +1781,66 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
+
+	app.post('/GetQuote', async (req, res) => {
+		try {
+		    const token = req.headers["authorization"].split(" ")[1];
+			var auth = await app.crm.auth(token);
+			let requestQuote = req.body;
+			requestQuote["end_user_id"]= String(auth.id);
+			requestQuote["client_ip"]= req.addressIp;
+            requestQuote["payment_methods"]= ["credit_card"];
+            requestQuote["wallet_id"]= "satt";
+		// let testObject = {
+		// 	"end_user_id": String(auth.id),
+		// 	"digital_currency": "SATT",
+		// 	"fiat_currency": "AUD",
+		// 	"requested_currency": "AUD",
+		// 	"requested_amount": 100,
+		// 	"wallet_id": "satt",
+		// 	"client_ip": req.addressIp,
+		// 	"payment_methods" : ["credit_card"] 
+		// }
+		const simplexQuote ={
+			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
+			method: 'POST',
+			// body:testObject, 
+			 body:requestQuote, 
+			headers: {
+				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+			  },
+			json: true
+		  };
+		  var quote = await rp(simplexQuote);
+		  delete quote.supported_digital_currencies;
+		  delete quote.supported_fiat_currencies;
+		  app.account.log("Quote from simplex", quote);
+		  res.end(JSON.stringify(quote));
+		}
+		catch (err) {
+		   app.account.sysLogError(err);
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally{
+		quote && app.account.log(`requested by ${auth.id}`,quote.digital_money.currency,`via ${quote.fiat_money.currency}`,`amount ${quote.fiat_money.total_amount}` )
+		}
+	})
+
+	app.post('/PaymentRequest/:idWallet', async (req, res)=>{
+		try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth = await app.crm.auth(token);
+		let user_agent = req.headers['user-agent'];
+		let user = await app.db.sn_user().findOne({_id:auth.id});
+	}
+	catch (err) {
+	   app.account.sysLogError(err);
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+
+	})
+
+
+
 	return app;
 }
