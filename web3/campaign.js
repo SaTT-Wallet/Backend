@@ -453,7 +453,7 @@ module.exports = async function (app) {
 				totalToEarn=link.totalToEarn;
 				if(link.reward)
 				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
-				if(link.status === 'rejected' && !(link.campaign.isFinished)) 
+				if(link.status === 'rejected') 
 				type='rejected';
 				else if(link.status === false && !(link.campaign.isFinished))
 				type='waiting_for_validation';
