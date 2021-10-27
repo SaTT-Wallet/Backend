@@ -192,6 +192,9 @@ module.exports = function (app) {
 				response.end('{result:'+(res?"true":"false")+'}');
 		});	
 
+
+	
+
 	app.get("/", function (req, response) {
 		response.render("index");
 	});
