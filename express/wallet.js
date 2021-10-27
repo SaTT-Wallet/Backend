@@ -281,12 +281,12 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/printseed', async function(req, response) {
+	app.post('/v3/printseed', async function(req, response) {
 
 		var pass = req.body.pass;
 		try {
-
-
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
 			var count = await app.account.hasAccount(res.id);
 			var ret = {err:"no_exists"};
 			if(count)
@@ -487,7 +487,7 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/export',async function(req, response) {
+	app.post('/v3/export',async function(req, response) {
 		var pass = req.body.pass;
 		response.attachment();
 
@@ -527,7 +527,7 @@ module.exports = function (app) {
 		}
 	})
 
-	app.get('/v3/exportbtc', async function(req, response) {
+	app.post('/v3/exportbtc', async function(req, response) {
 		var pass = req.body.pass;
 		response.attachment();
 
@@ -646,25 +646,33 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferether/:to/:val', async function(req, response) {
-		var pass = req.body.pass;
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			cred.from_id = res.id;
-			var to = req.params.to;
-			var amount = req.params.val;
-			var ret = await app.cryptoManager.transfer(to,amount,cred);
-			response.end(JSON.stringify(ret));
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ app.post('/v3/transferether', async function(req, response) {
+	var pass = req.body.pass;
+	var to = req.body.to;
+	var amount = req.body.val;
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlock(res.id,pass);
+		cred.from_id = res.id;
+		
+		var ret = await app.cryptoManager.transfer(to,amount,cred);
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		if(cred) app.account.lock(cred.address);
+		if(ret.transactionHash){
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+			const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+			if(wallet){
+			
+				await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+			}
 		}
-		finally {
-				if(cred)
-			app.account.lock(cred.address);
-		}
-	})
+}
+})
 /**
  * @swagger
  * /v2/transferbtc/{token}/{pass}/{to}/{val}:
@@ -712,25 +720,24 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-	app.get('/v3/transferbtc/:to/:val', async function(req, response) {
+ app.post('/v3/transferbtc', async function(req, response) {
 
-		var pass = req.body.pass;
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.params.to,req.params.val);
-			response.end(JSON.stringify({hash:hash}));
+	var pass = req.body.pass;
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlock(res.id,pass);
+		var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
+		response.end(JSON.stringify({hash:hash}));
 
-		} catch (err) {
-			console.log(err.message?err.message:err.error);
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-				if(cred)
-			app.account.lock(cred.address);
-		}
-	})
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+			if(cred)
+		app.account.lock(cred.address);
+	}
+})
 
 	app.get('/v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 
