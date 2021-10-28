@@ -322,7 +322,7 @@
         </div>
         <div class="mail-body">
           <h1 class="gains">{{__  "reject_reason"}}</h1>
-          <div class="reason-content" ><span class="reject_text">{{reject_reason}}</span></div>
+          <div class="reason-content" ><p class="reject_text">{{#each reject_reason}}<span style="display: block;">{{this.reason}}</span>{{/each}}</p></div>
           <div align="center">
                  <a  style="text-align:center;color:white;"href="{{cmp_link}}">{{__ "valid_post"}}</a>
             </div>

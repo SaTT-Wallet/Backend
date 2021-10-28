@@ -589,7 +589,7 @@ module.exports = function (app) {
 			}
 			finally {
 				cred && app.account.lock(cred.address);
-				if(ret.hash){
+				if(ret && ret.hash){
 					let campaign = {
 						hash : ret.hash,
 						transactionHash:ret.transactionHash,
@@ -2330,22 +2330,14 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
-        
+			await app.crm.auth(token);     
 		 const title = req.body.title || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
 		 const email = req.body.email
-		 let link = req.body.link
-		 let reason = "";
-         if(req.body.reason.length == 1) reason = req.body.reason[0];
-		 else if(req.body.reason.length > 1) {
-          req.body.reason.forEach((str)=>{
-           reason = reason 
-		   + ` \n${str}`;
-		  })
-		  reason = reason.trim();
-		 }
+		 let link = req.body.link;
+		 let reason = [];
+		req.body.reason.forEach((str)=>	reason.push({reason:str}))
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 
 		 let id = +req.body.idUser
