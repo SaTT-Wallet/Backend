@@ -459,16 +459,16 @@ module.exports = async function (app) {
 				type='waiting_for_validation';
 				else if(link.status === true && link.id_wallet!==wallet)
 				type='already_accepted';
-				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
-				link.campaign.isFinished)
-				type="not_enough_budget";
 				else if((link.isPayed === true)||
 				(link.payedAmount !=='0' && 
-				new Big(totalToEarn).eq(new Big(link.payedAmount))))
+				new Big(totalToEarn).lte(new Big(link.payedAmount))))
 				type='already_recovered';
 				else if(totalToEarn==='0' && link.payedAmount ==='0')
 				type='no_gains';
-				else if(!(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.ratio?.length ||
+				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
+				link.campaign.isFinished)
+				type="not_enough_budget";
+				else if(!(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign?.ratios?.length ||
 				(link.isPayed ===false && !(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.bounties?.length))
 				type='harvest';
 				else 
@@ -482,22 +482,20 @@ module.exports = async function (app) {
 		})
 	}
 
-	campaignManager.getTotalToEarn = async function (socialStats,result,ratio) {
+	campaignManager.getTotalToEarn = async function (socialStats,ratio) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				ratio.forEach( num =>{		
-					console.log(num.oracle,'|',result.oracle);
-					console.log(num.typeSN,'|',result.typeSN);									
-					if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
-						console.log(true);
+						let totalToEarn='0';							
+					if(((num.oracle === socialStats.oracle) || (num.typeSN === socialStats.typeSN))){
 						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
-						let totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+						totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 						resolve (totalToEarn);
 					}
 				})
-			}catch{
+			}catch(err){
 				reject(err);
 
 			}
@@ -515,6 +513,7 @@ module.exports = async function (app) {
 							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 								  totalToEarn = category.reward;
 							   }else if(+result.abosNumber > +category.maxFollowers){
+
 								  totalToEarn = category.reward;	
 						 }
 						 		resolve(totalToEarn);
@@ -766,7 +765,6 @@ module.exports = async function (app) {
 		return;
 	}
 	campaignManager.UpdateStats = async (obj,campaign) =>{	
-	if(campaign && (campaign.bounties.length || (campaign.ratios && campaignManager.getReachLimit(campaign.ratios,obj.oracle)))) obj.abosNumber = await app.oracleManager.answerAbos(obj.typeSN,obj.idPost,obj.idUser)
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			return;
@@ -871,6 +869,25 @@ module.exports = async function (app) {
 
 		return query
 	}
+
+	campaignManager.filterLinks=(req, id_wallet)=>{
+		
+		const status=req.query.status;
+		let oracles= req.query.oracles
+		oracles= typeof oracles === "string" ? [oracles] : oracles;
+		var query = {id_wallet:id_wallet};
+		if (oracles) query.oracle={ $in: oracles};
+
+		if(status == "false")	query.status=false;
+		if(status == "rejected") query.status="rejected";
+        if(status == "true") query.status=true;
+		query.type={
+			$in: ['already_accepted','harvest','already_recovered','not_enough_budget', 'no_gains','waiting_for_validation','rejected']
+		}
+		return query
+	}
+
+
 
 	campaignManager.getPromApplyStats= async(oracles, link,id)=>{
 		return new Promise( async (resolve, reject) => {
