@@ -703,6 +703,7 @@ module.exports = async function (app) {
 			    if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                 let symbol = userTokens[i].symbol
+				if(token_info[symbol]) symbol = `${symbol}_${userTokens[i].network}`
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
 				}  	  
 			  }
@@ -711,7 +712,7 @@ module.exports = async function (app) {
 				var network=token_info[T_name].network
 				let networkToken = network=="ERC20" ? app.erc20: app.bep20;
                 let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-				let key = T_name
+				let key = T_name.split('_')[0];
 				if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
 				   key = 'SATT'
 				}
@@ -759,17 +760,20 @@ module.exports = async function (app) {
 			  if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                let symbol = userTokens[i].symbol
-	
+			   if(token_info[symbol]) symbol = `${symbol}_${userTokens[i].network}`
 			    token_info[symbol] = {dicimal : Number(userTokens[i].decimal), symbol :userTokens[i].symbol, network : userTokens[i].network, contract :userTokens[i].tokenAdress, name :userTokens[i].tokenName, picUrl : userTokens[i].picUrl, addedToken:true   }
+
 				}  	  
 			  }
+
 			  for(let T_name in token_info){
 				let network=token_info[T_name].network;
 			        let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
-				crypto.symbol=token_info[T_name].symbol;
+				crypto.symbol=token_info[T_name].symbol.split("_")[0];
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
+                crypto.decimal = token_info[T_name].dicimal
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
 				crypto.undername2=token_info[T_name].undername2;
@@ -777,12 +781,10 @@ module.exports = async function (app) {
 
              let networkToken = network=="ERC20" ? app.erc20: app.bep20;
              let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
-                       let key = T_name
+                       let key = T_name.split("_")[0];
 
 			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
-
                 key = 'SATT'
-
 			 }
 				  if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;

@@ -385,13 +385,15 @@ module.exports = function (app) {
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
+			app.account.sysLogError(err)
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-		if(cred) app.account.lock(cred.address);
+		cred && app.account.lock(cred.address);
 		if(ret && ret.hash){
 			var campaign = {
 				hash : ret.hash,
+				transactionHash:ret.transactionHash,
 				startDate,
 				endDate,
 				coverSrc:null,
@@ -533,10 +535,11 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			finally {
-				if(cred) app.account.lock(cred.address);
-				if(ret.hash){
+				cred && app.account.lock(cred.address);
+				if(ret && ret.hash){
 					let campaign = {
 						hash : ret.hash,
+						transactionHash:ret.transactionHash,
 						startDate,
 						endDate,
 						dataUrl,
@@ -568,10 +571,10 @@ module.exports = function (app) {
         try {
 		   let campaign_id=req.body.idCampaign
 		   let link=req.body.link
-		   
+		   let idProm = req.body.idProm
 		 await  app.db.campaigns().findOne({_id:app.ObjectId(campaign_id)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}},async  (err, element)=> {
 		  let owner= Number(element.idNode.substring(1))               
-		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:campaign_id});
+		  await app.account.notificationManager(owner, "cmp_candidate_insert_link",{cmp_name :element.title, cmp_hash:campaign_id, linkHash : idProm});
 
 
 		  await	app.db.sn_user().findOne({_id:owner},  (err, result) =>{
@@ -941,8 +944,8 @@ module.exports = function (app) {
 
 	app.get('/userLinks/:id_wallet',async function(req, response) {
 		try{
-			 const token = req.headers["authorization"].split(" ")[1];
-			 var res=await app.crm.auth(token);
+			//  const token = req.headers["authorization"].split(" ")[1];
+			//  var res=await app.crm.auth(token);
 			const limit=+req.query.limit || 50;
 			const page=+req.query.page || 1;
 			const skip=limit*(page-1);
@@ -1607,7 +1610,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			response.end(JSON.stringify(ret));
 
 		} catch (err) {
-
+			app.account.sysLogError(err)
 			// response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			response.end(JSON.stringify({error:err.message?err.message:err.error}));
 		}
@@ -2316,14 +2319,14 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
-         const reason =req.body.reason || "";
+			await app.crm.auth(token);     
 		 const title = req.body.title || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
 		 const email = req.body.email
-		 let link = req.body.link
-
+		 let link = req.body.link;
+		 let reason = [];
+		req.body.reason.forEach((str)=>	reason.push({reason:str}))
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
 
 		 let id = +req.body.idUser
@@ -2364,6 +2367,47 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 	}
 	})
+
+	// app.get('/tesstess', async (req, res) => {
+	// 	let link = req.body.link
+	// 	let reason = "";
+	// 	// if(req.body.reason.length == 1) reason = req.body.reason[0];
+	// 	// else if(req.body.reason.length > 1) {
+	// 	 ["not audible", 'not a good content', 'that simply sucks'].forEach((str)=>{
+	// 	  reason = reason 
+	// 	  + ` \n${str}`;
+	// 	 })
+	// 	 reason = reason.trim();
+	// 	// }
+	//    readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
+	// 	   if (err) {
+	// 		   console.error(err)
+	// 		   return
+	// 		 }
+	// 		 let template = handlebars.compile(html);
+
+	// 		   let emailContent = {
+	// 		   reject_reason : reason,
+	// 		   cmp_link : app.config.basedURl + '/myWallet/campaign/' + "idCampaign",
+	// 		   satt_faq : app.config.Satt_faq,
+	// 		   satt_url: app.config.basedURl,
+	// 		   cmp_title: "title",
+	// 		   imgUrl: app.config.baseEmailImgURl
+	// 		   };
+	// 			   let htmlToSend = template(emailContent);
+
+	// 			   let mailOptions = {
+	// 				from: app.config.mailSender,
+	// 				to: "hamdi@atayen.us",
+	// 				subject: 'Your link has been rejected in a campaign',
+	// 				html: htmlToSend
+	// 		   };
+
+	// 		 transporter.sendMail(mailOptions, (error, info)=>{
+	// 				   res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))
+	// 			 });
+	// 		   })
+	// })
 
 
 /**
@@ -2410,10 +2454,10 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		//  }
 		const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
-		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
+		res.send(JSON.stringify({updatedCampaign, success : "updated"}));
 } catch (err) {
 
-	console.error(err)
+	app.account.sysLogError(err)
 	res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
  }
    })
@@ -2440,6 +2484,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		const token = req.headers["authorization"].split(" ")[1];
 		await app.crm.auth(token);
 		let campaign = req.body;
+	
 		campaign.updatedAt=Date.now();
 		if(req.body.ratios){
         req.body.ratios.forEach(elem =>{
@@ -2459,10 +2504,9 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		 }
 		const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
 		const updatedCampaign = result.value
-		res.send(JSON.stringify({updatedCampaign, success : "updated"})).status(201);
+		res.send(JSON.stringify({updatedCampaign, success : "updated"}));
 		} catch (err) {
-
-			console.error(err)
+			app.account.sysLogError(err);
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
@@ -2582,7 +2626,6 @@ console.log(Links)
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-
 
 	 /*
 	@url : /campaign/totalSpent/:owner

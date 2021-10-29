@@ -1195,7 +1195,7 @@ const Grid = require('gridfs-stream');
 	app.get('/campaign/:idCampaign/proms/all', async (req, res) => {
 		try{	
 			const token = req.headers["authorization"].split(" ")[1];
-			var res=await app.crm.auth(token);
+			await app.crm.auth(token);
 
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 			let ctr = await app.campaign.getCampaignContract(campaign.hash)
@@ -1264,7 +1264,7 @@ const Grid = require('gridfs-stream');
 	 res.send(JSON.stringify({allProms}))
  } 
  }catch (err) {
-	 console.log(err)
+	app.account.sysLogError(err)
 	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
   }
 	})
