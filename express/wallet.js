@@ -1,5 +1,6 @@
 const { async } = require('hasha');
 var Big = require('big.js');
+var proc = require('child_process');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -646,6 +647,7 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
+<<<<<<< HEAD
 	app.post('/v3/transferether', async function(req, response) {
 		var pass = req.body.pass;
 		var to = req.body.to;
@@ -673,6 +675,35 @@ module.exports = function (app) {
 			}
 	}
 	})
+=======
+ app.post('/v3/transferether', async function(req, response) {
+	var pass = req.body.pass;
+	var to = req.body.to;
+	var amount = req.body.val;
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlock(res.id,pass);
+		cred.from_id = res.id;
+		
+		var ret = await app.cryptoManager.transfer(to,amount,cred);
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		if(cred) app.account.lock(cred.address);
+		if(ret.transactionHash){
+			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+			const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+			if(wallet){
+			
+				await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+			}
+		}
+}
+})
+>>>>>>> d7940b90514c5caff61fa6af59a82465ce25205f
 /**
  * @swagger
  * /v2/transferbtc/{token}/{pass}/{to}/{val}:
@@ -720,6 +751,7 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
+<<<<<<< HEAD
 	app.post('/v3/transferbtc', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -738,6 +770,26 @@ module.exports = function (app) {
 			app.account.lock(cred.address);
 		}
 	})
+=======
+ app.post('/v3/transferbtc', async function(req, response) {
+
+	var pass = req.body.pass;
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlock(res.id,pass);
+		var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
+		response.end(JSON.stringify({hash:hash}));
+
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+			if(cred)
+		app.account.lock(cred.address);
+	}
+})
+>>>>>>> d7940b90514c5caff61fa6af59a82465ce25205f
 
 	app.get('/v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 
@@ -1093,6 +1145,7 @@ module.exports = function (app) {
 			var amount = req.body.amount;
 			var pass = req.body.pass;
 			var currency=req.body.symbole;
+			var decimal = req.body.decimal;
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
@@ -1104,12 +1157,12 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-				if(cred) app.account.lock(cred.address);
-				if(ret.transactionHash){
-					await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20"} )
+				cred && app.account.lock(cred.address);
+				if(ret && ret.transactionHash){
+					await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
 					const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
 					if(wallet){
-						await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20" } )
+						await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
 					}
 	
 				}
@@ -1234,6 +1287,7 @@ module.exports = function (app) {
             var currency = req.body.symbole
 			var to = req.body.to;
 			var amount = req.body.amount;
+			var decimal = req.body.decimal;
 			var pass = req.body.pass;
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
@@ -1248,12 +1302,12 @@ module.exports = function (app) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-	if(cred){app.account.lockBSC(cred.address);}
+	cred && app.account.lockBSC(cred.address)
 	if(ret && ret.transactionHash){
-		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency})	
+		await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency, decimal})	
 		const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
 		if(wallet){
-			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency} )
+			await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency,decimal} )
 		}
 
 	}
@@ -1411,53 +1465,53 @@ module.exports = function (app) {
 
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
-					}
+			res.end(JSON.stringify(app.prices.data));
+		}
+		else {
+			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+			var response = JSON.parse(r);
+			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+          	var responseSattJet = JSON.parse(r2);
+			response.data.push(responseSattJet.data.SATT);
+			response.data.push(responseSattJet.data.JET);
 
-					else {
-
-						const requestOptions = {
-						  method: 'GET',
-						  uri: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
-						  qs: {
-							start: 1,
-							limit: 200,
-							convert: 'USD'
-						  },
-						  headers: {
-							'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-						  },
-						  json: true,
-						  gzip: true
-						};
-						var p = await rp(requestOptions);
-						app.prices = p;
+			var priceMap = response.data.map((elem) =>{
+				var obj = {};
+				obj = {symbol:elem.symbol,
+					name:elem.name,
+					price:elem.quote.USD.price,
+					percent_change_24h:elem.quote.USD.percent_change_24h,
+                    market_cap:elem.quote.USD.market_cap,
+                    volume_24h:elem.quote.USD.volume_24h,
+                    circulating_supply:elem.circulating_supply,
+                    total_supply:elem.total_supply,
+                    max_supply:elem.max_supply,
+					logo: "https://s2.coinmarketcap.com/static/img/coins/128x128/"+elem.id+".png"
 				}
+				return obj;
+			})
+			var finalMap = {};
+			for(var i=0;i<priceMap.length;i++)
+			{
+				finalMap[priceMap[i].symbol] = priceMap[i];
+				delete(finalMap[priceMap[i].symbol].symbol);
+			}
 
-				var response = app.prices.data;
+			for(var i=0;i<app.config.token200.length;i++)
+			{
+				var token = app.config.token200[i];
+				if(finalMap[token.symbol]) {
+					finalMap[token.symbol].network = token.platform.network;
+					finalMap[token.symbol].tokenAddress = token.platform.token_address;
+					finalMap[token.symbol].decimals = token.platform.decimals;
+				}
+			}
+		}
+		response.data = finalMap;
+		app.prices = response;
 
-        var prices = [];
-        var str = "{";
-        for(var i = 0;i<response.length;i++)
-        {
-                var price = {
-                        price:response[i].quote.USD.price,
-                        percent_change_24h:response[i].quote.USD.percent_change_24h,
-                        market_cap:response[i].quote.USD.market_cap,
-                        volume_24h:response[i].quote.USD.volume_24h,
-                        circulating_supply:response[i].circulating_supply,
-                        total_supply:response[i].total_supply,
-                        max_supply:response[i].max_supply
-                }
-                prices[""+response[i].symbol] = price;
-                str += '"'+response[i].symbol+'":'+JSON.stringify(price)+",";
-        }
-		// 		str+='"SATT":{"price":'+bwSatt.datas[1]+',"percent_change_24h":0},';
-		// 		str+='"JET":{"price":0.002134,"percent_change_24h":0}';
-        // prices["SATT"] = {price:bwSatt.datas[1]};
-				response=str.substring(0, str.length-1);
-		 		response+="}"
-				res.end(response)
-})
+		res.end(JSON.stringify(finalMap))
+	})
 
 app.get('/v2/feebtc', async function(req, response) {
 
@@ -1781,6 +1835,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		}
 	})
 
+<<<<<<< HEAD
 	app.get('/getMnemo', async (req, res) => {
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
@@ -1806,6 +1861,66 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		 }
 	  })
+=======
+	app.post('/GetQuote', async (req, res) => {
+		try {
+		    const token = req.headers["authorization"].split(" ")[1];
+			var auth = await app.crm.auth(token);
+			let requestQuote = req.body;
+			requestQuote["end_user_id"]= String(auth.id);
+			requestQuote["client_ip"]= req.addressIp;
+            requestQuote["payment_methods"]= ["credit_card"];
+            requestQuote["wallet_id"]= "satt";
+		// let testObject = {
+		// 	"end_user_id": String(auth.id),
+		// 	"digital_currency": "SATT",
+		// 	"fiat_currency": "AUD",
+		// 	"requested_currency": "AUD",
+		// 	"requested_amount": 100,
+		// 	"wallet_id": "satt",
+		// 	"client_ip": req.addressIp,
+		// 	"payment_methods" : ["credit_card"] 
+		// }
+		const simplexQuote ={
+			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
+			method: 'POST',
+			// body:testObject, 
+			 body:requestQuote, 
+			headers: {
+				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+			  },
+			json: true
+		  };
+		  var quote = await rp(simplexQuote);
+		  delete quote.supported_digital_currencies;
+		  delete quote.supported_fiat_currencies;
+		  app.account.log("Quote from simplex", quote);
+		  res.end(JSON.stringify(quote));
+		}
+		catch (err) {
+		   app.account.sysLogError(err);
+		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally{
+		quote && app.account.log(`requested by ${auth.id}`,quote.digital_money.currency,`via ${quote.fiat_money.currency}`,`amount ${quote.fiat_money.total_amount}` )
+		}
+	})
+
+	app.post('/PaymentRequest/:idWallet', async (req, res)=>{
+		try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth = await app.crm.auth(token);
+		let user_agent = req.headers['user-agent'];
+		let user = await app.db.sn_user().findOne({_id:auth.id});
+	}
+	catch (err) {
+	   app.account.sysLogError(err);
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+
+	})
+
+>>>>>>> d7940b90514c5caff61fa6af59a82465ce25205f
 
 
 	return app;
