@@ -647,35 +647,6 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-<<<<<<< HEAD
-	app.post('/v3/transferether', async function(req, response) {
-		var pass = req.body.pass;
-		var to = req.body.to;
-		var amount = req.body.val;
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			cred.from_id = res.id;
-			
-			var ret = await app.cryptoManager.transfer(to,amount,cred);
-			response.end(JSON.stringify(ret));
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-			if(cred) app.account.lock(cred.address);
-			if(ret.transactionHash){
-				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
-				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
-				if(wallet){
-				
-					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
-				}
-			}
-	}
-	})
-=======
  app.post('/v3/transferether', async function(req, response) {
 	var pass = req.body.pass;
 	var to = req.body.to;
@@ -703,7 +674,6 @@ module.exports = function (app) {
 		}
 }
 })
->>>>>>> d7940b90514c5caff61fa6af59a82465ce25205f
 /**
  * @swagger
  * /v2/transferbtc/{token}/{pass}/{to}/{val}:
@@ -751,26 +721,6 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
-<<<<<<< HEAD
-	app.post('/v3/transferbtc', async function(req, response) {
-
-		var pass = req.body.pass;
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			var res =	await app.crm.auth(token);
-			var cred = await app.account.unlock(res.id,pass);
-			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
-			response.end(JSON.stringify({hash:hash}));
-
-		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-		finally {
-				if(cred)
-			app.account.lock(cred.address);
-		}
-	})
-=======
  app.post('/v3/transferbtc', async function(req, response) {
 
 	var pass = req.body.pass;
@@ -789,7 +739,6 @@ module.exports = function (app) {
 		app.account.lock(cred.address);
 	}
 })
->>>>>>> d7940b90514c5caff61fa6af59a82465ce25205f
 
 	app.get('/v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 
@@ -1835,7 +1784,6 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		}
 	})
 
-<<<<<<< HEAD
 	app.get('/getMnemo', async (req, res) => {
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
@@ -1861,7 +1809,6 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		 }
 	  })
-=======
 	app.post('/GetQuote', async (req, res) => {
 		try {
 		    const token = req.headers["authorization"].split(" ")[1];
@@ -1920,7 +1867,6 @@ app.post('/wallet/remove/token', async (req, res) =>{
 
 	})
 
->>>>>>> d7940b90514c5caff61fa6af59a82465ce25205f
 
 
 	return app;
