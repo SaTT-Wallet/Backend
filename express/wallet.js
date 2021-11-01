@@ -647,33 +647,33 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
- app.post('/v3/transferether', async function(req, response) {
-	var pass = req.body.pass;
-	var to = req.body.to;
-	var amount = req.body.val;
-	try {
-		const token = req.headers["authorization"].split(" ")[1];
-		var res =	await app.crm.auth(token);
-		var cred = await app.account.unlock(res.id,pass);
-		cred.from_id = res.id;
-		
-		var ret = await app.cryptoManager.transfer(to,amount,cred);
-		response.end(JSON.stringify(ret));
-	} catch (err) {
-		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-	}
-	finally {
-		if(cred) app.account.lock(cred.address);
-		if(ret.transactionHash){
-			await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
-			const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
-			if(wallet){
+	app.post('/v3/transferether', async function(req, response) {
+		var pass = req.body.pass;
+		var to = req.body.to;
+		var amount = req.body.val;
+		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			cred.from_id = res.id;
 			
-				await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
-			}
+			var ret = await app.cryptoManager.transfer(to,amount,cred);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
-}
-})
+		finally {
+			if(cred) app.account.lock(cred.address);
+			if(ret.transactionHash){
+				await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+				const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+				if(wallet){
+				
+					await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+				}
+			}
+	}
+	})
 /**
  * @swagger
  * /v2/transferbtc/{token}/{pass}/{to}/{val}:
@@ -721,24 +721,24 @@ module.exports = function (app) {
  *       "500":
  *          description: error:error message
  */
- app.post('/v3/transferbtc', async function(req, response) {
+	app.post('/v3/transferbtc', async function(req, response) {
 
-	var pass = req.body.pass;
-	try {
-		const token = req.headers["authorization"].split(" ")[1];
-		var res =	await app.crm.auth(token);
-		var cred = await app.account.unlock(res.id,pass);
-		var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
-		response.end(JSON.stringify({hash:hash}));
+		var pass = req.body.pass;
+		try {
+			const token = req.headers["authorization"].split(" ")[1];
+			var res =	await app.crm.auth(token);
+			var cred = await app.account.unlock(res.id,pass);
+			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
+			response.end(JSON.stringify({hash:hash}));
 
-	} catch (err) {
-		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-	}
-	finally {
-			if(cred)
-		app.account.lock(cred.address);
-	}
-})
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+				if(cred)
+			app.account.lock(cred.address);
+		}
+	})
 
 	app.get('/v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice', async function(req, response) {
 
