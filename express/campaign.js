@@ -188,7 +188,7 @@ module.exports = function (app) {
 		if(campaign.bounties.length && socialOracle ) {
 		stat.totalToEarn=await app.campaign.getReward(stat,campaign.bounties);
 		}
-		if (campaign)stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet)
+		if (campaign ) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet)
 
     await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
 			
@@ -952,7 +952,6 @@ module.exports = function (app) {
 			var id_wallet=req.params.id_wallet;
 					
 			//const date= Math.round(new Date().getTime()/1000);
-	
 			let arrayOfLinks=[];
 			let query= app.campaign.filterProms(req,id_wallet);
 			var count=await app.db.campaign_link().find({id_wallet}).count();
@@ -1031,17 +1030,20 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
    	const page=+req.query.page || 1;
    	const skip=limit*(page-1);
    	let arrayOfLinks=[];
+	let allProms=[];
    	let query= app.campaign.filterLinks(req,id_wallet);
     var count=await app.db.campaign_link().find({id_wallet}).count();
+	
+	
+	let tri= (req.query.state==='owner') ? [['waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','rejected'], "$type"] :
+	 [['harvest','already_recovered','waiting_for_validation','not_enough_budget','no_gains','rejected'],"$type"]
 	let userLinks=await app.db.campaign_link().aggregate([{
 		$match: 
 			query
 	}, {
 		$addFields: {
 			sort: {
-				$indexOfArray: [
-					['already_accepted','harvest','already_recovered','not_enough_budget', 'no_gains','waiting_for_validation','rejected'], "$type"
-				]
+				$indexOfArray: tri
 			}
 		}
 	},{
@@ -1061,7 +1063,10 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			arrayOfLinks.push(result)
 		}
 	}
-	var Links ={Links:arrayOfLinks,count:count}
+		 allProms = req.query.campaign && req.query.state ? await app.campaign.influencersLinks(arrayOfLinks) : arrayOfLinks;
+	
+
+	var Links ={Links:allProms,count:count}
 	res.end(JSON.stringify(Links));
 
 })

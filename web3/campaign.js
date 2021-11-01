@@ -446,6 +446,7 @@ module.exports = async function (app) {
 	campaignManager.getButtonStatus = async function (link,wallet) {
 		return new Promise(async (resolve, reject) => {
 			try {
+
 				var type = '';
 				var totalToEarn='0';
 				link.payedAmount= link.payedAmount || '0';
@@ -453,13 +454,11 @@ module.exports = async function (app) {
 				totalToEarn=link.totalToEarn;
 				if(link.reward)
 				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
-				if(link.status === 'rejected') 
-				type='rejected';
-				else if(link.status === false && !(link.campaign.isFinished))
+				 if(link.status === 'rejected') 
+				 type='rejected';
+				if(link.status===false && !(link.campaign.isFinished))
 				type='waiting_for_validation';
-				else if(link.status === true && link.id_wallet!==wallet)
-				type='already_accepted';
-				else if((link.isPayed === true)||
+				if((link.isPayed === true)||
 				(link.payedAmount !=='0' && 
 				new Big(totalToEarn).lte(new Big(link.payedAmount))))
 				type='already_recovered';
@@ -472,7 +471,7 @@ module.exports = async function (app) {
 				(link.isPayed ===false && !(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.bounties?.length))
 				type='harvest';
 				else 
-				type="unknown_type";				
+				type="none";				
 				resolve(type);
 			}
 			catch (err)
@@ -857,8 +856,16 @@ module.exports = async function (app) {
 		
 		var query = {};
 		query["$and"]=[];
-		query["$and"].push({id_wallet});
 		
+		if(req.query.campaign && req.query.state==='part'){
+			query["$and"].push({id_wallet});
+			query["$and"].push({id_campaign:req.query.campaign});
+		}
+		else if(req.query.campaign && req.query.state==='campaign')
+		query["$and"].push({id_campaign:req.query.campaign});
+		else if(!req.query.campaign && !(req.query.state))	
+		query["$and"].push({id_wallet});
+
 		let oracles= req.query.oracles
 		 oracles= typeof oracles === "string" ? [oracles] : oracles;
 		if (oracles) query["$and"].push({"oracle":{ $in: oracles}});
@@ -876,13 +883,23 @@ module.exports = async function (app) {
 		let oracles= req.query.oracles
 		oracles= typeof oracles === "string" ? [oracles] : oracles;
 		var query = {id_wallet:id_wallet};
+		if(req.query.campaign && req.query.state==='part'){
+			query={id_wallet:id_wallet,id_campaign:req.query.campaign};
+		}
+		else if(req.query.campaign && req.query.state==='owner')
+		query={id_campaign:req.query.campaign};
+		else if(!req.query.campaign && !(req.query.state))	
+		query={id_wallet:id_wallet};
+
+
+
 		if (oracles) query.oracle={ $in: oracles};
 
 		if(status == "false")	query.status=false;
 		if(status == "rejected") query.status="rejected";
         if(status == "true") query.status=true;
 		query.type={
-			$in: ['already_accepted','harvest','already_recovered','not_enough_budget', 'no_gains','waiting_for_validation','rejected']
+			$in: ['waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','rejected']
 		}
 		return query
 	}
