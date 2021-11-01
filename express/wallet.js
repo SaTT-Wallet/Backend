@@ -9,7 +9,7 @@ module.exports = function (app) {
 	var BN = require('bn.js');
 	var rp = require('request-promise');
 	const { v4: uuidv4 } = require('uuid');
-	import { v5 as uuidv5 } from 'uuid';
+	const { v5 : uuidv5 } = require('uuid')
 	const xChangePricesUrl = app.config.xChangePricesUrl;
     const log = console.log.bind(console,"logged");
    
@@ -1861,55 +1861,19 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
 		let payment_id=uuidv4();	
-		const MY_NAMESPACE = '1b671a64-40d5-491e-99b0-da01ff1f3341';
-		
-		
-		 let user_agent = req.headers['user-agent'];
+		const MY_NAMESPACE = app.config.uiad;	
+		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
 		let user = await app.db.sn_user().findOne({_id:auth.id},{projection: { email: true, phone: true,created:true}});
-        // let payment = {
-		// 	account_details: {
-		// 	app_provider_id: "Bittrex",
-		// 		app_version_id: "1.3.1",
-		// 		app_end_user_id: "652",
-		// 		app_install_date: "2018-01-03T15:23:12Z",
-		// 		email: "hamdi@atayen.us",
-		// 		phone:"+21652985865",
-		// 		signup_login: {
-		// 			ip: req.addressIp,
-		// 			location: "36.848460,-174.763332",
-		// 			uaid: "IBAnKPg1bdxRiT6EDkIgo24Ri8akYQpsITRKIueg+3XjxWqZlmXin7YJtQzuY4K73PWTZOvmuhIHu + ee8m4Cs4WLEqd2SvQS9jW59pMDcYu + Tpl16U / Ss3SrcFKnriEn4VUVKG9QnpAJGYB3JUAPx1y7PbAugNoC8LX0Daqg66E = ",
-		// 			accept_language: http_accept_language,
-		// 			http_accept_language,
-		// 			user_agent,
-		// 			cookie_session_id: "7r7rz_VfGC_viXTp5XPh5Bm--rWM6RyU",
-		// 			timestamp: "2018-01-15T09:27:34.431Z"
-		// 		}
-		// 	},
-		// 	transaction_details: {
-		// 		payment_details: {
-		// 			quote_id: req.body.quote_id,
-		// 			payment_id,
-		// 			order_id: "509b9976-5617-4513-9560-dcfe68b2330b",
-		// 			destination_wallet: {
-		// 				currency: req.body.currency || "ETH",
-		// 				address: req.params.idWallet,
-		// 				tag: ""
-		// 			},
-		// 			original_http_ref_url: "https://satt.atayen.us"
-		// 		}
-		// 	}
-		// }
-
 		let request = {};
 		request._id = auth.id.toString(), request.installDate=user.created,request.phone=user.phone
 		request.email=user.email,request.addressIp=req.addressIp,request.user_agent = user_agent;
 		request.language=http_accept_language;
 		request.quote_id = req.body.quote_id;
 		request.order_id =  uuidv5('Hello, World!', MY_NAMESPACE);
-		request.payment_id = payment_id.slice(0,-String(auth.id).length) + auth.id
+		request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id
 		request.currency = req.body.currency;
-		request.idWallet= req.body.idWallet;
+		request.idWallet= req.params.idWallet;
 		 let payment = app.config.paymentRequest(request)
 		const paymentRequest ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
