@@ -1580,6 +1580,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
               imgUrl: app.config.baseEmailImgURl,
             };
             var htmlToSend = template(replacements);
+            console.log("email====",user.email);
             var mailOptions = {
               from: app.config.mailSender,
               to: user.email,
@@ -2061,7 +2062,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     try{
       var authMethod = {message:"code match"}
       var buff = Buffer.alloc(32);
-      let [email,code,type]=[req.body.email,req.body.code,req.body.type];
+      let [email,code,type]=[req.body.email.toLowerCase(),req.body.code,req.body.type];
       var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
       if (user.secureCode.code != code) authMethod.message = "code incorrect";
       else if (Date.now()>=user.secureCode.expiring) authMethod.message = "code expired";
