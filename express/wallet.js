@@ -1861,7 +1861,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
 		let payment_id=uuidv4();	
-		const MY_NAMESPACE = app.config.uiad;	
+		const uiad = app.config.uiad;	
 		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
 		let user = await app.db.sn_user().findOne({_id:auth.id},{projection: { email: true, phone: true,created:true}});
@@ -1869,9 +1869,10 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		request._id = auth.id.toString(), request.installDate=user.created,request.phone=user.phone
 		request.email=user.email,request.addressIp=req.addressIp,request.user_agent = user_agent;
 		request.language=http_accept_language;
-		request.quote_id = req.body.quote_id;
-		request.order_id =  uuidv5('Hello, World!', MY_NAMESPACE);
-		request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id
+		request.quote_id = req.body.quote_id //from /getQuote api
+		request.location=req.body.location;
+		request.order_id =  uuidv5(app.config.orderSecret, uiad);
+		request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
 		request.currency = req.body.currency;
 		request.idWallet= req.params.idWallet;
 		 let payment = app.config.paymentRequest(request)
