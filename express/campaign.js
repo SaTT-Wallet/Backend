@@ -1044,7 +1044,9 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 												let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 												let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 												let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
-												result.totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+												let totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+												result.totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : result.payedAmount;
+												
 											}
 										})
 
@@ -1055,9 +1057,11 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 					if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 					  bounty.categories.forEach( category=>{
 					   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
-						  result.totalToEarn = category.reward;
+						   let totalToEarn =  category.reward
+						  result.totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;
 					   }else if(+result.abosNumber > +category.maxFollowers){
-					result.totalToEarn = category.reward;	
+						   let totalToEarn =  category.reward
+							result.totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;	
 				 }
 
 					  })
