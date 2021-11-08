@@ -1581,7 +1581,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
                         stats.views = stats.views || 0
                         stats.shares = stats.shares || 0
-			            stats.likes = stats.likes || 0
+			            stats.likes = stats.likes || 0;
 
 			//console.log(prevstat);
 
