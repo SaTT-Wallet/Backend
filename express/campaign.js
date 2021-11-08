@@ -1195,7 +1195,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					  let template = handlebars.compile(html);
 
 						let emailContent = {
-						cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+						cmp_link : app.config.basedURl + '/home/campaigns/campaign/' + idCampaign,
 						satt_faq : app.config.Satt_faq,
 						satt_url: app.config.basedURl,
 						cmp_title: campaign.title,
@@ -1595,7 +1595,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
                         stats.views = stats.views || 0
                         stats.shares = stats.shares || 0
-			            stats.likes = stats.likes || 0
+			            stats.likes = stats.likes || 0;
 
 			//console.log(prevstat);
 
@@ -2364,7 +2364,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+				cmp_link : app.config.basedURl + '/home/campaigns/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,
