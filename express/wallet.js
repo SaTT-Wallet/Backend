@@ -1872,7 +1872,9 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		request.quote_id = req.body.quote_id //from /getQuote api
 		request.location=req.body.location;
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
-		request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
+		// request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
+		request.uuid = payment_id
+
 		request.currency = req.body.currency;
 		request.idWallet= req.params.idWallet;
 		 let payment = app.config.paymentRequest(request)

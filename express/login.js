@@ -1185,7 +1185,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
            message=req.authInfo.message;
 	let info=req.query.state.split(' ');
           campaign_id=info[1];
-          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+          response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
         } catch (e) {
           console.log(e)
         }
@@ -1215,14 +1215,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         let info=req.query.state.split(' ');
         campaign_id=info[1];
-        response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+        response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
       } catch (e) {
         console.log(e)
       }
       });
 
 
-      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async function (req, response) {
         try {
           redirect=req.query.state.split('|')[1]
           if(req.authInfo.message){
@@ -1237,7 +1237,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         });
 
-        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async  (req, response) =>{
           try {  
             redirect=req.query.state.split('|')[1];
             let message =req.authInfo.message;
@@ -1257,13 +1257,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           }
           let info=req.session.state.split(' ');
           campaign_id=info[1];
-          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+          response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
 
         } catch (e) {
           console.log(e)
         }
         });
-        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
+        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async function (req, response) {
           try {
             redirect=req.session.state.split('|')[1];
             if(req.authInfo.message){
@@ -1868,7 +1868,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     function(req, res) {
       try {
         if(req.params.redirect == "security"){
-          url="/myWallet/profile/security";
+          url=" /home/settings/security";
         }else{
           url="/social-registration/monetize-telegram";
         }
