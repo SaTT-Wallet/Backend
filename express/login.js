@@ -1123,7 +1123,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     function(req, res) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        res.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1138,7 +1138,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       try {
 
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        res.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1148,20 +1148,20 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
   function authErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/registration?message=' + message);
+    res.redirect(app.config.basedURl +'/auth/registration?message=' + message);
   }
 
 
   function authSignInErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/login?message=' + message);
+    res.redirect(app.config.basedURl +'/auth/login?message=' + message);
   }
   app.get('/callback/facebook_signup',
     passport.authenticate('signup_FbStrategy'), async function (req, response) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1172,7 +1172,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     passport.authenticate('facebook_strategy'), async function (req, response) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1194,14 +1194,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-      response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+      response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
 
   app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-      response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+      response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
     },
     authSignInErrorHandler);
 
@@ -1344,22 +1344,22 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       if (users[0].enabled) {
         //response.end('{error:"account already activated"}');
         let message = "account already activated";
-        response.redirect(app.config.basedURl +'/login?message=' + message);
+        response.redirect(app.config.basedURl +'/auth/login?message=' + message);
         return;
       }
       if (users[0].confirmation_token != code) {
         let message = "wrong activation";
-        response.redirect(app.config.basedURl +'/login?message=' + message);
+        response.redirect(app.config.basedURl +'/auth/login?message=' + message);
         //response.end('{error:"wrong activation"}');
         return;
       }
       var update = await app.db.sn_user().updateOne({_id:Long.fromNumber(id)}, {$set: {confirmation_token: "", enabled: 1}})
       let message = "activated";
-      response.redirect(app.config.basedURl +'/login?message=' + message);
+      response.redirect(app.config.basedURl +'/auth/login?message=' + message);
       //response.end('{message:"activated"}');
     } else {
       let message = "no account";
-      response.redirect(app.config.basedURl +'/login?message=' + message);
+      response.redirect(app.config.basedURl +'/auth/login?message=' + message);
       //response.end('{error:"no account"}');
     }
 
