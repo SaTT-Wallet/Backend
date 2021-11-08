@@ -337,6 +337,54 @@ const Grid = require('gridfs-stream');
 		response.end(JSON.stringify(allCampaigns));
 	})
 
+	app.get('/v3/campaigns/:idWallet', async (req, response)=> {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+			const limit=+req.query.limit || 50;
+			const page=parseInt(req.query.page) || 1;
+			const skip=limit*(page-1);
+			const allCampaigns=[];
+			const id_wallet = req.params.idWallet
+			let strangerDraft=[]
+			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
+			var idNode="0"+auth.id;
+	
+			let query = app.campaign.sortOut(req,idNode,strangerDraft);
+			let tri= [['draft','apply','finished','inProgress'],"$type"];
+	
+			let campaigns=await app.db.campaigns().aggregate([{
+				$match: 
+					query
+			},
+			 {
+				$addFields: {
+					sortPriority: { $eq: [ "$idNode", idNode ]  } ,
+					sort: {
+						$indexOfArray: tri
+					}
+				}
+			},{
+				$sort: {
+					sort: 1,
+					sortPriority: -1,
+					_id: 1
+				}
+			}	
+		]).skip(skip).limit(limit).toArray();
+			for (var i = 0;i<campaigns.length;i++)
+			{
+				proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash,id_wallet}).toArray();
+				if(proms.length) campaigns[i].proms =proms;
+				allCampaigns.push(campaigns[i]);
+			}
+			response.send(JSON.stringify(campaigns));
+		}catch(err){
+			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+		}
+		
+	})
 
 
 	app.get('/v3/campaigns/influencer/:influencer', async function(req, response) {
@@ -1314,8 +1362,8 @@ const Grid = require('gridfs-stream');
 			res.send(JSON.stringify({disabled : true, fund : prom.funds.amount})) //disable getGains method button
 		}
 		}catch (err) {
-	 console.log(err)
-	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 console.log("error proms verify",err) // 
+	 res.end('{"error":"'+(err.message?err.message:err.error)+'"}'); 
   }
 	})
 

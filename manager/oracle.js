@@ -25,59 +25,84 @@ module.exports = async function (app) {
 
 	oracleManager.facebookAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-
+			try{
 				var page = await app.db.fbPage().findOne({username: pageName});
 
 				if(page) {
 					var token = page.token;
 				var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+pageName+"?access_token="+token+"&fields=fan_count",json: true});
 
-			resolve(res.fan_count);
-		}
-		else {
-				resolve(0);
-		}
+				resolve(res.fan_count);
+				
+			}else{
+				resolve('indisponible')
+
+			}
+			}catch(err){
+				reject(err)
+			}
+			
 		});
 	};
 
 	oracleManager.youtubeAbos = async function (idPost) {
 		return new Promise(async (resolve, reject) => {
-			var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"snippet"},json: true});
-			var channelId = res.items[0]?.snippet.channelId;
-			var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics"},json: true});
-			resolve(res.items[0].statistics.subscriberCount);
+			try{
+				var res = await rp({uri:'https://www.googleapis.com/youtube/v3/videos',qs:{id:idPost,key:app.config.gdataApiKey,part:"snippet"},json: true});
+				if(res.items.length>0){
+					var channelId = res.items[0]?.snippet.channelId;
+					var res = await rp({uri:'https://www.googleapis.com/youtube/v3/channels',qs:{id:channelId,key:app.config.gdataApiKey,part:"statistics"},json: true});
+					resolve(res.items[0].statistics.subscriberCount);
+				}else{
+					resolve('indisponible')
+
+				}
+				
+			}catch (err){
+				reject(err)
+			}
+		
 		});
 	};
 
 	oracleManager.instagramAbos = async  (idPost) =>{
 		return new Promise(async (resolve, reject) => {
-
-		var followers=0;
-		var campaign_link = await app.db.campaign_link().findOne({idPost});
-		var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
-
- 		var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{ instagram_id: { $exists: true} }]});
-		 if(fbPage){
-				var instagram_id=fbPage.instagram_id;
-				var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
-						var token = fbProfile.accessToken;
-						var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?access_token="+token+"&fields=followers_count",json: true});
-						followers=res.followers_count
-		 }
-			
-			
-				resolve(followers)
-			
+			try{
+				var followers=0;
+				var campaign_link = await app.db.campaign_link().findOne({idPost});
+				var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
 		
+				 var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{ instagram_id: { $exists: true} }]});
+				 if(fbPage){
+						var instagram_id=fbPage.instagram_id;
+						var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
+								var token = fbProfile.accessToken;
+								var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?access_token="+token+"&fields=followers_count",json: true});
+								if(res.followers_count)
+								resolve (followers=res.followers_count)
+							    else
+								resolve('indisponible')
+				 				}	
+						resolve(followers)
+			}catch(err){
+				reject(err)
+			}
 
 		});
 	};
 
 	oracleManager.twitterAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
-
-			var tweet_res = await tweet.get('statuses/show',{id:idPost});
+			try{
+				var tweet_res = await tweet.get('statuses/show',{id:idPost});
+			if(tweet_res)
 			resolve(tweet_res.user.followers_count);
+			else
+				resolve('indisponible')
+			}catch(err){
+				reject(err);
+			}
+			
 		});
 	};
 
@@ -166,22 +191,27 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 			if(fbPage && fbPage.instagram_id){
 			var instagram_id=fbPage.instagram_id;
 			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
-			var accessToken=fbProfile.accessToken;
-			var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode,media_url&limit=50&access_token="+accessToken;
-			var resMedia = await rp({uri:media,json: true});
-			var data =resMedia.data;
-			
-			for (let i=0;i<data.length;i++){
-				if(data[i].shortcode == idPost){
-					perf.likes=data[i].like_count;
-					perf.media_url=data[i].media_url;
-						await app.db.ig_media().updateOne({id:data[i].id},{$set:{shortcode:data[i].shortcode,like_count:data[i].like_count,owner:instagram_id}},{ upsert: true });
-						break;	
-					}
+			if(fbProfile){
+				var accessToken=fbProfile.accessToken;
+				var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode,media_url&limit=50&access_token="+accessToken;
+				var resMedia = await rp({uri:media,json: true});
+				var data =resMedia.data;
+				
+				for (let i=0;i<data.length;i++){
+					if(data[i].shortcode == idPost){
+						perf.likes=data[i].like_count;
+						perf.media_url=data[i].media_url;
+							await app.db.ig_media().updateOne({id:data[i].id},{$set:{shortcode:data[i].shortcode,like_count:data[i].like_count,owner:instagram_id}},{ upsert: true });
+							break;	
+						}
+				}
+				
+				resolve(perf);
+				return;
+			}else{
+			resolve('indisponible')
 			}
-			}
-			resolve(perf);
-			return;
+		}
 		}catch (err) {
 			reject({message:err.message});
 		}

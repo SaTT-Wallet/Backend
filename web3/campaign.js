@@ -1,4 +1,5 @@
 const { number } = require("bitcoinjs-lib/src/script");
+const { ObjectId } = require("bson");
 
 module.exports = async function (app) {
 
@@ -454,11 +455,13 @@ module.exports = async function (app) {
 				totalToEarn=link.totalToEarn;
 				if(link.reward)
 				totalToEarn=link.isPayed ===false ? link.reward : link.payedAmount;
-				 if(link.status === 'rejected') 
-				 type='rejected';
-				if(link.status===false && !(link.campaign.isFinished))
+				if(link.status === 'indisponible') 
+				type='indisponible';
+				else if(link.status === 'rejected') 
+				type='rejected';
+				else if(link.status===false && !(link.campaign.isFinished))
 				type='waiting_for_validation';
-				if((link.isPayed === true)||
+				else if((link.isPayed === true)||
 				(link.payedAmount !=='0' && 
 				new Big(totalToEarn).lte(new Big(link.payedAmount))))
 				type='already_recovered';
@@ -526,6 +529,35 @@ module.exports = async function (app) {
 					}
 				}
 					)}		
+
+					campaignManager.campaignStatus = async function (campaign) {
+						return new Promise(async (resolve, reject) => {
+							try {
+								let type = '';
+								let dateNow = new Date();
+								campaign.startDate=(Date.parse(campaign.startDate)) ? new Date(Date.parse(campaign.startDate)) : new Date(+campaign.startDate * 1000);
+								campaign.endDate=(Date.parse(campaign.endDate)) ? new Date(Date.parse(campaign.endDate)) : new Date(+campaign.endDate * 1000)
+
+								let isFinished=(dateNow > campaign.endDate || (campaign.funds) && campaign.funds[1] == '0');
+								if(!campaign.hash)
+								type="draft";													
+								else if(isFinished && campaign.hash) 
+								type='finished';
+								else if(campaign.hash && dateNow < campaign.startDate)
+								type='inProgress';
+								else if(!isFinished && campaign.hash)
+								type='apply';
+								else 
+								type="none";
+								resolve(type);
+							}
+							catch (err)
+							{
+								reject(err);
+							}
+						})
+					}
+					
 
 	campaignManager.estimateCreateCampaignYt = async function (dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
@@ -766,15 +798,12 @@ module.exports = async function (app) {
 	campaignManager.UpdateStats = async (obj,campaign) =>{	
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
-			return;
 			}
 			else{
-				if(result.status === "rejected"){
-				   return;
-				}
 				await app.db.campaign_link().updateOne({id_prom:obj.id_prom},{$set: obj})
 			}
 		})
+		
 	}
 		
 	campaignManager.campaignStats = async idCampaign =>{
@@ -850,6 +879,65 @@ module.exports = async function (app) {
 		return query
 	}
 
+	campaignManager.sortOut=(req,idNode, strangerDraft)=>{
+		
+		const title=req.query.searchTerm || '';
+		const status=req.query.status;
+		const blockchainType=req.query.blockchainType || '';
+		 
+		const dateJour= Math.round(new Date().getTime()/1000);
+		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
+		if(req.query.oracles == undefined){
+			oracles=["twitter","facebook","youtube","instagram"];
+		}
+
+	else if(typeof req.query.oracles === "string"){
+		oracles=Array(req.query.oracles);
+	}else{
+		oracles=req.query.oracles;
+	}
+		const remainingBudget=req.query.remainingBudget || [];
+		
+		var query = {};
+		query["$and"]=[];
+		
+	query["$and"].push({"_id":{$nin:strangerDraft}})		
+
+	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
+
+		if(title){
+		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
+		}
+		if(blockchainType){
+			query["$and"].push({"token.type":blockchainType});
+		}
+		if(status =="active" ){
+			if(remainingBudget.length==2){
+			query["$and"].push({"funds.1":{ $exists: true}});
+			query["$and"].push({"funds.1": { $gte :  remainingBudget[0],$lte :  remainingBudget[1]}});
+			}
+			query["$and"].push({"endDate":{ $gt : dateJour }});
+			query["$and"].push({"funds.1":{$ne: "0"}});
+			query["$and"].push({"hash":{ $exists: true}});
+		}
+		else if(status=="finished"){
+			query["$and"].push({"$or":[{"endDate":{ $lt : dateJour }},{"funds.1":{$eq: "0"}}]});
+			query["$and"].push({"hash":{ $exists: true}});
+
+		}else if(status=="draft" ){
+			query["$and"].push({"hash":{ $exists: false}});
+			query["$and"].push({"idNode": idNode});
+		}
+
+		query["$and"].push({type:{
+			$in: ['draft','finished','inProgress','apply']
+		}})
+
+		return query
+	}
+
+
+
 	campaignManager.filterProms=(req, id_wallet)=>{
 		
 		const status=req.query.status;
@@ -899,7 +987,7 @@ module.exports = async function (app) {
 		if(status == "rejected") query.status="rejected";
         if(status == "true") query.status=true;
 		query.type={
-			$in: ['waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','rejected']
+			$in: ['indisponible','waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','rejected','none']
 		}
 		return query
 	}
