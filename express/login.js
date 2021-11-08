@@ -371,7 +371,6 @@ module.exports = function (app) {
       let longToken = resToken.access_token;
 
       let UserId=+req.query.state.split('|')[0];
-      
       let isInsta=false;     
       let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
       let fbProfile = await app.db.fbProfile().findOne({UserId});
@@ -780,7 +779,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
             created: mongodate,
             onBoarding : false,
             account_locked: false, 
-          failed_count: 0,
+            failed_count: 0,
             updated: mongodate,
             idSn: 5,
             locale: "en",
@@ -2069,7 +2068,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       else if(user.secureCode.type =="validation" && type == "validation"){
         let date = Math.floor(Date.now() / 1000) + 86400;     
         let token = crypto.randomFillSync(buff).toString('hex');
-        authMethod.token = token, authMethod.expires_in = date,
+        authMethod.token = token, authMethod.expires_in = date,authMethod.idUser=user._id
 	      await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token:token, expires_at: date, scope: "user"});     
         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
