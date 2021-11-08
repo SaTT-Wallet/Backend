@@ -748,6 +748,7 @@ module.exports = async function (app) {
 		 try {
 			let listOfCrypto=[];			
 			var token_info=  Object.assign({}, app.config.Tokens);
+			let sattContract=token_info['SATT'].contract;
 			  delete token_info['SATT']
 			  delete token_info['BNB']
 			  var CryptoPrices = crypto;
@@ -773,6 +774,7 @@ module.exports = async function (app) {
 				crypto.symbol=token_info[T_name].symbol.split("_")[0];
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
+				crypto.contract=token_info[T_name].contract;
                 crypto.decimal = token_info[T_name].dicimal
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
@@ -852,6 +854,7 @@ module.exports = async function (app) {
 				if(tokenSymbol == "SATT") {
 					crypto.name='SaTT'
 					crypto.network='ERC20';
+					crypto.contract=sattContract;
 				}
 				else if(tokenSymbol == 'BNB'){
 					crypto.name='BNB';
