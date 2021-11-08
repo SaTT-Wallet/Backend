@@ -941,6 +941,7 @@ module.exports = function (app) {
 				prom.id_campaign  = hash
 				prom.appliedDate = date		
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
+				prom.type="waiting_for_validation";
 				var insert = await app.db.campaign_link().insertOne(prom);
 				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser)
 				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id)
