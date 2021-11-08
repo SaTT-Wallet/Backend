@@ -44,7 +44,7 @@
         }
 
         .content .top .col a {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
@@ -62,7 +62,7 @@
         }
 
         .content .mail-header h2 {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-style: normal;
             font-weight: bold;
             font-size: 40px;
@@ -74,7 +74,7 @@
         }
 
         .content .mail-header a.btn {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-style: normal;
             font-weight: 900;
             font-size: 18px;
@@ -86,7 +86,7 @@
         }
 
         .content .mail-header p.subtitle {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-weight: bold;
             font-size: 18px;
             line-height: 22px;
@@ -96,7 +96,7 @@
         }
 
         .content .mail-header p {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-size: 14px;
             line-height: 16px;
             letter-spacing: 0.03em;
@@ -105,14 +105,14 @@
         .content .mail-body {
             color: #1F2337;
             font-style: normal;
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             margin: 8px 0; 
         }
 
         .content .mail-body .subtitle {
             margin-top: 41px;
             margin-bottom: 15px;
-            font-family: Poppins;
+            font-family: system-ui;
             font-style: normal;
             font-weight: normal;
             font-size: 16px;
@@ -145,7 +145,7 @@
             width: auto;
             min-width: 245px;
             margin-top: 10px;
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-style: normal;
             font-weight: 900;
             font-size: 18px;
@@ -182,7 +182,7 @@
         }
 
         .content .mail-footer a {
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-style: normal;
             font-weight: normal;
             font-size: 12px;
@@ -196,7 +196,7 @@
             border-left: solid 0.3px;
         }
         .gains{
-            font-family: 'Poppins', sans-serif;
+            font-family: system-ui;
             font-style: normal;
             font-weight: bold;
             font-size: 22px;
@@ -219,7 +219,7 @@
     border: none!important;
     border-radius: 30px;
     background: #4048FF;
-    font-family: Poppins;
+    font-family: system-ui;
     font-size: 18px;
     font-style: normal;
     font-weight: 600;
@@ -234,7 +234,7 @@
         }
         .text-btn{
     padding-left:7%;
-    font-family: 'Poppins', sans-serif;
+    font-family: system-ui;
     font-style: normal;
     font-weight: 600;
     font-size: 18px;
@@ -250,7 +250,7 @@
     }
     .reject_text{
         color: #F52079;
-        font-family: 'Poppins', sans-serif;
+        font-family: system-ui;
         font-style: normal;
         font-weight: normal;
         /* font-size: 16px; */
@@ -264,7 +264,7 @@
             background: #F6F6FF!important;
             border-radius: 15px;
             /* text-align: center; */
-            font-family: Poppins;
+            font-family: system-ui;
             margin-bottom: 5px;
 
         }
@@ -273,7 +273,7 @@
             width: 100%; 
             display: flex;
             justify-content: center;
-            font-family: Poppins;
+            font-family: system-ui;
             font-style: normal;
             font-weight: normal;
             font-size: 16px;
@@ -286,7 +286,7 @@
             width: 100%; 
             display: flex;
             justify-content: left;
-            font-family: Poppins;
+            font-family: system-ui;
             font-style: normal;
             font-weight: bold;
             font-size: 16px;
@@ -317,8 +317,8 @@
                 </div>
             </div>
                 <img src="{{imgUrl}}/reject-link.png" alt="">
-                <h2>{{__ "reject_link"}}</h2>
-                <p>{{__ "reject_trans"}} {{cmp_title}}</p>
+                <h2 style="color:white;">{{__ "reject_link"}}</h2>
+                <p style="color:white;">{{__ "reject_trans"}} {{cmp_title}} {{__ "link_w"}}</p>
         </div>
         <div class="mail-body">
           <h1 class="gains">{{__  "reject_reason"}}</h1>

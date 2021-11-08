@@ -788,6 +788,7 @@ module.exports = async function (app) {
 			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
                 key = 'SATT'
 			 }
+			 if(key == "WBNB") key = "BNB";
 				  if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;

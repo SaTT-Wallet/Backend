@@ -555,8 +555,9 @@ module.exports = function (app) {
 						hash : ret.hash,
 						transactionHash:ret.transactionHash,
 						startDate,
-						endDate,
+						endDate,						
 						dataUrl,
+						coverSrc:null,
 						funds :[contract,amount],
 						contract:contract,
 						walletId:cred.address

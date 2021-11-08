@@ -1,15 +1,18 @@
 const { async } = require('hasha');
 var Big = require('big.js');
 var proc = require('child_process');
+const { auth } = require('google-auth-library');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
 	var rp = require('request-promise');
+	const { v4: uuidv4 } = require('uuid');
+	const { v5 : uuidv5 } = require('uuid')
 	const xChangePricesUrl = app.config.xChangePricesUrl;
-
-
+    const log = console.log.bind(console,"logged");
+   
 	app.get('/v2/erc20/:token/balance/:addr',async function(req, response) {
 
 			var token = req.params.token;
@@ -1820,7 +1823,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
             requestQuote["wallet_id"]= "satt";
 		// let testObject = {
 		// 	"end_user_id": String(auth.id),
-		// 	"digital_currency": "SATT",
+		// 	"digital_currency": "ETH",
 		// 	"fiat_currency": "AUD",
 		// 	"requested_currency": "AUD",
 		// 	"requested_amount": 100,
@@ -1832,7 +1835,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
 			method: 'POST',
 			// body:testObject, 
-			 body:requestQuote, 
+			  body:requestQuote, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
 			  },
@@ -1849,7 +1852,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally{
-		quote && app.account.log(`requested by ${auth.id}`,quote.digital_money.currency,`via ${quote.fiat_money.currency}`,`amount ${quote.fiat_money.total_amount}` )
+		quote && app.account.log(`requestedQuote by ${auth.id}`,quote.digital_money.currency,`via ${quote.fiat_money.currency}`,`amount ${quote.fiat_money.total_amount}` )
 		}
 	})
 
@@ -1857,14 +1860,44 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
+		let payment_id=uuidv4();	
+		const uiad = app.config.uiad;	
 		let user_agent = req.headers['user-agent'];
-		let user = await app.db.sn_user().findOne({_id:auth.id});
+		const http_accept_language =  req.headers['accept-language'];
+		let user = await app.db.sn_user().findOne({_id:auth.id},{projection: { email: true, phone: true,created:true}});
+		let request = {};
+		request._id = auth.id.toString(), request.installDate=user.created,request.phone=user.phone
+		request.email=user.email,request.addressIp=req.addressIp,request.user_agent = user_agent;
+		request.language=http_accept_language;
+		request.quote_id = req.body.quote_id //from /getQuote api
+		request.location=req.body.location;
+		request.order_id =  uuidv5(app.config.orderSecret, uiad);
+		request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
+		request.currency = req.body.currency;
+		request.idWallet= req.params.idWallet;
+		 let payment = app.config.paymentRequest(request)
+		const paymentRequest ={
+			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
+			method: 'POST',
+			// body:testObject, 
+			 body:payment, 
+			headers: {
+				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+			  },
+			json: true
+		  };
+
+		  var paymentSubmitted = await rp(paymentRequest);
+              paymentSubmitted.payment_id = payment_id;
+			res.end(JSON.stringify(paymentSubmitted));
 	}
 	catch (err) {
 	   app.account.sysLogError(err);
 	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	}
-
+	finally{
+		paymentSubmitted && app.account.log(`requestedPayment by ${auth.id}` )	
+	}
 	})
 
 
