@@ -847,7 +847,7 @@ module.exports = async function (app) {
 				};
 				if(tokenSymbol == "ETH"){
 					crypto.name='Ethereum';
-					crypto.network='ERC20';
+					crypto.network='ETH';
 				} 
 				if(tokenSymbol == "SATT") {
 					crypto.name='SaTT'
