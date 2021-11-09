@@ -351,7 +351,8 @@ const Grid = require('gridfs-stream');
 			var idNode="0"+auth.id;
 	
 			let query = app.campaign.sortOut(req,idNode,strangerDraft);
-			let tri= [['draft','apply','finished','inProgress'],"$type"];
+			
+			let tri= [['draft','apply','inProgress','finished'],"$type"];
 	
 			let campaigns=await app.db.campaigns().aggregate([{
 				$match: 

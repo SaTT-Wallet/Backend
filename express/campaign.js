@@ -152,7 +152,9 @@ module.exports = function (app) {
 		let dateNow = Math.floor(Date.now() / 1000);
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
-				const prom = await app.oracle.getPromDetails(idProm);	
+				const prom = await app.oracle.getPromDetails(idProm);
+				const link=await app.db.campaign_link().findOne({id_prom:idProm})
+				let payedAmount=link.payedAmount;	
 				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0, countries:0}})
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
@@ -166,6 +168,7 @@ module.exports = function (app) {
 		stat.idPost = stat.typeSN=="1"? prom.idPost.split(':')[0] :prom.idPost
 		stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
 		stat.campaign=campaign;
+		stat.payedAmount=payedAmount;
 		let userWallet =  stat.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 				let oracle =app.oracle.findBountyOracle(prom.typeSN)
 		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(oracle,stat,userWallet.UserId)
@@ -941,6 +944,7 @@ module.exports = function (app) {
 				prom.id_campaign  = hash
 				prom.appliedDate = date		
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
+				prom.type="waiting_for_validation";
 				var insert = await app.db.campaign_link().insertOne(prom);
 				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser)
 				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id)
