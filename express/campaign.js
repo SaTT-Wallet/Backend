@@ -155,7 +155,7 @@ module.exports = function (app) {
 				const prom = await app.oracle.getPromDetails(idProm);
 				const link=await app.db.campaign_link().findOne({id_prom:idProm})
 				let payedAmount=link.payedAmount;	
-				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0}})
+				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0, countries:0}})
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
 		var stat={};		
@@ -1199,7 +1199,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					  let template = handlebars.compile(html);
 
 						let emailContent = {
-						cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+						cmp_link : app.config.basedURl + '/home/campaigns/campaign/' + idCampaign,
 						satt_faq : app.config.Satt_faq,
 						satt_url: app.config.basedURl,
 						cmp_title: campaign.title,
@@ -1599,7 +1599,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
                         stats.views = stats.views || 0
                         stats.shares = stats.shares || 0
-			            stats.likes = stats.likes || 0
+			            stats.likes = stats.likes || 0;
 
 			//console.log(prevstat);
 
@@ -2368,7 +2368,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 				let emailContent = {
 				reject_reason : reason,
-				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+				cmp_link : app.config.basedURl + '/home/campaigns/campaign/' + idCampaign,
 				satt_faq : app.config.Satt_faq,
 				satt_url: app.config.basedURl,
 				cmp_title: title,
