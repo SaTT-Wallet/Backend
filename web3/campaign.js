@@ -487,14 +487,16 @@ module.exports = async function (app) {
 	campaignManager.getTotalToEarn = async function (socialStats,ratio) {
 		return new Promise(async (resolve, reject) => {
 			try {
+				console.log(ratio,"    ", socialStats);
 				ratio.forEach( num =>{		
-						let totalToEarn='0';							
+						let totalToEarn='0';
+						let payedAmount=socialStats.payedAmount || '0'							
 					if(((num.oracle === socialStats.oracle) || (num.typeSN === socialStats.typeSN))){
 						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
 						let total = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
-						totalToEarn = new Big(total).gt(new Big(socialStats.payedAmount)) ? total : socialStats.payedAmount;
+						totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
 						resolve (totalToEarn);
 					}
 				})
@@ -509,16 +511,17 @@ module.exports = async function (app) {
 			campaignManager.getReward = async function (result,bounties) {
 				return new Promise(async (resolve, reject) => {
 					try {
+						let payedAmount=result.payedAmount || '0';
 						bounties.forEach( bounty=>{
 							let totalToEarn='0';
 							if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 							  bounty.categories.forEach( category=>{
 							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 								  let total = category.reward;
-								  totalToEarn = new Big(total).gt(new Big(result.payedAmount)) ? total : result.payedAmount;
+								  totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
 							   }else if(+result.abosNumber > +category.maxFollowers){
 								  let total = category.reward;
-								  totalToEarn = new Big(total).gt(new Big(result.payedAmount)) ? total : result.payedAmount;
+								  totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
 						 		}
 						 		resolve(totalToEarn);
 		
