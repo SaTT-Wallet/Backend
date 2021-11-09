@@ -493,7 +493,8 @@ module.exports = async function (app) {
 						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
-						totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+						let total = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+						totalToEarn = new Big(total).gt(new Big(socialStats.payedAmount)) ? total : socialStats.payedAmount;
 						resolve (totalToEarn);
 					}
 				})
@@ -513,11 +514,12 @@ module.exports = async function (app) {
 							if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 							  bounty.categories.forEach( category=>{
 							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
-								  totalToEarn = category.reward;
+								  let total = category.reward;
+								  totalToEarn = new Big(total).gt(new Big(result.payedAmount)) ? total : result.payedAmount;
 							   }else if(+result.abosNumber > +category.maxFollowers){
-
-								  totalToEarn = category.reward;	
-						 }
+								  let total = category.reward;
+								  totalToEarn = new Big(total).gt(new Big(result.payedAmount)) ? total : result.payedAmount;
+						 		}
 						 		resolve(totalToEarn);
 		
 							  })
@@ -930,6 +932,7 @@ module.exports = async function (app) {
 		}
 
 		query["$and"].push({type:{
+			
 			$in: ['draft','finished','inProgress','apply']
 		}})
 
