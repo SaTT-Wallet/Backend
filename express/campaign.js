@@ -1639,7 +1639,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
                if(req.body.bounty) updatedFUnds.isPayed = true; 
                if(!result.payedAmount) updatedFUnds.payedAmount = amount;
-               else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
+               else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed();
 			   await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
 		     })
 				
