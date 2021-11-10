@@ -26,6 +26,7 @@ module.exports = function (app) {
   var emailStrategy = require('passport-local').Strategy;
   var FbStrategy = require('passport-facebook').Strategy;
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
+  let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
   var session = require('express-session');
@@ -1712,18 +1713,20 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
             code,
             imgUrl: app.config.baseEmailImgURl,
           };
+
           var htmlToSend = template(replacements);
           var mailOptions = {
             from: app.config.mailSender,
-            to: user.email,
+            to: users.email.toLowerCase(),
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
           transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              response.end(JSON.stringify({'message' :'Email sent'}));
+              response.send(JSON.stringify({message:"Email sent"}))
+              app.account.log('Email sent: ',user.email);
             }
           });
         });
@@ -1823,6 +1826,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
        }
     })
+
+    // app.get('/connect/linkedin/:idUser', (req, res,next)=>{
+    //   let state=req.params.idUser/*+"|"+req.query.redirect;*/
+    //   passport.authenticate('connect_linkedin', {scope: ['r_emailaddress','r_liteprofile'],state:state})(req,res,next)
+    // });
 
     app.get('/connect/google/:idUser', (req, res,next)=>{
       let state=req.params.idUser+"|"+req.query.redirect;
