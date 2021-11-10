@@ -196,7 +196,7 @@ module.exports = function (app) {
 			}
 		
 			if (campaign) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet);
-	
+			delete stat.payedAmount;
 		await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
 			
 			
