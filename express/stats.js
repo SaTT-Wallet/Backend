@@ -1285,7 +1285,10 @@ const Grid = require('gridfs-stream');
 						    let	view =result.views ?new Big(num["view"]).times(result.views):"0";	
 							let	like = result.likes ? new Big(num["like"]).times(result.likes) : "0";
 					    	let	share = result.shares ? new Big(num["share"]).times(result.shares.toString()) : "0";	 
-							allProms[i].totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();							
+							let totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+							allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : result.payedAmount;
+
+
 							}
 						})	
 	
@@ -1296,12 +1299,16 @@ const Grid = require('gridfs-stream');
 		       bounties.forEach( bounty=>{
                if((bounty.oracle === allProms[i].oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 				bounty.categories.forEach( category=>{
-			
-				 if( allProms[i].abosNumber && (+category.minFollowers <= +allProms[i].abosNumber)  && (+allProms[i].abosNumber <= +category.maxFollowers) ){
-					allProms[i].reward = category.reward;					
-				 }else if(+allProms[i].abosNumber > +category.maxFollowers){
-				 allProms[i].reward = category.reward;
-				 }
+				 if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+					let totalToEarn =  category.reward
+					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;
+				}else if(+result.abosNumber > +category.maxFollowers){
+					let totalToEarn =  category.reward
+					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;	
+		  }
+
+
+
 				})	
 			     }	
 		   
