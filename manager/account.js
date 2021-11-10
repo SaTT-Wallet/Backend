@@ -748,6 +748,7 @@ module.exports = async function (app) {
 		 try {
 			let listOfCrypto=[];			
 			var token_info=  Object.assign({}, app.config.Tokens);
+			let sattContract=token_info['SATT'].contract;
 			  delete token_info['SATT']
 			  delete token_info['BNB']
 			  var CryptoPrices = crypto;
@@ -773,6 +774,7 @@ module.exports = async function (app) {
 				crypto.symbol=token_info[T_name].symbol.split("_")[0];
 				crypto.name=token_info[T_name].name;
 				crypto.AddedToken = token_info[T_name].addedToken ?  token_info[T_name].contract : false;
+				crypto.contract=token_info[T_name].contract;
                 crypto.decimal = token_info[T_name].dicimal
 				crypto.network = network;
 				crypto.undername=token_info[T_name].undername;
@@ -787,7 +789,6 @@ module.exports = async function (app) {
                 key = 'SATT'
 			 }
 			 if(key == "WBNB") key = "BNB";
-
 				  if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;
@@ -842,10 +843,23 @@ module.exports = async function (app) {
 				let tokenSymbol = Amount.split('_')[0].toUpperCase();
 				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
 				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
-				if(tokenSymbol == "BTC") crypto.name='Bitcoin';
-				if(tokenSymbol == "ETH") crypto.name='Ethereum';
-				if(tokenSymbol == "SATT") crypto.name='SaTT';
-				else if(tokenSymbol == 'BNB')crypto.name='BNB';
+				if(tokenSymbol == "BTC") {
+					crypto.name='Bitcoin'
+					crypto.network='BTC';
+				};
+				if(tokenSymbol == "ETH"){
+					crypto.name='Ethereum';
+					crypto.network='ERC20';
+				} 
+				if(tokenSymbol == "SATT") {
+					crypto.name='SaTT'
+					crypto.network='ERC20';
+					crypto.contract=sattContract;
+				}
+				else if(tokenSymbol == 'BNB'){
+					crypto.name='BNB';
+					crypto.network='BEP20';
+				}
 				[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill(tokenSymbol);
 					crypto.price=CryptoPrices[tokenSymbol].price;
 					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;

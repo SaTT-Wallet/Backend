@@ -26,6 +26,7 @@ module.exports = function (app) {
   var emailStrategy = require('passport-local').Strategy;
   var FbStrategy = require('passport-facebook').Strategy;
   var GoogleStrategy = require('passport-google-oauth20').Strategy;
+  let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
   var session = require('express-session');
@@ -371,7 +372,6 @@ module.exports = function (app) {
       let longToken = resToken.access_token;
 
       let UserId=+req.query.state.split('|')[0];
-      
       let isInsta=false;     
       let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
       let fbProfile = await app.db.fbProfile().findOne({UserId});
@@ -780,7 +780,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
             created: mongodate,
             onBoarding : false,
             account_locked: false, 
-          failed_count: 0,
+            failed_count: 0,
             updated: mongodate,
             idSn: 5,
             locale: "en",
@@ -1124,7 +1124,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     function(req, res) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        res.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1139,7 +1139,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       try {
 
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        res.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        res.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1149,20 +1149,20 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
   function authErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/registration?message=' + message);
+    res.redirect(app.config.basedURl +'/auth/registration?message=' + message);
   }
 
 
   function authSignInErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message? err.message:err;
-    res.redirect(app.config.basedURl +'/login?message=' + message);
+    res.redirect(app.config.basedURl +'/auth/login?message=' + message);
   }
   app.get('/callback/facebook_signup',
     passport.authenticate('signup_FbStrategy'), async function (req, response) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1173,7 +1173,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     passport.authenticate('facebook_strategy'), async function (req, response) {
       try {
         var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-        response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+        response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
       } catch (e) {
         console.log(e)
       }
@@ -1186,7 +1186,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
            message=req.authInfo.message;
 	let info=req.query.state.split(' ');
           campaign_id=info[1];
-          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+          response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
         } catch (e) {
           console.log(e)
         }
@@ -1195,14 +1195,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
   app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', {scope: ['profile','email']}), async function (req, response) {
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-      response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+      response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
     },
     authErrorHandler);
 
   app.get('/callback/google', passport.authenticate('google_strategy', {scope: ['profile','email']}), async function (req, response) {
       //console.log(req.user)
       var param = {"access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user"};
-      response.redirect(app.config.basedURl +"/login?token=" + JSON.stringify(param))
+      response.redirect(app.config.basedURl +"/auth/login?token=" + JSON.stringify(param))
     },
     authSignInErrorHandler);
 
@@ -1216,14 +1216,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         let info=req.query.state.split(' ');
         campaign_id=info[1];
-        response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+        response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
       } catch (e) {
         console.log(e)
       }
       });
 
 
-      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async function (req, response) {
         try {
           redirect=req.query.state.split('|')[1]
           if(req.authInfo.message){
@@ -1238,7 +1238,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         });
 
-        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async  (req, response) =>{
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async  (req, response) =>{
           try {  
             redirect=req.query.state.split('|')[1];
             let message =req.authInfo.message;
@@ -1258,13 +1258,13 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           }
           let info=req.session.state.split(' ');
           campaign_id=info[1];
-          response.redirect(app.config.basedURl+'/myWallet/part/'+campaign_id+"?message="+message);
+          response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
 
         } catch (e) {
           console.log(e)
         }
         });
-        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+'/myWallet/social-networks?message=access-denied' }), async function (req, response) {
+        app.get('/callback/add/twitter', passport.authenticate('add_twitter_link', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async function (req, response) {
           try {
             redirect=req.session.state.split('|')[1];
             if(req.authInfo.message){
@@ -1345,22 +1345,22 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       if (users[0].enabled) {
         //response.end('{error:"account already activated"}');
         let message = "account already activated";
-        response.redirect(app.config.basedURl +'/login?message=' + message);
+        response.redirect(app.config.basedURl +'/auth/login?message=' + message);
         return;
       }
       if (users[0].confirmation_token != code) {
         let message = "wrong activation";
-        response.redirect(app.config.basedURl +'/login?message=' + message);
+        response.redirect(app.config.basedURl +'/auth/login?message=' + message);
         //response.end('{error:"wrong activation"}');
         return;
       }
       var update = await app.db.sn_user().updateOne({_id:Long.fromNumber(id)}, {$set: {confirmation_token: "", enabled: 1}})
       let message = "activated";
-      response.redirect(app.config.basedURl +'/login?message=' + message);
+      response.redirect(app.config.basedURl +'/auth/login?message=' + message);
       //response.end('{message:"activated"}');
     } else {
       let message = "no account";
-      response.redirect(app.config.basedURl +'/login?message=' + message);
+      response.redirect(app.config.basedURl +'/auth/login?message=' + message);
       //response.end('{error:"no account"}');
     }
 
@@ -1580,6 +1580,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
               imgUrl: app.config.baseEmailImgURl,
             };
             var htmlToSend = template(replacements);
+            console.log("email====",user.email);
             var mailOptions = {
               from: app.config.mailSender,
               to: user.email,
@@ -1712,18 +1713,20 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
             code,
             imgUrl: app.config.baseEmailImgURl,
           };
+
           var htmlToSend = template(replacements);
           var mailOptions = {
             from: app.config.mailSender,
-            to: user.email,
+            to: users.email.toLowerCase(),
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
           transporter.sendMail(mailOptions,  (error, info) =>{
             if (error) {
-              console.log(error);
+              app.account.sysLogError(error);
             } else {
-              response.end(JSON.stringify({'message' :'Email sent'}));
+              response.send(JSON.stringify({message:"Email sent"}))
+              app.account.log('Email sent: ',user.email);
             }
           });
         });
@@ -1824,6 +1827,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        }
     })
 
+    // app.get('/connect/linkedin/:idUser', (req, res,next)=>{
+    //   let state=req.params.idUser/*+"|"+req.query.redirect;*/
+    //   passport.authenticate('connect_linkedin', {scope: ['r_emailaddress','r_liteprofile'],state:state})(req,res,next)
+    // });
+
     app.get('/connect/google/:idUser', (req, res,next)=>{
       let state=req.params.idUser+"|"+req.query.redirect;
       passport.authenticate('connect_google', {scope: ['profile','email'],state:state})(req,res,next)
@@ -1868,7 +1876,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     function(req, res) {
       try {
         if(req.params.redirect == "security"){
-          url="/myWallet/profile/security";
+          url=" /home/settings/security";
         }else{
           url="/social-registration/monetize-telegram";
         }
@@ -2061,14 +2069,14 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     try{
       var authMethod = {message:"code match"}
       var buff = Buffer.alloc(32);
-      let [email,code,type]=[req.body.email,req.body.code,req.body.type];
+      let [email,code,type]=[req.body.email.toLowerCase(),req.body.code,req.body.type];
       var user = await app.db.sn_user().findOne({email},{projection: { secureCode: true }});
       if (user.secureCode.code != code) authMethod.message = "code incorrect";
       else if (Date.now()>=user.secureCode.expiring) authMethod.message = "code expired";
       else if(user.secureCode.type =="validation" && type == "validation"){
         let date = Math.floor(Date.now() / 1000) + 86400;     
         let token = crypto.randomFillSync(buff).toString('hex');
-        authMethod.token = token, authMethod.expires_in = date,
+        authMethod.token = token, authMethod.expires_in = date,authMethod.idUser=user._id
 	      await app.db.accessToken().insertOne({client_id: 1, user_id: user._id,token:token, expires_at: date, scope: "user"});     
         await app.db.sn_user().updateOne({_id:user._id},{$set:{enabled:1}});
       }
