@@ -1,3 +1,4 @@
+const { ObjectId } = require('bson');
 
 module.exports = function (app) {
 	let ejs = require('ejs');
@@ -601,6 +602,18 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 			let userInterests = req.body.interests;
 			await app.db.interests().replaceOne({_id:Long.fromNumber(auth.id)},{interests:userInterests});
 			res.send(JSON.stringify({message : "interests updated"})).status(201);
+		 }catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+	})
+
+	app.post('/notification/seen/:id', async (req, res)=>{
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+			let id = req.params.id;
+			await app.db.notification().updateOne({_id:ObjectId(id)},{$set:{isSeen:true}});
+			res.send(JSON.stringify({message : "notification_seen"})).status(201);
 		 }catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }
