@@ -18,6 +18,7 @@
 	"link": "Cliquez sur le lien ci-dessous pour réinitialiser votre nouveau mot de passe de connexion",
 	"reset_pass2": "Réinitialiser le mot de passe",
 	"reset_pass3": "Si vous n'êtes pas à l'origine de cette demande, veuillez ignorez cet Email",
+    "link_w": "lien.",
 	"contact": "Nous contacter",
     "link_added" : "Alerte nouveau lien ! 🎉",
     "insert-question":"Questions ou préoccupations? Nous ne sommes qu'à un message !", 

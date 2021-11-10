@@ -134,120 +134,80 @@ module.exports = function (app) {
 
 
 
-	  cron.schedule('*/26 * * * *',()=>{
+	  cron.schedule('*/30 * * * *',()=>{
 		updateStat();
 		 })
 
 
 
 	  let updateStat= async ()=>{
-
+		let campaigns=await app.db.campaigns().find().toArray();
+		campaigns.forEach(async(campaign)=>{
+			if(campaign){
+				campaign.type=await app.campaign.campaignStatus(campaign);
+				await app.db.campaigns().updateOne({_id:ObjectId(campaign._id)},{$set:campaign})
+			}
+		})
 		var Events = await app.db.event().find({ prom: { $exists: true} },{projection: { prom: true, _id:false }}).toArray();
-		let dateNow = Math.floor(Date.now() / 1000)
+		let dateNow = Math.floor(Date.now() / 1000);
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
-			const prom = await app.oracle.getPromDetails(idProm)
-			let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}})
-         if(campaign)  campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
-				var stat={};		
-				stat.status = prom.isAccepted;
-				stat.id_wallet = prom.influencer.toLowerCase();
-				stat.id_campaign = prom.idCampaign;
-				stat.id_prom=idProm;
-				stat.typeSN=prom.typeSN.toString();
-				stat.fund = prom.funds.amount;
-				stat.idPost = stat.typeSN=="1"? prom.idPost.split(':')[0] :prom.idPost
-				stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
+				const prom = await app.oracle.getPromDetails(idProm);	
+				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0}})
+		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
+		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
+		var stat={};		
+		stat.status = prom.isAccepted;
+		stat.id_wallet = prom.influencer.toLowerCase();
+		stat.id_campaign = prom.idCampaign;
+		stat.id_prom=idProm;
+		stat.typeSN=prom.typeSN.toString();
+		stat.fund = prom.funds.amount;
+		stat.idPost = stat.typeSN=="1"? prom.idPost.split(':')[0] :prom.idPost
+		stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
+		stat.campaign=campaign;
+		let userWallet =  stat.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+				let oracle =app.oracle.findBountyOracle(prom.typeSN)
+		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(oracle,stat,userWallet.UserId)
+		if(socialOracle ==='indisponible')
+		stat.status='indisponible';
 
-				let userWallet =  stat.status && stat.typeSN=="3" && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
-				    			
-                let socialOracle = stat.status && !campaign.isFinished && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(prom.typeSN),stat,userWallet.UserId)
-				    stat.shares=  socialOracle && socialOracle.shares || '0';
-					stat.likes=  socialOracle && socialOracle.likes || '0';
-					stat.views=  socialOracle && socialOracle.views || '0';
-					stat.media_url=  socialOracle && socialOracle.media_url || '';
-					 stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
-				// stat.oracle = app.oracle.findBountyOracle(prom.typeSN);
-
-				// if(stat.typeSN=="1" && stat.status){
-				
-				//     const idPost = prom.idPost.split(':')
-				// 	oraclesFacebook = await app.oracle.facebook(prom.idUser,idPost[0]);
-				
-				// 	stat.shares=oraclesFacebook.shares || '0'
-				// 	stat.likes=oraclesFacebook.likes || '0'
-				// 	stat.views=oraclesFacebook.views || '0'
-				// 	stat.media_url=oraclesFacebook.media_url || ''
-				// 				}
+			stat.shares=  socialOracle && socialOracle.shares || '0';
+			stat.likes=  socialOracle && socialOracle.likes || '0';
+			stat.views=  socialOracle && socialOracle.views || '0';
+			stat.media_url=  socialOracle && socialOracle.media_url || '';
+			stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
+			stat.oracle=oracle;
 			
-				// else if(stat.typeSN=="2"  && stat.status){
+			if(campaign.isFinished) stat.totalToEarn=0;
+	
+			if(campaign && socialOracle) 
+			{
+				stat.abosNumber = await app.oracleManager.answerAbos(stat.typeSN,stat.idPost,stat.idUser)}
+				if(stat.abosNumber==='indisponible')
+				stat.status='indisponible';
+			if(campaign.ratios.length && socialOracle){				
+				stat.totalToEarn=await app.campaign.getTotalToEarn(stat,campaign.ratios);
 				
-				// 	oraclesYoutube = await app.oracle.youtube(prom.idPost);
-				// 	stat.shares=oraclesYoutube.shares || '0';
-				// 	stat.likes=oraclesYoutube.likes;
-				// 	stat.views=oraclesYoutube.views;
-				
-				// 				}
-				
-				// else if(stat.typeSN=="3" && stat.status){
-				
-				//     var userWallet = await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
-				//     var UserId=	userWallet.UserId;
-				// 	oraclesInstagram = await app.oracle.instagram(UserId,prom.idPost);
-				// 	stat.shares=oraclesInstagram.shares || '0';
-				// 	stat.likes=oraclesInstagram.likes || '0';
-				// 	stat.views=oraclesInstagram.views|| '0';
-				// 	stat.media_url=oraclesInstagram.media_url || ''
-
-				// 	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
-				// 				}
-				
-				// else{
-				
-				
-				// 	oraclesTwitter= stat.status && await app.oracle.twitter(prom.idUser,prom.idPost);
-				// 	stat.shares=oraclesTwitter?.shares || '0';
-				// 	stat.likes=oraclesTwitter?.likes || '0';
-				// 	stat.views=oraclesTwitter?.views || '0';
-				// 	stat.media_url=oraclesTwitter?.media_url || ''
-				
-				// 				}
-
-
-               if(socialOracle) await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
-
-					// 	if(prom.isAccepted){
-					// let	element = await app.db.CampaignLinkStatistic().find({id_prom:stat.id_prom}).sort({date:-1}).toArray();
-					// 	if(element[0]){
-					// 		if(stat.shares!=element[0].shares || stat.likes!=element[0].likes || stat.views!=element[0].views){
-					// 			stat.sharesperDay=Number(stat.shares)-Number(element[0].shares);
-					// 			stat.likesperDay=Number(stat.likes)-Number(element[0].likes);
-					// 			stat.viewsperDay=Number(stat.views)-Number(element[0].views);
-					// 			try{
-					// 			//tester si il y 'a un changement sur un lien exist on ajoute le lien avec les changements;
-					// 				await app.db.CampaignLinkStatistic().insertOne(stat);
-					// 				stat=null;
-					// 			}catch(err){
-					// 				console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-					// 			}
-					// 		}
-					// 	}else{
-					// 			stat.sharesperDay=stat.shares;
-					// 			stat.likesperDay=stat.likes;
-					// 			stat.viewsperDay=stat.views;
-					// 			try{
-					// 			//tester si le lien n'existe pas on ajoute un nouveau ligne;
-					// 				await app.db.CampaignLinkStatistic().insertOne(stat);
-					// 				stat=null;
-					// 			}catch(err){
-					// 				console.log('{"error":"'+(err.message?err.message:err.error)+'"}');
-					// 						}
-					// 			}
-					// 	}
-
+				}
+	
+			if(campaign.bounties.length && socialOracle ) {
+			stat.totalToEarn=await app.campaign.getReward(stat,campaign.bounties);
+			}
+		
+			if (campaign) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet);
+	
+		await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
+			
+			
+			
+			
+	
+		
 
 	})
-
+	
+		
 	 }
 
 
@@ -453,7 +413,8 @@ module.exports = function (app) {
 				dataUrl,
 				funds :[contract,amount],
 				contract:contract.toLowerCase(),
-				walletId:cred.address
+				walletId:cred.address,
+				type:'inProgress'
 			};
 			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
 		}
@@ -589,13 +550,14 @@ module.exports = function (app) {
 			}
 			finally {
 				cred && app.account.lock(cred.address);
-				if(ret.hash){
+				if(ret && ret.hash){
 					let campaign = {
 						hash : ret.hash,
 						transactionHash:ret.transactionHash,
 						startDate,
-						endDate,
+						endDate,						
 						dataUrl,
+						coverSrc:null,
 						funds :[contract,amount],
 						contract:contract,
 						walletId:cred.address
@@ -987,7 +949,7 @@ module.exports = function (app) {
 			
 				let event={id:hash,prom:ret.idProm,type:"applied",date:date,txhash:ret.transactionHash,contract:contract._address.toLowerCase(),owner:contract._address.toLowerCase()};
 				
-				console.log("event",event);
+				// console.log("event",event);
 				await app.db.event().insertOne(event);
 			}
 		}
@@ -995,92 +957,138 @@ module.exports = function (app) {
 
 
 
-app.get('/userLinks/:id_wallet',async function(req, response) {
-	try{
-		 const token = req.headers["authorization"].split(" ")[1];
-		 var res=await app.crm.auth(token);
-		const limit=+req.query.limit || 50;
-		const page=+req.query.page || 1;
-		const skip=limit*(page-1);
-		var id_wallet=req.params.id_wallet;
-				
-		//const date= Math.round(new Date().getTime()/1000);
-
-		let arrayOfLinks=[];
-        let query= app.campaign.filterProms(req,id_wallet);
-		var count=await app.db.campaign_link().find({id_wallet}).count();
-
-		var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
-
-		for (var i = 0;i<userLinks.length;i++){
-			var result=userLinks[i];
-			let campaign=await app.db.campaigns().findOne({hash:result.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
-		
-			if(campaign){
-				const ratio = campaign.ratios;
-				const bounties=campaign.bounties;
-				var ctr = await app.campaign.getPromContract(result.id_prom);
-				if(!ctr.methods)
-					{
-						continue;
-					}
-				let prom = await ctr.methods.proms(result.id_prom).call();
-				let cmp = {}
-				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+	app.get('/userLinks/:id_wallet',async function(req, response) {
+		try{
+			//  const token = req.headers["authorization"].split(" ")[1];
+			//  var res=await app.crm.auth(token);
+			const limit=+req.query.limit || 50;
+			const page=+req.query.page || 1;
+			const skip=limit*(page-1);
+			var id_wallet=req.params.id_wallet;
+					
+			//const date= Math.round(new Date().getTime()/1000);
+			let arrayOfLinks=[];
+			let query= app.campaign.filterProms(req,id_wallet);
+			var count=await app.db.campaign_link().find({id_wallet}).count();
+	
+			var userLinks=await app.db.campaign_link().find(query).skip(skip).limit(limit).toArray();
+	
+			for (var i = 0;i<userLinks.length;i++){
+				var result=userLinks[i];
+				let campaign=await app.db.campaigns().findOne({hash:result.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 			
-				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=funds;
-				cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
-
-				if(ratio.length && result.status === true && !cmp.isFinished){
-					result.abosNumber = result.abosNumber || 0;
-					let socialStats = {likes: result.likes, shares:result.shares,views:result.views}
-					let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
-					if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",result.abosNumber,reachLimit);
-					delete result.isPayed;	     
-					cmp.ratio=ratio;	
-					ratio.forEach( num =>{											
-											if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
-												let payedAmount=result.payedAmount || '0'
-												let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
-												let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
-												let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
-												let totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
-												result.totalToEarn = new Big(totalToEarn).gt(new Big(payedAmount)) ? totalToEarn : payedAmount;
-												
-											}
-										})
-
-					}
-				if(bounties.length && result.status === true && !cmp.isFinished) {
-				cmp.bounties = bounties;
-				bounties.forEach( bounty=>{
+				if(campaign){
+					const ratio = campaign.ratios;
+					const bounties=campaign.bounties;
+					var ctr = await app.campaign.getPromContract(result.id_prom);
+					if(!ctr.methods)
+						{
+							continue;
+						}
+					let prom = await ctr.methods.proms(result.id_prom).call();
+					let cmp = {}
+					const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+				
+					cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=funds;
+					cmp.isFinished =  funds == "0" && prom.funds.amount =="0" ? true : false;
+	
+					if(ratio.length && result.status === true && !cmp.isFinished){
+						result.abosNumber = result.abosNumber || 0;
+						let socialStats = {likes: result.likes, shares:result.shares,views:result.views}
+						let reachLimit =  app.campaign.getReachLimit(ratio,result.oracle); 
+						if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",result.abosNumber,reachLimit);
+						delete result.isPayed;	     
+						cmp.ratio=ratio;	
+						ratio.forEach( num =>{											
+												if(((num.oracle === result.oracle) || (num.typeSN === result.typeSN))){
+													let payedAmount=result.payedAmount || '0';
+													let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
+													let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
+													let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
+													let totalToEarn = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
+													result.totalToEarn = new Big(totalToEarn).gt(new Big(payedAmount)) ? totalToEarn : payedAmount;													
+												}
+											})
+	
+						}
+					if(bounties.length && result.status === true && !cmp.isFinished) {
+					cmp.bounties = bounties;
 					let payedAmount=result.payedAmount || '0';
-					if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
-					  bounty.categories.forEach( category=>{
-					   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
-						   let totalToEarn =  category.reward
-						  result.totalToEarn = new Big(totalToEarn).gt(new Big(payedAmount)) ? totalToEarn : payedAmount;
-					   }else if(+result.abosNumber > +category.maxFollowers){
-						   let totalToEarn =  category.reward
+					bounties.forEach( bounty=>{
+						if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
+						  bounty.categories.forEach( category=>{
+						   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
+							let totalToEarn = category.reward;
+							result.totalToEarn = new Big(totalToEarn).gt(new Big(payedAmount)) ? totalToEarn : payedAmount;
+						   }else if(+result.abosNumber > +category.maxFollowers){
+							let totalToEarn =  category.reward
 							result.totalToEarn = new Big(totalToEarn).gt(new Big(payedAmount)) ? totalToEarn : payedAmount;	
-				 }
-
-					  })
-					   }
-					   })
-			  }					
-				result.campaign=cmp;
-				result.type=await app.campaign.getButtonStatus(result,id_wallet)
-				arrayOfLinks.push(result)
+					 }
+	
+						  })
+						   }
+						   })
+				  }					
+					result.campaign=cmp;
+					result.type=await app.campaign.getButtonStatus(result,id_wallet)
+					arrayOfLinks.push(result)
+				}
+			}
+			var Links ={Links:arrayOfLinks,count:count}
+				response.end(JSON.stringify(Links));
+			}catch(err){
+					response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+				}
+		})
+		
+app.get('/filterLinks/:id_wallet',async(req,res)=>{
+	var id_wallet=req.params.id_wallet;
+	// const token = req.headers["authorization"].split(" ")[1];
+	// var res=await app.crm.auth(token);
+   	const limit=+req.query.limit || 50;
+   	const page=+req.query.page || 1;
+   	const skip=limit*(page-1);
+   	let arrayOfLinks=[];
+	let allProms=[];
+   	let query= app.campaign.filterLinks(req,id_wallet);
+    var count=await app.db.campaign_link().find({id_wallet},{type : { $exists: true }}).count();
+	
+	let tri= (req.query.state==='owner') ? [['waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','indisponible','rejected','none'], "$type"] :
+	 [['harvest','already_recovered','waiting_for_validation','not_enough_budget','no_gains','indisponible','rejected','none'],"$type"]
+	let userLinks=await app.db.campaign_link().aggregate([{
+		$match: 
+			query
+	}, {
+		$addFields: {
+			sort: {
+				$indexOfArray: tri
 			}
 		}
-		var Links ={Links:arrayOfLinks,count:count}
-			response.end(JSON.stringify(Links));
-		}catch(err){
-				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-			}
-	})
+	},{
+		$sort: {
+			sort: 1,
+			_id: 1
+		}
+	}]).skip(skip).limit(limit).toArray();
+	for (var i = 0;i<userLinks.length;i++){
+		var result=userLinks[i];
+		let campaign=await app.db.campaigns().findOne({hash:result.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+	
+		if(campaign){		
+			let cmp={};
+			const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+			cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=funds,cmp.ratio=campaign.ratios,cmp.bounties=campaign.bounties;		
+			result.campaign=cmp;
+			arrayOfLinks.push(result)
+		}
+	}
+		 allProms = req.query.campaign && req.query.state ? await app.campaign.influencersLinks(arrayOfLinks) : arrayOfLinks;
+	
 
+	var Links ={Links:allProms,count:count}
+	res.end(JSON.stringify(Links));
+
+})
 	app.post('/campaign/validate', async function(req, response) {
 
 		var pass = req.body.pass;
@@ -1177,7 +1185,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
                     let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id);
 					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
 					socialOracle.status = true;
-					
+					socialOracle.type=await app.campaign.getButtonStatus(link,link.id_wallet);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
 
@@ -1634,20 +1642,22 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 			if(cred2) app.account.lock(cred2.address);
             if(ret && ret.transactionHash){
 			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
+			let type=campaign.type;
 			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
 			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
 			let updatedFUnds = {};
 			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
                if(req.body.bounty) updatedFUnds.isPayed = true; 
                if(!result.payedAmount) updatedFUnds.payedAmount = amount;
-               else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed();
+               else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed(2);
 			   await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
 		     })
 				
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
+				if(result.funds[1] === '0') type='finished';
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
-				funds:result.funds}});
+				funds:result.funds,type:type}});
 			}		
 		}
 	});
@@ -2335,23 +2345,15 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 		try {
 			const token = req.headers["authorization"].split(" ")[1];
-			await app.crm.auth(token);
-        
+			await app.crm.auth(token);     
 		 const title = req.body.title || "";
 		 const idCampaign = req.body.idCampaign
          const idLink = req.params.idLink;
 		 const email = req.body.email
-		 let link = req.body.link
-		 let reason = "";
-         if(req.body.reason.length == 1) reason = req.body.reason[0];
-		 else if(req.body.reason.length > 1) {
-          req.body.reason.forEach((str)=>{
-           reason = reason 
-		   + ` \n${str}`;
-		  })
-		  reason = reason.trim();
-		 }
-	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected"}},{returnOriginal: false});
+		 let link = req.body.link;
+		 let reason = [];
+		req.body.reason.forEach((str)=>	reason.push({reason:str}))
+	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected",type:"rejected"}},{returnOriginal: false});
 
 		 let id = +req.body.idUser
 
@@ -2494,6 +2496,7 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 		campaign.idNode = "0" + auth.id;
 		campaign.createdAt=Date.now();
 		campaign.updatedAt=Date.now();
+		campaign.type='draft';
 	const draft = await app.db.campaigns().insertOne(campaign);
 		res.end(JSON.stringify(draft.ops[0])).status(200);
 
@@ -2595,7 +2598,6 @@ app.get('/userLinks/:id_wallet',async function(req, response) {
 
 				}
 			}
-console.log(Links)
         if(Options.rejected){
 			res.end(JSON.stringify(Links.rejected))
 
