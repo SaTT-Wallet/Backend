@@ -157,7 +157,7 @@ module.exports = function (app) {
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
 		var stat={};		
-		stat.status = link.status;
+		stat.status = prom.isAccepted;
 		stat.id_wallet = prom.influencer.toLowerCase();
 		stat.id_campaign = prom.idCampaign;
 		stat.id_prom=idProm;
