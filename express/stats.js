@@ -373,6 +373,7 @@ const Grid = require('gridfs-stream');
 				}
 			}	
 		]).skip(skip).limit(limit).toArray();
+		
 			for (var i = 0;i<campaigns.length;i++)
 			{
 				proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash,id_wallet}).toArray();
