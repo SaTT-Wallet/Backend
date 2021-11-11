@@ -1827,10 +1827,22 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        }
     })
 
-    // app.get('/connect/linkedin/:idUser', (req, res,next)=>{
+    // app.get('/linkedin/link/:idUser', (req, res,next)=>{
     //   let state=req.params.idUser/*+"|"+req.query.redirect;*/
-    //   passport.authenticate('connect_linkedin', {scope: ['r_emailaddress','r_liteprofile'],state:state})(req,res,next)
+    //   passport.authenticate('linkedin_link', {scope: ['r_emailaddress','r_liteprofile'],state})(req,res,next)
     // });
+
+
+    // passport.use('linkedin_link',new LinkedInStrategy({
+    //   clientID: app.config.LINKEDIN_KEY,
+    //   clientSecret: app.config.LINKEDIN_SECRET,
+    //   callbackURL: app.config.baseUrl + "/callback/link/linkedin",
+    //   // scope: ['r_emailaddress', 'r_liteprofile'],
+    //   passReqToCallback:true
+    // }, async (req,accessToken, refreshToken, profile, done) =>{
+    //  let userId = req.query.state;
+   
+    // }));
 
     app.get('/connect/google/:idUser', (req, res,next)=>{
       let state=req.params.idUser+"|"+req.query.redirect;
