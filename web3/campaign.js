@@ -470,8 +470,8 @@ module.exports = async function (app) {
 				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
 				link.campaign.isFinished)
 				type="not_enough_budget";
-				else if(!(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign?.ratios?.length ||
-				(link.isPayed ===false && !(new Big(totalToEarn).eq(new Big(link.payedAmount))) && link.campaign.bounties?.length))
+				else if((new Big(totalToEarn).gt(new Big(link.payedAmount))) && link.campaign?.ratios?.length ||
+				(link.isPayed ===false && (new Big(totalToEarn).gt(new Big(link.payedAmount))) && link.campaign.bounties?.length))
 				type='harvest';
 				else 
 				type="none";				
