@@ -487,7 +487,9 @@ module.exports = async function (app) {
 	campaignManager.getTotalToEarn = async function (socialStats,ratio) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				console.log(ratio,"    ", socialStats);
+				// console.log(ratio,"    ", socialStats);
+				let reachLimit =  campaignManager.getReachLimit(ratio,socialStats.oracle); 
+				if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",socialStats.abosNumber,reachLimit);
 				ratio.forEach( num =>{		
 						let totalToEarn='0';
 						let payedAmount=socialStats.payedAmount || '0'							
@@ -558,6 +560,7 @@ module.exports = async function (app) {
 							}
 							catch (err)
 							{
+
 								reject(err);
 							}
 						})
