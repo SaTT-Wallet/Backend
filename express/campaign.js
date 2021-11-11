@@ -167,7 +167,7 @@ module.exports = function (app) {
 		stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
 		stat.campaign=campaign;
 		let userWallet =  stat.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
-				let oracle =app.oracle.findBountyOracle(prom.typeSN)
+		let oracle =app.oracle.findBountyOracle(prom.typeSN)
 		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(oracle,stat,userWallet.UserId)
 		if(socialOracle ==='indisponible')
 		stat.status='indisponible';
@@ -186,9 +186,8 @@ module.exports = function (app) {
 				stat.abosNumber = await app.oracleManager.answerAbos(stat.typeSN,stat.idPost,stat.idUser)}
 				if(stat.abosNumber==='indisponible')
 				stat.status='indisponible';
-			if(campaign.ratios.length && socialOracle){				
-				stat.totalToEarn=await app.campaign.getTotalToEarn(stat,campaign.ratios);
-				
+			if(campaign.ratios.length && socialOracle){		
+				stat.totalToEarn=await app.campaign.getTotalToEarn(stat,campaign.ratios);				
 				}
 	
 			if(campaign.bounties.length && socialOracle ) {
@@ -196,22 +195,18 @@ module.exports = function (app) {
 			}
 		
 			if (campaign) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet);
-			delete stat.payedAmount;
-		await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.
-			
-			
-			
-			
-	
-		
-
+	    delete stat.payedAmount
+		socialOracle &&	await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.			
 	})
 	
 		
 	 }
 
 
-	app.post('/updateStat', updateStat)
+	app.post('/updateStat', (req, res) => {
+		updateStat();
+		res.end(JSON.stringify({message:"Done"}))
+	})
 
 	/*
 	@url : /stat/:idProm
@@ -1642,7 +1637,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			if(cred2) app.account.lock(cred2.address);
             if(ret && ret.transactionHash){
 			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
-			let type=campaign.type;
+			let campaignType={};
 			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
 			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
 			let updatedFUnds = {};
@@ -1656,9 +1651,9 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				
 				let contract = await app.campaign.getCampaignContract(idCampaign);			
 			    var result = await contract.methods.campaigns(idCampaign).call();
-				if(result.funds[1] === '0') type='finished';
-			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
-				funds:result.funds,type:type}});
+                campaignType.funds = result.funds
+				if(result.funds[1] === '0') campaignType.type='finished';
+			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:campaignType});
 			}		
 		}
 	});
