@@ -931,6 +931,7 @@ module.exports = function (app) {
 				prom.typeSN = typeSN.toString();
 				prom.idUser  = idUser 
 				prom.status = false;
+				prom.type = 'waiting_for_validation';
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
 				prom.id_campaign  = hash
