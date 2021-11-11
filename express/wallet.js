@@ -1902,7 +1902,18 @@ app.post('/wallet/remove/token', async (req, res) =>{
 	}
 	})
 
-
+app.get('/paymentEvent', async (req, response)=>{
+	const paymentRequest ={
+		url: app.config.sandBoxUri +"/wallet/merchant/v2/event",
+		method: 'GET',
+		headers: {
+			'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+		  },
+		json: true
+	  };
+	  var paymentSubmitted = await rp(paymentRequest);
+	  console.log(paymentSubmitted)
+})
 
 	return app;
 }
