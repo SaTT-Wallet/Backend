@@ -141,7 +141,7 @@ module.exports = function (app) {
 
 
 	  let updateStat= async ()=>{
-		let campaigns=await app.db.campaigns().find().toArray();
+		let campaigns=await app.db.campaigns({ hash: { $exists: true} }).find().toArray();
 		campaigns.forEach(async(campaign)=>{
 			if(campaign){
 				campaign.type=await app.campaign.campaignStatus(campaign);
@@ -153,10 +153,12 @@ module.exports = function (app) {
 		Events.forEach(async (event)=>{
 			var idProm = event.prom;
 				const prom = await app.oracle.getPromDetails(idProm);	
-				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0}})
+				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}})
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
+		let payedAmount = await app.db.campaign_link().findOne({id_prom:idProm},{projection: { payedAmount: true,_id:false }})
 		var stat={};		
+		stat.payedAmount= payedAmount.payedAmount
 		stat.status = prom.isAccepted;
 		stat.id_wallet = prom.influencer.toLowerCase();
 		stat.id_campaign = prom.idCampaign;
@@ -195,6 +197,7 @@ module.exports = function (app) {
 			}
 		
 			if (campaign) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet);
+		delete stat.campaign	
 	    delete stat.payedAmount
 		socialOracle &&	await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.			
 	})
@@ -1181,6 +1184,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
                     let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id);
 					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
 					socialOracle.status = true;
+					link.campaign=campaign
 					socialOracle.type=await app.campaign.getButtonStatus(link,link.id_wallet);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
@@ -1644,8 +1648,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			let updatedFUnds = {};
 			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
                if(req.body.bounty) updatedFUnds.isPayed = true; 
-               if(!result.payedAmount) updatedFUnds.payedAmount = amount;
-               else if (result.payedAmount) updatedFUnds.payedAmount = new Big(result.payedAmount).plus(new Big(amount)).toFixed();
+               updatedFUnds.payedAmount = !result.payedAmount ? amount :new Big(result.payedAmount).plus(new Big(amount)).toFixed();
 			   updatedFUnds.type="already_recovered";
 			   await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
 		     })
