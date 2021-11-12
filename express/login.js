@@ -1827,22 +1827,30 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        }
     })
 
-    // app.get('/linkedin/link/:idUser', (req, res,next)=>{
-    //   let state=req.params.idUser/*+"|"+req.query.redirect;*/
-    //   passport.authenticate('linkedin_link', {scope: ['r_emailaddress','r_liteprofile'],state})(req,res,next)
-    // });
+    app.get('/linkedin/link/:idUser', (req, res,next)=>{
+      let state=req.params.idUser
+      passport.authenticate('linkedin_link', {state})(req,res,next)
+    });
 
 
-    // passport.use('linkedin_link',new LinkedInStrategy({
-    //   clientID: app.config.LINKEDIN_KEY,
-    //   clientSecret: app.config.LINKEDIN_SECRET,
-    //   callbackURL: app.config.baseUrl + "/callback/link/linkedin",
-    //   // scope: ['r_emailaddress', 'r_liteprofile'],
-    //   passReqToCallback:true
-    // }, async (req,accessToken, refreshToken, profile, done) =>{
-    //  let userId = req.query.state;
-   
-    // }));
+    passport.use('linkedin_link',new LinkedInStrategy({
+      clientID: app.config.linkedin_key,
+      clientSecret: app.config.linkedin_secret,
+      callbackURL: app.config.baseUrl + "callback/link/linkedin",
+      scope: ['r_basicprofile','r_organization_social','rw_ads'],
+      passReqToCallback:true
+    }, async (req,accessToken, refreshToken, profile, done) =>{
+       req.query.userId=Number(req.query.state);
+       req.query.linkedinId = profile.id
+       done (null,profile, {status:true, message:'account_linked_with success'})
+    }));
+
+    app.get('/callback/link/linkedin',passport.authenticate('linkedin_link'), (req, res)=> {
+      let authorizationCode = req.query.code
+      let message = req.authInfo.message;
+      res.redirect(app.config.basedURl +url+'?message=' + message);
+    });
+
 
     app.get('/connect/google/:idUser', (req, res,next)=>{
       let state=req.params.idUser+"|"+req.query.redirect;
