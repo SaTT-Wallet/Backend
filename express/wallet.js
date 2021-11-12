@@ -1791,7 +1791,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
-		    let wallet=await app.db.wallet().findOne({UserId:auth.id})
+		    let wallet=await app.db.wallet().findOne({UserId:auth.id},{projection: { mnemo: true }})
 		    let mnemo=wallet.mnemo;
 	
 		    res.send(JSON.stringify({mnemo}));
@@ -1805,7 +1805,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
 			let mnemo = req.body.mnemo;
-		    let wallet=await app.db.wallet().findOne({$and:[{UserId:auth.id},{mnemo:mnemo}]})
+		    let wallet=await app.db.wallet().findOne({$and:[{UserId:auth.id},{mnemo}]})
 			let verify = wallet ? true : false;
 		    res.send(JSON.stringify({verify}));
 		} catch (err) {

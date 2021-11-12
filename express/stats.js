@@ -1376,44 +1376,38 @@ const Grid = require('gridfs-stream');
   }
 	})
 
-	function calcSNStat(objNw,link){
+	let calcSNStat=(objNw,link)=>{
 		  objNw.total++;
-		 
-		  if(link.views) objNw.views+=Number(link.views);
-		  if(link.likes) objNw.likes+=Number(link.likes);
-		  if(link.shares) objNw.shares+=Number(link.shares);
-		  if(link.status===true) objNw.accepted++;
-		  if(link.status===false) objNw.pending++;
-		  if(link.status==="rejected") objNw.rejected++;
-		  
+		  if(link.status!=="rejected"){
+		  		if(link.views) objNw.views+=Number(link.views);
+		  		if(link.likes) objNw.likes+=Number(link.likes);
+		  		if(link.shares) objNw.shares+=Number(link.shares);
+		  		if(link.status===true) objNw.accepted++;
+		  		if(link.status===false) objNw.pending++;
+		  }	 
+		  else objNw.rejected++;		  
 		  return objNw;
 	  }
-	  function initStat(){
+
+	  let initStat=()=>{
 		  return {total:0,views:0,likes:0,shares:0,accepted:0,pending:0,rejected:0}
 
 	  }
 	  app.get('/statLinkCampaign/:hash', async (req, res) => {
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
-		    var auth =	await app.crm.auth(token);
+		    await app.crm.auth(token);
 			var hash=req.params.hash;
 			var arrayOfUser=[];
-			var arrayOfnbAbos=[];
-			var nbTotalUser=0;
-			var totalAbos=0;
+			var arrayOfnbAbos =[]
+			var nbTotalUser =0;
+			var totalAbos = 0
 			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
 			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
 			for(i=0;i<links.length;i++){
 				let link=links[i];
-				if(link.typeSN=="1"){
-					result.facebook=calcSNStat(result.facebook,link);
-				}else if(link.typeSN =="2"){
-					result.youtube=calcSNStat(result.youtube,link);
-				}else if(link.typeSN =="3"){	
-					result.instagram=calcSNStat(result.instagram,link);
-				}else{	
-					result.twitter=calcSNStat(result.twitter,link);
-				}
+				let oracle = link.oracle
+				result[oracle]=calcSNStat(result[oracle],link);
 				if(arrayOfUser.indexOf(link.id_wallet)===-1) {
 					nbTotalUser++;
 					arrayOfUser.push(link.id_wallet);
