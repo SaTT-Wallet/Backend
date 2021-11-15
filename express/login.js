@@ -1860,7 +1860,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         if(linkedinPages.elements.length) linkedinProfile.pages = linkedinPages.elements;
       await app.db.linkedinProfile().insertOone(linkedinProfile);
       let message = req.authInfo.message;
-      res.redirect(app.config.basedURl +url+'?message=' + message);
+      res.redirect(app.config.basedURl +'?message=' + message);
     });
 
 
