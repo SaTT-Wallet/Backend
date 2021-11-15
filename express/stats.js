@@ -339,16 +339,20 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v3/campaigns/:idWallet', async (req, response)=> {
 		try{
+			var strangerDraft=[]
+             if(req.query.idWallet){
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
+			var idNode="0"+auth.id;		
+			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
+			 }
 			const limit=+req.query.limit || 50;
 			const page=parseInt(req.query.page) || 1;
 			const skip=limit*(page-1);
 			const allCampaigns=[];
 			const id_wallet = req.params.idWallet
-			let strangerDraft=[]
-			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
-			var idNode="0"+auth.id;
+			
+			// var idNode="0"+auth.id;
 	
 			let query = app.campaign.sortOut(req,idNode,strangerDraft);
 			
