@@ -1842,11 +1842,23 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }, async (req,accessToken, refreshToken, profile, done) =>{
        req.query.userId=Number(req.query.state);
        req.query.linkedinId = profile.id
+       req.query.accessToken=accessToken
        done (null,profile, {status:true, message:'account_linked_with success'})
     }));
 
-    app.get('/callback/link/linkedin',passport.authenticate('linkedin_link'), (req, res)=> {
-      let authorizationCode = req.query.code
+    app.get('/callback/link/linkedin',passport.authenticate('linkedin_link'), async (req, res)=> {
+      let {accessToken,userId,linkedinId}= req.query;
+      const linkedinData ={
+        url: "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName)))",
+        method: 'GET',
+        headers:{'Autohrization' : "Bearer "+accessToken},
+        json: true
+        };
+
+        let linkedinPages = await rp(linkedinData)
+        let linkedinProfile = {accessToken,userId,linkedinId}
+        if(linkedinPages.elements.length) linkedinProfile.pages = linkedinPages.elements;
+      await app.db.linkedinProfile().insertOone(linkedinProfile);
       let message = req.authInfo.message;
       res.redirect(app.config.basedURl +url+'?message=' + message);
     });

@@ -909,7 +909,7 @@ module.exports = async function (app) {
 		var query = {};
 		query["$and"]=[];
 		
-	query["$and"].push({"_id":{$nin:strangerDraft}})		
+	if(req.query.idWallet) query["$and"].push({"_id":{$nin:strangerDraft}})		
 
 	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
 
