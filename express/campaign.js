@@ -2831,5 +2831,22 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		})
+
+
+
+		app.put('/updatePayedAmount', async (req, res) => {
+			try {
+				let graph= await app.graph.client();
+				 	console.log(graph.length)			
+				for(let i=0;i<graph.length;i++){
+					await app.db.campaign_link().updateOne({id_prom:graph[i].id},{$set: {payedAmount:graph[i].totalAmount}})
+				}
+				res.send(JSON.stringify({message :"success"}));
+
+				
+			}catch (err) {
+				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			}
+			})	
 	return app;
 }
