@@ -193,7 +193,7 @@ module.exports = async function (app) {
 		app.db.twitterProfile = function () {
 				return db.db(app.config.mongoBase).collection('twitter_profile');
 		};
-		app.db.linkedinProfile =  () =>{
+		app.db.linkedinProfile = () =>{
 			return db.db(app.config.mongoBase).collection('linkedin_profile');
 	};
 
