@@ -183,6 +183,14 @@ module.exports = function (app) {
 					}
 
 				break;
+				case "5":
+				var linkedinProfile = await app.db.linkedinProfile().findOne({UserId:userId  });
+					if(linkedinProfile) {
+						linked = true;
+						res = await app.oracle.verifyLinkedin(userId,idPost);
+					}
+
+				break;
 				default:
 
 			}
