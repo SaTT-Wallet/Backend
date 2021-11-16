@@ -339,20 +339,16 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v3/campaigns/:idWallet', async (req, response)=> {
 		try{
-			var strangerDraft=[]
-             if(req.query.idWallet){
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
-			var idNode="0"+auth.id;		
-			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
-			 }
 			const limit=+req.query.limit || 50;
 			const page=parseInt(req.query.page) || 1;
 			const skip=limit*(page-1);
 			const allCampaigns=[];
 			const id_wallet = req.params.idWallet
-			
-			// var idNode="0"+auth.id;
+			let strangerDraft=[]
+			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
+			var idNode="0"+auth.id;
 	
 			let query = app.campaign.sortOut(req,idNode,strangerDraft);
 			
@@ -384,6 +380,65 @@ const Grid = require('gridfs-stream');
 				if(proms.length) campaigns[i].proms =proms;
 				allCampaigns.push(campaigns[i]);
 			}
+			response.send(JSON.stringify(campaigns));
+		}catch(err){
+			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+		}
+		
+	})
+
+
+	app.get('/v4/campaigns', async (req, response)=> {
+		try{
+			var strangerDraft=[]
+             if(req.query.idWallet){
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+			var idNode="0"+auth.id;		
+			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
+			 }
+			const limit=+req.query.limit || 50;
+			const page=parseInt(req.query.page) || 1;
+			const skip=limit*(page-1);
+			// const allCampaigns=[];
+			const id_wallet = req.params.idWallet 
+			
+			// var idNode="0"+auth.id;
+	
+			let query = app.campaign.sortOut(req,idNode,strangerDraft);
+			
+			let tri= [['draft','apply','inProgress','finished'],"$type"];
+	
+			let campaigns=await app.db.campaigns().aggregate([{
+				$match: 
+					query
+			},
+			 {
+				$addFields: {
+					sortPriority: { $eq: [ "$idNode", idNode ]  } ,
+					sort: {
+						$indexOfArray: tri
+					}
+				}
+			},{
+				$sort: {
+					sort: 1,
+					sortPriority: -1,
+					_id: 1
+				}
+			}	
+		]).skip(skip).limit(limit).toArray();
+
+		if(req.query.idWallet){
+			for (var i = 0;i<campaigns.length;i++)
+			{
+				proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash,id_wallet}).toArray();
+				if(proms.length) campaigns[i].proms =proms;
+				// allCampaigns.push(campaigns[i]);
+			}
+		}
+
 			response.send(JSON.stringify(campaigns));
 		}catch(err){
 			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');

@@ -1837,7 +1837,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       clientID: app.config.linkedin_key,
       clientSecret: app.config.linkedin_secret,
       callbackURL: app.config.baseUrl + "callback/link/linkedin",
-      scope: ['r_basicprofile','r_organization_social','rw_ads'],
+      scope: ['r_basicprofile','r_organization_social','rw_ads','w_organization_social','r_ads','r_1st_connections_size','r_ads_reporting','rw_organization_admin','w_member_social'],
       passReqToCallback:true
     }, async (req,accessToken, refreshToken, profile, done) =>{
        req.query.userId=Number(req.query.state);
@@ -1847,20 +1847,25 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }));
 
     app.get('/callback/link/linkedin',passport.authenticate('linkedin_link'), async (req, res)=> {
+      try {
       let {accessToken,userId,linkedinId}= req.query;
+
       const linkedinData ={
         url: "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName)))",
         method: 'GET',
-        headers:{'Autohrization' : "Bearer "+accessToken},
+        headers:{'Authorization' : "Bearer "+accessToken},
         json: true
         };
-
         let linkedinPages = await rp(linkedinData)
         let linkedinProfile = {accessToken,userId,linkedinId}
         if(linkedinPages.elements.length) linkedinProfile.pages = linkedinPages.elements;
-      await app.db.linkedinProfile().insertOone(linkedinProfile);
+      await app.db.linkedinProfile().insertOne(linkedinProfile);
       let message = req.authInfo.message;
       res.redirect(app.config.basedURl +'?message=' + message);
+    } catch (err) {
+      app.account.sysLogError(err);
+      res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+     }
     });
 
 
