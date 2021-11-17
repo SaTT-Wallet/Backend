@@ -2836,12 +2836,13 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 		app.put('/updatePayedAmount', async (req, res) => {
 			try {
-				let graph= await app.graph.client();
-				 	console.log(graph.length)			
-				for(let i=0;i<graph.length;i++){
-					await app.db.campaign_link().updateOne({id_prom:graph[i].id},{$set: {payedAmount:graph[i].totalAmount}})
-				}
-				res.send(JSON.stringify({message :"success"}));
+				// let graph= await app.graph.allProms();
+				let graph= await app.graph.allCampaigns();
+				 	console.log("graph********",graph.length);			
+				// for(let i=0;i<graph.length;i++){
+				// 	await app.db.campaign_link().updateOne({id_prom:graph[i].id},{$set: {payedAmount:graph[i].totalAmount}})
+				// }
+				res.send(JSON.stringify({campaigns :graph}));
 
 				
 			}catch (err) {
