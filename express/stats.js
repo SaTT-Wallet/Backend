@@ -388,7 +388,6 @@ const Grid = require('gridfs-stream');
 		
 	})
 
-
 	app.get('/v4/campaigns', async (req, response)=> {
 		try{
 			var strangerDraft=[]
