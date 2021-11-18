@@ -1849,16 +1849,23 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     app.get('/callback/link/linkedin',passport.authenticate('linkedin_link'), async (req, res)=> {
       try {
       let {accessToken,userId,linkedinId}= req.query;
-
       const linkedinData ={
         url: "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName)))",
         method: 'GET',
-        headers:{'Authorization' : "Bearer "+accessToken},
+        headers:{'Authorization' : "Bearer "+accessToken,
+        'X-Restli-Protocol-Version': '2.0.0'
+       },
         json: true
         };
         let linkedinPages = await rp(linkedinData)
         let linkedinProfile = {accessToken,userId,linkedinId}
-        if(linkedinPages.elements.length) linkedinProfile.pages = linkedinPages.elements;
+        if(linkedinPages.elements.length){
+           linkedinProfile.pages = [];
+           linkedinPages.elements.forEach((elem)=>{
+           if(elem.state !== "REVOKED") linkedinProfile.pages.push(elem)
+           })
+
+        } 
       await app.db.linkedinProfile().insertOne(linkedinProfile);
       let message = req.authInfo.message;
       res.redirect(app.config.basedURl +'?message=' + message);

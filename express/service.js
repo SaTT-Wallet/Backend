@@ -176,7 +176,7 @@ module.exports = function (app) {
 				
 				break;
 				case "4":
-				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  });
+				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId});
 					if(twitterProfile) {
 						linked = true;
 						res = await app.oracle.verifyTwitter(userId,idPost);
@@ -184,10 +184,10 @@ module.exports = function (app) {
 
 				break;
 				case "5":
-				var linkedinProfile = await app.db.linkedinProfile().findOne({UserId:userId  });
+				var linkedinProfile = await app.db.linkedinProfile().findOne({userId});
 					if(linkedinProfile) {
 						linked = true;
-						res = await app.oracle.verifyLinkedin(userId,idPost);
+						res = await app.oracle.verifyLinkedin(linkedinProfile,idPost);
 					}
 
 				break;
