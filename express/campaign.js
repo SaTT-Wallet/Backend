@@ -156,7 +156,7 @@ module.exports = function (app) {
 				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}})
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
-		let payedAmount = await app.db.campaign_link().findOne({id_prom:idProm},{projection: { payedAmount: true,_id:false }})
+		let payedAmount = await app.db.campaign_link().findOne({id_prom:idProm})
 		var stat={};		
 		stat.payedAmount= payedAmount.payedAmount
 		stat.status = prom.isAccepted;
@@ -170,7 +170,9 @@ module.exports = function (app) {
 		stat.campaign=campaign;
 		let userWallet =  stat.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 		let oracle =app.oracle.findBountyOracle(prom.typeSN)
-		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(oracle,stat,userWallet.UserId)
+
+		let linkedinProfile=prom.typeSN =="5" ? await app.db.linkedinProfile().findOne({userId:userWallet.UserId}) : null
+		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(oracle,stat,userWallet.UserId,linkedinProfile)
 		if(socialOracle ==='indisponible')
 		stat.status='indisponible';
 
@@ -558,6 +560,7 @@ module.exports = function (app) {
 						coverSrc:null,
 						funds :[contract,amount],
 						contract:contract,
+						type:'inProgress',
 						walletId:cred.address
 					};
 					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
@@ -2798,17 +2801,36 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 		app.put('/updatePayedAmount', async (req, res) => {
 			try {
-				let graph= await app.graph.client();
-				 	console.log(graph.length)			
-				for(let i=0;i<graph.length;i++){
-					await app.db.campaign_link().updateOne({id_prom:graph[i].id},{$set: {payedAmount:graph[i].totalAmount}})
-				}
-				res.send(JSON.stringify({message :"success"}));
+				// let graph= await app.graph.allProms();
+				let graph= await app.graph.allCampaigns();
+				 	console.log("graph********",graph.length);			
+				// for(let i=0;i<graph.length;i++){
+				// 	await app.db.campaign_link().updateOne({id_prom:graph[i].id},{$set: {payedAmount:graph[i].totalAmount}})
+				// }
+				res.send(JSON.stringify({campaigns :graph}));
 
 				
 			}catch (err) {
 				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			})	
+
+
+			app.get('/testStatsLinkedin',async (req,res)=>{
+				try{
+					link=await app.db.campaign_link().findOne({id_prom:req.body.id_prom});
+					let userWallet = await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});			
+
+					let linkedinProfile=await app.db.linkedinProfile().findOne({userId:userWallet.UserId}) 
+					console.log(linkedinProfile);
+					socialOracle = await app.oracle.linkedin(link.organization,link.idPost,link.idUser,linkedinProfile)
+					
+					res.send(JSON.stringify({oracles :socialOracle}));
+
+				}catch(err){
+					res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+				}
+			})
 	return app;
 }

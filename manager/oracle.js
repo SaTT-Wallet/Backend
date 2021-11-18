@@ -186,6 +186,44 @@ module.exports = async function (app) {
 		})
 
 	};
+	oracleManager.linkedin = async function (organization,idPost,type,linkedinProfile) {
+		return new Promise(async (resolve, reject) => {
+			try{
+			
+			var perf = {shares:0,likes:0,views:0};
+			let url=`https://api.linkedin.com/v2/organizationalEntityShareStatistics?q=organizationalEntity&${type}s[0]=urn:li:${type}:${idPost}&organizationalEntity=${organization}`;
+			console.log(url)
+			const linkedinData ={
+				url: url,
+				method: 'GET',
+				headers:{
+				'Authorization' : "Bearer "+linkedinProfile.accessToken
+			   },
+				json: true
+				};
+				var body = await rp(linkedinData);
+				perf.views=body.elements[0].totalShareStatistics.impressionCount;
+				perf.likes=body.elements[0].totalShareStatistics.likeCount;
+				perf.shares=body.elements[0].totalShareStatistics.shareCount;
+						if(type !=="share"){
+							const linkedinVideoData ={
+								url: `https://api.linkedin.com/v2/videoAnalytics?q=entity&entity=urn:li:ugcPost:${idPost}&type=VIDEO_VIEW`,
+								method: 'GET',
+								headers:{
+								'Authorization' : "Bearer "+linkedinProfile.accessToken
+							},
+								json: true
+							};
+							var bodyVideo = await rp(linkedinVideoData);
+							perf.views=bodyVideo.elements[0].value;
+				}	 
+			resolve(perf);
+		}catch (err) {
+			reject({message:err.message});
+		}
+		})
+
+	};
 
 
 oracleManager.getInstagramUserName= async (shortcode)=>{
