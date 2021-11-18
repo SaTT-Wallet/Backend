@@ -945,6 +945,64 @@ module.exports = async function (app) {
 		return query
 	}
 
+	campaignManager.sortOutPublic=(req,idNode, strangerDraft)=>{
+		
+		const title=req.query.searchTerm || '';
+		const status=req.query.status;
+		const blockchainType=req.query.blockchainType || '';
+		 
+		const dateJour= Math.round(new Date().getTime()/1000);
+		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
+		if(req.query.oracles == undefined){
+			oracles=["twitter","facebook","youtube","instagram"];
+		}
+
+	else if(typeof req.query.oracles === "string"){
+		oracles=Array(req.query.oracles);
+	}else{
+		oracles=req.query.oracles;
+	}
+		const remainingBudget=req.query.remainingBudget || [];
+		
+		var query = {};
+		query["$and"]=[];
+		
+	if(req.query.idWallet) query["$and"].push({"_id":{$nin:strangerDraft}})		
+
+	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
+
+		if(title){
+		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
+		}
+		if(blockchainType){
+			query["$and"].push({"token.type":blockchainType});
+		}
+		if(status =="active" ){
+			if(remainingBudget.length==2){
+			query["$and"].push({"funds.1":{ $exists: true}});
+			query["$and"].push({"funds.1": { $gte :  remainingBudget[0],$lte :  remainingBudget[1]}});
+			}
+			query["$and"].push({"endDate":{ $gt : dateJour }});
+			query["$and"].push({"funds.1":{$ne: "0"}});
+			query["$and"].push({"hash":{ $exists: true}});
+		}
+		else if(status=="finished"){
+			query["$and"].push({"$or":[{"endDate":{ $lt : dateJour }},{"funds.1":{$eq: "0"}}]});
+			query["$and"].push({"hash":{ $exists: true}});
+
+		}else if(status=="draft" ){
+			query["$and"].push({"hash":{ $exists: false}});
+			query["$and"].push({"idNode": idNode});
+		}
+
+		query["$and"].push({type:{
+			
+			$in: ['draft','finished','inProgress','apply']
+		}})
+
+		return query
+	}
+
 
 
 	campaignManager.filterProms=(req, id_wallet)=>{
