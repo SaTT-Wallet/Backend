@@ -1010,7 +1010,7 @@ module.exports = async function (app) {
 		if(oracles == "facebook" || oracles == "twitter") socialOracle = await app.oracle[oracles](link.idUser,link.idPost);
 		else if(oracles == "youtube") socialOracle = await app.oracle.youtube(link.idPost);
 		else if(oracles == "instagram")  socialOracle = await app.oracle.instagram(id,link.idPost);
-		else socialOracle = await app.oracle.linkedin(link.IdUser,link.idPost,link.typeURL,linkedinProfile);
+		else socialOracle = await app.oracle.linkedin(link.idUser,link.idPost,link.typeURL,linkedinProfile);
          delete socialOracle.date
 		 resolve(socialOracle)
 		}catch (e) {
