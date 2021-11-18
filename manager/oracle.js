@@ -110,7 +110,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try{
 				const linkedinData ={
-					url: `https://api.linkedin.com/v2/networkSizes/urn:li:organization:${organization}?edgeType=CompanyFollowedByMember`,
+					url: `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
 					method: 'GET',
 					headers:{
 					'Authorization' : "Bearer "+linkedinProfile.accessToken
