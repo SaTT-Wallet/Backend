@@ -922,7 +922,7 @@ module.exports = function (app) {
 				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))				
 			    var cred = await app.account.unlock(id,pass);
 				if(typeSN == 5){
-					let linkedinProfile =  await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
+					var linkedinProfile = await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
 					let linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
 					idUser = linkedinInfo.idUser;
                     idPost = linkedinInfo.idPost; 
