@@ -950,7 +950,7 @@ module.exports = function (app) {
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
 				var insert = await app.db.campaign_link().insertOne(prom);
 				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile)
-				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id)
+				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id,linkedinProfile)
 				prom.views= socialOracle.views,prom.likes= socialOracle.likes,prom.shares= socialOracle.shares || '0';
 			    await app.db.campaign_link().updateOne({_id : app.ObjectId(insert.ops[0]._id)},{$set:prom})
 			
