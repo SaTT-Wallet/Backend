@@ -1003,13 +1003,14 @@ module.exports = async function (app) {
 
 
 
-	campaignManager.getPromApplyStats= async(oracles, link,id)=>{
+	campaignManager.getPromApplyStats= async(oracles,link,id,linkedinProfile=null)=>{
 		return new Promise( async (resolve, reject) => {
 			try{
 		let socialOracle = {}
 		if(oracles == "facebook" || oracles == "twitter") socialOracle = await app.oracle[oracles](link.idUser,link.idPost);
 		else if(oracles == "youtube") socialOracle = await app.oracle.youtube(link.idPost);
-		else  socialOracle = await app.oracle.instagram(id,link.idPost)
+		else if(oracles == "instagram")  socialOracle = await app.oracle.instagram(id,link.idPost);
+		else socialOracle = await app.oracle.linkedin(link.organization,link.idPost,link.type,linkedinProfile);
          delete socialOracle.date
 		 resolve(socialOracle)
 		}catch (e) {
