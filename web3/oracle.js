@@ -81,7 +81,7 @@ module.exports = async function (app) {
 			return res;
 	}
 
-	ContractToken.answerAbos = async function (typeSN,idPost,idUser) {
+	ContractToken.answerAbos = async (typeSN,idPost,idUser,linkedinProfile=null)=> {
 		switch(typeSN) {
 				case "1" :
 					var res = await app.oracle.facebookAbos(idUser,idPost);
@@ -97,6 +97,10 @@ module.exports = async function (app) {
 				break;
 				case "4" :
 					var res = await app.oracle.twitterAbos(idUser,idPost)
+
+				break;
+				case "5" :
+					var res = await app.oracle.linkedinAbos(linkedinProfile,idUser)
 
 				break;
 				default :

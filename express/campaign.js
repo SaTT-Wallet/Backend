@@ -919,10 +919,14 @@ module.exports = function (app) {
 		let id = auth.id
 		try {		
 			    let promExist = await app.db.campaign_link().findOne({id_campaign:hash, idPost});
-				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))	
-				
+				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))				
 			    var cred = await app.account.unlock(id,pass);
-				
+				if(typeSN == 5){
+					let linkedinProfile =  await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
+					let linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
+					idUser = linkedinInfo.idUser;
+                    idPost = linkedinInfo.idPost; 
+				}
 				var ret = await app.campaign.applyCampaign(hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
 
@@ -930,13 +934,14 @@ module.exports = function (app) {
 			response.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		}
 		finally {		
-			if(cred)app.account.lock(cred.address);
+			cred && app.account.lock(cred.address);
 			if(ret && ret.transactionHash){				
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
 				prom.typeSN = typeSN.toString();
 				prom.idUser  = idUser 
 				prom.status = false;
+				if(prom.typeSN == 5){prom.typeURL = idPost.split(":")[2]};
 				prom.type = 'waiting_for_validation';
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
@@ -944,7 +949,7 @@ module.exports = function (app) {
 				prom.appliedDate = date		
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
 				var insert = await app.db.campaign_link().insertOne(prom);
-				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser)
+				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile)
 				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id)
 				prom.views= socialOracle.views,prom.likes= socialOracle.likes,prom.shares= socialOracle.shares || '0';
 			    await app.db.campaign_link().updateOne({_id : app.ObjectId(insert.ops[0]._id)},{$set:prom})
@@ -2396,49 +2401,6 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 	}
 	})
-
-	// app.get('/tesstess', async (req, res) => {
-	// 	let link = req.body.link
-	// 	let reason = "";
-	// 	// if(req.body.reason.length == 1) reason = req.body.reason[0];
-	// 	// else if(req.body.reason.length > 1) {
-	// 	 ["not audible", 'not a good content', 'that simply sucks'].forEach((str)=>{
-	// 	  reason = reason 
-	// 	  + ` \n${str}`;
-	// 	 })
-	// 	 reason = reason.trim();
-	// 	// }
-	//    readHTMLFile(__dirname + '/emailtemplate/rejected_link.html' ,(err, html) => {
-	// 	   if (err) {
-	// 		   console.error(err)
-	// 		   return
-	// 		 }
-	// 		 let template = handlebars.compile(html);
-
-	// 		   let emailContent = {
-	// 		   reject_reason : reason,
-	// 		   cmp_link : app.config.basedURl + '/myWallet/campaign/' + "idCampaign",
-	// 		   satt_faq : app.config.Satt_faq,
-	// 		   satt_url: app.config.basedURl,
-	// 		   cmp_title: "title",
-	// 		   imgUrl: app.config.baseEmailImgURl
-	// 		   };
-	// 			   let htmlToSend = template(emailContent);
-
-	// 			   let mailOptions = {
-	// 				from: app.config.mailSender,
-	// 				to: "hamdi@atayen.us",
-	// 				subject: 'Your link has been rejected in a campaign',
-	// 				html: htmlToSend
-	// 		   };
-
-	// 		 transporter.sendMail(mailOptions, (error, info)=>{
-	// 				   res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))
-	// 			 });
-	// 		   })
-	// })
-
-
 /**
  * @swagger
  * /campaign/{id}/update:
