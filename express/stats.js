@@ -399,13 +399,9 @@ const Grid = require('gridfs-stream');
 			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
 			 }
 			const limit=+req.query.limit || 50;
-			const page=parseInt(req.query.page) || 1;
+			const page=+req.query.page || 1;
 			const skip=limit*(page-1);
-			// const allCampaigns=[];
-			const id_wallet = req.params.idWallet 
-			
-			// var idNode="0"+auth.id;
-	
+			const id_wallet = req.query.idWallet;
 			let query = app.campaign.sortOut(req,idNode,strangerDraft);
 			
 			let tri= [['draft','apply','inProgress','finished'],"$type"];
@@ -435,7 +431,6 @@ const Grid = require('gridfs-stream');
 			{
 				proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash,id_wallet}).toArray();
 				if(proms.length) campaigns[i].proms =proms;
-				// allCampaigns.push(campaigns[i]);
 			}
 		}
 
