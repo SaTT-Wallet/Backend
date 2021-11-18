@@ -923,9 +923,9 @@ module.exports = function (app) {
 			    var cred = await app.account.unlock(id,pass);
 				if(typeSN == 5){
 					var linkedinProfile = await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
-					let linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
+					var linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
 					idUser = linkedinInfo.idUser;
-                    idPost = linkedinInfo.idPost; 
+                    idPost = linkedinInfo.idPost.replace(/\D/g,''); 
 				}
 				var ret = await app.campaign.applyCampaign(hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
@@ -941,7 +941,7 @@ module.exports = function (app) {
 				prom.typeSN = typeSN.toString();
 				prom.idUser  = idUser 
 				prom.status = false;
-				if(prom.typeSN == 5){prom.typeURL = idPost.split(":")[2]};
+				if(prom.typeSN == 5){prom.typeURL = linkedinInfo.idPost.split(":")[2]};
 				prom.type = 'waiting_for_validation';
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
