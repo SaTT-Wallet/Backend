@@ -106,8 +106,25 @@ module.exports = async function (app) {
 		});
 	};
 
-
-
+	oracleManager.linkedinAbos = async  (linkedinProfile,organization)=> {
+		return new Promise(async (resolve, reject) => {
+			try{
+				const linkedinData ={
+					url: `https://api.linkedin.com/v2/networkSizes/urn:li:organization:${organization}?edgeType=CompanyFollowedByMember`,
+					method: 'GET',
+					headers:{
+					'Authorization' : "Bearer "+linkedinProfile.accessToken
+				   },
+					json: true
+					};	
+                   let postData = await rp(linkedinData)	
+                   resolve(postData.firstDegreeSize)
+			}catch(err){
+				reject(err);
+			}
+			
+		});
+	};
 
 
 	oracleManager.facebook = async function (pageName,idPost) {
@@ -394,9 +411,57 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 			}
 		})
 	}
+    
+    oracleManager.verifyLinkedin= async (linkedinProfile,idPost)=> {
+		return new Promise( async (resolve, reject) => {
+			try {
+				const linkedinData ={
+					url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${idPost}&projection=(results(*(domainEntity~)))`,
+					method: 'GET',
+					headers:{
+					'Authorization' : "Bearer "+linkedinProfile.accessToken
+				   },
+					json: true
+					};
+				   let res = false;
+				   let urn = `urn:li:activity:${idPost}`;	
+                   let postData = await rp(linkedinData)
+				   let owner = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+				   linkedinProfile.pages.forEach((element)=>{
+                    if(element.organization === owner ) res=true;
+				   })
+				   resolve(res)
+	}catch (err) {
+		app.account.sysLogError(err);
+		reject({message:err.message});
+	}
+})
+	}
 
+	oracleManager.getLinkedinLinkInfo =async (accessToken,activityURN)=> {
+		return new Promise( async (resolve, reject) => {
+			try {
+				const linkedinData ={
+					url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${activityURN}&projection=(results(*(domainEntity~)))`,
+					method: 'GET',
+					headers:{
+					'Authorization' : "Bearer "+accessToken
+				   },
+					json: true
+					};
+					let postData = await rp(linkedinData)
+					let urn = `urn:li:activity:${activityURN}`;
+					let idUser = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+					let idPost = postData.results[urn]["domainEntity"]
+					resolve({idPost,idUser})
+			}catch (err) {
+				app.account.sysLogError(err);
+				reject({message:err.message});
+			}
+		})
+			} 
 
-	oracleManager.getPromDetails = async function (idProm) {
+ 	oracleManager.getPromDetails = async function (idProm) {
 		return new Promise(async (resolve, reject) => {
 		try {
 		var ctr = await app.campaign.getPromContract(idProm);
@@ -416,7 +481,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		typeSN =='2' ? "youtube" : 
 		typeSN == '3' ? "instagram" : 
 		typeSN == "4" ? "twitter":
-		'linkedin' // else
+		"linkedin" // else
 	  );
 	}
 
