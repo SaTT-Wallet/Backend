@@ -946,6 +946,7 @@ module.exports = function (app) {
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
 				prom.id_campaign  = hash
+				prom.isPayed=false;
 				prom.appliedDate = date		
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
 				var insert = await app.db.campaign_link().insertOne(prom);
@@ -1183,16 +1184,19 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		finally {
 			if(cred) app.account.lock(cred.address);
 			if(ret && ret.transactionHash){
-
-				const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
-				const id = req.body.idUser;
-				const email = req.body.email;
-				
+				    const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+				    const id = req.body.idUser;
+				    const email = req.body.email;			
 				    let link = await app.db.campaign_link().findOne({id_prom:idApply});	
-                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id);
-					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
-					socialOracle.status = true;
+					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:auth.id})
+                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id,linkedinProfile);
+					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
+					socialOracle.status = true,link.status= true;
+					link.views = socialOracle.views;
+					link.likes = socialOracle.likes;
+					link.shares = socialOracle.shares;	
 					link.campaign=campaign
+					socialOracle.totalToEarn = campaign.ratios.length ? await app.campaign.getTotalToEarn(link,campaign.ratios):await app.campaign.getReward(link,campaign.bounties);;
 					socialOracle.type=await app.campaign.getButtonStatus(link,link.id_wallet);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
@@ -1568,11 +1572,10 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			var ctr = await app.campaign.getPromContract(idProm);
 
 
-
-		  var gasPrice = await ctr.getGasPrice();
+		    var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            
-
+            var linkedinData = prom.typeSN== "5" && await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }})
+            var linkedinProfile = prom.typeSN== "5" && await app.db.campaign_link().findOne({id_prom:idProm})
 			if(req.body.bounty) {
 				if(prom.funds.amount > 0 && prom.isPayed) {
 					var ret = await app.campaign.getGains(idProm,cred2);
@@ -1583,7 +1586,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));;
 				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
 				var evts = await app.campaign.updateBounty(idProm,cred2);
-				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
 				if (+stats >= +maxBountieFollowers){
 					stats= (+maxBountieFollowers - 1).toString()
 				}
@@ -1600,10 +1603,10 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			}
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
-			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile.typeURL,linkedinData);
 			
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
-			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
                         stats.views = stats.views || 0
                         stats.shares = stats.shares || 0

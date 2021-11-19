@@ -53,7 +53,7 @@ module.exports = async function (app) {
 	}
 
 
-	ContractToken.answerOne = async function (typeSN,idPost,idUser) {
+	ContractToken.answerOne = async (typeSN,idPost,idUser,type=null,linkedinProfile=null) =>{
 		switch(typeSN) {
 				case "1" :
 					var res = await app.oracle.facebook(idUser,idPost);
@@ -71,6 +71,10 @@ module.exports = async function (app) {
 				break;
 				case "4" :
 					var res = await app.oracle.twitter(idUser,idPost)
+
+				break;
+				case "5" :
+					var res = await app.oracle.linkedin(idUser,idPost,type,linkedinProfile)
 
 				break;
 				default :
