@@ -1717,7 +1717,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           var htmlToSend = template(replacements);
           var mailOptions = {
             from: app.config.mailSender,
-            to: users.email.toLowerCase(),
+            to: user.email.toLowerCase(),
             subject: 'Satt wallet activation',
             html: htmlToSend
           };
