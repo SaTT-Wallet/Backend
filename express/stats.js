@@ -401,7 +401,7 @@ const Grid = require('gridfs-stream');
 			const page=+req.query.page || 1;
 			const skip=limit*(page-1);
 			const id_wallet = req.query.idWallet;
-			let query = app.campaign.sortOut(req,idNode,strangerDraft);
+			let query = app.campaign.sortOutPublic(req,idNode,strangerDraft);
 			
 			let tri= [['draft','apply','inProgress','finished'],"$type"];
 	

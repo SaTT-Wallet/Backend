@@ -514,8 +514,9 @@ module.exports = async function (app) {
 				return new Promise(async (resolve, reject) => {
 					try {
 						let payedAmount=result.payedAmount || '0';
+						let totalToEarn='0';
 						bounties.forEach( bounty=>{
-							let totalToEarn='0';
+							
 							if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 							  bounty.categories.forEach( category=>{
 							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
@@ -525,11 +526,10 @@ module.exports = async function (app) {
 								  let total = category.reward;
 								  totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
 						 		}
-						 		resolve(totalToEarn);
-		
 							  })
 							   }
 							   })
+							resolve(totalToEarn);
 					}catch{
 						reject(err);
 		
@@ -967,8 +967,8 @@ module.exports = async function (app) {
 		var query = {};
 		query["$and"]=[];
 		
-	if(req.query.idWallet) query["$and"].push({"_id":{$nin:strangerDraft}})		
-
+	if(req.query.idWallet)query["$and"].push({"_id":{$nin:strangerDraft}})		
+     if(!req.query.idWallet)query["$and"].push({hash:{ $exists: true}})
 	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
 
 		if(title){
