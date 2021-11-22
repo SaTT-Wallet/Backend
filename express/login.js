@@ -1868,11 +1868,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
         } 
 
-      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl +'?message=' + "channel obligatoire");
+      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + "channel obligatoire");
       !linkedinExist && await app.db.linkedinProfile().insertOne(linkedinProfile);
       linkedinExist && await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile});
       let message = req.authInfo.message;
-      res.redirect(app.config.basedURl +'?message=' + message);
+      res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + message);
     } catch (err) {
       app.account.sysLogError(err);
       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
