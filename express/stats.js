@@ -1274,7 +1274,7 @@ const Grid = require('gridfs-stream');
 		   allProms[i].payedAmount = allProms[i].payedAmount || "0";
            allProms[i].abosNumber =  allProms[i].abosNumber || 0;	   
 		   let result = allProms[i]
-	
+			
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
 		   if(ratio.length && allProms[i].isAccepted && !promDone){
 			    delete allProms[i].isPayed;
@@ -1302,10 +1302,10 @@ const Grid = require('gridfs-stream');
 				bounty.categories.forEach( category=>{
 				 if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 					let totalToEarn =  category.reward
-					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;
+					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : result.payedAmount;
 				}else if(+result.abosNumber > +category.maxFollowers){
 					let totalToEarn =  category.reward
-					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;	
+					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : result.payedAmount;	
 		  }
 
 
