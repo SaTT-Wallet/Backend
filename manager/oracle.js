@@ -110,7 +110,7 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			try{
 				const linkedinData ={
-					url: `https://api.linkedin.com/v2/networkSizes/urn:li:organization:${organization}?edgeType=CompanyFollowedByMember`,
+					url: `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
 					method: 'GET',
 					headers:{
 					'Authorization' : "Bearer "+linkedinProfile.accessToken
@@ -186,7 +186,7 @@ module.exports = async function (app) {
 		})
 
 	};
-	oracleManager.linkedin = async function (organization,idPost,type,linkedinProfile) {
+	oracleManager.linkedin = async  (organization,idPost,type,linkedinProfile)=> {
 		return new Promise(async (resolve, reject) => {
 			try{
 			
@@ -202,9 +202,11 @@ module.exports = async function (app) {
 				json: true
 				};
 				var body = await rp(linkedinData);
-				perf.views=body.elements[0].totalShareStatistics.impressionCount;
-				perf.likes=body.elements[0].totalShareStatistics.likeCount;
-				perf.shares=body.elements[0].totalShareStatistics.shareCount;
+				if(body.elements.length){					
+				perf.views=body.elements[0]?.totalShareStatistics.impressionCount;
+				perf.likes=body.elements[0]?.totalShareStatistics.likeCount;
+				perf.shares=body.elements[0]?.totalShareStatistics.shareCount;
+				}
 						if(type !=="share"){
 							const linkedinVideoData ={
 								url: `https://api.linkedin.com/v2/videoAnalytics?q=entity&entity=urn:li:ugcPost:${idPost}&type=VIDEO_VIEW`,
