@@ -1849,8 +1849,8 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     })
 
     app.get('/linkedin/link/:idUser', (req, res,next)=>{
-      let state=req.params.idUser
-      passport.authenticate('linkedin_link', {state})(req,res,next)
+      let state=req.params.idUser+'|'+req.query.redirect;
+         passport.authenticate('linkedin_link', {state})(req,res,next)
     });
 
 
@@ -1861,7 +1861,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       scope: ['r_basicprofile','r_organization_social','rw_ads','w_organization_social','r_ads','r_1st_connections_size','r_ads_reporting','rw_organization_admin','w_member_social'],
       passReqToCallback:true
     }, async (req,accessToken, refreshToken, profile, done) =>{
-       req.query.userId=Number(req.query.state);
+       req.query.userId=Number(req.query.state.split('|')[0]);
        req.query.linkedinId = profile.id
        req.query.accessToken=accessToken
        done (null,profile, {status:true, message:'account_linked_with success'})
@@ -1878,6 +1878,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        },
         json: true
         };
+        let redirect =req.query.state.split('|')[1]; 
         let linkedinPages = await rp(linkedinData)
         var linkedinProfile = {accessToken,userId,linkedinId}
         let linkedinExist = await app.db.linkedinProfile().findOne({userId});
@@ -1889,11 +1890,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
 
         } 
 
-      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + "channel obligatoire");
+      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl  +redirect +'?message=' + "channel obligatoire");
       !linkedinExist && await app.db.linkedinProfile().insertOne(linkedinProfile);
       linkedinExist && await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile});
       let message = req.authInfo.message;
-      res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + message);
+      res.redirect(app.config.basedURl +redirect +'?message=' + message);
     } catch (err) {
       app.account.sysLogError(err);
       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');

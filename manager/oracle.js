@@ -428,7 +428,11 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 				   let res = false;
 				   let urn = `urn:li:activity:${idPost}`;	
                    let postData = await rp(linkedinData)
-				   let owner = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+				   if(!Object.keys(postData.results).length) {
+					   
+					resolve(res)
+					return}
+					let owner = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
 				   linkedinProfile.pages.forEach((element)=>{
                     if(element.organization === owner ) res=true;
 				   })
