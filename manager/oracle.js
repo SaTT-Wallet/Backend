@@ -467,7 +467,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		})
 			} 
 
- 	oracleManager.getPromDetails = async function (idProm) {
+ 	oracleManager.getPromDetails = async (idProm)=> {
 		return new Promise(async (resolve, reject) => {
 		try {
 		var ctr = await app.campaign.getPromContract(idProm);
