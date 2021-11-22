@@ -1857,17 +1857,11 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        },
         json: true
         };
-        let linkedinPages = await rp(linkedinData)
-        var linkedinProfile = {accessToken,userId,linkedinId}
-        let linkedinExist = await app.db.linkedinProfile().findOne({userId});
-        linkedinProfile.pages = [];
-        if(linkedinPages.elements.length){    
-           linkedinPages.elements.forEach((elem)=>{
-           if(elem.state !== "REVOKED") linkedinProfile.pages.push(elem)
-           })
-
-        } 
-
+      let linkedinPages = await rp(linkedinData);
+      var linkedinProfile = {accessToken,userId,linkedinId};
+      let linkedinExist = await app.db.linkedinProfile().findOne({userId});
+      linkedinProfile.pages = [];
+      linkedinPages.elements.length &&  linkedinPages.elements.forEach((elem)=>{ elem.state !== "REVOKED" && linkedinProfile.pages.push(elem) })
       if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + "channel obligatoire");
       !linkedinExist && await app.db.linkedinProfile().insertOne(linkedinProfile);
       linkedinExist && await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile});
