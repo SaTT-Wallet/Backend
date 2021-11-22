@@ -156,25 +156,25 @@ module.exports = function (app) {
 				let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}})
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
-		let payedAmount = await app.db.campaign_link().findOne({id_prom:idProm})
+		let link = await app.db.campaign_link().findOne({id_prom:idProm})
 		var stat={};		
-		stat.payedAmount= payedAmount.payedAmount
+		stat.payedAmount= link.payedAmount
 		stat.status = prom.isAccepted;
 		stat.id_wallet = prom.influencer.toLowerCase();
 		stat.id_campaign = prom.idCampaign;
 		stat.id_prom=idProm;
 		stat.typeSN=prom.typeSN.toString();
 		stat.fund = prom.funds.amount;
+		if(prom.typeSN == 5)stat.typeURL = link.typeURL
 		stat.idPost = stat.typeSN=="1"? prom.idPost.split(':')[0] :prom.idPost
 		stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
 		stat.campaign=campaign;
 		let userWallet =  stat.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 		let oracle =app.oracle.findBountyOracle(prom.typeSN)
 
-		let linkedinProfile=prom.typeSN =="5" ? await app.db.linkedinProfile().findOne({userId:userWallet.UserId}) : null
+		let linkedinProfile=prom.typeSN =="5" && stat.status && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
 		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(oracle,stat,userWallet.UserId,linkedinProfile)
-		if(socialOracle ==='indisponible')
-		stat.status='indisponible';
+		if(socialOracle ==='indisponible') stat.status='indisponible';
 
 			stat.shares=  socialOracle && socialOracle.shares || '0';
 			stat.likes=  socialOracle && socialOracle.likes || '0';
@@ -187,9 +187,10 @@ module.exports = function (app) {
 	
 			if(campaign && socialOracle) 
 			{
-				stat.abosNumber = await app.oracleManager.answerAbos(stat.typeSN,stat.idPost,stat.idUser)}
-				if(stat.abosNumber==='indisponible')
-				stat.status='indisponible';
+				stat.abosNumber = await app.oracleManager.answerAbos(stat.typeSN,stat.idPost,stat.idUser,linkedinProfile)
+			}
+				if(stat.abosNumber==='indisponible') stat.status='indisponible';
+
 			if(campaign.ratios.length && socialOracle){		
 				stat.totalToEarn=await app.campaign.getTotalToEarn(stat,campaign.ratios);				
 				}
@@ -197,7 +198,7 @@ module.exports = function (app) {
 			if(campaign.bounties.length && socialOracle ) {
 			stat.totalToEarn=await app.campaign.getReward(stat,campaign.bounties);
 			}
-		
+			
 			if (campaign) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet);
 		delete stat.campaign	
 	    delete stat.payedAmount
@@ -563,7 +564,7 @@ module.exports = function (app) {
 						type:'inProgress',
 						walletId:cred.address
 					};
-					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: 1}});
+					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: ""}});
 				}
 				
 			}
@@ -922,10 +923,10 @@ module.exports = function (app) {
 				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))				
 			    var cred = await app.account.unlock(id,pass);
 				if(typeSN == 5){
-					let linkedinProfile =  await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
-					let linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
+					var linkedinProfile = await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
+					var linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
 					idUser = linkedinInfo.idUser;
-                    idPost = linkedinInfo.idPost; 
+                    idPost = linkedinInfo.idPost.replace(/\D/g,''); 
 				}
 				var ret = await app.campaign.applyCampaign(hash,typeSN,idPost,idUser,cred)
 				response.end(JSON.stringify(ret));
@@ -941,16 +942,17 @@ module.exports = function (app) {
 				prom.typeSN = typeSN.toString();
 				prom.idUser  = idUser 
 				prom.status = false;
-				if(prom.typeSN == 5){prom.typeURL = idPost.split(":")[2]};
+				if(prom.typeSN == 5){prom.typeURL = linkedinInfo.idPost.split(":")[2]};
 				prom.type = 'waiting_for_validation';
 				prom.id_wallet = cred.address.toLowerCase();
 				prom.idPost = idPost;
 				prom.id_campaign  = hash
+				prom.isPayed=false;
 				prom.appliedDate = date		
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
 				var insert = await app.db.campaign_link().insertOne(prom);
 				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile)
-				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id)
+				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id,linkedinProfile)
 				prom.views= socialOracle.views,prom.likes= socialOracle.likes,prom.shares= socialOracle.shares || '0';
 			    await app.db.campaign_link().updateOne({_id : app.ObjectId(insert.ops[0]._id)},{$set:prom})
 			
@@ -1183,16 +1185,20 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		finally {
 			if(cred) app.account.lock(cred.address);
 			if(ret && ret.transactionHash){
-
-				const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
-				const id = req.body.idUser;
-				const email = req.body.email;
-				
-				    let link = await app.db.campaign_link().findOne({id_prom:idApply});	
-                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id);
-					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser):0;
-					socialOracle.status = true;
+				    const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+				    const id = req.body.idUser;
+				    const email = req.body.email;			
+				    let link = await app.db.campaign_link().findOne({id_prom:idApply});
+					let userWallet =  await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
+                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id,linkedinProfile);
+					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
+					socialOracle.status = true,link.status= true;
+					link.views = socialOracle.views;
+					link.likes = socialOracle.likes;
+					link.shares = socialOracle.shares;	
 					link.campaign=campaign
+					socialOracle.totalToEarn = campaign.ratios.length ? await app.campaign.getTotalToEarn(link,campaign.ratios):await app.campaign.getReward(link,campaign.bounties);;
 					socialOracle.type=await app.campaign.getButtonStatus(link,link.id_wallet);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
@@ -1568,11 +1574,10 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			var ctr = await app.campaign.getPromContract(idProm);
 
 
-
-		  var gasPrice = await ctr.getGasPrice();
+		    var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            
-
+            var linkedinData = prom.typeSN== "5" && await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }})
+            var linkedinProfile = prom.typeSN== "5" && await app.db.campaign_link().findOne({id_prom:idProm})
 			if(req.body.bounty) {
 				if(prom.funds.amount > 0 && prom.isPayed) {
 					var ret = await app.campaign.getGains(idProm,cred2);
@@ -1583,7 +1588,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));;
 				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
 				var evts = await app.campaign.updateBounty(idProm,cred2);
-				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
 				if (+stats >= +maxBountieFollowers){
 					stats= (+maxBountieFollowers - 1).toString()
 				}
@@ -1600,10 +1605,10 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			}
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
-			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser);
+			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile.typeURL,linkedinData);
 			
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
-			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser);
+			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
                         stats.views = stats.views || 0
                         stats.shares = stats.shares || 0
@@ -2060,8 +2065,8 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
      @Output:image
      */
 	app.get('/kit/:id', async (req, res) => {
-		const token = req.headers["authorization"].split(" ")[1];
-		await app.crm.auth(token);
+		/*const token = req.headers["authorization"].split(" ")[1];
+		await app.crm.auth(token);*/
 		try{
 		   const kit = req.params.id
 		   gfsKit.files.findOne({ _id:app.ObjectId(kit)}  , (err, file) => {
@@ -2101,8 +2106,8 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
      */
 	app.get('/campaign/:idCampaign/kits',async (req, response) => {
 		try {
-			const token = req.headers["authorization"].split(" ")[1];
-				await app.crm.auth(token);
+			// const token = req.headers["authorization"].split(" ")[1];
+			// 	await app.crm.auth(token);
 		const idCampaign= req.params.idCampaign;
 		gfsKit.files.find({ 'campaign.$id':app.ObjectId(idCampaign)}).toArray(function (err, files) {
 		response.end(JSON.stringify(files));
