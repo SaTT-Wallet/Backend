@@ -1188,8 +1188,9 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				    const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 				    const id = req.body.idUser;
 				    const email = req.body.email;			
-				    let link = await app.db.campaign_link().findOne({id_prom:idApply});	
-					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:auth.id})
+				    let link = await app.db.campaign_link().findOne({id_prom:idApply});
+					let userWallet =  await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
                     let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id,linkedinProfile);
 					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
 					socialOracle.status = true,link.status= true;
