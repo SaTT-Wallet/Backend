@@ -1858,17 +1858,21 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         json: true
         };
         let linkedinPages = await rp(linkedinData)
-        let linkedinProfile = {accessToken,userId,linkedinId}
-        if(linkedinPages.elements.length){
-           linkedinProfile.pages = [];
+        var linkedinProfile = {accessToken,userId,linkedinId}
+        let linkedinExist = await app.db.linkedinProfile().findOne({userId});
+        linkedinProfile.pages = [];
+        if(linkedinPages.elements.length){    
            linkedinPages.elements.forEach((elem)=>{
            if(elem.state !== "REVOKED") linkedinProfile.pages.push(elem)
            })
 
         } 
-      await app.db.linkedinProfile().insertOne(linkedinProfile);
+
+      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + "channel obligatoire");
+      !linkedinExist && await app.db.linkedinProfile().insertOne(linkedinProfile);
+      linkedinExist && await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile});
       let message = req.authInfo.message;
-      res.redirect(app.config.basedURl +'?message=' + message);
+      res.redirect(app.config.basedURl + "/home/settings/social-networks"+'?message=' + message);
     } catch (err) {
       app.account.sysLogError(err);
       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
