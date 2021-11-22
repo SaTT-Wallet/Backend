@@ -1,4 +1,5 @@
 const console = require('console');
+const { auth } = require('google-auth-library');
 const { async } = require('hasha');
 
 module.exports = function (app) {
@@ -408,6 +409,18 @@ module.exports = function (app) {
              }
             });
 
+            app.delete('/linkedin/all/channels', async  (req, response) =>{
+              try{
+              const token = req.headers["authorization"].split(" ")[1];
+              let auth =	await app.crm.auth(token);
+              let userId = auth.id
+              await app.db.linkedinProfile().updateOne({userId},{$set:{pages:[]}});
+              response.end(JSON.stringify({message : "deleted successfully"}))
+              }catch(err){
+                response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+               }
+              });
+
   passport.use('signup_googleStrategy', new GoogleStrategy({
       clientID: app.config.googleClientId,
       clientSecret: app.config.googleClientSecret,
@@ -596,9 +609,12 @@ module.exports = function (app) {
       var channelsGoogle = await app.db.googleProfile().find({UserId}).toArray();
 	    var channelsTwitter = await app.db.twitterProfile().find({UserId}).toArray();
 	    let channelsFacebook = await app.db.fbPage().find({UserId}).toArray();
+      let channelsLinkedin = await app.db.linkedinProfile().findOne({userId:UserId});
+
         networks.google=channelsGoogle;
 	      networks.twitter=channelsTwitter;
         networks.facebook=channelsFacebook;
+        networks.linkedin=channelsLinkedin?.pages||[];
       response.send(JSON.stringify(networks))
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -640,16 +656,8 @@ module.exports = function (app) {
            }
           });
 
-          app.delete('/facebook/all/channels', async  (req, response) =>{
-            try{
-            const token = req.headers["authorization"].split(" ")[1];
-            let auth =	await app.crm.auth(token);       
-            await app.db.fbPage().delete({UserId:auth.id});
-            response.end(JSON.stringify({message : "deleted successfully"}))
-            }catch(err){
-              response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-             }
-            });
+         
+            
 
             app.delete('/facebookChannels/:id', async function (req, response) {
               try{
@@ -672,7 +680,20 @@ module.exports = function (app) {
                 response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
                }
               });
-    
+              app.delete('/linkedinChannels/:organization', async function (req, response) {
+                try{
+                const token = req.headers["authorization"].split(" ")[1];
+                auth =	await app.crm.auth(token);
+                 var organization=req.params.organization; 
+                await app.db.linkedinProfile().updateOne(
+                  {userId:auth.id},
+                  { $pull: {pages: {organization} } }
+              )
+                response.end(JSON.stringify({message : "deleted successfully"}))
+              }catch(err){
+                response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+               }
+              });
 
     passport.use('twitter_link',new TwitterStrategy({
       consumerKey:app.config.twitter.consumer_key,
