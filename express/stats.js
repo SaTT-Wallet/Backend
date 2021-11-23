@@ -1,12 +1,8 @@
-const { VirtualConsole } = require('jsdom');
-const campaign = require('../web3/campaign');
-
 module.exports = function (app) {
 
 const cron =require('node-cron');
 const Big = require('big.js');
 
-const allEqual = arr => arr.every( v => v === "0" );
 
 cron.schedule('00 01 * * *',  () => {
 	app.account.BalanceUsersStats("daily");
@@ -1180,8 +1176,7 @@ const Grid = require('gridfs-stream');
 		   totalToEarn = view.plus(like).plus(share).toFixed()
 		   }
 	   })
-	   info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;
-	   if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1]
+	   info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;   
 	}
 	  if(bounties.length){
 		bounties.forEach( bounty=>{
@@ -1192,13 +1187,11 @@ const Grid = require('gridfs-stream');
 			    }else if(+abosNumber > +category.maxFollowers){
 				info.totalToEarn = category.reward;	
 			 }
-
-
-
 			  })	
 			   }			   
 			   })
 	  }
+	  if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1];
 	   res.end(JSON.stringify({prom : info}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
