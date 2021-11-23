@@ -444,8 +444,7 @@ module.exports = async function (app) {
 			}
 		})
 	}
-	campaignManager.getButtonStatus = async function (link,wallet) {
-		return new Promise(async (resolve, reject) => {
+	campaignManager.getButtonStatus = link => {
 			try {
 
 				var type = '';
@@ -475,48 +474,46 @@ module.exports = async function (app) {
 				type='harvest';
 				else 
 				type="none";				
-				resolve(type);
+				return type;
 			}
 			catch (err)
 			{
-				reject(err);
+				console.error(err);
+				app.account.errorLogger(err);
 			}
-		})
+		// })
 	}
 
-	campaignManager.getTotalToEarn = async function (socialStats,ratio) {
-		return new Promise(async (resolve, reject) => {
+	campaignManager.getTotalToEarn = (socialStats,ratio)=> {
 			try {
-				// console.log(ratio,"    ", socialStats);
 				let reachLimit =  campaignManager.getReachLimit(ratio,socialStats.oracle); 
 				if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",socialStats.abosNumber,reachLimit);
-				ratio.forEach( num =>{		
-						let totalToEarn='0';
-						let payedAmount=socialStats.payedAmount || '0'							
+				let totalToEarn='0';
+				let payedAmount=socialStats.payedAmount || '0'
+				ratio.forEach( num =>{									
 					if(((num.oracle === socialStats.oracle) || (num.typeSN === socialStats.typeSN))){
 						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
 						let total = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 						totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
-						resolve (totalToEarn);
 					}
 				})
+				return totalToEarn;
 			}catch(err){
-				reject(err);
+				console.error(err);
+				app.account.errorLogger(err);
 
 			}
-		}
-			)}
+		// })
+	}
 
 
-			campaignManager.getReward = async function (result,bounties) {
-				return new Promise(async (resolve, reject) => {
+			campaignManager.getReward = (result,bounties)=> {
 					try {
 						let payedAmount=result.payedAmount || '0';
 						let totalToEarn='0';
-						bounties.forEach( bounty=>{
-							
+						bounties.forEach( bounty=>{							
 							if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 							  bounty.categories.forEach( category=>{
 							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
@@ -529,22 +526,20 @@ module.exports = async function (app) {
 							  })
 							   }
 							   })
-							resolve(totalToEarn);
-					}catch{
-						reject(err);
+							return totalToEarn;
+					}catch(err){
+				    console.error(err);
+				    app.account.errorLogger(err);
 		
 					}
-				}
-					)}		
+				}		
 
-					campaignManager.campaignStatus = async function (campaign) {
-						return new Promise(async (resolve, reject) => {
+					campaignManager.campaignStatus = campaign => {
 							try {
 								let type = '';
 								let dateNow = new Date();
 								campaign.startDate=(Date.parse(campaign.startDate)) ? new Date(Date.parse(campaign.startDate)) : new Date(+campaign.startDate * 1000);
-								campaign.endDate=(Date.parse(campaign.endDate)) ? new Date(Date.parse(campaign.endDate)) : new Date(+campaign.endDate * 1000)
-
+								campaign.endDate=(Date.parse(campaign.endDate)) ? new Date(Date.parse(campaign.endDate)) : new Date(+campaign.endDate * 1000);
 								let isFinished=(dateNow > campaign.endDate || (campaign.funds) && campaign.funds[1] == '0');
 								if(!campaign.hash)
 								type="draft";													
@@ -556,14 +551,12 @@ module.exports = async function (app) {
 								type='apply';
 								else 
 								type="none";
-								resolve(type);
+								return type;
 							}
-							catch (err)
-							{
-
-								reject(err);
+							catch (err){
+					         console.error(err);
+				             app.account.errorLogger(err);
 							}
-						})
 					}
 					
 
