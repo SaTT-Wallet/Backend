@@ -150,7 +150,7 @@ const Grid = require('gridfs-stream');
 
 	});
 
-	app.get('/v2/campaign/id/:id', async function(req, response) {
+	app.get('/v2/campaign/id/:id', async (req, response)=> {
 		var idCampaign = req.params.id;
 		
 		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
@@ -160,8 +160,7 @@ const Grid = require('gridfs-stream');
 				response.end("{}");
 				return;
 			}
-			var result = await ctr.methods.campaigns(campaign.hash).call();
-			campaign.remaining=result.funds[1];	
+			campaign.remaining=campaign.funds[1];	
 		}
 		file =await gfs.files.findOne({'campaign.$id':campaign._id});
 		if(file){
