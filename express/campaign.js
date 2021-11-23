@@ -1,5 +1,4 @@
 const { async } = require('hasha');
-const { createSecureServer } = require('http2');
 const db = require('../db/db');
 
 module.exports = function (app) {
@@ -1196,7 +1195,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					link.likes = socialOracle.likes;
 					link.shares = socialOracle.shares;	
 					link.campaign=campaign
-					socialOracle.totalToEarn = campaign.ratios.length ?  app.campaign.getTotalToEarn(link,campaign.ratios):await app.campaign.getReward(link,campaign.bounties);;
+					socialOracle.totalToEarn = campaign.ratios.length ?  app.campaign.getTotalToEarn(link,campaign.ratios): app.campaign.getReward(link,campaign.bounties);;
 					socialOracle.type= app.campaign.getButtonStatus(link);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
