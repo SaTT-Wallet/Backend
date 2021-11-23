@@ -505,8 +505,8 @@ module.exports = async function (app) {
 				app.account.errorLogger(err);
 
 			}
-		// })
 	}
+	
 
 
 			campaignManager.getReward = (result,bounties)=> {
@@ -946,6 +946,7 @@ module.exports = async function (app) {
 		 
 		const dateJour= Math.round(new Date().getTime()/1000);
 		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
+		
 		if(req.query.oracles == undefined){
 			oracles=["twitter","facebook","youtube","instagram"];
 		}
