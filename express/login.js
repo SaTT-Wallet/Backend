@@ -1878,7 +1878,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        },
         json: true
         };
-        let redirect =req.query.state.split('|')[1]; 
+      let redirect =req.query.state.split('|')[1]; 
       let linkedinPages = await rp(linkedinData);
       var linkedinProfile = {accessToken,userId,linkedinId};
       let linkedinExist = await app.db.linkedinProfile().findOne({userId});
