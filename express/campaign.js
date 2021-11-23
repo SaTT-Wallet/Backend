@@ -154,6 +154,7 @@ module.exports = function (app) {
 		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
 		let link = await app.db.campaign_link().findOne({id_prom:idProm})
+		if(!link.status || link.status == "rejected") return;
 		var stat={};		
 		stat.payedAmount= link.payedAmount
 		stat.status = prom.isAccepted;
@@ -371,7 +372,7 @@ module.exports = function (app) {
 
 	});
 
-	app.put('/v2/launchCampaign', async function(req, response) {
+	app.put('/v2/launchCampaign', async (req, response) =>{
 		var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -414,7 +415,7 @@ module.exports = function (app) {
 				walletId:cred.address,
 				type:'inProgress'
 			};
-			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign});
+			await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign},{$unset:{bounties:"",coverSrc: ""}});
 		}
 		}
 
@@ -561,7 +562,7 @@ module.exports = function (app) {
 						type:'inProgress',
 						walletId:cred.address
 					};
-					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: ""}});
+					await app.db.campaigns().updateOne({_id : app.ObjectId(id)},{$set:campaign}, {$unset: {coverSrc: "",ratios:""}});
 				}
 				
 			}
