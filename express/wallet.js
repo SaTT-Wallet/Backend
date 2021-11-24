@@ -88,7 +88,8 @@ module.exports = function (app) {
 				method: 'GET',
 				uri: xChangePricesUrl,
 				json: true,
-				gzip: true
+				gzip: true,
+				encoding: 'utf8'
 			  };
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
