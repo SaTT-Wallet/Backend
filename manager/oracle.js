@@ -191,7 +191,7 @@ module.exports = async function (app) {
 			try{
 			
 			var perf = {shares:0,likes:0,views:0};
-			let url=`https://api.linkedin.com/v2/organizationalEntityShareStatistics?q=organizationalEntity&${type}s[0]=urn:li:${type}:${idPost}&organizationalEntity=${organization}`;
+			let url=app.config.linkedinStatsUrl(type,idPost,organization);
 			console.log(url)
 			const linkedinData ={
 				url: url,
@@ -209,7 +209,7 @@ module.exports = async function (app) {
 				}
 						if(type !=="share"){
 							const linkedinVideoData ={
-								url: `https://api.linkedin.com/v2/videoAnalytics?q=entity&entity=urn:li:ugcPost:${idPost}&type=VIDEO_VIEW`,
+								url: app.config.linkedinUgcPostStats(idPost),
 								method: 'GET',
 								headers:{
 								'Authorization' : "Bearer "+linkedinProfile.accessToken
@@ -418,7 +418,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		return new Promise( async (resolve, reject) => {
 			try {
 				const linkedinData ={
-					url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${idPost}&projection=(results(*(domainEntity~)))`,
+					url: app.config.linkedinActivityUrl(idPost),
 					method: 'GET',
 					headers:{
 					'Authorization' : "Bearer "+linkedinProfile.accessToken
@@ -444,8 +444,9 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 	oracleManager.getLinkedinLinkInfo =async (accessToken,activityURN)=> {
 		return new Promise( async (resolve, reject) => {
 			try {
+				let linkInfo={};
 				const linkedinData ={
-					url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${activityURN}&projection=(results(*(domainEntity~)))`,
+					url: app.config.linkedinActivityUrl(activityURN),
 					method: 'GET',
 					headers:{
 					'Authorization' : "Bearer "+accessToken
@@ -454,9 +455,10 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 					};
 					let postData = await rp(linkedinData)
 					let urn = `urn:li:activity:${activityURN}`;
-					let idUser = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
-					let idPost = postData.results[urn]["domainEntity"]
-					resolve({idPost,idUser})
+					linkInfo.idUser = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+					linkInfo.idPost = postData.results[urn]["domainEntity"];
+					if(postData.results[urn]["domainEntity~"].content) linkInfo.mediaUrl = postData.results[urn]["domainEntity~"].content.contentEntities[0].entityLocaion;
+					resolve(linkInfo)
 			}catch (err) {
 				app.account.sysLogError(err);
 				reject({message:err.message});
