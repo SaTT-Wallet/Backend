@@ -385,14 +385,14 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v4/campaigns', async (req, response)=> {
 		try{
-			var strangerDraft=[]
+			var strangerDraft=[];
              if(req.query.idWallet){
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
 			var idNode="0"+auth.id;		
 			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
 			 }
-			const limit=+req.query.limit || 50;
+			const limit=+req.query.limit || 10;
 			const page=+req.query.page || 1;
 			const skip=limit*(page-1);
 			const id_wallet = req.query.idWallet;
@@ -418,7 +418,7 @@ const Grid = require('gridfs-stream');
 					_id: 1
 				}
 			}	
-		]).skip(skip).limit(limit).toArray();
+		,{ $project: { countries: 0, description:0,resume:0, coverSrc:0 }}]).skip(skip).limit(limit).toArray();
 
 		if(req.query.idWallet){
 			for (var i = 0;i<campaigns.length;i++)
