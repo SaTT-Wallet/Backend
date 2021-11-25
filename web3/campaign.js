@@ -951,9 +951,10 @@ module.exports = async function (app) {
 		var query = {};
 		query["$and"]=[];
 		
-	 if(req.query.idWallet || req.query.showOnlyMyCampaigns) query["$and"].push({"_id":{$nin:strangerDraft}});	
+	 if((req.query.idWallet || req.query.showOnlyMyCampaigns)&& !req.query.showOnlyLiveCampaigns) query["$and"].push({"_id":{$nin:strangerDraft}});	
 	 
-	 req.query.showOnlyMyCampaigns && query["$and"].push({"idNode": idNode,hash:{ $exists: true}});	
+	 req.query.showOnlyMyCampaigns && query["$and"].push({idNode});	
+	 req.query.showOnlyLiveCampaigns && query["$and"].push({type:"apply",hash:{ $exists: true}});	
      !req.query.idWallet && query["$and"].push({hash:{ $exists: true}});
 	 req.query.remuneration && query["$and"].push({remuneration: req.query.remuneration});
 	 let oracles= req.query.oracles
