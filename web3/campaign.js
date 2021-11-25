@@ -955,7 +955,7 @@ module.exports = async function (app) {
 	 
 	 req.query.showOnlyMyCampaigns && query["$and"].push({"idNode": idNode,hash:{ $exists: true}});	
      !req.query.idWallet && query["$and"].push({hash:{ $exists: true}});
-	 req.query.remuneration && query["$and"].push({remuneration: req.query.remuneration})
+	 req.query.remuneration && query["$and"].push({remuneration: req.query.remuneration});
 	 let oracles= req.query.oracles
 	 oracles= typeof oracles === "string" ? [oracles] : oracles;
 	 oracles && query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
