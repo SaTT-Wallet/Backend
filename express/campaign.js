@@ -1,5 +1,3 @@
-const { async } = require('hasha');
-const db = require('../db/db');
 
 module.exports = function (app) {
 
@@ -923,6 +921,7 @@ module.exports = function (app) {
 				if(typeSN == 5){
 					var linkedinProfile = await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
 					var linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
+					var media_url=linkedinInfo.mediaUrl
 					idUser = linkedinInfo.idUser;
                     idPost = linkedinInfo.idPost.replace(/\D/g,''); 
 				}
@@ -940,6 +939,7 @@ module.exports = function (app) {
 				prom.typeSN = typeSN.toString();
 				prom.idUser  = idUser 
 				prom.status = false;
+				if(media_url) prom.media_url=media_url
 				if(prom.typeSN == 5){prom.typeURL = linkedinInfo.idPost.split(":")[2]};
 				prom.type = 'waiting_for_validation';
 				prom.id_wallet = cred.address.toLowerCase();
