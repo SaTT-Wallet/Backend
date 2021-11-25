@@ -1419,54 +1419,9 @@ module.exports = function (app) {
 
 	app.get("/prices", async (req, res) => {
 
-		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
+		var prices = app.account.getPrices()
 
-			res.end(JSON.stringify(app.prices.data));
-		}
-		else {
-			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
-			var response = JSON.parse(r);
-			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
-          	var responseSattJet = JSON.parse(r2);
-			response.data.push(responseSattJet.data.SATT);
-			response.data.push(responseSattJet.data.JET);
-
-			var priceMap = response.data.map((elem) =>{
-				var obj = {};
-				obj = {symbol:elem.symbol,
-					name:elem.name,
-					price:elem.quote.USD.price,
-					percent_change_24h:elem.quote.USD.percent_change_24h,
-                    market_cap:elem.quote.USD.market_cap,
-                    volume_24h:elem.quote.USD.volume_24h,
-                    circulating_supply:elem.circulating_supply,
-                    total_supply:elem.total_supply,
-                    max_supply:elem.max_supply,
-					logo: "https://s2.coinmarketcap.com/static/img/coins/128x128/"+elem.id+".png"
-				}
-				return obj;
-			})
-			var finalMap = {};
-			for(var i=0;i<priceMap.length;i++)
-			{
-				finalMap[priceMap[i].symbol] = priceMap[i];
-				delete(finalMap[priceMap[i].symbol].symbol);
-			}
-
-			for(var i=0;i<app.config.token200.length;i++)
-			{
-				var token = app.config.token200[i];
-				if(finalMap[token.symbol]) {
-					finalMap[token.symbol].network = token.platform.network;
-					finalMap[token.symbol].tokenAddress = token.platform.token_address;
-					finalMap[token.symbol].decimals = token.platform.decimals;
-				}
-			}
-		}
-		response.data = finalMap;
-		app.prices = response;
-
-		res.end(JSON.stringify(finalMap))
+		res.end(JSON.stringify(prices))
 	})
 
 app.get('/v2/feebtc', async function(req, response) {
