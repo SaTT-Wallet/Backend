@@ -444,6 +444,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 	oracleManager.getLinkedinLinkInfo =async (accessToken,activityURN)=> {
 		return new Promise( async (resolve, reject) => {
 			try {
+				let linkInfo={};
 				const linkedinData ={
 					url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${activityURN}&projection=(results(*(domainEntity~)))`,
 					method: 'GET',
@@ -454,9 +455,10 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 					};
 					let postData = await rp(linkedinData)
 					let urn = `urn:li:activity:${activityURN}`;
-					let idUser = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
-					let idPost = postData.results[urn]["domainEntity"]
-					resolve({idPost,idUser})
+					linkInfo.idUser = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+					linkInfo.idPost = postData.results[urn]["domainEntity"];
+					if(postData.results[urn]["domainEntity~"].content) linkInfo.mediaUrl = postData.results[urn]["domainEntity~"].content.contentEntities[0].entityLocaion;
+					resolve(linkInfo)
 			}catch (err) {
 				app.account.sysLogError(err);
 				reject({message:err.message});

@@ -939,7 +939,6 @@ module.exports = async function (app) {
 	}
 
 	campaignManager.sortOutPublic=(req,idNode, strangerDraft)=>{
-		
 		const title=req.query.searchTerm || '';
 		const status=req.query.status;
 		const blockchainType=req.query.blockchainType || '';
@@ -947,30 +946,23 @@ module.exports = async function (app) {
 		const dateJour= Math.round(new Date().getTime()/1000);
 		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
 		
-		if(req.query.oracles == undefined){
-			oracles=["twitter","facebook","youtube","instagram"];
-		}
-
-	else if(typeof req.query.oracles === "string"){
-		oracles=Array(req.query.oracles);
-	}else{
-		oracles=req.query.oracles;
-	}
 		const remainingBudget=req.query.remainingBudget || [];
 		
 		var query = {};
 		query["$and"]=[];
 		
-	if(req.query.idWallet)query["$and"].push({"_id":{$nin:strangerDraft}})		
-     if(!req.query.idWallet)query["$and"].push({hash:{ $exists: true}})
-	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
-
-		if(title){
-		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
-		}
-		if(blockchainType){
-			query["$and"].push({"token.type":blockchainType});
-		}
+	 if(req.query.idWallet || req.query.showOnlyMyCampaigns) query["$and"].push({"_id":{$nin:strangerDraft}});	
+	 
+	 req.query.showOnlyMyCampaigns && query["$and"].push({"idNode": idNode,hash:{ $exists: true}});	
+     !req.query.idWallet && query["$and"].push({hash:{ $exists: true}});
+	 req.query.remuneration && query["$and"].push({remuneration: req.query.remuneration})
+	 let oracles= req.query.oracles
+	 oracles= typeof oracles === "string" ? [oracles] : oracles;
+	 oracles && query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
+   
+		title && query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
+		blockchainType && query["$and"].push({"token.type":blockchainType});
+	
 		if(status =="active" ){
 			if(remainingBudget.length==2){
 			query["$and"].push({"funds.1":{ $exists: true}});
