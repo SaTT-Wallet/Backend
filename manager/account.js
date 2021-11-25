@@ -895,7 +895,9 @@ module.exports = async function (app) {
 		gzip: true
 	  };
 
-	   let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices
+	   //let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices
+
+	   let Crypto =  app.account.getPrices();
 
 	      var users_;
 
@@ -1184,9 +1186,9 @@ accountManager.handleId=async function () {
 			res.end(JSON.stringify(app.prices.data));
 		}
 		else {
-			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+			var r = child.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
 			var response = JSON.parse(r);
-			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
+			var r2 = child.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
           	var responseSattJet = JSON.parse(r2);
 			response.data.push(responseSattJet.data.SATT);
 			response.data.push(responseSattJet.data.JET);
