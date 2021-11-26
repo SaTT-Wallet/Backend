@@ -1,7 +1,4 @@
-const { async } = require('hasha');
-var Big = require('big.js');
-var proc = require('child_process');
-const { auth } = require('google-auth-library');
+const {randomUUID}= require('crypto');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -1781,20 +1778,9 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			requestQuote["client_ip"]= req.addressIp;
             requestQuote["payment_methods"]= ["credit_card"];
             requestQuote["wallet_id"]= "satt";
-		// let testObject = {
-		// 	"end_user_id": String(auth.id),
-		// 	"digital_currency": "ETH",
-		// 	"fiat_currency": "AUD",
-		// 	"requested_currency": "AUD",
-		// 	"requested_amount": 100,
-		// 	"wallet_id": "satt",
-		// 	"client_ip": req.addressIp,
-		// 	"payment_methods" : ["credit_card"] 
-		// }
 		const simplexQuote ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
 			method: 'POST',
-			// body:testObject, 
 			  body:requestQuote, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
@@ -1820,7 +1806,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
-		let payment_id=uuidv4();	
+		let payment_id=/*uuidv4()*/randomUUID();	
 		const uiad = app.config.uiad;	
 		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
@@ -1832,7 +1818,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		request.quote_id = req.body.quote_id //from /getQuote api
 		request.location=req.body.location;
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
-		// request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
+	
 		request.uuid = payment_id
 
 		request.currency = req.body.currency;
@@ -1841,7 +1827,6 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		const paymentRequest ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
 			method: 'POST',
-			// body:testObject, 
 			 body:payment, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
@@ -1863,16 +1848,22 @@ app.post('/wallet/remove/token', async (req, res) =>{
 	})
 
 app.get('/paymentEvent', async (req, response)=>{
-	const paymentRequest ={
-		url: app.config.sandBoxUri +"/wallet/merchant/v2/event",
+	try{
+        const paymentRequest ={
+		url: app.config.sandBoxUri +"/wallet/merchant/v2/events",
 		method: 'GET',
 		headers: {
 			'Authorization': `ApiKey ${app.config.sandBoxKey}`,
 		  },
 		json: true
 	  };
-	  var paymentSubmitted = await rp(paymentRequest);
-	  console.log(paymentSubmitted)
+	  const paymentSubmitted = await rp(paymentRequest);
+	  response.end(JSON.stringify(paymentSubmitted));
+	}catch (err) {
+		app.account.sysLogError(err);
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+	
 })
 
 	return app;
