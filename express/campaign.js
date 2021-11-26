@@ -139,69 +139,64 @@ module.exports = function (app) {
 
 
 	  let updateStat= async ()=>{
-		let campaigns=await app.db.campaigns({ hash: { $exists: true} }).find().toArray();
+		let dateNow = new Date();
+		let campaigns=await app.db.campaigns({ hash: { $exists: true} },{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}}).find().toArray();
 		campaigns.forEach(async(campaign)=>{
 			campaign &&	await app.db.campaigns().updateOne({_id:ObjectId(campaign._id)},{$set:{ type : app.campaign.campaignStatus(campaign)}})
 		})
-		var Events = await app.db.event().find({ prom: { $exists: true} },{projection: { prom: true, _id:false }}).toArray();
-		let dateNow = Math.floor(Date.now() / 1000);
-		Events.forEach(async (event)=>{
-		var idProm = event.prom;
-		const prom = await app.oracle.getPromDetails(idProm);	
-		let campaign = await app.db.campaigns().findOne({hash:prom.idCampaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}})
-		campaign.isFinished = (campaign.endDate < dateNow) || campaign.funds[1] == '0'; 
+		var Events = await app.db.campaign_link().find().toArray();
+		Events.forEach(async (event)=>{	
+		let campaign = await app.db.campaigns().findOne({hash:event.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}})
+		var endDate=(Date.parse(campaign.endDate)) ? new Date(Date.parse(campaign.endDate)) : new Date(+campaign.endDate * 1000)
+		campaign.isFinished = (endDate < dateNow) || campaign.funds[1] === '0'; 
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
-		let link = await app.db.campaign_link().findOne({id_prom:idProm})
-		if(!link.status || link.status == "rejected") return;
-		var stat={};		
-		stat.payedAmount= link.payedAmount
-		stat.status = prom.isAccepted;
-		stat.id_wallet = prom.influencer.toLowerCase();
-		stat.id_campaign = prom.idCampaign;
-		stat.id_prom=idProm;
-		stat.typeSN=prom.typeSN.toString();
-		stat.fund = prom.funds.amount;
-		if(prom.typeSN == 5)stat.typeURL = link.typeURL
-		stat.idPost = stat.typeSN=="1"? prom.idPost.split(':')[0] :prom.idPost
-		stat.idUser = prom.idUser, stat.isPayed = prom.isPayed, stat.date=Date('Y-m-d H:i:s');
-		stat.campaign=campaign;
-		let userWallet =  stat.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":prom.influencer.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 
-		let linkedinProfile=prom.typeSN =="5" && stat.status && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
-		let socialOracle = stat.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(prom.typeSN),stat,userWallet.UserId,linkedinProfile)
-		if(socialOracle ==='indisponible') stat.status='indisponible';
+		if(!event.status || event.status == "rejected") return;
+		// var stat={};	
+		// stat.status = event.status;	
+		// stat.payedAmount= event.payedAmount	
+		// stat.id_wallet = event.id_wallet.toLowerCase();
+		// stat.id_campaign = event.id_campaign;
+		// stat.id_prom=event.id_prom;
+		// stat.typeSN=event.typeSN.toString();
+		// if(event.typeSN == 5)stat.typeURL = event.typeURL
+		// stat.idPost = stat.typeSN=="1"? event.idPost.split(':')[0] :event.idPost
+		// stat.idUser = event.idUser, stat.isPayed = event.isPayed, stat.date=Date('Y-m-d H:i:s');
+		event.campaign=campaign;
+		let userWallet =  event.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":event.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 
-			stat.shares=  socialOracle && socialOracle.shares || '0';
-			stat.likes=  socialOracle && socialOracle.likes || '0';
-			stat.views=  socialOracle && socialOracle.views || '0';
-			stat.media_url=  socialOracle && socialOracle.media_url || '';
-			stat.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:prom.idPost},{$set:{likes:stat.likes,shares:stat.shares,views:stat.views}});
-			stat.oracle=app.oracle.findBountyOracle(prom.typeSN);
-			
-			
-	
+		let linkedinProfile=event.typeSN =="5" && event.status && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
+		let socialOracle = event.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(event.typeSN),event,userWallet.UserId,linkedinProfile)
+		if(socialOracle ==='indisponible') event.status='indisponible';
+
+			event.shares=  socialOracle && socialOracle.shares || '0';
+			event.likes=  socialOracle && socialOracle.likes || '0';
+			let views=  socialOracle && socialOracle.views || '0';
+			event.views = views === "old" ?event.views :views;
+			event.media_url=  socialOracle && socialOracle.media_url || '';
+			event.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:event.idPost},{$set:{likes:event.likes,shares:event.shares,views:event.views}});
+			event.oracle=app.oracle.findBountyOracle(event.typeSN);
+
 			if(campaign && socialOracle) 
 			{
-				stat.abosNumber = await app.oracleManager.answerAbos(stat.typeSN,stat.idPost,stat.idUser,linkedinProfile)
+				event.abosNumber = await app.oracleManager.answerAbos(event.typeSN,event.idPost,event.idUser,linkedinProfile)
 			}
-				if(stat.abosNumber==='indisponible') stat.status='indisponible';
+				if(event.abosNumber==='indisponible') event.status='indisponible';
 
 			if(campaign.ratios.length && socialOracle){		
-				stat.totalToEarn= app.campaign.getTotalToEarn(stat,campaign.ratios);				
+				event.totalToEarn= app.campaign.getTotalToEarn(event,campaign.ratios);				
 				}
 	
 			if(campaign.bounties.length && socialOracle ) {
-			stat.totalToEarn= app.campaign.getReward(stat,campaign.bounties);
+			event.totalToEarn= app.campaign.getReward(event,campaign.bounties);
 			}
-			if(campaign.isFinished) stat.totalToEarn=0;
+			if(campaign.isFinished) event.totalToEarn=0;
 			
-		   stat.type = campaign && socialOracle && app.campaign.getButtonStatus(stat);
-		delete stat.campaign	
-	    delete stat.payedAmount
-		socialOracle &&	await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.			
-	})
-	
-		
+		   if(campaign) event.type = app.campaign.getButtonStatus(event);
+		   delete event.campaign;	
+	       delete event.payedAmount;
+		   await app.campaign.UpdateStats(event,socialOracle); //saving & updating proms in campaign_link.			
+	})	
 	 }
 
 
