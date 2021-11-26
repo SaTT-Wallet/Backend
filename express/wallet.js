@@ -81,16 +81,17 @@ module.exports = function (app) {
     app.get('/v2/total_balance', async (req, response) =>{
 
 		try {
-			const Fetch_crypto_price = {
+			/*const Fetch_crypto_price = {
 				method: 'GET',
 				uri: xChangePricesUrl,
 				json: true,
 				gzip: true
-			  };
+			  };*/
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
 		      var id = auth.id;
-		  let Crypto = await rp(Fetch_crypto_price);
+		  //let Crypto = await rp(Fetch_crypto_price);
+		  let Crypto =  app.account.getPrices(); 
 		  let variation = 0.00
 		  var Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
