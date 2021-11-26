@@ -444,8 +444,7 @@ module.exports = async function (app) {
 			}
 		})
 	}
-	campaignManager.getButtonStatus = async function (link,wallet) {
-		return new Promise(async (resolve, reject) => {
+	campaignManager.getButtonStatus = link => {
 			try {
 
 				var type = '';
@@ -467,7 +466,7 @@ module.exports = async function (app) {
 				type='already_recovered';
 				else if(totalToEarn==='0' && link.payedAmount ==='0')
 				type='no_gains';
-				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
+				else if((totalToEarn === '0' && link.campaign.funds[1]==='0' && link.payedAmount ==='0')||
 				link.campaign.isFinished)
 				type="not_enough_budget";
 				else if((new Big(totalToEarn).gt(new Big(link.payedAmount))) && link.campaign?.ratios?.length ||
@@ -475,48 +474,46 @@ module.exports = async function (app) {
 				type='harvest';
 				else 
 				type="none";				
-				resolve(type);
+				return type;
 			}
 			catch (err)
 			{
-				reject(err);
+				console.error(err);
+				app.account.errorLogger(err);
 			}
-		})
+		// })
 	}
 
-	campaignManager.getTotalToEarn = async function (socialStats,ratio) {
-		return new Promise(async (resolve, reject) => {
+	campaignManager.getTotalToEarn = (socialStats,ratio)=> {
 			try {
-				// console.log(ratio,"    ", socialStats);
 				let reachLimit =  campaignManager.getReachLimit(ratio,socialStats.oracle); 
 				if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",socialStats.abosNumber,reachLimit);
-				ratio.forEach( num =>{		
-						let totalToEarn='0';
-						let payedAmount=socialStats.payedAmount || '0'							
+				let totalToEarn='0';
+				let payedAmount=socialStats.payedAmount || '0'
+				ratio.forEach( num =>{									
 					if(((num.oracle === socialStats.oracle) || (num.typeSN === socialStats.typeSN))){
 						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
 						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
 						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
 						let total = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 						totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
-						resolve (totalToEarn);
 					}
 				})
+				return totalToEarn;
 			}catch(err){
-				reject(err);
+				console.error(err);
+				app.account.errorLogger(err);
 
 			}
-		}
-			)}
+	}
+	
 
 
-			campaignManager.getReward = async function (result,bounties) {
-				return new Promise(async (resolve, reject) => {
+			campaignManager.getReward = (result,bounties)=> {
 					try {
 						let payedAmount=result.payedAmount || '0';
 						let totalToEarn='0';
-						bounties.forEach( bounty=>{
-							
+						bounties.forEach( bounty=>{							
 							if((bounty.oracle === result.oracle) || (bounty.oracle == app.oracle.findBountyOracle(result.typeSN))){
 							  bounty.categories.forEach( category=>{
 							   if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
@@ -529,22 +526,20 @@ module.exports = async function (app) {
 							  })
 							   }
 							   })
-							resolve(totalToEarn);
-					}catch{
-						reject(err);
+							return totalToEarn;
+					}catch(err){
+				    console.error(err);
+				    app.account.errorLogger(err);
 		
 					}
-				}
-					)}		
+				}		
 
-					campaignManager.campaignStatus = async function (campaign) {
-						return new Promise(async (resolve, reject) => {
+					campaignManager.campaignStatus = campaign => {
 							try {
 								let type = '';
 								let dateNow = new Date();
 								campaign.startDate=(Date.parse(campaign.startDate)) ? new Date(Date.parse(campaign.startDate)) : new Date(+campaign.startDate * 1000);
-								campaign.endDate=(Date.parse(campaign.endDate)) ? new Date(Date.parse(campaign.endDate)) : new Date(+campaign.endDate * 1000)
-
+								campaign.endDate=(Date.parse(campaign.endDate)) ? new Date(Date.parse(campaign.endDate)) : new Date(+campaign.endDate * 1000);
 								let isFinished=(dateNow > campaign.endDate || (campaign.funds) && campaign.funds[1] == '0');
 								if(!campaign.hash)
 								type="draft";													
@@ -556,14 +551,12 @@ module.exports = async function (app) {
 								type='apply';
 								else 
 								type="none";
-								resolve(type);
+								return type;
 							}
-							catch (err)
-							{
-
-								reject(err);
+							catch (err){
+					         console.error(err);
+				             app.account.errorLogger(err);
 							}
-						})
 					}
 					
 
@@ -803,7 +796,8 @@ module.exports = async function (app) {
 		if(ratio)return ratio.reachLimit
 		return;
 	}
-	campaignManager.UpdateStats = async (obj,campaign) =>{	
+	campaignManager.UpdateStats = async (obj,socialOracle) =>{			
+		if(!socialOracle) delete obj.views, delete obj.likes, delete obj.shares, delete obj.totalToEarn;
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			}
@@ -946,37 +940,31 @@ module.exports = async function (app) {
 	}
 
 	campaignManager.sortOutPublic=(req,idNode, strangerDraft)=>{
-		
 		const title=req.query.searchTerm || '';
 		const status=req.query.status;
 		const blockchainType=req.query.blockchainType || '';
 		 
 		const dateJour= Math.round(new Date().getTime()/1000);
 		if(req.query._id) query["$and"].push({ _id: { $gt: app.ObjectId(req.query._id) } })
-		if(req.query.oracles == undefined){
-			oracles=["twitter","facebook","youtube","instagram"];
-		}
-
-	else if(typeof req.query.oracles === "string"){
-		oracles=Array(req.query.oracles);
-	}else{
-		oracles=req.query.oracles;
-	}
+		
 		const remainingBudget=req.query.remainingBudget || [];
 		
 		var query = {};
 		query["$and"]=[];
 		
-	if(req.query.idWallet)query["$and"].push({"_id":{$nin:strangerDraft}})		
-     if(!req.query.idWallet)query["$and"].push({hash:{ $exists: true}})
-	if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
-
-		if(title){
-		query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
-		}
-		if(blockchainType){
-			query["$and"].push({"token.type":blockchainType});
-		}
+	 if((req.query.idWallet || req.query.showOnlyMyCampaigns)&& !req.query.showOnlyLiveCampaigns) query["$and"].push({"_id":{$nin:strangerDraft}});	
+	 
+	 req.query.showOnlyMyCampaigns && query["$and"].push({idNode});	
+	 req.query.showOnlyLiveCampaigns && query["$and"].push({type:"apply",hash:{ $exists: true}});	
+     !req.query.idWallet && query["$and"].push({hash:{ $exists: true}});
+	 req.query.remuneration && query["$and"].push({remuneration: req.query.remuneration});
+	 let oracles= req.query.oracles
+	 oracles= typeof oracles === "string" ? [oracles] : oracles;
+	 oracles && query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
+   
+		title && query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
+		blockchainType && query["$and"].push({"token.type":blockchainType});
+	
 		if(status =="active" ){
 			if(remainingBudget.length==2){
 			query["$and"].push({"funds.1":{ $exists: true}});
