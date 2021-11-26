@@ -34,51 +34,6 @@ module.exports = async function (app) {
         link: httpLinkERC20,
         cache: new InMemoryCache(),
       })
-      
-    const queryPromsBep20 = gql`{
-        proms(first : 1000) {
-          id
-          campaign {
-            id,
-            ratios,
-            bounties,
-            startDate,
-            endDate,
-            advertiser,
-            token,
-            network,
-            initialAmount,
-            currentAmount,
-            isActive
-            }
-          influencer
-          token
-          totalAmount
-        }
-      }      
-  `
-
-  const queryPromsErc20 = gql`{
-    proms(first : 1000) {
-      id
-      campaign {
-        id,
-        ratios,
-        bounties,
-        startDate,
-        endDate,
-        advertiser,
-        token,
-        network,
-        amount,
-        isActive
-        }
-      influencer
-      token
-      amount
-    }
-  }      
-`
 
   const queryCampaignBep20 = gql`{
     campaigns(first : 1000) {
@@ -96,27 +51,40 @@ module.exports = async function (app) {
   }      
 `
 
-const queryCampaignErc20 = gql`{
-  campaigns(first : 1000) {
-      id,
-      ratios,
-      bounties,
-      startDate,
-      endDate,
-      advertiser,
-      amount,
-      token,
-      network,
-      isActive
-  }
-}      
-`
-
-  graph.promsBep20 = async ()=> {
+  graph.promsBep20 = async (nbr)=> {
     return new Promise(async (resolve, reject) => {
+      let skip=nbr*1000;
       clientBep20
         .query({
-          query:queryPromsBep20
+          query:gql`{
+            proms(first : 1000,skip:${skip}) {
+              id
+              campaign {
+                id,
+                ratios,
+                bounties,
+                startDate,
+                endDate,
+                advertiser,
+                token,
+                network,
+                initialAmount,
+                currentAmount,
+                isActive
+                }
+              influencer
+              token
+              totalAmount
+              typeSN
+              idPost
+              idUser
+              isPayed
+              isAccepted
+            }
+          }      
+        ` 
+       
+            
         })
         .then((data) => 
           {
@@ -152,7 +120,7 @@ graph.campaignsErc20 = async ()=> {
   return new Promise(async (resolve, reject) => {
     clientErc20
       .query({
-        query:queryCampaignErc20
+        query:queryCampaignBep20
       })
       .then((data) => 
         {
@@ -165,11 +133,37 @@ graph.campaignsErc20 = async ()=> {
   })
 }
 
-graph.promsErc20 = async ()=> {
+graph.promsErc20 = async (nbr)=> {
   return new Promise(async (resolve, reject) => {
+    let skip=nbr*1000;
     clientErc20
       .query({
-        query:queryPromsErc20
+        query:gql`{
+          proms(first : 1000,skip:${skip}) {
+            id
+            campaign {
+              id,
+              ratios,
+              bounties,
+              startDate,
+              endDate,
+              advertiser,
+              token,
+              network,
+              initialAmount,
+              currentAmount,
+              isActive
+              }
+            influencer
+            token
+            totalAmount
+            typeSN
+            idPost
+            idUser
+            isPayed
+            isAccepted
+          }
+        }`
       })
       .then((data) => 
         {
@@ -193,10 +187,10 @@ graph.allCampaigns= async ()=>{
 
 }
 
-graph.allProms= async ()=>{
+graph.allProms= async (nbr)=>{
   return new Promise(async (resolve, reject) => {
-  let promsBep20 =await app.graph.promsBep20();
-  let promsErc20=await app.graph.promsErc20();
+  let promsBep20 =await app.graph.promsBep20(nbr);
+  let promsErc20=await app.graph.promsErc20(nbr);
   let allProms=promsBep20.concat(promsErc20);
     resolve(allProms)
 })

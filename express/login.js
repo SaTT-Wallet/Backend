@@ -220,7 +220,7 @@ module.exports = function (app) {
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
         var id=Long.fromNumber(await app.account.handleId())
-        var insert = await app.db.sn_user().insertOne({
+        await app.db.sn_user().insertOne({
           _id:id,
           scopedId: profile.id,
           idOnSn: profile._json.token_for_business,
@@ -240,7 +240,7 @@ module.exports = function (app) {
           picLink:profile.photos.length ? profile.photos[0].value : false,
           userSatt: true
         });
-        var res_ins = await app.db.accessToken().insertOne({client_id: 1, user_id: id, token: token, expires_at: date, scope: "user"});
+        await app.db.accessToken().insertOne({client_id: 1, user_id: id, token: token, expires_at: date, scope: "user"});
         //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
           req.session.user = id;
         return cb(null, {id: id, token: token, expires_in: date});
@@ -574,7 +574,7 @@ module.exports = function (app) {
         })
         }
         var channelId = res.items[0].id;
-	     var channelGoogle = await app.db.googleProfile().find({channelId:channelId}).toArray();
+	     var channelGoogle = await app.db.googleProfile().find({channelId:channelId,UserId:user_id}).toArray();
         if(channelGoogle.length >0 )
         {
           cb (null,profile,{
@@ -624,7 +624,7 @@ module.exports = function (app) {
       app.delete('/googleChannels/:id', async function (req, response) {
         try{
         const token = req.headers["authorization"].split(" ")[1];
-        auth =	await app.crm.auth(token);
+        await app.crm.auth(token);
          var id=req.params.id; 
         await app.db.googleProfile().deleteOne({_id:app.ObjectId(id)});
         response.end(JSON.stringify({message : "deleted successfully"}))
@@ -636,7 +636,7 @@ module.exports = function (app) {
         app.delete('/twitter/:id', async function (req, response) {
           try{
           const token = req.headers["authorization"].split(" ")[1];
-          auth =	await app.crm.auth(token);
+          await app.crm.auth(token);
            var id=req.params.id; 
           await app.db.twitterProfile().deleteOne({_id:app.ObjectId(id)});
           response.end(JSON.stringify({message : "deleted successfully"}))
@@ -662,7 +662,7 @@ module.exports = function (app) {
             app.delete('/facebookChannels/:id', async function (req, response) {
               try{
               const token = req.headers["authorization"].split(" ")[1];
-              auth =	await app.crm.auth(token);
+               await app.crm.auth(token);
                var id=req.params.id; 
               await app.db.fbPage().deleteOne({_id:app.ObjectId(id)});
               response.end(JSON.stringify({message : "deleted successfully"}))
@@ -683,7 +683,7 @@ module.exports = function (app) {
               app.delete('/linkedinChannels/:organization', async function (req, response) {
                 try{
                 const token = req.headers["authorization"].split(" ")[1];
-                auth =	await app.crm.auth(token);
+                let auth =	await app.crm.auth(token);
                  var organization=req.params.organization; 
                 await app.db.linkedinProfile().updateOne(
                   {userId:auth.id},
@@ -1807,19 +1807,28 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
          created: mongodate,
          updated: mongodate,
          locale:"en",
-         idOnSn2:req.body.id
         }
+      if(req.body.idSn ==="1"){
+        snUser.idOnSn=req.body.id;
 
-
-        var user=await app.db.sn_user().findOne({ $and: [{email: snUser.email},{idSn:snUser.idSn}]})
+      } 
+      else if(req.body.idSn==="2") {
+       snUser.idOnSn2=req.body.id;
+      }
+        var user=await app.db.sn_user().findOne({email: snUser.email})
         if(user){
+          if(snUser.idSn===user.idSn){
             var date = Math.floor(Date.now() / 1000) + 86400;
             var buff = Buffer.alloc(32);
             var token = crypto.randomFillSync(buff).toString('hex');
             var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
             var token = await app.db.accessToken().findOne({user_id: user._id});
           var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
-          res.send(JSON.stringify(param))
+          
+          }else{
+            res.send(JSON.stringify({messgae:"account_exists_with_another_courrier"}))
+          }
+            
         }else {
             var buff = Buffer.alloc(32);
             var token = crypto.randomFillSync(buff).toString('hex');
@@ -1829,7 +1838,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
             var param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
             res.send(JSON.stringify(param))
           }
-
+          
       }catch(err){
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
       }
@@ -1871,22 +1880,31 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       try {
       let {accessToken,userId,linkedinId}= req.query;
       const linkedinData ={
-        url: "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName)))",
+        url: "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))",
         method: 'GET',
         headers:{'Authorization' : "Bearer "+accessToken,
         'X-Restli-Protocol-Version': '2.0.0'
        },
         json: true
         };
-      let redirect =req.query.state.split('|')[1]; 
-      let linkedinPages = await rp(linkedinData);
+        let redirect =req.query.state.split('|')[1]; 
+        let linkedinPages = await rp(linkedinData);
+
       var linkedinProfile = {accessToken,userId,linkedinId};
-      let linkedinExist = await app.db.linkedinProfile().findOne({userId});
       linkedinProfile.pages = [];
-      linkedinPages.elements.length &&  linkedinPages.elements.forEach((elem)=>{ elem.state !== "REVOKED" && linkedinProfile.pages.push(elem)})
+      if(linkedinPages.elements.length){
+        for(let i=0;i<linkedinPages.elements.length;i++){
+          elem=linkedinPages.elements[i];
+          if(elem.state !== "REVOKED") {
+            elem.subscribers=await app.oracle.linkedinAbos(linkedinProfile,elem.organization);
+            elem.photo=linkedinPages.elements[i]["organization~"].logoV2 ? linkedinPages.elements[i]["organization~"].logoV2["original~"].elements[0].identifiers[0].identifier : ''
+            delete elem["organization~"].logoV2;
+            linkedinProfile.pages.push(elem)
+          } 
+        }
+      } 
       if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl +redirect + "channel obligatoire");
-      !linkedinExist && await app.db.linkedinProfile().insertOne(linkedinProfile);
-      linkedinExist && await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile});
+      await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile},{upsert:true});
       let message = req.authInfo.message;
       res.redirect(app.config.basedURl +redirect +'?message=' + message);
     } catch (err) {
@@ -2151,6 +2169,65 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }
   })
 
+  app.post('/allowYoutube', async  (req, response) =>{
+    try{
+      let token = req.headers["authorization"].split(" ")[1];
+      const auth = await app.crm.auth(token);
+      let UserId = auth.id;
+      let channelId=req.body.channelId;
+      let deactivate=req.body.deactivate;
+      await app.db.googleProfile().updateOne({$and:[{channelId},{UserId}]},{$set:{deactivate}})
+      response.end(JSON.stringify({message:"success"}));
 
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
+
+  app.post('/allowTwitter', async  (req, response) =>{
+    try{
+      let token = req.headers["authorization"].split(" ")[1];
+      const auth = await app.crm.auth(token);
+      let UserId = auth.id;
+      let twitter_id=req.body.twitter_id;
+      let deactivate=req.body.deactivate;
+      await app.db.twitterProfile().updateOne({$and:[{twitter_id},{UserId}]},{$set:{deactivate}})
+      response.end(JSON.stringify({message:"success"}));
+
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
+  app.post('/allowFacebook', async  (req, response) =>{
+    try{
+      let token = req.headers["authorization"].split(" ")[1];
+      const auth = await app.crm.auth(token);
+      let UserId = auth.id;
+      let id=req.body.id;
+      let deactivate=req.body.deactivate;
+      await app.db.fbPage().updateOne({$and:[{id},{UserId}]},{$set:{deactivate}})
+      response.end(JSON.stringify({message:"success"}));
+
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
+  app.post('/allowLinkedin', async  (req, response) =>{
+    try{
+      let token = req.headers["authorization"].split(" ")[1];
+      const auth = await app.crm.auth(token);
+      let userId = auth.id;
+      let organization=req.body.organization;
+      let deactivate=req.body.deactivate;
+      await app.db.linkedinProfile().updateOne({$and:[{userId},{"pages.organization": organization}]},{ $set: { "pages.$.deactivate" : deactivate } })
+      response.end(JSON.stringify({message:"success"}));
+
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
   return app;
 }
