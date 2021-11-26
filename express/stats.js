@@ -1,5 +1,6 @@
 const { VirtualConsole } = require('jsdom');
 const campaign = require('../web3/campaign');
+var rp = require('request-promise');
 
 module.exports = function (app) {
 
@@ -1477,6 +1478,31 @@ const Grid = require('gridfs-stream');
 		 }
 	  })
 	 
+
+	  app.get('/ShareByActivity/:activity', async (req, res) => {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+		    const auth=await app.crm.auth(token);
+			let activityURN=req.params.activity;
+		
+			var linkedin_profile=await app.db.linkedinProfile().findOne({userId:auth.id});
+			console.log(linkedin_profile);
+			const linkedinData ={
+				url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${activityURN}`,
+				method: 'GET',
+				headers:{
+				'Authorization' : "Bearer "+linkedin_profile.accessToken
+			   },
+				json: true
+				};
+				let postData = await rp(linkedinData)
+				let urn = `urn:li:activity:${activityURN}`;
+					
+		  res.send(JSON.stringify({shareId:postData.results[urn]["domainEntity"]}));
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  })
 
 return app;
 }
