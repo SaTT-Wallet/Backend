@@ -171,7 +171,8 @@ module.exports = function (app) {
 
 			event.shares=  socialOracle && socialOracle.shares || '0';
 			event.likes=  socialOracle && socialOracle.likes || '0';
-			event.views=  socialOracle && socialOracle.views || '0';
+			let views=  socialOracle && socialOracle.views || '0';
+			event.views = views === "old" ?event.views :views;
 			event.media_url=  socialOracle && socialOracle.media_url || '';
 			event.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:event.idPost},{$set:{likes:event.likes,shares:event.shares,views:event.views}});
 			event.oracle=app.oracle.findBountyOracle(event.typeSN);
