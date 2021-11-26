@@ -466,7 +466,7 @@ module.exports = async function (app) {
 				type='already_recovered';
 				else if(totalToEarn==='0' && link.payedAmount ==='0')
 				type='no_gains';
-				else if((totalToEarn === '0' && link.campaign.remaining==='0' && link.payedAmount ==='0')||
+				else if((totalToEarn === '0' && link.campaign.funds[1]==='0' && link.payedAmount ==='0')||
 				link.campaign.isFinished)
 				type="not_enough_budget";
 				else if((new Big(totalToEarn).gt(new Big(link.payedAmount))) && link.campaign?.ratios?.length ||
@@ -796,7 +796,8 @@ module.exports = async function (app) {
 		if(ratio)return ratio.reachLimit
 		return;
 	}
-	campaignManager.UpdateStats = async (obj,campaign) =>{	
+	campaignManager.UpdateStats = async (obj,socialOracle) =>{			
+		if(!socialOracle) delete obj.views, delete obj.likes, delete obj.shares, delete obj.totalToEarn;
 		await app.db.campaign_link().findOne({id_prom:obj.id_prom}, async (err, result)=>{
 			if(!result){await app.db.campaign_link().insertOne(obj);
 			}
