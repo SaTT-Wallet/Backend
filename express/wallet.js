@@ -91,7 +91,7 @@ module.exports = function (app) {
 			  var auth =	await app.crm.auth(token);
 		      var id = auth.id;
 		  //let Crypto = await rp(Fetch_crypto_price);
-		  let Crypto =  app.account.getPrices(response); 
+		  let Crypto =  app.account.getPrices(); 
 		  let variation = 0.00
 		  var Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
@@ -1417,7 +1417,7 @@ module.exports = function (app) {
 
 	app.get("/prices", async (req, res) => {
 
-		var prices = app.account.getPrices(res)
+		var prices = app.account.getPrices()
 
 		res.end(JSON.stringify(prices))
 	})
