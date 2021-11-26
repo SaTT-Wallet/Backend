@@ -1183,7 +1183,7 @@ accountManager.handleId=async function () {
 	   accountManager.getPrices = (res)=>{
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
-			res.end(JSON.stringify(app.prices.data));
+			return app.prices.data;
 		}
 		else {
 			var r = child.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
