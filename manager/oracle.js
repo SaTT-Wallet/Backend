@@ -311,18 +311,18 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 			if(res.errors)
 			{
+
+
 				res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics",'expansions':'attachments.media_keys','media.fields':'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text'});
 
 
-				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
+				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url,views:'old'};
 				resolve(perf);
 				return;
 			}
 
 
 			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,views:res.data[0].non_public_metrics.impression_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
-
-
 
 			resolve(perf);
 		}catch (err) {
@@ -353,7 +353,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 				if(res.items) {
 					var channelId = res.items[0]?.snippet.channelId;
-					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
+					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId});
 					resolve(googleProfile);
 			  }
 				else {
@@ -377,12 +377,11 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 				page = await app.db.fbPage().findOne({$and:[{UserId:userId  },{instagram_username:resMedia.author_name}]});
 
-				if (page)
-
+				if (page && !page.deactivate)
 				resolve(true);
-
-				else 
-
+				else if(page && page.deactivate === true)
+				resolve("deactivate");
+				else
 				resolve(false);
 
 			}catch (err) {
@@ -399,15 +398,18 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		return new Promise(async (resolve, reject) => {
 			try {
 				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  },{projection: { access_token_key: true,access_token_secret:true,id:true }});
-				var tweet = new Twitter2({
-				  consumer_key: app.config.twitter.consumer_key,
-				  consumer_secret: app.config.twitter.consumer_secret,
-				  access_token_key: twitterProfile.access_token_key,
-				  access_token_secret: twitterProfile.access_token_secret
-				});
-				var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"author_id"});
-				resolve(res.data[0].author_id == twitterProfile.id)
-
+				if(twitterProfile.deactivate === true) resolve("deactivate");
+				else{
+					var tweet = new Twitter2({
+						consumer_key: app.config.twitter.consumer_key,
+						consumer_secret: app.config.twitter.consumer_secret,
+						access_token_key: twitterProfile.access_token_key,
+						access_token_secret: twitterProfile.access_token_secret
+					  });
+					  var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"author_id"});
+					  resolve(res.data[0].author_id == twitterProfile.id)
+				}
+			
 			}catch (err) {
 				reject({message:err.message});
 			}
@@ -432,7 +434,10 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 					resolve(res)
 					return}
 					let owner = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
-				   linkedinProfile.pages.forEach((element)=>{if(element.organization === owner ) res=true; })
+				   linkedinProfile.pages.forEach((element)=>{
+                    if(element.organization === owner && !element.deactivate) res=true;
+					if(element.organization === owner && element.deactivate === true) resolve("deactivate")
+				   })
 				   resolve(res)
 	}catch (err) {
 		app.account.sysLogError(err);
