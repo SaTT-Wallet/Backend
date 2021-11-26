@@ -1891,7 +1891,6 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         let linkedinPages = await rp(linkedinData);
 
       var linkedinProfile = {accessToken,userId,linkedinId};
-      let linkedinExist = await app.db.linkedinProfile().findOne({userId});
       linkedinProfile.pages = [];
       if(linkedinPages.elements.length){
         for(let i=0;i<linkedinPages.elements.length;i++){

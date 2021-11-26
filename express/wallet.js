@@ -1,7 +1,4 @@
-const { async } = require('hasha');
-var Big = require('big.js');
-var proc = require('child_process');
-const { auth } = require('google-auth-library');
+const {randomUUID}= require('crypto');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -84,16 +81,17 @@ module.exports = function (app) {
     app.get('/v2/total_balance', async (req, response) =>{
 
 		try {
-			const Fetch_crypto_price = {
+			/*const Fetch_crypto_price = {
 				method: 'GET',
 				uri: xChangePricesUrl,
 				json: true,
 				gzip: true
-			  };
+			  };*/
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
 		      var id = auth.id;
-		  let Crypto = await rp(Fetch_crypto_price);
+		  //let Crypto = await rp(Fetch_crypto_price);
+		  let Crypto =  app.account.getPrices(response); 
 		  let variation = 0.00
 		  var Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
@@ -1419,54 +1417,9 @@ module.exports = function (app) {
 
 	app.get("/prices", async (req, res) => {
 
-		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
+		var prices = app.account.getPrices(res)
 
-			res.end(JSON.stringify(app.prices.data));
-		}
-		else {
-			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
-			var response = JSON.parse(r);
-			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
-          	var responseSattJet = JSON.parse(r2);
-			response.data.push(responseSattJet.data.SATT);
-			response.data.push(responseSattJet.data.JET);
-
-			var priceMap = response.data.map((elem) =>{
-				var obj = {};
-				obj = {symbol:elem.symbol,
-					name:elem.name,
-					price:elem.quote.USD.price,
-					percent_change_24h:elem.quote.USD.percent_change_24h,
-                    market_cap:elem.quote.USD.market_cap,
-                    volume_24h:elem.quote.USD.volume_24h,
-                    circulating_supply:elem.circulating_supply,
-                    total_supply:elem.total_supply,
-                    max_supply:elem.max_supply,
-					logo: "https://s2.coinmarketcap.com/static/img/coins/128x128/"+elem.id+".png"
-				}
-				return obj;
-			})
-			var finalMap = {};
-			for(var i=0;i<priceMap.length;i++)
-			{
-				finalMap[priceMap[i].symbol] = priceMap[i];
-				delete(finalMap[priceMap[i].symbol].symbol);
-			}
-
-			for(var i=0;i<app.config.token200.length;i++)
-			{
-				var token = app.config.token200[i];
-				if(finalMap[token.symbol]) {
-					finalMap[token.symbol].network = token.platform.network;
-					finalMap[token.symbol].tokenAddress = token.platform.token_address;
-					finalMap[token.symbol].decimals = token.platform.decimals;
-				}
-			}
-		}
-		response.data = finalMap;
-		app.prices = response;
-
-		res.end(JSON.stringify(finalMap))
+		res.end(JSON.stringify(prices))
 	})
 
 app.get('/v2/feebtc', async function(req, response) {
@@ -1825,20 +1778,9 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			requestQuote["client_ip"]= req.addressIp;
             requestQuote["payment_methods"]= ["credit_card"];
             requestQuote["wallet_id"]= "satt";
-		// let testObject = {
-		// 	"end_user_id": String(auth.id),
-		// 	"digital_currency": "ETH",
-		// 	"fiat_currency": "AUD",
-		// 	"requested_currency": "AUD",
-		// 	"requested_amount": 100,
-		// 	"wallet_id": "satt",
-		// 	"client_ip": req.addressIp,
-		// 	"payment_methods" : ["credit_card"] 
-		// }
 		const simplexQuote ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
 			method: 'POST',
-			// body:testObject, 
 			  body:requestQuote, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
@@ -1864,7 +1806,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
-		let payment_id=uuidv4();	
+		let payment_id=/*uuidv4()*/randomUUID();	
 		const uiad = app.config.uiad;	
 		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
@@ -1876,7 +1818,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		request.quote_id = req.body.quote_id //from /getQuote api
 		request.location=req.body.location;
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
-		// request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
+	
 		request.uuid = payment_id
 
 		request.currency = req.body.currency;
@@ -1885,7 +1827,6 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		const paymentRequest ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
 			method: 'POST',
-			// body:testObject, 
 			 body:payment, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
@@ -1907,16 +1848,22 @@ app.post('/wallet/remove/token', async (req, res) =>{
 	})
 
 app.get('/paymentEvent', async (req, response)=>{
-	const paymentRequest ={
-		url: app.config.sandBoxUri +"/wallet/merchant/v2/event",
+	try{
+        const paymentRequest ={
+		url: app.config.sandBoxUri +"/wallet/merchant/v2/events",
 		method: 'GET',
 		headers: {
 			'Authorization': `ApiKey ${app.config.sandBoxKey}`,
 		  },
 		json: true
 	  };
-	  var paymentSubmitted = await rp(paymentRequest);
-	  console.log(paymentSubmitted)
+	  const paymentSubmitted = await rp(paymentRequest);
+	  response.end(JSON.stringify(paymentSubmitted));
+	}catch (err) {
+		app.account.sysLogError(err);
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+	
 })
 
 	return app;
