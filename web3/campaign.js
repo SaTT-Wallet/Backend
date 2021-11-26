@@ -958,9 +958,16 @@ module.exports = async function (app) {
 	 req.query.showOnlyLiveCampaigns && query["$and"].push({type:"apply",hash:{ $exists: true}});	
      !req.query.idWallet && query["$and"].push({hash:{ $exists: true}});
 	 req.query.remuneration && query["$and"].push({remuneration: req.query.remuneration});
-	 let oracles= req.query.oracles
-	 oracles= typeof oracles === "string" ? [oracles] : oracles;
-	 oracles && query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
+
+ if(req.query.oracles == undefined){
+		oracles=["twitter","facebook","youtube","instagram","linkedin"];
+	}
+else if(typeof req.query.oracles === "string"){
+	oracles=Array(req.query.oracles);
+}else{
+	oracles=req.query.oracles;
+}
+if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}},{"bounties.oracle":{ $in: oracles}}]});
    
 		title && query["$and"].push({"title":{$regex: ".*" + title + ".*",$options: 'i'}});
 		blockchainType && query["$and"].push({"token.type":blockchainType});
