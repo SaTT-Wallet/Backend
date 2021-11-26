@@ -1180,7 +1180,7 @@ accountManager.handleId=async function () {
 		accountManager.sysLogger.log('info',logInfo);	
 	   }
 
-	   accountManager.getPrices = ()=>{
+	   accountManager.getPrices = (res)=>{
 		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
 
 			res.end(JSON.stringify(app.prices.data));
