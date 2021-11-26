@@ -1266,8 +1266,9 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					link.likes = socialOracle.likes;
 					link.views=socialOracle.views;
 					link.shares = socialOracle.shares;	
-					link.campaign=campaign
-					socialOracle.totalToEarn = campaign.ratios.length ?  app.campaign.getTotalToEarn(link,campaign.ratios): app.campaign.getReward(link,campaign.bounties);;
+					link.campaign=campaign;
+					link.totalToEarn = campaign.ratios.length ?  app.campaign.getTotalToEarn(link,campaign.ratios): app.campaign.getReward(link,campaign.bounties);
+					socialOracle.totalToEarn = link.totalToEarn;
 					socialOracle.type= app.campaign.getButtonStatus(link);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
 				
