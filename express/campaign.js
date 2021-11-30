@@ -2890,25 +2890,5 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			}
 			})	
 
-
-			app.get('/testStatsLinkedin',async (req,res)=>{
-				try{
-					link=await app.db.campaign_link().findOne({id_prom:req.body.id_prom});
-					let userWallet = await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});			
-
-					let linkedinProfile=await app.db.linkedinProfile().findOne({userId:userWallet.UserId}) 
-					console.log(linkedinProfile);
-					socialOracle = await app.oracle.linkedin(link.organization,link.idPost,link.idUser,linkedinProfile)
-					
-					res.send(JSON.stringify({oracles :socialOracle}));
-
-				}catch(err){
-					res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-
-				}
-			})
-
-
-	
 	return app;
 }
