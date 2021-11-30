@@ -539,22 +539,17 @@ module.exports = async function (app) {
 		var transaction_content= All_Transactions.result
 		var erc20_or_bep20_transaction_content=Erc20_OR_BEP20_Transactions.result
 
-		var Final_Result=transaction_content.map((elem)=>{
-			var exist=false
+		transaction_content.map((elem)=>{
              for(var i=0;i<erc20_or_bep20_transaction_content.length;i++){
 			    if(erc20_or_bep20_transaction_content[i].hash==elem.hash){
-					 exist=true
 					 erc20_or_bep20_transaction_content[i].network=Network
-					 return erc20_or_bep20_transaction_content[i]
 				 }
 			 }
-			 if(!exist){
+			 if(!elem.network){
 				elem.network=Network
-				    return elem
 			 }
 		})
-		console.log(Final_Result.length)
-    return Final_Result
+    return transaction_content.concat(erc20_or_bep20_transaction_content)
 	}
 
 
