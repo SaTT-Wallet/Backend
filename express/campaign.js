@@ -2890,36 +2890,5 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			}
 			})	
 
-
-			app.get('/testStatsLinkedin',async (req,res)=>{
-				try{
-					link=await app.db.campaign_link().findOne({id_prom:req.body.id_prom});
-					let userWallet = await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});			
-
-					let linkedinProfile=await app.db.linkedinProfile().findOne({userId:userWallet.UserId}) 
-					console.log(linkedinProfile);
-					socialOracle = await app.oracle.linkedin(link.organization,link.idPost,link.idUser,linkedinProfile)
-					
-					res.send(JSON.stringify({oracles :socialOracle}));
-
-				}catch(err){
-					res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-
-				}
-			})
-
-
-			app.get('/testStatsTwitter',async (req,res)=>{
-				try{
-					var id_prom="0xc7eee0f170c93fc44ca749ac8de8d883838f3863a07cd76232e05bef45289fee"
-					link=await app.db.campaign_link().findOne({id_prom:id_prom});
-					var stats= await app.oracle.twitter(link.idUser,link.idPost);
-					res.send(JSON.stringify({stats}));
-
-				}catch(err){
-					res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-
-				}
-			})
 	return app;
 }
