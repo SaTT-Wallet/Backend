@@ -200,12 +200,8 @@ module.exports = function (app) {
 	// 		}
 			
 	// 		if (campaign) stat.type=await app.campaign.getButtonStatus(stat,stat.id_wallet);
-	// 	delete stat.campaign	
+	// 	   delete stat.campaign	
 	//     delete stat.payedAmount
-		
-	// 		console.log(event)
-	// 		console.log(stat)
-		
 	// 	socialOracle &&	await app.campaign.UpdateStats(stat,campaign); //saving & updating proms in campaign_link.		
 		
 	// })
@@ -225,16 +221,6 @@ module.exports = function (app) {
 		if (campaign && campaign.funds) campaign.remaining=campaign.funds[1] || campaign.cost;
 
 		if(!event.status || event.status == "rejected") return;
-		// var stat={};	
-		// stat.status = event.status;	
-		// stat.payedAmount= event.payedAmount	
-		// stat.id_wallet = event.id_wallet.toLowerCase();
-		// stat.id_campaign = event.id_campaign;
-		// stat.id_prom=event.id_prom;
-		// stat.typeSN=event.typeSN.toString();
-		// if(event.typeSN == 5)stat.typeURL = event.typeURL
-		// stat.idPost = stat.typeSN=="1"? event.idPost.split(':')[0] :event.idPost
-		// stat.idUser = event.idUser, stat.isPayed = event.isPayed, stat.date=Date('Y-m-d H:i:s');
 		event.campaign=campaign;
 		let userWallet =  event.status && !campaign.isFinished && await app.db.wallet().findOne({"keystore.address":event.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 
@@ -1728,6 +1714,19 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
 			let campaignType={};
 			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
+			// let event= await app.graph.getPromDetails(idProm);
+			// let updatedFUnds = {};
+
+            //    if(req.body.bounty) updatedFUnds.isPayed = true; 
+            //    updatedFUnds.payedAmount = event.totalAmount;
+			//    updatedFUnds.type="already_recovered";
+			//    await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
+
+			// 	campaignType.funds[0]=event.campaign.token;
+            //     campaignType.funds[1] = event.campaign.currentAmount;
+			// 	if(event.campaign.currentAmount === '0') campaignType.type='finished';
+			//     await app.db.campaigns().updateOne({hash:idCampaign},{$set:campaignType});
+
 			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
 			let updatedFUnds = {};
 			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
@@ -2891,5 +2890,28 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			}
 			})	
 
+<<<<<<< HEAD
+=======
+
+			app.get('/testStatsLinkedin',async (req,res)=>{
+				try{
+					link=await app.db.campaign_link().findOne({id_prom:req.body.id_prom});
+					let userWallet = await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});			
+
+					let linkedinProfile=await app.db.linkedinProfile().findOne({userId:userWallet.UserId}) 
+					console.log(linkedinProfile);
+					socialOracle = await app.oracle.linkedin(link.organization,link.idPost,link.idUser,linkedinProfile)
+					
+					res.send(JSON.stringify({oracles :socialOracle}));
+
+				}catch(err){
+					res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+				}
+			})
+
+
+	
+>>>>>>> e3ffba3db9250115b8c9a923639a8ed24bcaa594
 	return app;
 }

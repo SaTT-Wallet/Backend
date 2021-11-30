@@ -177,6 +177,84 @@ graph.promsErc20 = async (nbr)=> {
   })
 }
 
+
+
+
+graph.promBep20 = async (idProm)=> {
+  return new Promise(async (resolve, reject) => {
+    let request= gql`{
+      proms(where:{id:"${idProm}"}) {
+        totalAmount
+        typeSN
+        idPost
+        idUser
+        campaign{
+          id
+          initialAmount
+          currentAmount
+          token
+        }
+       
+      }
+  }      
+`;    
+    clientBep20
+      .query({
+        query: request
+      })
+      .then((data) => 
+        {
+          resolve(data.data.proms);          
+        }
+      )
+      .catch((err) => {
+        console.log('Error fetching data: ', err)
+      })
+  })
+}
+
+graph.promErc20 = async (idProm)=> {
+  return new Promise(async (resolve, reject) => {
+    let request= gql`{
+      proms(where:{id:"${idProm}"}) {
+        totalAmount
+        typeSN
+        idPost
+        idUser
+        campaign{
+          id
+          initialAmount
+          currentAmount
+          token
+        }
+       
+      }
+  }      
+`;    
+    clientErc20
+      .query({
+        query:request
+      })
+      .then((data) => 
+        {
+          resolve(data.data.proms);          
+        }
+      )
+      .catch((err) => {
+        console.log('Error fetching data: ', err)
+      })
+  })
+}
+
+graph.getPromDetails=async(idProm)=>{
+  return new Promise(async (resolve, reject) => {
+    let promBep20 =await app.graph.promBep20(idProm);
+    let promErc20=await app.graph.promErc20(idProm);
+    let prom=promBep20.concat(promErc20);
+    resolve(prom[0])
+  })
+}
+
 graph.allCampaigns= async ()=>{
   return new Promise(async (resolve, reject) => {
   let campaignBep20 =await app.graph.campaignsBep20();
