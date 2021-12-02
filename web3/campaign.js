@@ -133,15 +133,11 @@ module.exports = async function (app) {
 
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-
-
-
 			var ctr = await campaignManager.getContractToken(token);
-
-
-
 			var gasPrice = await ctr.getGasPrice();
-			var gas = 600000;
+			// var gas = 600000;
+			var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
+
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
