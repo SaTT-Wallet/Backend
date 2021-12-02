@@ -196,7 +196,9 @@ module.exports = async function (app) {
 		app.db.linkedinProfile = () =>{
 			return db.db(app.config.mongoBase).collection('linkedin_profile');
 	};
-
+	app.db.paymentEvents = () =>{
+		return db.db(app.config.mongoBase).collection('payment_event');
+    };
 
 		app.db.ig_media = function () {
 						return db.db(app.config.mongoBase).collection("ig_media");

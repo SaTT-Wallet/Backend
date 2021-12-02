@@ -5,7 +5,6 @@ module.exports = function (app) {
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
 	var rp = require('request-promise');
-	const { v4: uuidv4 } = require('uuid');
 	const { v5 : uuidv5 } = require('uuid')
 	const xChangePricesUrl = app.config.xChangePricesUrl;
     const log = console.log.bind(console,"logged");
@@ -1806,17 +1805,16 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
-		let payment_id=/*uuidv4()*/randomUUID();	
+		let payment_id=randomUUID();	
 		const uiad = app.config.uiad;	
 		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
 		let user = await app.db.sn_user().findOne({_id:auth.id},{projection: { email: true, phone: true,created:true}});
 		let request = {};
-		request._id = auth.id.toString(), request.installDate=user.created,request.phone=user.phone
+		request._id = auth.id.toString(), request.installDate=user.created
 		request.email=user.email,request.addressIp=req.addressIp,request.user_agent = user_agent;
 		request.language=http_accept_language;
 		request.quote_id = req.body.quote_id //from /getQuote api
-		request.location=req.body.location;
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
 	
 		request.uuid = payment_id
@@ -1847,23 +1845,45 @@ app.post('/wallet/remove/token', async (req, res) =>{
 	}
 	})
 
-app.get('/paymentEvent', async (req, response)=>{
+app.get('/events/:paymentId', async (req, response)=>{
 	try{
-        const paymentRequest ={
-		url: app.config.sandBoxUri +"/wallet/merchant/v2/events",
-		method: 'GET',
-		headers: {
-			'Authorization': `ApiKey ${app.config.sandBoxKey}`,
-		  },
-		json: true
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth = await app.crm.auth(token);
+
+        const eventRequest ={
+			url: app.config.sandBoxUri +"/wallet/merchant/v2/events",
+			method: 'GET',
+			headers: {
+				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+			  },
+			json: true
+		  };
+		  
+		const eventSubmitted = await rp(eventRequest);
+		let event={userId:auth.id};
+        eventSubmitted.events.forEach(async(elem)=>{
+        if(elem.payment.id === req.params.paymentId){
+			if(elem.name=="payment_simplexcc_approved"){
+			event.status = "payment_simplexcc_approved"
+			await app.db.paymentEvents().insertOne(event);
+			}
+			    const paymentRequest ={
+		       url: app.config.sandBoxUri +"/wallet/merchant/v2/events/"+elem.event_id,
+		       method: 'DELETE',
+		       headers: {
+			   'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+		       },
+		       json: true
 	  };
-	  const paymentSubmitted = await rp(paymentRequest);
-	  response.end(JSON.stringify(paymentSubmitted));
-	}catch (err) {
+	     await rp(paymentRequest);
+		}
+		})
+
+	  response.status(200).json({message:"event handled"})
+	}catch(err){
 		app.account.sysLogError(err);
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-	 }
-	
+	 }	
 })
 
 	return app;
