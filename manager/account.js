@@ -864,7 +864,7 @@ module.exports = async function (app) {
 					crypto.price=CryptoPrices[tokenSymbol].price;
 					crypto.variation=CryptoPrices[tokenSymbol].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber()+"")*CryptoPrices[tokenSymbol].price))
-					crypto.quantity=app.token.filterAmount(new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber());
+					crypto.quantity=new Big(ret[Amount]).div(new Big(10).pow(decimal)).toNumber().toFixed(8);
 					listOfCrypto.push(crypto);
 			  }
 					resolve({listOfCrypto});

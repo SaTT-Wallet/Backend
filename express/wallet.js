@@ -96,7 +96,7 @@ module.exports = function (app) {
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.status(400).end(JSON.stringify({error:err.message?err.message:err.error}))
 		}
 		finally{
 			if(id){
@@ -1864,7 +1864,7 @@ app.get('/events/:paymentId', async (req, response)=>{
         eventSubmitted.events.forEach(async(elem)=>{
         if(elem.payment.id === req.params.paymentId){
 			if(elem.name=="payment_simplexcc_approved"){
-			event.status = "payment_simplexcc_approved"
+			event.status = "payment_simplexcc_approved";
 			await app.db.paymentEvents().insertOne(event);
 			}
 			    const paymentRequest ={
