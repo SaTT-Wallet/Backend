@@ -9,8 +9,6 @@ module.exports = function (app) {
   var  ObjectID = require('mongodb').ObjectID
   var bodyParser = require('body-parser');
   var rp = require('request-promise');
-  const { createLogger, format, transports } = require('winston');
-  const { combine, timestamp, label, prettyPrint, myFormat } = format;
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use( bodyParser.json() )
   
@@ -31,8 +29,6 @@ module.exports = function (app) {
   var TwitterStrategy = require('passport-twitter').Strategy;
   var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
   var session = require('express-session');
-  const countryList = require('country-list');
-  const geoip = require('geoip-lite');
   const speakeasy =require('speakeasy');
   const qrcode =require('qrcode');
 
@@ -2228,6 +2224,17 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
+  })
+
+  app.get('/verifyToken', async (req, response)=>{
+    try{
+      const token = req.headers["authorization"].split(" ")[1];
+      await app.crm.auth(token);
+      response.status(200).json({isValid:true});
+    }catch(err){
+      app.account.sysLogError(err);
+      response.status(401).json({isValid:false});
+     }	
   })
   return app;
 }

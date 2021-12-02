@@ -1,5 +1,5 @@
 
-module.exports = function (app) {
+module.exports =  app => {
 
 
 	let ejs = require('ejs');
@@ -1641,7 +1641,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					return;
 				}
 				let campaign=await app.db.campaigns().findOne({hash:idCampaign},{projection: { bounties: true }});
-				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));;
+				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));
 				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
 				var evts = await app.campaign.updateBounty(idProm,cred2);
 				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
