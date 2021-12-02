@@ -154,12 +154,10 @@ module.exports = function (app) {
       var users = await app.db.sn_user().find({email: username.toLowerCase()}).toArray();
       if (users.length) {
         var user = users[0];
-
         var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
         if (res.length && !user.password) {
           await app.db.sn_user().updateOne({_id: Long.fromNumber(user._id)}, {$set: {password: res[0].password}});
         }
-        
         if (user.password == synfonyHash(password)) {
            app.account.sysLog("authentification", req.addressIp, `valid ${username}`);
            let validAuth =  await app.account.isBlocked(user,true)
@@ -1869,7 +1867,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
        req.query.userId=Number(req.query.state.split('|')[0]);
        req.query.linkedinId = profile.id
        req.query.accessToken=accessToken
-       done (null,profile, {status:true, message:'account_linked_with success'})
+       done (null,profile, {status:true, message:'account_linked_with_success'})
     }));
 
     app.get('/callback/link/linkedin',passport.authenticate('linkedin_link'), async (req, res)=> {
@@ -1899,7 +1897,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           } 
         }
       } 
-      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl +redirect + "channel obligatoire");
+      if(!linkedinProfile.pages.length) return res.redirect(app.config.basedURl +redirect + "?message=channel obligatoire");
       await app.db.linkedinProfile().updateOne({userId},{$set:linkedinProfile},{upsert:true});
       let message = req.authInfo.message;
       res.redirect(app.config.basedURl +redirect +'?message=' + message);

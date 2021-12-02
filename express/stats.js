@@ -153,13 +153,9 @@ const Grid = require('gridfs-stream');
 		
 		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
 		if(campaign && campaign.hash){
-			var ctr = await app.campaign.getCampaignContract(campaign.hash);
-			if(!ctr.methods) {
-				response.end("{}");
-				return;
-			}
-			campaign.remaining=campaign.funds[1];	
-		}
+		
+			campaign.remaining=campaign.funds[1];
+		}	
 		file =await gfs.files.findOne({'campaign.$id':campaign._id});
 		if(file){
 		const readstream = gfs.createReadStream(file);

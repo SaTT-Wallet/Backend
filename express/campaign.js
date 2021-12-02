@@ -25,6 +25,8 @@ module.exports =  app => {
 	const countryList = require('country-list');
 	const nodemailer = require("nodemailer");
     const geoip = require('geoip-lite');
+	const { v4: uuidv4 } = require('uuid');
+
 	var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
 
@@ -33,7 +35,7 @@ module.exports =  app => {
 		options: { useNewUrlParser: true,useUnifiedTopology: true },
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			  const filename = file.originalname;
+			  const filename = uuidv4();
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_kit'
@@ -49,7 +51,7 @@ module.exports =  app => {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			  const filename = file.originalname;
+			  const filename = uuidv4();
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_cover'
@@ -65,7 +67,7 @@ module.exports =  app => {
 		options: { useNewUrlParser: true ,useUnifiedTopology: true},
 		file: (req, file) => {
 		  return new Promise((resolve, reject) => {
-			  const filename = file.originalname;
+			  const filename = uuidv4();
 			  const fileInfo = {
 				filename: filename,
 				bucketName: 'campaign_logo'
