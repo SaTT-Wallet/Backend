@@ -1205,7 +1205,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
            message=req.authInfo.message;
 	let info=req.query.state.split(' ');
           campaign_id=info[1];
-          response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
+          response.redirect(app.config.basedURl+'/part/'+campaign_id+"?message="+message);
         } catch (e) {
           console.log(e)
         }
@@ -1235,7 +1235,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         let info=req.query.state.split(' ');
         campaign_id=info[1];
-        response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
+        response.redirect(app.config.basedURl+'/part/'+campaign_id+"?message="+message);
       } catch (e) {
         console.log(e)
       }
@@ -1277,7 +1277,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           }
           let info=req.session.state.split(' ');
           campaign_id=info[1];
-          response.redirect(app.config.basedURl+' /home/campaigns/part'+campaign_id+"?message="+message);
+          response.redirect(app.config.basedURl+'/part/'+campaign_id+"?message="+message);
 
         } catch (e) {
           console.log(e)
@@ -2222,6 +2222,30 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       let deactivate=req.body.deactivate;
       await app.db.linkedinProfile().updateOne({$and:[{userId},{"pages.organization": organization}]},{ $set: { "pages.$.deactivate" : deactivate } })
       response.end(JSON.stringify({message:"success"}));
+
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  })
+
+  app.get('/userAccounts/:typeSN/:socialId', async  (req, response) =>{
+    try{
+      let typeSN=req.params.typeSN;
+      let socialId=req.params.socialId;
+      let UserId=await app.oracleManager.checkSocialUser(typeSN,socialId)
+      let networks={};
+      var channelsGoogle = await app.db.googleProfile().find({UserId}).toArray();
+	    var channelsTwitter = await app.db.twitterProfile().find({UserId}).toArray();
+	    let channelsFacebook = await app.db.fbPage().find({UserId}).toArray();
+      let fbProfile=await app.db.fbProfile().findOne({UserId})
+      let channelsLinkedin = await app.db.linkedinProfile().findOne({userId:UserId});
+      let linkedinPages=channelsLinkedin?.pages||[];
+      let linkedinProfile={accessToken:channelsLinkedin.accessToken,userId:channelsLinkedin.userId,linkedinId:channelsLinkedin.linkedinId}
+        networks.google={channelsGoogle};
+	      networks.twitter={channelsTwitter};
+        networks.facebook={channelsFacebook,fbProfile};
+        networks.linkedin={linkedinPages,linkedinProfile};
+      response.send(JSON.stringify(networks))
 
     }catch(err){
       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
