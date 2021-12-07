@@ -1861,7 +1861,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       clientID: app.config.linkedin_key,
       clientSecret: app.config.linkedin_secret,
       callbackURL: app.config.baseUrl + "callback/link/linkedin",
-      scope: ['r_basicprofile','r_organization_social','rw_ads','w_organization_social','r_ads','r_1st_connections_size','r_ads_reporting','rw_organization_admin','w_member_social'],
+      scope: ['r_basicprofile','r_organization_social'/*'w_organization_social','rw_ads','r_ads','r_1st_connections_size','r_ads_reporting',*/,'rw_organization_admin'/*,'w_member_social'*/],
       passReqToCallback:true
     }, async (req,accessToken, refreshToken, profile, done) =>{
        req.query.userId=Number(req.query.state.split('|')[0]);
