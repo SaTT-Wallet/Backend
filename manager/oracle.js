@@ -192,7 +192,6 @@ module.exports = async function (app) {
 			
 			var perf = {shares:0,likes:0,views:0};
 			let url=app.config.linkedinStatsUrl(type,idPost,organization);
-			console.log(url)
 			const linkedinData ={
 				url: url,
 				method: 'GET',
