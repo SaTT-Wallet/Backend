@@ -96,7 +96,7 @@ module.exports = function (app) {
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
-			response.status(400).end(JSON.stringify({error:err.message?err.message:err.error}))
+			response.end(JSON.stringify({error:err.message?err.message:err.error}))
 		}
 		finally{
 			if(id){
