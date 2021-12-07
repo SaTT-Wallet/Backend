@@ -211,7 +211,7 @@ module.exports =  app => {
 	//  }
 	  let updateStat= async ()=>{
 		let dateNow = new Date();
-		let campaigns=await app.db.campaigns({ hash: { $exists: true} },{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}}).find().toArray();
+		let campaigns=await app.db.campaigns().find({ hash: { $exists: true} },{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0,coverSrc:0,countries:0}}).toArray();
 		campaigns.forEach(async(campaign)=>{
 			campaign &&	await app.db.campaigns().updateOne({_id:ObjectId(campaign._id)},{$set:{ type : app.campaign.campaignStatus(campaign)}})
 		})
@@ -2891,6 +2891,23 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 			}
 			})	
+
+			app.get('/pendingLinks', async (req, res) => {
+				let links=[];
+				let pendingLinks=[];
+				let campaigns=await app.db.campaigns().find({ hash: { $exists: true}, type:"apply" },{projection: { hash: true,_id:false }}).toArray();
+				for(let i=0;i<campaigns.length;i++){
+					links.push(...await app.db.campaign_link().find({id_campaign:campaigns[i].hash,type:"harvest"},{projection: { id_wallet: true,_id:false }}).toArray());		
+				}
+
+				for(let i=0;i<links.length;i++){
+				 let userId = await app.db.wallet().findOne({"keystore.address" : links[i].id_wallet.substring(2)},{projection: { UserId: true,_id:false }});
+				  let userEmail = await app.db.sn_user().findOne({_id:userId.UserId},{projection: { email: true,_id:false }});
+				  links[i].email = userEmail.email
+				  pendingLinks.push(links[i])
+				}
+              res.status(202).json(pendingLinks)
+			})
 
 	return app;
 }
