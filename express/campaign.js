@@ -2909,5 +2909,97 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
               res.status(202).json(pendingLinks)
 			})
 
+
+	/**
+ * @swagger
+ * /v2/campaign/multiple :
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: idProm
+ *         description: id of campaign.
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+	 app.post('/v2/campaign/multiple/validate', async function(req, res) {
+     
+		let pass = req.body.pass;
+		let idCampaign = req.body.idCampaign;
+		let proms = req.body.idProms;
+        let linkProms = req.body.links
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth =	await app.crm.auth(token);
+		 
+		try {
+			const lang = "en";
+			app.i18n.configureTranslation(lang);
+			var cred = await app.account.unlock(auth.id,pass);
+			var ret = await app.campaign.validateProms(proms,cred);
+			res.end(JSON.stringify(ret));
+
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+			if(cred) app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+				    const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+				    const id = req.body.idUser;
+				    const email = req.body.email;
+					for(let i=0;i<proms.length;i++){
+						var idApply=proms[i];
+						let link = await app.db.campaign_link().findOne({id_prom:idApply});
+					let userWallet =  await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
+                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id,linkedinProfile);
+					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
+					socialOracle.status = true,link.status= true;
+					if(socialOracle.views ==='old') socialOracle.views = link.views ||'0';
+					link.likes = socialOracle.likes;
+					link.views=socialOracle.views;
+					link.shares = socialOracle.shares;	
+					link.campaign=campaign;
+					link.totalToEarn = campaign.ratios.length ?  app.campaign.getTotalToEarn(link,campaign.ratios): app.campaign.getReward(link,campaign.bounties);
+					socialOracle.totalToEarn = link.totalToEarn;
+					socialOracle.type= app.campaign.getButtonStatus(link);
+			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
+					}							    
+				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProms, cmp_hash : idCampaign, hash:ret.transactionHash,promHash:proms})
+                
+				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
+					if (err) {
+						console.error(err)
+						return
+					  }
+					  let template = handlebars.compile(html);
+
+						let emailContent = {
+						cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+						satt_faq : app.config.Satt_faq,
+						satt_url: app.config.basedURl,
+						cmp_title: campaign.title,
+						imgUrl: app.config.baseEmailImgURl
+						};
+							let htmlToSend = template(emailContent);
+
+							let mailOptions = {
+							 from: app.config.mailSender,
+							 to: email,
+							 subject: 'Your link has been accepted in a campaign',
+							 html: htmlToSend
+						};
+
+					  transporter.sendMail(mailOptions);
+						})
+			 }
+		}
+	});
+
 	return app;
 }
