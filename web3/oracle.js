@@ -345,7 +345,6 @@ try{
 				switch (typeSN) {
 					case "1" || "3":
 						fbProfile = await app.db.fbProfile().findOne({id:id});
-
 						userId=fbProfile.UserId;	 
 					break;
 					case "2":
