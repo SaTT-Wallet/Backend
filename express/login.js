@@ -183,7 +183,7 @@ module.exports = function (app) {
            return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
       } else {
-        return done(null, false, {error: true, message: 'account_invalide'});
+        return done(null, false, {error: true, message: 'invalid_grant'});
       }
     }
   ));
@@ -1951,7 +1951,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     function(req, res) {
       try {
         if(req.params.redirect == "security"){
-          url=" /home/settings/security";
+          url="/home/settings/security";
         }else{
           url="/social-registration/monetize-telegram";
         }
@@ -2256,5 +2256,36 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       response.status(401).json({isValid:false});
      }	
   })
+
+  app.post('/auth/apple', async(req, res) => {
+    try{
+        let date = Math.floor(Date.now() / 1000) + 86400;
+        let buff = Buffer.alloc(32);
+        let token = crypto.randomFillSync(buff).toString('hex');
+        let email=req.body.mail;
+        let id_apple=req.body.id_apple;
+        let idSn=req.body.idSN;
+        let name=req.body.name;
+        let user=await app.db.sn_user().findOne({email: email});
+        if(user){
+          if(user.idSn === idSn){
+              await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+              let param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
+              res.send(JSON.stringify(param));
+            }else{
+              res.send(JSON.stringify({messgae:"account_exists_with_another_courrier"}))
+            }
+        }else{
+          let snUser={_id:Long.fromNumber(await app.account.handleId()),id_apple:id_apple,email:email,idSn:idSn,name:name}
+          let user=await app.db.sn_user().insertOne(snUser);
+          await app.db.accessToken().insertOne({client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user"});
+          let param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
+          res.send(JSON.stringify(param));
+        }  
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  });
+  
   return app;
 }

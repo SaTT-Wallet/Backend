@@ -307,7 +307,6 @@ module.exports = async function (app) {
 			try {
 				console.log(proms[0])
 				var ctr = await campaignManager.getPromContract(proms[0]);
-				console.log(ctr)
 				var gasPrice = await ctr.getGasPrice();
 				var gas = await ctr.methods.validateProms(proms).estimateGas({from:credentials.address,gasPrice: gasPrice});
 				var receipt = await  ctr.methods.validateProms(proms).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
