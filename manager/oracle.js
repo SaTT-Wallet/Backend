@@ -71,8 +71,8 @@ module.exports = async function (app) {
 				var followers=0;
 				var campaign_link = await app.db.campaign_link().findOne({idPost});
 				var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
-		
-				 var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{ instagram_id: { $exists: true} }]});
+				let instagramUserName=await oracleManager.getInstagramUserName(idPost);
+				 var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{instagram_username: instagramUserName},{ instagram_id: { $exists: true} }]});
 				 if(fbPage){
 						var instagram_id=fbPage.instagram_id;
 						var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
