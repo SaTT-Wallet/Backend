@@ -1132,6 +1132,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 	},{
 		$sort: {
 			sort: 1,
+			appliedDate: -1,
 			_id: 1
 		}
 	}]).skip(skip).limit(limit).toArray();
@@ -1246,8 +1247,9 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				    const email = req.body.email;			
 				    let link = await app.db.campaign_link().findOne({id_prom:idApply});
 					let userWallet =  await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
-					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
-                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,auth.id,linkedinProfile);
+					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId});
+				   	let userId= link.oracle === 'instagram' ? userWallet.UserId : null;
+                    let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,userId,linkedinProfile);
 					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
 					socialOracle.status = true,link.status= true;
 					if(socialOracle.views ==='old') socialOracle.views = link.views ||'0';
@@ -1664,7 +1666,6 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser,link.typeURL,linkedinData);
-			
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
 			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
@@ -1676,7 +1677,6 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			//console.log(prevstat);
 
 		      requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
-
 			if(!requests.length)
 			{
 
@@ -2951,7 +2951,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			if(ret && ret.transactionHash){
 				    const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 				    const id = req.body.idUser;
-				    const email = req.body.email;
+				    const emails = req.body.emails;
 					for(let i=0;i<proms.length;i++){
 						var idApply=proms[i];
 						let link = await app.db.campaign_link().findOne({id_prom:idApply});
@@ -2969,14 +2969,14 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					socialOracle.totalToEarn = link.totalToEarn;
 					socialOracle.type= app.campaign.getButtonStatus(link);
 			        await app.db.campaign_link().updateOne({id_prom:idApply},{$set:socialOracle});
-					}							    
+									    
 				await app.account.notificationManager(id, "cmp_candidate_accept_link",{cmp_name:campaign.title, action : "link_accepted", cmp_link : linkProms, cmp_hash : idCampaign, hash:ret.transactionHash,promHash:proms})
                 
-				readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
-					if (err) {
-						console.error(err)
-						return
-					  }
+					readHTMLFile(__dirname + '/emailtemplate/email_validated_link.html' ,(err, html) => {
+						if (err) {
+							console.error(err)
+							return
+					 	 }
 					  let template = handlebars.compile(html);
 
 						let emailContent = {
@@ -2990,13 +2990,14 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 							let mailOptions = {
 							 from: app.config.mailSender,
-							 to: email,
+							 to: emails[i],
 							 subject: 'Your link has been accepted in a campaign',
 							 html: htmlToSend
 						};
 
 					  transporter.sendMail(mailOptions);
 						})
+					}		
 			 }
 		}
 	});
