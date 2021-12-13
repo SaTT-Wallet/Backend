@@ -48,7 +48,7 @@ module.exports = async function (app) {
 	}
 
 	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+    var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 
 	app.db.accessToken = function () {
 				return db2.db(app.config.mongoBaseCrm).collection('access_token');
@@ -193,8 +193,12 @@ module.exports = async function (app) {
 		app.db.twitterProfile = function () {
 				return db.db(app.config.mongoBase).collection('twitter_profile');
 		};
-
-
+		app.db.linkedinProfile = () =>{
+			return db.db(app.config.mongoBase).collection('linkedin_profile');
+	};
+	app.db.paymentEvents = () =>{
+		return db.db(app.config.mongoBase).collection('payment_event');
+    };
 
 		app.db.ig_media = function () {
 						return db.db(app.config.mongoBase).collection("ig_media");

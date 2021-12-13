@@ -71,8 +71,8 @@ module.exports = async function (app) {
 				var followers=0;
 				var campaign_link = await app.db.campaign_link().findOne({idPost});
 				var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
-		
-				 var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{ instagram_id: { $exists: true} }]});
+				let instagramUserName=await oracleManager.getInstagramUserName(idPost);
+				 var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{instagram_username: instagramUserName},{ instagram_id: { $exists: true} }]});
 				 if(fbPage){
 						var instagram_id=fbPage.instagram_id;
 						var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
@@ -106,8 +106,25 @@ module.exports = async function (app) {
 		});
 	};
 
-
-
+	oracleManager.linkedinAbos = async  (linkedinProfile,organization)=> {
+		return new Promise(async (resolve, reject) => {
+			try{
+				const linkedinData ={
+					url: `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
+					method: 'GET',
+					headers:{
+					'Authorization' : "Bearer "+linkedinProfile.accessToken
+				   },
+					json: true
+					};	
+                   let postData = await rp(linkedinData)	
+                   resolve(postData.firstDegreeSize)
+			}catch(err){
+				reject(err);
+			}
+			
+		});
+	};
 
 
 	oracleManager.facebook = async function (pageName,idPost) {
@@ -162,6 +179,45 @@ module.exports = async function (app) {
 				perf = {shares:0/*res.items[0].statistics.commentCount*/,likes:res.items[0].statistics.likeCount,views:res.items[0].statistics.viewCount,date:Math.floor(Date.now()/1000)};
 		 }
 
+			resolve(perf);
+		}catch (err) {
+			reject({message:err.message});
+		}
+		})
+
+	};
+	oracleManager.linkedin = async  (organization,idPost,type,linkedinProfile)=> {
+		return new Promise(async (resolve, reject) => {
+			try{
+			
+			var perf = {shares:0,likes:0,views:0};
+			let url=app.config.linkedinStatsUrl(type,idPost,organization);
+			const linkedinData ={
+				url: url,
+				method: 'GET',
+				headers:{
+				'Authorization' : "Bearer "+linkedinProfile.accessToken
+			   },
+				json: true
+				};
+				var body = await rp(linkedinData);
+				if(body.elements.length){					
+				perf.views=body.elements[0]?.totalShareStatistics.impressionCount;
+				perf.likes=body.elements[0]?.totalShareStatistics.likeCount;
+				perf.shares=body.elements[0]?.totalShareStatistics.shareCount;
+				}
+						if(type !=="share"){
+							const linkedinVideoData ={
+								url: app.config.linkedinUgcPostStats(idPost),
+								method: 'GET',
+								headers:{
+								'Authorization' : "Bearer "+linkedinProfile.accessToken
+							},
+								json: true
+							};
+							var bodyVideo = await rp(linkedinVideoData);
+							perf.views=bodyVideo.elements[0].value;
+				}	 
 			resolve(perf);
 		}catch (err) {
 			reject({message:err.message});
@@ -254,18 +310,18 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 			if(res.errors)
 			{
+
+
 				res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"public_metrics",'expansions':'attachments.media_keys','media.fields':'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text'});
 
 
-				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
+				var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url,views:'old'};
 				resolve(perf);
 				return;
 			}
 
 
 			var perf = {shares:res.data[0].public_metrics.retweet_count,likes:res.data[0].public_metrics.like_count,views:res.data[0].non_public_metrics.impression_count,date:Math.floor(Date.now()/1000),media_url:res.includes?.media[0]?.url};
-
-
 
 			resolve(perf);
 		}catch (err) {
@@ -296,7 +352,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 				if(res.items) {
 					var channelId = res.items[0]?.snippet.channelId;
-					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId  });
+					var googleProfile = await app.db.googleProfile().findOne({UserId:userId,channelId:channelId});
 					resolve(googleProfile);
 			  }
 				else {
@@ -320,12 +376,11 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 				page = await app.db.fbPage().findOne({$and:[{UserId:userId  },{instagram_username:resMedia.author_name}]});
 
-				if (page)
-
+				if (page && !page.deactivate)
 				resolve(true);
-
-				else 
-
+				else if(page && page.deactivate === true)
+				resolve("deactivate");
+				else
 				resolve(false);
 
 			}catch (err) {
@@ -342,23 +397,80 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		return new Promise(async (resolve, reject) => {
 			try {
 				var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId  },{projection: { access_token_key: true,access_token_secret:true,id:true }});
-				var tweet = new Twitter2({
-				  consumer_key: app.config.twitter.consumer_key,
-				  consumer_secret: app.config.twitter.consumer_secret,
-				  access_token_key: twitterProfile.access_token_key,
-				  access_token_secret: twitterProfile.access_token_secret
-				});
-				var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"author_id"});
-				resolve(res.data[0].author_id == twitterProfile.id)
-
+				if(twitterProfile.deactivate === true) resolve("deactivate");
+				else{
+					var tweet = new Twitter2({
+						consumer_key: app.config.twitter.consumer_key,
+						consumer_secret: app.config.twitter.consumer_secret,
+						access_token_key: twitterProfile.access_token_key,
+						access_token_secret: twitterProfile.access_token_secret
+					  });
+					  var res = await tweet.get('tweets' ,{ids:idPost,'tweet.fields':"author_id"});
+					  resolve(res.data[0].author_id == twitterProfile.id)
+				}
+			
 			}catch (err) {
 				reject({message:err.message});
 			}
 		})
 	}
+    
+    oracleManager.verifyLinkedin= async (linkedinProfile,idPost)=> {
+		return new Promise( async (resolve, reject) => {
+			try {
+				const linkedinData ={
+					url: app.config.linkedinActivityUrl(idPost),
+					method: 'GET',
+					headers:{
+					'Authorization' : "Bearer "+linkedinProfile.accessToken
+				   },
+					json: true
+					};
+				   let res = false;
+				   let urn = `urn:li:activity:${idPost}`;	
+                   let postData = await rp(linkedinData)
+				   if(!Object.keys(postData.results).length) {
+					resolve(res)
+					return}
+					let owner = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+				   linkedinProfile.pages.forEach((element)=>{
+                    if(element.organization === owner && !element.deactivate) res=true;
+					if(element.organization === owner && element.deactivate === true) resolve("deactivate")
+				   })
+				   resolve(res)
+	}catch (err) {
+		app.account.sysLogError(err);
+		reject({message:err.message});
+	}
+})
+	}
 
+	oracleManager.getLinkedinLinkInfo =async (accessToken,activityURN)=> {
+		return new Promise( async (resolve, reject) => {
+			try {
+				let linkInfo={};
+				const linkedinData ={
+					url: app.config.linkedinActivityUrl(activityURN),
+					method: 'GET',
+					headers:{
+					'Authorization' : "Bearer "+accessToken
+				   },
+					json: true
+					};
+					let postData = await rp(linkedinData)
+					let urn = `urn:li:activity:${activityURN}`;
+					linkInfo.idUser = postData.results[urn]["domainEntity~"].owner ?? postData.results[urn]["domainEntity~"].author;
+					linkInfo.idPost = postData.results[urn]["domainEntity"];
+					if(postData.results[urn]["domainEntity~"].content) linkInfo.mediaUrl = postData.results[urn]["domainEntity~"].content.contentEntities[0].entityLocaion;
+					resolve(linkInfo)
+			}catch (err) {
+				app.account.sysLogError(err);
+				reject({message:err.message});
+			}
+		})
+			} 
 
-	oracleManager.getPromDetails = async function (idProm) {
+ 	oracleManager.getPromDetails = async (idProm)=> {
 		return new Promise(async (resolve, reject) => {
 		try {
 		var ctr = await app.campaign.getPromContract(idProm);
@@ -378,7 +490,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		typeSN =='2' ? "youtube" : 
 		typeSN == '3' ? "instagram" : 
 		typeSN == "4" ? "twitter":
-		null // else
+		"linkedin" // else
 	  );
 	}
 
