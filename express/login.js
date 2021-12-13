@@ -183,7 +183,7 @@ module.exports = function (app) {
            return done(null, false, {error: true, message: 'invalid_grant'}); //done("auth failed",null);
         }
       } else {
-        return done(null, false, {error: true, message: 'account_invalide'});
+        return done(null, false, {error: true, message: 'invalid_grant'});
       }
     }
   ));
@@ -300,19 +300,12 @@ module.exports = function (app) {
         "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
         var resToken = await rp({uri:longTokenUrl,json: true});
         var longToken = resToken.access_token;
-
-
-
         var instagram_id = false;
         var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token="+accessToken;
-
-        var res = await rp({uri:accountsUrl,json: true})
-        
+        var res = await rp({uri:accountsUrl,json: true}) 
         while(true) {
-
           for (var i = 0;i<res.data.length;i++) {
-            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};
-            
+            let page={UserId:user_id,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name};           
             if(res.data[i].instagram_business_account) {
               if(!isInsta){
                 message+="_instagram_facebook";
@@ -365,21 +358,29 @@ module.exports = function (app) {
       "&client_secret="+app.config.appSecret+"&fb_exchange_token="+accessToken;
       let resToken = await rp({uri:longTokenUrl,json: true});
       let longToken = resToken.access_token;
-
       let UserId=+req.query.state.split('|')[0];
       let isInsta=false;     
-      let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
       let fbProfile = await app.db.fbProfile().findOne({UserId});
-    if(fbProfile){await app.db.fbProfile().updateOne({UserId}, { $set: {accessToken:longToken}});}
-    else{  
-        [profile.accessToken,profile.UserId] = [longToken,UserId];
-        await app.db.fbProfile().insertOne(profile);
-    }
+      if(fbProfile && fbProfile.id !== profile.id){
+        cb (null,profile,{
+          message: "external_account"
+      })
+      }
+       else{
+        let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
+        if(fbProfile){await app.db.fbProfile().updateOne({UserId}, { $set: {accessToken:longToken}});}
+        else{  
+            [profile.accessToken,profile.UserId] = [longToken,UserId];
+            await app.db.fbProfile().insertOne(profile);
+        }
       return cb(null, {id: UserId, token: accessToken},{message});
+      }
+     
+      
 
     }));
 
- app.delete('/google/all/channels', async  (req, response) =>{
+      app.delete('/google/all/channels', async  (req, response) =>{
           try{
           const token = req.headers["authorization"].split(" ")[1];
           let auth =	await app.crm.auth(token);
@@ -817,7 +818,6 @@ async function(req, accessToken, tokenSecret, profile, cb) {
       passReqToCallback: true
     },
     async function(req,profile, cb) {
-      console.log("telegram id",profile.id);
       var date = Math.floor(Date.now() / 1000) + 86400;
       var buff = Buffer.alloc(32);
       var token = crypto.randomFillSync(buff).toString('hex');
@@ -861,7 +861,6 @@ async function(req, accessToken, tokenSecret, profile, cb) {
   async function (req,accessToken, refreshToken, profile, done) {
     let state=req.query.state.split('|');
     let user_id=+state[0];
-    console.log("url=",state[1]);
     let userExist=await app.db.sn_user().find({idOnSn2:profile.id}).toArray();
     if(userExist.length){
 
@@ -1238,7 +1237,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       });
 
 
-      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async function (req, response) {
+      app.get('/callback/googleChannel', passport.authenticate('google_strategy_add_channel', { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }), async function (req, response) {
         try {
           redirect=req.query.state.split('|')[1]
           if(req.authInfo.message){
@@ -1253,7 +1252,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         }
         });
 
-        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+' /home/settings/social-networks?message=access-denied' }), async  (req, response) =>{
+        app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }), async  (req, response) =>{
           try {  
             redirect=req.query.state.split('|')[1];
             let message =req.authInfo.message;
@@ -1952,7 +1951,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
     function(req, res) {
       try {
         if(req.params.redirect == "security"){
-          url=" /home/settings/security";
+          url="/home/settings/security";
         }else{
           url="/social-registration/monetize-telegram";
         }
@@ -2257,5 +2256,36 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       response.status(401).json({isValid:false});
      }	
   })
+
+  app.post('/auth/apple', async(req, res) => {
+    try{
+        let date = Math.floor(Date.now() / 1000) + 86400;
+        let buff = Buffer.alloc(32);
+        let token = crypto.randomFillSync(buff).toString('hex');
+        let email=req.body.mail;
+        let id_apple=req.body.id_apple;
+        let idSn=req.body.idSN;
+        let name=req.body.name;
+        let user=await app.db.sn_user().findOne({email: email});
+        if(user){
+          if(user.idSn === idSn){
+              await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
+              let param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
+              res.send(JSON.stringify(param));
+            }else{
+              res.send(JSON.stringify({messgae:"account_exists_with_another_courrier"}))
+            }
+        }else{
+          let snUser={_id:Long.fromNumber(await app.account.handleId()),id_apple:id_apple,email:email,idSn:idSn,name:name}
+          let user=await app.db.sn_user().insertOne(snUser);
+          await app.db.accessToken().insertOne({client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user"});
+          let param = {"access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user"};
+          res.send(JSON.stringify(param));
+        }  
+    }catch(err){
+      response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+  });
+  
   return app;
 }
