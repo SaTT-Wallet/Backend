@@ -18,9 +18,9 @@ module.exports = function (app) {
 		response.end(JSON.stringify(res));
 	});
 
-	app.get("/instagram/:id", async function (req, response) {
+	app.get("/instagram/:userId/:id", async function (req, response) {
 
-		var res = await app.oracle.instagram(req.params.id);
+		var res = await app.oracle.instagram(req.params.userId,req.params.id);
 		response.end(JSON.stringify(res));
 	});
 
@@ -191,7 +191,7 @@ module.exports = function (app) {
 				break;
 				case "5":
 				var linkedinProfile = await app.db.linkedinProfile().findOne({userId});
-					if(linkedinProfile) {
+					if(linkedinProfile && linkedinProfile.pages.length > 0) {
 						linked = true;
 						res = await app.oracle.verifyLinkedin(linkedinProfile,idPost);
 						if (res === "deactivate" )
