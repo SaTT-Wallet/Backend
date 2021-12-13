@@ -136,7 +136,7 @@ module.exports = function (app) {
               app.account.sysLogError(error);
             } else {
               app.account.log('Email sent: ',users[0].email.toLowerCase() )
-            }
+            }registerUserDeserializer
           });
         });
         req.session.user = users[0]._id;
