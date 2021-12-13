@@ -53,7 +53,7 @@ module.exports = async function (app) {
 	}
 
 
-	ContractToken.answerOne = async function (typeSN,idPost,idUser) {
+	ContractToken.answerOne = async (typeSN,idPost,idUser,type=null,linkedinProfile=null) =>{
 		switch(typeSN) {
 				case "1" :
 					var res = await app.oracle.facebook(idUser,idPost);
@@ -73,6 +73,10 @@ module.exports = async function (app) {
 					var res = await app.oracle.twitter(idUser,idPost)
 
 				break;
+				case "5" :
+					var res = await app.oracle.linkedin(idUser,idPost,type,linkedinProfile)
+
+				break;
 				default :
 					var res = {likes:0,shares:0,views:0,date:Date.now()};
 				break;
@@ -81,7 +85,7 @@ module.exports = async function (app) {
 			return res;
 	}
 
-	ContractToken.answerAbos = async function (typeSN,idPost,idUser) {
+	ContractToken.answerAbos = async (typeSN,idPost,idUser,linkedinProfile=null)=> {
 		switch(typeSN) {
 				case "1" :
 					var res = await app.oracle.facebookAbos(idUser,idPost);
@@ -97,6 +101,10 @@ module.exports = async function (app) {
 				break;
 				case "4" :
 					var res = await app.oracle.twitterAbos(idUser,idPost)
+
+				break;
+				case "5" :
+					var res = await app.oracle.linkedinAbos(linkedinProfile,idUser)
 
 				break;
 				default :
@@ -329,6 +337,42 @@ try{
 
 	}
 
+	ContractToken.checkSocialUser = async function (typeSN,id) {
+
+		return new Promise(async (resolve, reject) => {
+			try {
+				let userId;
+				switch (typeSN) {
+					case "1" || "3":
+						fbProfile = await app.db.fbProfile().findOne({id:id});
+						userId=fbProfile.UserId;	 
+					break;
+					case "2":
+					googleProfile = await app.db.googleProfile().findOne({google_id:id });
+					userId=googleProfile.UserId;
+					break;
+					case "4":
+					var twitterProfile = await app.db.twitterProfile().findOne({twitter_id:id});
+					userId=twitterProfile.UserId;
+					break;
+					case "5":
+					var linkedinProfile = await app.db.linkedinProfile().findOne({linkedinId:id});
+					userId=linkedinProfile.userId;
+					break;
+					
+				}
+				resolve(userId);
+	
+				
+			}
+			catch (err)
+			{
+				reject(err);
+			}
+
+	}
+	)
+	}
 
 
 

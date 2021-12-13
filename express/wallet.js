@@ -1,14 +1,10 @@
-const { async } = require('hasha');
-var Big = require('big.js');
-var proc = require('child_process');
-const { auth } = require('google-auth-library');
+const {randomUUID}= require('crypto');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
 	app.use( bodyParser.json() )
 	var BN = require('bn.js');
 	var rp = require('request-promise');
-	const { v4: uuidv4 } = require('uuid');
 	const { v5 : uuidv5 } = require('uuid')
 	const xChangePricesUrl = app.config.xChangePricesUrl;
     const log = console.log.bind(console,"logged");
@@ -84,23 +80,23 @@ module.exports = function (app) {
     app.get('/v2/total_balance', async (req, response) =>{
 
 		try {
-			const Fetch_crypto_price = {
+			/*const Fetch_crypto_price = {
 				method: 'GET',
 				uri: xChangePricesUrl,
 				json: true,
-				gzip: true,
-				encoding: 'utf8'
-			  };
+				gzip: true
+			  };*/
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
 		      var id = auth.id;
-		  let Crypto = await rp(Fetch_crypto_price);
+		  //let Crypto = await rp(Fetch_crypto_price);
+		  let Crypto =  app.account.getPrices(); 
 		  let variation = 0.00
 		  var Total_balance = await app.account.getBalanceByUid(id, Crypto);
 		  response.end(JSON.stringify({Total_balance, variation})).status(201);
 
 		} catch (err) {
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+			response.end(JSON.stringify({error:err.message?err.message:err.error}))
 		}
 		finally{
 			if(id){
@@ -329,6 +325,10 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}finally{
+			if(ret.address) await app.db.walletUserNode().insertOne({
+				wallet:ret.address,
+				idUser:res.id
+			})
            !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
 		}
 
@@ -1416,54 +1416,9 @@ module.exports = function (app) {
 
 	app.get("/prices", async (req, res) => {
 
-		if(app.prices.status && (Date.now() - (new Date(app.prices.status.timestamp)).getTime() < 1200000)) {
+		var prices = app.account.getPrices()
 
-			res.end(JSON.stringify(app.prices.data));
-		}
-		else {
-			var r = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
-			var response = JSON.parse(r);
-			var r2 = proc.execSync("curl \"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY="+app.config.cmcApiKey+"\"");
-          	var responseSattJet = JSON.parse(r2);
-			response.data.push(responseSattJet.data.SATT);
-			response.data.push(responseSattJet.data.JET);
-
-			var priceMap = response.data.map((elem) =>{
-				var obj = {};
-				obj = {symbol:elem.symbol,
-					name:elem.name,
-					price:elem.quote.USD.price,
-					percent_change_24h:elem.quote.USD.percent_change_24h,
-                    market_cap:elem.quote.USD.market_cap,
-                    volume_24h:elem.quote.USD.volume_24h,
-                    circulating_supply:elem.circulating_supply,
-                    total_supply:elem.total_supply,
-                    max_supply:elem.max_supply,
-					logo: "https://s2.coinmarketcap.com/static/img/coins/128x128/"+elem.id+".png"
-				}
-				return obj;
-			})
-			var finalMap = {};
-			for(var i=0;i<priceMap.length;i++)
-			{
-				finalMap[priceMap[i].symbol] = priceMap[i];
-				delete(finalMap[priceMap[i].symbol].symbol);
-			}
-
-			for(var i=0;i<app.config.token200.length;i++)
-			{
-				var token = app.config.token200[i];
-				if(finalMap[token.symbol]) {
-					finalMap[token.symbol].network = token.platform.network;
-					finalMap[token.symbol].tokenAddress = token.platform.token_address;
-					finalMap[token.symbol].decimals = token.platform.decimals;
-				}
-			}
-		}
-		response.data = finalMap;
-		app.prices = response;
-
-		res.end(JSON.stringify(finalMap))
+		res.end(JSON.stringify(prices))
 	})
 
 app.get('/v2/feebtc', async function(req, response) {
@@ -1792,7 +1747,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
-		    let wallet=await app.db.wallet().findOne({UserId:auth.id})
+		    let wallet=await app.db.wallet().findOne({UserId:auth.id},{projection: { mnemo: true }})
 		    let mnemo=wallet.mnemo;
 	
 		    res.send(JSON.stringify({mnemo}));
@@ -1806,7 +1761,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
 			let mnemo = req.body.mnemo;
-		    let wallet=await app.db.wallet().findOne({$and:[{UserId:auth.id},{mnemo:mnemo}]})
+		    let wallet=await app.db.wallet().findOne({$and:[{UserId:auth.id},{mnemo}]})
 			let verify = wallet ? true : false;
 		    res.send(JSON.stringify({verify}));
 		} catch (err) {
@@ -1822,20 +1777,9 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			requestQuote["client_ip"]= req.addressIp;
             requestQuote["payment_methods"]= ["credit_card"];
             requestQuote["wallet_id"]= "satt";
-		// let testObject = {
-		// 	"end_user_id": String(auth.id),
-		// 	"digital_currency": "ETH",
-		// 	"fiat_currency": "AUD",
-		// 	"requested_currency": "AUD",
-		// 	"requested_amount": 100,
-		// 	"wallet_id": "satt",
-		// 	"client_ip": req.addressIp,
-		// 	"payment_methods" : ["credit_card"] 
-		// }
 		const simplexQuote ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
 			method: 'POST',
-			// body:testObject, 
 			  body:requestQuote, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
@@ -1861,19 +1805,18 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		try {
 		const token = req.headers["authorization"].split(" ")[1];
 		var auth = await app.crm.auth(token);
-		let payment_id=uuidv4();	
+		let payment_id=randomUUID();	
 		const uiad = app.config.uiad;	
 		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
 		let user = await app.db.sn_user().findOne({_id:auth.id},{projection: { email: true, phone: true,created:true}});
 		let request = {};
-		request._id = auth.id.toString(), request.installDate=user.created,request.phone=user.phone
+		request._id = auth.id.toString(), request.installDate=user.created
 		request.email=user.email,request.addressIp=req.addressIp,request.user_agent = user_agent;
 		request.language=http_accept_language;
 		request.quote_id = req.body.quote_id //from /getQuote api
-		request.location=req.body.location;
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
-		// request.uuid = payment_id.slice(0,-String(auth.id).length) + auth.id //payment_id
+	
 		request.uuid = payment_id
 
 		request.currency = req.body.currency;
@@ -1882,7 +1825,6 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		const paymentRequest ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
 			method: 'POST',
-			// body:testObject, 
 			 body:payment, 
 			headers: {
 				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
@@ -1903,17 +1845,45 @@ app.post('/wallet/remove/token', async (req, res) =>{
 	}
 	})
 
-app.get('/paymentEvent', async (req, response)=>{
-	const paymentRequest ={
-		url: app.config.sandBoxUri +"/wallet/merchant/v2/event",
-		method: 'GET',
-		headers: {
-			'Authorization': `ApiKey ${app.config.sandBoxKey}`,
-		  },
-		json: true
+app.get('/events/:paymentId', async (req, response)=>{
+	try{
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth = await app.crm.auth(token);
+
+        const eventRequest ={
+			url: app.config.sandBoxUri +"/wallet/merchant/v2/events",
+			method: 'GET',
+			headers: {
+				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+			  },
+			json: true
+		  };
+		  
+		const eventSubmitted = await rp(eventRequest);
+		let event={userId:auth.id};
+        eventSubmitted.events.forEach(async(elem)=>{
+        if(elem.payment.id === req.params.paymentId){
+			if(elem.name=="payment_simplexcc_approved"){
+			event.status = "payment_simplexcc_approved";
+			await app.db.paymentEvents().insertOne(event);
+			}
+			    const paymentRequest ={
+		       url: app.config.sandBoxUri +"/wallet/merchant/v2/events/"+elem.event_id,
+		       method: 'DELETE',
+		       headers: {
+			   'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+		       },
+		       json: true
 	  };
-	  var paymentSubmitted = await rp(paymentRequest);
-	  console.log(paymentSubmitted)
+	     await rp(paymentRequest);
+		}
+		})
+
+	  response.status(200).json({message:"event handled"})
+	}catch(err){
+		app.account.sysLogError(err);
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }	
 })
 
 	return app;

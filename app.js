@@ -2,6 +2,7 @@
 (async function() {
 
 	try {
+		
 		var express = require('express');
 		var app = express();
 		var cors = require('cors')
@@ -66,6 +67,7 @@
      	app = await require("./web3/oracle")(app);
 		//app = await require("./manager/campaigncentral")(app);
 		app = await require("./web3/campaign")(app);
+		app = await require("./web3/graph")(app);
 		app = await require("./web3/satt")(app);
 		app = await require("./web3/eth")(app);
 		app = await require("./web3/erc20")(app);

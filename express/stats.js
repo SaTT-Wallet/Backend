@@ -1,12 +1,10 @@
-const { VirtualConsole } = require('jsdom');
-const campaign = require('../web3/campaign');
+var rp = require('request-promise');
 
 module.exports = function (app) {
 
 const cron =require('node-cron');
 const Big = require('big.js');
 
-const allEqual = arr => arr.every( v => v === "0" );
 
 cron.schedule('00 01 * * *',  () => {
 	app.account.BalanceUsersStats("daily");
@@ -150,19 +148,14 @@ const Grid = require('gridfs-stream');
 
 	});
 
-	app.get('/v2/campaign/id/:id', async function(req, response) {
+	app.get('/v2/campaign/id/:id', async (req, response)=> {
 		var idCampaign = req.params.id;
 		
 		var campaign = await app.db.campaigns().findOne({_id:app.ObjectId(idCampaign)});
 		if(campaign && campaign.hash){
-			var ctr = await app.campaign.getCampaignContract(campaign.hash);
-			if(!ctr.methods) {
-				response.end("{}");
-				return;
-			}
-			var result = await ctr.methods.campaigns(campaign.hash).call();
-			campaign.remaining=result.funds[1];	
-		}
+		
+			campaign.remaining=campaign.funds[1];
+		}	
 		file =await gfs.files.findOne({'campaign.$id':campaign._id});
 		if(file){
 		const readstream = gfs.createReadStream(file);
@@ -388,6 +381,59 @@ const Grid = require('gridfs-stream');
 		
 	})
 
+	app.get('/v4/campaigns', async (req, response)=> {
+		try{
+			var strangerDraft=[];
+             if(req.query.idWallet){
+			const token = req.headers["authorization"].split(" ")[1];
+			var auth =	await app.crm.auth(token);
+			var idNode="0"+auth.id;		
+			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
+			 }
+			const limit=+req.query.limit || 10;
+			const page=+req.query.page || 1;
+			const skip=limit*(page-1);
+			const id_wallet = req.query.idWallet;
+			let query = app.campaign.sortOutPublic(req,idNode,strangerDraft);
+			
+			let tri= [['draft','apply','inProgress','finished'],"$type"];
+	
+			let campaigns=await app.db.campaigns().aggregate([{
+				$match: 
+					query
+			},
+			 {
+				$addFields: {
+					sortPriority: { $eq: [ "$idNode", idNode ]  } ,
+					sort: {
+						$indexOfArray: tri
+					}
+				}
+			},{
+				$sort: {
+					sort: 1,
+					sortPriority: -1,
+					_id: 1
+				}
+			}	
+		,{ $project: { countries: 0, description:0,resume:0, coverSrc:0 }}]).skip(skip).limit(limit).toArray();
+
+		if(req.query.idWallet){
+			for (var i = 0;i<campaigns.length;i++)
+			{
+				proms = await app.db.campaign_link().find({id_campaign:campaigns[i].hash,id_wallet}).toArray();
+				if(proms.length) campaigns[i].proms =proms;
+			}
+		}
+
+			response.send(JSON.stringify(campaigns));
+		}catch(err){
+			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+		}
+		
+	})
+
 
 	app.get('/v3/campaigns/influencer/:influencer', async function(req, response) {
 		const token = req.headers["authorization"].split(" ")[1];
@@ -443,72 +489,6 @@ const Grid = require('gridfs-stream');
 		campaignsPaginator.campaigns =allCampaigns;
 		response.end(JSON.stringify(campaignsPaginator));
 	})
-
-	app.get('/campaign/owner/:owner', async function(req, response) {
-		var owner = req.params.owner;
-		var campaigns = [];
-		var rescampaigns = [];
-		campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).toArray();
-		var campaignsCrm = [];
-		var campaignsCrmbyId = [];
-		campaignsCrm = await app.db.campaignCrm().find().toArray();
-		for (var i = 0;i<campaignsCrm.length;i++)
-		{
-			if(campaignsCrm[i].hash)
-				campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
-		}
-		for (var i = 0;i<campaigns.length;i++)
-		{
-			var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
-			if(!ctr.methods)
-			{
-				continue;
-			}
-
-			if(campaignsCrmbyId[campaigns[i].id])
-			{
-				campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
-				if(campaigns[i].meta.token.name == "SATTBEP20") {
-					campaigns[i].meta.token.name ="SATT";
-				}
-			}
-			var result = await ctr.methods.campaigns(campaigns[i].id).call();
-			campaigns[i].funds =  result.funds;
-			campaigns[i].nbProms =  result.nbProms;
-			campaigns[i].nbValidProms =  result.nbValidProms;
-			campaigns[i].startDate = result.startDate;
-			campaigns[i].endDate = result.endDate;
-
-			var ratios = await ctr.methods.getRatios(campaigns[i].id).call();
-			var types = ratios[0];
-			var likes = ratios[1];
-			var shares = ratios[2];
-			var views = ratios[3];
-			var res = [
-				{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},
-				{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},
-				{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
-				{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
-			campaigns[i].ratios = res;
-
-		var idproms = await ctr.methods.getProms(campaigns[i].id).call();
-			campaigns[i].proms =[];
-			for (var j =0;j<idproms.length;j++)
-			{
-				var prom = await ctr.methods.proms(idproms[j]).call();
-				prom.id = idproms[j];
-			//	if(prom.influencer.toLowerCase() == owner.toLowerCase())
-				//	campaigns[i].proms.push(prom);
-			}
-
-			rescampaigns.push(campaigns[i]);
-		}
-		//var campaignscentral = await app.statcentral.campaignsByOwner(owner);
-		//rescampaigns = rescampaigns.concat(campaignscentral);
-
-
-		response.end(JSON.stringify(rescampaigns));
-	});
 
       /*
      @Url :/campaigns/list/:token/addr:?page[number]'
@@ -682,115 +662,6 @@ const Grid = require('gridfs-stream');
 	})
 
 
-
-	app.get('/v2/campaigns/list/:addr', async function(req, response) {
-		try{
-			const token = req.headers["authorization"].split(" ")[1];
-			var auth =	await app.crm.auth(token);
-			const limit=parseInt(req.query.limit) || 50;
-			const page=parseInt(req.query.page) || 1;
-			const skip=limit*(page-1)
-			var owner = req.params.addr;
-			var campaigns = [];
-            let rescampaigns = [];
-
-			campaigns = await app.db.campaign().find({contract:{$ne : "central"},owner:owner}).skip(skip).limit(limit).toArray();
-			var campaignsCrm = [];
-			var campaignsCrmbyId = [];
-			campaignsCrm = await app.db.campaignCrm().find({idNode:"0"+auth.id}).skip(skip).limit(limit).toArray();
-			for (var i = 0;i<campaignsCrm.length;i++)
-			{
-				if(campaignsCrm[i].hash)
-					campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i];
-			}
-			for (var i = 0;i<campaigns.length;i++)
-			{
-				var ctr = await app.campaign.getCampaignContract(campaigns[i].id);
-				if(!ctr.methods)
-				{
-					continue;
-				}
-
-				if(campaignsCrmbyId[campaigns[i].id])
-				{
-					campaigns[i].meta = campaignsCrmbyId[campaigns[i].id];
-					if(campaigns[i].meta.token.name == "SATTBEP20") {
-						campaigns[i].meta.token.name ="SATT";
-					}
-				}
-
-				var result = await ctr.methods.campaigns(campaigns[i].id).call();
-				campaigns[i].funds =  result.funds;
-				campaigns[i].nbProms =  result.nbProms;
-				campaigns[i].nbValidProms =  result.nbValidProms;
-				campaigns[i].startDate = result.startDate;
-				campaigns[i].endDate = result.endDate;
-
-				var ratios = await ctr.methods.getRatios(campaigns[i].id).call();
-				var types = ratios[0];
-				var likes = ratios[1];
-				var shares = ratios[2];
-				var views = ratios[3];
-				var res = [
-					{typeSN:types[0],likeRatio:likes[0],shareRatio:shares[0],viewRatio:views[0]},
-					{typeSN:types[1],likeRatio:likes[1],shareRatio:shares[1],viewRatio:views[1]},
-					{typeSN:types[2],likeRatio:likes[2],shareRatio:shares[2],viewRatio:views[2]},
-					{typeSN:types[3],likeRatio:likes[3],shareRatio:shares[3],viewRatio:views[3]}];
-				campaigns[i].ratios = res;
-
-				var idproms = await ctr.methods.getProms(campaigns[i].id).call();
-				campaigns[i].proms =[];
-				for (var j =0;j<idproms.length;j++)
-				{
-					var prom = await ctr.methods.proms(idproms[j]).call();
-					prom.id = idproms[j];
-					if(prom.influencer.toLowerCase() == owner.toLowerCase())
-						campaigns[i].proms.push(prom);
-				}
-				rescampaigns.push(campaigns[i]);
-			}
-			
-			let count = await app.db.campaignCrm().find({idNode:"0"+auth.id}).count();
-			let draft_campaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: false}}).skip(skip).limit(limit).toArray();
-            draft_campaigns=draft_campaigns.map((c)=>{
-				return {...c,stat:'draft'}
-			})
-
-            let Campaigns_=[...rescampaigns,...draft_campaigns]
-		
-			const startIndex=(page-1) * limit;
-			const endIndex=page * limit;
-			const campaignsPaginator = {}
-			
-			campaignsPaginator.count =count;
-					
-			campaignWithImage=Campaigns_.slice(startIndex, endIndex);
-			for (var i = 0;i<campaignWithImage.length;i++){
-				if (campaignWithImage[i].meta){
-					idCampaign=campaignWithImage[i].meta._id;
-				}else{
-					idCampaign=campaignWithImage[i]._id
-				}
-				
-				file =await gfs.files.findOne({'campaign.$id':idCampaign});
-				if(file){
-					const readstream = gfs.createReadStream(file);
-				CampaignCover="";
-				for await (const chunk of readstream) {
-					CampaignCover=chunk.toString('base64');
-				}
-				campaignWithImage[i].CampaignCover=CampaignCover;
-				}else{
-					campaignWithImage[i].CampaignCover='';
-				}
-			}
-			campaignsPaginator.campaigns=campaignWithImage;
-			response.end(JSON.stringify(campaignsPaginator));
-
-		}catch(err){
-			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		}
-	}) 
 
 
 	app.get('/v2/campaigns/owner', async function(req, response) {
@@ -1128,8 +999,7 @@ const Grid = require('gridfs-stream');
 		   totalToEarn = view.plus(like).plus(share).toFixed()
 		   }
 	   })
-	   info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;
-	   if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1]
+	   info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;   
 	}
 	  if(bounties.length){
 		bounties.forEach( bounty=>{
@@ -1140,13 +1010,11 @@ const Grid = require('gridfs-stream');
 			    }else if(+abosNumber > +category.maxFollowers){
 				info.totalToEarn = category.reward;	
 			 }
-
-
-
 			  })	
 			   }			   
 			   })
 	  }
+	  if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1];
 	   res.end(JSON.stringify({prom : info}))
 	}catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -1274,7 +1142,7 @@ const Grid = require('gridfs-stream');
 		   allProms[i].payedAmount = allProms[i].payedAmount || "0";
            allProms[i].abosNumber =  allProms[i].abosNumber || 0;	   
 		   let result = allProms[i]
-	
+			
 		   let promDone = funds == "0" && result.fund =="0" ? true : false;
 		   if(ratio.length && allProms[i].isAccepted && !promDone){
 			    delete allProms[i].isPayed;
@@ -1302,10 +1170,10 @@ const Grid = require('gridfs-stream');
 				bounty.categories.forEach( category=>{
 				 if( (+category.minFollowers <= +result.abosNumber)  && (+result.abosNumber <= +category.maxFollowers) ){
 					let totalToEarn =  category.reward
-					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;
+					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : result.payedAmount;
 				}else if(+result.abosNumber > +category.maxFollowers){
 					let totalToEarn =  category.reward
-					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : payedAmount;	
+					allProms[i].totalToEarn = new Big(totalToEarn).gt(new Big(result.payedAmount)) ? totalToEarn : result.payedAmount;	
 		  }
 
 
@@ -1376,44 +1244,38 @@ const Grid = require('gridfs-stream');
   }
 	})
 
-	function calcSNStat(objNw,link){
+	let calcSNStat=(objNw,link)=>{
 		  objNw.total++;
-		 
-		  if(link.views) objNw.views+=Number(link.views);
-		  if(link.likes) objNw.likes+=Number(link.likes);
-		  if(link.shares) objNw.shares+=Number(link.shares);
-		  if(link.status===true) objNw.accepted++;
-		  if(link.status===false) objNw.pending++;
-		  if(link.status==="rejected") objNw.rejected++;
-		  
+		  if(link.status!=="rejected"){
+		  		if(link.views) objNw.views+=Number(link.views);
+		  		if(link.likes) objNw.likes+=Number(link.likes);
+		  		if(link.shares) objNw.shares+=Number(link.shares);
+		  		if(link.status===true) objNw.accepted++;
+		  		if(link.status===false) objNw.pending++;
+		  }	 
+		  else objNw.rejected++;		  
 		  return objNw;
 	  }
-	  function initStat(){
+
+	  let initStat=()=>{
 		  return {total:0,views:0,likes:0,shares:0,accepted:0,pending:0,rejected:0}
 
 	  }
 	  app.get('/statLinkCampaign/:hash', async (req, res) => {
 		try{
 			const token = req.headers["authorization"].split(" ")[1];
-		    var auth =	await app.crm.auth(token);
+		    await app.crm.auth(token);
 			var hash=req.params.hash;
 			var arrayOfUser=[];
-			var arrayOfnbAbos=[];
-			var nbTotalUser=0;
-			var totalAbos=0;
-			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat()}
+			var arrayOfnbAbos =[]
+			var nbTotalUser =0;
+			var totalAbos = 0
+			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat(),linkedin:initStat()}
 			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
 			for(i=0;i<links.length;i++){
 				let link=links[i];
-				if(link.typeSN=="1"){
-					result.facebook=calcSNStat(result.facebook,link);
-				}else if(link.typeSN =="2"){
-					result.youtube=calcSNStat(result.youtube,link);
-				}else if(link.typeSN =="3"){	
-					result.instagram=calcSNStat(result.instagram,link);
-				}else{	
-					result.twitter=calcSNStat(result.twitter,link);
-				}
+				let oracle = link.oracle
+				result[oracle]=calcSNStat(result[oracle],link);
 				if(arrayOfUser.indexOf(link.id_wallet)===-1) {
 					nbTotalUser++;
 					arrayOfUser.push(link.id_wallet);
@@ -1430,6 +1292,31 @@ const Grid = require('gridfs-stream');
 		 }
 	  })
 	 
+
+	  app.get('/ShareByActivity/:activity', async (req, res) => {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+		    const auth=await app.crm.auth(token);
+			let activityURN=req.params.activity;
+		
+			var linkedin_profile=await app.db.linkedinProfile().findOne({userId:auth.id});
+			console.log(linkedin_profile);
+			const linkedinData ={
+				url: `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${activityURN}`,
+				method: 'GET',
+				headers:{
+				'Authorization' : "Bearer "+linkedin_profile.accessToken
+			   },
+				json: true
+				};
+				let postData = await rp(linkedinData)
+				let urn = `urn:li:activity:${activityURN}`;
+					
+		  res.send(JSON.stringify({shareId:postData.results[urn]["domainEntity"]}));
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  })
 
 return app;
 }
