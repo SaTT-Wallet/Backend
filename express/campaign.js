@@ -989,7 +989,8 @@ module.exports =  app => {
 		}
 		finally {		
 			cred && app.account.lock(cred.address);
-			if(ret && ret.transactionHash){				
+			if(ret && ret.transactionHash){	
+				if(typeSN == 3)  prom.instagramUserName = await app.oracle.getInstagramUserName(idPost);
 				await app.account.notificationManager(id, "apply_campaign",{cmp_name :title, cmp_hash : idCampaign,hash})
 				prom.id_prom = ret.idProm;
 				prom.typeSN = typeSN.toString();
@@ -1005,13 +1006,14 @@ module.exports =  app => {
 				prom.appliedDate = date		
 				prom.oracle = app.oracle.findBountyOracle(prom.typeSN);
 				var insert = await app.db.campaign_link().insertOne(prom);
-				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile)
-				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,id,linkedinProfile)
+				prom.abosNumber = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinProfile);
+				let userWallet =  await app.db.wallet().findOne({"keystore.address":prom.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
+				let userId= prom.oracle === 'instagram' ? userWallet.UserId : null;
+				let socialOracle =  await app.campaign.getPromApplyStats(prom.oracle,prom,userId,linkedinProfile);
 				if(socialOracle.views ==='old') socialOracle.views ='0'
 				prom.views= socialOracle.views
 				prom.likes= socialOracle.likes,prom.shares= socialOracle.shares || '0';
 			    await app.db.campaign_link().updateOne({_id : app.ObjectId(insert.ops[0]._id)},{$set:prom})
-			
 				let event={id:hash,prom:ret.idProm,type:"applied",date:date,txhash:ret.transactionHash,contract:contract._address.toLowerCase(),owner:contract._address.toLowerCase()};
 				
 				// console.log("event",event);
