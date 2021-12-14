@@ -228,6 +228,7 @@ module.exports =  app => {
 
 		let linkedinProfile=event.typeSN =="5" && event.status && await app.db.linkedinProfile().findOne({userId:userWallet.UserId})
 		let socialOracle = event.status && !campaign.isFinished  && await app.campaign.getPromApplyStats(app.oracle.findBountyOracle(event.typeSN),event,userWallet.UserId,linkedinProfile)
+
 		if(socialOracle ==='indisponible') event.status='indisponible';
 
 			event.shares=  socialOracle && socialOracle.shares || '0';
@@ -235,12 +236,12 @@ module.exports =  app => {
 			let views=  socialOracle && socialOracle.views || '0';
 			event.views = views === "old" ?event.views :views;
 			event.media_url=  socialOracle && socialOracle.media_url || '';
-			event.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:event.idPost},{$set:{likes:event.likes,shares:event.shares,views:event.views}});
+			// event.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:event.idPost},{$set:{likes:event.likes,shares:event.shares,views:event.views}});
 			event.oracle=app.oracle.findBountyOracle(event.typeSN);
-
 			if(campaign && socialOracle) 
 			{
 				event.abosNumber = await app.oracleManager.answerAbos(event.typeSN,event.idPost,event.idUser,linkedinProfile)
+		
 			}
 				if(event.abosNumber==='indisponible') event.status='indisponible';
 

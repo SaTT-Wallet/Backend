@@ -1,4 +1,8 @@
 const {randomUUID}= require('crypto');
+const { response } = require('express');
+const converter = require('json-2-csv');
+var fs = require('fs');
+const os = require('os');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -1885,6 +1889,48 @@ app.get('/events/:paymentId', async (req, response)=>{
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 	 }	
 })
+
+app.get('/GetEmailsSatt', async (req, res) => {
+	try {
+		console.log(os.homedir());
+
+		var userWithoutWallet=[];
+		var userWithWallet=[];
+		let users = await app.db.sn_user().find({userSatt:true}).toArray();
+		for(let i=0;i<users.length;i++){
+				wallet=await app.db.wallet().findOne({UserId:users[i]._id});
+				if(!wallet){
+					let user={email:users[i].email};
+					userWithoutWallet.push(user);
+				}
+				else{
+					let user={email:users[i].email};
+					userWithWallet.push(user);
+				}
+		}
+
+		converter.json2csv(userWithWallet, (err, csv) => {
+			if (err) {
+				throw err;
+			}
+		    fs.writeFileSync(os.homedir()+'/userWithWallet.csv', csv);
+		});
+		
+		converter.json2csv(userWithoutWallet, (err, csv) => {
+			if (err) {
+				throw err;
+			}
+		    fs.writeFileSync(os.homedir()+'/userWithoutWallet.csv', csv);
+		});
+		res.status(200).json({message:"success"})
+
+	}
+	catch (err) {
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	
+})
+
 
 	return app;
 }
