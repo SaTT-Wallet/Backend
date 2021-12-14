@@ -71,9 +71,11 @@ module.exports = async function (app) {
 				var followers=0;
 				var campaign_link = await app.db.campaign_link().findOne({idPost});
 				var userWallet=await app.db.wallet().findOne({"keystore.address":campaign_link.id_wallet.toLowerCase().substring(2)})
-				let instagramUserName=await oracleManager.getInstagramUserName(idPost);
-				 var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{instagram_username: instagramUserName},{ instagram_id: { $exists: true} }]});
-				 if(fbPage){
+				// let instagramUserName=await oracleManager.getInstagramUserName(idPost);
+				 let instagramUserName=campaign_link.instagramUserName;
+
+				var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{instagram_username: instagramUserName},{ instagram_id: { $exists: true} }]});
+				if(fbPage){
 						var instagram_id=fbPage.instagram_id;
 						var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
 								var token = fbProfile.accessToken;
@@ -239,11 +241,11 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		return new Promise(async (resolve, reject) => {
                  try{
 			var perf = {shares:0,likes:0,views:0,media_url:''};
-		
-			let instagramUserName=await oracleManager.getInstagramUserName(idPost);
-				
+				let campaign_link=await app.db.campaign_link().findOne({idPost:idPost});
+
+			    let instagramUserName=campaign_link.instagramUserName;	
 			var fbPage = await app.db.fbPage().findOne({instagram_username: instagramUserName});
-              
+
 			if(fbPage && fbPage.instagram_id){
 			var instagram_id=fbPage.instagram_id;
 			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
@@ -252,7 +254,6 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 				var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"/media?fields=like_count,shortcode,media_url&limit=50&access_token="+accessToken;
 				var resMedia = await rp({uri:media,json: true});
 				var data =resMedia.data;
-				
 				for (let i=0;i<data.length;i++){
 					if(data[i].shortcode == idPost){
 						perf.likes=data[i].like_count;
@@ -261,7 +262,6 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 							break;	
 						}
 				}
-				
 				resolve(perf);
 				return;
 			}else{
@@ -369,13 +369,9 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		return new Promise(async (resolve, reject) => {
 
 			try {
-
-				var media = "https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/"+idPost;
-
+				var media = "http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/"+idPost;
 				var resMedia = await rp({uri:media,json: true});
-
 				page = await app.db.fbPage().findOne({$and:[{UserId:userId  },{instagram_username:resMedia.author_name}]});
-
 				if (page && !page.deactivate)
 				resolve(true);
 				else if(page && page.deactivate === true)
