@@ -361,12 +361,12 @@ module.exports = function (app) {
       let UserId=+req.query.state.split('|')[0];
       let isInsta=false;     
       let fbProfile = await app.db.fbProfile().findOne({UserId});
-      if(fbProfile && fbProfile.id !== profile.id){
-        cb (null,profile,{
-          message: "external_account"
-      })
-      }
-       else{
+      // if(fbProfile && fbProfile.id !== profile.id){
+      //   cb (null,profile,{
+      //     message: "external_account"
+      // })
+      // }
+      //  else{
         let message =   await app.account.getFacebookPages(UserId,accessToken,isInsta) 
         if(fbProfile){await app.db.fbProfile().updateOne({UserId}, { $set: {accessToken:longToken}});}
         else{  
@@ -374,7 +374,7 @@ module.exports = function (app) {
             await app.db.fbProfile().insertOne(profile);
         }
       return cb(null, {id: UserId, token: accessToken},{message});
-      }
+      // }
      
       
 
@@ -1817,7 +1817,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
             var update = await app.db.accessToken().updateOne({user_id: user._id}, {$set: {token: token, expires_at: date}});
             var token = await app.db.accessToken().findOne({user_id: user._id});
           var param = {"access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user"};
-          
+          res.send(JSON.stringify(param))
           }else{
             res.send(JSON.stringify({messgae:"account_exists_with_another_courrier"}))
           }
