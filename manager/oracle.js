@@ -75,7 +75,7 @@ module.exports = async function (app) {
 				 let instagramUserName=campaign_link.instagramUserName;
 
 				var fbPage = await app.db.fbPage().findOne({$and:[{UserId :userWallet.UserId},{instagram_username: instagramUserName},{ instagram_id: { $exists: true} }]});
-				 if(fbPage){
+				if(fbPage){
 						var instagram_id=fbPage.instagram_id;
 						var fbProfile = await app.db.fbProfile().findOne({UserId:userWallet.UserId });
 								var token = fbProfile.accessToken;
@@ -245,7 +245,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 			    let instagramUserName=campaign_link.instagramUserName;	
 			var fbPage = await app.db.fbPage().findOne({instagram_username: instagramUserName});
-              
+
 			if(fbPage && fbPage.instagram_id){
 			var instagram_id=fbPage.instagram_id;
 			var fbProfile = await app.db.fbProfile().findOne({UserId: UserId});
@@ -262,7 +262,6 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 							break;	
 						}
 				}
-
 				resolve(perf);
 				return;
 			}else{

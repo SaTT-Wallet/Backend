@@ -46,6 +46,8 @@
     "jquery": "^3.3.1",
     "js-cookie": "^2.2.0",
     "jsdom": "^12.2.0",
+    "json-2-csv": "^3.14.4",
+    "json2csv": "^5.0.6",
     "moment": "^2.22.2",
     "mongodb": "^3.1.10",
     "mongoose": "^5.12.3",
