@@ -218,7 +218,7 @@ module.exports = function (app) {
           _id:id,
           scopedId: profile.id,
           idOnSn: profile._json.token_for_business,
-          email: profile.email,
+          email: profile._json.email,
           username: profile.name,
           firstName: profile.first_name,
           lastName: profile.displayName,
@@ -1790,6 +1790,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
       try{
         var mongodate = new Date().toISOString();
         snUser={
+          _id:Long.fromNumber(await app.account.handleId()),
          email:req.body.email,
          idSn:req.body.idSn,
          picLink:req.body.photo,
@@ -1821,7 +1822,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
           }else{
             res.send(JSON.stringify({messgae:"account_exists_with_another_courrier"}))
           }
-            
+
         }else {
             var buff = Buffer.alloc(32);
             var token = crypto.randomFillSync(buff).toString('hex');

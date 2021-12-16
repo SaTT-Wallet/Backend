@@ -330,13 +330,23 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 		})
 	};
 
-	oracleManager.verifyFacebook = async function (userId,pageName) {
+	oracleManager.verifyFacebook = async function (userId,pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
 			try {
 				var page = await app.db.fbPage().findOne({username: pageName,UserId:userId});
-				resolve(page);
 
+				if(page) {
+					var token = page.token;
+					var idPage = page.id;
+					var res = await rp({uri:"https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+idPage+"_"+idPost+"?access_token="+token,json: true});	
+					if(res)
+					resolve(true);
+					}
+				else {
+				resolve(false);
+				}
 			}catch (err) {
+				resolve("lien_invalid");
 				reject({message:err.message});
 			}
 		})
@@ -380,7 +390,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 				resolve(false);
 
 			}catch (err) {
-
+				resolve("lien_invalid");
 				reject({message:err.message});
 
 			}
@@ -406,6 +416,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 				}
 			
 			}catch (err) {
+				resolve("lien_invalid");
 				reject({message:err.message});
 			}
 		})
