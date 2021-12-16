@@ -324,11 +324,12 @@ module.exports = async function (app) {
 
         web3.eth.transactionBlockTimeout = 100;
 
-        bep20Manager.contractWS.events.allEvents  ( {filter:{to:[app.config.SattBep20Addr]},fromBlock: "latest",topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"/*,false,"0x000000000000000000000000655371c0622cacc22732e872a68034f38e04d6e5"*/]},async function(err,evt) {
+        /*bep20Manager.contractWS.events.allEvents  ( {filter:{to:[app.config.SattBep20Addr]},fromBlock: "latest",topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]},async function(err,evt) {
           console.log(evt);
           	await bep20Manager.eventBSCtoETH(err,evt)
-        });
-        //bep20Manager.contractWS.events.allEvents({filter:{to:app.config.SattBep20Addr}},console.log)
+        });*/
+        
+        bep20Manager.contractWS.events.Transfer({filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
 
         app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
       }
