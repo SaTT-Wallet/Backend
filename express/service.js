@@ -142,7 +142,7 @@ module.exports = function (app) {
 					fbProfile = await app.db.fbProfile().findOne({UserId:userId });
 				  if(fbProfile) {
 						linked = true;
-						res = await app.oracle.verifyFacebook(userId,idUser);
+						res = await app.oracle.verifyFacebook(userId,idUser,idPost);
 						if(res && res.deactivate === true) deactivate=true;
 					}
 				break;
@@ -205,6 +205,8 @@ module.exports = function (app) {
 
 			if(!linked)
 				response.end('{error:"account not linked"}')
+			else if(res==="lien_invalid")
+				response.end('{error:"lien_invalid"}')
 			else if(deactivate)
 				response.end('{error:"account desactivated"}')
 			else
