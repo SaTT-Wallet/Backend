@@ -99,6 +99,7 @@ module.exports = function (app) {
           password: synfonyHash(password),
           created: mongodate,
           updated: mongodate,
+          newsLetter: req.newsLetter,
           idSn: 0,
           account_locked: false, 
           failed_count: 0,
@@ -225,6 +226,7 @@ module.exports = function (app) {
           created: mongodate,
           onBoarding : false,
           account_locked: false, 
+          newsLetter: req.newsLetter,
           failed_count: 0,
           updated: mongodate,
           idSn: 1,
@@ -444,6 +446,7 @@ module.exports = function (app) {
           created: mongodate,
           updated: mongodate,
           idSn: 2,
+          newsLetter: req.newsLetter,
           onBoarding : false,
           account_locked: false, 
           failed_count: 0,
@@ -792,6 +795,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
             firstName: profile.first_name,
             lastName: profile.last_name,
             name: profile.username,
+            newsLetter: req.newsLetter,
             picLink: profile.photo_url,
             created: mongodate,
             onBoarding : false,
@@ -973,6 +977,7 @@ async function(req, accessToken, tokenSecret, profile, cb) {
           password: synfonyHash(password),
           created: mongodate,
           updated: mongodate,
+          newsLetter: req.newsLetter,
           idSn: 0,
           account_locked: false, 
           failed_count: 0,
@@ -1500,7 +1505,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
         response.end('{error:"wrong password"}');
         return;
       }
-      var res_ins = await app.db.sn_user().updateOne({_id: id},{ $set:{password: synfonyHash(newpass)}});
+       await app.db.sn_user().updateOne({_id: id},{ $set:{password: synfonyHash(newpass)}});
       response.end('{message:"changed"}');
     } else {
       response.end('{error:"no account"}');
