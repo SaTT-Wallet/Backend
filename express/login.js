@@ -2082,7 +2082,7 @@ app.get('/addChannel/twitter/:idUser', (req, res,next)=>{
   app.post('/verifyCaptcha', async (req, res) => {
     try{
     let id = app.ObjectId(req.body._id);
-    let position=req.body.position;
+    let position=+req.body.position;
     let captcha =await app.db.captcha().findOne({$and:[{ _id:id},{position:{ $gte :  position-5, $lte : position+5}}]});
     if(captcha){
      res.send(JSON.stringify({message : "success"}));
