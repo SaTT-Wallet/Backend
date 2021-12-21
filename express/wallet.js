@@ -1801,7 +1801,7 @@ app.post('/wallet/remove/token', async (req, res) =>{
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally{
-		quote && app.account.log(`requestedQuote by ${auth.id}`,quote.digital_money.currency,`via ${quote.fiat_money.currency}`,`amount ${quote.fiat_money.total_amount}` )
+		//quote && app.account.log(`requestedQuote by ${auth.id}`,quote.digital_money.currency,`via ${quote.fiat_money.currency}`,`amount ${quote.fiat_money.total_amount}` )
 		}
 	})
 
