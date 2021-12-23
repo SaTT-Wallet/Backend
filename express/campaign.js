@@ -241,6 +241,7 @@ module.exports =  app => {
 			if(campaign && socialOracle) 
 			{
 				event.abosNumber = await app.oracleManager.answerAbos(event.typeSN,event.idPost,event.idUser,linkedinProfile)
+				event.oracle==="twitter" && await app.db.twitterProfile().updateOne({UserId:userWallet.UserId},{$set:{subscibers:event.abosNumber}} )
 		
 			}
 				if(event.abosNumber==='indisponible') event.status='indisponible';
