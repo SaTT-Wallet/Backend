@@ -261,7 +261,6 @@ module.exports =  app => {
 	})	
 	 }
 
-
 	app.post('/updateStat', (req, res) => {
 		updateStat();
 		res.end(JSON.stringify({message:"Done"}))
