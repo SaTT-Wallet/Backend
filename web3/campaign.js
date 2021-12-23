@@ -502,15 +502,16 @@ module.exports = async function (app) {
 
 	campaignManager.getTotalToEarn = (socialStats,ratio)=> {
 			try {
-				let reachLimit =  campaignManager.getReachLimit(ratio,socialStats.oracle); 
-				if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",socialStats.abosNumber,reachLimit);
+				let statistics = {...socialStats};
+				let reachLimit =  campaignManager.getReachLimit(ratio,statistics.oracle); 
+				if(reachLimit) statistics=  app.oracleManager.limitStats("",statistics,"",statistics.abosNumber,reachLimit);
 				let totalToEarn='0';
-				let payedAmount=socialStats.payedAmount || '0'
+				let payedAmount=statistics.payedAmount || '0'
 				ratio.forEach( num =>{									
-					if(((num.oracle === socialStats.oracle) || (num.typeSN === socialStats.typeSN))){
-						let	view =socialStats.views ?new Big(num["view"]).times(socialStats.views):"0";
-						let	like = socialStats.likes ? new Big(num["like"]).times(socialStats.likes) : "0";			
-						let	share = socialStats.shares ? new Big(num["share"]).times(socialStats.shares.toString()) : "0";					
+					if(((num.oracle === statistics.oracle) || (num.typeSN === statistics.typeSN))){
+						let	view =statistics.views ?new Big(num["view"]).times(statistics.views):"0";
+						let	like = statistics.likes ? new Big(num["like"]).times(statistics.likes) : "0";			
+						let	share = statistics.shares ? new Big(num["share"]).times(statistics.shares.toString()) : "0";					
 						let total = new Big(view).plus(new Big(like)).plus(new Big(share)).toFixed();
 						totalToEarn = new Big(total).gt(new Big(payedAmount)) ? total : payedAmount;
 					}
