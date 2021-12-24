@@ -1125,7 +1125,7 @@ accountManager.handleId=async function () {
 			try{
 				const code = Math.floor(100000 + Math.random() * 900000);
 				let secureCode = {}
-				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20))*5,secureCode.type = type;
+				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20)*5),secureCode.type = type;
 				await app.db.sn_user().updateOne({_id},{$set:{secureCode}})
 				resolve(code)
 			}catch (e) {
