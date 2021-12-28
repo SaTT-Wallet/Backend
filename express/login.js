@@ -1260,7 +1260,7 @@ module.exports = function(app) {
         try {
             redirect = req.query.state.split('|')[1];
             let message = req.authInfo.message;
-            response.redirect(app.config.basedURl + redirect + '?message=' + message);
+            response.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=fb");
 
         } catch (e) {
             console.log(e)
@@ -1897,10 +1897,10 @@ module.exports = function(app) {
                     }
                 }
             }
-            if (!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + redirect + "?message=channel obligatoire");
+            if (!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + redirect + "?message=channel obligatoire&sn=linkd");
             await app.db.linkedinProfile().updateOne({ userId }, { $set: linkedinProfile }, { upsert: true });
             let message = req.authInfo.message;
-            res.redirect(app.config.basedURl + redirect + '?message=' + message);
+            res.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=linkd");
         } catch (err) {
             app.account.sysLogError(err);
             res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
