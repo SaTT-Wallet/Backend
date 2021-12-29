@@ -1802,15 +1802,18 @@ module.exports = function(app) {
                 updated: mongodate,
                 locale: "en",
             }
+            var user ={};
             if (req.body.idSn === "1") {
                 snUser.idOnSn = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn: req.body.id });
 
             } else if (req.body.idSn === "2") {
                 snUser.idOnSn2 = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn2: req.body.id });
             }
-            var user = await app.db.sn_user().findOne({ email: snUser.email })
+            //var user = await app.db.sn_user().findOne({ idOnSN: snUser.email })
             if (user) {
-                if (snUser.idSn === user.idSn) {
+                //if (snUser.idSn === user.idSn) {
                     var date = Math.floor(Date.now() / 1000) + 86400;
                     var buff = Buffer.alloc(32);
                     var token = crypto.randomFillSync(buff).toString('hex');
@@ -1818,9 +1821,9 @@ module.exports = function(app) {
                     var token = await app.db.accessToken().findOne({ user_id: user._id });
                     var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
                     res.send(JSON.stringify(param))
-                } else {
+                /*} else {
                     res.send(JSON.stringify({ messgae: "account_exists_with_another_courrier" }))
-                }
+                }*/
 
             } else {
                 var buff = Buffer.alloc(32);
