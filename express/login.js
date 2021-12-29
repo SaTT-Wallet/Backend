@@ -1598,7 +1598,8 @@ module.exports = function(app) {
                     console.log("email====", user.email);
                     var mailOptions = {
                         from: app.config.mailSender,
-                        to: user.email,
+                        //to: user.email,
+                        to:  newEmail.email,
                         subject: "Satt wallet change email",
                         html: htmlToSend
                     };
