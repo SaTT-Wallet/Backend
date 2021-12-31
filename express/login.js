@@ -1787,7 +1787,7 @@ module.exports = function(app) {
      *        "200":
      *          description: access_token,expires_in,token_type,scope
      */
-    app.post('/auth/social', async(req, res) => {
+    app.post('/auth/social/signup', async(req, res) => {
         try {
             var mongodate = new Date().toISOString();
             snUser = {
@@ -1798,7 +1798,7 @@ module.exports = function(app) {
                 username: req.body.name,
                 first_name: req.body.givenName,
                 name: req.body.familyName,
-                enabled: 1,
+                enabled: 0,
                 created: mongodate,
                 updated: mongodate,
                 locale: "en",
@@ -1814,17 +1814,18 @@ module.exports = function(app) {
             }
             //var user = await app.db.sn_user().findOne({ idOnSN: snUser.email })
             if (user) {
-                //if (snUser.idSn === user.idSn) {
+                /*if (snUser.idSn === user.idSn) {
                     var date = Math.floor(Date.now() / 1000) + 86400;
                     var buff = Buffer.alloc(32);
                     var token = crypto.randomFillSync(buff).toString('hex');
                     var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
                     var token = await app.db.accessToken().findOne({ user_id: user._id });
                     var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
-                    res.send(JSON.stringify(param))
-                /*} else {
-                    res.send(JSON.stringify({ messgae: "account_exists_with_another_courrier" }))
-                }*/
+                    res.send(JSON.stringify(param))*/
+                //} else {
+                    res.send(JSON.stringify({ message: "account_exists" }))
+                //}
+                // compte existe go to signin
 
             } else {
                 var buff = Buffer.alloc(32);
@@ -1837,9 +1838,38 @@ module.exports = function(app) {
             }
 
         } catch (err) {
-            response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+            res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
         }
 
+    });
+
+    app.post('/auth/social/signin', async(req, res) => {
+        try {
+            var user =null;
+            if (req.body.idSn === "1") {
+                //snUser.idOnSn = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn: req.body.id });
+            } else if (req.body.idSn === "2") {
+                //snUser.idOnSn2 = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn2: req.body.id });
+            }else{
+                res.end("{'error': 'invalid idSn'}");
+            }            
+            if (user) {                
+                var date = Math.floor(Date.now() / 1000) + 86400;
+                var buff = Buffer.alloc(32);
+                var token = crypto.randomFillSync(buff).toString('hex');
+                var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+                var token = await app.db.accessToken().findOne({ user_id: user._id });
+                var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
+                res.send(JSON.stringify(param))
+
+            } else {
+                res.send(JSON.stringify({ messgae: "account_doesnt_exist" }))
+            }
+        } catch (err) {
+            res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+        }
     });
 
     app.get('/onBoarding', async(req, res) => {
