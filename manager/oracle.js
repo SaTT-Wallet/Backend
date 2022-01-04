@@ -93,14 +93,31 @@ module.exports = async function (app) {
 		});
 	};
 
+	// oracleManager.twitterAbos = async function (pageName,idPost) {
+	// 	return new Promise(async (resolve, reject) => {
+	// 		try{
+	// 			var tweet_res = await tweet.get('statuses/show',{id:idPost});
+	// 		if(tweet_res)
+	// 		resolve(tweet_res.user.followers_count);
+	// 		else
+	// 			resolve('indisponible')
+	// 		}catch(err){
+	// 			reject(err);
+	// 		}
+			
+	// 	});
+	// };
+
+
 	oracleManager.twitterAbos = async function (pageName,idPost) {
 		return new Promise(async (resolve, reject) => {
 			try{
-				var tweet_res = await tweet.get('statuses/show',{id:idPost});
-			if(tweet_res)
-			resolve(tweet_res.user.followers_count);
-			else
-				resolve('indisponible')
+				 tweet.get('statuses/show',{id:idPost}).then((tweet_res)=>{
+					resolve(tweet_res.user.followers_count);
+				},(err)=>{
+					resolve('indisponible')
+				});
+		
 			}catch(err){
 				reject(err);
 			}
@@ -325,7 +342,7 @@ oracleManager.getInstagramUserName= async (shortcode)=>{
 
 			resolve(perf);
 		}catch (err) {
-			reject({message:err.message});
+			resolve("indisponible")
 		}
 		})
 	};
