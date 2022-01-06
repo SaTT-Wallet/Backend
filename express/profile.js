@@ -678,7 +678,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		const buff = Buffer.alloc(32);
         const code = crypto.randomFillSync(buff).toString('hex');
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
-		  if(users.length) {
+		  if(users.length && users[0]._id!==id) {
 		  res.end(JSON.stringify({message : "email already exists"}));
 		  return;
 		  }else{
