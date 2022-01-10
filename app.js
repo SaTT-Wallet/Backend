@@ -6,10 +6,15 @@
 		var express = require('express');
 		var app = express();
 		var cors = require('cors')
+
+
+		const loginroutes= require('./routes/login.routes')
         var bodyParser = require('body-parser');
         app.use(bodyParser.json({limit: '4mb'}));
         app.use(bodyParser.urlencoded({limit: '4mb', extended: true}));
 		app.use(cors())
+
+		app.use('/auth', loginroutes);
         
 		app.use('/assets', express.static('public'))
 		app.set('view engine', 'ejs');
@@ -61,6 +66,10 @@
 		app = await require("./manager/notification")(app);
 		app = await require("./manager/account")(app);
 		app = await require("./manager/i18n")(app);
+
+
+		//app = await require("./routes/login.routes")(app);
+
 		
 
 
@@ -72,6 +81,7 @@
 		app = await require("./web3/eth")(app);
 		app = await require("./web3/erc20")(app);
 		app = await require("./manager/bep20")(app);
+
 
 
 
