@@ -184,25 +184,25 @@ module.exports = async function (app) {
 	}
 
 	ContractToken.checkAnswerBounty = async function () {
-try{
-		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-		app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+		try{
+			app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
+			app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
 
-		var requests = await app.db.request().find({isNew: true,isBounty:true}).toArray();
-		for(var i = 0;i<requests.length;i++)
-		{
-			var request = requests[i];
+			var requests = await app.db.request().find({isNew: true,isBounty:true}).toArray();
+			for(var i = 0;i<requests.length;i++)
+			{
+				var request = requests[i];
 
-			var nbAbos = ContractToken.answerAbos(request.typeSN,request.idPost,request.idUser);
-			await app.db.request().updateOne({_id:request.id},{$set:{likes:res.likes,shares:res.shares,views:res.views,isNew:false}});
-			await ContractToken.answerBounty({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idProm:request.id,nbAbos:nbAbos});
+				var nbAbos = ContractToken.answerAbos(request.typeSN,request.idPost,request.idUser);
+				await app.db.request().updateOne({_id:request.id},{$set:{likes:res.likes,shares:res.shares,views:res.views,isNew:false}});
+				await ContractToken.answerBounty({from:app.config.oracleOwner,campaignContract:app.campaign.contract.options.address,idProm:request.id,nbAbos:nbAbos});
 
+			}
 		}
-	}
-	catch (err)
-	{
-		reject(err);
-	}
+		catch (err)
+		{
+			reject(err);
+		}
 	}
 
 
