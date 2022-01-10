@@ -3,6 +3,7 @@ const { response } = require('express');
 const converter = require('json-2-csv');
 var fs = require('fs');
 const os = require('os');
+const Big = require('big.js');
 
 module.exports = function (app) {
 	var bodyParser = require('body-parser');
@@ -736,6 +737,9 @@ module.exports = function (app) {
 			const token = req.headers["authorization"].split(" ")[1];
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
+			var result = await app.account.getAccount(res.id);
+			if(new Big(req.body.val).gt(new Big(result.btc_balance)))
+				response.end(JSON.stringify({message:"not_enough_budget"}));
 			var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
 			response.end(JSON.stringify({hash:hash}));
 
@@ -1107,6 +1111,10 @@ module.exports = function (app) {
 			var res =	await app.crm.auth(token);
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
+			var result = await app.account.getAccount(res.id);
+			let balance = await app.bep20.getBalance(req.body.token,result.address);
+			if(new Big(amount).gt(new Big(balance.amount)))
+			response.end(JSON.stringify({message:"not_enough_budget"}));
 			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
 			
 			response.end(JSON.stringify(ret));
@@ -1251,7 +1259,12 @@ module.exports = function (app) {
 
 			var cred = await app.account.unlockBSC(res.id,pass);
 			cred.from_id = res.id;
-			req.body.token = !req.body.token ?"0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
+			req.body.token = !req.body.token ? "0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
+			var result = await app.account.getAccount(res.id);
+			let balance = await app.bep20.getBalance(req.body.token,result.address);
+			if(new Big(amount).gt(new Big(balance.amount)))
+			response.end(JSON.stringify({message:"not_enough_budget"}));
+
 			var ret = await app.bep20.sendBep20(req.body.token,to,amount,cred);
 			
 			response.end(JSON.stringify(ret));
@@ -1505,6 +1518,10 @@ app.get('/v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice', async 
 		cred.from_id = res.id;
 		var to = req.body.to;
 		var amount = req.body.val;
+		var result = await app.account.getAccount(res.id);
+		if(new Big(amount).gt(new Big(result.bnb_balance)))
+			response.end(JSON.stringify({message:"not_enough_budget"}));
+
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 		response.end(JSON.stringify(ret));
 	} catch (err) {
@@ -1638,15 +1655,16 @@ app.post('/v2/profile/update', async function(req, response) {
 
 	app.get('/user/balance', async (req,response)=>{
 		try {
-			const Fetch_crypto_price = {
-				method: 'GET',
-				uri: xChangePricesUrl,
-				json: true,
-				gzip: true
-			  };
+			// const Fetch_crypto_price = {
+			// 	method: 'GET',
+			// 	uri: xChangePricesUrl,
+			// 	json: true,
+			// 	gzip: true
+			//   };
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
-			let Crypto = await rp(Fetch_crypto_price);
+			// let Crypto = await rp(Fetch_crypto_price);
+			let Crypto =  app.account.getPrices();
 			const balance = await app.account.getListCryptoByUid(auth.id,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
 

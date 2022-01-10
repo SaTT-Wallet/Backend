@@ -856,7 +856,7 @@ module.exports = function(app) {
         async function(req, accessToken, refreshToken, profile, done) {
             let state = req.query.state.split('|');
             let user_id = +state[0];
-            let userExist = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray();
+            let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id },{email:profile.emails[0].value}]}).toArray();
             if (userExist.length) {
 
                 done(null, profile, {
@@ -864,7 +864,7 @@ module.exports = function(app) {
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id } })
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id,email:profile.emails[0].value } })
                 done(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
             }
         }));
@@ -880,14 +880,14 @@ module.exports = function(app) {
         async function(req, accessToken, refreshToken, profile, cb) {
             let state = req.query.state.split('|');
             let user_id = +state[0];
-            let users = await app.db.sn_user().find({ idOnSn: profile._json.token_for_business }).toArray()
+            let users = await app.db.sn_user().find({$or:[{ idOnSn: profile._json.token_for_business },{email:profile._json.email}]}).toArray()
             if (users.length) {
                 cb(null, profile, {
                     status: false,
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business } })
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business,email:profile._json.email } })
                 cb(null, profile, {
                     status: true,
                     message: 'account_linked_with success'
