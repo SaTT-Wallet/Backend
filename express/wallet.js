@@ -1655,15 +1655,16 @@ app.post('/v2/profile/update', async function(req, response) {
 
 	app.get('/user/balance', async (req,response)=>{
 		try {
-			const Fetch_crypto_price = {
-				method: 'GET',
-				uri: xChangePricesUrl,
-				json: true,
-				gzip: true
-			  };
+			// const Fetch_crypto_price = {
+			// 	method: 'GET',
+			// 	uri: xChangePricesUrl,
+			// 	json: true,
+			// 	gzip: true
+			//   };
 			  const token = req.headers["authorization"].split(" ")[1];
 			  var auth =	await app.crm.auth(token);
-			let Crypto = await rp(Fetch_crypto_price);
+			// let Crypto = await rp(Fetch_crypto_price);
+			let Crypto =  app.account.getPrices();
 			const balance = await app.account.getListCryptoByUid(auth.id,Crypto);
 			let listOfCrypto = [...new Set(balance.listOfCrypto)];
 
