@@ -8,13 +8,13 @@
 		var cors = require('cors')
 
 
-		const loginroutes= require('./routes/login.routes')
+
+
         var bodyParser = require('body-parser');
         app.use(bodyParser.json({limit: '4mb'}));
         app.use(bodyParser.urlencoded({limit: '4mb', extended: true}));
 		app.use(cors())
 
-		app.use('/auth', loginroutes);
         
 		app.use('/assets', express.static('public'))
 		app.set('view engine', 'ejs');
@@ -58,6 +58,8 @@
 		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
 		app = await require("./db/db")(app);
+		const loginroutes= require('./routes/login.routes')
+		app.use('/auth', loginroutes);
 		app = await require("./crm/crm")(app);
 		app = await  require("./express/https")(app);
 		app = await require("./fb/fb_init")(app);
@@ -68,7 +70,6 @@
 		app = await require("./manager/i18n")(app);
 
 
-		//app = await require("./routes/login.routes")(app);
 
 		
 
