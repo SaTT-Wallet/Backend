@@ -1062,12 +1062,17 @@ if(req.query.oracles)query["$and"].push({"$or":[{"ratios.oracle":{ $in: oracles}
 
 		if (oracles) query.oracle={ $in: oracles};
 
-		if(status == "false")	query.status=false;
-		if(status == "rejected") query.status="rejected";
-        if(status == "true") query.status=true;
-		query.type={
-			$in: ['indisponible','waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','rejected','none']
+		if(status == "false")	{
+			query.status=false;
+			query.type="waiting_for_validation"
+		}else{
+			if(status == "rejected") query.status="rejected";
+			if(status == "true") query.status=true;
+			query.type={
+				$in: ['indisponible','waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','rejected','none']
+			}
 		}
+		
 		return query
 	}
 
