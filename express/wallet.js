@@ -162,6 +162,7 @@ module.exports = function (app) {
 		}
 	});
 
+
 /**
  * @swagger
  * /v2/newallet:
