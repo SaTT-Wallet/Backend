@@ -19,3 +19,21 @@ exports.captcha= async(req, res)=>{
          res.end(JSON.stringify({ "error": err.message ? err.message : err.error })).status(500);
     }
 }
+
+
+exports.verifyCaptcha= async(req, res)=>{
+  
+    try {
+        let id = app.ObjectId(req.body._id);
+        let position = +req.body.position;
+        let captcha = await app.db.captcha().findOne({ $and: [{ _id: id }, { position: { $gte: position - 5, $lte: position + 5 } }] });
+        if (captcha) {
+            res.send(JSON.stringify({ message: "success" }));
+        } else {
+            res.send(JSON.stringify({ error: "wrong captcha" }));
+        }
+    } catch (err) {
+        console.log("err")
+        res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
+    }
+}
