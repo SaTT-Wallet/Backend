@@ -1,9 +1,13 @@
+const { configure } = require("winston");
+
 module.exports = async function (app) {
 
   return new Promise((resolve, reject) => {
     var config = {};
 
+   
 
+    config.cronUpdateStat=process.env.CRON_UPDATE_STAT
     config.testnet = process.env.TESTNET_TRUE;
     config.appId = process.env.APPID;
     config.appSecret = process.env.APP_SECRET;
