@@ -52,17 +52,15 @@
 		  };
 		const options = {
 		swaggerDefinition,
-		apis: ['./express/*.js', './routes/*.js'],
+		apis: [
+			//'./express/*.js',
+			 './routes/*.js'],
 		};
 		const swaggerSpec = swaggerJSDoc(options);
 		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
 		app = await require("./db/db")(app);
-		const loginroutes= require('./routes/login.routes')
-		const walletroutes= require('./routes/wallet.routes')
-
-		app.use('/auth', loginroutes);
-		app.use('/wallet', walletroutes)
+	
 
 
 		app = await require("./crm/crm")(app);
@@ -74,7 +72,11 @@
 		app = await require("./manager/account")(app);
 		app = await require("./manager/i18n")(app);
 
+		const loginroutes= require('./routes/login.routes')
+		const walletroutes= require('./routes/wallet.routes')
 
+		app.use('/auth', loginroutes);
+		app.use('/wallet', walletroutes)
 
 		
 
