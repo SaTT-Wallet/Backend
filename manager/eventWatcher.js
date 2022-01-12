@@ -117,28 +117,6 @@ module.exports = async function (app) {
 
 
 
-	/*cron.schedule('11 0 * * *',async function(){
-		console.log("updateCampaignStats")
-		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-		var cred = {address: app.config.campaignOwner};
-		var campaigns = await app.db.campaign().find().toArray();
-		for(var i =0;i<campaigns.length;i++) {
-			var cmp = await app.campaign.contract.methods.campaigns(campaigns[i].id).call();
-			if(Math.floor(Date.now()/1000) > cmp.startDate && Math.floor(Date.now()/1000) < cmp.endDate )
-			{
-
-				if (cmp.nbValidProms != 0) {
-
-
-					await app.campaign.updateCampaignStats(campaigns[i].id,cred);
-				}
-			}
-		}
-
-	});*/
-	/*cron.schedule('0 * * * *',async function(){
-		await app.oracleManager.checkAnswer();
-	})*/
 
 	eventWatcher.paySattHourly = async function (){
 		var gasPrice = await app.web3.eth.getGasPrice();
@@ -191,31 +169,6 @@ module.exports = async function (app) {
 		}
 		console.log("cron pay satt end");
 	}
-
-	/*cron.schedule('30 16 * * *',async function(){
-		await eventWatcher.paySattHourlyByInf();
-	})*/
-
-
-	/*eventWatcher.SattAllTX = async (error, evt) => {
-			var to = evt.returnValues.to;
-			var value = evt.returnValues.value;
-			var from = evt.returnValues.from;
-
-			var tx = {
-				from:from,
-	      to:to,
-	      value:value,
-	      token:evt.address.toLowerCase(),
-	      transactionHash:evt.transactionHash,
-	      date:Date.now()
-			};
-
-	    var res = await app.db.indexedtx().insertOne(tx);
-
-	}*/
-
-	//app.token.contract.events.Transfer  ( eventWatcher.SattAllTX);
 
 	app.events = eventWatcher;
 	return app;
