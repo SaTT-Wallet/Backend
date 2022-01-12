@@ -1,126 +1,99 @@
+const { configure } = require("winston");
+
 module.exports = async function (app) {
+
   return new Promise((resolve, reject) => {
     var config = {};
 
-    config.testnet = true;
-    config.appId = "2097234380575759";
-    config.appSecret = "8689f701323c2fb6a4286b3eeba4e964";
-    config.fbGraphVersion = "v10.0";
+   
+
+    config.cronUpdateStat=process.env.CRON_UPDATE_STAT
+    config.testnet = process.env.TESTNET_TRUE;
+    config.appId = process.env.APPID;
+    config.appSecret = process.env.APP_SECRET;
+    config.fbGraphVersion = process.env.FB_GRAPH_VERSION;
 
     config.mailerOptions = {
-      host: "mail.gandi.net",
-      port: 25,
-      secure: false,
+      host: process.env.MAILER_HOST,
+      port: process.env.MAILER_PORT,
+      secure: process.env.MAILER_SECURE,
       auth: {
-        user: "satt@iframe-apps.com",
-        pass: "SaTT24092020",
+        user: process.env.MAILER_USER,
+        pass: process.env.MAILER_UNAUTHORIZED,
       },
       tls: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: process.env.MAILER_UNAUTHORIZED,
       },
     };
 
-    /*config.mailerOptions =  {
-			host:"mailer.gandi.net",
-			port:25,
-			secure:false,
-			auth: {
-				user: 'satt@iframe-apps.com',
-				pass: 'SaTT24092020'
-			},
-                      tls: {
-                        rejectUnauthorized: false
-                     }
-		}*/
+    config.mailSender = process.env.MAIL_SENDER;
+    config.resetpassword_Email = process.env.RESET_PASSWORD_EMAIL;
 
-    config.mailSender = "SaTT Token <activation@atayen.us>";
-    config.resetpassword_Email = "SaTT-Token@atayen.us";
+    config.SupportMail = process.env.SUPPORT_MAIL;
 
-    config.SupportMail = "support@satt-token.freshdesk.com";
+    config.notificationMail = process.env.NOTIFICATION_MAIL;
+    config.contactMail = process.env.CONTACT_MAIL;
 
-    config.notificationMail = "notification@atayen.us";
-    config.contactMail = "contact@satt-token.com";
+    config.googleClientId = process.env.GOOGLE_CLIENTID;
+    config.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-    config.googleClientId =
-      "867479742068-s5btemgej3kg2uohmj48ppphhqnrl864.apps.googleusercontent.com";
-    config.googleClientSecret = "Pzgw9sQFPitOLj9l1fWLjhPG";
+    config.twitterClientId = process.env.TWITTER_CLIENT_ID;
+    config.twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
 
-    config.twitterClientId = "k6GITu1lFse8MyuUEEmWLVbK3";
-    config.twitterClientSecret =
-      "KzNTkDbHhUMdgC12NPQ6zWgaHsDGCzUYDMB2dJf8UIOkKgQmXb";
+    config.telegramClientId = process.env.TELEGRAM_CLIENT_ID;
+    config.telegramClientSecret = process.env.TELEGRAM_CLIENT_SECRET;
 
-    config.telegramClientId = "1880392";
-    config.telegramClientSecret = "feac97528976f7d0352fa3154fce178c";
+    config.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+    config.gdataApiKey = process.env.GDA_TAP_API_KEY;
 
-    //	config.telegramBotToken = "1789068164:AAF5LyvdqRWdguHxfXDsWeSMPTdm9DIsyJI"
-    config.telegramBotToken = "1805340684:AAEmn71oE0QtlaUEW8GEhxgtleZ7pEnSemY";
-    //config.gdataApiKey = "AIzaSyD0Xvh043gUboAfz0KqvHL0Dw2fHIYPnt0";
-    config.gdataApiKey = "AIzaSyA_mPd_Ocjzvoi4btNDZs98hs0B7IRnt9w";
-
-    config.linkedin_key = "78x1218wadtuc9";
-    config.linkedin_secret = "PvqC4QK36nEuToNy";
-
-    //	config.twitter = {
-    //		consumer_key:"tH7AnhdvgOndxvZOyeeyfHOVG",
-    //		consumer_secret:"14mR3PZn3osH1OBPjtJWJT7IycQB5kOF4PmIuDjHvFHuEZppk0",
-    //		access_token_key:"2616201013-Bow3klvUxQbYXuO22nCm4tdH4Wxvsr6OE8PGXPT",
-    //		access_token_secret:"2iAs1oM1dhVoUX4gnRR9dGCPI4Ayc8ZbfJJymbqfm5otP"
-    //	};
+    config.linkedin_key = process.env.LINKEDIN_KEY;
+    config.linkedin_secret = process.env.LINKEDIN_SECRET;
 
     config.twitter = {
-      consumer_key_alt: "tH7AnhdvgOndxvZOyeeyfHOVG",
-      consumer_secret_alt: "14mR3PZn3osH1OBPjtJWJT7IycQB5kOF4PmIuDjHvFHuEZppk0",
-      consumer_key_dev: "TrfQX9N6dfggk9xWu4ZrsrvPw",
-      consumer_secret_dev: "xgTxm6Fg0ZdITmL3HPW7TfklvJ6bxejZ4UwPJChgsWWTnpy43Y",
-      consumer_key: "zHzptTVP3IPoPoCPnt1h7xuSK",
-      consumer_secret: "cueHbbIK2IVYt7bloW3qqWaTT75A8b2FKcQ1H1QjKn1PAH8UJI",
-      access_token_key: "2616201013-Bow3klvUxQbYXuO22nCm4tdH4Wxvsr6OE8PGXPT",
-      access_token_secret: "2iAs1oM1dhVoUX4gnRR9dGCPI4Ayc8ZbfJJymbqfm5otP",
+      consumer_key_alt: process.env.TWITTER_CONSUMER_KEY_ALT,
+      consumer_secret_alt: process.env.TWILTTER_CONSUMER_SECRET_ALT,
+      consumer_key_dev: process.env.TWITTER_CONSUMER_KEY_DEV,
+      consumer_key: process.env.TWITTER_CONSUMER_KEY,
+      consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+      access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+      access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     };
 
-    config.Satt_faq = "https://satt-token.com/#faq";
-    config.baseUrl = "https://wallet-preprod.iframe-apps.com:3014/";
+    config.Satt_faq = process.env.SATT_FAQ;
+    config.baseUrl = process.env.BASEURL;
 
-    //TO be added
-    //   var appUrl = 'http://localhost:4200/#';
-    config.baseEmailImgURl = "https://satt.atayen.us/assets/Images/mail";
-    config.basedURl = "https://testnet.satt.atayen.us/#";
-    //	 config.basedURl="http://localhost:4200/#"
-    config.v1Url = "https://old.satt.atayen.us/#";
 
-    config.symfonySalt = "dgppd1mbo80k440scskw4c08k8kk880";
+    config.baseEmailImgURl = process.env.BASE_EMAIL_IMG_URL;
+    config.basedURl = process.env.BASED_URL;
+    config.v1Url = process.env.V1_URL;
 
-    config.web3Url =
-      "wss://ropsten.infura.io/ws/v3/557c0cefcd1b4ba5b1418d56a699f705";
-    config.web3UrlInf =
-      "wss://ropsten.infura.io/ws/v3/557c0cefcd1b4ba5b1418d56a699f705";
-    config.web3UrlBep20 = "https://data-seed-prebsc-1-s1.binance.org:8545";
-    config.web3UrlBep20Websocket =
-      "wss://apis.ankr.com/wss/80d0e787da70488c9698dd798667785c/b7c61a14f570c697e65cb693a683cda4/binance/full/test";
-    config.oracleOwner = "0x3f31cbacfec98b29eeb35566fd630c04e706ac46";
-    config.oracleOwnerPass = "12345678";
-    config.campaignOwner = "0x3f31cbacfec98b29eeb35566fd630c04e706ac46";
-    config.campaignOwnerPass = "12345678";
-    config.tokenOwner = "0x3f31cbacfec98b29eeb35566fd630c04e706ac46";
-    config.tokenOwnerPass = "12345678";
+    config.symfonySalt = process.env.SYMPHONY_SATT;
 
-    config.mysqlHost = "127.0.0.1"
-    config.mysqlUser = "root";
-    config.mysqlPass = "root";
-    config.mysqlDb = "super_app";
+    config.web3Url = process.env.WEB3_URL;
+    config.web3UrlInf = process.env.WEB3_URL_INF;
+    config.web3UrlBep20 = process.env.WEB3_URL_BEP20;
+    config.web3UrlBep20Websocket = process.env.WEB3_URL_BEP20_WEBSOCKET;
+    config.oracleOwner = process.env.ORACLE_OWNER;
+    config.oracleOwnerPass = process.env.ORACLE_OWNER_PASS;
 
-    config.mongoBase = "ether";
-    config.mongoBaseCrm = "atayen";
+    config.campaignOwner = process.env.CAMPAIGN_OWNER;
+    config.campaignOwnerPass = process.env.CAMPAIGN_OWNER_PASS;
+    config.tokenOwner = process.env.TOKEN_OWNER;
+    config.tokenOwnerPass = process.env.TOKEN_OWNER_PASS;
 
-    config.mongoUser = "atayen";
-    config.mongoPass = "atayen";
-    config.mongoHost = "127.0.0.1";
-    config.mongoPort = "27017";
+    config.mysqlHost = process.env.MYSQL_HOST;
+    config.mysqlUser = process.env.MYSQL_mysqlUser;
+    config.mysqlPass = process.env.MYSQL_mysqlPass;
+    config.mysqlDb = process.env.MYSQL_mysqlDb;
 
-    // config.mongoUser = "oracles";
-    // config.mongoPass = "SattToken216";
-    //        config.mongoHost ="155.133.130.205";
-    // config.mongoPort = "27017";
+    config.mongoBase = process.env.MONGO_BASE;
+    config.mongoBaseCrm = process.env.MONGO_BASECRM;
+
+    config.mongoUser = process.env.MONGO_USER;
+    config.mongoPass = process.env.MONGO_PASS;
+    config.mongoHost = process.env.MONGO_HOST;
+    config.mongoPort = process.env.MONGO_PORT;
+
 
     config.mongoURI =
       "mongodb://" +
@@ -130,67 +103,67 @@ module.exports = async function (app) {
       "/" +
       config.mongoBaseCrm;
 
-    config.walletCollection = "wallet";
-    config.contractCollection = "contracts";
-    config.requestCollection = "request";
-    config.eventCollection = "event";
-    config.campaignCollection = "campaign";
-    config.rateCollection = "rate";
-    config.txCollection = "txs";
-    config.passWalletCollection = "temp";
-    config.oracleBanCollection = "oracleban";
-    config.applyCollection = "apply";
-    config.sattBuyCollection = "sattbuy";
-    config.bep20Collection = "bep20";
+    config.walletCollection = process.env.WALLETCOLLECTION;
+    config.contractCollection = process.env.CONTRACTCOLLECTION;
+    config.requestCollection = process.env.REQUESTCOLLECTION;
+    config.eventCollection = process.env.EVENTCOLLECTION;
+    config.campaignCollection = process.env.COMPAIGNCOLLECTION;
+    config.rateCollection = process.env.RATECOLLECTION;
+    config.txCollection = process.env.TXCOLLECTION;
+    config.passWalletCollection = process.env.PASSWALLETCOLLECTION;
+    config.oracleBanCollection = process.env.ORACLEBANCOLLECTION;
+    config.applyCollection = process.env.APPLYCOLLECTION;
+    config.sattBuyCollection = process.env.SATT_BUY_COLLECTION;
+    config.bep20Collection = process.env.BEP20COLLECTION;
 
-    config.appAdminV2 = 0;
+    config.appAdminV2 = process.env.APP_ADMIN_V2;
 
-    config.listenPort = 3014;
+    config.listenPort = process.env.LISTEN_PORT;
 
-    config.AddrBtcVrfy = "";
-    config.campaignWalletPath = "./conf/wallets/campaign.json";
-    config.SattReservePath = "./conf/wallets/campaign.json";
-    config.SattReserve = "0x3f31cbacfec98b29eeb35566fd630c04e706ac46";
-    //	config.SattReservePass = "12345678";
-    //	config.SattReservePass="gemoya05"
-    config.SattReservePass = "Haythem12@";
-    config.AddrBtcExchange = "3GxshMUQqK4wzueFkd7jj7DFaQFhaRxLfm";
-    config.atayenSubscriptionAddress =
-      "0xcbbd153423b6fbe45bdca07bc933c59f2eda0cef";
+    config.AddrBtcVrfy = process.env.ADDR_BTC_VERFY;
+    config.campaignWalletPath = process.env.CAMPAIGN_WALLET_PATH;
+    config.SattReservePath = process.env.SATT_RESET_PATH;
+    config.SattReserve = process.env.SATT_RESERVE
 
-    config.CrmAuthUrl = "https://web.iframe-apps.com/access/user/";
-    config.PaidSatt = "";
-    config.gasPrice = 1000000000;
-    config.gasEth = 21000;
-    config.EtherWei = 1000000000000000000;
+
+
+    config.SattReservePass = process.env.SATT_RESERVE_PASS;
+    config.AddrBtcExchange = process.env.ADDR_BTC_EXCHANGE;
+    config.atayenSubscriptionAddress = process.env.ATAYEN_SUBSCRIPTION_ADDRESS;
+
+    config.CrmAuthUrl = process.env.CRM_AUTH_URL;
+    config.PaidSatt = process.env.PAID_SATT;
+    config.gasPrice = process.env.GAS_PRICE;
+    config.gasEth = process.env.GAS_ETH;
+    config.EtherWei = process.env.ETH_WEI;
 
     config.sattBep20 = {
-      version: 3,
-      id: "4dc797da-5601-4a6f-bc49-a5c2f2236467",
-      address: "359b39b916bb4df416dbea5a2de266dfa9b3bcbf",
+      version: process.env.SATT_BEP20_VERSION,
+      id: process.env.SATT_BEP20_ID,
+      address: process.env.SATT_BEP20_ADDRESS,
       crypto: {
         ciphertext:
-          "2dba72cd6b838d3a2f28b8f3f41a456be5242de1970aeda4fa61a68a042e6352",
+          process.env.SATT_BEP20_CRYPTO_CIPHERTEXT,
         cipherparams: {
-          iv: "e443f8ad2b0c58e55ef38d1c8e999cd8",
+          iv: process.env.SATT_BEP20_CRYPTO_CIPHERPARAMS_IV,
         },
-        cipher: "aes-128-ctr",
-        kdf: "scrypt",
+        cipher: process.env.SATT_BEP20_CRYPTO_CIPHER,
+        kdf: process.env.SATT_BEP20_CRYPTO_KDF,
         kdfparams: {
-          dklen: 32,
-          salt: "a6b7ffa902f4e1b061401d5667f34de81693c59d38295a07a7da96a51897abf2",
-          n: 8192,
-          r: 8,
-          p: 1,
+          dklen: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_DKLEN,
+          salt: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_SALT,
+          n: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_N,
+          r: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_R,
+          p: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_P,
         },
-        mac: "a2597a2ab7ce0b365a8ccb9a87caebd32b9d03636dad3b50532b77683135a1c5",
+        mac: process.env.SATT_BEP20_ADDR,
       },
     };
 
     //bridge bep20;
 
-    config.SattBep20Addr = "0x359B39B916Bb4df416dbeA5a2De266dfa9B3bcBf";
-    config.bridge = "0x359B39B916Bb4df416dbeA5a2De266dfa9B3bcBf";
+    config.SattBep20Addr = process.env.SATT_BEP20_ADDR;
+    config.bridge = process.env.BRIDGE;
     config.sattReserveKs = {};
     config.sattReserveKs34 = {};
 
@@ -200,196 +173,186 @@ module.exports = async function (app) {
     config.campaignContractAdvFee = ""; //mainnet
 
     //config.icoFactor = 1.3;
-    config.icoFactor = 1;
-    config.masterSeed = "";
+    config.icoFactor = process.env.ICOFACTOR;
+    config.masterSeed = process.env.MASTER_SEED;
     config.derivePathEth = "m/44'/60'/0'/0";
     config.derivePathBtc = "m/44'/0'/0'/0";
     config.derivePathLtc = "m/44'/2'/0'/0";
-    config.ledgerAddress = "0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253";
-    config.btcFee = 0.0003;
-    config.masterSeed = "";
+    config.ledgerAddress = process.env.LEDGER_ADDRESS;
+    config.btcFee = process.env.BTC_FEE;
+    config.masterSeed = process.env.MASTER_SEED;
 
-    config.confirmUrl = "";
+    config.confirmUrl = process.env.CONFIRM_URL;
 
-    config.SSLCertFile = "./conf/fullchain.pem";
-    config.SSLKeyFile = "./conf/privkey.pem";
+    config.SSLCertFile = process.env.SSL_CER;
+    config.SSLKeyFile = process.env.SSL_KEY;
 
-    config.cmcApiKey = "091586f4-11fe-4c6a-8c2b-059f5e75f7a7";
-    //config.cmcApiKey = "b3ccb1c6-0a17-45a6-b6aa-9de628659858";
+    config.cmcApiKey = process.env.CMCAPIKEY;
 
-    config.BtcFees = "https://bitcoinfees.earn.com/api/v1/fees/recommended";
+    config.BtcFees = process.env.BTS_FEES;
 
-    config.bxCommand = "/home/oracles/node-satt/bin/bx";
-    config.bxCommandEnd = " -f json";
+    config.bxCommand = process.env.BX_COMMAND;
+    config.bxCommandEnd = process.env.BX_COMMAND_END;
     config.proc_opts = {};
 
-    config.btcCmd =
-      "./bin/bitcoin-cli -rpcconnect=192.168.0.23 -rpcuser=btcuser -rpcpassword=BtcUs3R**-a ";
+    config.btcCmd = process.env.BTC_CMD
     config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0";
     config.pathBtcSegwit = "m/84'/0'/0'/0/0";
     config.pathEth = "m/44'/60'/0'/0/0'";
 
     config.networkSegWitCompat = {
-      baseNetwork: "bitcoin",
-      messagePrefix: "\x18Bitcoin Signed Message:\n",
-      bech32: "bc",
+      baseNetwork: process.env.NETWORKSEGWITCOMPACT_BASE_NETWORK,
+      messagePrefix: process.env.NETWORKSEGWITCOMPACT_MESSAGE_PRFIX,
+      bech32: process.env.NETWORKSEGWITCOMPACT_BECH32,
       bip32: {
-        public: 0x049d7cb2,
-        private: 0x049d7878,
+        public: process.env.NETWORKSEGWITCOMPACT_BIP32_PUBLIC,
+        private: process.env.NETWORKSEGWITCOMPACT_BIP32_PRIVATE,
       },
-      pubKeyHash: 0x00,
-      scriptHash: 0x05,
-      wif: 0x80,
+      pubKeyHash: process.env.NETWORKSEGWITCOMPACT_PUBKEY_HASH,
+      scriptHash: process.env.NETWORKSEGWITCOMPACT_SCRIPT_HASH,
+      wif: process.env.NETWORKSEGWITCOMPACT_WIF,
     };
 
     config.networkSegWit = {
-      baseNetwork: "bitcoin",
-      messagePrefix: "\x18Bitcoin Signed Message:\n",
-      bech32: "bc",
+      baseNetwork: process.env.NETWORKSEGWIT_BASENETWORK,
+      messagePrefix: process.env.NETWORKSEGWIT_MESSAGE_PREFIX,
+      bech32: process.env.NETWORKSEGWIT_BECH32,
       bip32: {
-        public: 0x04b24746,
-        private: 0x04b2430c,
+        public: process.env.NETWORKSEGWIT_BIP32_PUBLIC,
+        private: process.env.NETWORKSEGWIT_BIP32_PRIVATE,
       },
-      pubKeyHash: 0x00,
-      scriptHash: 0x05,
-      wif: 0x80,
+      pubKeyHash: process.env.NETWORKSEGWIT_PUBKEYHASH,
+      scriptHash: process.env.NETWORKSEGWIT_SCRIPTHASH,
+      wif: process.env.NETWORKSEGWIT_WIF,
     };
 
     config.accountType = {
-      0: "Email",
-      1: "Facebook",
-      2: "google",
-      3: "Telegram",
+      0: process.env.ACCOUNT_TYPE0,
+      1: process.env.ACCOUNT_TYPE1,
+      2: process.env.ACCOUNT_TYPE2,
+      3: process.env.ACCOUNT_TYPE3,
     };
-    config.etherscanApiUrl =
-      "https://api.etherscan.io/api?module=account&action=tokentx&startblock=0&endblock=999999999&sort=asc&apikey=ZNDG1UK6FVQ1VJKGDEHQWGSBS1GUHMAPX5&address=";
-    config.etherscanApiUrlTx =
-      "https://api.etherscan.io/api?module=account&action=txlist&startblock=0&endblock=999999999&sort=asc&apikey=ZNDG1UK6FVQ1VJKGDEHQWGSBS1GUHMAPX5&address=";
-    config.etherscanApiUrl_ =
-      "https://api.etherscan.io/api?module=account&startblock=0&endblock=999999999&sort=asc&apikey=ZNDG1UK6FVQ1VJKGDEHQWGSBS1GUHMAPX5&address=";
-    config.bscscanApi =
-    "https://api.bscscan.com/api?module=account&startblock=0&endblock=999999999&sort=desc&apikey=TVXGRBVQAMDI6BC6663YCHPJ67YH2VD4CP&address=";
+    config.etherscanApiUrl =process.env.ETHERSCAN_APIURL
+    config.etherscanApiUrlTx =process.env.ETHERSCAN_APIURLTX
+    config.etherscanApiUrl_ =process.env.ETHERSCAN_APIURL_
+    config.bscscanApi =process.env.BSCSCAN_API
     config.deploy = false;
 
-    config.SattBep20Addr = "0x359B39B916Bb4df416dbeA5a2De266dfa9B3bcBf";
-    config.SattStep3 = "0xcCbE89144A9C44ea40A988028f44e4597375F5eF";
-    config.SattStep4 = "0x66290B22DF130468f08BfFFED04252f3b0cF4E40";
+    config.SattBep20Addr = process.env.SATT_BEP20_ADDRR;
+    config.SattStep3 = process.env.SATT_STEP3;
+    config.SattStep4 = process.env.SATT_STEP4;
 
-    //config.SattStep3 = "";
-    //config.SattStep4 = "";
+
 
     config.Tokens = {
       SATT: {
-        name: "SaTT",
-        symbol: "SATT",
-        undername: "SATT",
-        undername2: "SATT",
-        contract: "0xdf49c9f599a0a9049d97cff34d0c30e468987389",
-        dicimal: 18,
-        network: "ERC20",
+        name: process.env.TOKEN_SATT_NAME,
+        symbol: process.env.TOKEN_SATT_SYMBOL,
+        undername: process.env.TOKEN_SATT_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_UNDERNAME2,
+        contract: process.env.TOKEN_SATT_CONTRACT,
+        dicimal:process.env.TOKEN_SATT_DICIMAL,
+        network: process.env.TOKEN_SATT_NETWORK,
       },
       WSATT: {
-        name: "WSaTT",
-        symbol: "WSATT",
-        undername: "WSATT",
-        undername2: "WSATT",
-        contract: "0x70A6395650b47D94A77dE4cFEDF9629f6922e645",
-        dicimal: 18,
-        network: "ERC20",
+        name: process.env.TOKEN_WSATT_NAME,
+        symbol: process.env.TOKEN_WSATT_SYMBOL,
+        undername: process.env.TOKEN_WSATT_UNDERNAME,
+        undername2: process.env.TOKEN_WSATT_UNDERNAME2,
+        contract: process.env.TOKEN_WSATT_CONTRACT,
+        dicimal: process.env.TOKEN_WSATT_DICIMAL,
+        network: process.env.TOKEN_WSATT_NETWORK,
       },
       SATT_BEP20: {
-        name: "SaTT",
-        symbol: "SATTBEP20",
-        undername: "(BEP20)",
-        undername2: "SATT",
-        contract: "0x6fAc729f346A46fC0093126f237b4A520c40eb89",
-        dicimal: 18,
-        network: "BEP20",
+        name: process.env.TOKEN_SATT_BEP20_NAME,
+        symbol: process.env.TOKEN_SATT_BEP20_SYMBOL,
+        undername: process.env.TOKEN_SATT_BEP20_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_BEP20_UNDERNAME2,
+        contract: process.env.TOKEN_SATT_BEP20_CONTRACT,
+        dicimal:process.env.TOKEN_SATT_BEP20_DICIMAL,
+        network: process.env.TOKEN_SATT_BEP20_NETWORK,
       },
       OMG: {
-        name: "Omise Go",
-        symbol: "OMG",
-        undername: "OMG",
-        undername2: "OMG",
-        contract: "0xd26114cd6EE289AccF82350c8d8487fedB8A0C07",
-        dicimal: 18,
-        network: "ERC20",
+        name: process.env.TOKEN_OMG_NAME,
+        symbol: process.env.TOKEN_OMG_SYMBOL,
+        undername:process.env.TOKEN_OMG_UNDERNAME,
+        undername2: process.env.TOKEN_OMG_UNDERNAME2,
+        contract: process.env.TOKEN_OMG_CONTRACT,
+        dicimal:process.env.TOKEN_OMG_DICIMAL,
+        network: process.env.TOKEN_OMG_NETWORK,
       },
       DAI: {
-        name: "DAI",
-        symbol: "DAI",
-        undername: "DAI",
-        undername2: "DAI",
-        contract: "0x7d6550Bb3946c0BB0701c75baBE2f679E01F3f3E",
-        dicimal: 18,
-        network: "ERC20",
+        name: process.env.TOKEN_DAI_NAME,
+        symbol: process.env.TOKEN_DAI_SYMBOL,
+        undername: process.env.TOKEN_DAI_UNDERNAME,
+        undername2: process.env.TOKEN_DAI_UNDERNAME2,
+        contract: process.env.TOKEN_DAI_CONTRACT,
+        dicimal: process.env.TOKEN_DAI_DICIMAL,
+        network: process.env.TOKEN_DAI_NETWORK,
       },
       USDT: {
-        name: "Tether",
-        symbol: "USDT",
-        undername: "USDT",
-        undername2: "USDT",
-        contract: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        dicimal: 6,
-        network: "ERC20",
+        name: process.env.TOKEN_USDT_NAME,
+        symbol: process.env.TOKEN_USDT_SYMBOL,
+        undername:process.env.TOKEN_USDT_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_BEP20_NETWORK,
+        contract: process.env.TOKEN_USDT_UNDERNAME2,
+        dicimal: process.env.TOKEN_USDT_DICIMAL,
+        network: process.env.TOKEN_USDT_NETWORK,
       },
-      //	USDC:{name:"USD Coin",symbol:"USDC",undername:"USDC",undername2:"USDC",
-      //	contract:"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",dicimal:18,network:'ERC20'},
       ZRX: {
-        name: "0x",
-        symbol: "ZRX",
-        undername: "ZRX",
-        undername2: "ZRX",
-        contract: "0xe41d2489571d322189246dafa5ebde1f4699f498",
-        dicimal: 18,
-        network: "ERC20",
+        name: process.env.TOKEN_ZRX_NAME,
+        symbol:process.env.TOKEN_ZRX_SYMBOL,
+        undername: process.env.TOKEN_ZRX_UNDERNAME,
+        undername2:process.env.TOKEN_ZRX_UNDERNAME2,
+        contract: process.env.TOKEN_ZRX_CONTRACT,
+        dicimal: process.env.TOKEN_ZRX_DICIMAL,
+        network: process.env.TOKEN_ZRX_NETWORK,
       },
       MKR: {
-        name: "Maker",
-        symbol: "MKR",
-        undername: "MKR",
-        undername2: "MKR",
-        contract: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
-        dicimal: 18,
-        network: "ERC20",
+        name: process.env.TOKEN_MKR_NAME,
+        symbol:process.env.TOKEN_MKR_SYMBOL,
+        undername: process.env.TOKEN_MKR_SYMBOL,
+        undername2:process.env.TOKEN_MKR_UNDERNAME,
+        contract: process.env.TOKEN_MKR_CONTRACT,
+        dicimal:process.env.TOKEN_MKR_DICIMAL,
+        network: process.env.TOKEN_MKR_NETWORK,
       },
       BNB: {
-        name: "BNB",
-        symbol: "BNB",
-        undername: "(SMART CHAINE)",
-        undername2: "BNB",
-        contract: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
-        dicimal: 18,
-        network: "BEP20",
+        name: process.env.TOKEN_BNB_NAME,
+        symbol: process.env.TOKEN_BNB_SYMBOL,
+        undername: process.env.TOKEN_BNB_UNDERNAME,
+        undername2:process.env.TOKEN_BNB_UNDERNAME2,
+        contract: process.env.TOKEN_BNB_CONTRACT,
+        dicimal: process.env.TOKEN_BNB_DICIMAL,
+        network: process.env.TOKEN_BNB_NETWORK,
       },
       CAKE: {
-        name: "CAKE",
-        symbol: "CAKE",
-        undername: "CAKE",
-        undername2: "CAKE",
-        contract: "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
-        dicimal: 18,
-        network: "BEP20",
+        name: process.env.TOKEN_CAKE_NAME,
+        symbol: process.env.TOKEN_CAKE_SYMBOL,
+        undername:process.env.TOKEN_CAKE_UNDERNAME,
+        undername2: process.env.TOKEN_CAKE_UNDERNAME2,
+        contract: process.env.TOKEN_CAKE_CONTRACT,
+        dicimal:process.env.TOKEN_CAKE_DICIMAL,
+        network: process.env.TOKEN_CAKE_NETWORK,
       },
       BUSD: {
-        name: "Binance-Peg BUSD Token",
-        symbol: "BUSD",
-        undername: "BUSD",
-        undername2: "BUSD",
-        contract: "0x4CB4473Af06B844d06b5eDeF08983B2C5C61e5af",
-        dicimal: 18,
-        network: "BEP20",
+        name: process.env.TOKEN_BUSD_NAME,
+        symbol: process.env.TOKEN_BUSD_SYMBOL,
+        undername: process.env.TOKEN_BUSD_UNDERNAME,
+        undername2: process.env.TOKEN_BUSD_UNDERNAME2,
+        contract: process.env.TOKEN_BUSD_CONTRACT,
+        dicimal: process.env.TOKEN_BUSD_DICIMAL,
+        network:process.env.TOKEN_BUSD_NETWORK,
       },
     };
 
-     config.xChangePricesUrl = "https://3xchange.io/prices";
-    // config.xChangePricesUrl = "https://api.satt-token.com:3014/prices";
+    config.xChangePricesUrl = process.env.XCHANGE_PRICE_URL;
 
-    config.auth_tokens = ["7wek8rZbmT52Q0cMnGLhDdfVyWJ1a4pvK3xgHBNAi6YOXq"];
+    config.auth_tokens = [process.env.AUTH_TOKENS];
     config.APIURLBEP20 =
-      "https://api.thegraph.com/subgraphs/name/geoffreymoya/satt-campaigns-bsc";
+    process.env.API_URL_BEP20;
     config.APIURLERC20 =
-      "https://api.thegraph.com/subgraphs/name/geoffreymoya/satt-campaigns-ropsten";
+    process.env.API_URL_ERC20;
     config.token200 = [
       {
         id: 8104,
@@ -1324,11 +1287,11 @@ module.exports = async function (app) {
     ];
 
     config.linkedinActivityUrl = (activityURN) =>
-      `https://api.linkedin.com/v2/activities?ids=urn:li:activity:${activityURN}&projection=(results(*(domainEntity~)))`;
+      `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`;
     config.linkedinStatsUrl = (type, idPost, organization) =>
-      `https://api.linkedin.com/v2/organizationalEntityShareStatistics?q=organizationalEntity&${type}s[0]=urn:li:${type}:${idPost}&organizationalEntity=${organization}`;
+      `${process.env.LINKEDIN_START_URL_FIRST}${type}${process.env.LINKEDIN_START_URL_SECOND}${type}:${idPost}${process.env.LINKEDIN_START_URL_THIRD}${organization}`;
     config.linkedinUgcPostStats = (idPost) =>
-      `https://api.linkedin.com/v2/videoAnalytics?q=entity&entity=urn:li:ugcPost:${idPost}&type=VIDEO_VIEW`;
+      `${process.env.LINKEDIN_UGC_POST_FIRST}${idPost}${process.env.LINKEDIN_UGC_POST_SECOND}`;
     app.config = config;
     resolve(app);
   });
