@@ -527,7 +527,7 @@ module.exports = async function (app) {
 
 	};
     
-	cron.schedule('*/10 * * * *',async function(){
+	cron.schedule(app.config.croninsertIntoRate,async function(){
 		var rate = await cryptoManager.getRateEth();
 		app.db.rate().insertOne({price:rate,symbol:"ETH",date:Date.now()});
 		var rate = await cryptoManager.getRateBtc();

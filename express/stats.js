@@ -6,15 +6,15 @@ const cron =require('node-cron');
 const Big = require('big.js');
 
 
-cron.schedule('00 01 * * *',  () => {
+cron.schedule(app.config.cronBalanceUsersStatsDaily,  () => {
 	app.account.BalanceUsersStats("daily");
 });
 
-cron.schedule("* * 1 * *", () =>{
+cron.schedule(app.config.cronBalanceUsersStatsMonthly, () =>{
  app.account.BalanceUsersStats("monthly");
 });
 
-cron.schedule("03 04 * * 1", () =>{
+cron.schedule(app.config.cronBalanceUsersStatsWeekly, () =>{
  app.account.BalanceUsersStats("weekly");
 });
 
