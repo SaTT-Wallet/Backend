@@ -3,12 +3,10 @@
 
 	try {
 		
-		var express = require('express');
+		var express = require('express')
 		var app = express();
 		var cors = require('cors')
-
-
-
+		require('dotenv').config()
 
         var bodyParser = require('body-parser');
         app.use(bodyParser.json({limit: '4mb'}));
