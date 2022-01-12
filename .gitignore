@@ -42,7 +42,10 @@ node_modules/
 jspm_packages/
 
 #config files
-conf/
+conf/wallels/
+conf/const.js
+conf/fullchain.pem
+conf/privkey.pem
 
 # TypeScript v1 declaration files
 typings/
