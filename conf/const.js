@@ -1,14 +1,18 @@
 module.exports = async function (app) {
+
+
+
+
   return new Promise((resolve, reject) => {
     var Constants = {
       token: {
         address: {
-          mainnet: "0xdf49c9f599a0a9049d97cff34d0c30e468987389",
-          testnet: "0x2beF0d7531f0aaE08ADc26A0442Ba8D0516590d0",
-          tetherMainnet: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-          tetherTesnet: "0x3B2243E3Aeb6d4A102061BCE6C5c233c2C08fF65",
-          daiMainnet: "0x6b175474e89094c44da98b954eedeac495271d0f",
-          daiTesnet: "0x7d6550Bb3946c0BB0701c75baBE2f679E01F3f3E",
+          mainnet: app.config.tokenMainnet,
+          testnet: app. config.tokenTestnet,
+          tetherMainnet: app.config.tokenTetherMainnet,
+          tetherTesnet: app.config.tokentethertestnet,
+          daiMainnet: app.config.tokenDaiMainnet,
+          daiTesnet: app.config.tokenDaitestnet,
         },
 
         abi: [
@@ -203,10 +207,10 @@ module.exports = async function (app) {
       },
       campaign: {
         address: {
-          mainnet: "",
-          testnet: "0x28D37ED4c039B65d8e999eDE2956CeC4e88a70df",
-          mainnetBep20: "",
-          testnetBep20: "0x98255Fc154A38a32daa2c26060e219e8DBF024bc",
+          mainnet: app.config.compaignMainnet,
+          testnet: app.config.compaignTestnet,
+          mainnetBep20: app.config.compaignMainnetBep20,
+          testnetBep20: app.config.compaignTestNetBep20,
         },
         abi: [
           {
@@ -810,10 +814,10 @@ module.exports = async function (app) {
       },
       oracle: {
         address: {
-          mainnet: "",
-          testnet: "0x49B1149C975970E47Ad3a16BE3c7701B3f445ECd",
-          mainnetBep20: "",
-          testnetBep20: "0x11235dca54a882f7a9221fc156b7945de0a4e655",
+          mainnet: app.config.oracleMainnet,
+          testnet: app.config.oracleTestnet,
+          mainnetBep20:app.config.oracleMainnetBep20,
+          testnetBep20: app.config.oracleTestnetBep20,
         },
         abi: [
           {
@@ -1089,7 +1093,7 @@ module.exports = async function (app) {
         ],
       },
       wSaTT: {
-        address: { mainnet: "0x70A6395650b47D94A77dE4cFEDF9629f6922e645" },
+        address: { mainnet: app.config.wsattMainnet },
         abi: [
           {
             inputs: [
@@ -1135,7 +1139,7 @@ module.exports = async function (app) {
         ],
       },
       priceGap: {
-        address: { mainnet: "0xf117674e1890b56be87db3b0dc12750023ee69d9" },
+        address: { mainnet: app.config.priceGapMainnet},
         abi: [
           {
             constant: false,
@@ -1395,10 +1399,10 @@ module.exports = async function (app) {
 
       bep20: {
         address: {
-          mainnet: "0x448bee2d93be708b54ee6353a7cc35c4933f1156",
-          testnet: "0x6fAc729f346A46fC0093126f237b4A520c40eb89",
-          busdMainnet: "0xe9e7cea3dedca5984780bafc599bd69add087d56",
-          busdTesnet: "0x4CB4473Af06B844d06b5eDeF08983B2C5C61e5af",
+          mainnet: app.config.bep20Mainnet,
+          testnet: app.config.bep20Testnet,
+          busdMainnet: app.config.bep20BusdMainnet,
+          busdTesnet: app.config.bep20BusdTestNet,
         },
         abi: [
           {

@@ -7,6 +7,35 @@ module.exports = async function (app) {
 
    
 
+    config.tokenMainnet=process.env.CONST_TOKEN_ADDRESS_MAINNET;
+    config.tokenTestnet=process.env.CONST_TOKEN_ADDRESS_TESTNET;
+    config.tokenTetherMainnet=process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET;
+    config.tokentethertestnet=process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET;
+    config.tokenDaiMainnet=process.env.CONST_TOKEN_ADDRESS_DAIMAINNET;
+    config.tokenDaitestnet=process.env.CONST_TOKEN_ADDRESS_DAITESTNET;
+
+    config.compaignMainnet=process.env.CONST_COMPAIGN_ADDRESS_MAINNET;
+    config.compaignTestnet=process.env.CONST_COMPAIGN_ADDRESS_TESTNET;
+    config.compaignMainnetBep20=process.env.CONST_COMPAIGN_ADDRESS_MAINNETBEP20;
+    config.compaignTestNetBep20=process.env.CONST_COMPAIGN_ADDRESS_TESTNETBEP20;
+
+    config.oracleMainnet=process.env.CONST_ORACLE_ADDRESS_MAINNET;
+    config.oracleTestnet=process.env.CONST_ORACLE_ADDRESS_TESTNET;
+    config.oracleMainnetBep20=process.env.CONST_ORACLE_ADDRESS_MAINNETBEP20;
+    config.oracleTestnetBep20=process.env.CONST_ORACLE_ADDRESS_TESTNETBEP20;
+
+    config.wsattMainnet=process.env.CONST_WSATT_ADDRESS_MAINNET;
+
+    config.priceGapMainnet=process.env.CONST_PRICEGAP_ADDRESS_MAINNET;
+
+    config.bep20Mainnet=process.env.CONST_BEP20_ADDRESS_MAINNET;
+    config.bep20Testnet=process.env.CONST_BEP20_ADDRESS_TESTNET;
+    config.bep20BusdMainnet=process.env.CONST_BEP20_ADDRESS_BUSDMAINNET;
+    config.bep20BusdTestNet=process.env.CONST_BEP20_ADDRESS_BUSDTESTNET;
+
+
+
+
     config.cronUpdateStat=process.env.CRON_UPDATE_STAT;
     config.croninsertIntoRate= process.env.CRON_INSERT_INTO_RATE
     config.cronBalanceUsersStatsDaily= process.env.CRON_WALLET_USERS_sTAT_DAILY
