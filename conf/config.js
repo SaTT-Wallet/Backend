@@ -7,8 +7,13 @@ module.exports = async function (app) {
 
    
 
-    config.cronUpdateStat=process.env.CRON_UPDATE_STAT
-    config.testnet = process.env.TESTNET_TRUE;
+    config.cronUpdateStat=process.env.CRON_UPDATE_STAT;
+    config.croninsertIntoRate= process.env.CRON_INSERT_INTO_RATE
+    config.cronBalanceUsersStatsDaily= process.env.CRON_WALLET_USERS_sTAT_DAILY
+    config.cronBalanceUsersStatsMonthly= process.env.CRON_WALLET_USERS_sTAT_MONTHLY
+    config.cronBalanceUsersStatsWeekly= process.env.CRON_WALLET_USERS_sTAT_WEEKLY
+
+    config.testnet = true;
     config.appId = process.env.APPID;
     config.appSecret = process.env.APP_SECRET;
     config.fbGraphVersion = process.env.FB_GRAPH_VERSION;
@@ -16,13 +21,13 @@ module.exports = async function (app) {
     config.mailerOptions = {
       host: process.env.MAILER_HOST,
       port: process.env.MAILER_PORT,
-      secure: process.env.MAILER_SECURE,
+      secure: false,
       auth: {
         user: process.env.MAILER_USER,
-        pass: process.env.MAILER_UNAUTHORIZED,
+        pass: process.env.MAILER_PASS,
       },
       tls: {
-        rejectUnauthorized: process.env.MAILER_UNAUTHORIZED,
+        rejectUnauthorized: false,
       },
     };
 
