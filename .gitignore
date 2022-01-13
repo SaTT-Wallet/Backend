@@ -43,7 +43,6 @@ jspm_packages/
 
 #config files
 conf/wallets/
-conf/const.js
 conf/fullchain.pem
 conf/privkey.pem
 
@@ -75,7 +74,7 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)
