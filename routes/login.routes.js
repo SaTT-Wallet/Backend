@@ -11,7 +11,12 @@ const {
     googleConnection,
     googleConnectionCallback,
     telegramConnection,
-    emailSignup
+    emailSignup,
+    facebookSignup,
+    facebookSignupCallback,
+    googleSignupCallback,
+    googleSignup,
+    telegramSignup
 } = require('../middleware/passport.middleware')
 
 /**
