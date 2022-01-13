@@ -286,7 +286,6 @@ module.exports = async function (app) {
   if(!app.config.testnet) {
 		child.execSync(app.config.btcCmd+" importpubkey "+pub+" 'default' false");
 	}
-		//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
 		return {publicKey:pub,address:address1,addressSegWit:addressbc1,addressSegWitCompat:address3,ek:ek};
 
@@ -314,6 +313,7 @@ module.exports = async function (app) {
 			var bnb_balance = await app.web3Bep20.eth.getBalance(address);
 
 			var satt_balance = await app.token.contract.methods.balanceOf(address).call();
+
 			var res = {address:"0x"+account.keystore.address,ether_balance:ether_balance,bnb_balance:bnb_balance,satt_balance:satt_balance?satt_balance.toString():0,version:(account.mnemo?2:1)}
 			res.btc_balance = 0;
 			if(!app.config.testnet && account.btc && account.btc.addressSegWitCompat ) {

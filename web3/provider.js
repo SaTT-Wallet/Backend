@@ -28,11 +28,10 @@ const options = {
     }
 };
 
-
 	app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url,options));
 	//app.web3Inf  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlInf,options));
 
-	
+
 
 	app.web3Bep20 = new Web3(new Web3.providers.HttpProvider(app.config.web3UrlBep20,options));
   app.web3Bep20Websocket = false;
