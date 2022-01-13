@@ -75,6 +75,9 @@
 		app.use('/auth', loginroutes);
 		app.use('/wallet', walletroutes)
 
+
+
+
 		
 
 
@@ -96,6 +99,8 @@
 		  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
 
+
+
 		  next();
 		});
 		app = await require("./express/login")(app);
@@ -107,7 +112,7 @@
 		//app = await require("./express/campaigncentral")(app);
 		//app = await require("./express/statscentral")(app);
 		app = await require("./express/stats")(app);
-		//app = await require("./express/wallet")(app);
+		app = await require("./express/wallet")(app);
 		app = await require("./express/main")(app);
 		app = await require("./web3/initcontracts")(app);
 	} catch (e) {
