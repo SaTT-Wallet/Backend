@@ -59,7 +59,7 @@ router.get('/captcha',captcha)
 
 /**
  * @swagger
- * /auth/mail:
+ * /auth/signin/mail:
  *   post:
  *     tags:
  *     - "auth"
@@ -81,11 +81,11 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: error={"error":true,"message":"invalid_grant"}
  */
-router.post('/mail',emailConnection)
+router.post('/signin/mail',emailConnection)
 
 /**
  * @swagger
- * /auth/facebook:
+ * /auth/signin/facebook:
  *   get:
  *     tags:
  *     - "auth"
@@ -95,13 +95,13 @@ router.post('/mail',emailConnection)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/facebook',facebookConnection)
+router.get('/signin/facebook',facebookConnection)
 router.get('/callback/facebook/connection',facebookConnectionCallback);
 
 
 /**
  * @swagger
- * /auth/google:
+ * /auth/signin/google:
  *   get:
  *     tags:
  *     - "auth"
@@ -111,13 +111,13 @@ router.get('/callback/facebook/connection',facebookConnectionCallback);
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
- router.get('/google',googleConnection)
+ router.get('/signin/google',googleConnection)
  router.get('/callback/google/connection',googleConnectionCallback);
 
 
  /**
  * @swagger
- * /auth/telegram:
+ * /auth/signin/telegram:
  *   get:
  *     tags:
  *     - "auth"
@@ -127,7 +127,7 @@ router.get('/callback/facebook/connection',facebookConnectionCallback);
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/telegram',telegramConnection)
+router.get('/signin/telegram',telegramConnection)
 
 
 /**
@@ -237,4 +237,49 @@ router.post('/passrecover',passRecover)
  *          description: error={error:true,message:'account_already_used'}
  */
  router.post('/signup/mail',emailSignup)
+
+
+ /**
+ * @swagger
+ * /auth/signup/facebook:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: signup with facebook.
+ *     description: signup with facebook.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/signup/facebook',facebookSignup)
+router.get('/callback/facebook/signup',facebookSignupCallback);
+
+ /**
+ * @swagger
+ * /auth/signup/google:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: signup with google.
+ *     description: signup with google.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+  router.get('/signup/google',googleSignup)
+  router.get('/callback/google/signup',googleSignupCallback);
+
+   /**
+ * @swagger
+ * /auth/signup/telegram:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: signup with telegram.
+ *     description: signup with telegram.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+    router.get('/signup/telegram',telegramSignup)
 module.exports = router;

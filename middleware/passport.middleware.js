@@ -408,3 +408,196 @@ exports.emailSignup= async(req, res, next) => {
 /* 
 * end signin with email and password
 */
+
+/* 
+* begin signup with facebook strategy
+*/
+passport.use('auth_signup_facebookStrategy', new FbStrategy({
+    clientID: app.config.appId,
+    clientSecret: app.config.appSecret,
+    callbackURL: app.config.baseUrl + "/callback/facebook/signup",
+    profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+    passReqToCallback: true
+},
+async function(req, accessToken, refreshToken, profile, cb) {
+
+    var date = Math.floor(Date.now() / 1000) + 86400;
+    var buff = Buffer.alloc(32);
+    var token = crypto.randomFillSync(buff).toString('hex');
+    var users = await app.db.sn_user().find({ idOnSn: profile._json.token_for_business }).toArray()
+    if (users.length) {
+        return cb('account_already_used&idSn=' + users[0].idSn)
+    } else {
+        var mongodate = new Date().toISOString();
+        var mydate = mongodate.slice(0, 19).replace('T', ' ');
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
+        var id = Long.fromNumber(await app.account.handleId())
+        await app.db.sn_user().insertOne({
+            _id: id,
+            scopedId: profile.id,
+            idOnSn: profile._json.token_for_business,
+            email: profile._json.email,
+            username: profile.name,
+            firstName: profile.first_name,
+            lastName: profile.displayName,
+            created: mongodate,
+            onBoarding: false,
+            account_locked: false,
+            newsLetter: req.body.newsLetter,
+            failed_count: 0,
+            updated: mongodate,
+            idSn: 1,
+            locale: "en",
+            enabled: 1,
+            confirmation_token: code,
+            picLink: profile.photos.length ? profile.photos[0].value : false,
+            userSatt: true
+        });
+        await app.db.accessToken().insertOne({ client_id: 1, user_id: id, token: token, expires_at: date, scope: "user" });
+        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
+        req.session.user = id;
+        return cb(null, { id: id, token: token, expires_in: date });
+    }
+}));
+
+exports.facebookSignupCallback= async(req, res, next) => {
+    passport.authenticate('auth_signup_facebookStrategy'), async function(req, response) {
+        try {
+            var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
+            response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
+        } catch (e) {
+            console.log(e)
+        }
+    },
+    authSignInErrorHandler
+} 
+exports.facebookSignup= async(req, res, next) => {
+    passport.authenticate('auth_signup_facebookStrategy')
+} 
+/* 
+*end signup with facebook strategy
+*/
+
+
+/* 
+* begin signup with google strategy
+*/
+passport.use('auth_signup_googleStrategy', new GoogleStrategy({
+    clientID: app.config.googleClientId,
+    clientSecret: app.config.googleClientSecret,
+    callbackURL: app.config.baseUrl + "callback/google/signup",
+    passReqToCallback: true
+},
+async function(req, accessToken, refreshToken, profile, cb) {
+    var date = Math.floor(Date.now() / 1000) + 86400;
+    var buff = Buffer.alloc(32);
+    var token = crypto.randomFillSync(buff).toString('hex');
+    var users = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray()
+    if (users.length) {
+        var user = users[0];
+        // if (user.idSn != 2) {
+        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
+        // }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
+        if (user.account_locked) {
+            let message = `account_locked:${user.date_locked}`
+            return cb({ error: true, message, blockedDate: user.date_locked })
+        }
+        var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
+        if (oldToken) {
+            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+        } else {
+            var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
+        }
+        req.session.user = user._id;
+        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+        return cb(null, { id: user._id, token: token, expires_in: date });
+    } else {
+        return cb('Register First') //(null, false, {message: 'account_invalide'});
+
+    }
+}));
+
+exports.googleSignupCallback= async(req, res, next) => {
+    passport.authenticate('auth_signup_googleStrategy', { scope: ['profile', 'email'] }), async function(req, response) {
+        //console.log(req.user)
+        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
+        response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
+    },
+    authSignInErrorHandler
+} 
+exports.googleSignup= async(req, res, next) => {
+    passport.authenticate('auth_signup_googleStrategy', { scope: ['profile', 'email', ] })
+} 
+/* 
+*end signup with google strategy
+*/
+
+
+/* 
+* begin signup with telegram strategy
+*/
+passport.use('auth_signup_telegramStrategy',
+        new TelegramStrategy({
+                botToken: app.config.telegramBotToken,
+                passReqToCallback: true
+            },
+            async function(req, profile, cb) {
+
+                var date = Math.floor(Date.now() / 1000) + 86400;
+                var buff = Buffer.alloc(32);
+                var token = crypto.randomFillSync(buff).toString('hex');
+                var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
+                if (users.length) {
+                    return cb('account_already_used&idSn=' + users[0].idSn);
+                } else {
+                    var mongodate = new Date().toISOString();
+                    var buff2 = Buffer.alloc(32);
+                    var code = crypto.randomFillSync(buff2).toString('hex');
+                    var mydate = mongodate.slice(0, 19).replace('T', ' ');
+                    var insert = await app.db.sn_user().insertOne({
+                        _id: Long.fromNumber(await app.account.handleId()),
+                        idOnSn3: profile.id,
+                        username: profile.email,
+                        firstName: profile.first_name,
+                        lastName: profile.last_name,
+                        name: profile.username,
+                        newsLetter: req.body.newsLetter,
+                        picLink: profile.photo_url,
+                        created: mongodate,
+                        onBoarding: false,
+                        account_locked: false,
+                        failed_count: 0,
+                        updated: mongodate,
+                        idSn: 5,
+                        locale: "en",
+                        confirmation_token: code,
+                        enabled: 1,
+                        userSatt: true
+                    });
+                    var users = insert.ops;
+                    var res_ins = await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user" });
+                    req.session.user = users[0]._id;
+                    return cb(null, { id: users[0]._id, token: token, expires_in: date });
+                }
+            }
+        ));
+
+exports.telegramSignup= async(req, res, next) => {
+    passport.authenticate('auth_signup_telegramStrategy'),
+        function(req, res) {
+            try {
+                var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
+                res.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
+            } catch (e) {
+                console.log(e)
+            }
+        },
+        authErrorHandler
+} 
+/* 
+*end signup with telegram strategy
+*/
