@@ -78,6 +78,9 @@
 
 
 
+		
+
+
      	app = await require("./web3/oracle")(app);
 		//app = await require("./manager/campaigncentral")(app);
 		app = await require("./web3/campaign")(app);
@@ -94,6 +97,8 @@
 		  res.header("content-type","application/json");
 		  res.header("Access-Control-Allow-Origin", "*");
 		  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+
 
 
 		  next();

@@ -3,15 +3,16 @@ module.exports = async function (app) {
 	var tokenManager = {};
 	var fs = require("fs");
 
-
-
 	tokenManager.followContract = function () {
 		if(app.config.testnet) {
 			tokenManager.contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.testnet);
 		}
 		else {
 			tokenManager.contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
+
+			
 		}
+
 
 	}
 
