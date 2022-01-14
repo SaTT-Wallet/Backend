@@ -143,7 +143,7 @@ module.exports = function (app) {
 
 	app.get('/v2/mywallet/:token', async function(req, response) {
 		try {
-
+			
 			const token = req.params.token;
 			var res =	await app.crm.auth(token);
 

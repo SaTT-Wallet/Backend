@@ -454,7 +454,6 @@ module.exports = function(app) {
                     userSatt: true,
                     picLink: profile.photos.length ? profile.photos[0].value : false
                 });
-                console.log(profile)
                 var users = insert.ops;
                 var res_ins = await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit" });
                 req.session.user = users[0]._id;
@@ -1072,7 +1071,7 @@ module.exports = function(app) {
 
 
 
-    app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', { scope: ['profile', 'email'] }));
+    app.get('/auth/signup_google', passport.authenticate('signup_googleStrategy', { scope: ['profile', 'email'],prompt:"select_account" }));
 
 
 
@@ -1211,7 +1210,7 @@ module.exports = function(app) {
         },
         authErrorHandler);
 
-    app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', { scope: ['profile', 'email'] }), async function(req, response) {
+    app.get('/callback/google_signup', passport.authenticate('signup_googleStrategy', { scope: ['profile', 'email'],prompt:"select_account" }), async function(req, response) {
             var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
             response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
         },

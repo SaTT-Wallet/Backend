@@ -37,6 +37,7 @@ var synfonyHash = function(pass) {
 }
 var express = require('express');
 var app = express();
+let router = express.Router();
 var connection;
 (connection = async function (){
  app = await require("../conf/config")(app);
@@ -45,7 +46,16 @@ var connection;
  app = await require("../web3/provider")(app);
  app = await require("../manager/account")(app);
  app = await require("../manager/i18n")(app);
+
 })();
+var session = require('express-session');
+
+try {
+    app.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8', resave: true, saveUninitialized: true })); // session secret
+    app.use(passport.session());
+} catch (e) {
+    console.log(e)
+}
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport(app.config.mailerOptions);
 passport.serializeUser(function(user, cb) {
@@ -412,15 +422,7 @@ exports.emailSignup= async(req, res, next) => {
 /* 
 * begin signup with facebook strategy
 */
-passport.use('auth_signup_facebookStrategy', new FbStrategy({
-    clientID: app.config.appId,
-    clientSecret: app.config.appSecret,
-    callbackURL: app.config.baseUrl + "/callback/facebook/signup",
-    profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
-    passReqToCallback: true
-},
-async function(req, accessToken, refreshToken, profile, cb) {
-
+exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
@@ -459,22 +461,7 @@ async function(req, accessToken, refreshToken, profile, cb) {
         req.session.user = id;
         return cb(null, { id: id, token: token, expires_in: date });
     }
-}));
-
-exports.facebookSignupCallback= async(req, res, next) => {
-    passport.authenticate('auth_signup_facebookStrategy'), async function(req, response) {
-        try {
-            var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-            response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-        } catch (e) {
-            console.log(e)
-        }
-    },
-    authSignInErrorHandler
-} 
-exports.facebookSignup= async(req, res, next) => {
-    passport.authenticate('auth_signup_facebookStrategy')
-} 
+}
 /* 
 *end signup with facebook strategy
 */
@@ -483,55 +470,45 @@ exports.facebookSignup= async(req, res, next) => {
 /* 
 * begin signup with google strategy
 */
-passport.use('auth_signup_googleStrategy', new GoogleStrategy({
-    clientID: app.config.googleClientId,
-    clientSecret: app.config.googleClientSecret,
-    callbackURL: app.config.baseUrl + "callback/google/signup",
-    passReqToCallback: true
-},
-async function(req, accessToken, refreshToken, profile, cb) {
+
+exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var users = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray()
+    var users = await app.db.sn_user().find({ $or: [{ idOnSn2: profile.id }, { email: profile._json.email }] }).toArray()
     if (users.length) {
-        var user = users[0];
-        // if (user.idSn != 2) {
-        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
-        // }
-        // if(!user.enabled){
-        //   return cb('account not verified')
-        // }
-        if (user.account_locked) {
-            let message = `account_locked:${user.date_locked}`
-            return cb({ error: true, message, blockedDate: user.date_locked })
-        }
-        var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-        if (oldToken) {
-            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
-        } else {
-            var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
-        }
-        req.session.user = user._id;
-        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-        return cb(null, { id: user._id, token: token, expires_in: date });
+        return cb('account_already_used&idSn=' + users[0].idSn)
     } else {
-        return cb('Register First') //(null, false, {message: 'account_invalide'});
-
+        var mongodate = new Date().toISOString();
+        var mydate = mongodate.slice(0, 19).replace('T', ' ');
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
+        var insert = await app.db.sn_user().insertOne({
+            _id: Long.fromNumber(await app.account.handleId()),
+            idOnSn2: profile.id,
+            email: profile.emails.length ? profile.emails[0].value : false,
+            username: profile.displayName,
+            firstName: profile.name.givenName,
+            lastName: profile.name.familyName,
+            created: mongodate,
+            updated: mongodate,
+            idSn: 2,
+            newsLetter: req.body.newsLetter,
+            onBoarding: false,
+            account_locked: false,
+            failed_count: 0,
+            enabled: 1,
+            locale: profile._json.locale,
+            confirmation_token: code,
+            userSatt: true,
+            picLink: profile.photos.length ? profile.photos[0].value : false
+        });
+        var users = insert.ops;
+        await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit" });
+        return cb(null, { id: profile.id, token: token, expires_in: date });
     }
-}));
+}
 
-exports.googleSignupCallback= async(req, res, next) => {
-    passport.authenticate('auth_signup_googleStrategy', { scope: ['profile', 'email'] }), async function(req, response) {
-        //console.log(req.user)
-        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-        response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-    },
-    authSignInErrorHandler
-} 
-exports.googleSignup= async(req, res, next) => {
-    passport.authenticate('auth_signup_googleStrategy', { scope: ['profile', 'email', ] })
-} 
 /* 
 *end signup with google strategy
 */
@@ -584,7 +561,7 @@ passport.use('auth_signup_telegramStrategy',
                     return cb(null, { id: users[0]._id, token: token, expires_in: date });
                 }
             }
-        ));
+));
 
 exports.telegramSignup= async(req, res, next) => {
     passport.authenticate('auth_signup_telegramStrategy'),

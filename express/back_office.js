@@ -17,9 +17,7 @@ module.exports = function (app) {
 	
 	app.get('/auth/admin/getAllUser/:key', async (req, res) => {
         try{   
-			console.log(app.config.auth_tokens)   
 			let token = req.headers["authorization"].split(" ")[1];
-			console.log(token)
 			if(app.config.auth_tokens.includes(token)){
           listOfUser=[];
           const key=req.params.key;

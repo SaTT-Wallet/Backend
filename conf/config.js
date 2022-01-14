@@ -1320,6 +1320,25 @@ module.exports = async function (app) {
       },
     ];
 
+    config.googleCredentials = callback => {
+      return {
+        clientID: config.googleClientId,
+        clientSecret: config.googleClientSecret,
+        callbackURL: config.baseUrl + callback,
+        passReqToCallback: true
+      }
+    }
+
+    config.facebookCredentials = callback => {
+      return {
+        clientID: app.config.appId,
+        clientSecret: app.config.appSecret,
+        callbackURL: app.config.baseUrl + callback,
+        profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+        passReqToCallback: true
+      }
+    }
+
     config.linkedinActivityUrl = (activityURN) =>
       `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`;
     config.linkedinStatsUrl = (type, idPost, organization) =>
