@@ -24,139 +24,8 @@ module.exports = async function (app) {
       web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
     }
 
-    bep20Manager.eventETHtoBSC = async (error, evt) => {
-
-      if(error) {
-        console.log(error);
-        return;
-      }
-
-        var dbl = await app.db.bep20().findOne({ethTxHash:evt.transactionHash});
-
-        if(dbl)
-        {
-          console.log("doublon infura :",evt.transactionHash)
-          return;
-        }
-        console.log("eth to bsc",evt.transactionHash);
-
-        var to = evt.returnValues.to;
-        var value = evt.returnValues.value;
-        var from = evt.returnValues.from;
-
-        /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-          console.log("recup hack",evt);
-          return;
-        }*/
-
-        //await bep20Manager.unlockOwner();
-
-        //var mintres = await bep20Manager.mint(value);
-        //var transferres = await bep20Manager.transfer(from,value);
-
-        var log = {
-          type:"ETH-BSC",
-          from:from,
-          to:to,
-          value:value,
-          status:"pending",
-          ethTxHash:evt.transactionHash,
-         // mintTxHash:mintres.transactionHash,
-         // bscTxHash:transferres.transactionHash,
-          date :Math.floor(Date.now()/1000)
-        }
-        var ins = await app.db.bep20().insertOne(log);
-
-
-    }
-
-    bep20Manager.eventBSCtoETH = async (error, evt) => {
-
-
-      if(error)
-      {
-        console.log("evt error")
-        console.log(error)
-        return;
-      }
-
-        if(evt.event != "Transfer")
-        {
-          console.log("no Transfer")
-          return;
-        }
-
-      var dbl = await app.db.bep20().findOne({bscTxHash:evt.transactionHash});
-      if(dbl)
-      {
-        console.log("doublon binance :",evt.transactionHash)
-        return;
-      }
-
-
-
-
-
-      var from = evt.returnValues.from;
-      var to = evt.returnValues.to;
-      var value = evt.returnValues.value;
-
-
-
-
-
-      console.log("bsc to eth",from,to,value);
-
-
-      if(to == nullAddress)
-      {
-        console.log("dropped")
-        return;
-      }
-      else if(to.toLowerCase() != app.config.SattBep20Addr.toLowerCase())
-      {
-        console.log("dropped")
-        return;
-      }
-      else {
-
-        /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-          console.log("recup hack",evt);
-          return;
-        }*/
-
-        if(from == nullAddress)
-        {
-          return;
-        }
-
-        var log = {
-          type:"BSC-ETH",
-          from:from,
-          to:to,
-          value:value,
-          bscTxHash:evt.transactionHash,
-          status:"pending",
-          date :Math.floor(Date.now()/1000)
-        }
-        var ins = await app.db.bep20().insertOne(log);
-
-       // var gasPrice = await web3.eth.getGasPrice();
-
-         // await bep20Manager.unlockOwner();
-
-         // var burnres = await bep20Manager.burn(value);
-
-        //  app.web3.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
-
-        //  var transferres = await app.token.transfer(from,value,{address:app.config.SattBep20Addr/*gasPrice*/});
-
-
-
-        //  var update = await app.db.bep20().updateOne({bscTxHash:evt.transactionHash}, {$set: {  burnTxHash:burnres.transactionHash,ethTxHash:transferres.transactionHash,}})
-
-      }
-    }
+    
+  
 
     bep20Manager.mint = async  (amount) => {
       return new Promise(async (resolve, reject) => {
@@ -322,19 +191,7 @@ module.exports = async function (app) {
         }
       });
     }
-      bep20Manager.initEventHandlers = async () => {
-
-        web3.eth.transactionBlockTimeout = 100;
-
-        /*bep20Manager.contractWS.events.allEvents  ( {filter:{to:[app.config.SattBep20Addr]},fromBlock: "latest",topics:["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]},async function(err,evt) {
-          console.log(evt);
-          	await bep20Manager.eventBSCtoETH(err,evt)
-        });*/
-        
-        bep20Manager.contractWS.events.Transfer({filter:{to:app.config.SattBep20Addr}},bep20Manager.eventBSCtoETH);
-
-        app.token.contract.events.Transfer  ( {filter:{to:app.config.SattBep20Addr}},bep20Manager.eventETHtoBSC);
-      }
+      
 
 
 
