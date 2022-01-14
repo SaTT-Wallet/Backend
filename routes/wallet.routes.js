@@ -1,6 +1,6 @@
 let express = require('express');
 let router = express.Router();
-const {mywallet, totalBalances, userBalance,gasPrice, prices} = require('../controllers/wallet.controller')
+const {gasPriceErc20, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
 
 
 
@@ -48,7 +48,7 @@ router.get('/userBalance',userBalance)
 
 /**
  * @swagger
- * /wallet/bnbGasPrice:
+ * /wallet/Bep20GasPrice:
  *   get:
  *     tags:
  *     - "wallets"
@@ -63,7 +63,7 @@ router.get('/userBalance',userBalance)
  */
 
 
-router.get('/bnbGasPrice', gasPrice)
+router.get('/Bep20GasPrice', gasPriceBep20)
 
 
 
@@ -107,6 +107,98 @@ router.get('/prices', prices)
 
 router.get('/totalBalnce', totalBalances)
 
+
+
+
+
+/**
+ * @swagger
+ * /wallet/Erc20GasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     description: gas price ERC20
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: {gasPrice}
+ *       "500":
+ *          description: error:"error"
+ */
+
+
+
+ router.get('/Erc20GasPrice', gasPriceErc20)
+
+
+
+ 	/**
+ * @swagger
+ * /wallet/transferErc20:
+ *   post:
+ *     summary: transfer erc20 {deprecated}.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenERC20:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               symbole:
+ *                 type: string
+ *               decimal:
+ *                 type: number
+ *               access_token:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+ router.post('/transferErc20', transfertErc20)
+ 
+
+
+ 	/**
+ * @swagger
+ * /wallet/transferBep20:
+ *   post:
+ *     summary: transfer bep20 {deprecated}.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               newsLetter:
+ *                 type: boolean
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+ router.post('/transferBep20', transfertBep20)
 
 
 
