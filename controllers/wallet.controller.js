@@ -26,7 +26,7 @@ var app = express();
 
 exports.mywallet= async(req, response)=>{
 
-
+    try{
         let token = req.headers["authorization"].split(" ")[1];
 
         var res =	await app.crm.auth(token);
