@@ -716,8 +716,9 @@ module.exports = async function (app) {
 				if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
 				   key = 'SATT'
 				}
-                 if(CryptoPrices.hasOwnProperty(key)) Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))
+                 if(CryptoPrices.hasOwnProperty(key)) Total_balance+=((app.token.filterAmount(new Big(balance['amount']*1).div((10**(+token_info[T_name].dicimal)).toString()).toNumber() + "")*CryptoPrices[key].price))
 					 }
+
                      delete ret.address
 					 for(const Amount in ret){
 						let tokenSymbol = Amount.split('_')[0].toUpperCase();
@@ -767,7 +768,14 @@ module.exports = async function (app) {
 				}  	  
 			  }
 
+
+			  console.log(ret);
+
 			  for(let T_name in token_info){
+
+
+				// console.log(token_info[T_name].dicimal);
+
 				let network=token_info[T_name].network;
 			        let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
@@ -783,6 +791,7 @@ module.exports = async function (app) {
 
              let networkToken = network=="ERC20" ? app.erc20: app.bep20;
              let balance = await networkToken.getBalance(token_info[T_name].contract,ret.address);
+
                        let key = T_name.split("_")[0];
 
 			 if( (token_info[T_name].contract==token_info['SATT_BEP20'].contract) || (token_info[T_name].contract==token_info['WSATT'].contract)){
@@ -792,19 +801,27 @@ module.exports = async function (app) {
 				  if(CryptoPrices.hasOwnProperty(key)){
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;
-					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber() + "")*CryptoPrices[key].price))*1		
-				  }		
-			     crypto.quantity=app.token.filterAmount(new Big(balance['amount']*1).div(new Big(10).pow(token_info[T_name].dicimal)).toNumber());
+					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div((10**(+token_info[T_name].dicimal)).toString()).toNumber() + "")*CryptoPrices[key].price))*1		
+				console.log(crypto.total_balance);
+				}		
+			     crypto.quantity=app.token.filterAmount(new Big(balance['amount']*1).div((10**(+token_info[T_name].dicimal)).toString()).toNumber());
 
 
 			  listOfCrypto.push(crypto);
 
 			}
 			delete ret.address
+
+
 			for(const Amount in ret){	
+
+
+
 			      let crypto={}	
 				let tokenSymbol = Amount.split('_')[0].toUpperCase();
 				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
+
+				console.log(decimal);
 				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
 				if(tokenSymbol == "BTC") {
 					crypto.name='Bitcoin'
