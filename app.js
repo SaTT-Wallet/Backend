@@ -75,7 +75,7 @@
 		app.use('/auth', loginroutes);
 		app.use('/wallet', walletroutes)
 
-		
+
 
 
      	app = await require("./web3/oracle")(app);
@@ -107,7 +107,7 @@
 		//app = await require("./express/campaigncentral")(app);
 		//app = await require("./express/statscentral")(app);
 		app = await require("./express/stats")(app);
-		//app = await require("./express/wallet")(app);
+		app = await require("./express/wallet")(app);
 		app = await require("./express/main")(app);
 		app = await require("./web3/initcontracts")(app);
 	} catch (e) {

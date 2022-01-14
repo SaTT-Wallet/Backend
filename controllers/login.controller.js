@@ -166,3 +166,6 @@ exports.passRecover= async(req, response)=>{
         response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
     }
 }
+
+
+
