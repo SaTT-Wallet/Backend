@@ -54,8 +54,8 @@ try {
  
 
   bridge.getCronCtrs =  () => {
-    var web3eth = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url));
-    var web3Bsc  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
+    var web3eth = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url,options));
+    var web3Bsc  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket,options));
 
     var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
     var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
