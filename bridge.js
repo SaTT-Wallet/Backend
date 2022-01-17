@@ -68,8 +68,8 @@ try {
     bridge.contractEvtEth = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
     bridge.contractEvtBsc = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
     
-    bridge.contractEvtBsc.events.Transfer({filter:{to:app.config.SattBep20Addr}},bridge.eventBSCtoETH);
-    //bridge.contractEvtEth.events.Transfer({filter:{to:app.config.SattBep20Addr}},bridge.eventETHtoBSC);
+    //bridge.contractEvtBsc.events.Transfer({filter:{to:app.config.SattBep20Addr}},bridge.eventBSCtoETH);
+    bridge.contractEvtEth.events.Transfer({filter:{to:app.config.SattBep20Addr}},bridge.eventETHtoBSC);
   }
 
   bridge.unlockOwnerBsc = async () => {
