@@ -275,6 +275,7 @@ module.exports = async function (app) {
     config.SattBep20Addr = process.env.SATT_BEP20_ADDRR;
     config.SattStep3 = process.env.SATT_STEP3;
     config.SattStep4 = process.env.SATT_STEP4;
+    config.cmcUrl=process.env.CMR_URL;
 
 
 
