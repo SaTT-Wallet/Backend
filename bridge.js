@@ -9,6 +9,8 @@ try {
   app = await require("./db/db")(app);
   //app = await require("./web3/provider")(app);
 
+  var Web3 = require('web3');
+
   app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url));
   app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
 
@@ -20,7 +22,7 @@ try {
   app = await require("./manager/account")(app);
 
   const cron = require('node-cron');
-  var Web3 = require('web3');
+  
 
   var nullAddress = "0x0000000000000000000000000000000000000000";
  
