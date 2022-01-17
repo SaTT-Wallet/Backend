@@ -40,12 +40,12 @@ var app = express();
 let router = express.Router();
 var connection;
 (connection = async function (){
- app = await require("../conf/config")(app);
- app = await require("../conf/const")(app);
- app = await require("../db/db")(app);
- app = await require("../web3/provider")(app);
- app = await require("../manager/account")(app);
- app = await require("../manager/i18n")(app);
+app = await require("../conf/config")(app);
+app = await require("../conf/const")(app);
+app = await require("../db/db")(app);
+app = await require("../web3/provider")(app);
+app = await require("../manager/account")(app);
+app = await require("../manager/i18n")(app);
 
 })();
 var session = require('express-session');
@@ -151,15 +151,7 @@ exports.emailConnection= async(req, res, next) => {
 /* 
 * begin signin with facebook strategy
 */
-passport.use("facebook_strategy_connection", new FbStrategy({
-    clientID: app.config.appId,
-    clientSecret: app.config.appSecret,
-    callbackURL: app.config.baseUrl + "callback/facebook/connection",
-    profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
-    passReqToCallback: true
-},
-async function(req, accessToken, refreshToken, profile, cb) {
-
+exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
@@ -189,22 +181,7 @@ var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id:
     } else {
         return cb('Register First') // (null, false, {error: true, message: 'account_invalide'});
     }
-}))
-
-exports.facebookConnectionCallback= async(req, res, next) => {
-    passport.authenticate('facebook_strategy_connection'), async function(req, response) {
-        try {
-            var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-            response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-        } catch (e) {
-            console.log(e)
-        }
-    },
-    authSignInErrorHandler
-} 
-exports.facebookConnection= async(req, res, next) => {
-    passport.authenticate('facebook_strategy_connection')
-} 
+}
 /* 
 *end signin with facebook strategy
 */
@@ -212,25 +189,13 @@ exports.facebookConnection= async(req, res, next) => {
 /* 
 *begin signin with google strategy
 */
-passport.use('google_strategy_connection', new GoogleStrategy({
-    clientID: app.config.googleClientId,
-    clientSecret: app.config.googleClientSecret,
-    callbackURL: app.config.baseUrl + "callback/google/connection",
-    passReqToCallback: true
-},
-async function(req, accessToken, refreshToken, profile, cb) {
+exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
     var users = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray()
     if (users.length) {
         var user = users[0];
-        // if (user.idSn != 2) {
-        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
-        // }
-        // if(!user.enabled){
-        //   return cb('account not verified')
-        // }
         if (user.account_locked) {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
@@ -246,26 +211,11 @@ async function(req, accessToken, refreshToken, profile, cb) {
         return cb(null, { id: user._id, token: token, expires_in: date });
     } else {
         return cb('Register First') //(null, false, {message: 'account_invalide'});
-
     }
-}));
-
-exports.googleConnectionCallback= async(req, res, next) => {
-    passport.authenticate('google_strategy_connection', { scope: ['profile', 'email'] }), async function(req, response) {
-        //console.log(req.user)
-        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-        response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-    },
-    authSignInErrorHandler
-} 
-exports.googleConnection= async(req, res, next) => {
-    passport.authenticate('google_strategy_connection', { scope: ['profile', 'email', ] })
-} 
+}
 /* 
-*end signin with facebook strategy
+*end signin with google strategy
 */
-
-
 
 /* 
 begin signin with telegram strategy

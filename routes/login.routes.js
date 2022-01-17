@@ -44,11 +44,14 @@ const {
     facebookSignup,
     facebookSignupCallback,
     telegramSignup,
-    googleAuthSignup
+    googleAuthSignup,
+    facebookAuthSignup,
+    googleAuthSignin,
+    facebookAuthSignin,
+    
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
-    console.log(err)
     let message = err.message ? err.message : err;
     res.redirect(app.config.basedURl + '/auth/login?message=' + message);
 }
@@ -121,38 +124,6 @@ router.get('/captcha',captcha)
  *          description: error={"error":true,"message":"invalid_grant"}
  */
 router.post('/signin/mail',emailConnection)
-
-/**
- * @swagger
- * /auth/signin/facebook:
- *   get:
- *     tags:
- *     - "auth"
- *     summary: connect with facebook.
- *     description: connect with facebook.
- *     responses:
- *       "200":
- *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
- */
-router.get('/signin/facebook',facebookConnection)
-router.get('/callback/facebook/connection',facebookConnectionCallback);
-
-
-/**
- * @swagger
- * /auth/signin/google:
- *   get:
- *     tags:
- *     - "auth"
- *     summary: connect with google.
- *     description: connect with google.
- *     responses:
- *       "200":
- *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
- */googleAuthSignup
- router.get('/signin/google',googleConnection)
- router.get('/callback/google/connection',googleConnectionCallback);
-
 
  /**
  * @swagger
@@ -292,11 +263,11 @@ router.post('/passrecover',passRecover)
  */
 router.get('/signup/facebook',async(req, res, next) => {
     passport.authenticate('auth_signup_facebookStrategy')(req,res,next)})
-    passport.use('auth_signup_facebookStrategy', new FbStrategy(app.config.facebookCredentials("auth/callback/facebook/signup"),
-    async (req, accessToken, refreshToken, profile, cb) => {
+passport.use('auth_signup_facebookStrategy', new FbStrategy(app.config.facebookCredentials("auth/callback/facebook/signup"),
+async (req, accessToken, refreshToken, profile, cb) => {
         facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
     })
-    );
+);   
 router.get('/callback/facebook/signup',passport.authenticate('auth_signup_facebookStrategy'), async function(req, response) {
     try {
         var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
@@ -306,6 +277,40 @@ router.get('/callback/facebook/signup',passport.authenticate('auth_signup_facebo
     }
 },
 authSignInErrorHandler);
+
+
+/**
+ * @swagger
+ * /auth/signin/facebook:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: connect with facebook.
+ *     description: connect with facebook.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/signin/facebook',async(req, res, next) => {
+passport.authenticate('facebook_strategy_connection')(req,res,next)})
+
+passport.use("facebook_strategy_connection", 
+new FbStrategy(app.config.facebookCredentials("auth/callback/facebook/connection"),
+async function(req, accessToken, refreshToken, profile, cb) {
+    facebookAuthSignin(req, accessToken, refreshToken, profile, cb)
+}))
+router.get('/callback/facebook/connection',
+passport.authenticate('facebook_strategy_connection'), async function(req, response) {
+    try {
+        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
+        response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
+    } catch (e) {
+        console.log(e)
+    }
+},
+authSignInErrorHandler
+);
+
 
  /**
  * @swagger
@@ -332,6 +337,36 @@ router.get('/callback/google/signup',
   response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
 },
 authSignInErrorHandler);
+
+
+/**
+ * @swagger
+ * /auth/signin/google:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: connect with google.
+ *     description: connect with google.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/signin/google',async(req, res, next) => {
+passport.authenticate('google_strategy_connection', { scope: ['profile', 'email', ] })(req, res, next)})
+
+passport.use('google_strategy_connection', 
+new GoogleStrategy(app.config.googleCredentials("auth/callback/google/connection"),
+async function(req, accessToken, refreshToken, profile, cb) {
+    googleAuthSignin(req, accessToken, refreshToken, profile, cb)
+}));
+
+router.get('/callback/google/connection',
+passport.authenticate('google_strategy_connection', { scope: ['profile', 'email'] }), async function(req, response) {
+    var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
+    response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
+},
+authSignInErrorHandler
+);
 
    /**
  * @swagger
