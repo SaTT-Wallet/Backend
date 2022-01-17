@@ -34,7 +34,7 @@ module.exports = async function (app) {
 
 	ercManager.getBalance = async function (token,addr) {
 		return new Promise(async (resolve, reject) => {
-
+			
 			try {
 				var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
 				var amount = await contract.methods.balanceOf(addr).call();
