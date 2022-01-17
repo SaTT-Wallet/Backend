@@ -855,7 +855,7 @@ module.exports = function(app) {
         async function(req, accessToken, refreshToken, profile, done) {
             let state = req.query.state.split('|');
             let user_id = +state[0];
-            let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id },{email:profile.emails[0].value}]}).toArray();
+            let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id }]}).toArray();
             if (userExist.length) {
 
                 done(null, profile, {
