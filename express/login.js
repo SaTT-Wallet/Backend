@@ -2289,5 +2289,41 @@ module.exports = function(app) {
         }
     });
 
+    app.post('/migrationDB', async(req, res) => {
+        try {
+            var date = Math.floor(Date.now() / 1000) + 86400;
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
+            var result = await app.db.query("Select * from user");
+            if (result.length) {
+                for(i=0;i<result.length;i++){
+                    user=await app.db.sn_user().findOne({email:result[i].email});
+                    if(!user){
+                        await app.db.sn_user().insertOne({
+                            _id: Long.fromNumber(await app.account.handleId()),
+                            username: result[i]?.username?.toLowerCase(),
+                            email: result[i]?.email?.toLowerCase(),
+                            password: result[i]?.password,
+                            created: result[i]?.created,
+                            idSn: result[i]?.idSn,
+                            locale: result[i]?.locale,
+                            onBoarding: false,
+                            enabled: 0,
+                            "userSatt": true
+                        });
+                    }
+                    var oldToken = await app.db.accessToken().findOne({ user_id: result[i]._id });
+                    if (!oldToken) {
+                        await app.db.accessToken().insertOne({ client_id: 1, user_id: result[i]._id, token, expires_at: date, scope: "user" });
+                    }
+                }
+            }
+            res.send(JSON.stringify("success"))
+
+        } catch (err) {
+            res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+        }
+    });
+
     return app;
 }
