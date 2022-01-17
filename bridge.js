@@ -7,8 +7,14 @@ try {
   app = await require("./conf/const")(app);
 
   app = await require("./db/db")(app);
-  app = await require("./web3/provider")(app);
+  //app = await require("./web3/provider")(app);
+
+  app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url));
+  app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
+
   app = await require("./web3/satt")(app);
+
+  
 
   app = await require("./manager/bep20")(app);
   app = await require("./manager/account")(app);
