@@ -182,7 +182,7 @@ try {
   await bridge.initEventHandlers();
 
   
-    cron.schedule('*/10 * * * *',  () => {
+    cron.schedule('*/10 * * * *', async () => {
       await bridge.poll();
     });
 
