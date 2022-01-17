@@ -213,7 +213,7 @@ try {
 
 
 
-  await bridge.initEventHandlers();
+ // await bridge.initEventHandlers();
 
   
     cron.schedule('*/10 * * * *', async () => {
