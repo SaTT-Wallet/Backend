@@ -253,7 +253,6 @@ exports.checkWalletToken= async(req,res)=>{
 
 exports.addNewToken= async(req,res)=>{
 
-
     try {
 
         console.log(("start"));
@@ -269,22 +268,11 @@ exports.addNewToken= async(req,res)=>{
             return;
         }
 
-
-        console.log("app",app.config.xChangePricesUrl);
-
-        console.log("body", req.body);
-       
           let CryptoPrices =  app.account.getPrices();
-       //   console.log("CryptoPrices", CryptoPrices);
 
         let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
         
-        console.log("body",tokenFounded);
-
         if(!tokenFounded){
-
-
-            console.log(app.config.cmcUrl , symbol);
             customToken = req.body;
             customToken.sn_users = [auth.id]
         if(CryptoPrices.hasOwnProperty(symbol)){
@@ -298,7 +286,6 @@ exports.addNewToken= async(req,res)=>{
             gzip: true
           };
        let metaData = await rp(cryptoMetaData);
-       console.log("metaData", metaData);			
         customToken.picUrl = metaData.data[customToken.symbol].logo
          }
         await app.db.customToken().insertOne(customToken)
@@ -317,6 +304,154 @@ exports.addNewToken= async(req,res)=>{
      }
 
 }
+
+
+exports.transfertBtc= async(req , response)=>{
+
+
+    var pass = req.body.pass;
+    try {
+        const token = req.headers["authorization"].split(" ")[1];
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlock(res.id,pass);
+        var result = await app.account.getAccount(res.id);
+        if(new Big(req.body.val).gt(new Big(result.btc_balance)))
+            response.end(JSON.stringify({message:"not_enough_budget"}));
+        var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
+        response.end(JSON.stringify({hash:hash}));
+
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+            if(cred)
+        app.account.lock(cred.address);
+    }
+
+}
+
+
+exports.transfertBNB= async(req , response)=>{
+
+    var pass = req.body.pass;
+
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlockBSC(res.id,pass);
+		cred.from_id = res.id;
+		var to = req.body.to;
+		var amount = req.body.val;
+		var result = await app.account.getAccount(res.id);
+
+        console.log(result);
+		if(new Big(amount).gt(new Big(result.bnb_balance)))
+			response.end(JSON.stringify({message:"not_enough_budget"}));
+
+		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
+
+        console.log("ret" , ret);
+
+
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		cred && app.account.lockBSC(cred.address);
+
+		if(ret.transactionHash){
+
+		await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
+		const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+			if(wallet){
+				await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'BNB',from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
+			}
+	}
+		}
+
+}
+
+
+
+
+exports.transfertEther= async(req , response)=>{
+
+    var pass = req.body.pass;
+    var to = req.body.to;
+    var amount = req.body.val;
+    try {
+
+        console.log('start');
+
+        console.log(req.body);
+        const token = req.headers["authorization"].split(" ")[1];
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlock(res.id,pass);
+        cred.from_id = res.id;
+
+        console.log("cred", cred);
+
+        console.log('before ret');
+        
+        var ret = await app.cryptoManager.transfer(to,amount,cred);
+        console.log('after ret');
+
+        //console.log("ret",ret);
+        response.end(JSON.stringify(ret));
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+        // if(cred) app.account.lock(cred.address);
+        // if(ret.transactionHash){
+        //     await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+        //     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+        //     if(wallet){
+            
+        //         await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+        //     }
+        // }
+}
+
+}
+
+exports.getQuote = async (req, res)=>{
+
+    try {
+        const token = req.headers["authorization"].split(" ")[1];
+        var auth = await app.crm.auth(token);
+        let requestQuote = req.body;
+        requestQuote["end_user_id"]= String(auth.id);
+        requestQuote["client_ip"]= req.addressIp;
+        requestQuote["payment_methods"]= ["credit_card"];
+        requestQuote["wallet_id"]= "satt";
+    const simplexQuote ={
+        url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
+        method: 'POST',
+          body:requestQuote, 
+        headers: {
+            'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+          },
+        json: true
+      };
+      var quote = await rp(simplexQuote);
+      delete quote.supported_digital_currencies;
+      delete quote.supported_fiat_currencies;
+      app.account.log("Quote from simplex", quote);
+      res.end(JSON.stringify(quote));
+    }
+    catch (err) {
+       app.account.sysLogError(err);
+       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally{
+    }
+
+
+}
+
 
 
 

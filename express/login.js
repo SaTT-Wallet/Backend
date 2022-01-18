@@ -2328,8 +2328,14 @@ module.exports = function(app) {
             var date = Math.floor(Date.now() / 1000) + 86400;
             var buff = Buffer.alloc(32);
             var token = crypto.randomFillSync(buff).toString('hex');
+
+            console.log('im here');
+
             var result = await app.db.query("Select * from user");
+
             if (result.length) {
+
+                console.log("result");
                 for(i=0;i<result.length;i++){
                     user=await app.db.sn_user().findOne({email:result[i].email});
                     if(!user){
