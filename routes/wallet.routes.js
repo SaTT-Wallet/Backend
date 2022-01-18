@@ -1,7 +1,7 @@
 
 let express = require('express');
 let router = express.Router();
-const {getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
+const {payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
 
 
 
@@ -420,6 +420,39 @@ router.post('/transfertEther', transfertEther)
  router.post('/getQuote', getQuote)
 
 
+ 	/**
+ * @swagger
+ * /wallet/payementRequest/{idWallet}:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary:  payement request in simplex.
+
+ *     description: parametres acceptées :body{transferParameter}.
+ *     parameters:
+ *       - name: idWallet
+ *         description: wallet id.
+ *         in: path
+ *         required: true
+ *         type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               currency:
+ *                 type: string
+ *               quote_id:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:Validation failed
+ *       "500":
+ *          description: error:error message
+ */
+
+ router.post('/payementRequest/:idWallet', payementRequest)
 
 
 module.exports = router;

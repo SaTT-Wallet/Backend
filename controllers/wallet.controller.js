@@ -4,6 +4,9 @@ var express = require('express');
 
 const Big = require('big.js');
 var rp = require('request-promise');
+const {randomUUID}= require('crypto');
+const { v5 : uuidv5 } = require('uuid')
+
 
 
 
@@ -188,23 +191,18 @@ exports.transfertBep20= async(req,response)=>{
         req.body.token = !req.body.token ? "0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
 
 
-        console.log(req.body);
         var result = await app.account.getAccount(res.id);
 
-        console.log("result", result);
         let balance = await app.bep20.getBalance(req.body.token,result.address);
        
-        console.log("balance", balance);
 
         if(new Big(amount).gt(new Big(balance.amount)))
         response.end(JSON.stringify({message:"not_enough_budget"}));
 
         var ret = await app.bep20.sendBep20(req.body.token,to,amount,cred);
-        console.log('ret', ret);
         response.end(JSON.stringify(ret));
     } catch (err) {
 
-        console.log(err);
             response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
     finally {
@@ -255,7 +253,6 @@ exports.addNewToken= async(req,res)=>{
 
     try {
 
-        console.log(("start"));
         const token = req.headers["authorization"].split(" ")[1];
         let auth = await app.crm.auth(token);
         let customToken = {};
@@ -299,7 +296,6 @@ exports.addNewToken= async(req,res)=>{
         res.end(JSON.stringify({message:"token added"}))
     }catch (err) {
 
-        console.log(err);
         res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
      }
 
@@ -344,13 +340,11 @@ exports.transfertBNB= async(req , response)=>{
 		var amount = req.body.val;
 		var result = await app.account.getAccount(res.id);
 
-        console.log(result);
 		if(new Big(amount).gt(new Big(result.bnb_balance)))
 			response.end(JSON.stringify({message:"not_enough_budget"}));
 
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 
-        console.log("ret" , ret);
 
 
 		response.end(JSON.stringify(ret));
@@ -383,22 +377,15 @@ exports.transfertEther= async(req , response)=>{
     var amount = req.body.val;
     try {
 
-        console.log('start');
 
-        console.log(req.body);
         const token = req.headers["authorization"].split(" ")[1];
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
         cred.from_id = res.id;
 
-        console.log("cred", cred);
-
-        console.log('before ret');
-        
+      
         var ret = await app.cryptoManager.transfer(to,amount,cred);
-        console.log('after ret');
-
-        //console.log("ret",ret);
+       
         response.end(JSON.stringify(ret));
     } catch (err) {
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -452,6 +439,72 @@ exports.getQuote = async (req, res)=>{
 
 }
 
+
+
+exports.payementRequest = async(req , res)=>{
+
+    try {
+
+  
+        let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
+        if (ip) ip = ip.split(":")[3];
+
+		const token = req.headers["authorization"].split(" ")[1];
+		var auth = await app.crm.auth(token);
+        
+		let payment_id=randomUUID();
+		const uiad = app.config.uiad;	
+
+		let user_agent = req.headers['user-agent'];
+		const http_accept_language =  req.headers['accept-language'];
+		let user = await app.db.sn_user().findOne({_id:auth.id},{projection: { email: true, phone: true,created:true}});
+
+		let request = {};
+		request._id = auth.id.toString(), request.installDate=user.created
+
+
+		request.email=user.email,request.addressIp=ip,request.user_agent = user_agent;
+		request.language=http_accept_language;
+
+		request.quote_id = req.body.quote_id //from /getQuote api
+		request.order_id =  uuidv5(app.config.orderSecret, uiad);
+	
+		request.uuid = payment_id
+
+		request.currency = req.body.currency;
+		request.idWallet= req.params.idWallet;
+
+
+
+
+		 let payment = app.config.paymentRequest(request)
+
+		const paymentRequest ={
+			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
+			method: 'POST',
+			 body:payment, 
+			headers: {
+				'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+			  },
+			json: true
+		  };
+
+
+		  var paymentSubmitted = await rp(paymentRequest);
+              paymentSubmitted.payment_id = payment_id;
+
+			res.end(JSON.stringify(paymentSubmitted));
+	}
+	catch (err) {
+	   app.account.sysLogError(err);
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally{
+		paymentSubmitted && app.account.log(`requestedPayment by ${auth.id}` )	
+	}
+
+
+}
 
 
 
