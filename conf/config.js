@@ -1340,6 +1340,7 @@ module.exports = async function (app) {
       }
     }
 
+    config.persmissionsObjFb = {scope:['public_profile', 'email']}
     config.linkedinActivityUrl = (activityURN) =>
       `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`;
     config.linkedinStatsUrl = (type, idPost, organization) =>

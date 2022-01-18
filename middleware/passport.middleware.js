@@ -2,8 +2,6 @@ const fs = require('fs');
 var handlebars = require('handlebars');
 var passport = require('passport');
 var emailStrategy = require('passport-local').Strategy;
-var FbStrategy = require('passport-facebook').Strategy;
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
 var LocalStrategy = require('passport-local').Strategy;
 var Long = require('mongodb').Long;
@@ -37,7 +35,6 @@ var synfonyHash = function(pass) {
 }
 var express = require('express');
 var app = express();
-let router = express.Router();
 var connection;
 (connection = async function (){
 app = await require("../conf/config")(app);
@@ -67,11 +64,6 @@ passport.deserializeUser(async function(id, cb) {
     cb(null, users[0]);
 });
 
-function authSignInErrorHandler(err, req, res, next) {
-    console.log(err)
-    let message = err.message ? err.message : err;
-    res.redirect(app.config.basedURl + '/auth/login?message=' + message);
-}
 /* 
 * begin signin with email and password
 */
@@ -135,7 +127,6 @@ exports.emailConnection= async(req, res, next) => {
                 req.session.user = user.id;
                 var param = { "access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user" };
                 return res.end(JSON.stringify(param))
-                    //return res.redirect('/');
             });
 
         })(req, res, next)
@@ -215,66 +206,6 @@ exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
 }
 /* 
 *end signin with google strategy
-*/
-
-/* 
-begin signin with telegram strategy
-*/
-passport.use('telegramStrategyConnection',
-        new TelegramStrategy({
-                botToken: app.config.telegramBotToken,
-                passReqToCallback: true
-            },
-            async function(req, profile, cb) {
-                var date = Math.floor(Date.now() / 1000) + 86400;
-                var buff = Buffer.alloc(32);
-                var token = crypto.randomFillSync(buff).toString('hex');
-                var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
-                if (users.length) {
-                    var user = users[0];
-                    // if (user.idSn != 5) {
-                    //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
-                    // }
-                    // if(!user.enabled){
-                    //   return cb('account not verified')
-                    // }
-                    if (user.account_locked) {
-                        let message = `account_locked:${user.date_locked}`
-                        return cb({ error: true, message, blockedDate: user.date_locked })
-                    }
-                    var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-                    if (oldToken) {
-                        var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
-                    } else {
-                        var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
-                    }
-                    req.session.user = user._id;
-                    //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-                    return cb(null, { id: user._id, token: token, expires_in: date });
-                } else {
-                    return cb('account_invalide');
-                }
-
-
-
-            }
-));
-exports.telegramConnection= async(req, res, next) => {
-    passport.authenticate('telegramStrategyConnection'),
-    function(req, res) {
-        // Successful authentication, redirect home.
-        try {
-
-            var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-            res.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-        } catch (e) {
-            console.log(e)
-        }
-    },
-    authSignInErrorHandler
-} 
-/* 
-*end signin with telegram strategy
 */
 
 
@@ -467,64 +398,101 @@ exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
 /* 
 * begin signup with telegram strategy
 */
-passport.use('auth_signup_telegramStrategy',
-        new TelegramStrategy({
-                botToken: app.config.telegramBotToken,
-                passReqToCallback: true
-            },
-            async function(req, profile, cb) {
 
-                var date = Math.floor(Date.now() / 1000) + 86400;
-                var buff = Buffer.alloc(32);
-                var token = crypto.randomFillSync(buff).toString('hex');
-                var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
-                if (users.length) {
-                    return cb('account_already_used&idSn=' + users[0].idSn);
-                } else {
-                    var mongodate = new Date().toISOString();
-                    var buff2 = Buffer.alloc(32);
-                    var code = crypto.randomFillSync(buff2).toString('hex');
-                    var mydate = mongodate.slice(0, 19).replace('T', ' ');
-                    var insert = await app.db.sn_user().insertOne({
-                        _id: Long.fromNumber(await app.account.handleId()),
-                        idOnSn3: profile.id,
-                        username: profile.email,
-                        firstName: profile.first_name,
-                        lastName: profile.last_name,
-                        name: profile.username,
-                        newsLetter: req.body.newsLetter,
-                        picLink: profile.photo_url,
-                        created: mongodate,
-                        onBoarding: false,
-                        account_locked: false,
-                        failed_count: 0,
-                        updated: mongodate,
-                        idSn: 5,
-                        locale: "en",
-                        confirmation_token: code,
-                        enabled: 1,
-                        userSatt: true
-                    });
-                    var users = insert.ops;
-                    var res_ins = await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user" });
-                    req.session.user = users[0]._id;
-                    return cb(null, { id: users[0]._id, token: token, expires_in: date });
-                }
-            }
-));
 
-exports.telegramSignup= async(req, res, next) => {
-    passport.authenticate('auth_signup_telegramStrategy'),
-        function(req, res) {
+exports.telegramSignup= async(req, res) => {
             try {
                 var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
                 res.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
             } catch (e) {
                 console.log(e)
             }
-        },
-        authErrorHandler
 } 
+
+exports.signup_telegram_function=async(req, profile, cb) => {
+    var date = Math.floor(Date.now() / 1000) + 86400;
+    var buff = Buffer.alloc(32);
+    var token = crypto.randomFillSync(buff).toString('hex');
+    var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
+    if (users.length) {
+        return cb('account_already_used&idSn=' + users[0].idSn);
+    } else {
+        var mongodate = new Date().toISOString();
+        var buff2 = Buffer.alloc(32);
+        var code = crypto.randomFillSync(buff2).toString('hex');
+        var mydate = mongodate.slice(0, 19).replace('T', ' ');
+        var insert = await app.db.sn_user().insertOne({
+            _id: Long.fromNumber(await app.account.handleId()),
+            idOnSn3: profile.id,
+            username: profile.email,
+            firstName: profile.first_name,
+            lastName: profile.last_name,
+            name: profile.username,
+            newsLetter: req.body.newsLetter,
+            picLink: profile.photo_url,
+            created: mongodate,
+            onBoarding: false,
+            account_locked: false,
+            failed_count: 0,
+            updated: mongodate,
+            idSn: 5,
+            locale: "en",
+            confirmation_token: code,
+            enabled: 1,
+            userSatt: true
+        });
+        var users = insert.ops;
+        var res_ins = await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user" });
+        req.session.user = users[0]._id;
+        return cb(null, { id: users[0]._id, token: token, expires_in: date });
+    }
+}
 /* 
 *end signup with telegram strategy
+*/
+
+
+/* 
+begin signin with telegram strategy
+*/
+exports.signin_telegram_function=async(req, profile, cb) => {
+    var date = Math.floor(Date.now() / 1000) + 86400;
+    var buff = Buffer.alloc(32);
+    var token = crypto.randomFillSync(buff).toString('hex');
+    var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
+    if (users.length) {
+        var user = users[0];
+        // if (user.idSn != 5) {
+        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
+        // }
+        // if(!user.enabled){
+        //   return cb('account not verified')
+        // }
+        if (user.account_locked) {
+            let message = `account_locked:${user.date_locked}`
+            return cb({ error: true, message, blockedDate: user.date_locked })
+        }
+        var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
+        if (oldToken) {
+            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+        } else {
+            var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
+        }
+        req.session.user = user._id;
+        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+        return cb(null, { id: user._id, token: token, expires_in: date });
+    } else {
+        return cb('account_invalide');
+    }
+}
+exports.telegramConnection= (req, res) => {
+    try {
+        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
+        res.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
+    } catch (e) {
+        console.log(e)
+}
+} 
+/* 
+*end signin with telegram strategy
 */

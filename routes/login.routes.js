@@ -16,7 +16,9 @@ router.use(passport.initialize())
 var session = require('express-session');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 var FbStrategy = require('passport-facebook').Strategy;
-const crypto = require('crypto');
+var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+
+var Long = require('mongodb').Long;
 
 passport.serializeUser(function(user, cb) {
     cb(null, user);
@@ -32,28 +34,30 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,testtest2} = require('../controllers/login.controller')
+const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover} = require('../controllers/login.controller')
 const { 
     emailConnection,
-    facebookConnection,
-    facebookConnectionCallback,
-    googleConnection,
-    googleConnectionCallback,
     telegramConnection,
     emailSignup,
-    facebookSignup,
-    facebookSignupCallback,
     telegramSignup,
     googleAuthSignup,
     facebookAuthSignup,
     googleAuthSignin,
     facebookAuthSignin,
+    signup_telegram_function,
+    signin_telegram_function
     
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
     let message = err.message ? err.message : err;
     res.redirect(app.config.basedURl + '/auth/login?message=' + message);
+}
+
+function authErrorHandler(err, req, res, next) {
+    console.log(err)
+    let message = err.message ? err.message : err;
+    res.redirect(app.config.basedURl + '/auth/registration?message=' + message);
 }
 
 /**
@@ -125,19 +129,6 @@ router.get('/captcha',captcha)
  */
 router.post('/signin/mail',emailConnection)
 
- /**
- * @swagger
- * /auth/signin/telegram:
- *   get:
- *     tags:
- *     - "auth"
- *     summary: connect with telegram.
- *     description: connect with telegram.
- *     responses:
- *       "200":
- *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
- */
-router.get('/signin/telegram',telegramConnection)
 
 
 /**
@@ -262,7 +253,9 @@ router.post('/passrecover',passRecover)
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/signup/facebook',async(req, res, next) => {
-    passport.authenticate('auth_signup_facebookStrategy')(req,res,next)})
+    passport.authenticate('auth_signup_facebookStrategy',app.config.persmissionsObjFb)
+    (req,res,next)
+})
 passport.use('auth_signup_facebookStrategy', new FbStrategy(app.config.facebookCredentials("auth/callback/facebook/signup"),
 async (req, accessToken, refreshToken, profile, cb) => {
         facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
@@ -380,7 +373,44 @@ authSignInErrorHandler
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/signup/telegram',telegramSignup)
+// router.get('/signup/telegram',telegramSignup)
+router.get('/signup/telegram',
+passport.authenticate('auth_signup_telegramStrategy'),
+telegramSignup,authErrorHandler
+)
+passport.use('telegramStrategyConnection',
+    new TelegramStrategy({
+        botToken: app.config.telegramBotToken,
+        passReqToCallback: true
+    },
+    async function(req, profile, cb) {
+    signin_telegram_function(req, profile, cb)
+    }
+));
 
-
+ /**
+ * @swagger
+ * /auth/signin/telegram:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: connect with telegram.
+ *     description: connect with telegram.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+  router.get('/signin/telegram',
+  passport.authenticate('telegramStrategyConnection'),
+  telegramConnection,authSignInErrorHandler
+  )
+  passport.use('auth_signup_telegramStrategy',
+        new TelegramStrategy({
+                botToken: app.config.telegramBotToken,
+                passReqToCallback: true
+            },
+            async function(req, profile, cb) {
+            signup_telegram_function(req, profile, cb)
+            }
+));
 module.exports = router;
