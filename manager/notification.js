@@ -32,7 +32,6 @@ module.exports = async (app) => {
    notificationManager.sendNotification = async (data)=>{
      
     let fireBaseAccessToken= await notificationManager.getAccessToken();
-    console.log(fireBaseAccessToken, "fireBaseAccessToken")
     var clientServerOptions = {
     uri: 'https://fcm.googleapis.com/v1/projects/satt-token/messages:send',
     body: JSON.stringify(data),

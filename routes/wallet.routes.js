@@ -1,7 +1,7 @@
 
 let express = require('express');
 let router = express.Router();
-const {gasPriceErc20, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
+const {getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
 
 
 
@@ -71,7 +71,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
 
 /**
  * @swagger
- * /wallet/prices:
+ * /wallet/pricesBnb:
  *   get:
  *     tags:
  *     - "wallets"
@@ -84,7 +84,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  *       "500":
  *          description: error:"error"
  */
-router.get('/prices', prices)
+router.get('/pricesBnb', prices)
 
 
 
@@ -138,6 +138,8 @@ router.get('/totalBalnce', totalBalances)
  * @swagger
  * /wallet/transferErc20:
  *   post:
+ *     tags:
+ *     - "wallets"
  *     summary: transfer erc20 {deprecated}.
  *     description: parametres acceptées :body{transferParameter}.
  *     requestBody:
@@ -146,7 +148,7 @@ router.get('/totalBalnce', totalBalances)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               tokenERC20:
+ *               token:
  *                 type: string
  *               to:
  *                 type: string
@@ -172,10 +174,13 @@ router.get('/totalBalnce', totalBalances)
  
 
 
+
  	/**
  * @swagger
  * /wallet/transferBep20:
  *   post:
+ *     tags:
+ *     - "wallets"
  *     summary: transfer bep20 {deprecated}.
  *     description: parametres acceptées :body{transferParameter}.
  *     requestBody:
@@ -184,12 +189,117 @@ router.get('/totalBalnce', totalBalances)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               username:
+ *               token:
  *                 type: string
- *               password:
+ *               symbole:
  *                 type: string
- *               newsLetter:
- *                 type: boolean
+ *               to:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               decimal:
+ *                 type: number
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+ router.post('/transferBep20', transfertBep20)
+
+
+
+
+ 	/**
+ * @swagger
+ * /wallet/checkWalletToken:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: check if token already exist.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAdress:
+ *                 type: string
+ *               network:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+ router.post('/checkWalletToken', checkWalletToken)
+
+
+
+ 	/**
+ * @swagger
+ * /wallet/addNewToken:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: add new token.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenName:
+ *                 type: string
+ *               tokenAdress:
+ *                 type: string
+ *               symbol:
+ *                 type: string
+ *               network:
+ *                 type: string
+ *               decimal:
+ *                 type: number
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+ router.post('/addNewToken', addNewToken)
+
+
+
+
+ 	/**
+ * @swagger
+ * /wallet/transfertBtc:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfert BTC.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               val:
+ *                 type: string
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
@@ -199,7 +309,115 @@ router.get('/totalBalnce', totalBalances)
 
 
 
- router.post('/transferBep20', transfertBep20)
+ router.post('/transfertBtc', transfertBtc)
+
+
+
+
+
+ 	/**
+ * @swagger
+ * /wallet/transfertBNB:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfert BNB.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               val:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+ router.post('/transfertBNB', transfertBNB)
+
+
+
+
+
+
+
+  	/**
+ * @swagger
+ * /wallet/transfertEther:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfert ETHER.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               val:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+router.post('/transfertEther', transfertEther)
+
+
+ 	/**
+ * @swagger
+ * /wallet/getQuote:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: buy quote.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               digital_currency:
+ *                 type: string
+ *               fiat_currency:
+ *                 type: string
+ *               requested_amount:
+ *                 type: number
+ *               requested_currency:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+
+
+ router.post('/getQuote', getQuote)
 
 
 
