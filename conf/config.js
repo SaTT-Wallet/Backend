@@ -8,6 +8,9 @@ module.exports = async function (app) {
    
 
 
+    config.ethBridge="wss://ropsten.infura.io/ws/v3/0fab761c6a7f4934a892dddebf80f8e0";
+    config.bscBridge="wss://apis.ankr.com/wss/8b547da7926f4c3ea2520e67343cb13a/b7c61a14f570c697e65cb693a683cda4/binance/full/test";
+
     config.sandBoxKey=  process.env.SEND_BOX,
  
         config.uiad =process.env.UIAD

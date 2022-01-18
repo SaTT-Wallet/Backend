@@ -1,7 +1,7 @@
 
 let express = require('express');
 let router = express.Router();
-const {payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
+const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
 
 
 
@@ -453,6 +453,35 @@ router.post('/transfertEther', transfertEther)
  */
 
  router.post('/payementRequest/:idWallet', payementRequest)
+
+
+ /**
+ * @swagger
+ * /wallet/bridge:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: swap erc20 to bep20 and the opposite.
+ *     description: parametres acceptées :body{swapParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               direction:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: transactionHash:transactionHash,address:address,to:to,amount:amount
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/bridge', bridge)
 
 
 module.exports = router;

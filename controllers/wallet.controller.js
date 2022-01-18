@@ -508,4 +508,51 @@ exports.payementRequest = async(req , res)=>{
 
 
 
+exports.bridge= async(req , res)=>{
+    let access_T = req.headers["authorization"].split(" ")[1];
+    let Direction = req.body.direction;
+    let pass = req.body.password;
+    let amount = req.body.amount;
+    var sattContract=app.config.ctrs.token.address.mainnet;
+    if(app.config.testnet){
+        sattContract=app.config.ctrs.token.address.testnet
+    }
+    try {
+        var auth = await app.crm.auth(access_T);
+        var network;
+        var ret;
+        if (Direction == "ETB") {
+            network = "ERC20";
+            var cred = await app.account.unlock(auth.id,pass);
+
+            ret = await app.erc20.transfer(
+                sattContract,
+                app.config.bridge,
+                amount,
+                cred
+            );
+        } else if (Direction == "BTE") {
+            network = "BEP20";
+            var cred = await app.account.unlockBSC(auth.id,pass);
+            ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
+        }
+        
+
+        res.end(JSON.stringify(ret));
+    } catch (err) {
+        res.end(JSON.stringify(err));
+    } finally {
+        if (cred) app.account.lock(cred.address);
+        if(ret.transactionHash){
+            await app.account.notificationManager(auth.id,"convert_event",{amount,Direction,transactionHash : ret.transactionHash,currency :'SATT', network})		
+        }
+    }
+
+}
+
+
+
+
+
+
 
