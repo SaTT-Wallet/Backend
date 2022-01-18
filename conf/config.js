@@ -47,6 +47,8 @@ module.exports = async function (app) {
     config.cronBalanceUsersStatsMonthly= process.env.CRON_WALLET_USERS_sTAT_MONTHLY
     config.cronBalanceUsersStatsWeekly= process.env.CRON_WALLET_USERS_sTAT_WEEKLY
 
+
+    config.orderSecret= process.env.ORDER_SECERET
     config.testnet = true;
     config.appId = process.env.APPID;
     config.appSecret = process.env.APP_SECRET;
@@ -1348,6 +1350,43 @@ module.exports = async function (app) {
         passReqToCallback: true
       }
     }
+
+
+    config.paymentRequest =payment=>{
+			return {
+				account_details: {
+				app_provider_id: "satt",
+					app_version_id: "1.3.1",
+					app_end_user_id: payment._id,
+					app_install_date: payment.installDate,
+					email: payment.email,
+					phone:"",
+					signup_login: {
+						ip: payment.addressIp,
+						location: "",
+						uaid: process.env.PAYEMENT_REQUEST_UAID,
+						accept_language: payment.language,
+						http_accept_language:payment.language ,
+						user_agent:payment.user_agent,
+						cookie_session_id: process.env.COOKIE_SESSION_ID,
+						timestamp: payment.installDate
+					}
+				},
+				transaction_details: {
+					payment_details: {
+						quote_id: payment.quote_id,
+						payment_id: payment.uuid,
+						order_id: payment.order_id,
+						destination_wallet: {
+							currency: payment.currency || "ETH",
+							address: payment.idWallet,
+							tag: ""
+						},
+						original_http_ref_url: process.env.TRANSACTION_DETAILS_URL
+					}
+				}
+			}
+		}
 
     config.linkedinActivityUrl = (activityURN) =>
       `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`;
