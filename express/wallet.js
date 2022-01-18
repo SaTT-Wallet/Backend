@@ -118,7 +118,7 @@ module.exports = function (app) {
 		}
 	});
 
-//conmatibilité
+//conmatibilité nop
 	app.get('/v2/total_balance/:addr/:token', async (req, res) =>{
 
 	try {
@@ -163,6 +163,8 @@ module.exports = function (app) {
 	});
 
 
+
+	//yes
 /**
  * @swagger
  * /v2/newallet:
@@ -198,6 +200,8 @@ module.exports = function (app) {
 		}
 
 	});
+
+	//yes
 /**
  * @swagger
  * /v3/newallet:
@@ -272,6 +276,8 @@ module.exports = function (app) {
 		}
 
 	});
+
+	//yes
 /**
  * @swagger
  * /v3/printseed:

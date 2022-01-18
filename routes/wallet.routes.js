@@ -1,7 +1,7 @@
 
 let express = require('express');
 let router = express.Router();
-const {gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
+const {getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
 
 
 
@@ -71,7 +71,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
 
 /**
  * @swagger
- * /wallet/prices:
+ * /wallet/pricesBnb:
  *   get:
  *     tags:
  *     - "wallets"
@@ -84,7 +84,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  *       "500":
  *          description: error:"error"
  */
-router.get('/prices', prices)
+router.get('/pricesBnb', prices)
 
 
 
@@ -278,6 +278,146 @@ router.get('/totalBalnce', totalBalances)
  router.post('/addNewToken', addNewToken)
 
 
+
+
+ 	/**
+ * @swagger
+ * /wallet/transfertBtc:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfert BTC.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               val:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+ router.post('/transfertBtc', transfertBtc)
+
+
+
+
+
+ 	/**
+ * @swagger
+ * /wallet/transfertBNB:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfert BNB.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               val:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+ router.post('/transfertBNB', transfertBNB)
+
+
+
+
+
+
+
+  	/**
+ * @swagger
+ * /wallet/transfertEther:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfert ETHER.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               val:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+router.post('/transfertEther', transfertEther)
+
+
+ 	/**
+ * @swagger
+ * /wallet/getQuote:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: buy quote.
+ *     description: parametres acceptées :body{transferParameter}.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               digital_currency:
+ *                 type: string
+ *               fiat_currency:
+ *                 type: string
+ *               requested_amount:
+ *                 type: number
+ *               requested_currency:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *       "500":
+ *          description: error:error message
+ */
+
+
+
+
+
+ router.post('/getQuote', getQuote)
 
 
 

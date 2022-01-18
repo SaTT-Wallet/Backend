@@ -7,6 +7,11 @@ module.exports = async function (app) {
 
    
 
+
+    config.sandBoxKey=  process.env.SEND_BOX,
+ 
+        config.uiad =process.env.UIAD
+
     config.tokenMainnet=process.env.CONST_TOKEN_ADDRESS_MAINNET;
     config.tokenTestnet=process.env.CONST_TOKEN_ADDRESS_TESTNET;
     config.tokenTetherMainnet=process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET;
@@ -388,6 +393,10 @@ module.exports = async function (app) {
     process.env.API_URL_BEP20;
     config.APIURLERC20 =
     process.env.API_URL_ERC20;
+
+
+    config.sandBoxUri= config.testnet ?'https://sandbox.test-simplexcc.com' : "https://backend-wallet-api.simplexcc.com";
+
     config.token200 = [
       {
         id: 8104,
