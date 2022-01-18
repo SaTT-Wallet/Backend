@@ -1,6 +1,12 @@
 var connection;
 
 var express = require('express');
+
+const Big = require('big.js');
+var rp = require('request-promise');
+
+
+
 var app = express();
 (connection = async function (){
     app = await require("../conf/config")(app);
@@ -9,7 +15,8 @@ var app = express();
     app = await require("../crm/crm")(app);
     app = await require("../fb/fb_init")(app);
     app = await require("../web3/oracle")(app);
-    
+    app= await require('../manager/notification')(app)
+
     app = await require("../web3/provider")(app);
     app = await require("../manager/bep20")(app);   
 
@@ -133,20 +140,17 @@ exports.transfertErc20= async(req,response)=>{
         var decimal = req.body.decimal;
         const token = req.headers["authorization"].split(" ")[1];
 
-        console.log(token);
-        console.log("boddy");
-
-        console.log(req.body);
-        console.log(req.body.pass);
-
+      
 
        
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
         cred.from_id = res.id;
         var result = await app.account.getAccount(res.id);
-        let balance = await app.bep20.getBalance(req.body.token,result.address);
+        let balance = await app.erc20.getBalance(tokenERC20,result.address);
+
         if(new Big(amount).gt(new Big(balance.amount)))
+
         response.end(JSON.stringify({message:"not_enough_budget"}));
         var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
         
@@ -155,47 +159,58 @@ exports.transfertErc20= async(req,response)=>{
             response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
     finally {
-            cred && app.account.lock(cred.address);
-            if(ret && ret.transactionHash){
-                await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
-                const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
-                if(wallet){
-                    await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
-                }
+            // cred && app.account.lock(cred.address);
+            // if(ret && ret.transactionHash){
+            //     await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
+            //     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+               
+            //     if(wallet){
+            //         await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
+            //     }
 
-            }
+            // }
     }
 
 }
 
-exports.transfertBep20= async(req,res)=>{
+exports.transfertBep20= async(req,response)=>{
+
+    try {
+        var currency = req.body.symbole
+        var to = req.body.to;
+        var amount = req.body.amount;
+        var decimal = req.body.decimal;
+        var pass = req.body.pass;
+        const token = req.headers["authorization"].split(" ")[1];
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlockBSC(res.id,pass);
+        cred.from_id = res.id;
+        req.body.token = !req.body.token ? "0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
 
 
-//     try {
-//         var currency = req.body.symbole
-//         var to = req.body.to;
-//         var amount = req.body.amount;
-//         var decimal = req.body.decimal;
-//         var pass = req.body.pass;
-//         const token = req.headers["authorization"].split(" ")[1];
-//         var res =	await app.crm.auth(token);
+        console.log(req.body);
+        var result = await app.account.getAccount(res.id);
 
-//         var cred = await app.account.unlockBSC(res.id,pass);
-//         cred.from_id = res.id;
-//         req.body.token = !req.body.token ? "0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
-//         var result = await app.account.getAccount(res.id);
-//         let balance = await app.bep20.getBalance(req.body.token,result.address);
-//         if(new Big(amount).gt(new Big(balance.amount)))
-//         response.end(JSON.stringify({message:"not_enough_budget"}));
+        console.log("result", result);
+        let balance = await app.bep20.getBalance(req.body.token,result.address);
+       
+        console.log("balance", balance);
 
-//         var ret = await app.bep20.sendBep20(req.body.token,to,amount,cred);
-        
-//         response.end(JSON.stringify(ret));
-//     } catch (err) {
-//             response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-//     }
-//     finally {
-// cred && app.account.lockBSC(cred.address)
+        if(new Big(amount).gt(new Big(balance.amount)))
+        response.end(JSON.stringify({message:"not_enough_budget"}));
+
+        var ret = await app.bep20.sendBep20(req.body.token,to,amount,cred);
+        console.log('ret', ret);
+        response.end(JSON.stringify(ret));
+    } catch (err) {
+
+        console.log(err);
+            response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+
+
+  //cred && app.account.lockBSC(cred.address)
 // if(ret && ret.transactionHash){
 //     await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency, decimal})	
 //     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
@@ -204,9 +219,240 @@ exports.transfertBep20= async(req,res)=>{
 //     }
 
 // }
-//     }
+    }
+
+}
 
 
+exports.checkWalletToken= async(req,res)=>{
+    try {
+        const token = req.headers["authorization"].split(" ")[1];
+        let auth = await app.crm.auth(token);
+        let id = auth.id
+        let [tokenAdress,network] = [req.body.tokenAdress,req.body.network];
+
+        let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;       
+        let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth;
+
+        let code = await networkToken.getCode(tokenAdress)
+        if(code === '0x'){res.send({error:'not a token address'})}
+        else{
+        let contract = new networkToken.Contract(abi,tokenAdress)
+        decimal = await contract.methods.decimals().call();
+        tokenName = await contract.methods.name().call();
+        network = network.toUpperCase();
+        symbol = await contract.methods.symbol().call();
+        res.send({message : "Token found", tokenName, symbol,decimal,tokenAdress,network})
+        }
+    }catch (err) {
+       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+
+}
+
+
+exports.addNewToken= async(req,res)=>{
+
+    try {
+
+        console.log(("start"));
+        const token = req.headers["authorization"].split(" ")[1];
+        let auth = await app.crm.auth(token);
+        let customToken = {};
+        let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,req.body.decimal,req.body.network]
+        
+        let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: [auth.id]} });
+
+        if(tokenExist){
+            res.send(JSON.stringify({error:"token already added"}));
+            return;
+        }
+
+          let CryptoPrices =  app.account.getPrices();
+
+        let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
+        
+        if(!tokenFounded){
+            customToken = req.body;
+            customToken.sn_users = [auth.id]
+        if(CryptoPrices.hasOwnProperty(symbol)){
+        const cryptoMetaData = {
+            method: 'GET',
+            uri: app.config.cmcUrl + symbol,
+            headers : {
+             'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+            },
+            json: true,
+            gzip: true
+          };
+       let metaData = await rp(cryptoMetaData);
+        customToken.picUrl = metaData.data[customToken.symbol].logo
+         }
+        await app.db.customToken().insertOne(customToken)
+        res.end(JSON.stringify({message:"token added"}))
+            return;
+        } else {
+            let id = tokenFounded._id
+        //	tokenFounded.sn_users.push(auth.id)
+            await app.db.customToken().updateOne({_id:app.ObjectId(id)},{$push:{sn_users:auth.id}});
+        }
+        res.end(JSON.stringify({message:"token added"}))
+    }catch (err) {
+
+        console.log(err);
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+     }
+
+}
+
+
+exports.transfertBtc= async(req , response)=>{
+
+
+    var pass = req.body.pass;
+    try {
+        const token = req.headers["authorization"].split(" ")[1];
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlock(res.id,pass);
+        var result = await app.account.getAccount(res.id);
+        if(new Big(req.body.val).gt(new Big(result.btc_balance)))
+            response.end(JSON.stringify({message:"not_enough_budget"}));
+        var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
+        response.end(JSON.stringify({hash:hash}));
+
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+            if(cred)
+        app.account.lock(cred.address);
+    }
+
+}
+
+
+exports.transfertBNB= async(req , response)=>{
+
+    var pass = req.body.pass;
+
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		var res =	await app.crm.auth(token);
+		var cred = await app.account.unlockBSC(res.id,pass);
+		cred.from_id = res.id;
+		var to = req.body.to;
+		var amount = req.body.val;
+		var result = await app.account.getAccount(res.id);
+
+        console.log(result);
+		if(new Big(amount).gt(new Big(result.bnb_balance)))
+			response.end(JSON.stringify({message:"not_enough_budget"}));
+
+		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
+
+        console.log("ret" , ret);
+
+
+		response.end(JSON.stringify(ret));
+	} catch (err) {
+
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+	finally {
+		cred && app.account.lockBSC(cred.address);
+
+		if(ret.transactionHash){
+
+		await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'BNB',to , transactionHash : ret.transactionHash, network : "BEP20"})
+		const wallet = await  app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+			if(wallet){
+				await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'BNB',from : cred.address, transactionHash : ret.transactionHash, network : "BEP20"} )
+			}
+	}
+		}
+
+}
+
+
+
+
+exports.transfertEther= async(req , response)=>{
+
+    var pass = req.body.pass;
+    var to = req.body.to;
+    var amount = req.body.val;
+    try {
+
+        console.log('start');
+
+        console.log(req.body);
+        const token = req.headers["authorization"].split(" ")[1];
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlock(res.id,pass);
+        cred.from_id = res.id;
+
+        console.log("cred", cred);
+
+        console.log('before ret');
+        
+        var ret = await app.cryptoManager.transfer(to,amount,cred);
+        console.log('after ret');
+
+        //console.log("ret",ret);
+        response.end(JSON.stringify(ret));
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+        // if(cred) app.account.lock(cred.address);
+        // if(ret.transactionHash){
+        //     await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+        //     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+        //     if(wallet){
+            
+        //         await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+        //     }
+        // }
+}
+
+}
+
+exports.getQuote = async (req, res)=>{
+
+    try {
+        const token = req.headers["authorization"].split(" ")[1];
+        var auth = await app.crm.auth(token);
+        let requestQuote = req.body;
+        requestQuote["end_user_id"]= String(auth.id);
+        requestQuote["client_ip"]= req.addressIp;
+        requestQuote["payment_methods"]= ["credit_card"];
+        requestQuote["wallet_id"]= "satt";
+    const simplexQuote ={
+        url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
+        method: 'POST',
+          body:requestQuote, 
+        headers: {
+            'Authorization': `ApiKey ${app.config.sandBoxKey}`,
+          },
+        json: true
+      };
+      var quote = await rp(simplexQuote);
+      delete quote.supported_digital_currencies;
+      delete quote.supported_fiat_currencies;
+      app.account.log("Quote from simplex", quote);
+      res.end(JSON.stringify(quote));
+    }
+    catch (err) {
+       app.account.sysLogError(err);
+       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally{
+    }
 
 
 }
+
+
+
+
+
