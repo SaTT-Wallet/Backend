@@ -215,8 +215,10 @@ module.exports = async function (app) {
 
     config.campaignContract = ""; //mainnet
     config.campaignContractAdvFee = ""; //mainnet
+    config.failInterval=process.env.failInterval; 
+    config.bad_login_limit=process.env.bad_login_limit;
+    config.lockedPeriod=process.env.lockedPeriod;
 
-    //config.icoFactor = 1.3;
     config.icoFactor = process.env.ICOFACTOR;
     config.masterSeed = process.env.MASTER_SEED;
     config.derivePathEth = "m/44'/60'/0'/0";

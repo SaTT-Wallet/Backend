@@ -37,8 +37,7 @@ var app = express();
 exports.mywallet= async(req, response)=>{
 
     try{
-        let token = req.headers["authorization"].split(" ")[1];
-
+        let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var count = await app.account.hasAccount(res.id);
         var ret = {err:"no_account"};
@@ -64,8 +63,7 @@ exports.userBalance= async(req, response)=>{
 
 	try {
   
-          const token = req.headers["authorization"].split(" ")[1];
-
+        let token=await app.crm.checkToken(req,res);
           var auth =	await app.crm.auth(token);
           let Crypto =  app.account.getPrices();
 
@@ -96,7 +94,7 @@ exports.gasPriceErc20= async(req,res)=>{
 
 
 
-exports.prices= async(req, res)=>{
+exports.cryptoDetails= async(req, res)=>{
     var prices = app.account.getPrices()
 		res.end(JSON.stringify(prices))
 }
@@ -104,15 +102,13 @@ exports.prices= async(req, res)=>{
 exports.totalBalances= async(req, res)=>{
     try {
         
-          const token = req.headers["authorization"].split(" ")[1];
-          var auth =	await app.crm.auth(token);
-          var id = auth.id;
-      let Crypto =  app.account.getPrices(); 
+        let token=await app.crm.checkToken(req,res);
+        var auth =	await app.crm.auth(token);
+        var id = auth.id;
+        let Crypto =  app.account.getPrices(); 
       
-      let variation = 0.00
       var Total_balance = await app.account.getBalanceByUid(id, Crypto);
-
-      res.end(JSON.stringify({Total_balance, variation})).status(201);
+      res.end(JSON.stringify({Total_balance:Total_balance.Total_balance})).status(201);
 
     } catch (err) {
         res.end(JSON.stringify({error:err.message?err.message:err.error}))
@@ -135,25 +131,19 @@ exports.totalBalances= async(req, res)=>{
 
 exports.transfertErc20= async(req,response)=>{
 	try {
+        let token=await app.crm.checkToken(req,res);
+        var res =	await app.crm.auth(token);
         var tokenERC20 = req.body.token;
         var to = req.body.to;
         var amount = req.body.amount;
         var pass = req.body.pass;
         var currency=req.body.symbole;
         var decimal = req.body.decimal;
-        const token = req.headers["authorization"].split(" ")[1];
-
-      
-
-       
-        var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
         cred.from_id = res.id;
         var result = await app.account.getAccount(res.id);
         let balance = await app.erc20.getBalance(tokenERC20,result.address);
-
         if(new Big(amount).gt(new Big(balance.amount)))
-
         response.end(JSON.stringify({message:"not_enough_budget"}));
         var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
         
@@ -162,16 +152,15 @@ exports.transfertErc20= async(req,response)=>{
             response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
     finally {
-            // cred && app.account.lock(cred.address);
-            // if(ret && ret.transactionHash){
-            //     await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
-            //     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
-               
-            //     if(wallet){
-            //         await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
-            //     }
+            cred && app.account.lock(cred.address);
+            if(ret && ret.transactionHash){
+                await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
+                const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+                if(wallet){
+                    await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
+                }
 
-            // }
+            }
     }
 
 }
@@ -184,7 +173,7 @@ exports.transfertBep20= async(req,response)=>{
         var amount = req.body.amount;
         var decimal = req.body.decimal;
         var pass = req.body.pass;
-        const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlockBSC(res.id,pass);
         cred.from_id = res.id;
@@ -208,15 +197,15 @@ exports.transfertBep20= async(req,response)=>{
     finally {
 
 
-  //cred && app.account.lockBSC(cred.address)
-// if(ret && ret.transactionHash){
-//     await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency, decimal})	
-//     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
-//     if(wallet){
-//         await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency,decimal} )
-//     }
+  cred && app.account.lockBSC(cred.address)
+if(ret && ret.transactionHash){
+    await app.account.notificationManager(res.id, "transfer_event",{amount, network :'BEP20', to :req.body.to , transactionHash : ret.transactionHash, currency, decimal})	
+    const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+    if(wallet){
+        await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount, network :'BEP20', from :cred.address , transactionHash : ret.transactionHash, currency,decimal} )
+    }
 
-// }
+}
     }
 
 }
@@ -224,7 +213,7 @@ exports.transfertBep20= async(req,response)=>{
 
 exports.checkWalletToken= async(req,res)=>{
     try {
-        const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         let auth = await app.crm.auth(token);
         let id = auth.id
         let [tokenAdress,network] = [req.body.tokenAdress,req.body.network];
@@ -253,7 +242,7 @@ exports.addNewToken= async(req,res)=>{
 
     try {
 
-        const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         let auth = await app.crm.auth(token);
         let customToken = {};
         let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,req.body.decimal,req.body.network]
@@ -290,7 +279,6 @@ exports.addNewToken= async(req,res)=>{
             return;
         } else {
             let id = tokenFounded._id
-        //	tokenFounded.sn_users.push(auth.id)
             await app.db.customToken().updateOne({_id:app.ObjectId(id)},{$push:{sn_users:auth.id}});
         }
         res.end(JSON.stringify({message:"token added"}))
@@ -307,7 +295,7 @@ exports.transfertBtc= async(req , response)=>{
 
     var pass = req.body.pass;
     try {
-        const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
         var result = await app.account.getAccount(res.id);
@@ -332,7 +320,7 @@ exports.transfertBNB= async(req , response)=>{
     var pass = req.body.pass;
 
 	try {
-		const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
 		var res =	await app.crm.auth(token);
 		var cred = await app.account.unlockBSC(res.id,pass);
 		cred.from_id = res.id;
@@ -368,8 +356,6 @@ exports.transfertBNB= async(req , response)=>{
 }
 
 
-
-
 exports.transfertEther= async(req , response)=>{
 
     var pass = req.body.pass;
@@ -378,7 +364,7 @@ exports.transfertEther= async(req , response)=>{
     try {
 
 
-        const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
         cred.from_id = res.id;
@@ -407,7 +393,7 @@ exports.transfertEther= async(req , response)=>{
 exports.getQuote = async (req, res)=>{
 
     try {
-        const token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         var auth = await app.crm.auth(token);
         let requestQuote = req.body;
         requestQuote["end_user_id"]= String(auth.id);
@@ -440,18 +426,13 @@ exports.getQuote = async (req, res)=>{
 }
 
 
-
 exports.payementRequest = async(req , res)=>{
 
     try {
-
-  
+        let token=await app.crm.checkToken(req,res);
+		var auth = await app.crm.auth(token);
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
         if (ip) ip = ip.split(":")[3];
-
-		const token = req.headers["authorization"].split(" ")[1];
-		var auth = await app.crm.auth(token);
-        
 		let payment_id=randomUUID();
 		const uiad = app.config.uiad;	
 
@@ -466,13 +447,13 @@ exports.payementRequest = async(req , res)=>{
 		request.email=user.email,request.addressIp=ip,request.user_agent = user_agent;
 		request.language=http_accept_language;
 
-		request.quote_id = req.body.quote_id //from /getQuote api
+		request.quote_id = req.body.quote_id
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
 	
 		request.uuid = payment_id
 
 		request.currency = req.body.currency;
-		request.idWallet= req.params.idWallet;
+		request.idWallet= req.body.idWallet;
 
 
 
@@ -509,7 +490,7 @@ exports.payementRequest = async(req , res)=>{
 
 
 exports.bridge= async(req , res)=>{
-    let access_T = req.headers["authorization"].split(" ")[1];
+    let access_T=await app.crm.checkToken(req,res);
     let Direction = req.body.direction;
     let pass = req.body.password;
     let amount = req.body.amount;

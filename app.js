@@ -71,11 +71,11 @@
 
 		const loginroutes= require('./routes/login.routes')
 		const walletroutes= require('./routes/wallet.routes')
+		const profileroutes= require('./routes/profile.routes')
 
 		app.use('/auth', loginroutes);
-		app.use('/wallet', walletroutes)
-
-
+		app.use('/wallet', walletroutes);
+		app.use('/profile', profileroutes);
 
 
 		
@@ -104,7 +104,6 @@
 		  next();
 		});
 		app = await require("./express/login")(app);
-		app = await require("./express/back_office")(app);
 		app = await require("./express/service")(app);
 		app = await require("./express/campaign")(app);
 		

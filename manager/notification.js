@@ -1,6 +1,6 @@
 module.exports = async (app) => {
   const { JWT } = require("google-auth-library");
-  const serviceAccount = require("../conf/satt-token-firebase-adminsdk-fwxcj-2215bda3fa.js");
+  const serviceAccount = require("../conf/satt-token-firebase-adminsdk-fwxcj-2215bda3fa.json");
   const request = require("request");
   
   let notificationManager = {};
@@ -10,7 +10,7 @@ module.exports = async (app) => {
 
   notificationManager.getAccessToken = () => {
     return new Promise( (resolve, reject)=> {
-      let serAccount=serviceAccount.satt
+      let serAccount=serviceAccount;
       const key = serAccount;
       const jwtClient = new JWT(
         key.client_email,
@@ -28,6 +28,8 @@ module.exports = async (app) => {
       });
     });
   };
+
+
 
    notificationManager.sendNotification = async (data)=>{
      
