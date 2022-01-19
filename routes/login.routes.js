@@ -66,7 +66,8 @@ function authErrorHandler(err, req, res, next) {
  *   get:
  *     tags:
  *     - "auth"
- *     description: get random captcha
+ *     summary: get random captcha .
+ *     description: return captcha to user to allow authentication action <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -84,7 +85,7 @@ router.get('/captcha',captcha)
  *     tags:
  *     - "auth"
  *     summary: check if valid captcha .
- *     description: before connection or create a new account you have to check captcha to verify that you are not a bot.
+ *     description: before connection or create a new account you have to check captcha to verify that you are not a bot <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -110,7 +111,7 @@ router.get('/captcha',captcha)
  *     tags:
  *     - "auth"
  *     summary: check if email & password are correct.
- *     description: user enter his email & his password and system check if user & password are correct.
+ *     description: user enter his credentials, system check if user params are correct or not <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -125,7 +126,7 @@ router.get('/captcha',captcha)
  *       "200":
  *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  *       "500":
- *          description: error={"error":true,"message":"invalid_grant"}
+ *          description: error={"error":true,"message":"invalid_credentials"} or {"error":true,"message":"account_locked",blockedDate:blockedDate}
  */
 router.post('/signin/mail',emailConnection)
 
@@ -138,7 +139,7 @@ router.post('/signin/mail',emailConnection)
  *     tags:
  *     - "auth"
  *     summary: get code to recover password.
- *     description: user enter his email he will get a code in his email.
+ *     description: user receive one code in his email to recover his password <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -162,7 +163,7 @@ router.post('/signin/mail',emailConnection)
  *     tags:
  *     - "auth"
  *     summary: check if code correct.
- *     description: user enter the code received in mail and we will check if that code are correct or not.
+ *     description: user check if the code that he received in his email is correct or not <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -177,9 +178,9 @@ router.post('/signin/mail',emailConnection)
  *                 type: string
  *     responses:
  *       "200":
- *          description: message="code match"
+ *          description: message="code_is_matched"
  *       "500":
- *          description: message="code incorrect or code expired"
+ *          description: message="wrong code or code expired"
  */
   router.post('/confirmCode',confirmCode)
 
@@ -189,8 +190,8 @@ router.post('/signin/mail',emailConnection)
  *   post:
  *     tags:
  *     - "auth"
- *     summary: check if code correct.
- *     description: user enter the code received in mail and we will check if that code are correct or not.
+ *     summary: change password.
+ *     description: user change his password, system check if email and access_token are matched or not <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -203,7 +204,7 @@ router.post('/signin/mail',emailConnection)
  *                 type: string
  *     responses:
  *       "200":
- *          description: "successfully"
+ *          description:"successfully" or "unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -218,7 +219,7 @@ router.post('/passrecover',passRecover)
  *     tags:
  *     - "auth"
  *     summary: signup with email and password.
- *     description: user enter his email & his password and system check if email doesn't exist and will create a new account.
+ *     description: user enter his credentials to create a new account, system check if email exist or not <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -247,7 +248,7 @@ router.post('/passrecover',passRecover)
  *     tags:
  *     - "auth"
  *     summary: signup with facebook.
- *     description: signup with facebook.
+ *     description: user asked for signup with facebook, system redirect him to signup facebook page <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -278,8 +279,8 @@ authSignInErrorHandler);
  *   get:
  *     tags:
  *     - "auth"
- *     summary: connect with facebook.
- *     description: connect with facebook.
+ *     summary: signin with facebook.
+ *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -312,7 +313,7 @@ authSignInErrorHandler
  *     tags:
  *     - "auth"
  *     summary: signup with google.
- *     description: signup with google.
+ *     description: user asked for signup with google, system redirect him to signup google page <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -338,8 +339,8 @@ authSignInErrorHandler);
  *   get:
  *     tags:
  *     - "auth"
- *     summary: connect with google.
- *     description: connect with google.
+ *     summary: signin with google.
+ *     description: user asked for signin with google, system redirect him to signin google page <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -368,7 +369,7 @@ authSignInErrorHandler
  *     tags:
  *     - "auth"
  *     summary: signup with telegram.
- *     description: signup with telegram.
+ *     description: user asked for signup with telegram, system show modal interface of telegram signup <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -378,13 +379,13 @@ router.get('/signup/telegram',
 passport.authenticate('auth_signup_telegramStrategy'),
 telegramSignup,authErrorHandler
 )
-passport.use('telegramStrategyConnection',
-    new TelegramStrategy({
+passport.use('auth_signup_telegramStrategy',
+new TelegramStrategy({
         botToken: app.config.telegramBotToken,
         passReqToCallback: true
     },
     async function(req, profile, cb) {
-    signin_telegram_function(req, profile, cb)
+    signup_telegram_function(req, profile, cb)
     }
 ));
 
@@ -394,8 +395,8 @@ passport.use('telegramStrategyConnection',
  *   get:
  *     tags:
  *     - "auth"
- *     summary: connect with telegram.
- *     description: connect with telegram.
+ *     summary: signin with telegram.
+ *     description: user asked for signin with telegram, system show modal interface of telegram signup <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -404,13 +405,14 @@ passport.use('telegramStrategyConnection',
   passport.authenticate('telegramStrategyConnection'),
   telegramConnection,authSignInErrorHandler
   )
-  passport.use('auth_signup_telegramStrategy',
-        new TelegramStrategy({
-                botToken: app.config.telegramBotToken,
-                passReqToCallback: true
-            },
-            async function(req, profile, cb) {
-            signup_telegram_function(req, profile, cb)
-            }
+  passport.use('telegramStrategyConnection',
+    new TelegramStrategy({
+        botToken: app.config.telegramBotToken,
+        passReqToCallback: true
+    },
+    async function(req, profile, cb) {
+    signin_telegram_function(req, profile, cb)
+    }
 ));
+
 module.exports = router;

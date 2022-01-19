@@ -69,23 +69,14 @@ passport.deserializeUser(async function(id, cb) {
 */
 passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true },
             async function(req, username, password, done) {
-                console.log("salut")
                 var date = Math.floor(Date.now() / 1000) + 86400;
                 var buff = Buffer.alloc(32);
                 var token = crypto.randomFillSync(buff).toString('hex');
-        
-                var users = await app.db.sn_user().find({ email: username.toLowerCase() }).toArray();
-                if (users.length) {
-                    console.log("user")
-                    var user = users[0];
-                    // var res = await app.db.query("Select id,password from user where id='" + user._id + "' ");
-                    // if (res.length && !user.password) {
-                    //     await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { password: res[0].password } });
-                    // }
+                var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
+                if (user) {
                     if (user.password == synfonyHash(password)) {
-                        console.log("pass")
                         app.account.sysLog("authentification", req.addressIp, `valid ${username}`);
-                        let validAuth = await app.account.isBlocked(user, true)
+                        let validAuth = await app.account.isBlocked(user, true);
                         if (!validAuth.res && validAuth.auth == true) {
                             var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
                             if (oldToken) {
@@ -93,22 +84,21 @@ passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true 
                                 await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { failed_count: 0 } });
                             } else {
                                 await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token, expires_at: date, scope: "user" });
-                            }
-        
-                            // req.session.user = user._id;
-        
+                            }        
                             return done(null, { id: user._id, token: token, expires_in: date, noredirect: req.body.noredirect });
                         } else {
                             return done(null, false, { error: true, message: 'account_locked', blockedDate: validAuth.blockedDate });
                         }
                     } else {
                         let validAuth = await app.account.isBlocked(user, false);
+                        console.log("validate",validAuth);
+
                         app.account.sysLog("authentification", req.addressIp, `invalid ${username} ${password}`);
                         if (validAuth.res) return done(null, false, { error: true, message: 'account_locked', blockedDate: validAuth.blockedDate });
-                        return done(null, false, { error: true, message: 'invalid_grant' }); //done("auth failed",null);
+                        return done(null, false, { error: true, message: 'invalid_credentials' });
                     }
                 } else {
-                    return done(null, false, { error: true, message: 'invalid_grant' });
+                    return done(null, false, { error: true, message: 'invalid_credentials' });
                 }
             }
 ));
@@ -146,31 +136,21 @@ exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) 
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
-
-    var users = await app.db.sn_user().find({ idOnSn: profile._json.token_for_business }).toArray()
-
-    if (users.length) {
-        var user = users[0];
-        // if(!user.enabled){
-        //   return cb('account not verified')
-        // }
+    var user = await app.db.sn_user().findOne({ idOnSn: profile._json.token_for_business })
+    if (user) {
         if (user.account_locked) {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
         var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
         if (oldToken) {
-            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+            await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
         } else {
-            var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
+            await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
         }
-        /*var res = await app.db.query("delete from OAAccessToken where user_id='"+user._id+"' ");
-var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-*/
-        req.session.user = users[0]._id;
         return cb(null, { id: user._id, token: token, expires_in: date });
     } else {
-        return cb('Register First') // (null, false, {error: true, message: 'account_invalide'});
+        return cb('Register First')
     }
 }
 /* 
@@ -184,24 +164,22 @@ exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var users = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray()
-    if (users.length) {
-        var user = users[0];
+    var user = await app.db.sn_user().findOne({ idOnSn2: profile.id });
+    if (user) {
         if (user.account_locked) {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
         var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
         if (oldToken) {
-            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+           await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
         } else {
-            var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
+           await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
         }
         req.session.user = user._id;
-        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
         return cb(null, { id: user._id, token: token, expires_in: date });
     } else {
-        return cb('Register First') //(null, false, {message: 'account_invalide'});
+        return cb('Register First')
     }
 }
 /* 
@@ -218,9 +196,9 @@ passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback:
         var buff = Buffer.alloc(32);
 
         var token = crypto.randomFillSync(buff).toString('hex');
-        var users = await app.db.sn_user().find({ email: username.toLowerCase() }).toArray();
+        var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
 
-        if (users.length) {
+        if (user) {
             return done(null, false, { error: true, message: 'account_already_used' });
         } else {
             var mongodate = new Date().toISOString();
@@ -272,7 +250,6 @@ passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback:
                     }
                 });
             });
-            // req.session.user = users[0]._id;
             return done(null, { id: users[0]._id, token: token, expires_in: date, noredirect: req.body.noredirect });
         };
     }
@@ -307,12 +284,11 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var users = await app.db.sn_user().find({ idOnSn: profile._json.token_for_business }).toArray()
-    if (users.length) {
-        return cb('account_already_used&idSn=' + users[0].idSn)
+    var user = await app.db.sn_user().findOne({ idOnSn: profile._json.token_for_business });
+    if (user) {
+        return cb('account_already_used&idSn=' + user.idSn)
     } else {
         var mongodate = new Date().toISOString();
-        var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
         var id = Long.fromNumber(await app.account.handleId())
@@ -338,8 +314,6 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
             userSatt: true
         });
         await app.db.accessToken().insertOne({ client_id: 1, user_id: id, token: token, expires_at: date, scope: "user" });
-        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?",{client_id:1,user_id:user._id,token:token,expires_at:date,scope:"user"});
-        req.session.user = id;
         return cb(null, { id: id, token: token, expires_in: date });
     }
 }
@@ -361,7 +335,6 @@ exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
         return cb('account_already_used&idSn=' + users[0].idSn)
     } else {
         var mongodate = new Date().toISOString();
-        var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
         var insert = await app.db.sn_user().insertOne({
@@ -420,7 +393,6 @@ exports.signup_telegram_function=async(req, profile, cb) => {
         var mongodate = new Date().toISOString();
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
-        var mydate = mongodate.slice(0, 19).replace('T', ' ');
         var insert = await app.db.sn_user().insertOne({
             _id: Long.fromNumber(await app.account.handleId()),
             idOnSn3: profile.id,
@@ -442,8 +414,7 @@ exports.signup_telegram_function=async(req, profile, cb) => {
             userSatt: true
         });
         var users = insert.ops;
-        var res_ins = await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user" });
-        req.session.user = users[0]._id;
+        await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user" });
         return cb(null, { id: users[0]._id, token: token, expires_in: date });
     }
 }
@@ -459,27 +430,18 @@ exports.signin_telegram_function=async(req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
     var buff = Buffer.alloc(32);
     var token = crypto.randomFillSync(buff).toString('hex');
-    var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
-    if (users.length) {
-        var user = users[0];
-        // if (user.idSn != 5) {
-        //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
-        // }
-        // if(!user.enabled){
-        //   return cb('account not verified')
-        // }
+    var user = await app.db.sn_user().findOne({ idOnSn3: profile.id });
+    if (user) {
         if (user.account_locked) {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
         var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
         if (oldToken) {
-            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+            await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
         } else {
-            var insert = await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
+            await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
         }
-        req.session.user = user._id;
-        //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
         return cb(null, { id: user._id, token: token, expires_in: date });
     } else {
         return cb('account_invalide');
