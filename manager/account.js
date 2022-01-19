@@ -311,7 +311,6 @@ module.exports = async function (app) {
 			var ether_balance = await app.web3.eth.getBalance(address);
 
 			var bnb_balance = await app.web3Bep20.eth.getBalance(address);
-			console.log(app.token.contract)
 			var satt_balance = await app.token.contract.methods.balanceOf(address).call();
 
 			var res = {address:"0x"+account.keystore.address,ether_balance:ether_balance,bnb_balance:bnb_balance,satt_balance:satt_balance?satt_balance.toString():0,version:(account.mnemo?2:1)}
@@ -319,13 +318,6 @@ module.exports = async function (app) {
 			if(!app.config.testnet && account.btc && account.btc.addressSegWitCompat ) {
 
 				res.btc = account.btc.addressSegWitCompat;
-
-
-				/*try {
-					var balance = await rp({uri:app.config.btcElectrumUrl+"balance/"+account.btc.addressSegWitCompat,json: true});
-					res.btc_balance = Math.floor(parseFloat(balance)*100000000);
-				}*/
-
 
 				try {
 					var utxo = JSON.parse(child.execSync(app.config.btcCmd+" listunspent 1 1000000 '[\""+account.btc.addressSegWitCompat+"\"]'"));
@@ -340,11 +332,6 @@ module.exports = async function (app) {
 						res.btc_balance =  Math.floor(red.amount*100000000);
 					}
 				}
-				/*
-				try {
-					var balance = await rp({uri:app.config.blockCypher+account.btc.addressSegWitCompat+"/balance",json: true});
-					res.btc_balance = parseInt(balance.balance);
-				}*/
 				catch(e)
 				{
 					console.log(e);
@@ -767,15 +754,7 @@ module.exports = async function (app) {
 
 				}  	  
 			  }
-
-
-			  console.log(ret);
-
 			  for(let T_name in token_info){
-
-
-				// console.log(token_info[T_name].dicimal);
-
 				let network=token_info[T_name].network;
 			        let crypto={};
 				crypto.picUrl = token_info[T_name].picUrl || false;
@@ -802,7 +781,6 @@ module.exports = async function (app) {
               		crypto.price=CryptoPrices[key].price;
 					crypto.variation=CryptoPrices[key].percent_change_24h;
 					crypto.total_balance=((app.token.filterAmount(new Big(balance['amount']).div((10**(+token_info[T_name].dicimal)).toString()).toNumber() + "")*CryptoPrices[key].price))*1		
-				console.log(crypto.total_balance);
 				}		
 			     crypto.quantity=app.token.filterAmount(new Big(balance['amount']*1).div((10**(+token_info[T_name].dicimal)).toString()).toNumber());
 
@@ -811,17 +789,11 @@ module.exports = async function (app) {
 
 			}
 			delete ret.address
-
-
 			for(const Amount in ret){	
-
-
 
 			      let crypto={}	
 				let tokenSymbol = Amount.split('_')[0].toUpperCase();
 				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
-
-				console.log(decimal);
 				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
 				if(tokenSymbol == "BTC") {
 					crypto.name='Bitcoin'
@@ -1005,8 +977,7 @@ accountManager.handleId=async function () {
 		let logBlock = {};
 		if(auth){
 		 if(user.account_locked){
-
-			 if(accountManager.differenceBetweenDates(user.date_locked, dateNow) < app.config.lockedPeriod){        
+			 if(accountManager.differenceBetweenDates(user.date_locked, dateNow) < app.config.lockedPeriod){
 			   logBlock.date_locked = dateNow
 			   logBlock.failed_count = 0
 			   res = true

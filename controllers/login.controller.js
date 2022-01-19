@@ -73,27 +73,27 @@ exports.verifyCaptcha= async(req, res)=>{
 }
 
 exports.codeRecover= async(req, response)=>{
-  
     try {
         let dateNow = Math.floor(Date.now() / 1000);
         const lang = req.query.lang || "en";
         app.i18n.configureTranslation(lang);
         let email = req.body.mail.toLowerCase();
 
-        let users = await app.db.sn_user().find({ email }).toArray();
-        if (!users.length) {
+        let user = await app.db.sn_user().findOne({ email });
+        if (!user) {
             response.end('{error:"account not exists"}');
             return;
         }
-        if (users[0].account_locked && app.account.differenceBetweenDates(users[0].date_locked, dateNow) < app.config.lockedPeriod) {
-            response.end(JSON.stringify({ error: true, message: 'account_locked', blockedDate: users[0].date_locked }));
+        if (user.account_locked && app.account.differenceBetweenDates(user.date_locked, dateNow) < app.config.lockedPeriod) {
+            response.end(JSON.stringify({ error: true, message: 'account_locked', blockedDate: user.date_locked }));
             return;
         }
 
         let requestDate = app.account.manageTime();
-        let ip = req.addressIp;
+        let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
+        if (ip) ip = ip.split(":")[3];
 
-        const code = await app.account.updateAndGenerateCode(users[0]._id, "reset");
+        const code = await app.account.updateAndGenerateCode(user._id, "reset");
         readHTMLFile(__dirname + '/../emails/reset_password_code.html', (err, html) => {
             let template = handlebars.compile(html);
             let replacements = {
@@ -108,15 +108,15 @@ exports.codeRecover= async(req, response)=>{
             let htmlToSend = template(replacements);
             let mailOptions = {
                 from: app.config.resetpassword_Email,
-                to: users[0].email,
+                to: user.email,
                 subject: 'Satt wallet password recover',
                 html: htmlToSend
             };
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.log(error);
+                    response.end(JSON.stringify({ error: error.message ? error.message : error.error }));
                 } else {
-                    response.end(JSON.stringify({ 'message': 'Email was sent to ' + users[0].email }));
+                    response.end(JSON.stringify({ 'message': 'Email was sent to ' + user.email }));
                 }
             });
         });
@@ -127,11 +127,11 @@ exports.codeRecover= async(req, response)=>{
 
 exports.confirmCode= async(req, response)=>{
     try {
-        var authMethod = { message: "code match" }
+        var authMethod = { message: "code is matched" }
         var buff = Buffer.alloc(32);
         let [email, code, type] = [req.body.email.toLowerCase(), req.body.code, req.body.type];
         var user = await app.db.sn_user().findOne({ email }, { projection: { secureCode: true } });
-        if (user.secureCode.code != code) authMethod.message = "code incorrect";
+        if (user.secureCode.code != code) authMethod.message = "wrong code";
         else if (Date.now() >= user.secureCode.expiring) authMethod.message = "code expired";
         else if (user.secureCode.type == "validation" && type == "validation") {
             let date = Math.floor(Date.now() / 1000) + 86400;
@@ -150,7 +150,7 @@ exports.confirmCode= async(req, response)=>{
 
 exports.passRecover= async(req, response)=>{
     try {
-        let token = req.headers["authorization"].split(" ")[1];
+        let token=await app.crm.checkToken(req,res);
         const auth = await app.crm.auth(token);
         const id = +auth.id
         let [newpass, email] = [req.body.newpass, req.body.email];

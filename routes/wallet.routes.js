@@ -1,7 +1,9 @@
 
 let express = require('express');
 let router = express.Router();
-const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, transfertErc20,totalBalances, userBalance,gasPriceBep20, prices} = require('../controllers/wallet.controller')
+const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
+	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
+	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails} = require('../controllers/wallet.controller')
 
 
 
@@ -11,16 +13,16 @@ const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfert
  *   get:
  *     tags:
  *     - "wallets"
- *     description: get my wallet
+ *     summary: return user wallet.
+ *     description: system return object of wallet(address,bnb balance ...)<br> with access_token
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: wallet:{}
+ *          description: wallet:{"address":"address","ether_balance":"balance","bnb_balance":"balance","satt_balance":"balance","btc_balance":0}
  *       "500":
  *          description: error:"error"
  */
-
 router.get('/mywallet',mywallet)
 
 
@@ -31,7 +33,8 @@ router.get('/mywallet',mywallet)
  *   get:
  *     tags:
  *     - "wallets"
- *     description: get user balance
+ *     summary: get user balance
+ *     description: return to user his crypto list <br> with access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -40,8 +43,6 @@ router.get('/mywallet',mywallet)
  *       "500":
  *          description: error:"error"
  */
-
-
 router.get('/userBalance',userBalance)
 
 
@@ -53,12 +54,13 @@ router.get('/userBalance',userBalance)
  *   get:
  *     tags:
  *     - "wallets"
- *     description: get bnb gas price
+ *     summary: get bnb gas price
+ *     description: get bnb gas price <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: {gasPrice}
+ *          description: data:{ "gasPrice":gas price}
  *       "500":
  *          description: error:"error"
  */
@@ -71,42 +73,39 @@ router.get('/Bep20GasPrice', gasPriceBep20)
 
 /**
  * @swagger
- * /wallet/pricesBnb:
+ * /wallet/cryptoDetails:
  *   get:
  *     tags:
  *     - "wallets"
- *     description: get prices
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> with access_token
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: [{list of prices}]
+ *          description: list:[{list of crypto}]
  *       "500":
  *          description: error:"error"
  */
-router.get('/pricesBnb', prices)
-
-
+router.get('/cryptoDetails', cryptoDetails)
 
 /**
  * @swagger
- * /wallet/totalBalnce:
+ * /wallet/totalBalance:
  *   get:
  *     tags:
  *     - "wallets"
- *     description: get total balance
+ *     summary: get total balance
+ *     description: return the sum of balances for user
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: {Total_balance:{Total_balance},variation}
+ *          description: Total_balance:Total_balance
  *       "500":
  *          description: error:"error"
  */
-
-
-
-router.get('/totalBalnce', totalBalances)
+router.get('/totalBalance', totalBalances)
 
 
 
@@ -118,12 +117,13 @@ router.get('/totalBalnce', totalBalances)
  *   get:
  *     tags:
  *     - "wallets"
- *     description: gas price ERC20
+ *     summary: gas price ERC20
+ *     description: return gas price of ERC20 network <br> without access_token 
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: {gasPrice}
+ *          description: gasPrice:gasPrice
  *       "500":
  *          description: error:"error"
  */
@@ -140,8 +140,8 @@ router.get('/totalBalnce', totalBalances)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: transfer erc20 {deprecated}.
- *     description: parametres acceptées :body{transferParameter}.
+ *     summary: transfer erc20.
+ *     description: transfert crypto belongs to erc20 network <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -158,18 +158,12 @@ router.get('/totalBalnce', totalBalances)
  *                 type: string
  *               symbole:
  *                 type: string
- *               decimal:
- *                 type: number
- *               access_token:
- *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
-
-
  router.post('/transferErc20', transfertErc20)
  
 
@@ -181,8 +175,8 @@ router.get('/totalBalnce', totalBalances)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: transfer bep20 {deprecated}.
- *     description: parametres acceptées :body{transferParameter}.
+ *     summary: transfer bep20.
+ *     description: transfert crypto belongs to bep20 network <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -203,12 +197,10 @@ router.get('/totalBalnce', totalBalances)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
-
-
  router.post('/transferBep20', transfertBep20)
 
 
@@ -221,7 +213,7 @@ router.get('/totalBalnce', totalBalances)
  *     tags:
  *     - "wallets"
  *     summary: check if token already exist.
- *     description: parametres acceptées :body{transferParameter}.
+ *     description: check if a valid token or not <br> without access token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -234,7 +226,7 @@ router.get('/totalBalnce', totalBalances)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: error:not a token address <br> data:{message:Token found,tokenName:tokenName,symbol:symbol,decimal:decimal,tokenAdress:tokenAdress,network:network}
  *       "500":
  *          description: error:error message
  */
@@ -250,7 +242,7 @@ router.get('/totalBalnce', totalBalances)
  *     tags:
  *     - "wallets"
  *     summary: add new token.
- *     description: parametres acceptées :body{transferParameter}.
+ *     description: add new custom token to user <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -269,15 +261,11 @@ router.get('/totalBalnce', totalBalances)
  *                 type: number
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: message:token already added <br> data:token added
  *       "500":
  *          description: error:error message
  */
-
-
  router.post('/addNewToken', addNewToken)
-
-
 
 
  	/**
@@ -287,7 +275,7 @@ router.get('/totalBalnce', totalBalances)
  *     tags:
  *     - "wallets"
  *     summary: transfert BTC.
- *     description: parametres acceptées :body{transferParameter}.
+ *     description: transfert btc <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -302,13 +290,10 @@ router.get('/totalBalnce', totalBalances)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
-
-
-
  router.post('/transfertBtc', transfertBtc)
 
 
@@ -322,7 +307,7 @@ router.get('/totalBalnce', totalBalances)
  *     tags:
  *     - "wallets"
  *     summary: transfert BNB.
- *     description: parametres acceptées :body{transferParameter}.
+ *     description: transfert bnb <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -337,21 +322,11 @@ router.get('/totalBalnce', totalBalances)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
-
-
-
  router.post('/transfertBNB', transfertBNB)
-
-
-
-
-
-
-
   	/**
  * @swagger
  * /wallet/transfertEther:
@@ -359,7 +334,7 @@ router.get('/totalBalnce', totalBalances)
  *     tags:
  *     - "wallets"
  *     summary: transfert ETHER.
- *     description: parametres acceptées :body{transferParameter}.
+ *     description: transfert ETH <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -374,7 +349,7 @@ router.get('/totalBalnce', totalBalances)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
@@ -390,8 +365,8 @@ router.post('/transfertEther', transfertEther)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: buy quote.
- *     description: parametres acceptées :body{transferParameter}.
+ *     summary: get quote.
+ *     description: initial step to interact with the wallet api of simplex to asking for prices details.
  *     requestBody:
  *       content:
  *         application/json:
@@ -408,33 +383,21 @@ router.post('/transfertEther', transfertEther)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password OR hash
+ *          description: error:Transaction amount too low. Please enter a value of 50 USD or more. <br> data:{user_id:user_id,quote_id:quote_id,wallet_id:satt,digital_money:{currency:currency,amount:amount},fiat_money:{currency:currency,base_amount:base_amount,total_amount:total_amount},valid_until:valid_until}
  *       "500":
  *          description: error:error message
  */
-
-
-
-
-
  router.post('/getQuote', getQuote)
 
 
  	/**
  * @swagger
- * /wallet/payementRequest/{idWallet}:
+ * /wallet/payementRequest:
  *   post:
  *     tags:
  *     - "wallets"
  *     summary:  payement request in simplex.
-
- *     description: parametres acceptées :body{transferParameter}.
- *     parameters:
- *       - name: idWallet
- *         description: wallet id.
- *         in: path
- *         required: true
- *         type: string
+ *     description: simplex process the payement and send the payment_id.
  *     requestBody:
  *       content:
  *         application/json:
@@ -445,14 +408,15 @@ router.post('/transfertEther', transfertEther)
  *                 type: string
  *               quote_id:
  *                 type: string
+ *               idWallet:
+ *                 type: string
  *     responses:
  *       "200":
- *          description: err:Validation failed
+ *          description: {"is_kyc_update_required":true,"payment_id":payment_id}
  *       "500":
  *          description: error:error message
  */
-
- router.post('/payementRequest/:idWallet', payementRequest)
+ router.post('/payementRequest', payementRequest)
 
 
  /**
@@ -461,8 +425,8 @@ router.post('/transfertEther', transfertEther)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: swap erc20 to bep20 and the opposite.
- *     description: parametres acceptées :body{swapParameter}.
+ *     summary: swap satt erc20 to bep20 and the opposite.
+ *     description: to swapp satt from bep20 to erc20 you need to use direction="bte", from erc20 to bep20 you need to use direction="etb".
  *     requestBody:
  *       content:
  *         application/json:
