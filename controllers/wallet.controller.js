@@ -1,42 +1,19 @@
+
+
+
+var requirement= require('../helpers/utils')
+
 var connection;
-
-var express = require('express');
-
-const Big = require('big.js');
-var rp = require('request-promise');
-const {randomUUID}= require('crypto');
-const { v5 : uuidv5 } = require('uuid')
-
-
-
-
-var app = express();
+let app
 (connection = async function (){
-    app = await require("../conf/config")(app);
-    app = await require("../conf/const")(app);
-    app = await require("../db/db")(app);
-    app = await require("../crm/crm")(app);
-    app = await require("../fb/fb_init")(app);
-    app = await require("../web3/oracle")(app);
-    app= await require('../manager/notification')(app)
-
-    app = await require("../web3/provider")(app);
-    app = await require("../manager/bep20")(app);   
-
-     app = await require("../web3/campaign")(app);
-    app = await require("../web3/satt")(app);
-     app = await require("../web3/eth")(app);
-     app = await require("../web3/erc20")(app);
-
-    app = await require("../manager/account")(app);
-    app = await require("../web3/initcontracts")(app);
-
-
+    app = await requirement.connection();
+  
 })();
 
 exports.mywallet= async(req, response)=>{
 
     try{
+
         let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var count = await app.account.hasAccount(res.id);
@@ -86,6 +63,9 @@ exports.gasPriceBep20= async(req,res)=>{
 
 exports.gasPriceErc20= async(req,res)=>{
 
+
+    let app= await requirement.connection()
+
     var gasPrice = await app.web3.eth.getGasPrice();
 			res.end(JSON.stringify({gasPrice:(gasPrice/1000000000)}));
 
@@ -95,13 +75,14 @@ exports.gasPriceErc20= async(req,res)=>{
 
 
 exports.cryptoDetails= async(req, res)=>{
+
     var prices = app.account.getPrices()
 		res.end(JSON.stringify(prices))
 }
 
 exports.totalBalances= async(req, res)=>{
     try {
-        
+
         let token=await app.crm.checkToken(req,res);
         var auth =	await app.crm.auth(token);
         var id = auth.id;
@@ -131,6 +112,7 @@ exports.totalBalances= async(req, res)=>{
 
 exports.transfertErc20= async(req,response)=>{
 	try {
+
         let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var tokenERC20 = req.body.token;
@@ -168,6 +150,7 @@ exports.transfertErc20= async(req,response)=>{
 exports.transfertBep20= async(req,response)=>{
 
     try {
+
         var currency = req.body.symbole
         var to = req.body.to;
         var amount = req.body.amount;
@@ -213,6 +196,7 @@ if(ret && ret.transactionHash){
 
 exports.checkWalletToken= async(req,res)=>{
     try {
+
         let token=await app.crm.checkToken(req,res);
         let auth = await app.crm.auth(token);
         let id = auth.id
@@ -293,8 +277,11 @@ exports.addNewToken= async(req,res)=>{
 exports.transfertBtc= async(req , response)=>{
 
 
-    var pass = req.body.pass;
     try {
+
+
+        var pass = req.body.pass;
+
         let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
@@ -320,6 +307,8 @@ exports.transfertBNB= async(req , response)=>{
     var pass = req.body.pass;
 
 	try {
+
+
         let token=await app.crm.checkToken(req,res);
 		var res =	await app.crm.auth(token);
 		var cred = await app.account.unlockBSC(res.id,pass);
@@ -363,7 +352,6 @@ exports.transfertEther= async(req , response)=>{
     var amount = req.body.val;
     try {
 
-
         let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
@@ -393,6 +381,7 @@ exports.transfertEther= async(req , response)=>{
 exports.getQuote = async (req, res)=>{
 
     try {
+
         let token=await app.crm.checkToken(req,res);
         var auth = await app.crm.auth(token);
         let requestQuote = req.body;
@@ -429,6 +418,7 @@ exports.getQuote = async (req, res)=>{
 exports.payementRequest = async(req , res)=>{
 
     try {
+
         let token=await app.crm.checkToken(req,res);
 		var auth = await app.crm.auth(token);
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
@@ -490,6 +480,8 @@ exports.payementRequest = async(req , res)=>{
 
 
 exports.bridge= async(req , res)=>{
+
+
     let access_T=await app.crm.checkToken(req,res);
     let Direction = req.body.direction;
     let pass = req.body.password;
