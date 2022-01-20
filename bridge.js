@@ -36,10 +36,10 @@ try {
   var Web3 = require('web3');
 
   //app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url));
-  app.web3 = new Web3(new Web3.providers.WebsocketProvider("wss://ropsten.infura.io/ws/v3/0fab761c6a7f4934a892dddebf80f8e0"));
+  app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.ethBridge/*"wss://ropsten.infura.io/ws/v3/0fab761c6a7f4934a892dddebf80f8e0"*/));
   
-  app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
-  app.web3Bep20 = app.web3Bep20Websocket;
+ // app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
+  //app.web3Bep20 = app.web3Bep20Websocket;
   //app.web3Bep20 = new Web3(new Web3.providers.HttpProvider(app.config.web3UrlBep20));
 
   app = await require("./web3/satt")(app);
@@ -59,8 +59,8 @@ try {
     var web3eth = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url,options));
     var web3Bsc  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket,options));
 
-    var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
-    var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
+    var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,config.testnet?app.config.ctrs.token.address.mainnet:app.config.ctrs.token.address.testnet);
+    var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,config.testnet?app.config.ctrs.bep20.address.mainnet:app.config.ctrs.bep20.address.testnet);
 
     return {web3eth,web3Bsc,ctrEth,ctrBsc};
   }
@@ -68,7 +68,7 @@ try {
   bridge.initEventHandlers = async () => {
 
     bridge.contractEvtEth = new app.web3.eth.Contract(app.config.ctrs.token.abi,app.config.ctrs.token.address.mainnet);
-    bridge.contractEvtBsc = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
+   // bridge.contractEvtBsc = new app.web3Bep20Websocket.eth.Contract(app.config.ctrs.bep20.abi,app.config.ctrs.bep20.address.mainnet);
     
     //bridge.contractEvtBsc.events.Transfer({filter:{to:app.config.SattBep20Addr}},bridge.eventBSCtoETH);
     bridge.contractEvtEth.events.Transfer({filter:{to:app.config.SattBep20Addr}},bridge.eventETHtoBSC);
@@ -81,6 +81,8 @@ try {
   
 
   bridge.eventETHtoBSC = async (error, evt) => {
+
+    console.log("eventETHtoBSC")
 
     if(error) {
       console.log(error);
@@ -170,7 +172,7 @@ try {
     ctrs.web3eth.eth.accounts.wallet.decrypt([app.config.sattBep20], app.config.SattReservePass);
 
     var gasPriceBsc = await ctrs.web3Bsc.eth.getGasPrice();
-    var gasPriceEth = await ctrs.web3Bsc.eth.getGasPrice();
+    var gasPriceEth = await ctrs.web3eth.eth.getGasPrice();
     var gas = 60000;
 
     var receiptBurn = await ctrs.ctrBsc.methods.burn(value).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPriceBsc})
@@ -189,7 +191,7 @@ try {
     var gas = 60000;
 
     var receiptMint = await ctrs.ctrBsc.methods.mint(value).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPriceBsc})
-    var receiptTransfer = await ctrs.ctrBsc.methods.transfer(to,value).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPriceEth})
+    var receiptTransfer = await ctrs.ctrBsc.methods.transfer(to,value).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPriceBsc})
 
     return {mintTxHash:receiptMint.transactionHash,bscTxHash:receiptTransfer.transactionHash}
 
@@ -203,12 +205,12 @@ try {
       var tx = txs[i];
       if(tx.type == "BSC-ETH") {
         var hashes = await bridge.bscToEth(ctrs,tx.from,tx.value);
-        await app.db.bep20().updateOne({_id:tx._id},{$set:{ burnTxHash:hashes.burnTxHash,ethTxHash:hashes.ethTxHash}});
+        await app.db.bep20().updateOne({_id:tx._id},{$set:{status:"ok", burnTxHash:hashes.burnTxHash,ethTxHash:hashes.ethTxHash}});
       }
-      if(tx.type == "ETH-BSC") {
+      /* if(tx.type == "ETH-BSC") {
         var hashes = await bridge.ethToBsc(ctrs,tx.from,tx.value);
-        await app.db.bep20().updateOne({_id:tx._id},{$set:{ mintTxHash:hashes.mintTxHash,bscTxHash:hashes.bscTxHash}});
-      }
+        await app.db.bep20().updateOne({_id:tx._id},{$set:{status:"ok", mintTxHash:hashes.mintTxHash,bscTxHash:hashes.bscTxHash}});
+      }*/
     }
 
   }
