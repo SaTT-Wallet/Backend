@@ -27,7 +27,7 @@ var tokens = [];
 						var user = await app.db.sn_user().findOne({_id:UserId});
 						resolve({id:UserId,user});
 					}else{
-						resolve({error: "AC_Token expired"});
+						reject({error:"AC_Token expired"});
 					}
 					
 				}
@@ -41,7 +41,7 @@ var tokens = [];
 						tokens[token] = {id:UserId}
                         resolve({id:UserId,user:res[0]});
 						}else{
-							resolve({error: "AC_Token expired"});
+							reject({error:"AC_Token expired"});
 						}
                     }else{
                         reject({error:"auth error"});
