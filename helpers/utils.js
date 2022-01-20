@@ -11,9 +11,11 @@ const { v5 : uuidv5 } = require('uuid')
 
 var nodemailer = require('nodemailer');
 const hasha = require('hasha');
+const mongoose = require('mongoose');
 
 
 exports.connection = async ()=>{
+
 
 
     app = await require("../conf/config")(app);
@@ -54,6 +56,11 @@ exports.connection = async ()=>{
         const base64 = buff.toString('base64');
         return base64;
     }
+
+
+
+        app.mongoURI = app.config.mongoURI;
+
 
 
 
