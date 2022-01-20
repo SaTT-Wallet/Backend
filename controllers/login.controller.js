@@ -1,3 +1,12 @@
+var requirement= require('../helpers/utils')
+
+var connection;
+let app
+(connection = async function (){
+    app = await requirement.connection();
+  
+})();
+
 const fs = require('fs');
 var handlebars = require('handlebars');
 var Long = require('mongodb').Long;
@@ -12,36 +21,6 @@ var readHTMLFile = function(path, callback) {
     });
 };
 
-var express = require('express');
-var app = express();
-var connection;
-(connection = async function (){
-    app = await require("../conf/config")(app);
-    app = await require("../conf/const")(app);
-    app = await require("../db/db")(app);
-    app = await require("../crm/crm")(app);
-    app = await require("../manager/i18n")(app);
-    app = await require("../web3/provider")(app);
-    app = await require("../manager/account")(app);
-})();
-var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport(app.config.mailerOptions);
-const hasha = require('hasha');
-var synfonyHash = function(pass) {
-    var salted = pass + "{" + app.config.symfonySalt + "}";
-
-    var buff = hasha(salted, { encoding: "buffer" });
-    var saltBuff = Buffer.from(salted);
-    var arr = [];
-
-    for (var i = 1; i < 5000; i++) {
-        arr = [buff, saltBuff];
-        buff = hasha(Buffer.concat(arr), { algorithm: "sha512", encoding: "buffer" });
-    }
-
-    const base64 = buff.toString('base64');
-    return base64;
-}
 
 exports.captcha= async(req, res)=>{
   

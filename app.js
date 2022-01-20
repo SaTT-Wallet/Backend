@@ -69,9 +69,14 @@
 		app = await require("./manager/account")(app);
 		app = await require("./manager/i18n")(app);
 
+
+
+
 		const loginroutes= require('./routes/login.routes')
 		const walletroutes= require('./routes/wallet.routes')
 		const profileroutes= require('./routes/profile.routes')
+
+
 
 		app.use('/auth', loginroutes);
 		app.use('/wallet', walletroutes);
