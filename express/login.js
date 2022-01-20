@@ -1340,7 +1340,7 @@ module.exports = function(app) {
                     res.end(JSON.stringify({ error: "AC_Token expired" }))
                 }
             } else {
-                res.end("Invalid Access Token")
+                res.end(JSON.stringify({error:"Invalid Access Token"}))
             }
         }
     }
