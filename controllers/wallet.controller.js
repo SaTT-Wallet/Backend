@@ -19,15 +19,12 @@ var app = express();
     app = await require("../fb/fb_init")(app);
     app = await require("../web3/oracle")(app);
     app= await require('../manager/notification')(app)
-
     app = await require("../web3/provider")(app);
     app = await require("../manager/bep20")(app);   
-
-     app = await require("../web3/campaign")(app);
+    app = await require("../web3/campaign")(app);
     app = await require("../web3/satt")(app);
-     app = await require("../web3/eth")(app);
-     app = await require("../web3/erc20")(app);
-
+    app = await require("../web3/eth")(app);
+    app = await require("../web3/erc20")(app);
     app = await require("../manager/account")(app);
     app = await require("../web3/initcontracts")(app);
 
@@ -143,8 +140,10 @@ exports.transfertErc20= async(req,response)=>{
         cred.from_id = res.id;
         var result = await app.account.getAccount(res.id);
         let balance = await app.erc20.getBalance(tokenERC20,result.address);
-        if(new Big(amount).gt(new Big(balance.amount)))
-        response.end(JSON.stringify({message:"not_enough_budget"}));
+        if(new Big(amount).gt(new Big(balance.amount))){
+            response.end(JSON.stringify({message:"not_enough_budget"}));
+            return;
+        }
         var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
         
         response.end(JSON.stringify(ret));
@@ -184,10 +183,11 @@ exports.transfertBep20= async(req,response)=>{
 
         let balance = await app.bep20.getBalance(req.body.token,result.address);
        
-
-        if(new Big(amount).gt(new Big(balance.amount)))
-        response.end(JSON.stringify({message:"not_enough_budget"}));
-
+        if(new Big(amount).gt(new Big(balance.amount))){
+            response.end(JSON.stringify({message:"not_enough_budget"}));
+            return;
+        }
+       
         var ret = await app.bep20.sendBep20(req.body.token,to,amount,cred);
         response.end(JSON.stringify(ret));
     } catch (err) {
@@ -299,8 +299,10 @@ exports.transfertBtc= async(req , response)=>{
         var res =	await app.crm.auth(token);
         var cred = await app.account.unlock(res.id,pass);
         var result = await app.account.getAccount(res.id);
-        if(new Big(req.body.val).gt(new Big(result.btc_balance)))
-            response.end(JSON.stringify({message:"not_enough_budget"}));
+        if(new Big(req.body.val).gt(new Big(result.btc_balance))){
+                response.end(JSON.stringify({message:"not_enough_budget"}));
+                return;
+        }    
         var hash = await app.cryptoManager.sendBtc(res.id,pass, req.body.to,req.body.val);
         response.end(JSON.stringify({hash:hash}));
 
@@ -327,10 +329,10 @@ exports.transfertBNB= async(req , response)=>{
 		var to = req.body.to;
 		var amount = req.body.val;
 		var result = await app.account.getAccount(res.id);
-
-		if(new Big(amount).gt(new Big(result.bnb_balance)))
-			response.end(JSON.stringify({message:"not_enough_budget"}));
-
+            if(new Big(amount).gt(new Big(result.bnb_balance))){
+                response.end(JSON.stringify({message:"not_enough_budget"}));
+                return;
+            }
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
 
 
@@ -366,26 +368,28 @@ exports.transfertEther= async(req , response)=>{
 
         let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
+        var result = await app.account.getAccount(res.id);
+        if(new Big(amount).gt(new Big(result.ether_balance))){
+            response.end(JSON.stringify({message:"not_enough_budget"}));
+            return;
+        }
         var cred = await app.account.unlock(res.id,pass);
         cred.from_id = res.id;
-
-      
         var ret = await app.cryptoManager.transfer(to,amount,cred);
-       
         response.end(JSON.stringify(ret));
     } catch (err) {
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
     }
     finally {
-        // if(cred) app.account.lock(cred.address);
-        // if(ret.transactionHash){
-        //     await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
-        //     const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
-        //     if(wallet){
+        if(cred) app.account.lock(cred.address);
+        if(ret.transactionHash){
+            await app.account.notificationManager(res.id, "transfer_event",{amount,currency :'ETH',to, transactionHash : ret.transactionHash, network : "ERC20"})
+            const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
+            if(wallet){
             
-        //         await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
-        //     }
-        // }
+                await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency :'ETH',from : cred.address, transactionHash : ret.transactionHash, network : "ERC20"})
+            }
+        }
 }
 
 }
