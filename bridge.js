@@ -38,8 +38,8 @@ try {
   //app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url));
   app.web3 = new Web3(new Web3.providers.WebsocketProvider(app.config.ethBridge,options/*"wss://ropsten.infura.io/ws/v3/0fab761c6a7f4934a892dddebf80f8e0"*/));
   
- // app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
-  //app.web3Bep20 = app.web3Bep20Websocket;
+  app.web3Bep20Websocket  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket));
+  app.web3Bep20 = app.web3Bep20Websocket;
   //app.web3Bep20 = new Web3(new Web3.providers.HttpProvider(app.config.web3UrlBep20));
 
   app = await require("./web3/satt")(app);
