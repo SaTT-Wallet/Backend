@@ -10,6 +10,53 @@ let app
   
 })();
 
+
+
+
+
+exports.exportBtc=async(req,response)=>{
+
+    var pass = req.body.pass;
+    response.attachment();
+
+    try {
+        let token=await app.crm.checkToken(req,res);
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlock(res.id,pass);
+
+        var ret = await app.account.exportkeyBtc(res.id,pass);
+        response.end(JSON.stringify(ret));
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+            if(cred)
+        app.account.lock(cred.address);
+    }
+
+}
+
+exports.exportEth=async(req,response)=>{
+    var pass = req.body.pass;
+    response.attachment();
+
+    try {
+        let token=await app.crm.checkToken(req,res);
+        var res =	await app.crm.auth(token);
+        var cred = await app.account.unlock(res.id,pass);
+
+        var ret = await app.account.exportkey(res.id,pass);
+        response.end(JSON.stringify(ret));
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+    finally {
+        if(cred)
+        app.account.lock(cred.address);
+    }
+
+}
+
 exports.mywallet= async(req, response)=>{
 
     try{
