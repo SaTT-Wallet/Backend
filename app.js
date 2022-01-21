@@ -75,13 +75,13 @@
 		const loginroutes= require('./routes/login.routes')
 		const walletroutes= require('./routes/wallet.routes')
 		const profileroutes= require('./routes/profile.routes')
-
+        const campaignroutes= require('./routes/campaign.routes')
 
 
 		app.use('/auth', loginroutes);
 		app.use('/wallet', walletroutes);
 		app.use('/profile', profileroutes);
-
+        app.use('/campaign', campaignroutes);
 
 		
 
