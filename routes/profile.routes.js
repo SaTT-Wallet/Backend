@@ -1,7 +1,7 @@
 let express = require('express');
 let router = express.Router();
 
-const {deleteLinkedinChannels, deleteFacebookChannels, deleteGoogleChannels,account,
+const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels, deleteFacebookChannels, deleteGoogleChannels,account,
     profilePicture,updateProfile, UserLegalProfile } = require('../controllers/profile.controller')
 
 
@@ -121,6 +121,88 @@ router.get('/UserLegal', UserLegalProfile)
 
    /**
  * @swagger
+ * /profile/UserIntersts:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: get user intersts.
+ *     description: return to user the list of his intersts.  <br> with access_token
+ *     responses:
+ *       "200":
+ *          description: interests:[] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+router.get('/UserIntersts', UserInterstes)
+
+
+
+ 	/**
+ * @swagger
+ * /profile/AddUserIntersts:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: add user interests.
+ *     description: user can add his intersts list <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               interests:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *                      
+ *     responses:
+ *       "200":
+ *          description: err:E11000 duplicate key error collection"<br> 
+ *       "500":
+ *          description: error:error message
+ */
+router.post('/AddUserIntersts', AddIntersts)
+
+
+
+ 	/**
+ * @swagger
+ * /profile/UpdateUserIntersts:
+ *   put:
+ *     tags:
+ *     - "profile"
+ *     summary: update user interests.
+ *     description: user can update his intersts list<br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               interests:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *                      
+ *     responses:
+ *       "200":
+ *          description: err:<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+    router.put('/UpdateUserIntersts', UpdateIntersts)
+
+
+
+
+
+   /**
+ * @swagger
  * /profile/RemoveGoogleChannels:
  *   delete:
  *     tags:
@@ -171,7 +253,7 @@ router.delete('/RemoveGoogleChannels', deleteGoogleChannels)
  */
 
 
-        router.delete('/RemoveLinkedInChannels', deleteLinkedinChannels)
+router.delete('/RemoveLinkedInChannels', deleteLinkedinChannels)
 
 
 

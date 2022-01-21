@@ -41,18 +41,20 @@ exports.connection = async ()=>{
 
     var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
-    var synfonyHash = function(pass) {
+ 
+
+    app.synfonyHash = function(pass) {
         var salted = pass + "{" + app.config.symfonySalt + "}";
-    
+
         var buff = hasha(salted, { encoding: "buffer" });
         var saltBuff = Buffer.from(salted);
         var arr = [];
-    
+
         for (var i = 1; i < 5000; i++) {
             arr = [buff, saltBuff];
             buff = hasha(Buffer.concat(arr), { algorithm: "sha512", encoding: "buffer" });
         }
-    
+
         const base64 = buff.toString('base64');
         return base64;
     }

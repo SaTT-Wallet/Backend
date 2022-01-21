@@ -16,6 +16,8 @@ let gfsUserLegal;
 
 const Grid = require('gridfs-stream');
 const GridFsStorage = require('multer-gridfs-storage');
+var Long = require('mongodb').Long;
+
 
 exports.account= async(req, res)=>{
 
@@ -176,5 +178,47 @@ exports.deleteLinkedinChannels= async(req,res)=>{
 
 
 }
-    
+
+exports.UserInterstes= async(req, res)=>{
+    try{
+        let token=await app.crm.checkToken(req,res);
+    var auth =	await app.crm.auth(token);
+    const interests = await app.db.interests().findOne({_id:Long.fromNumber(auth.id)});
+    res.send(JSON.stringify(interests)).status(201);
+     }catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ }
+
+}
+
+exports.AddIntersts= async(req, res)=>{
+    try{
+        let token=await app.crm.checkToken(req,res);
+        var auth =	await app.crm.auth(token);
+        let userInterests = req.body;
+        userInterests._id = Long.fromNumber(auth.id)
+        await app.db.interests().insertOne(userInterests);
+        res.send(JSON.stringify({message : "interests added"})).status(201);
+     }catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ }
+
+}
+
+
+
+exports.UpdateIntersts= async(req, res)=>{
+    try{
+        let token=await app.crm.checkToken(req,res);
+    var auth =	await app.crm.auth(token);
+        let userInterests = req.body.interests;
+        await app.db.interests().replaceOne({_id:Long.fromNumber(auth.id)},{interests:userInterests});
+        res.send(JSON.stringify({message : "interests updated"})).status(201);
+     }catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ }
+
+}
+
+
 
