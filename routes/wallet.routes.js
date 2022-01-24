@@ -4,7 +4,7 @@ let router = express.Router();
 const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
 	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails} = require('../controllers/wallet.controller')
-
+const { verifyAuth} =require('../middleware/passport.middleware');
 
 
 /**
@@ -23,7 +23,7 @@ const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfert
  *       "500":
  *          description: error:"error"
  */
-router.get('/mywallet',mywallet)
+router.get('/mywallet',verifyAuth,mywallet)
 
 
 
@@ -43,7 +43,7 @@ router.get('/mywallet',mywallet)
  *       "500":
  *          description: error:"error"
  */
-router.get('/userBalance',userBalance)
+router.get('/userBalance',verifyAuth,userBalance)
 
 
 
@@ -105,7 +105,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *          description: error:"error"
  */
-router.get('/totalBalance', totalBalances)
+router.get('/totalBalance',verifyAuth, totalBalances);
 
 
 
@@ -231,7 +231,7 @@ router.get('/totalBalance', totalBalances)
  *          description: error:error message
  */
 
- router.post('/checkWalletToken', checkWalletToken)
+ router.post('/checkWalletToken',verifyAuth, checkWalletToken)
 
 
 
@@ -265,7 +265,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/addNewToken', addNewToken)
+ router.post('/addNewToken',verifyAuth, addNewToken)
 
 
  	/**
@@ -294,7 +294,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/transfertBtc', transfertBtc)
+ router.post('/transfertBtc',verifyAuth, transfertBtc)
 
 
 
@@ -326,7 +326,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/transfertBNB', transfertBNB)
+ router.post('/transfertBNB',verifyAuth, transfertBNB)
   	/**
  * @swagger
  * /wallet/transfertEther:
@@ -356,7 +356,7 @@ router.get('/totalBalance', totalBalances)
 
 
 
-router.post('/transfertEther', transfertEther)
+router.post('/transfertEther',verifyAuth, transfertEther)
 
 
  	/**
@@ -387,7 +387,7 @@ router.post('/transfertEther', transfertEther)
  *       "500":
  *          description: error:error message
  */
- router.post('/getQuote', getQuote)
+ router.post('/getQuote',verifyAuth, getQuote)
 
 
  	/**

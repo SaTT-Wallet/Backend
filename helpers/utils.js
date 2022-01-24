@@ -12,7 +12,7 @@ var fs = require('fs');
 
 var nodemailer = require('nodemailer');
 const hasha = require('hasha');
-
+const jwt = require('jsonwebtoken');
 
 exports.connection = async ()=>{
 
@@ -55,8 +55,15 @@ exports.connection = async ()=>{
         const base64 = buff.toString('base64');
         return base64;
     }
-
-
+    
+    
+    app.cloneUser = user => {
+      const {daily,weekly, monthly,failed_count,account_locked,created,updated,onBoarding,confirmation_token,...newUser} = user;
+      return newUser;
+    }
+    //global function that generates user acessToken
+    app.generateAccessToken = user => jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '24h' });
+    
     app.readHTMLFile = (path, callback) => {
 		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
 		  if (err) {
