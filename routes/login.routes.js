@@ -45,8 +45,8 @@ const {
     googleAuthSignin,
     facebookAuthSignin,
     signup_telegram_function,
-    signin_telegram_function
-    
+    signin_telegram_function,
+    verifyAuth
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
