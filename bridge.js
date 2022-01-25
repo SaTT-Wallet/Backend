@@ -8,7 +8,7 @@ try {
 
   app = await require("./db/db")(app);
   //app = await require("./web3/provider")(app);
-
+console.log(app);
   const options = {
     timeout: 30000, 
    

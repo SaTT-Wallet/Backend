@@ -22,9 +22,6 @@ var Long = require('mongodb').Long;
 exports.account= async(req, res)=>{
 
     try{
-        /*let token=await app.crm.checkToken(req,res);
-        let auth = await app.crm.auth(token);
-        var user = auth.user;*/
         if (req.user) {
             res.end(JSON.stringify(req.user))
         } else {
@@ -40,9 +37,7 @@ exports.account= async(req, res)=>{
 
 
 exports.profilePicture=  async(req, response)=>{
-
     try{
-
     const conn=mongoose.createConnection(app.mongoURI);
 
 	conn.once('open', () => {
@@ -81,9 +76,6 @@ exports.updateProfile = async(req,res)=>{
     try {
         const id = req.user._id;
         let profile = req.body;
-
-        console.log("profile", profile);
-
         if(profile.email){
         const user = await app.db.sn_user().findOne({  $and: [{email: profile.email}, {_id: { $nin: [id] }}]});
         if(user) {
@@ -102,9 +94,7 @@ exports.updateProfile = async(req,res)=>{
 
 
 exports.UserLegalProfile= async(req , res)=>{
-
     try{
-
         const conn=mongoose.createConnection(app.mongoURI);
         conn.once('open', () => {
           gfsprofilePic = Grid(conn.db, mongoose.mongo);
@@ -113,8 +103,6 @@ exports.UserLegalProfile= async(req , res)=>{
           gfsUserLegal.collection('user_legal');
     
         });
-        // let token=await app.crm.checkToken(req,res);
-        // const auth = await app.crm.auth(token);
         const idNode="0"+req.user._id;
         const files = await gfsUserLegal.files.find({idNode}).toArray()
         userLegal={};
@@ -136,9 +124,8 @@ exports.UserLegalProfile= async(req , res)=>{
 
 exports.deleteGoogleChannels= async(req,res)=>{
     try {
-        // let token=await app.crm.checkToken(req,res);
-        // let auth = await app.crm.auth(token);
-        await app.db.googleProfile().deleteMany({ UserId: req.user._id });
+        let id = req.user._id;
+        await app.db.googleProfile().deleteMany({ UserId: id });
         res.end(JSON.stringify({ message: "deleted successfully" }))
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
@@ -172,7 +159,8 @@ exports.deleteLinkedinChannels= async(req,res)=>{
 
 exports.UserInterstes= async(req, res)=>{
     try{
-    const interests = await app.db.interests().findOne({_id:req.user._id});
+    let id = req.user._id;
+    const interests = await app.db.interests().findOne({_id:id});
     res.send(JSON.stringify(interests)).status(201);
      }catch (err) {
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -192,12 +180,11 @@ exports.AddIntersts= async(req, res)=>{
 
 }
 
-
-
 exports.UpdateIntersts= async(req, res)=>{
     try{
+        let id = req.user._id;
         let userInterests = req.body.interests;
-        await app.db.interests().replaceOne({_id:Long.fromNumber(req.user._id)},{interests:userInterests});
+        await app.db.interests().replaceOne({_id:Long.fromNumber(id)},{interests:userInterests});
         res.send(JSON.stringify({message : "interests updated"})).status(201);
      }catch (err) {
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -206,4 +193,21 @@ exports.UpdateIntersts= async(req, res)=>{
 }
 
 
+exports.socialAccounts= async(req, response)=>{
+    try {
+        var UserId = req.user._id;
+        let networks = {};
+        var channelsGoogle = await app.db.googleProfile().find({ UserId }).toArray();
+        var channelsTwitter = await app.db.twitterProfile().find({ UserId }).toArray();
+        let channelsFacebook = await app.db.fbPage().find({ UserId }).toArray();
+        let channelsLinkedin = await app.db.linkedinProfile().findOne({ userId: UserId });
+        networks.google = channelsGoogle;
+        networks.twitter = channelsTwitter;
+        networks.facebook = channelsFacebook;
+        networks.linkedin = channelsLinkedin ?.pages || [];
+        response.send(JSON.stringify(networks))
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
 
+}
