@@ -13,21 +13,32 @@ module.exports = async function (app) {
 
 	campaignManager.getContract = (address) => {
 
+
 		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
 			return campaignManager.contract;
 		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
 				return campaignManager.contractBep20;
 		else	if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
-				return campaignManager.contract;
-		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase())
-				return campaignManager.contractBep20;
+		{
+		
+
+			return campaignManager.contract;
+
+		}
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase()){
+			return campaignManager.contractBep20;
+		}
+		
+	
 
 			}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
+		console.log("campaign",campaign);
 		if(campaign && campaign.contract)
 		{
+
 
 			return campaignManager.getContract(campaign.contract);
 		}
@@ -39,7 +50,6 @@ module.exports = async function (app) {
 
 
 		var proms = await app.db.event().find({prom:idProm},{projection: { contract: true, _id:false }}).toArray();
-		//console.log("log",proms)
 		if(proms.length) {
 			return 	 campaignManager.getContract(proms[0].contract);
 		}
@@ -126,7 +136,6 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 300000;
 			var receipt = await  ctr.methods.createPriceFundYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-			console.log(receipt.events.CampaignCreated);
 			resolve(receipt.events.CampaignCreated.returnValues.id);
 		})
 	}
@@ -283,19 +292,26 @@ module.exports = async function (app) {
 	campaignManager.validateProm = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
+
+				console.log("start validate prom");
 				var gas = 100000;
 					var ctr = await campaignManager.getPromContract(idProm);
-					//console.log(ctr);
+
+					console.log("idProm", idProm);
+					console.log("ctr", ctr);
 
 
 					var gasPrice = await ctr.getGasPrice();
+
+					console.log("gasPrice", gasPrice);
 				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
                 receipt.transactionHash && app.account.sysLog("validateProm", credentials.address, `${receipt.transactionHash} confirmed validated prom ${idProm}`);
-			//	console.log(receipt.transactionHash,"confirmed validated prom ",idProm);
 			}
 			catch (err)
+
 			{
+				console.log("err",err);
 				reject(err);
 			}
 		})
