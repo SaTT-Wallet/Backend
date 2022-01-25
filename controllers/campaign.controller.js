@@ -90,7 +90,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
     
     
 
-      module.exports.launchCampaign = async(req,res)=>{
+      module.exports.launchCampaign = async(req,response)=>{
         var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -102,9 +102,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		let id =req.body.idCampaign
 
 		try {
-            let access_T=await app.crm.checkToken(req,res);
-			var auth =	await app.crm.auth(access_T);
-			var cred = await app.account.unlock(auth.id,pass);
+			var cred = await app.account.unlock(req.user._id,pass);
 
 			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
 				ERC20token = app.config.ctrs.token.address.testnet;
@@ -137,7 +135,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		}
       }
 
-      module.exports.launchBounty  = async(req,res)=> {
+      module.exports.launchBounty  = async(req,response)=> {
         var pass = req.body.pass;
         var dataUrl = req.body.dataUrl;
         var startDate = req.body.startDate;
@@ -146,11 +144,9 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
         var amount = req.body.amount;
         let [id,contract] = [req.body.idCampaign,req.body.contract.toLowerCase()];
         var bounties = req.body.bounties;
-        let access_T=await app.crm.checkToken(req,res);
-        var auth =	await app.crm.auth(access_T);
         try {
 
-            var cred = await app.account.unlock(auth.id,pass);
+            var cred = await app.account.unlock(req.user._id,pass);
 
             if(app.config.testnet && ERC20token == app.config.ctrs.token.address.mainnet) {
                 ERC20token = app.config.ctrs.token.address.testnet;
@@ -213,10 +209,9 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 			var strangerDraft=[];
              if(req.query.idWallet){
 
-                let token=await app.crm.checkToken(req,res);
-                var auth =	await app.crm.auth(token);
-			var idNode="0"+auth.id;		
-			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
+               
+			var idNode="0"+req.user._id;		
+			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+req.user._id} , hash:{ $exists: false}});
 			 }
 			const limit=+req.query.limit || 10;
 			const page=+req.query.page || 1;
@@ -306,9 +301,6 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 
       exports.campaignPromp= async(req, res)=>{
         try{	
-            let token=await app.crm.checkToken(req,res);
-			await app.crm.auth(token);
-
 	const campaign = await app.db.campaigns().findOne({_id : app.ObjectId(req.params.idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 			let ctr = await app.campaign.getCampaignContract(campaign.hash)
 	 if(!ctr) {
@@ -420,14 +412,12 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
                 method: 'GET',
                 json: true
               };
-              let token=await app.crm.checkToken(req,res);
-              let auth = await app.crm.auth(token);
    
              let total = "0";
              let prices = await rp(sattPrice);
              let sattPrice$ = prices.SATT.price;
    
-             let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+auth.id,hash:{ $exists: true}}).toArray();
+             let userCampaigns = await app.db.campaignCrm().find({idNode:"0"+req.user._id,hash:{ $exists: true}}).toArray();
               userCampaigns.forEach(async campaign =>{
                 let result = await app.campaign.campaignStats(campaign.hash);
                 total = new Big(total).plus(new Big(result.spent));
@@ -446,11 +436,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
       }
     
       exports.apply= async(req,response)=>{
-
-        let token=await app.crm.checkToken(req,response);
-		var auth =	await app.crm.auth(token);
-
-              	
+   	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var typeSN = req.body.typeSN;
@@ -463,13 +449,13 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		let contract =await app.campaign.getCampaignContract(hash);
 
 
-		let id = auth.id
+		var id = req.user._id
 		try {		
 			    let promExist = await app.db.campaign_link().findOne({id_campaign:hash, idPost});
 				if(promExist) response.end(JSON.stringify({message:"Link already sent"}))				
 			    var cred = await app.account.unlock(id,pass);
 				if(typeSN == 5){
-					var linkedinProfile = await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }});
+					var linkedinProfile = await app.db.linkedinProfile().findOne({userId:req.user._id},{projection: { accessToken: true,_id:false }});
 					var linkedinInfo = await app.oracle.getLinkedinLinkInfo(linkedinProfile.accessToken,idPost.toString())
 					var media_url=linkedinInfo.mediaUrl
 					idUser = linkedinInfo.idUser;
@@ -581,38 +567,36 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 
 
 		let idCampaign = req.body.idCampaign;
-        let linkProm = req.body.link
-
-
-		 
+        let linkProm = req.body.link	 
 		try {
 
 
-					let pass = req.body.pass;
+		let pass = req.body.pass;
 		let idApply = req.body.idProm;
-        let token=await app.crm.checkToken(req,res);
-		var auth =	await app.crm.auth(token);
 			const lang = /*req.query.lang ||*/ "en";
 			app.i18n.configureTranslation(lang);
 
-			var cred = await app.account.unlock(auth.id,pass);
-			var ret = await app.campaign.validateProm(idApply,cred); 
+			var cred = await app.account.unlock(req.user._id,pass);
+			var ret = await app.campaign.validateProm(idApply,cred);
+               
+
 			res.end(JSON.stringify(ret));
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-		if(cred) {
+		if(cred) {		
 			app.account.lock(cred.address);}
 				if(ret && ret.transactionHash){
+
 						const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 						const id = req.body.idUser;
 						const email = req.body.email;			
 						let link = await app.db.campaign_link().findOne({id_prom:idApply});
 						let userWallet =  await app.db.wallet().findOne({"keystore.address":link.id_wallet.toLowerCase().substring(2)},{projection: { UserId: true, _id:false }});
 						let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId});
-						   let userId= link.oracle === 'instagram' ? userWallet.UserId : null;
+						let userId= link.oracle === 'instagram' ? userWallet.UserId : null;
 						let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,userId,linkedinProfile);
 						socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
 						socialOracle.status = true,link.status= true;
