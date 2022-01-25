@@ -660,4 +660,136 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		}
 
 	  }
+	  exports.gains=async(req,response)=>{
+
+
+
+
+	
+        let token=await app.crm.checkToken(req,response);
+		var auth =	await app.crm.auth(token);
+		var stats;
+		var requests = false;
+		var abi = [{"indexed":true,"name":"idRequest","type":"bytes32"},{"indexed":false,"name":"typeSN","type":"uint8"},{"indexed":false,"name":"idPost","type":"string"},{"indexed":false,"name":"idUser","type":"string"}];
+		try {
+
+			console.log("start");
+
+
+			var pass = req.body.pass;
+			var idProm = req.body.idProm;
+			var idCampaign=req.body.idCampaign;	
+	
+	
+			var count = await app.db.ban().find({idProm:idProm}).count();
+			if(count) {
+				response.end('{"error":"oracle not available"}');
+				return;
+			}
+
+			
+			var cred2 = await app.account.unlock(auth.id,pass);
+			var ctr = await app.campaign.getPromContract(idProm);
+
+
+		    var gasPrice = await ctr.getGasPrice();
+			let prom = await ctr.methods.proms(idProm).call();
+            var linkedinData = prom.typeSN== "5" && await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }})
+            var link = await app.db.campaign_link().findOne({id_prom:idProm})
+			if(req.body.bounty) {
+				if(prom.funds.amount > 0 && prom.isPayed) {
+					var ret = await app.campaign.getGains(idProm,cred2);
+					response.end(JSON.stringify(ret));
+					return;
+				}
+				let campaign=await app.db.campaigns().findOne({hash:idCampaign},{projection: { bounties: true }});
+				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));
+				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
+				var evts = await app.campaign.updateBounty(idProm,cred2);
+				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
+				if (+stats >= +maxBountieFollowers){
+					stats= (+maxBountieFollowers - 1).toString()
+				}
+			
+				await app.db.request().updateOne({id:idProm},{$set:{nbAbos:stats,isBounty:true,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+				try {
+					await app.oracleManager.answerBounty({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idProm:idProm,nbAbos:stats});
+				}
+				finally {
+				var ret = await app.campaign.getGains(idProm,cred2);
+				response.end(JSON.stringify(ret));
+				return;
+				}
+			}
+
+			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
+			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser,link.typeURL,linkedinData);
+			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
+			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
+		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
+                        stats.views = stats.views || 0
+						if(stats.views==="old") stats.views = link.views 
+                        stats.shares = stats.shares || 0
+			            stats.likes = stats.likes || 0
+
+
+		      requests = await app.db.request().find({isNew:true,isBounty:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).toArray();
+			if(!requests.length)
+			{
+
+				if(!prevstat.length || stats.likes != prevstat[0].likes || stats.shares != prevstat[0].shares || stats.views != prevstat[0].views)
+				{
+					  var evts = await app.campaign.updatePromStats(idProm,cred2);
+						console.log("oracle log",evts);
+						var evt = evts.events[0];
+						var idRequest = evt.raw.topics[1];
+						var log = app.web3.eth.abi.decodeLog(abi,evt.raw.data,evt.raw.topics.shift());
+						if(log.typeSN == prom.typeSN && log.idPost == prom.idPost && log.idUser == prom.idUser)
+							requests = [{id:idRequest}];
+				}
+			}
+			if(requests && requests.length)
+			{
+				console.log("updateOracle",requests);
+				await app.db.request().updateOne({id:requests[0].id},{$set:{id:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views,isNew:false,date :Date.now(),typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}},{ upsert: true });
+								console.log({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views}, "answer Call logged data")
+
+				await app.oracleManager.answerCall({gasPrice:gasPrice,from:app.config.campaignOwner,campaignContract:ctr.options.address,idRequest:requests[0].id,likes:stats.likes,shares:stats.shares,views:stats.views});
+			}
+
+
+			var ret = await app.campaign.getGains(idProm,cred2);
+						
+			response.end(JSON.stringify(ret));
+
+		} catch (err) {
+			app.account.sysLogError(err)
+			response.end(JSON.stringify({error:err.message?err.message:err.error}));
+		}
+		finally {
+			if(cred2) app.account.lock(cred2.address);
+            if(ret && ret.transactionHash){
+			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
+			let campaignType={};
+			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
+			
+
+			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
+			let updatedFUnds = {};
+			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
+               if(req.body.bounty) updatedFUnds.isPayed = true; 
+               updatedFUnds.payedAmount = !result.payedAmount ? amount :new Big(result.payedAmount).plus(new Big(amount)).toFixed();
+			   updatedFUnds.type="already_recovered";
+			   await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
+		     })
+				
+				let contract = await app.campaign.getCampaignContract(idCampaign);			
+			    var result = await contract.methods.campaigns(idCampaign).call();
+                campaignType.funds = result.funds
+				if(result.funds[1] === '0') campaignType.type='finished';
+			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:campaignType});
+			}		
+		}
+
+	  }
 
