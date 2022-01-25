@@ -170,7 +170,7 @@ exports.purgeAccount=async(req,res)=>{
         let pass = req.body.pass;
         let reason = req.body.reason;
         if(req.user.password === app.synfonyHash(pass)){
-            if(reason) user.reason=reason;
+             if(reason) user.reason=reason;
              await app.db.sn_user_archived().insertOne(req.user);
              await app.db.sn_user().deleteOne({ _id: Long.fromNumber(req.user._id) });
              return res.json({ message: "account deleted" }).status(202);
