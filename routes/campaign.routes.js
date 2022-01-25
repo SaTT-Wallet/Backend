@@ -1,8 +1,7 @@
 let express = require('express');
 let router = express.Router();
 const {campaign,pendingLink, campaigns, 
-    launchCampaign,campaignPromp
-    ,launchBounty, totalEarned, 
+    launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications, 
     validateCampaign} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
@@ -335,7 +334,6 @@ router.post('/apply',verifyAuth,apply);
  *                 type: string
  *               idUser:
  *                 type: string
-
  *     responses:
  *       "200":
  *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
