@@ -1,38 +1,8 @@
-var express = require('express');
-var app = express();
-var connection;
-(connection = async function (){
- app = await require("../conf/config")(app);
- app = await require("../conf/const")(app);
- app = await require("../db/db")(app);
- app = await require("../web3/provider")(app);
- app = await require("../manager/account")(app);
- app = await require("../manager/i18n")(app);
-})();
-
-const passport = require('passport');
-var session = require('express-session');
-
+let express = require('express');
 let router = express.Router();
-router.use(passport.initialize())
 
-var Long = require('mongodb').Long;
-
-passport.serializeUser(function(user, cb) {
-    cb(null, user);
-});
-
-passport.deserializeUser(async function(id, cb) {
-    var users = await app.db.sn_user().find({ _id: Long.fromNumber(id) }).toArray();
-    cb(null, users[0]);
-});
-try {
-    router.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8', resave: true, saveUninitialized: true })); 
-    router.use(passport.session());
-} catch (e) {
-    console.log(e)
-}
-const {account} = require('../controllers/profile.controller')
+const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels, deleteFacebookChannels, deleteGoogleChannels,account,
+    profilePicture,updateProfile, UserLegalProfile } = require('../controllers/profile.controller')
 
 
  /**
@@ -50,5 +20,244 @@ const {account} = require('../controllers/profile.controller')
  *          description: error:error message
  */
 router.get('/account', account)
+
+ /**
+ * @swagger
+ * /profile/picture:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: get user profile.
+ *     description: return to user his picture.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: user:{picture} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+router.get('/picture', profilePicture)
+
+
+ 	/**
+ * @swagger
+ * /profile/UpdateProfile:
+ *   put:
+ *     tags:
+ *     - "profile"
+ *     summary: update profile infos.
+ *     description: user can update his profile infos <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               address:
+ *                 type: string
+ *               birthday:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               country:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *               locale:
+ *                 type: string
+ *               phone:
+ *                 type: object
+ *                 properties:
+ *                    countryCode:
+ *                      type: string
+ *                    dialCode:
+ *                      type: string
+ *                    e164Number:
+ *                      type: string
+ *                    internationalNumber:
+ *                      type: string
+ *                    nationalNumber:
+ *                       type: string
+ *                    number:
+ *                       type: string
+ *                    zipCode:
+ *                      type: string
+ *                      
+ *     responses:
+ *       "200":
+ *          description: err:email already exists, <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+  router.put('/UpdateProfile', updateProfile)
+
+
+
+   /**
+ * @swagger
+ * /profile/UserLegal:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: get user legal profile.
+ *     description: return to user the legals picture.  <br> with access_token
+ *     responses:
+ *       "200":
+ *          description: legal:[{_id,length,chunkSize, uploadDate,filename,md5,contentType,DataUser:{$ref,$id,$db},idNode,type,validate}] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+router.get('/UserLegal', UserLegalProfile)
+
+
+   /**
+ * @swagger
+ * /profile/UserIntersts:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: get user intersts.
+ *     description: return to user the list of his intersts.  <br> with access_token
+ *     responses:
+ *       "200":
+ *          description: interests:[] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+router.get('/UserIntersts', UserInterstes)
+
+
+
+ 	/**
+ * @swagger
+ * /profile/AddUserIntersts:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: add user interests.
+ *     description: user can add his intersts list <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               interests:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *                      
+ *     responses:
+ *       "200":
+ *          description: err:E11000 duplicate key error collection"<br> 
+ *       "500":
+ *          description: error:error message
+ */
+router.post('/AddUserIntersts', AddIntersts)
+
+
+
+ 	/**
+ * @swagger
+ * /profile/UpdateUserIntersts:
+ *   put:
+ *     tags:
+ *     - "profile"
+ *     summary: update user interests.
+ *     description: user can update his intersts list<br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               interests:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *                      
+ *     responses:
+ *       "200":
+ *          description: err:<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+    router.put('/UpdateUserIntersts', UpdateIntersts)
+
+
+
+
+
+   /**
+ * @swagger
+ * /profile/RemoveGoogleChannels:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove google channels.
+ *     description: allow user to delete all his google channels.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: message:{deleted successfully} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+router.delete('/RemoveGoogleChannels', deleteGoogleChannels)
+
+   /**
+ * @swagger
+ * /profile/RemoveFacebookChannels:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove facebook channels.
+ *     description: allow user to delete all his facebook channels.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: message:{deleted successfully} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+    router.delete('/RemoveFacebookChannels', deleteFacebookChannels)
+
+       /**
+ * @swagger
+ * /profile/RemoveLinkedInChannels:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove linkedin channels.
+ *     description: allow user to delete all his linkedin channels.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: message:{deleted successfully} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+
+
+router.delete('/RemoveLinkedInChannels', deleteLinkedinChannels)
+
+
+
+
+ 
 
 module.exports = router;

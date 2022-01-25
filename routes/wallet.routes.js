@@ -1,7 +1,7 @@
 
 let express = require('express');
 let router = express.Router();
-const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
+const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
 	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails} = require('../controllers/wallet.controller')
 const { verifyAuth} =require('../middleware/passport.middleware');
@@ -446,6 +446,59 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *          description: error:error message
  */
   router.post('/bridge', bridge)
+
+
+ 	/**
+ * @swagger
+ * /wallet/exportBtc:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export btc wallet.
+ *     description: user can download his BTC key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+	  router.post('/exportBtc', exportBtc)
+
+
+
+	   	/**
+ * @swagger
+ * /wallet/exportETH:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export eth wallet.
+ *     description: user can download his ETH key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+
+ *     responses:
+ *       "200":
+ *          description: err:Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+			router.post('/exportETH', exportEth)
 
 
 module.exports = router;

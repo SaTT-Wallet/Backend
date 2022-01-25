@@ -22,6 +22,25 @@ var readHTMLFile = function(path, callback) {
 };
 
 
+
+exports.changePassword= async(req, response)=>{
+
+    var newpass = req.body.newpass;
+    var oldpass = req.body.oldpass;
+    var id = req.body.id;
+    var user = await app.db.sn_user().findOne({ _id: Long.fromNumber(id) });
+    if (user) {
+        if (user.password != app.synfonyHash(oldpass)) {
+            response.end('{error:"wrong password"}');
+            return;
+        }
+        await app.db.sn_user().updateOne({ _id: id }, { $set: { password: app.synfonyHash(newpass) } });
+        response.end('{message:"changed"}');
+    } else {
+        response.end('{error:"no account"}');
+    }
+
+}
 exports.captcha= async(req, res)=>{
   
     try {
@@ -144,6 +163,30 @@ exports.passRecover= async(req, response)=>{
     } catch (err) {
         response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
     }
+}
+
+
+exports.purgeAccount=async(req,res)=>{
+
+    try {
+        let token=await app.crm.checkToken(req,res);
+        const auth = await app.crm.auth(token);
+        let pass = req.body.pass;
+        let reason = req.body.reason;
+        await app.db.sn_user().findOne({ _id: Long.fromNumber(auth.id) }, async(err, user) => {
+            if (user.password === app.synfonyHash(pass)) {
+                if (reason) user.reason = reason;
+                await app.db.sn_user_archived().insertOne(user);
+                await app.db.sn_user().deleteOne({ _id: Long.fromNumber(auth.id) });
+                res.send(JSON.stringify({ message: "account deleted" })).status(202);
+            } else {
+                res.send(JSON.stringify({ error: "wrong password" }));
+            }
+        })
+    } catch (err) {
+        res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
+    }
+
 }
 
 
