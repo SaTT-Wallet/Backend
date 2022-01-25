@@ -34,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover} = require('../controllers/login.controller')
+const {captcha , purgeAccount,changePassword,verifyCaptcha,codeRecover,confirmCode,passRecover} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -60,6 +60,64 @@ function authErrorHandler(err, req, res, next) {
     res.redirect(app.config.basedURl + '/auth/registration?message=' + message);
 }
 
+
+
+
+
+/**
+ * @swagger
+ * /auth/purgeAccount:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: desactivate account .
+ *     description: desactivate user account  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+
+ *     responses:
+ *       "200":
+ *          description: message:"success"
+ *       "500":
+ *          description: error:"wrong password"
+ */
+ router.post('/purgeAccount',purgeAccount)
+
+
+
+/**
+ * @swagger
+ * /auth/changePassword:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: change user password.
+ *     description: user can change his password.<br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: number
+ *               newpass:
+ *                 type: string
+ *               oldpass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"success"
+ *       "500":
+ *          description: error:"no account"
+ */
+ router.post('/changePassword',changePassword)
 /**
  * @swagger
  * /auth/captcha:

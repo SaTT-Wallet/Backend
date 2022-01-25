@@ -160,6 +160,30 @@ module.exports = async function (app) {
     config.sattBuyCollection = process.env.SATT_BUY_COLLECTION;
     config.bep20Collection = process.env.BEP20COLLECTION;
 
+    config.accessTokenCollection = process.env.ACCESSTOKENCOLLECTION;
+    config.campaignsCollection = process.env.CAMPAIGNSCOLLECTION;
+    config.captchaCollection = process.env.CAPTCHACOLLECTION;
+    config.referalCollection = process.env.REFERALCOLLECTION;
+    config.interestCollection = process.env.INTERESTCOLLECTION;
+    config.kitCollection = process.env.KITCOLLECTION;
+    config.notifCollection = process.env.NOTIFCOLLECTION;
+    config.linkStatCollection = process.env.LINKCOLLECTION;
+    config.legalCollection = process.env.LEGALCOLLECTION;
+    config.userIDCollection = process.env.USERIDCOLLECTION;
+    config.contactCollection = process.env.CONTACTCOLLECTION;
+    config.linkCollection = process.env.LINKCOLLECTION;
+    config.userCollection = process.env.USERCOLLECTION;
+    config.userNodeCollection = process.env.USERNODECOLLECTION;
+    config.userArchiveCollection = process.env.USERARCHIVECOLLECTION;
+    config.customTokenCollection = process.env.CUSTOMTOKENCOLLECTION;
+    config.fbProfileCollection = process.env.FBPROFILECOLLECTION;
+    config.fbPageCollection = process.env.FBPAGECOLLECTION;
+    config.googleProfileCollection = process.env.GOOGLEPROFILECOLLECTION;
+    config.twitterProfileCollection = process.env.TWITTERPROFILECOLLECTION;
+    config.linkedinProfileCollection = process.env.LINKEDINPROFILECOLLECTION;
+    config.paymentCollection = process.env.PAYMENTCOLLECTION;
+    config.igMediaCollection = process.env.IGMEDIACOLLECTION;
+
     config.appAdminV2 = process.env.APP_ADMIN_V2;
 
     config.listenPort = process.env.LISTEN_PORT;
