@@ -22,11 +22,11 @@ var Long = require('mongodb').Long;
 exports.account= async(req, res)=>{
 
     try{
-        let token=await app.crm.checkToken(req,res);
+        /*let token=await app.crm.checkToken(req,res);
         let auth = await app.crm.auth(token);
-        var user = auth.user;
-        if (user) {
-            res.end(JSON.stringify(user))
+        var user = auth.user;*/
+        if (req.user) {
+            res.end(JSON.stringify(req.user))
         } else {
             res.end(JSON.stringify({ error: "user not found" }))
         }
@@ -53,10 +53,7 @@ exports.profilePicture=  async(req, response)=>{
 
 	});
         
-    let token=await app.crm.checkToken(req,response);
-    var auth =	await app.crm.auth(token);
-
-        const idUser =   req.query.id ? +req.query.id : auth.id;
+        const idUser =   req.query.id ? +req.query.id : req.user._id;
         gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
             if (!file || file.length === 0) {
               return response.json({
@@ -82,9 +79,7 @@ exports.profilePicture=  async(req, response)=>{
 
 exports.updateProfile = async(req,res)=>{
     try {
-        let token=await app.crm.checkToken(req,res);
-        var auth =	await app.crm.auth(token);
-        const id = auth.id;
+        const id = req.user._id;
         let profile = req.body;
 
         console.log("profile", profile);
@@ -118,9 +113,9 @@ exports.UserLegalProfile= async(req , res)=>{
           gfsUserLegal.collection('user_legal');
     
         });
-        let token=await app.crm.checkToken(req,res);
-        const auth = await app.crm.auth(token);
-        const idNode="0"+auth.id;
+        // let token=await app.crm.checkToken(req,res);
+        // const auth = await app.crm.auth(token);
+        const idNode="0"+req.user._id;
         const files = await gfsUserLegal.files.find({idNode}).toArray()
         userLegal={};
         userLegal.legal=files;
@@ -141,9 +136,9 @@ exports.UserLegalProfile= async(req , res)=>{
 
 exports.deleteGoogleChannels= async(req,res)=>{
     try {
-        let token=await app.crm.checkToken(req,res);
-        let auth = await app.crm.auth(token);
-        await app.db.googleProfile().deleteMany({ UserId: auth.id });
+        // let token=await app.crm.checkToken(req,res);
+        // let auth = await app.crm.auth(token);
+        await app.db.googleProfile().deleteMany({ UserId: req.user._id });
         res.end(JSON.stringify({ message: "deleted successfully" }))
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
@@ -154,9 +149,7 @@ exports.deleteGoogleChannels= async(req,res)=>{
 
 exports.deleteFacebookChannels= async(req,res)=>{
     try {
-        let token=await app.crm.checkToken(req,res);
-        let auth = await app.crm.auth(token);
-        let UserId = auth.id
+        let UserId = req.user._id
         await app.db.fbPage().deleteMany({ UserId });
         await app.db.fbProfile().deleteMany({ UserId });
         res.end(JSON.stringify({ message: "deleted successfully" }))
@@ -167,9 +160,7 @@ exports.deleteFacebookChannels= async(req,res)=>{
 
 exports.deleteLinkedinChannels= async(req,res)=>{
     try {
-        let token=await app.crm.checkToken(req,res);
-        let auth = await app.crm.auth(token);
-        let userId = auth.id
+        let userId = req.user._id
         await app.db.linkedinProfile().updateOne({ userId }, { $set: { pages: [] } });
         res.end(JSON.stringify({ message: "deleted successfully" }))
     } catch (err) {
@@ -181,9 +172,7 @@ exports.deleteLinkedinChannels= async(req,res)=>{
 
 exports.UserInterstes= async(req, res)=>{
     try{
-        let token=await app.crm.checkToken(req,res);
-    var auth =	await app.crm.auth(token);
-    const interests = await app.db.interests().findOne({_id:Long.fromNumber(auth.id)});
+    const interests = await app.db.interests().findOne({_id:req.user._id});
     res.send(JSON.stringify(interests)).status(201);
      }catch (err) {
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -193,10 +182,8 @@ exports.UserInterstes= async(req, res)=>{
 
 exports.AddIntersts= async(req, res)=>{
     try{
-        let token=await app.crm.checkToken(req,res);
-        var auth =	await app.crm.auth(token);
         let userInterests = req.body;
-        userInterests._id = Long.fromNumber(auth.id)
+        userInterests._id = Long.fromNumber(req.user._id)
         await app.db.interests().insertOne(userInterests);
         res.send(JSON.stringify({message : "interests added"})).status(201);
      }catch (err) {
@@ -209,10 +196,8 @@ exports.AddIntersts= async(req, res)=>{
 
 exports.UpdateIntersts= async(req, res)=>{
     try{
-        let token=await app.crm.checkToken(req,res);
-    var auth =	await app.crm.auth(token);
         let userInterests = req.body.interests;
-        await app.db.interests().replaceOne({_id:Long.fromNumber(auth.id)},{interests:userInterests});
+        await app.db.interests().replaceOne({_id:Long.fromNumber(req.user._id)},{interests:userInterests});
         res.send(JSON.stringify({message : "interests updated"})).status(201);
      }catch (err) {
     res.end('{"error":"'+(err.message?err.message:err.error)+'"}');

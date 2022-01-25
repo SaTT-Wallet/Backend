@@ -28,9 +28,9 @@ exports.exportBtc=async(req,response)=>{
     try {
         let token=await app.crm.checkToken(req,res);
         var res =	await app.crm.auth(token);
-        var cred = await app.account.unlock(res.id,pass);
+        var cred = await app.account.unlock(req.user._id,pass);
 
-        var ret = await app.account.exportkeyBtc(res.id,pass);
+        var ret = await app.account.exportkeyBtc(req.user._id,pass);
         response.end(JSON.stringify(ret));
     } catch (err) {
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -47,11 +47,9 @@ exports.exportEth=async(req,response)=>{
     response.attachment();
 
     try {
-        let token=await app.crm.checkToken(req,res);
-        var res =	await app.crm.auth(token);
-        var cred = await app.account.unlock(res.id,pass);
 
-        var ret = await app.account.exportkey(res.id,pass);
+        var cred = await app.account.unlock(req.user._id,pass);
+        var ret = await app.account.exportkey(req.user._id,pass);
         response.end(JSON.stringify(ret));
     } catch (err) {
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -358,9 +356,6 @@ exports.transfertBNB= async(req , response)=>{
 
 	try {
 
-
-        /*let token=await app.crm.checkToken(req,res);
-		var res =	await app.crm.auth(token);*/
 		var cred = await app.account.unlockBSC(req.user._id,pass);
 		cred.from_id = req.user._id;
 		var to = req.body.to;
@@ -533,8 +528,6 @@ exports.payementRequest = async(req , res)=>{
 
 exports.bridge= async(req , res)=>{
 
-
-    let access_T=await app.crm.checkToken(req,res);
     let Direction = req.body.direction;
     let pass = req.body.password;
     let amount = req.body.amount;
@@ -543,12 +536,12 @@ exports.bridge= async(req , res)=>{
         sattContract=app.config.ctrs.token.address.testnet
     }
     try {
-        var auth = await app.crm.auth(access_T);
+        
         var network;
         var ret;
         if (Direction == "ETB") {
             network = "ERC20";
-            var cred = await app.account.unlock(auth.id,pass);
+            var cred = await app.account.unlock(req.user._id,pass);
 
             ret = await app.erc20.transfer(
                 sattContract,
@@ -558,7 +551,7 @@ exports.bridge= async(req , res)=>{
             );
         } else if (Direction == "BTE") {
             network = "BEP20";
-            var cred = await app.account.unlockBSC(auth.id,pass);
+            var cred = await app.account.unlockBSC(req.user._id,pass);
             ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
         }
         
@@ -569,7 +562,7 @@ exports.bridge= async(req , res)=>{
     } finally {
         if (cred) app.account.lock(cred.address);
         if(ret.transactionHash){
-            await app.account.notificationManager(auth.id,"convert_event",{amount,Direction,transactionHash : ret.transactionHash,currency :'SATT', network})		
+            await app.account.notificationManager(req.user._id,"convert_event",{amount,Direction,transactionHash : ret.transactionHash,currency :'SATT', network})		
         }
     }
 

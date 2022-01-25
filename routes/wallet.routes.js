@@ -416,7 +416,7 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
- router.post('/payementRequest', payementRequest)
+ router.post('/payementRequest',verifyAuth, payementRequest)
 
 
  /**
@@ -445,7 +445,7 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-  router.post('/bridge', bridge)
+  router.post('/bridge',verifyAuth, bridge)
 
 
  	/**
@@ -471,7 +471,7 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-	  router.post('/exportBtc', exportBtc)
+	  router.post('/exportBtc',verifyAuth, exportBtc)
 
 
 
@@ -498,7 +498,7 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-			router.post('/exportETH', exportEth)
+			router.post('/exportETH',verifyAuth, exportEth)
 
 
 module.exports = router;
