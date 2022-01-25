@@ -45,7 +45,6 @@ module.exports = async function (app) {
 				console.log("transactionHash",hash)
 			})
 
-			app.io.confirm(receipt.transactionHash,0);
 			var tx = await app.web3.eth.getTransaction(receipt.transactionHash);
 			tx.txtype = "ETHER";
 			tx.apiversion = 2;
