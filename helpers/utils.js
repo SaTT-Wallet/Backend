@@ -37,7 +37,7 @@ exports.connection = async ()=>{
     app = await require("../web3/initcontracts")(app);
 
 
-    var transporter = nodemailer.createTransport(app.config.mailerOptions);
+   app.transporter = nodemailer.createTransport(app.config.mailerOptions);
 
     var synfonyHash = function(pass) {
         var salted = pass + "{" + app.config.symfonySalt + "}";

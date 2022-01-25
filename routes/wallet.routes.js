@@ -3,7 +3,7 @@ let express = require('express');
 let router = express.Router();
 const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
-	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails} = require('../controllers/wallet.controller')
+	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices} = require('../controllers/wallet.controller')
 
 
 
@@ -24,8 +24,6 @@ const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfert
  *          description: error:"error"
  */
 router.get('/mywallet',mywallet)
-
-
 
 /**
  * @swagger
@@ -446,6 +444,22 @@ router.post('/transfertEther', transfertEther)
  *          description: error:error message
  */
   router.post('/bridge', bridge)
+
+   /**
+ * @swagger
+ * /wallet/prices:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get prices.
+ *     description: get prices.
+ *     responses:
+ *       "200":
+ *          description: list:[{list of crypto}]
+ *       "500":
+ *          description: error:error message
+ */
+	router.get('/prices', prices)
 
 
 module.exports = router;
