@@ -76,8 +76,8 @@ passport.deserializeUser(async function(id, cb) {
 * begin signin with email and password
 */
 passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true },
-            async function(req, username, password, done) {
-                var date = Math.floor(Date.now() / 1000) + 86400;
+            async (req, username, password, done)=> {
+                var date = Math.floor(Date.now() / 1000) + 86400;  
                 var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
                 if (user) {
                     if (user.password == synfonyHash(password)) {
@@ -85,7 +85,7 @@ passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true 
                         let validAuth = await app.account.isBlocked(user, true);
                         if (!validAuth.res && validAuth.auth == true) {
                             let userAuth = app.cloneUser(user)
-                            let token = app.generateAccessToken(userAuth);
+                            let token = app.generateAccessToken(userAuth); 
                             await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { failed_count: 0 } });
                             return done(null, { id: user._id, token, expires_in: date, noredirect: req.body.noredirect });
                         } else {
@@ -142,7 +142,6 @@ exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) 
         }
         let userAuth = app.cloneUser(user)
         let token = app.generateAccessToken(userAuth);   
-       
         return cb(null, { id: user._id, token, expires_in: date });
     } else {
         return cb('Register First')
@@ -299,7 +298,6 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
             userSatt: true
         });
         let token = app.generateAccessToken(insert.ops[0]);
-        await app.db.accessToken().insertOne({ client_id: 1, user_id: id, token, expires_at: date, scope: "user" });
         return cb(null, { id: id, token: token, expires_in: date });
     }
 }
@@ -343,7 +341,6 @@ exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
         });
         var users = insert.ops;
         let token = app.generateAccessToken(users[0]);
-        await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit" });
         return cb(null, { id: profile.id, token: token, expires_in: date });
     }
 }
@@ -398,7 +395,6 @@ exports.signup_telegram_function=async(req, profile, cb) => {
         });
         var users = insert.ops;
         let token = app.generateAccessToken(users[0]);
-        await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token, expires_at: date, scope: "user" });
         return cb(null, { id: users[0]._id, token: token, expires_in: date });
     }
 }
@@ -580,12 +576,11 @@ module.exports.verifyAuth = (req, res, next)=> {
     !token && res.end(JSON.stringify({ error: "token required" }));
      
       jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-      console.log(err)
   
-      if (err) return res.json(err).status(403)
+      if (err) return res.json(err)
   
       req.user = user
-      console.log(user)
-      next()
+
+      next();
     })
   }
