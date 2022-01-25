@@ -172,7 +172,7 @@ exports.purgeAccount=async(req,res)=>{
             if(reason) user.reason=reason;
              await app.db.sn_user_archived().insertOne(req.user);
              await app.db.sn_user().deleteOne({ _id: Long.fromNumber(req.user._id) });
-             res.send(JSON.stringify({ message: "account deleted" })).status(202);
+             return res.json({ message: "account deleted" }).status(202);
         }else
         res.send(JSON.stringify({ error: "wrong password" }));
     } catch (err) {
