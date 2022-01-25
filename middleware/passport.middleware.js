@@ -71,11 +71,8 @@ passport.deserializeUser(async function(id, cb) {
 * begin signin with email and password
 */
 passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true },
-            async function(req, username, password, done) {
-                var date = Math.floor(Date.now() / 1000) + 86400;
-                /*var buff = Buffer.alloc(32);
-                var token = crypto.randomFillSync(buff).toString('hex');*/
-                
+            async (req, username, password, done)=> {
+                var date = Math.floor(Date.now() / 1000) + 86400;  
                 var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
                 if (user) {
                     if (user.password == synfonyHash(password)) {
@@ -83,13 +80,7 @@ passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true 
                         let validAuth = await app.account.isBlocked(user, true);
                         if (!validAuth.res && validAuth.auth == true) {
                             let userAuth = app.cloneUser(user)
-                            let token = app.generateAccessToken(userAuth);
-                            // var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-                            // if (oldToken) {
-                            //     await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token, expires_at: date } });
-                            // } else {
-                            //     await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token, expires_at: date, scope: "user" });
-                            // } 
+                            let token = app.generateAccessToken(userAuth); 
                             await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { failed_count: 0 } });
                             return done(null, { id: user._id, token, expires_in: date, noredirect: req.body.noredirect });
                         } else {
@@ -97,8 +88,6 @@ passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true 
                         }
                     } else {
                         let validAuth = await app.account.isBlocked(user, false);
-                        console.log("validate",validAuth);
-
                         app.account.sysLog("authentification", req.addressIp, `invalid ${username} ${password}`);
                         if (validAuth.res) return done(null, false, { error: true, message: 'account_locked', blockedDate: validAuth.blockedDate });
                         return done(null, false, { error: true, message: 'invalid_credentials' });
@@ -140,8 +129,6 @@ exports.emailConnection= async(req, res, next) => {
 */
 exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    /*var buff = Buffer.alloc(32);
-    var token = crypto.randomFillSync(buff).toString('hex');*/
     var user = await app.db.sn_user().findOne({ idOnSn: profile._json.token_for_business })
     if (user) {
         if (user.account_locked) {
@@ -150,12 +137,6 @@ exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) 
         }
         let userAuth = app.cloneUser(user)
         let token = app.generateAccessToken(userAuth);   
-        // var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-        // if (oldToken) {
-        //     await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
-        // } else {
-        //     await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
-        // }
         return cb(null, { id: user._id, token, expires_in: date });
     } else {
         return cb('Register First')
@@ -170,20 +151,12 @@ exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) 
 */
 exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    /*var buff = Buffer.alloc(32);
-    var token = crypto.randomFillSync(buff).toString('hex');*/
     var user = await app.db.sn_user().findOne({ idOnSn2: profile.id });
     if (user) {
         if (user.account_locked) {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
-        // var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-        // if (oldToken) {
-        //    await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
-        // } else {
-        //    await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
-        // }
         let userAuth = app.cloneUser(user)
         let token = app.generateAccessToken(userAuth); 
         
@@ -203,10 +176,6 @@ exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
 passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback: true },
     async function(req, username, password, done) {
         var date = Math.floor(Date.now() / 1000) + 86400;
-
-        /*var buff = Buffer.alloc(32);
-        var token = crypto.randomFillSync(buff).toString('hex');*/
-
         var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
 
         if (user) {
@@ -294,8 +263,6 @@ exports.emailSignup= async(req, res, next) => {
 */
 exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    /*var buff = Buffer.alloc(32);
-    var token = crypto.randomFillSync(buff).toString('hex');*/
     var user = await app.db.sn_user().findOne({ idOnSn: profile._json.token_for_business });
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
@@ -326,7 +293,6 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
             userSatt: true
         });
         let token = app.generateAccessToken(insert.ops[0]);
-        await app.db.accessToken().insertOne({ client_id: 1, user_id: id, token, expires_at: date, scope: "user" });
         return cb(null, { id: id, token: token, expires_in: date });
     }
 }
@@ -341,8 +307,6 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
 
 exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    /*var buff = Buffer.alloc(32);
-    var token = crypto.randomFillSync(buff).toString('hex');*/
     var users = await app.db.sn_user().find({ $or: [{ idOnSn2: profile.id }, { email: profile._json.email }] }).toArray()
     if (users.length) {
         return cb('account_already_used&idSn=' + users[0].idSn)
@@ -372,7 +336,6 @@ exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
         });
         var users = insert.ops;
         let token = app.generateAccessToken(users[0]);
-        await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token: token, expires_at: date, scope: "user,https://www.googleapis.com/auth/youtubepartner-channel-audit" });
         return cb(null, { id: profile.id, token: token, expires_in: date });
     }
 }
@@ -398,8 +361,6 @@ exports.telegramSignup= async(req, res) => {
 
 exports.signup_telegram_function=async(req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    /*var buff = Buffer.alloc(32);
-    var token = crypto.randomFillSync(buff).toString('hex');*/
     var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
     if (users.length) {
         return cb('account_already_used&idSn=' + users[0].idSn);
@@ -429,7 +390,6 @@ exports.signup_telegram_function=async(req, profile, cb) => {
         });
         var users = insert.ops;
         let token = app.generateAccessToken(users[0]);
-        await app.db.accessToken().insertOne({ client_id: 1, user_id: users[0]._id, token, expires_at: date, scope: "user" });
         return cb(null, { id: users[0]._id, token: token, expires_in: date });
     }
 }
@@ -443,8 +403,6 @@ begin signin with telegram strategy
 */
 exports.signin_telegram_function=async(req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    /*var buff = Buffer.alloc(32);
-    var token = crypto.randomFillSync(buff).toString('hex');*/
     var user = await app.db.sn_user().findOne({ idOnSn3: profile.id });
     if (user) {
         if (user.account_locked) {
@@ -453,12 +411,6 @@ exports.signin_telegram_function=async(req, profile, cb) => {
         }
         let userAuth = app.cloneUser(user)
         let token = app.generateAccessToken(userAuth);
-        // var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-        // if (oldToken) {
-        //     await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
-        // } else {
-        //     await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
-        // }
         return cb(null, { id: user._id, token, expires_in: date });
     } else {
         return cb('account_invalide');
@@ -483,12 +435,11 @@ module.exports.verifyAuth = (req, res, next)=> {
     !token && res.end(JSON.stringify({ error: "token required" }));
      
       jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-      console.log(err)
   
-      if (err) return res.json(err).status(403)
+      if (err) return res.json(err)
   
       req.user = user
-      console.log(user)
-      next()
+
+      next();
     })
   }

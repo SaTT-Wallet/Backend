@@ -5,6 +5,7 @@ const {campaign,pendingLink, campaigns,
     ,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications, 
     validateCampaign} = require('../controllers/campaign.controller')
+    const { verifyAuth} =require('../middleware/passport.middleware');
 
  	/**
  * @swagger
@@ -38,7 +39,7 @@ const {campaign,pendingLink, campaigns,
  */
 
 
-router.post('/launch/performance',launchCampaign);
+router.post('/launch/performance',verifyAuth,launchCampaign);
 
 
  	/**
@@ -72,7 +73,7 @@ router.post('/launch/performance',launchCampaign);
  *          description: error:error message
  */
 
-router.post('/launchBounty',launchBounty);
+router.post('/launchBounty',verifyAuth,launchBounty);
 
 
 /**
@@ -93,7 +94,7 @@ router.post('/launchBounty',launchBounty);
  */
 
 
-router.get('/totalEarned',totalEarned);
+router.get('/totalEarned',verifyAuth,totalEarned);
 
 
 
@@ -116,7 +117,7 @@ router.get('/totalEarned',totalEarned);
  */
 
 
- router.get('/campaigns',campaigns);
+ router.get('/campaigns',verifyAuth,campaigns);
 
 
 
@@ -168,7 +169,7 @@ router.get('/totalEarned',totalEarned);
  */
 
 
-    router.get('/totalSpent',totalSpent);
+    router.get('/totalSpent',verifyAuth,totalSpent);
 
 
 
@@ -230,7 +231,7 @@ router.get('/totalEarned',totalEarned);
  */
 
 
-    router.get('/campaignPrompAll/:id',campaignPromp);
+    router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
 
 
 
@@ -271,7 +272,7 @@ router.get('/totalEarned',totalEarned);
  */
 
 
-router.post('/apply',apply);
+router.post('/apply',verifyAuth,apply);
 
 
      	/**
@@ -342,7 +343,7 @@ router.post('/apply',apply);
  *          description: error:error message
  */
 
- router.post('/validate',validateCampaign);
+ router.post('/validate',verifyAuth,validateCampaign);
 
 module.exports = router;
 
