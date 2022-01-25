@@ -1355,7 +1355,25 @@ module.exports = async function (app) {
         passReqToCallback: true
       }
     }
+    config.twitterCredentials = callback => {
+      return {
+        consumerKey: app.config.twitter.consumer_key,
+        consumerSecret: app.config.twitter.consumer_secret,
+        callbackURL: app.config.baseUrl + callback,
+        passReqToCallback: true
+      }
+    }
 
+    config.linkedinCredentials = callback => {
+      return {
+        clientID: app.config.linkedin_key,
+        clientSecret: app.config.linkedin_secret,
+        callbackURL: app.config.baseUrl + callback, // "callback/link/linkedin",
+        scope: ['r_basicprofile', 'r_organization_social' , 'rw_organization_admin'],
+        passReqToCallback: true
+    }
+    }
+    config.scopeFacebookChannel=['email', 'read_insights', 'read_audience_network_insights', 'pages_show_list', 'instagram_basic', 'instagram_manage_insights', 'pages_read_engagement'];
     config.persmissionsObjFb = {scope:['public_profile', 'email']}
 
     config.paymentRequest =payment=>{
