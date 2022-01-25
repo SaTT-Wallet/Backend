@@ -17,12 +17,6 @@ let app
     app = await requirement.connection();
    
 })();
-
-
-
-
-
-
 const storage = new GridFsStorage({
     url: process.env.MONGOURI,
     options: { useNewUrlParser: true,useUnifiedTopology: true },
@@ -72,17 +66,12 @@ const storage = new GridFsStorage({
   });
 
 
-//     // here I used multer to upload files
-//       // you can add your validation here, such as file size, file extension and etc.
 module.exports.uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 module.exports.upload = multer({ storage }).array('file');
 module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMemory: true}).single('file');
 
 
       var BN = require("bn.js");
-
-	/*var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
-	app.campaignWallet = JSON.parse(campaignKeystore);*/
 	  const conn=mongoose.createConnection( process.env.MONGOURI);
 	  let gfs;
 	  let gfsKit;
@@ -607,35 +596,16 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 			app.i18n.configureTranslation(lang);
 
 			var cred = await app.account.unlock(auth.id,pass);
-
-			console.log("cred", cred);
-
-				var ret = await app.campaign.validateProm(idApply,cred);
-               
-				console.log('first ret',ret);
-
+			var ret = await app.campaign.validateProm(idApply,cred); 
 			res.end(JSON.stringify(ret));
 
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 		finally {
-
-			console.log('second ret',ret);
-
-
 		if(cred) {
-			console.log("yess");
-
-			console.log(cred.address);
-
-
-			console.log("transaction", ret);
-			
 			app.account.lock(cred.address);}
 				if(ret && ret.transactionHash){
-
-					console.log("inside ret");
 						const campaign = await app.db.campaigns().findOne({_id: app.ObjectId(idCampaign)},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
 						const id = req.body.idUser;
 						const email = req.body.email;			

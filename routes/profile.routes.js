@@ -317,7 +317,7 @@ router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
  *       "500":
  *          description: error:error message
  */
-  router.get('/socialAccounts', socialAccounts)
+  router.get('/socialAccounts',verifyAuth, socialAccounts)
 
   /**
  * @swagger
