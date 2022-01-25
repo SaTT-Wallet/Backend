@@ -63,7 +63,7 @@ exports.connection = async ()=>{
     
     
     app.cloneUser = user => {
-      const {daily,weekly, monthly,failed_count,account_locked,created,updated,onBoarding,confirmation_token,...newUser} = user;
+      const {daily,weekly, monthly,failed_count,account_locked,created,updated,confirmation_token,...newUser} = user;
       return newUser;
     }
     //global function that generates user acessToken
