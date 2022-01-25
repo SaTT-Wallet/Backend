@@ -485,7 +485,7 @@ module.exports.verifyAuth = (req, res, next)=> {
       jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
       console.log(err)
   
-      if (err) return res.sendStatus(403).json(err)
+      if (err) return res.json(err).status(403)
   
       req.user = user
       console.log(user)
