@@ -5,6 +5,8 @@ var app = express();
 
 
 const Big = require('big.js');
+const etherInWei = new Big(1000000000000000000);
+
 var rp = require('request-promise');
 const {randomUUID}= require('crypto');
 const { v5 : uuidv5 } = require('uuid')
@@ -14,6 +16,7 @@ var nodemailer = require('nodemailer');
 const hasha = require('hasha');
 const mongoose = require('mongoose');
 
+const GridFsStorage = require('multer-gridfs-storage');
 
 exports.connection = async ()=>{
 
@@ -40,9 +43,10 @@ exports.connection = async ()=>{
     app = await require("../web3/initcontracts")(app);
 
 
-    var transporter = nodemailer.createTransport(app.config.mailerOptions);
+    app.transporter = nodemailer.createTransport(app.config.mailerOptions);
 
  
+
 
     app.synfonyHash = function(pass) {
         var salted = pass + "{" + app.config.symfonySalt + "}";
@@ -62,10 +66,12 @@ exports.connection = async ()=>{
 
 
         app.mongoURI = app.config.mongoURI;
+        
 
     app.readHTMLFile = (path, callback) => {
 		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
 		  if (err) {
+              console.log(err);
 			throw err;
 			callback(err);
 		  }

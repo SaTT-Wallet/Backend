@@ -1,4 +1,5 @@
 var requirement= require('../helpers/utils')
+const crypto = require('crypto');
 
 var connection;
 let app
@@ -188,6 +189,118 @@ exports.purgeAccount=async(req,res)=>{
     }
 
 }
+
+
+exports.authApple= async(req, res)=>{
+
+    try {
+        let date = Math.floor(Date.now() / 1000) + 86400;
+        let buff = Buffer.alloc(32);
+        let token = crypto.randomFillSync(buff).toString('hex');
+        let email = req.body.mail;
+        let id_apple = req.body.id_apple;
+        let idSn = req.body.idSN;
+        let name = req.body.name;
+        let user = await app.db.sn_user().findOne({ email: email });
+
+        if (user) {
+            if (user.idSn === idSn) {
+                await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+                let param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
+                res.send(JSON.stringify(param));
+            } else {
+                res.send(JSON.stringify({ messgae: "account_exists_with_another_courrier" }))
+            }
+        } else {
+            let snUser = { _id: Long.fromNumber(await app.account.handleId()), id_apple: id_apple, email: email, idSn: idSn, name: name }
+            let user = await app.db.sn_user().insertOne(snUser);
+            await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
+            let param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
+            res.send(JSON.stringify(param));
+        }
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+
+
+}
+
+exports.socialSignUp= async(req,res)=>{
+    try {
+        var mongodate = new Date().toISOString();
+        snUser = {
+            _id: Long.fromNumber(await app.account.handleId()),
+            email: req.body.email,
+            idSn: req.body.idSn,
+            picLink: req.body.photo,
+            username: req.body.name,
+            first_name: req.body.givenName,
+            name: req.body.familyName,
+            enabled: 0,
+            created: mongodate,
+            updated: mongodate,
+            locale: "en",
+        }
+        var user ={};
+        if (req.body.idSn === "1") {
+            snUser.idOnSn = req.body.id;
+            user = await app.db.sn_user().findOne({ idOnSn: req.body.id });
+
+        } else if (req.body.idSn === "2") {
+            snUser.idOnSn2 = req.body.id;
+            user = await app.db.sn_user().findOne({ idOnSn2: req.body.id });
+        }
+        if (user) {
+       
+                res.send(JSON.stringify({ message: "account_exists" }))
+         
+        } else {
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
+            var date = Math.floor(Date.now() / 1000) + 86400;
+            var user = await app.db.sn_user().insertOne(snUser);
+            await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
+            var param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
+            res.send(JSON.stringify(param))
+        }
+
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+}
+
+
+exports.socialSignin = async(req, res)=>{
+
+    try {
+        var user =null;
+        if (req.body.idSn === "1") {
+            user = await app.db.sn_user().findOne({ idOnSn: req.body.id });
+        } else if (req.body.idSn === "2") {
+            user = await app.db.sn_user().findOne({ idOnSn2: req.body.id });
+        }else{
+            res.end("{'error': 'invalid idSn'}");
+        }            
+        if (user) {                
+            var date = Math.floor(Date.now() / 1000) + 86400;
+            var buff = Buffer.alloc(32);
+            var token = crypto.randomFillSync(buff).toString('hex');
+            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+            var token = await app.db.accessToken().findOne({ user_id: user._id });
+            var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
+            res.send(JSON.stringify(param))
+
+        } else {
+            res.send(JSON.stringify({ messgae: "account_doesnt_exist" }))
+        }
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+
+}
+
+
+
 
 
 
