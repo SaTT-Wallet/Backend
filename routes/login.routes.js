@@ -17,7 +17,6 @@ var session = require('express-session');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 var FbStrategy = require('passport-facebook').Strategy;
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
-
 var Long = require('mongodb').Long;
 
 passport.serializeUser(function(user, cb) {
@@ -45,8 +44,8 @@ const {
     googleAuthSignin,
     facebookAuthSignin,
     signup_telegram_function,
-    signin_telegram_function
-    
+    signin_telegram_function,
+    verifyAuth
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
@@ -87,7 +86,7 @@ function authErrorHandler(err, req, res, next) {
  *       "500":
  *          description: error:"wrong password"
  */
- router.post('/purgeAccount',purgeAccount)
+ router.post('/purgeAccount',verifyAuth,purgeAccount)
 
 
 
@@ -266,7 +265,7 @@ router.post('/signin/mail',emailConnection)
  *       "500":
  *          description: error:"error"
  */
-router.post('/passrecover',passRecover)
+router.post('/passrecover',verifyAuth,passRecover)
 
 
 
