@@ -151,7 +151,7 @@ exports.passRecover= async(req, response)=>{
         let [newpass, email] = [req.body.newpass, req.body.email];
         let user = await app.db.sn_user().findOne({ email }, { projection: { _id: true } });
         if(user && user._id === id){
-        await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { password: synfonyHash(newpass), enabled: 1 } });
+        await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { password: app.synfonyHash(newpass), enabled: 1 } });
         response.end(JSON.stringify('successfully'));
         }else{
         response.end(JSON.stringify('unauthorized'));
