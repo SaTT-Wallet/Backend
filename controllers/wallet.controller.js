@@ -2,18 +2,11 @@
 
 
 var requirement= require('../helpers/utils')
-// const rp = require('request-promise');
-// const {randomUUID}= require('crypto');
-// const { v5 : uuidv5 } = require('uuid');
-// const Big = require('big.js');
-
 var connection;
 let app
 (connection = async  ()=>{
     app = await requirement.connection();
-    // app = await require("../web3/provider")(app);
-    // app = await require("../web3/eth")(app);
-	// app = await require("../web3/erc20")(app); 
+
 })();
 
 
@@ -26,10 +19,10 @@ exports.exportBtc=async(req,response)=>{
     response.attachment();
 
     try {
+        let id = req.user._id;
+        var cred = await app.account.unlock(id,pass);
 
-        var cred = await app.account.unlock(req.user._id,pass);
-
-        var ret = await app.account.exportkeyBtc(req.user._id,pass);
+        var ret = await app.account.exportkeyBtc(id,pass);
         response.end(JSON.stringify(ret));
     } catch (err) {
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -46,9 +39,9 @@ exports.exportEth=async(req,response)=>{
     response.attachment();
 
     try {
-
-        var cred = await app.account.unlock(req.user._id,pass);
-        var ret = await app.account.exportkey(req.user._id,pass);
+        let id = req.user._id;
+        var cred = await app.account.unlock(id,pass);
+        var ret = await app.account.exportkey(id,pass);
         response.end(JSON.stringify(ret));
     } catch (err) {
         response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -63,13 +56,13 @@ exports.exportEth=async(req,response)=>{
 exports.mywallet= async(req, response)=>{
 
     try{
-
-        var count = await app.account.hasAccount(req.user._id);
+        let id = req.user._id;
+        var count = await app.account.hasAccount(id);
         var ret = {err:"no_account"};
 
         if(count)
         {
-            var ret = await app.account.getAccount(req.user._id);
+            var ret = await app.account.getAccount(id);
 
         }
         
@@ -85,11 +78,11 @@ exports.mywallet= async(req, response)=>{
 exports.userBalance= async(req, response)=>{
 
 	try {
+        let id = req.user._id;
+        let Crypto =  app.account.getPrices();
+        const balance = await app.account.getListCryptoByUid(id,Crypto);
 
-          let Crypto =  app.account.getPrices();
-          const balance = await app.account.getListCryptoByUid(req.user._id,Crypto);
-
-          let listOfCrypto = [...new Set(balance.listOfCrypto)];
+        let listOfCrypto = [...new Set(balance.listOfCrypto)];
         response.send(JSON.stringify({listOfCrypto}))
     }catch (err) {
        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -126,9 +119,7 @@ exports.cryptoDetails= async(req, res)=>{
 exports.totalBalances= async(req, res)=>{
     try {
 
-        /*let token=await app.crm.checkToken(req,res);
-        var auth =	await app.crm.auth(token);*/
-        var id = /*auth.id*/req.user._id;
+        var id = req.user._id;
         let Crypto =  app.account.getPrices(); 
       
       var Total_balance = await app.account.getBalanceByUid(id, Crypto);
@@ -234,15 +225,12 @@ if(ret && ret.transactionHash){
 
 }
 
-
 exports.checkWalletToken= async(req,res)=>{
     try {
 
         let [tokenAdress,network] = [req.body.tokenAdress,req.body.network];
-
         let abi = network === "bep20" ? app.config.ctrs.bep20.abi : app.config.ctrs.token.abi;       
         let networkToken = network === "bep20" ? app.web3Bep20.eth : app.web3.eth;
-
         let code = await networkToken.getCode(tokenAdress)
         if(code === '0x'){res.send({error:'not a token address'})}
         else{
@@ -259,13 +247,10 @@ exports.checkWalletToken= async(req,res)=>{
 
 }
 
-
 exports.addNewToken= async(req,res)=>{
 
     try {
-
-        /*let token=await app.crm.checkToken(req,res);
-        let auth = await app.crm.auth(token);*/
+        
         let customToken = {};
         let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,req.body.decimal,req.body.network]
         
@@ -313,22 +298,16 @@ exports.addNewToken= async(req,res)=>{
 
 
 exports.transfertBtc= async(req , response)=>{
-
-
     try {
-
-
         var pass = req.body.pass;
-
-        /*let token=await app.crm.checkToken(req,res);
-        var res =	await app.crm.auth(token);*/
-        var cred = await app.account.unlock(req.user._id,pass);
-        var result = await app.account.getAccount(req.user._id);
+        let id = req.user._id;
+        var cred = await app.account.unlock(id,pass);
+        var result = await app.account.getAccount(id);
         if(new Big(req.body.val).gt(new Big(result.btc_balance))){
                 response.end(JSON.stringify({message:"not_enough_budget"}));
                 return;
         }    
-        var hash = await app.cryptoManager.sendBtc(req.user._id,pass, req.body.to,req.body.val);
+        var hash = await app.cryptoManager.sendBtc(id,pass, req.body.to,req.body.val);
         response.end(JSON.stringify({hash}));
 
     } catch (err) {
@@ -338,16 +317,13 @@ exports.transfertBtc= async(req , response)=>{
             if(cred)
         app.account.lock(cred.address);
     }
-
 }
 
 
 exports.transfertBNB= async(req , response)=>{
 
     var pass = req.body.pass;
-
 	try {
-
 		var cred = await app.account.unlockBSC(req.user._id,pass);
 		cred.from_id = req.user._id;
 		var to = req.body.to;
@@ -358,9 +334,6 @@ exports.transfertBNB= async(req , response)=>{
                 return;
             }
 		var ret = await app.bep20.transferNativeBNB(to,amount,cred);
-
-
-
 		response.end(JSON.stringify(ret));
 	} catch (err) {
 
@@ -388,9 +361,6 @@ exports.transfertEther= async(req , response)=>{
     var to = req.body.to;
     var amount = req.body.val;
     try {
-
-        /*let token=await app.crm.checkToken(req,res);
-        var res =	await app.crm.auth(token);*/
         var result = await app.account.getAccount(req.user._id);
         if(new Big(amount).gt(new Big(result.ether_balance))){
             response.end(JSON.stringify({message:"not_enough_budget"}));
@@ -420,9 +390,6 @@ exports.transfertEther= async(req , response)=>{
 exports.getQuote = async (req, res)=>{
 
     try {
-
-        /*let token=await app.crm.checkToken(req,res);
-        var auth = await app.crm.auth(token);*/
         let requestQuote = req.body;
         requestQuote["end_user_id"]= String(req.user._id);
         requestQuote["client_ip"]= req.addressIp;
@@ -455,40 +422,24 @@ exports.getQuote = async (req, res)=>{
 
 
 exports.payementRequest = async(req , res)=>{
-
     try {
-
-        /*let token=await app.crm.checkToken(req,res);
-		var auth = await app.crm.auth(token);*/
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
         if (ip) ip = ip.split(":")[3];
 		let payment_id=randomUUID();
 		const uiad = app.config.uiad;	
-
 		let user_agent = req.headers['user-agent'];
 		const http_accept_language =  req.headers['accept-language'];
 		let user = await app.db.sn_user().findOne({_id:req.user._id},{projection: { email: true, phone: true,created:true}});
-
 		let request = {};
 		request._id = req.user._id.toString(), request.installDate=user.created
-
-
 		request.email=user.email,request.addressIp=ip,request.user_agent = user_agent;
 		request.language=http_accept_language;
-
 		request.quote_id = req.body.quote_id
 		request.order_id =  uuidv5(app.config.orderSecret, uiad);
-	
 		request.uuid = payment_id
-
 		request.currency = req.body.currency;
 		request.idWallet= req.body.idWallet;
-
-
-
-
 		 let payment = app.config.paymentRequest(request)
-
 		const paymentRequest ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/payments/partner/data",
 			method: 'POST',
@@ -498,12 +449,9 @@ exports.payementRequest = async(req , res)=>{
 			  },
 			json: true
 		  };
-
-
-		  var paymentSubmitted = await rp(paymentRequest);
-              paymentSubmitted.payment_id = payment_id;
-
-			res.end(JSON.stringify(paymentSubmitted));
+		var paymentSubmitted = await rp(paymentRequest);
+        paymentSubmitted.payment_id = payment_id;
+		res.end(JSON.stringify(paymentSubmitted));
 	}
 	catch (err) {
 	   app.account.sysLogError(err);
@@ -519,7 +467,6 @@ exports.payementRequest = async(req , res)=>{
 
 
 exports.bridge= async(req , res)=>{
-
     let Direction = req.body.direction;
     let pass = req.body.password;
     let amount = req.body.amount;
@@ -528,7 +475,6 @@ exports.bridge= async(req , res)=>{
         sattContract=app.config.ctrs.token.address.testnet
     }
     try {
-        
         var network;
         var ret;
         if (Direction == "ETB") {
@@ -546,8 +492,6 @@ exports.bridge= async(req , res)=>{
             var cred = await app.account.unlockBSC(req.user._id,pass);
             ret = await app.bep20.transferBEP(app.config.bridge, amount, cred);
         }
-        
-
         res.end(JSON.stringify(ret));
     } catch (err) {
         res.end(JSON.stringify(err));
