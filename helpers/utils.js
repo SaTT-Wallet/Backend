@@ -13,8 +13,11 @@ var fs = require('fs');
 var nodemailer = require('nodemailer');
 const hasha = require('hasha');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
 
 exports.connection = async ()=>{
+
 
 
     app = await require("../conf/config")(app);
@@ -40,18 +43,20 @@ exports.connection = async ()=>{
 
     var transporter = nodemailer.createTransport(app.config.mailerOptions);
 
-    var synfonyHash = function(pass) {
+ 
+
+    app.synfonyHash = function(pass) {
         var salted = pass + "{" + app.config.symfonySalt + "}";
-    
+
         var buff = hasha(salted, { encoding: "buffer" });
         var saltBuff = Buffer.from(salted);
         var arr = [];
-    
+
         for (var i = 1; i < 5000; i++) {
             arr = [buff, saltBuff];
             buff = hasha(Buffer.concat(arr), { algorithm: "sha512", encoding: "buffer" });
         }
-    
+
         const base64 = buff.toString('base64');
         return base64;
     }
@@ -64,6 +69,10 @@ exports.connection = async ()=>{
     //global function that generates user acessToken
     app.generateAccessToken = user => jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '24h' });
     
+
+
+        app.mongoURI = app.config.mongoURI;
+
     app.readHTMLFile = (path, callback) => {
 		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
 		  if (err) {
