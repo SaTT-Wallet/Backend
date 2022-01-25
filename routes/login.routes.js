@@ -492,4 +492,100 @@ new TelegramStrategy({
  *          description: error:error message
  */
  router.put('/updateLastStep',updateLastStep)
+
+ /**
+ * @swagger
+ * /auth/apple:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: auth for apple.
+ *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id_apple:
+ *                 type: string
+ *               mail:
+ *                 type: string
+ *               idSN:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *       "500":
+ *          description: error={error:true,message:'account_already_used'}
+ */
+  router.post('/apple',authApple)
+
+
+
+  /**
+  * @swagger
+  * /auth/socialSignup:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: register with social for apple.
+  *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               name:
+  *                 type: string
+  *               idSn:
+  *                 type: string
+  *               id:
+  *                 type: string
+  *               photo:
+  *                 type: string
+  *               givenName:
+  *                 type: string
+  *               familyName:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+   router.post('/socialSignup',socialSignUp)
+ 
+ 
+ 
+ 
+  /**
+  * @swagger
+  * /auth/socialSignin:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: auth with social for apple.
+  *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               idSn:
+  *                 type: string
+  *               id:
+  *                 type: string
+ 
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+router.post('/socialSignin',socialSignin)
 module.exports = router;

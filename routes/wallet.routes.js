@@ -1,10 +1,10 @@
 
 let express = require('express');
 let router = express.Router();
-const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
+const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
 	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices} = require('../controllers/wallet.controller')
-
+const { verifyAuth} =require('../middleware/passport.middleware');
 
 
 /**
@@ -23,7 +23,7 @@ const {bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfert
  *       "500":
  *          description: error:"error"
  */
-router.get('/mywallet',mywallet)
+router.get('/mywallet',verifyAuth,mywallet)
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ router.get('/mywallet',mywallet)
  *       "500":
  *          description: error:"error"
  */
-router.get('/userBalance',userBalance)
+router.get('/userBalance',verifyAuth,userBalance)
 
 
 
@@ -103,7 +103,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *          description: error:"error"
  */
-router.get('/totalBalance', totalBalances)
+router.get('/totalBalance',verifyAuth, totalBalances);
 
 
 
@@ -162,7 +162,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/transferErc20', transfertErc20)
+ router.post('/transferErc20',verifyAuth, transfertErc20)
  
 
 
@@ -199,7 +199,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/transferBep20', transfertBep20)
+ router.post('/transferBep20',verifyAuth, transfertBep20)
 
 
 
@@ -229,7 +229,7 @@ router.get('/totalBalance', totalBalances)
  *          description: error:error message
  */
 
- router.post('/checkWalletToken', checkWalletToken)
+ router.post('/checkWalletToken',verifyAuth, checkWalletToken)
 
 
 
@@ -263,7 +263,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/addNewToken', addNewToken)
+ router.post('/addNewToken',verifyAuth, addNewToken)
 
 
  	/**
@@ -292,7 +292,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/transfertBtc', transfertBtc)
+ router.post('/transfertBtc',verifyAuth, transfertBtc)
 
 
 
@@ -324,7 +324,7 @@ router.get('/totalBalance', totalBalances)
  *       "500":
  *          description: error:error message
  */
- router.post('/transfertBNB', transfertBNB)
+ router.post('/transfertBNB',verifyAuth, transfertBNB)
   	/**
  * @swagger
  * /wallet/transfertEther:
@@ -354,7 +354,7 @@ router.get('/totalBalance', totalBalances)
 
 
 
-router.post('/transfertEther', transfertEther)
+router.post('/transfertEther',verifyAuth, transfertEther)
 
 
  	/**
@@ -385,7 +385,7 @@ router.post('/transfertEther', transfertEther)
  *       "500":
  *          description: error:error message
  */
- router.post('/getQuote', getQuote)
+ router.post('/getQuote',verifyAuth, getQuote)
 
 
  	/**
@@ -414,7 +414,7 @@ router.post('/transfertEther', transfertEther)
  *       "500":
  *          description: error:error message
  */
- router.post('/payementRequest', payementRequest)
+ router.post('/payementRequest',verifyAuth, payementRequest)
 
 
  /**
@@ -443,7 +443,60 @@ router.post('/transfertEther', transfertEther)
  *       "500":
  *          description: error:error message
  */
-  router.post('/bridge', bridge)
+  router.post('/bridge',verifyAuth, bridge)
+
+
+ 	/**
+ * @swagger
+ * /wallet/exportBtc:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export btc wallet.
+ *     description: user can download his BTC key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+
+ *     responses:
+ *       "200":
+ *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+	  router.post('/exportBtc',verifyAuth, exportBtc)
+
+
+
+	   	/**
+ * @swagger
+ * /wallet/exportETH:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export eth wallet.
+ *     description: user can download his ETH key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+
+ *     responses:
+ *       "200":
+ *          description: err:Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+			router.post('/exportETH',verifyAuth, exportEth)
 
    /**
  * @swagger

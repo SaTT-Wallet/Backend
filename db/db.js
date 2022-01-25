@@ -48,61 +48,61 @@ module.exports = async function (app) {
 	}
 
 	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
-	var db2 = await mongoClient.connect("mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
+	
 
 	app.db.accessToken = function () {
-				return db2.db(app.config.mongoBaseCrm).collection('access_token');
+				return db.db(app.config.mongoBase).collection(app.config.accessTokenCollection);
 			};
 
 		app.db.campaignCrm = function () {
-            return db2.db(app.config.mongoBaseCrm).collection(app.config.campaignCollection);
+            return db.db(app.config.mongoBase).collection(app.config.campaignCollection);
         };
 		app.db.campaigns= function () {
-            return db2.db(app.config.mongoBaseCrm).collection('campaigns');
+            return db.db(app.config.mongoBase).collection(app.config.campaignsCollection);
         };
 		app.db.captcha= function () {
-            return db2.db(app.config.mongoBaseCrm).collection('captcha');
+            return db.db(app.config.mongoBase).collection(app.config.captchaCollection);
         };
         app.db.referral = function () {
-			return db2.db(app.config.mongoBaseCrm).collection('referral');
+			return db.db(app.config.mongoBase).collection(app.config.referalCollection);
 	       };
 
 		   app.db.interests = function () {
-			return db2.db(app.config.mongoBase).collection('interests');
+			return db.db(app.config.mongoBase).collection(app.config.interestCollection);
 	       };
 
         app.db.campaign_kit = function () {
 
-            return db.db(app.config.mongoBaseCrm).collection("campaign_kit");
+            return db.db(app.config.mongoBase).collection(app.config.kitCollection);
         };
 		app.db.notification = function () {
-            return db.db(app.config.mongoBaseCrm).collection("notification");
+            return db.db(app.config.mongoBase).collection(app.config.notifCollection);
         };
 		app.db.CampaignLinkStatistic = function () {
-            return db.db(app.config.mongoBase).collection("campaign_link_statistic");
+            return db.db(app.config.mongoBase).collection(app.config.linkStatCollection);
         };
 		app.db.UserLegal = function () {
-            return db.db(app.config.mongoBaseCrm).collection("user_legal");
+            return db.db(app.config.mongoBase).collection(app.config.legalCollection);
         };
 
 		app.db.UsersId = function () {
-            return db2.db(app.config.mongoBaseCrm).collection("UserID");
+            return db.db(app.config.mongoBase).collection(app.config.userIDCollection);
         };
 
 		app.db.contact = function () {
-            return db.db(app.config.mongoBaseCrm).collection("contacts");
+            return db.db(app.config.mongoBase).collection(app.config.contactCollection);
         };
 		app.db.campaign_link = function () {
-            return db.db(app.config.mongoBaseCrm).collection("campaign_link");
+            return db.db(app.config.mongoBase).collection(app.config.linkCollection);
         };
 		app.db.user = function () {
-            return db2.db(app.config.mongoBaseCrm).collection("sn_user");
+            return db.db(app.config.mongoBase).collection(app.config.userCollection);
         };
         app.db.wallet = function () {
             return db.db(app.config.mongoBase).collection(app.config.walletCollection);
         };
 		app.db.walletUserNode = function () {
-            return db.db(app.config.mongoBaseCrm).collection("wallet_user_node");
+            return db.db(app.config.mongoBase).collection(app.config.userNodeCollection);
         };
 
 		 app.db.passwallet = function () {
@@ -139,29 +139,31 @@ module.exports = async function (app) {
             return db.db(app.config.mongoBase).collection(app.config.applyCollection);
         };
 
-		app.db.sattbuy = function () {
+		/*app.db.sattbuy = function () {
             return db.db(app.config.mongoBase).collection(app.config.sattBuyCollection);
         };
 
-		app.db.satt_tx = function () {
-            return db2.db(app.config.mongoBaseCrm).collection('satt_transactions');
-        };
+	/*	app.db.satt_tx = function () {
+            return db.db(app.config.mongoBase).collection('satt_transactions');
+        };*/
 
 		app.db.sn_user = function () {
-            return db2.db(app.config.mongoBaseCrm).collection('sn_user');
+            return db.db(app.config.mongoBase).collection(app.config.userCollection);
         };
         app.db.sn_user_archived = function () {
-            return db2.db(app.config.mongoBaseCrm).collection('sn_user_archived');
+            return db.db(app.config.mongoBase).collection(app.config.userArchiveCollection);
         };
-		app.db.buy = function () {
-		return db2.db(app.config.mongoBaseCrm).collection('buy_satt');
+	/*	app.db.buy = function () {
+		return db.db(app.config.mongoBase).collection('buy_satt');
 			};
 
-		app.db.indexedtx = function () {
-			return db.db(app.config.mongoBase).collection('indexed_tx');
-	};
+		*/
 
-		app.db.balance = function () {
+		/*app.db.indexedtx = function () {
+			return db.db(app.config.mongoBase).collection('indexed_tx');
+	};*/
+
+	/*	app.db.balance = function () {
 				return db.db(app.config.mongoBase).collection('balance');
 		};
 		app.db.balance2 = function () {
@@ -170,8 +172,10 @@ module.exports = async function (app) {
 		app.db.delta = function () {
 				return db.db(app.config.mongoBase).collection('delta');
 		};
+		
+		*/
 		app.db.customToken = function () {
-			return db.db(app.config.mongoBase).collection('custom_token');
+			return db.db(app.config.mongoBase).collection(app.config.customTokenCollection);
 	    };
 
 		app.db.bep20 = function () {
@@ -179,29 +183,29 @@ module.exports = async function (app) {
     };
 
 		app.db.fbProfile = function () {
-				return db.db(app.config.mongoBase).collection('fb_profile');
+				return db.db(app.config.mongoBase).collection(app.config.fbProfileCollection);
 		};
 
 		app.db.fbPage = function () {
-				return db.db(app.config.mongoBase).collection('fb_page');
+				return db.db(app.config.mongoBase).collection(app.config.fbPageCollection);
 		};
 
 		app.db.googleProfile = function () {
-				return db.db(app.config.mongoBase).collection('google_profile');
+				return db.db(app.config.mongoBase).collection(app.config.googleProfileCollection);
 		};
 
 		app.db.twitterProfile = function () {
-				return db.db(app.config.mongoBase).collection('twitter_profile');
+				return db.db(app.config.mongoBase).collection(app.config.twitterProfileCollection);
 		};
 		app.db.linkedinProfile = () =>{
-			return db.db(app.config.mongoBase).collection('linkedin_profile');
+			return db.db(app.config.mongoBase).collection(app.config.linkedinProfileCollection);
 	};
 	app.db.paymentEvents = () =>{
-		return db.db(app.config.mongoBase).collection('payment_event');
+		return db.db(app.config.mongoBase).collection(app.config.paymentCollection);
     };
 
 		app.db.ig_media = function () {
-						return db.db(app.config.mongoBase).collection("ig_media");
+						return db.db(app.config.mongoBase).collection(app.config.igMediaCollection);
 		};
     return app;
 }
