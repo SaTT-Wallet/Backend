@@ -11,7 +11,6 @@ const hasha = require('hasha');
 
 const fs = require('fs');
 var handlebars = require('handlebars');
-const crypto = require('crypto');
 
 var synfonyHash = function(pass) {
     var salted = pass + "{" + app.config.symfonySalt + "}";
@@ -304,7 +303,6 @@ exports.purgeAccount=async(req,res)=>{
 
 
 exports.authApple= async(req, res)=>{
-
     try {
         let date = Math.floor(Date.now() / 1000) + 86400;
         let buff = Buffer.alloc(32);
@@ -383,7 +381,6 @@ exports.socialSignUp= async(req,res)=>{
 
 
 exports.socialSignin = async(req, res)=>{
-
     try {
         var user =null;
         if (req.body.idSn === "1") {
