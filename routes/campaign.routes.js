@@ -3,7 +3,7 @@ let router = express.Router();
 const {campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications, 
-    validateCampaign} = require('../controllers/campaign.controller')
+    validateCampaign,gains} = require('../controllers/campaign.controller')
 
  	/**
  * @swagger
@@ -307,7 +307,7 @@ router.post('/apply',apply);
 
 
 
-              	/**
+/**
  * @swagger
  * /campaign/validate:
  *   post:
@@ -341,6 +341,39 @@ router.post('/apply',apply);
  */
 
  router.post('/validate',validateCampaign);
+
+
+
+
+
+ /**
+ * @swagger
+ * /campaign/gains:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: get gains.
+ *     description:  user get his gains  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               idProm:
+ *                 type: string
+ *               idCampaign:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+
+  router.post('/gains',gains);
 
 module.exports = router;
 
