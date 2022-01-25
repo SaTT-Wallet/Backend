@@ -125,17 +125,16 @@ exports.codeRecover= async(req, response)=>{
 
 exports.confirmCode= async(req, response)=>{
     try {
-        var authMethod = { message: "code is matched" }
-        var buff = Buffer.alloc(32);
+        var authMethod = { message: "code is matched" } 
         let [email, code, type] = [req.body.email.toLowerCase(), req.body.code, req.body.type];
         var user = await app.db.sn_user().findOne({ email }, { projection: { secureCode: true } });
         if (user.secureCode.code != code) authMethod.message = "wrong code";
         else if (Date.now() >= user.secureCode.expiring) authMethod.message = "code expired";
         else if (user.secureCode.type == "validation" && type == "validation") {
             let date = Math.floor(Date.now() / 1000) + 86400;
-            let token = crypto.randomFillSync(buff).toString('hex');
-            authMethod.token = token, authMethod.expires_in = date, authMethod.idUser = user._id
-            await app.db.accessToken().insertOne({ client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user" });
+            let userAuth = app.cloneUser(user);
+            let token = app.generateAccessToken(userAuth);
+            authMethod.token = token, authMethod.expires_in = date, authMethod.idUser = user._id;
             await app.db.sn_user().updateOne({ _id: user._id }, { $set: { enabled: 1 } });
         }
         response.end(JSON.stringify(authMethod));
@@ -148,9 +147,7 @@ exports.confirmCode= async(req, response)=>{
 
 exports.passRecover= async(req, response)=>{
     try {
-        let token=await app.crm.checkToken(req,res);
-        const auth = await app.crm.auth(token);
-        const id = +auth.id
+        const id = +req.user._id;
         let [newpass, email] = [req.body.newpass, req.body.email];
         let user = await app.db.sn_user().findOne({ email }, { projection: { _id: true } });
         if(user && user._id === id){
@@ -169,20 +166,15 @@ exports.passRecover= async(req, response)=>{
 exports.purgeAccount=async(req,res)=>{
 
     try {
-        let token=await app.crm.checkToken(req,res);
-        const auth = await app.crm.auth(token);
         let pass = req.body.pass;
         let reason = req.body.reason;
-        await app.db.sn_user().findOne({ _id: Long.fromNumber(auth.id) }, async(err, user) => {
-            if (user.password === app.synfonyHash(pass)) {
-                if (reason) user.reason = reason;
-                await app.db.sn_user_archived().insertOne(user);
-                await app.db.sn_user().deleteOne({ _id: Long.fromNumber(auth.id) });
-                res.send(JSON.stringify({ message: "account deleted" })).status(202);
-            } else {
-                res.send(JSON.stringify({ error: "wrong password" }));
-            }
-        })
+        if(req.user.password === app.synfonyHash(pass)){
+            if(reason) user.reason=reason;
+             await app.db.sn_user_archived().insertOne(req.user);
+             await app.db.sn_user().deleteOne({ _id: Long.fromNumber(req.user._id) });
+             res.send(JSON.stringify({ message: "account deleted" })).status(202);
+        }else
+        res.send(JSON.stringify({ error: "wrong password" }));
     } catch (err) {
         res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
     }
