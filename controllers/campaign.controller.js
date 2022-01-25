@@ -17,12 +17,6 @@ let app
     app = await requirement.connection();
    
 })();
-
-
-
-
-
-
 const storage = new GridFsStorage({
     url: process.env.MONGOURI,
     options: { useNewUrlParser: true,useUnifiedTopology: true },
@@ -72,17 +66,12 @@ const storage = new GridFsStorage({
   });
 
 
-//     // here I used multer to upload files
-//       // you can add your validation here, such as file size, file extension and etc.
 module.exports.uploadImage = multer({ storage : storageImage,inMemory: true}).single('file');
 module.exports.upload = multer({ storage }).array('file');
 module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMemory: true}).single('file');
 
 
       var BN = require("bn.js");
-
-	/*var campaignKeystore = fs.readFileSync(app.config.campaignWalletPath,'utf8');
-	app.campaignWallet = JSON.parse(campaignKeystore);*/
 	  const conn=mongoose.createConnection( process.env.MONGOURI);
 	  let gfs;
 	  let gfsKit;
@@ -447,11 +436,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
       }
     
       exports.apply= async(req,response)=>{
-
-        let token=await app.crm.checkToken(req,response);
-		var auth =	await app.crm.auth(token);
-
-              	
+   	
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		var typeSN = req.body.typeSN;
@@ -582,10 +567,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 
 
 		let idCampaign = req.body.idCampaign;
-        let linkProm = req.body.link
-
-
-		 
+        let linkProm = req.body.link	 
 		try {
 
 
@@ -595,7 +577,6 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 			app.i18n.configureTranslation(lang);
 
 			var cred = await app.account.unlock(req.user._id,pass);
-
 			var ret = await app.campaign.validateProm(idApply,cred);
                
 

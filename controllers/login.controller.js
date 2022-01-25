@@ -7,13 +7,31 @@ let app
     app = await requirement.connection();
   
 })();
+const hasha = require('hasha');
 
 const fs = require('fs');
 var handlebars = require('handlebars');
+
+var synfonyHash = function(pass) {
+    var salted = pass + "{" + app.config.symfonySalt + "}";
+
+    var buff = hasha(salted, { encoding: "buffer" });
+    var saltBuff = Buffer.from(salted);
+    var arr = [];
+
+    for (var i = 1; i < 5000; i++) {
+        arr = [buff, saltBuff];
+        buff = hasha(Buffer.concat(arr), { algorithm: "sha512", encoding: "buffer" });
+    }
+
+    const base64 = buff.toString('base64');
+    return base64;
+}
 var Long = require('mongodb').Long;
 var readHTMLFile = function(path, callback) {
     fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
         if (err) {
+            console.log('error ==',err)
             throw err;
             callback(err);
         } else {
@@ -111,7 +129,7 @@ exports.codeRecover= async(req, response)=>{
                 subject: 'Satt wallet password recover',
                 html: htmlToSend
             };
-            transporter.sendMail(mailOptions, (error, info) => {
+            app.transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     response.end(JSON.stringify({ error: error.message ? error.message : error.error }));
                 } else {
@@ -163,6 +181,107 @@ exports.passRecover= async(req, response)=>{
     }
 }
 
+exports.resendConfirmationToken= async(req, response)=>{
+    try {
+        const email = req.body.email;
+        const user = await app.db.sn_user().findOne({ email: email }, { projection: { email: true } });
+        const code = await app.account.updateAndGenerateCode(user._id, "validation");
+        const lang = req.query.lang || "en";
+        app.i18n.configureTranslation(lang);
+        readHTMLFile(__dirname + '/../express/emailtemplate/email_validated_code.html', (err, html) => {
+            var template = handlebars.compile(html);
+            var replacements = {
+                satt_faq: app.config.Satt_faq,
+                satt_url: app.config.basedURl,
+                code,
+                imgUrl: app.config.baseEmailImgURl,
+            };
+            var htmlToSend = template(replacements);
+            var mailOptions = {
+                from: app.config.mailSender,
+                to: user.email.toLowerCase(),
+                subject: 'Satt wallet activation',
+                html: htmlToSend
+            };
+            app.transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    app.account.sysLogError(error);
+                } else {
+                    response.send(JSON.stringify({ message: "Email sent" }))
+                    app.account.log('Email sent: ', user.email);
+                }
+            });
+        });
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+}
+
+exports.saveFirebaseAccessToken= async(req, response)=>{
+    try {
+        let token= await app.crm.checkToken(req,response);
+		const auth = await app.crm.auth(token);
+		const data = req.body;
+		await app.db.sn_user().updateOne({_id:+auth.id}, {$set:{fireBaseAccessToken : data.fb_accesstoken}})
+		response.end(JSON.stringify({message : "success"}));
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	 }
+}
+
+exports.updateLastStep= async(req, response)=>{
+    try{
+    let token= await app.crm.checkToken(req,response);
+    var auth =	await app.crm.auth(token);
+    const id = auth.id;
+    let profile = req.body;
+    let password=Math.random().toString(36).slice(-8);
+    const user =await app.db.sn_user().findOne({_id:id});
+    const buff = Buffer.alloc(32);
+    const code = crypto.randomFillSync(buff).toString('hex');
+    const users = await app.db.sn_user().find({email: profile.email}).toArray();
+    if(users.length && users[0]._id !== id) {
+        response.end(JSON.stringify({message : "email already exists"}));
+    return;
+    }else{
+        await app.db.sn_user().updateOne({_id:id},{$set: {
+            email:profile.email,
+            firstName:profile.firstName,
+            lastName:profile.lastName,
+            isChanged:true,
+            enabled:false,
+            confirmation_token: code,
+            completed:true,
+            password:synfonyHash(password)
+        }})
+        response.end(JSON.stringify({message : "updated successfully"}))
+    }
+        if(user.isChanged===true){
+            const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+                email:profile.email,
+                firstName:profile.firstName,
+                lastName:profile.lastName,
+                confirmation_token: code,
+                enabled:false,
+                completed:true,
+                password:synfonyHash(password)
+            }})
+            response.end(JSON.stringify({message : "updated successfully"}))
+
+        }else{
+            const userUpdate=await app.db.sn_user().updateOne({_id:id},{$set: {
+                firstName:profile.firstName,
+                lastName:profile.lastName,
+                enabled:1,
+                completed:true,
+                password:synfonyHash(password)
+            }})
+            response.end(JSON.stringify({message : "updated successfully with same email"}))
+        }
+    } catch (err) {
+        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ }
+}
 
 exports.purgeAccount=async(req,res)=>{
 
@@ -184,7 +303,6 @@ exports.purgeAccount=async(req,res)=>{
 
 
 exports.authApple= async(req, res)=>{
-
     try {
         let date = Math.floor(Date.now() / 1000) + 86400;
         let buff = Buffer.alloc(32);
@@ -263,7 +381,6 @@ exports.socialSignUp= async(req,res)=>{
 
 
 exports.socialSignin = async(req, res)=>{
-
     try {
         var user =null;
         if (req.body.idSn === "1") {

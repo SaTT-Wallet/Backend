@@ -669,7 +669,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
-		const id = auth.id;
+			const id = auth.id;
 
 
 		let profile = req.body;
@@ -678,7 +678,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 		const buff = Buffer.alloc(32);
         const code = crypto.randomFillSync(buff).toString('hex');
 		  const users = await app.db.sn_user().find({email: profile.email}).toArray();
-		  if(users.length && users[0]._id!==id) {
+		  if(users.length && users[0]._id !== id) {
 		  res.end(JSON.stringify({message : "email already exists"}));
 		  return;
 		  }else{
@@ -718,10 +718,6 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
 				  }})
 				  res.end(JSON.stringify({message : "updated successfully with same email"}))
 			}
-
-
-		
-
 		} catch (err) {
 		  res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		 }

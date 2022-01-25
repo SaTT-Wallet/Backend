@@ -17,6 +17,7 @@ var session = require('express-session');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 var FbStrategy = require('passport-facebook').Strategy;
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+
 var Long = require('mongodb').Long;
 
 passport.serializeUser(function(user, cb) {
@@ -33,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {socialSignin,socialSignUp, captcha,authApple, purgeAccount,changePassword,verifyCaptcha,codeRecover,confirmCode,passRecover} = require('../controllers/login.controller')
+const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -44,8 +45,8 @@ const {
     googleAuthSignin,
     facebookAuthSignin,
     signup_telegram_function,
-    signin_telegram_function,
-    verifyAuth
+    signin_telegram_function
+    
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
@@ -59,64 +60,6 @@ function authErrorHandler(err, req, res, next) {
     res.redirect(app.config.basedURl + '/auth/registration?message=' + message);
 }
 
-
-
-
-
-/**
- * @swagger
- * /auth/purgeAccount:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: desactivate account .
- *     description: desactivate user account  <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
-
- *     responses:
- *       "200":
- *          description: message:"success"
- *       "500":
- *          description: error:"wrong password"
- */
- router.post('/purgeAccount',verifyAuth,purgeAccount)
-
-
-
-/**
- * @swagger
- * /auth/changePassword:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: change user password.
- *     description: user can change his password.<br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               id:
- *                 type: number
- *               newpass:
- *                 type: string
- *               oldpass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: message:"success"
- *       "500":
- *          description: error:"no account"
- */
- router.post('/changePassword',changePassword)
 /**
  * @swagger
  * /auth/captcha:
@@ -265,7 +208,7 @@ router.post('/signin/mail',emailConnection)
  *       "500":
  *          description: error:"error"
  */
-router.post('/passrecover',verifyAuth,passRecover)
+router.post('/passrecover',passRecover)
 
 
 
@@ -472,9 +415,85 @@ new TelegramStrategy({
     }
 ));
 
-
-
 /**
+ * @swagger
+ * /auth/resend/confirmationToken:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: resend confirmation code.
+ *     description: user enter his email, system check if email exist and will generate new code without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"Email sent"
+ *       "500":
+ *          description: error:error message
+ */
+ router.post('/resend/confirmationToken',resendConfirmationToken)
+
+ /**
+ * @swagger
+ * /auth/save/firebaseAccessToken:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: save firebase access token.
+ *     description: system allow user to save his firebase token to use notification .
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               fb_accesstoken:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"success"
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/save/firebaseAccessToken',saveFirebaseAccessToken)
+
+   /**
+ * @swagger
+ * /auth/updateLastStep:
+ *   put:
+ *     tags:
+ *     - "auth"
+ *     summary: update last step.
+ *     description: system redirect user to page complete profile to verify his information and confirm his email .
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               completed:
+ *                 type: boolean
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: data= <br> {message:"updated successfully"} <br> {message:"updated successfully with same email"} <br> {message:"email already exists"}
+ *       "500":
+ *          description: error:error message
+ */
+ router.put('/updateLastStep',updateLastStep)
+
+ /**
  * @swagger
  * /auth/apple:
  *   post:
@@ -502,73 +521,71 @@ new TelegramStrategy({
  *       "500":
  *          description: error={error:true,message:'account_already_used'}
  */
- router.post('/apple',authApple)
+  router.post('/apple',authApple)
 
 
 
- /**
- * @swagger
- * /auth/socialSignup:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: register with social for apple.
- *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               idSn:
- *                 type: string
- *               id:
- *                 type: string
- *               photo:
- *                 type: string
- *               givenName:
- *                 type: string
- *               familyName:
- *                 type: string
- *     responses:
- *       "200":
- *          description: param={"account_doesnt_exist"}
- *       "500":
- *          description: error={error:true,message:'account_already_used'}
- */
-  router.post('/socialSignup',socialSignUp)
-
-
-
-
- /**
- * @swagger
- * /auth/socialSignin:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: auth with social for apple.
- *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               idSn:
- *                 type: string
- *               id:
- *                 type: string
-
- *     responses:
- *       "200":
- *          description: param={"account_doesnt_exist"}
- *       "500":
- *          description: error={error:true,message:'account_already_used'}
- */
-  router.post('/socialSignin',socialSignin)
-
-
+  /**
+  * @swagger
+  * /auth/socialSignup:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: register with social for apple.
+  *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               name:
+  *                 type: string
+  *               idSn:
+  *                 type: string
+  *               id:
+  *                 type: string
+  *               photo:
+  *                 type: string
+  *               givenName:
+  *                 type: string
+  *               familyName:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+   router.post('/socialSignup',socialSignUp)
+ 
+ 
+ 
+ 
+  /**
+  * @swagger
+  * /auth/socialSignin:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: auth with social for apple.
+  *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               idSn:
+  *                 type: string
+  *               id:
+  *                 type: string
+ 
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+router.post('/socialSignin',socialSignin)
 module.exports = router;
