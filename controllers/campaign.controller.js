@@ -90,7 +90,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
     
     
 
-      module.exports.launchCampaign = async(req,res)=>{
+      module.exports.launchCampaign = async(req,response)=>{
         var pass = req.body.pass;
 		var dataUrl = req.body.dataUrl;
 		var startDate = req.body.startDate;
@@ -135,7 +135,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		}
       }
 
-      module.exports.launchBounty  = async(req,res)=> {
+      module.exports.launchBounty  = async(req,response)=> {
         var pass = req.body.pass;
         var dataUrl = req.body.dataUrl;
         var startDate = req.body.startDate;
