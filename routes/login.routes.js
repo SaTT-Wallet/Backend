@@ -34,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover} = require('../controllers/login.controller')
+const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -415,4 +415,81 @@ new TelegramStrategy({
     }
 ));
 
+/**
+ * @swagger
+ * /auth/resend/confirmationToken:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: resend confirmation code.
+ *     description: user enter his email, system check if email exist and will generate new code without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"Email sent"
+ *       "500":
+ *          description: error:error message
+ */
+ router.post('/resend/confirmationToken',resendConfirmationToken)
+
+ /**
+ * @swagger
+ * /auth/save/firebaseAccessToken:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: save firebase access token.
+ *     description: system allow user to save his firebase token to use notification .
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               fb_accesstoken:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"success"
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/save/firebaseAccessToken',saveFirebaseAccessToken)
+
+   /**
+ * @swagger
+ * /auth/updateLastStep:
+ *   put:
+ *     tags:
+ *     - "auth"
+ *     summary: update last step.
+ *     description: system redirect user to page complete profile to verify his information and confirm his email .
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               completed:
+ *                 type: boolean
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: data= <br> {message:"updated successfully"} <br> {message:"updated successfully with same email"} <br> {message:"email already exists"}
+ *       "500":
+ *          description: error:error message
+ */
+ router.put('/updateLastStep',updateLastStep)
 module.exports = router;

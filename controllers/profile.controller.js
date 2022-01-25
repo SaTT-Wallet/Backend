@@ -32,3 +32,25 @@ exports.account= async(req, res)=>{
    
 
 }
+
+
+exports.socialAccounts= async(req, response)=>{
+    try {
+        let token=await app.crm.checkToken(req,response);
+        let auth = await app.crm.auth(token);
+        var UserId = +auth.id;
+        let networks = {};
+        var channelsGoogle = await app.db.googleProfile().find({ UserId }).toArray();
+        var channelsTwitter = await app.db.twitterProfile().find({ UserId }).toArray();
+        let channelsFacebook = await app.db.fbPage().find({ UserId }).toArray();
+        let channelsLinkedin = await app.db.linkedinProfile().findOne({ userId: UserId });
+        networks.google = channelsGoogle;
+        networks.twitter = channelsTwitter;
+        networks.facebook = channelsFacebook;
+        networks.linkedin = channelsLinkedin ?.pages || [];
+        response.send(JSON.stringify(networks))
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+
+}

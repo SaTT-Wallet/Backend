@@ -34,8 +34,6 @@ exports.mywallet= async(req, response)=>{
 }
 
 
-
-
 exports.userBalance= async(req, response)=>{
 
 	try {
@@ -396,7 +394,7 @@ exports.getQuote = async (req, res)=>{
         requestQuote["client_ip"]= req.addressIp;
         requestQuote["payment_methods"]= ["credit_card"];
         requestQuote["wallet_id"]= "satt";
-    const simplexQuote ={
+        const simplexQuote ={
         url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
         method: 'POST',
           body:requestQuote, 
@@ -528,6 +526,12 @@ exports.bridge= async(req , res)=>{
         }
     }
 
+}
+
+
+exports.prices= async(req , res)=>{
+	var prices = app.account.getPrices()
+	res.end(JSON.stringify(prices))
 }
 
 

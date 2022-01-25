@@ -1119,7 +1119,7 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var result = await app.account.getAccount(res.id);
-			let balance = await app.bep20.getBalance(req.body.token,result.address);
+			let balance = await app.erc20.getBalance(req.body.token,result.address);
 			if(new Big(amount).gt(new Big(balance.amount)))
 			response.end(JSON.stringify({message:"not_enough_budget"}));
 			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);

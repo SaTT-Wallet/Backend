@@ -345,40 +345,40 @@ module.exports = function(app) {
 
         }));
 
-    passport.use('facebook_strategy_add_channel', new FbStrategy({
-            clientID: app.config.appId,
-            clientSecret: app.config.appSecret,
-            callbackURL: app.config.baseUrl + "callback/facebookChannel",
-            profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
-            passReqToCallback: true
-        },
-        async(req, accessToken, refreshToken, profile, cb) => {
+    // passport.use('facebook_strategy_add_channel', new FbStrategy({
+    //         clientID: app.config.appId,
+    //         clientSecret: app.config.appSecret,
+    //         callbackURL: app.config.baseUrl + "callback/facebookChannel",
+    //         profileFields: ['id', 'displayName', 'email', "picture.type(large)", "token_for_business"],
+    //         passReqToCallback: true
+    //     },
+    //     async(req, accessToken, refreshToken, profile, cb) => {
 
-            const longTokenUrl = "https://graph.facebook.com/" + app.config.fbGraphVersion +
-                "/oauth/access_token?grant_type=fb_exchange_token&client_id=" + app.config.appId +
-                "&client_secret=" + app.config.appSecret + "&fb_exchange_token=" + accessToken;
-            let resToken = await rp({ uri: longTokenUrl, json: true });
-            let longToken = resToken.access_token;
-            let UserId = +req.query.state.split('|')[0];
-            let isInsta = false;
-            let fbProfile = await app.db.fbProfile().findOne({ UserId });
-            // if(fbProfile && fbProfile.id !== profile.id){
-            //   cb (null,profile,{
-            //     message: "external_account"
-            // })
-            // }
-            //  else{
-            let message = await app.account.getFacebookPages(UserId, accessToken, isInsta)
-            if (fbProfile) { await app.db.fbProfile().updateOne({ UserId }, { $set: { accessToken: longToken } }); } else {
-                [profile.accessToken, profile.UserId] = [longToken, UserId];
-                await app.db.fbProfile().insertOne(profile);
-            }
-            return cb(null, { id: UserId, token: accessToken }, { message });
-            // }
+    //         const longTokenUrl = "https://graph.facebook.com/" + app.config.fbGraphVersion +
+    //             "/oauth/access_token?grant_type=fb_exchange_token&client_id=" + app.config.appId +
+    //             "&client_secret=" + app.config.appSecret + "&fb_exchange_token=" + accessToken;
+    //         let resToken = await rp({ uri: longTokenUrl, json: true });
+    //         let longToken = resToken.access_token;
+    //         let UserId = +req.query.state.split('|')[0];
+    //         let isInsta = false;
+    //         let fbProfile = await app.db.fbProfile().findOne({ UserId });
+    //         // if(fbProfile && fbProfile.id !== profile.id){
+    //         //   cb (null,profile,{
+    //         //     message: "external_account"
+    //         // })
+    //         // }
+    //         //  else{
+    //         let message = await app.account.getFacebookPages(UserId, accessToken, isInsta)
+    //         if (fbProfile) { await app.db.fbProfile().updateOne({ UserId }, { $set: { accessToken: longToken } }); } else {
+    //             [profile.accessToken, profile.UserId] = [longToken, UserId];
+    //             await app.db.fbProfile().insertOne(profile);
+    //         }
+    //         return cb(null, { id: UserId, token: accessToken }, { message });
+    //         // }
 
 
 
-        }));
+    //     }));
 
     app.delete('/google/all/channels', async(req, response) => {
         try {
@@ -1101,19 +1101,12 @@ module.exports = function(app) {
         })(req, res, next)
     });
 
-    // app.get('/addChannel/facebook/:idUser', (req, res,next)=>{
-    //   var state=req.params.idUser
 
-    // passport.authenticate('facebook_strategy_add_channel', {scope: ['publish_actions', 'manage_pages'],
-    //        accessType: 'offline',
-    //   	   prompt: 'consent',
-    //   state:state})(req,res,next)
+
+    // app.get('/addChannel/facebook/:idUser', (req, res, next) => {
+    //     const state = req.params.idUser + '|' + req.query.redirect;
+    //     passport.authenticate('facebook_strategy_add_channel', { scope: ['email', 'read_insights', 'read_audience_network_insights', 'pages_show_list', 'instagram_basic', 'instagram_manage_insights', 'pages_read_engagement'], state })(req, res, next)
     // });
-
-    app.get('/addChannel/facebook/:idUser', (req, res, next) => {
-        const state = req.params.idUser + '|' + req.query.redirect;
-        passport.authenticate('facebook_strategy_add_channel', { scope: ['email', 'read_insights', 'read_audience_network_insights', 'pages_show_list', 'instagram_basic', 'instagram_manage_insights', 'pages_read_engagement'], state })(req, res, next)
-    });
 
     app.get('/link/twitter/:idUser/:idCampaign', (req, res, next) => {
         var state = req.params.idUser + " " + req.params.idCampaign;
@@ -1255,16 +1248,16 @@ module.exports = function(app) {
         }
     });
 
-    app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl + '/home/settings/social-networks?message=access-denied' }), async(req, response) => {
-        try {
-            redirect = req.query.state.split('|')[1];
-            let message = req.authInfo.message;
-            response.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=fb");
+    // app.get('/callback/facebookChannel', passport.authenticate('facebook_strategy_add_channel', { failureRedirect: app.config.basedURl + '/home/settings/social-networks?message=access-denied' }), async(req, response) => {
+    //     try {
+    //         redirect = req.query.state.split('|')[1];
+    //         let message = req.authInfo.message;
+    //         response.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=fb");
 
-        } catch (e) {
-            console.log(e)
-        }
-    });
+    //     } catch (e) {
+    //         console.log(e)
+    //     }
+    // });
 
     app.get('/callback/twitter', passport.authenticate('twitter_link', { scope: ['profile', 'email'] }), async function(req, response) {
         try {

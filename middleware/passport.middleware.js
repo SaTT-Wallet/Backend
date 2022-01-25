@@ -3,11 +3,14 @@ var handlebars = require('handlebars');
 var passport = require('passport');
 var emailStrategy = require('passport-local').Strategy;
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+var Twitter = require('twitter');
 var LocalStrategy = require('passport-local').Strategy;
 var Long = require('mongodb').Long;
 const crypto = require('crypto');
 const hasha = require('hasha');
 ObjectId = require('mongodb').ObjectID
+var rp = require('request-promise');
+
 var readHTMLFile = function(path, callback) {
     fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
         if (err) {
@@ -43,6 +46,9 @@ app = await require("../db/db")(app);
 app = await require("../web3/provider")(app);
 app = await require("../manager/account")(app);
 app = await require("../manager/i18n")(app);
+app = await require("../manager/oracle")(app);
+app = await require("../web3/oracle")(app);
+
 
 })();
 var session = require('express-session');
@@ -457,4 +463,143 @@ exports.telegramConnection= (req, res) => {
 } 
 /* 
 *end signin with telegram strategy
+*/
+
+
+/* 
+* begin add facebook channel strategy
+*/
+exports.addFacebookChannel= async (req, accessToken, refreshToken, profile, cb) => {
+    const longTokenUrl = "https://graph.facebook.com/" + app.config.fbGraphVersion +
+    "/oauth/access_token?grant_type=fb_exchange_token&client_id=" + app.config.appId +
+    "&client_secret=" + app.config.appSecret + "&fb_exchange_token=" + accessToken;
+    let resToken = await rp({ uri: longTokenUrl, json: true });
+    let longToken = resToken.access_token;
+    let UserId = +req.query.state.split('|')[0];
+    let isInsta = false;
+    let fbProfile = await app.db.fbProfile().findOne({ UserId });
+    let message = await app.account.getFacebookPages(UserId, accessToken, isInsta)
+    if (fbProfile) { await app.db.fbProfile().updateOne({ UserId }, { $set: { accessToken: longToken } }); 
+    }
+    else {
+        [profile.accessToken, profile.UserId] = [longToken, UserId];
+        await app.db.fbProfile().insertOne(profile);
+    }
+    return cb(null, { id: UserId, token: accessToken }, { message });
+}
+/*
+* end add facebook channel strategy
+*/
+
+/* 
+* begin add twitter channel strategy
+*/
+exports.addTwitterChannel= async (req, accessToken, tokenSecret, profile, cb) => {
+    let user_id = +req.session.state.split('|')[0];
+
+    var tweet = new Twitter({
+        consumer_key: app.config.twitter.consumer_key,
+        consumer_secret: app.config.twitter.consumer_secret,
+        access_token_key: accessToken,
+        access_token_secret: tokenSecret
+    });
+    var res = await tweet.get('account/verify_credentials', { include_email: true });
+    var twitterProfile = await app.db.twitterProfile().findOne({ $and: [{ UserId: user_id }, { twitter_id: res.id }] });
+    if (twitterProfile) {
+        cb(null, profile, {
+            status: false,
+            message: "account exist"
+        })
+    } else {
+        profile.access_token_key = accessToken;
+        profile.access_token_secret = tokenSecret;
+        profile.UserId = user_id;
+        profile.username = res.screen_name;
+        profile.subscibers = res.followers_count;
+        profile.twitter_id = res.id;
+
+        var res_ins = await app.db.twitterProfile().insertOne(profile);
+    }
+    return cb(null, { id: user_id });
+}
+/*
+* end add twitter channel strategy
+*/
+
+/* 
+* begin add linkedin channel strategy
+*/
+exports.addlinkedinChannel= async (req, accessToken, refreshToken, profile, done) => {
+      userId = Number(req.query.state.split('|')[0]);
+      linkedinId=profile.id;
+    const linkedinData = {
+        url: "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))",
+        method: 'GET',
+        headers: {
+            'Authorization': "Bearer " + accessToken,
+            'X-Restli-Protocol-Version': '2.0.0'
+        },
+        json: true
+    };
+    let redirect = req.query.state.split('|')[1];
+    let linkedinPages = await rp(linkedinData);
+
+    var linkedinProfile = { accessToken, userId, linkedinId };
+    linkedinProfile.pages = [];
+    if (linkedinPages.elements.length) {
+        for (let i = 0; i < linkedinPages.elements.length; i++) {
+            elem = linkedinPages.elements[i];
+            if (elem.state !== "REVOKED") {
+                elem.subscribers = await app.oracle.linkedinAbos(linkedinProfile, elem.organization);
+                elem.photo = linkedinPages.elements[i]["organization~"].logoV2 ? linkedinPages.elements[i]["organization~"].logoV2["original~"].elements[0].identifiers[0].identifier : ''
+                delete elem["organization~"].logoV2;
+                linkedinProfile.pages.push(elem)
+            }
+        }
+    }
+    if (!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + redirect + "?message=channel obligatoire&sn=linkd");
+    await app.db.linkedinProfile().updateOne({ userId }, { $set: linkedinProfile }, { upsert: true });
+    done(null, profile, { status: true, message: 'account_linked_with_success' })
+}
+/*
+* end add linkedin channel strategy
+*/
+
+/* 
+* begin add youtube channel strategy
+*/
+exports.addyoutubeChannel= async (req, accessToken, refreshToken, profile, cb) => {
+    var user_id = +req.query.state.split('|')[0];
+    var res = await rp({ uri: 'https://www.googleapis.com/youtube/v3/channels', qs: { access_token: accessToken, part: "snippet", mine: true }, json: true });
+    console.log("result", res);
+    if (res.pageInfo.totalResults == 0) {
+        cb(null, profile, {
+            message: "channel obligatoire"
+        })
+    }
+    var channelId = res.items[0].id;
+    var channelGoogle = await app.db.googleProfile().find({ channelId: channelId, UserId: user_id }).toArray();
+    if (channelGoogle.length > 0) {
+        cb(null, profile, {
+            message: "account exist"
+        })
+    } else {
+        var result = await rp({ uri: 'https://www.googleapis.com/youtube/v3/channels', qs: { id: channelId, key: app.config.gdataApiKey, part: "statistics,snippet" }, json: true });
+       console.log("result,,,,",result)
+        user_google = {};
+        user_google.refreshToken = refreshToken;
+        user_google.accessToken = accessToken;
+        user_google.UserId = user_id;
+        user_google.google_id = profile.id;
+        user_google.channelTitle = result.items[0].snippet.title;
+        user_google.channelImage = result.items[0].snippet.thumbnails;
+        user_google.channelStatistics = result.items[0].statistics;
+        user_google.channelId = channelId;
+        await app.db.googleProfile().insertOne(user_google);
+
+        return cb(null, { id: user_id });
+    }
+}
+/*
+* end add linkedin channel strategy
 */
