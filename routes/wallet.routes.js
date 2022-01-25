@@ -164,7 +164,7 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/transferErc20', transfertErc20)
+ router.post('/transferErc20',verifyAuth, transfertErc20)
  
 
 
@@ -201,7 +201,7 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/transferBep20', transfertBep20)
+ router.post('/transferBep20',verifyAuth, transfertBep20)
 
 
 

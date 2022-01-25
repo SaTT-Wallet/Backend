@@ -26,8 +26,7 @@ exports.exportBtc=async(req,response)=>{
     response.attachment();
 
     try {
-        let token=await app.crm.checkToken(req,res);
-        var res =	await app.crm.auth(token);
+
         var cred = await app.account.unlock(req.user._id,pass);
 
         var ret = await app.account.exportkeyBtc(req.user._id,pass);
@@ -158,18 +157,15 @@ exports.totalBalances= async(req, res)=>{
 
 exports.transfertErc20= async(req,response)=>{
 	try {
-
-        let token=await app.crm.checkToken(req,res);
-        var res =	await app.crm.auth(token);
         var tokenERC20 = req.body.token;
         var to = req.body.to;
         var amount = req.body.amount;
         var pass = req.body.pass;
         var currency=req.body.symbole;
         var decimal = req.body.decimal;
-        var cred = await app.account.unlock(res.id,pass);
-        cred.from_id = res.id;
-        var result = await app.account.getAccount(res.id);
+        var cred = await app.account.unlock(req.user._id,pass);
+        cred.from_id = req.user._id;
+        var result = await app.account.getAccount(req.user._id);
         let balance = await app.erc20.getBalance(tokenERC20,result.address);
         if(new Big(amount).gt(new Big(balance.amount))){
             response.end(JSON.stringify({message:"not_enough_budget"}));
@@ -184,7 +180,7 @@ exports.transfertErc20= async(req,response)=>{
     finally {
             cred && app.account.lock(cred.address);
             if(ret && ret.transactionHash){
-                await app.account.notificationManager(res.id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
+                await app.account.notificationManager(req.user._id, "transfer_event",{amount,currency,to, transactionHash : ret.transactionHash, network : "ERC20", decimal} )
                 const wallet = await app.db.wallet().findOne({"keystore.address" : to.substring(2)},{projection: { UserId: true }});
                 if(wallet){
                     await app.account.notificationManager(wallet.UserId, "receive_transfer_event",{amount,currency,from :cred.address, transactionHash : ret.transactionHash, network : "ERC20",decimal } )
@@ -204,14 +200,12 @@ exports.transfertBep20= async(req,response)=>{
         var amount = req.body.amount;
         var decimal = req.body.decimal;
         var pass = req.body.pass;
-        let token=await app.crm.checkToken(req,res);
-        var res =	await app.crm.auth(token);
-        var cred = await app.account.unlockBSC(res.id,pass);
-        cred.from_id = res.id;
+        var cred = await app.account.unlockBSC(req.user._id,pass);
+        cred.from_id = req.user._id;
         req.body.token = !req.body.token ? "0x448bee2d93be708b54ee6353a7cc35c4933f1156": req.body.token;
 
 
-        var result = await app.account.getAccount(res.id);
+        var result = await app.account.getAccount(req.user._id);
 
         let balance = await app.bep20.getBalance(req.body.token,result.address);
        
