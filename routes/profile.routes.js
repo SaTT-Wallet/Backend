@@ -4,7 +4,7 @@ let router = express.Router();
 const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels, deleteFacebookChannels, deleteGoogleChannels,account,
     profilePicture,updateProfile, UserLegalProfile } = require('../controllers/profile.controller')
 
-
+    const { verifyAuth} =require('../middleware/passport.middleware');
  /**
  * @swagger
  * /profile/account:
@@ -19,7 +19,7 @@ const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels, deleteF
  *       "500":
  *          description: error:error message
  */
-router.get('/account', account)
+router.get('/account',verifyAuth, account)
 
  /**
  * @swagger
@@ -37,7 +37,7 @@ router.get('/account', account)
  */
 
 
-router.get('/picture', profilePicture)
+router.get('/picture',verifyAuth, profilePicture)
 
 
  	/**
@@ -96,7 +96,7 @@ router.get('/picture', profilePicture)
  *       "500":
  *          description: error:error message
  */
-  router.put('/UpdateProfile', updateProfile)
+  router.put('/UpdateProfile',verifyAuth, updateProfile)
 
 
 
@@ -116,7 +116,7 @@ router.get('/picture', profilePicture)
  */
 
 
-router.get('/UserLegal', UserLegalProfile)
+router.get('/UserLegal',verifyAuth, UserLegalProfile)
 
 
    /**
@@ -135,7 +135,7 @@ router.get('/UserLegal', UserLegalProfile)
  */
 
 
-router.get('/UserIntersts', UserInterstes)
+router.get('/UserIntersts',verifyAuth, UserInterstes)
 
 
 
@@ -165,7 +165,7 @@ router.get('/UserIntersts', UserInterstes)
  *       "500":
  *          description: error:error message
  */
-router.post('/AddUserIntersts', AddIntersts)
+router.post('/AddUserIntersts',verifyAuth, AddIntersts)
 
 
 
@@ -195,7 +195,7 @@ router.post('/AddUserIntersts', AddIntersts)
  *       "500":
  *          description: error:error message
  */
-    router.put('/UpdateUserIntersts', UpdateIntersts)
+    router.put('/UpdateUserIntersts',verifyAuth, UpdateIntersts)
 
 
 
@@ -217,7 +217,7 @@ router.post('/AddUserIntersts', AddIntersts)
  */
 
 
-router.delete('/RemoveGoogleChannels', deleteGoogleChannels)
+router.delete('/RemoveGoogleChannels',verifyAuth, deleteGoogleChannels)
 
    /**
  * @swagger
@@ -235,7 +235,7 @@ router.delete('/RemoveGoogleChannels', deleteGoogleChannels)
  */
 
 
-    router.delete('/RemoveFacebookChannels', deleteFacebookChannels)
+    router.delete('/RemoveFacebookChannels',verifyAuth, deleteFacebookChannels)
 
        /**
  * @swagger
@@ -253,7 +253,7 @@ router.delete('/RemoveGoogleChannels', deleteGoogleChannels)
  */
 
 
-router.delete('/RemoveLinkedInChannels', deleteLinkedinChannels)
+router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
 
 
 
