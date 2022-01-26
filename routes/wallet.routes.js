@@ -3,7 +3,7 @@ let express = require('express');
 let router = express.Router();
 const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
-	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices} = require('../controllers/wallet.controller')
+	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices,createNewWallet} = require('../controllers/wallet.controller')
 const { verifyAuth} =require('../middleware/passport.middleware');
 
 
@@ -295,9 +295,6 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  router.post('/transfertBtc',verifyAuth, transfertBtc)
 
 
-
-
-
  	/**
  * @swagger
  * /wallet/transfertBNB:
@@ -496,7 +493,7 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-			router.post('/exportETH',verifyAuth, exportEth)
+router.post('/exportETH',verifyAuth, exportEth)
 
    /**
  * @swagger
@@ -514,5 +511,27 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  */
 	router.get('/prices', prices)
 
-
+/**
+ * @swagger
+ * /wallet/create:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: create new wallet.
+ *     description: create new wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: list:[{list of crypto}]
+ *       "500":
+ *          description: error:error message
+ */
+ router.post('/create',verifyAuth,createNewWallet)
 module.exports = router;
