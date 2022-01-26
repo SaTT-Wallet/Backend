@@ -271,30 +271,32 @@ module.exports = async function (app) {
     config.pathEth = "m/44'/60'/0'/0/0'";
 
     config.networkSegWitCompat = {
-      baseNetwork: process.env.NETWORKSEGWITCOMPACT_BASE_NETWORK,
-      messagePrefix: process.env.NETWORKSEGWITCOMPACT_MESSAGE_PRFIX,
-      bech32: process.env.NETWORKSEGWITCOMPACT_BECH32,
-      bip32: {
-        public: process.env.NETWORKSEGWITCOMPACT_BIP32_PUBLIC,
-        private: process.env.NETWORKSEGWITCOMPACT_BIP32_PRIVATE,
-      },
-      pubKeyHash: process.env.NETWORKSEGWITCOMPACT_PUBKEY_HASH,
-      scriptHash: process.env.NETWORKSEGWITCOMPACT_SCRIPT_HASH,
-      wif: process.env.NETWORKSEGWITCOMPACT_WIF,
-    };
+			baseNetwork: "bitcoin",
+			messagePrefix: '\x18Bitcoin Signed Message:\n',
+			bech32: 'bc',
+			bip32: {
+				public: 0x049d7cb2,
+				private: 0x049d7878
+			},
+			pubKeyHash: 0x00,
+			scriptHash: 0x05,
+			wif: 0x80
+		};
+
 
     config.networkSegWit = {
-      baseNetwork: process.env.NETWORKSEGWIT_BASENETWORK,
-      messagePrefix: process.env.NETWORKSEGWIT_MESSAGE_PREFIX,
-      bech32: process.env.NETWORKSEGWIT_BECH32,
-      bip32: {
-        public: process.env.NETWORKSEGWIT_BIP32_PUBLIC,
-        private: process.env.NETWORKSEGWIT_BIP32_PRIVATE,
-      },
-      pubKeyHash: process.env.NETWORKSEGWIT_PUBKEYHASH,
-      scriptHash: process.env.NETWORKSEGWIT_SCRIPTHASH,
-      wif: process.env.NETWORKSEGWIT_WIF,
-    };
+			baseNetwork: "bitcoin",
+			messagePrefix: '\x18Bitcoin Signed Message:\n',
+			bech32: 'bc',
+			bip32: {
+				public: 0x04b24746,
+				private: 0x04b2430c
+			},
+			pubKeyHash: 0x00,
+			scriptHash: 0x05,
+			wif: 0x80
+		};
+
 
     config.accountType = {
       0: process.env.ACCOUNT_TYPE0,
