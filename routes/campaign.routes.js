@@ -110,7 +110,7 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *       - application/json
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: list:[list of campaigns]
  *       "500":
  *          description: error:"error"
  */
@@ -122,7 +122,7 @@ router.get('/totalEarned',verifyAuth,totalEarned);
 
  /**
  * @swagger
- * /campaign/CampaignDetailds/{id}:
+ * /campaign/details/{id}:
  *   get:
  *     tags:
  *     - "campaign"
@@ -137,13 +137,11 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *         required: true
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: list:[list of campaigns]
  *       "500":
  *          description: error:"error"
  */
-
-
-  router.get('/CampaignDetailds/:id',campaign);
+  router.get('/details/:id',campaign);
 
 
 
@@ -487,15 +485,15 @@ router.post('/apply',verifyAuth,apply);
  *     description:  user create new campaign  <br> with access_token.
  *     requestBody:
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:      # Request body contents
  *             type: object
  *             properties:
  *               campaign:
  *                 type: string
- *               files:
+ *               file:
  *                 type: string
- *                 format : binary
+ *                 format : base64
  *               link:
  *                 type: string
  
@@ -516,12 +514,17 @@ router.post('/apply',verifyAuth,apply);
 
    /**
  * @swagger
- * /campaign/update:
+ * /campaign/update/{idCampaign}:
  *   put:
  *     tags:
  *     - "campaign"
  *     summary: create new campaign.
  *     description:  user create new campaign  <br> with access_token.
+ *     parameters:
+ *       - name: idCampaign
+ *         description: the  campaign id.
+ *         in: path
+ *         required: true
  *     requestBody:
  *       content:
  *         application/json:
@@ -533,6 +536,10 @@ router.post('/apply',verifyAuth,apply);
  *               resume:
  *                 type: string
  *               brand:
+ *                 type: string
+ *               cover:
+ *                 type: string
+ *               logo:
  *                 type: string
  *               countries:
  *                 type: array
