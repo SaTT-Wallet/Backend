@@ -4,6 +4,7 @@ module.exports = async function (app) {
 
 	var child = require('child_process');
 	var bip32 = require("bip32")
+	var bip38 = require('bip38');
 	var bip39 = require('bip39');
 	var bitcoinjs = require('bitcoinjs-lib');
 	var coinselect = require('coinselect');
@@ -29,8 +30,11 @@ module.exports = async function (app) {
 	accountManager.createSeed = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			var escpass = pass.replace(/'/g, "\\'");
-			var mnemonic = child.execSync(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' mnemonic-new ',app.config.proc_opts).toString().replace("\n","");
-			const seed = await bip39.mnemonicToSeed(mnemonic,pass);
+			/*console.log("1",app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' mnemonic-new ')
+			var mnemonic = child.execSync(app.config.bxCommand+' mnemonic-new  0d275a881757fcc70a680981d5edf286ea7a8f46d64d27ca86e190695947663e').toString().replace("\n","");
+			console.log("2")*/
+			const mnemonic = bip39.generateMnemonic(256);
+			const seed = bip39.mnemonicToSeedSync(mnemonic,pass)
 			const rootBtc = bip32.fromSeed(seed,app.config.networkSegWitCompat);
 			const rootBtcBc1 = bip32.fromSeed(seed,app.config.networkSegWit);
 			const rootEth = bip32.fromSeed(seed);
@@ -56,12 +60,13 @@ module.exports = async function (app) {
 		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
-			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
-			var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
-			var count = await accountManager.getCount();
+			var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
+			// var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
+			 var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
+			 var count = await accountManager.getCount();
 
-			app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet,mnemo:mnemonic});
-			resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});
+			 app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet,mnemo:mnemonic});
+			 resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});
 
 		})
 	}
