@@ -11,26 +11,32 @@ const Grid = require('gridfs-stream');
 const GridFsStorage = require('multer-gridfs-storage');
 var mongoose = require('mongoose');
 
+
+
+
+const storage = new GridFsStorage({
+	url:  process.env.MONGOURI,
+	options: { useNewUrlParser: true,useUnifiedTopology: true },
+	file: (req, file) => {
+	  return new Promise((resolve, reject) => {
+		  const filename = uuidv4();
+		  const fileInfo = {
+			filename: filename,
+			bucketName: 'campaign_kit'
+		  };
+		  resolve(fileInfo);
+	  });
+	}
+  });
+const upload = multer({ storage });
+
+
 var connection;
 let app
 (connection = async  ()=> {
     app = await requirement.connection();
    
 })();
-const storage = new GridFsStorage({
-    url: process.env.MONGOURI,
-    options: { useNewUrlParser: true,useUnifiedTopology: true },
-    file: (req, file) => {
-      return new Promise((resolve, reject) => {
-          const filename = uuidv4();
-          const fileInfo = {
-            filename: filename,
-            bucketName: 'campaign_kit'
-          };
-          resolve(fileInfo);
-      });
-    }
-  });
 
 
   const storageImage = new GridFsStorage({
@@ -776,4 +782,104 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		}
 
 	  }
+
+
+	  exports.saveCampaign = async( req , res)=>{
+
+
+		try{
+		
+			const campaign = req.body;
+			campaign.idNode = "0" + req.user._id;
+			campaign.createdAt=Date.now();
+			campaign.updatedAt=Date.now();
+			campaign.type='draft';
+		const draft = await app.db.campaigns().insertOne(campaign);
+			res.end(JSON.stringify(draft.ops[0])).status(200);
+	
+		} catch (err) {
+			res.end(JSON.stringify(err));
+		}
+
+
+	  }
+
+
+	  exports.kits= async(req, response)=>{
+
+
+		try {
+		
+		const idCampaign= req.params.idCampaign;
+		gfsKit.files.find({ 'campaign.$id':app.ObjectId(idCampaign)}).toArray(function (err, files) {
+		response.end(JSON.stringify(files));
+		})
+		}catch (err) {
+		response.end(JSON.stringify(err));
+		}
+
+
+	  }
+
+
+
+	  exports.addKits =  async(req, response)=>{
+		
+
+		try {
+		files=req.files;
+		if(typeof req.body.link === "string"){
+			links=Array(req.body.link);
+		}else{
+		     links=req.body.link;
+		}
+
+		const idCampaign = req.body.campaign
+		if(files){
+				files.forEach((file)=>{
+					gfsKit.files.updateOne({ _id: file.id },{$set: { campaign : {
+						"$ref": "campaign",
+						"$id": app.ObjectId(idCampaign),
+						"$db": "atayen"
+					 }} })
+				})
+		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
+		} if(links){
+				links.forEach((link)=>{
+					 gfsKit.files.insertOne({ campaign : {
+					"$ref": "campaign",
+					"$id": app.ObjectId(idCampaign),
+					"$db": "atayen"
+			 		}, link : link })
+				})
+
+			 res.send('Kit uploaded').status(200);
+			 return;
+		}
+		res.send('No matching data').status(401);
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+
+
+	  }
+
+
+	  exports.update = async(req , res)=>{
+
+
+		try {
+			let campaign = req.body;
+			campaign.updatedAt=Date.now();
+		
+		   const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+		   const updatedCampaign = result.value
+		   res.send(JSON.stringify({updatedCampaign, success : "updated"}));
+   } catch (err) {
+   
+	   app.account.sysLogError(err)
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+
+	  }
+
 
