@@ -511,7 +511,29 @@ exports.prices= async(req , res)=>{
 }
 
 
+exports.createNewWallet= async(req , res)=>{
+    try {
+        var id = req.user._id;
+        var pass = req.body.pass;
+        var count = await app.account.hasAccount(id);	
+        var ret = {err:"account_exists"};
+        if(!count)
+        {
+            var ret = await app.account.createSeed(id,pass);
+        }
+        res.end(JSON.stringify(ret));
 
+
+    } catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }finally{
+        if(ret.address) await app.db.walletUserNode().insertOne({
+            wallet:ret.address,
+            idUser:id
+        })
+       !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
+    }
+}
 
 
 
