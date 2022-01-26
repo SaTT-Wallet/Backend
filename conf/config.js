@@ -145,7 +145,7 @@ module.exports = async function (app) {
       ":" +
       config.mongoPort +
       "/" +
-      config.mongoBaseCrm;
+      config.mongoBase;
 
     config.walletCollection = process.env.WALLETCOLLECTION;
     config.contractCollection = process.env.CONTRACTCOLLECTION;

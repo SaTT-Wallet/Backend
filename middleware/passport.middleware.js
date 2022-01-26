@@ -573,7 +573,10 @@ exports.addyoutubeChannel= async (req, accessToken, refreshToken, profile, cb) =
 module.exports.verifyAuth = (req, res, next)=> {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1] 
-    !token && res.end(JSON.stringify({ error: "token required" }));
+    if(!token){
+        res.end(JSON.stringify({ error: "token required" }));
+        return;
+    }  
      
       jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
   
