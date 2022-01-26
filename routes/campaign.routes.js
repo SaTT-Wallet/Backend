@@ -3,7 +3,7 @@ let router = express.Router();
 const {campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications, 
-    validateCampaign,gains} = require('../controllers/campaign.controller')
+    validateCampaign,gains , addKits,update, kits, saveCampaign, upload} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
 
  	/**
@@ -374,7 +374,215 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:error message
  */
 
-  router.post('/gains',gains);
+  router.post('/gains', verifyAuth,gains);
+
+
+   /**
+ * @swagger
+ * /campaign/save:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: create new campaign.
+ *     description:  user create new campaign  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               resume:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               countries:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string              
+ *               token:
+ *                 type: object
+ *                 properties:
+ *                    name:
+ *                      type: string
+ *                    type:
+ *                      type: string
+ *                    addr:
+ *                      type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               endDate:
+ *                 type: date
+ *               startDate:
+ *                 type: date 
+ *               remuneration:
+ *                 type: string 
+ *               cost:
+ *                 type: string 
+ *               cost_usd:
+ *                 type: string 
+ *               ratios:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               bounties:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ * 
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+
+    router.post('/save', verifyAuth,saveCampaign);
+
+
+
+
+       /**
+ * @swagger
+ * /campaign/{idCampaign}/kits:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: get campaign pending link
+ *     description: return to user the list of campaign promp ALl <br> without access_token 
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: idCampaign
+ *         description: the  idCampaign.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description:[list of campaigns]
+ *       "500":
+ *          description: error:"error"
+ */
+
+
+        router.get('/:idCampaign/kits',verifyAuth,kits);
+
+
+
+
+           /**
+ * @swagger
+ * /campaign/addKits:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: add kits.
+ *     description:  user create new campaign  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaign:
+ *                 type: string
+ *               files:
+ *                 type: string
+ *                 format : binary
+ *               link:
+ *                 type: string
+ 
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+
+    router.post('/addKits',upload,addKits);
+
+
+
+
+
+
+
+   /**
+ * @swagger
+ * /campaign/update:
+ *   put:
+ *     tags:
+ *     - "campaign"
+ *     summary: create new campaign.
+ *     description:  user create new campaign  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               resume:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               countries:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string              
+ *               token:
+ *                 type: object
+ *                 properties:
+ *                    name:
+ *                      type: string
+ *                    type:
+ *                      type: string
+ *                    addr:
+ *                      type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               endDate:
+ *                 type: date
+ *               startDate:
+ *                 type: date 
+ *               remuneration:
+ *                 type: string 
+ *               cost:
+ *                 type: string 
+ *               cost_usd:
+ *                 type: string 
+ *               ratios:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               bounties:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ * 
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
+
+    router.put('/update/:idCampaign', verifyAuth,update);
+
 
 module.exports = router;
 
