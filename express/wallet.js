@@ -1112,11 +1112,12 @@ module.exports = function (app) {
 			var cred = await app.account.unlock(res.id,pass);
 			cred.from_id = res.id;
 			var result = await app.account.getAccount(res.id);
-			let balance = await app.bep20.getBalance(req.body.token,result.address);
-			if(new Big(amount).gt(new Big(balance.amount)))
-			response.end(JSON.stringify({message:"not_enough_budget"}));
+			let balance = await app.erc20.getBalance(req.body.token,result.address);
+			if(new Big(amount).gt(new Big(balance.amount))){
+				response.end(JSON.stringify({message:"not_enough_budget"}));
+				return;
+			}
 			var ret = await app.erc20.transfer(tokenERC20,to,amount,cred);
-			
 			response.end(JSON.stringify(ret));
 		} catch (err) {
 				response.end('{"error":"'+(err.message?err.message:err.error)+'"}');

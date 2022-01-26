@@ -1049,7 +1049,6 @@ accountManager.handleId=async function () {
 				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
-				   
 				   while(true) {
 		   
 					 for (var i = 0;i<res.data.length;i++) {

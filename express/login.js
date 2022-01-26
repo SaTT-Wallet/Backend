@@ -306,6 +306,9 @@ module.exports = function(app) {
             var instagram_id = false;
             var accountsUrl = "https://graph.facebook.com/" + app.config.fbGraphVersion + "/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token=" + accessToken;
             var res = await rp({ uri: accountsUrl, json: true })
+            if(res.data.length === 0)
+                return cb(null, { id: user_id, token: accessToken },{message:'channel_obligatoire'})
+            
             while (true) {
                 for (var i = 0; i < res.data.length; i++) {
                     let page = { UserId: user_id, username: res.data[i].username, token: res.data[i].access_token, picture: res.data[i].picture.data.url, name: res.data[i].name };
@@ -856,7 +859,7 @@ module.exports = function(app) {
         async function(req, accessToken, refreshToken, profile, done) {
             let state = req.query.state.split('|');
             let user_id = +state[0];
-            let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id },{email:profile.emails[0].value}]}).toArray();
+            let userExist = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray();
             if (userExist.length) {
 
                 done(null, profile, {
@@ -880,7 +883,7 @@ module.exports = function(app) {
         async function(req, accessToken, refreshToken, profile, cb) {
             let state = req.query.state.split('|');
             let user_id = +state[0];
-            let users = await app.db.sn_user().find({$or:[{ idOnSn: profile._json.token_for_business },{email:profile._json.email}]}).toArray()
+            let users = await app.db.sn_user().find({ idOnSn: profile._json.token_for_business }).toArray()
             if (users.length) {
                 cb(null, profile, {
                     status: false,
@@ -1341,7 +1344,7 @@ module.exports = function(app) {
                     res.end(JSON.stringify({ error: "AC_Token expired" }))
                 }
             } else {
-                res.end("Invalid Access Token")
+                res.end(JSON.stringify({error:"Invalid Access Token"}))
             }
         }
     }
