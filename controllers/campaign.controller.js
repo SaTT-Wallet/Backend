@@ -12,6 +12,7 @@ const GridFsStorage = require('multer-gridfs-storage');
 var mongoose = require('mongoose');
 
 
+const { v4: uuidv4 } = require('uuid');
 
 
 const storage = new GridFsStorage({
@@ -823,9 +824,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 
 
 
-	  exports.addKits =  async(req, response)=>{
-		
-
+	  exports.addKits =  async(req, res)=>{
 		try {
 		files=req.files;
 		if(typeof req.body.link === "string"){
@@ -833,9 +832,9 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		}else{
 		     links=req.body.link;
 		}
-
 		const idCampaign = req.body.campaign
-		if(files){
+		if(files || links){
+			if(files){
 				files.forEach((file)=>{
 					gfsKit.files.updateOne({ _id: file.id },{$set: { campaign : {
 						"$ref": "campaign",
@@ -843,7 +842,6 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 						"$db": "atayen"
 					 }} })
 				})
-		 res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
 		} if(links){
 				links.forEach((link)=>{
 					 gfsKit.files.insertOne({ campaign : {
@@ -853,9 +851,11 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 			 		}, link : link })
 				})
 
-			 res.send('Kit uploaded').status(200);
-			 return;
 		}
+		res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
+		return;
+		}
+		
 		res.send('No matching data').status(401);
 		} catch (err) {
 			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
