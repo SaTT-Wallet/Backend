@@ -78,9 +78,7 @@ module.exports = async function (app) {
 		app.db.notification = function () {
             return db.db(app.config.mongoBase).collection(app.config.notifCollection);
         };
-		app.db.CampaignLinkStatistic = function () {
-            return db.db(app.config.mongoBase).collection(app.config.linkStatCollection);
-        };
+		
 		app.db.UserLegal = function () {
             return db.db(app.config.mongoBase).collection(app.config.legalCollection);
         };
@@ -89,9 +87,7 @@ module.exports = async function (app) {
             return db.db(app.config.mongoBase).collection(app.config.userIDCollection);
         };
 
-		app.db.contact = function () {
-            return db.db(app.config.mongoBase).collection(app.config.contactCollection);
-        };
+	
 		app.db.campaign_link = function () {
             return db.db(app.config.mongoBase).collection(app.config.linkCollection);
         };
