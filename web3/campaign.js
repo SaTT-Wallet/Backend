@@ -35,7 +35,6 @@ module.exports = async function (app) {
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
-		console.log("campaign",campaign);
 		if(campaign && campaign.contract)
 		{
 
@@ -145,8 +144,9 @@ module.exports = async function (app) {
 			var ctr = await campaignManager.getContractToken(token);
 			var gasPrice = await ctr.getGasPrice();
 			// var gas = 600000;
+			console.log("1")
 			var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
-
+console.log("2")
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});

@@ -39,7 +39,6 @@ module.exports = async function (app) {
 	tokenManager.getApproval = async function (addr,spender) {
 		return new Promise(async (resolve, reject) => {
 			var amount = await tokenManager.contract.methods.allowance(addr,spender).call();
-			console.log("approval",addr,"for",spender,amount.toString());
 			resolve({amount:amount.toString()});
 		});
 	}
