@@ -44,7 +44,11 @@ const {
     addTwitterChannel,
     addlinkedinChannel,
     addyoutubeChannel,
-    verifyAuth
+    verifyAuth,
+    telegram_connect_function,
+    connectTelegramAccount,
+    linkGoogleAccount,
+    linkFacebookAccount
 } = require('../middleware/passport.middleware')
 
 
@@ -588,5 +592,125 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  */
   router.get('/legalUser/:id',verifyAuth, checkOnBoarding)
 
+
+    /**
+ * @swagger
+ * /profile/connect/facebook:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: link account with facebook.
+ *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/connect/facebook/:idUser',(req, res, next) => {
+    let state = req.params.idUser + "|" + req.query.redirect;
+    passport.authenticate('link_facebook_account', { state: state })(req, res, next)
+})
+    
+passport.use('link_facebook_account', new FbStrategy(
+app.config.facebookCredentials("profile/callback/link/facebook"),
+async(req, accessToken, refreshToken, profile, cb) => {
+    linkFacebookAccount(req, accessToken, refreshToken, profile, cb)
+}));
+
+router.get('/callback/link/facebook',
+    passport.authenticate('link_facebook_account',
+     { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
+      async(req, response) => {
+        try {
+        let state = req.query.state.split('|');
+        let url = state[1];
+        response.redirect(app.config.basedURl + url + '?message=' + req.authInfo.message);
+
+        } catch (e) {
+            console.log(e)
+        }
+    }
+);
+
+   /**
+ * @swagger
+ * /profile/connect/google:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: link account with google.
+ *     description: user asked for signin with google, system redirect him to signin google page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+    router.get('/connect/google/:idUser',(req, res, next) => {
+        let state = req.params.idUser + "|" + req.query.redirect;
+        passport.authenticate('link_google_account', { scope: ['profile', 'email'], state: state })(req, res, next)
+    })
+        
+    passport.use('link_google_account', new GoogleStrategy(
+    app.config.googleCredentials("profile/callback/link/google"),
+    async(req, accessToken, refreshToken, profile, done) => {
+        linkGoogleAccount(req, accessToken, refreshToken, profile, done)
+    }));
+    
+    router.get('/callback/link/google',
+    passport.authenticate('link_google_account',
+         { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
+          async(req, res) => {
+            try {
+                let state = req.query.state.split('|');
+                let url = state[1];
+                let message = req.authInfo.message;
+                res.redirect(app.config.basedURl + url + '?message=' + message);
+    
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    );
+
+      /**
+ * @swagger
+ * /profile/connect/telegram:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: link account with telegram.
+ *     description: user asked for signin with telegram, system redirect him to signin telegram page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+       router.get('/signup/telegram',
+       passport.authenticate('link_telegram_account'),
+       connectTelegramAccount
+       )
+        
+       passport.use("connect_telegram",
+       new TelegramStrategy({
+               botToken: app.config.telegramBotToken,
+               passReqToCallback: true
+           },
+           async (req, profile, cb) => {
+               telegram_connect_function(req, profile, cb);
+              
+           }))
+    
+    router.get('/callback/link/google',
+    passport.authenticate('link_google_account',
+         { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
+          async(req, res) => {
+            try {
+                let state = req.query.state.split('|');
+                let url = state[1];
+                let message = req.authInfo.message;
+                res.redirect(app.config.basedURl + url + '?message=' + message);
+    
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    );
 
       module.exports = router;
