@@ -3,7 +3,7 @@ let express = require('express');
 let router = express.Router();
 const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
-	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices} = require('../controllers/wallet.controller')
+	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices,getMnemo,verifyMnemo} = require('../controllers/wallet.controller')
 const { verifyAuth} =require('../middleware/passport.middleware');
 
 
@@ -513,6 +513,47 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *          description: error:error message
  */
 	router.get('/prices', prices)
+
+
+   /**
+ * @swagger
+ * /wallet/getMnemo:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get passphrase.
+ *     description: get wallet seed.
+ *     responses:
+ *       "200":
+ *          description: mnemo:[seed]
+ *       "500":
+ *          description: error:error message
+ */
+ router.get('/getMnemo',verifyAuth,getMnemo);
+
+   /**
+ * @swagger
+ * /wallet/verifyMnemo:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: check passphrase.
+ *     description: verify if the user got his seed phrase.
+  *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               mnemo:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: mnemo:[seed]
+ *       "500":
+ *          description: error:error message
+ */
+ router.post('/verifyMnemo',verifyAuth,verifyMnemo);
 
 
 module.exports = router;
