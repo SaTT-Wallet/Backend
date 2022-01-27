@@ -1,6 +1,6 @@
 let express = require('express');
 let router = express.Router();
-const {campaign,pendingLink, campaigns, 
+const {bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
@@ -494,7 +494,6 @@ router.post('/apply',verifyAuth,apply);
 *                 format : base64
 *               link:
 *                 type: string
-
 *     responses:
 *       "200":
 *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
@@ -683,6 +682,71 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:"error"
  */
      router.post('/remaining',getFunds);
+
+
+
+                /**
+ * @swagger
+ * /campaign/erc20/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: erc20 aprroval
+ *     description: erc20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description:[list of links]
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.post('/erc20/approval',erc20Approval);
+
+
+
+
+/**
+ * @swagger
+ * /campaign/bep20/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: bep20 aprroval
+ *     description: bep20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description:[list of links]
+ *       "500":
+ *          description: error:"error"
+ */
+ router.post('/bep20/approval',bep20Approval);
+     
      
 module.exports = router;
 

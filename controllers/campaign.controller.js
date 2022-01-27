@@ -1020,3 +1020,28 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 			}
 		}
 	  }
+
+
+
+	  exports.bep20Approval = async ( req , res)=>{
+
+
+
+		var token = req.params.token;
+		var spender = req.params.spender;
+
+
+		var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
+
+		response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
+	  }
+
+
+
+
+	  exports.erc20Approval = async ( req , res)=>{
+		var token = req.params.token;
+		var spender = req.params.spender;
+		var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
+		response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
+	  }
