@@ -427,8 +427,8 @@ exports.support = async( req, res)=>{
     try{
 
 		let[name,email,subject,message] = [req.body.name,req.body.email,req.body.subject,req.body.message];
-
-		fs.readFile(__dirname + '../express/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => {
+//../express/emailtemplate/contact_support.html
+		fs.readFile(__dirname + '/../express/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => {
 		  let mailContent={
 			  SaTT:{
 				  Url:app.config.baseUrl+'FAQ'
@@ -449,16 +449,23 @@ exports.support = async( req, res)=>{
 			  html: dynamic_html
 		 };
 
+         console.log("mailOptions", mailOptions);
+
 	  await transporter.sendMail(mailOptions, function(error, info){
+
+
+        console.log('info',info);
+
 			 if (error) {
 				 res.end(JSON.stringify(error))
 			 } else {
+
 				 res.end(JSON.stringify(info.response))
 			 }
 		   });
 		})
 		}catch (err) {
-		  response.send(JSON.stringify(err));
+		  res.send(JSON.stringify(err));
 	  }
 
 }

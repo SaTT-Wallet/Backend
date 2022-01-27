@@ -696,7 +696,7 @@ router.post('/apply',verifyAuth,apply);
 
                 /**
  * @swagger
- * /campaign/erc20/approval:
+ * /campaign/erc20/{token}/approval/{spender}/{addr}:
  *   post:
  *     tags:
  *     - "campaign"
@@ -717,19 +717,19 @@ router.post('/apply',verifyAuth,apply);
  *         required: true
  *     responses:
  *       "200":
- *          description:[list of links]
+ *          description: data
  *       "500":
  *          description: error:"error"
  */
 
-router.post('/erc20/approval',erc20Approval);
+router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
 
 
 
 
 /**
  * @swagger
- * /campaign/bep20/approval:
+ * /campaign/bep20/{token}/approval/{spender}/{addr}:
  *   post:
  *     tags:
  *     - "campaign"
@@ -750,11 +750,11 @@ router.post('/erc20/approval',erc20Approval);
  *         required: true
  *     responses:
  *       "200":
- *          description:[list of links]
+ *          description: data
  *       "500":
  *          description: error:"error"
  */
- router.post('/bep20/approval',bep20Approval);
+ router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
      
      
 module.exports = router;

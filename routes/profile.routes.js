@@ -38,7 +38,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
+const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
@@ -566,10 +566,9 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
 
 
 
-
  /**
  * @swagger
- * /profile/legalUser/{id}:
+ * /profile/legalUserUpload/{id}:
  *   get:
  *     tags:
  *     - "profile"
@@ -586,7 +585,41 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-  router.get('/legalUser/:id',verifyAuth, checkOnBoarding)
+  router.get('/legalUserUpload/:id',verifyAuth, FindUserLegalProfile)
 
 
-      module.exports = router;
+
+
+     /**
+ * @swagger
+ * /profile/SattSupport:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: satt contact.
+ *     description: send email to satt contact.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email :
+ *                   type: string
+ *               subject:
+ *                   type: string
+ *               message:
+ *                   type: string
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+      router.post('/SattSupport',support)
+
+
+
+  module.exports = router;
