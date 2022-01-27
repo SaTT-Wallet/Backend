@@ -11,7 +11,7 @@ const { route } = require('./login.routes');
 
  	/**
  * @swagger
- * /campaign/launchBounty:
+ * /launch/performance:
  *   post:
  *     tags:
  *     - "campaign"
@@ -616,6 +616,8 @@ router.post('/apply',verifyAuth,apply);
  * @swagger
  * /campaign/funding:
  *   post:
+ *     tags:
+ *     - "campaign"
  *     summary: Increase budget.
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
