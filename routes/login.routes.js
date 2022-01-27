@@ -34,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin} = require('../controllers/login.controller')
+const {captcha, socialdisconnect,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -45,7 +45,8 @@ const {
     googleAuthSignin,
     facebookAuthSignin,
     signup_telegram_function,
-    signin_telegram_function
+    signin_telegram_function,
+    verifyAuth
     
 } = require('../middleware/passport.middleware')
 
@@ -588,4 +589,28 @@ new TelegramStrategy({
   *          description: error={error:true,message:'account_already_used'}
   */
 router.post('/socialSignin',socialSignin)
+
+
+
+
+  /**
+  * @swagger
+  * /auth/disconnect/{social}:
+  *   put:
+  *     tags:
+  *     - "auth"
+  *     summary: disconnect social account.
+  *     description: user disconnect social account <br> with access_token.
+  *     parameters:
+  *       - name: social
+  *         description: social can be facebook , google or telegram.
+  *         in: path
+  *         required: true
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+   router.put('/disconnect/:social', verifyAuth,socialdisconnect)
 module.exports = router;
