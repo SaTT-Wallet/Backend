@@ -1,6 +1,7 @@
 var requirement= require('../helpers/utils')
 const crypto = require('crypto');
-
+const qrcode = require('qrcode');
+const speakeasy = require('speakeasy');
 var connection;
 let app
 (connection = async function (){
@@ -219,10 +220,8 @@ exports.resendConfirmationToken= async(req, response)=>{
 
 exports.saveFirebaseAccessToken= async(req, response)=>{
     try {
-        let token= await app.crm.checkToken(req,response);
-		const auth = await app.crm.auth(token);
 		const data = req.body;
-		await app.db.sn_user().updateOne({_id:+auth.id}, {$set:{fireBaseAccessToken : data.fb_accesstoken}})
+		await app.db.sn_user().updateOne({_id:req.user._id}, {$set:{fireBaseAccessToken : data.fb_accesstoken}})
 		response.end(JSON.stringify({message : "success"}));
 	} catch (err) {
 		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
@@ -364,12 +363,11 @@ exports.socialSignUp= async(req,res)=>{
        
                 res.send(JSON.stringify({ message: "account_exists" }))
          
-        } else {
-            var buff = Buffer.alloc(32);
-            var token = crypto.randomFillSync(buff).toString('hex');
+        } else {;
             var date = Math.floor(Date.now() / 1000) + 86400;
             var user = await app.db.sn_user().insertOne(snUser);
-            await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
+            let token = app.generateAccessToken(user);
+            //await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
             var param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
             res.send(JSON.stringify(param))
         }
@@ -392,11 +390,10 @@ exports.socialSignin = async(req, res)=>{
         }            
         if (user) {                
             var date = Math.floor(Date.now() / 1000) + 86400;
-            var buff = Buffer.alloc(32);
-            var token = crypto.randomFillSync(buff).toString('hex');
-            var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
-            var token = await app.db.accessToken().findOne({ user_id: user._id });
-            var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
+
+            let userAuth = app.cloneUser(user);
+            let token = app.generateAccessToken(userAuth);
+            var param = { "access_token": token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
             res.send(JSON.stringify(param))
 
         } else {
@@ -408,6 +405,38 @@ exports.socialSignin = async(req, res)=>{
 
 }
 
+module.exports.getQrCode = async (req,res)=> {
+    try {
+        let id = +req.params.id
+        var secret = speakeasy.generateSecret({
+            name: "SaTT_Token " + id
+        });
+        await app.db.sn_user().updateOne({ _id: id }, { $set: { secret: secret.ascii } });
+        qrcode.toDataURL(secret.otpauth_url, function(err, data) {
+            res.send(JSON.stringify({ qrCode: data, secret: secret.base32, googleAuthName: `SaTT_Token ${req.params.id}` }));
+        })
+    } catch (err) {
+        res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
+    }
+}
+
+module.exports.verifyQrCode = async (req, res) => {
+    try {
+        let id = +req.body.id
+        let user = await app.db.sn_user().findOne({ _id: id })
+        secret = user.secret;
+        var code = req.body.code;
+        var verified = speakeasy.totp.verify({
+            secret: secret,
+            encoding: 'ascii',
+            token: code
+        })
+        res.json({ verifiedCode: verified });
+
+    } catch (err) {
+        res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
+    }
+}
 
 
 

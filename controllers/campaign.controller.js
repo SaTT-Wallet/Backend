@@ -1002,7 +1002,7 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		res.json(Links);
 	  }
 
-      module.exports.getFunds = async (req, res)=>{
+      module.exports.getFunds = async (req, response)=>{
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		try {

@@ -2,6 +2,8 @@
 
 
 var requirement= require('../helpers/utils')
+const rp = require('request-promise');
+const Big = require('big.js');
 var connection;
 let app
 (connection = async  ()=>{
@@ -553,8 +555,81 @@ exports.createNewWallet= async(req , res)=>{
             wallet:ret.address,
             idUser:id
         })
-       !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
     }
+}
+
+module.exports.removeToken = async (req,res) => {
+    try {
+        let id = req.user._id
+        const {tokenAdress} = req.body;
+        let token2 = await app.db.customToken().findOne({tokenAdress})
+        let splicedArray = token2.sn_users.filter(item => item !== id)
+        await app.db.customToken().updateOne({tokenAdress},{$set:{sn_users:splicedArray}});
+        res.end(JSON.stringify({message:"token removed"}));
+        }
+    catch (err) {
+       res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+}
+
+module.exports.getTransactionHistory =  async (req,response) => {
+
+    var address = req.params.address;
+	var btcAddress=req.params.addressBTC
+
+	try {
+		//ETH Network
+		const requestOptions_ETH_transactions = {
+			method: 'GET',
+			uri: app.config.etherscanApiUrl_+address+"&action=txlist",
+			json: true,
+			gzip: true
+		  };
+
+		const requestOptions_ERC20_transactions = {
+			method: 'GET',
+			uri: app.config.etherscanApiUrl_+address+"&action=tokentx",
+			json: true,
+			gzip: true
+		  };
+
+		 /* const requestOptions_BTC_transactions = {
+			method: 'GET',
+			uri: 'https://blockchain.info/rawaddr/'+ btcAddress ,
+			json: true,
+			gzip: true
+		};*/
+
+		  //var BTC_transactions =  await rp(requestOptions_BTC_transactions);
+		  //console.log(BTC_transactions)
+		  var Eth_transactions =  await rp(requestOptions_ETH_transactions);
+		  var ERC20_transactions= await rp(requestOptions_ERC20_transactions);
+		  var all_Eth_transactions=app.cryptoManager.FilterTransactionsByHash(Eth_transactions,ERC20_transactions,'ERC20')
+
+        //BNB Network
+		const requestOptions_BNB_transactions = {
+			method: 'GET',
+			uri: app.config.bscscanApi+address+"&action=txlist",
+			json: true,
+			gzip: true
+		  };
+
+		const requestOptions_BEP20_transactions = {
+			method: 'GET',
+			uri: app.config.bscscanApi+address+"&action=tokentx",
+			json: true,
+			gzip: true
+		  };
+          
+		  var BNB_transactions= await rp(requestOptions_BNB_transactions);
+		  var BEP20_transactions= await rp(requestOptions_BEP20_transactions);
+          var all_BNB_transactions=app.cryptoManager.FilterTransactionsByHash(BNB_transactions,BEP20_transactions,'BEP20')
+           console.log(all_BNB_transactions,"okodkpsdfk")
+		  const All_Transactions = all_Eth_transactions.concat(all_BNB_transactions)
+		  response.json(All_Transactions);
+	} catch (err) {
+		response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
 }
 
 
