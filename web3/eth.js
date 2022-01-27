@@ -6,6 +6,9 @@ module.exports = async function (app) {
 	var HDKey = require('hdkey');
 	var bitcore = require('bitcore-lib');
 
+	var bip38 = require('bip38')
+	var wif = require('wif')
+
 	var fs = require("fs");
 	var rp = require('request-promise');
 	var cron = require('node-cron');
@@ -72,8 +75,11 @@ module.exports = async function (app) {
 
 		var escpass = pass.replace(/'/g, "\\'");
 
-		var priv = child.execSync(app.config.bxCommand+' ek-to-ec \''+escpass+'\' '+account.btc.ek,app.config.proc_opts).toString().replace("\n","");
-		var wif = child.execSync(app.config.bxCommand+' ec-to-wif '+priv,app.config.proc_opts).toString().replace("\n","");
+		var priv  = bip38.decrypt(account.btc.ek, escpass);
+		//var priv = child.execSync(app.config.bxCommand+' ek-to-ec \''+escpass+'\' '+account.btc.ek,app.config.proc_opts).toString().replace("\n","");
+		//var wif = child.execSync(app.config.bxCommand+' ec-to-wif '+priv,app.config.proc_opts).toString().replace("\n","");
+
+		var wif = wif.encode(0x80, priv.privateKey, priv.compressed);
 
 		var addr = account.btc.addressSegWitCompat;
 
