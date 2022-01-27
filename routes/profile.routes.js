@@ -38,7 +38,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
+const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
@@ -570,10 +570,9 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
 
 
 
-
  /**
  * @swagger
- * /profile/legalUser/{id}:
+ * /profile/legalUserUpload/{id}:
  *   get:
  *     tags:
  *     - "profile"
@@ -590,7 +589,41 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-  router.get('/legalUser/:id',verifyAuth, checkOnBoarding)
+  router.get('/legalUserUpload/:id',verifyAuth, FindUserLegalProfile)
+
+
+
+
+     /**
+ * @swagger
+ * /profile/SattSupport:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: satt contact.
+ *     description: send email to satt contact.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email :
+ *                   type: string
+ *               subject:
+ *                   type: string
+ *               message:
+ *                   type: string
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+      router.post('/SattSupport',support)
+
 
 
     /**
@@ -682,7 +715,7 @@ router.get('/callback/link/facebook',
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-       router.get('/signup/telegram',
+       router.get('/connect/telegram',
        passport.authenticate('link_telegram_account'),
        connectTelegramAccount
        )
@@ -697,20 +730,5 @@ router.get('/callback/link/facebook',
               
            }))
     
-    router.get('/callback/link/google',
-    passport.authenticate('link_google_account',
-         { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
-          async(req, res) => {
-            try {
-                let state = req.query.state.split('|');
-                let url = state[1];
-                let message = req.authInfo.message;
-                res.redirect(app.config.basedURl + url + '?message=' + message);
     
-            } catch (e) {
-                console.log(e)
-            }
-        }
-    );
-
       module.exports = router;
