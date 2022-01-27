@@ -5,13 +5,135 @@ const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns,
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
     getLinks,getFunds,gains , addKits,update, kits, saveCampaign, upload,
-    validateCampaign} = require('../controllers/campaign.controller')
+    validateCampaign,bep20Allow,erc20Allow} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
 const { route } = require('./login.routes');
 
+
+
+
+
+ /**
+  * @swagger
+  * /campaign/bep20/{token}/approval/{spender}/{addr}:
+  *   post:
+  *     tags:
+  *     - "campaign"
+  *     summary: bep20 aprroval
+  *     description: bep20 aprroval
+  *     parameters:
+  *       - name: token
+  *         description: the  token.
+  *         in: path
+  *         required: true
+  *       - name: spender
+  *         description: the  spender.
+  *         in: path
+  *         required: true
+  *       - name: addr
+  *         description: the  addr.
+  *         in: path
+  *         required: true
+  *     responses:
+  *       "200":
+  *          description: data
+  *       "500":
+  *          description: error:"error"
+  */
+  router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
+     
+
+   /**
+  * @swagger
+  * /campaign/bep20/allow:
+  *   post:
+  *     tags:
+  *     - "campaign"
+  *     summary: bep20 allow
+  *     description: bep20 allow
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               spender:
+  *                 type: string
+  *               amount:
+  *                 type: string
+  *               pass:
+  *                 type: string
+  *               token:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: data
+  *       "500":
+  *          description: error:"error"
+  */
+    router.post('/bep20/allow',verifyAuth,bep20Allow);
+/**
+ * @swagger
+ * /campaign/erc20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: erc20 aprroval
+ *     description: erc20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+
+ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
+   /**
+  * @swagger
+  * /campaign/erc20/allow:
+  *   post:
+  *     tags:
+  *     - "campaign"
+  *     summary: erc20 allow
+  *     description: erc20 allow
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               spender:
+  *                 type: string
+  *               amount:
+  *                 type: string
+  *               token:
+  *                 type: string
+  *               pass:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: data
+  *       "500":
+  *          description: error:"error"
+  */
+  router.post('/erc20/allow',verifyAuth,erc20Allow);
+    
  	/**
  * @swagger
- * /campaign/launchBounty:
+ * /campaign/launch/performance:
  *   post:
  *     tags:
  *     - "campaign"
@@ -23,15 +145,26 @@ const { route } = require('./login.routes');
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               token:
- *                 type: string
- *               to:
+ *               ERC20token:
  *                 type: string
  *               amount:
  *                 type: string
- *               pass:
+ *               contract:
  *                 type: string
- *               symbole:
+ *               dataUrl:
+ *                 type: string
+ *               endDate:
+ *                 type: integer
+ *               startDate:
+ *                 type: integer
+ *               idCampaign:
+ *                 type: string
+ *               ratios:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               pass:
  *                 type: string
  *     responses:
  *       "200":
