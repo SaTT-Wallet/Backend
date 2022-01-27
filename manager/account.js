@@ -801,45 +801,8 @@ module.exports = async function (app) {
 
 			}
 			delete ret.address
-			for(const Amount in ret){
-				
-			      let crypto={}
-				// if(Amount=="ether_balance"){
-				// 	[crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("ETH");
-				// 	crypto.name='Ethereum';
-				// 	crypto.price=CryptoPrices['ETH'].price;
-				// 	crypto.variation=CryptoPrices['ETH'].percent_change_24h;
-				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['ETH'].price))*1
-				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
-				// 	listOfCrypto.push(crypto);
-				// }else if(Amount=="satt_balance"){
-				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['SATT'].price))*1
-				// 	crypto.name='SaTT';
-                //     [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("SATT");
-				// 	crypto.price=CryptoPrices['SATT'].price;
-				// 	crypto.variation=CryptoPrices['SATT'].percent_change_24h;
-				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
-				// 	listOfCrypto.push(crypto);
-				// }else if(Amount=="bnb_balance"){
-				// 	crypto.symbol='BNB';
-				// 	crypto.name='BNB';
-				// 	crypto.undername='(SMART CHAIN)';
-				// 	crypto.undername2='BNB';
-				// 	crypto.price=CryptoPrices['BNB'].price;
-				// 	crypto.variation=CryptoPrices['BNB'].percent_change_24h;
-				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber() + "")*CryptoPrices['BNB'].price))*1
-				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(18)).toNumber());
-				// 	listOfCrypto.push(crypto);
-				// }else if(Amount=="btc_balance"){
-				// 	crypto.name='Bitcoin';
-                //     [crypto.symbol , crypto.undername, crypto.undername2] = Array(3).fill("BTC");
-				// 	crypto.price=CryptoPrices['BTC'].price;
-				// 	crypto.variation=CryptoPrices['BTC'].percent_change_24h;
-				// 	crypto.total_balance=((app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber() + "")*CryptoPrices['BTC'].price))*1
-				// 	crypto.quantity=app.token.filterAmount(new Big(ret[Amount]*1).div(new Big(10).pow(8)).toNumber());
-				// 	listOfCrypto.push(crypto);
-				// }
-				
+			for(const Amount in ret){	
+			      let crypto={}	
 				let tokenSymbol = Amount.split('_')[0].toUpperCase();
 				let decimal =  tokenSymbol === "BTC" ? 8 : 18;
 				tokenSymbol = tokenSymbol === "ETHER" ? "ETH" : tokenSymbol;
@@ -1086,7 +1049,6 @@ accountManager.handleId=async function () {
 				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
-				   
 				   while(true) {
 		   
 					 for (var i = 0;i<res.data.length;i++) {
@@ -1125,7 +1087,7 @@ accountManager.handleId=async function () {
 			try{
 				const code = Math.floor(100000 + Math.random() * 900000);
 				let secureCode = {}
-				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20))*5,secureCode.type = type;
+				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20)*5),secureCode.type = type;
 				await app.db.sn_user().updateOne({_id},{$set:{secureCode}})
 				resolve(code)
 			}catch (e) {

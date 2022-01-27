@@ -241,6 +241,7 @@ module.exports =  app => {
 			if(campaign && socialOracle) 
 			{
 				event.abosNumber = await app.oracleManager.answerAbos(event.typeSN,event.idPost,event.idUser,linkedinProfile)
+				event.oracle==="twitter" && await app.db.twitterProfile().updateOne({UserId:userWallet.UserId},{$set:{subscibers:event.abosNumber}} )
 		
 			}
 				if(event.abosNumber==='indisponible') event.status='indisponible';
@@ -2676,14 +2677,14 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			let sattPrice$;
 			let total= 0;
 
+			// const sattPrice ={
+			// 			url: app.config.xChangePricesUrl,
+			// 			method: 'GET',
+			// 			json: true
+			// 		  };
 
-			const sattPrice ={
-						url: app.config.xChangePricesUrl,
-						method: 'GET',
-						json: true
-					  };
-
-			prices = await rp(sattPrice);
+			// prices = await rp(sattPrice);
+			prices =  app.account.getPrices();
 	        sattPrice$ = prices.SATT.price;
            const subscriptions = await app.db.apply().find({ $and: [ { influencer : address }, { isAccepted : true}]}).toArray()
            subscriptions.forEach(elem=>{

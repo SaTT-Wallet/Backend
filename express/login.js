@@ -306,6 +306,9 @@ module.exports = function(app) {
             var instagram_id = false;
             var accountsUrl = "https://graph.facebook.com/" + app.config.fbGraphVersion + "/me/accounts?fields=instagram_business_account,access_token,username,name,picture&access_token=" + accessToken;
             var res = await rp({ uri: accountsUrl, json: true })
+            if(res.data.length === 0)
+                return cb(null, { id: user_id, token: accessToken },{message:'channel_obligatoire'})
+            
             while (true) {
                 for (var i = 0; i < res.data.length; i++) {
                     let page = { UserId: user_id, username: res.data[i].username, token: res.data[i].access_token, picture: res.data[i].picture.data.url, name: res.data[i].name };
@@ -864,7 +867,7 @@ module.exports = function(app) {
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id } })
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id,email:profile.emails[0].value } })
                 done(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
             }
         }));
@@ -887,7 +890,7 @@ module.exports = function(app) {
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business } })
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business,email:profile._json.email } })
                 cb(null, profile, {
                     status: true,
                     message: 'account_linked_with success'
@@ -1260,7 +1263,7 @@ module.exports = function(app) {
         try {
             redirect = req.query.state.split('|')[1];
             let message = req.authInfo.message;
-            response.redirect(app.config.basedURl + redirect + '?message=' + message);
+            response.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=fb");
 
         } catch (e) {
             console.log(e)
@@ -1341,7 +1344,7 @@ module.exports = function(app) {
                     res.end(JSON.stringify({ error: "AC_Token expired" }))
                 }
             } else {
-                res.end("Invalid Access Token")
+                res.end(JSON.stringify({error:"Invalid Access Token"}))
             }
         }
     }
@@ -1598,7 +1601,8 @@ module.exports = function(app) {
                     console.log("email====", user.email);
                     var mailOptions = {
                         from: app.config.mailSender,
-                        to: user.email,
+                        //to: user.email,
+                        to:  newEmail.email,
                         subject: "Satt wallet change email",
                         html: htmlToSend
                     };
@@ -1786,7 +1790,7 @@ module.exports = function(app) {
      *        "200":
      *          description: access_token,expires_in,token_type,scope
      */
-    app.post('/auth/social', async(req, res) => {
+    app.post('/auth/social/signup', async(req, res) => {
         try {
             var mongodate = new Date().toISOString();
             snUser = {
@@ -1797,30 +1801,34 @@ module.exports = function(app) {
                 username: req.body.name,
                 first_name: req.body.givenName,
                 name: req.body.familyName,
-                enabled: 1,
+                enabled: 0,
                 created: mongodate,
                 updated: mongodate,
                 locale: "en",
             }
+            var user ={};
             if (req.body.idSn === "1") {
                 snUser.idOnSn = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn: req.body.id });
 
             } else if (req.body.idSn === "2") {
                 snUser.idOnSn2 = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn2: req.body.id });
             }
-            var user = await app.db.sn_user().findOne({ email: snUser.email })
+            //var user = await app.db.sn_user().findOne({ idOnSN: snUser.email })
             if (user) {
-                if (snUser.idSn === user.idSn) {
+                /*if (snUser.idSn === user.idSn) {
                     var date = Math.floor(Date.now() / 1000) + 86400;
                     var buff = Buffer.alloc(32);
                     var token = crypto.randomFillSync(buff).toString('hex');
                     var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
                     var token = await app.db.accessToken().findOne({ user_id: user._id });
                     var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
-                    res.send(JSON.stringify(param))
-                } else {
-                    res.send(JSON.stringify({ messgae: "account_exists_with_another_courrier" }))
-                }
+                    res.send(JSON.stringify(param))*/
+                //} else {
+                    res.send(JSON.stringify({ message: "account_exists" }))
+                //}
+                // compte existe go to signin
 
             } else {
                 var buff = Buffer.alloc(32);
@@ -1833,9 +1841,38 @@ module.exports = function(app) {
             }
 
         } catch (err) {
-            response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+            res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
         }
 
+    });
+
+    app.post('/auth/social/signin', async(req, res) => {
+        try {
+            var user =null;
+            if (req.body.idSn === "1") {
+                //snUser.idOnSn = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn: req.body.id });
+            } else if (req.body.idSn === "2") {
+                //snUser.idOnSn2 = req.body.id;
+                user = await app.db.sn_user().findOne({ idOnSn2: req.body.id });
+            }else{
+                res.end("{'error': 'invalid idSn'}");
+            }            
+            if (user) {                
+                var date = Math.floor(Date.now() / 1000) + 86400;
+                var buff = Buffer.alloc(32);
+                var token = crypto.randomFillSync(buff).toString('hex');
+                var update = await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+                var token = await app.db.accessToken().findOne({ user_id: user._id });
+                var param = { "access_token": token.token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
+                res.send(JSON.stringify(param))
+
+            } else {
+                res.send(JSON.stringify({ messgae: "account_doesnt_exist" }))
+            }
+        } catch (err) {
+            res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+        }
     });
 
     app.get('/onBoarding', async(req, res) => {
@@ -1897,10 +1934,10 @@ module.exports = function(app) {
                     }
                 }
             }
-            if (!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + redirect + "?message=channel obligatoire");
+            if (!linkedinProfile.pages.length) return res.redirect(app.config.basedURl + redirect + "?message=channel obligatoire&sn=linkd");
             await app.db.linkedinProfile().updateOne({ userId }, { $set: linkedinProfile }, { upsert: true });
             let message = req.authInfo.message;
-            res.redirect(app.config.basedURl + redirect + '?message=' + message);
+            res.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=linkd");
         } catch (err) {
             app.account.sysLogError(err);
             res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');

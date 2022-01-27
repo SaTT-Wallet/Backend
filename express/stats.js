@@ -1318,5 +1318,43 @@ const Grid = require('gridfs-stream');
 		 }
 	  })
 
+	  app.get('/campaignsStatistics', async (req, res) => {
+		try{
+			const token = req.headers["authorization"].split(" ")[1];
+		    await app.crm.auth(token);
+			var totalAbos = 0;
+			let totalViews = 0; 
+			let totalPayed = 0;
+			let Crypto =  app.account.getPrices();
+			let SATT=Crypto["SATT"]
+			let nbPools=await app.db.campaigns().find({ hash: { $exists: true} }).count();
+			var links=await app.db.campaign_link().find().toArray();
+			for(i=0;i<links.length;i++){
+				let link=links[i];
+				  if(link.abosNumber && link.abosNumber !== "indisponible")
+					totalAbos+=+link.abosNumber;
+				  if(link.views)
+				  totalViews+=+link.views;
+				  if(link.payedAmount)
+				  totalPayed= new Big(totalPayed).plus(new Big(link.payedAmount)).toFixed();;
+
+			}		
+			let result={
+				marketCap:SATT.market_cap,
+				sattPrice:SATT.price,
+				percentChange:SATT.percent_change_24h,
+				nbPools:nbPools,
+				reach:totalAbos,
+				posts:links.length,
+				views:totalViews,
+				harvested:totalPayed
+				};
+		  res.send(JSON.stringify({result}));
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  })
+
+
 return app;
 }
