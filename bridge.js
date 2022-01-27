@@ -8,7 +8,6 @@ try {
 
   app = await require("./db/db")(app);
   //app = await require("./web3/provider")(app);
-console.log(app);
   const options = {
     timeout: 30000, 
    
@@ -82,7 +81,6 @@ console.log(app);
 
   bridge.eventETHtoBSC = async (error, evt) => {
 
-    console.log("eventETHtoBSC")
 
     if(error) {
       console.log(error);
@@ -100,10 +98,7 @@ console.log(app);
       var value = evt.returnValues.value;
       var from = evt.returnValues.from;
 
-      /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-        console.log("recup hack",evt);
-        return;
-      }*/
+    
 
 
       var log = {
@@ -146,10 +141,7 @@ console.log(app);
     }
     else {
 
-      /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-        console.log("recup hack",evt);
-        return;
-      }*/
+    
 
       var log = {
         type:"BSC-ETH",

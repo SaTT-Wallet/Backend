@@ -942,7 +942,6 @@ module.exports =  app => {
 			    await app.db.campaign_link().updateOne({_id : app.ObjectId(insert.ops[0]._id)},{$set:prom})
 				let event={id:hash,prom:ret.idProm,type:"applied",date:date,txhash:ret.transactionHash,contract:contract._address.toLowerCase(),owner:contract._address.toLowerCase()};
 				
-				// console.log("event",event);
 				await app.db.event().insertOne(event);
 			}
 		}
@@ -952,8 +951,7 @@ module.exports =  app => {
 
 	app.get('/userLinks/:id_wallet',async function(req, response) {
 		try{
-			//  const token = req.headers["authorization"].split(" ")[1];
-			//  var res=await app.crm.auth(token);
+			
 			const limit=+req.query.limit || 50;
 			const page=+req.query.page || 1;
 			const skip=limit*(page-1);
@@ -1343,7 +1341,6 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			}
 
 
-			//console.log("getGains",idProm);
 			var ret = await app.campaign.getGains(idProm,cred2);
 			//var ret = {}
 			response.end(JSON.stringify(ret));

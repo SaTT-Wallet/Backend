@@ -31,7 +31,6 @@ var Long = require('mongodb').Long;
 var readHTMLFile = function(path, callback) {
     fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
         if (err) {
-            console.log('error ==',err)
             throw err;
             callback(err);
         } else {
