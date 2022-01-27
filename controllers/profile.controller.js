@@ -3,6 +3,8 @@ var connection;
 
 var requirement= require('../helpers/utils')
 const handlebars = require('handlebars');
+
+var ejs = require("ejs")
 const QRCode = require('qrcode')
 var connection;
 let app
@@ -426,9 +428,10 @@ exports.support = async( req, res)=>{
 
     try{
 
+        console.log("body", req.body);
+
 		let[name,email,subject,message] = [req.body.name,req.body.email,req.body.subject,req.body.message];
-//../express/emailtemplate/contact_support.html
-		fs.readFile(__dirname + '/../express/emailtemplate/contact_support.html', 'utf8' ,async(err, data) => {
+		app.readHTMLFile(__dirname + '/../express/emailtemplate/contact_support.html' ,async(err, data) => {
 		  let mailContent={
 			  SaTT:{
 				  Url:app.config.baseUrl+'FAQ'
@@ -439,24 +442,29 @@ exports.support = async( req, res)=>{
 				  message
 			  }
 		  }
-		  let dynamic_html=ejs.render(data, mailContent);
+		 let dynamic_html=ejs.render(data, mailContent);
+
+
+          console.log("dynamic_html", dynamic_html);
 
 
 		  var mailOptions = {
 			  from: app.config.notificationMail,
-			  to:app.config.contactMail,
+			  to:app.config.contactMail ,
 			  subject: 'customer service',
 			  html: dynamic_html
 		 };
 
          console.log("mailOptions", mailOptions);
 
-	  await transporter.sendMail(mailOptions, function(error, info){
+	  await app.transporter.sendMail(mailOptions, function(error, info){
 
 
         console.log('info',info);
 
 			 if (error) {
+
+                console.log("error", error);
 				 res.end(JSON.stringify(error))
 			 } else {
 
