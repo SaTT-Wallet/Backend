@@ -504,10 +504,32 @@ exports.bridge= async(req , res)=>{
 
 }
 
+module.exports.getMnemo = async (req, res)=>{
+    try{
+        let wallet=await app.db.wallet().findOne({UserId:req.user._id},{projection: { mnemo: true }})
+        let mnemo=wallet.mnemo;
+        res.send(JSON.stringify({mnemo}));
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+}
 
-exports.prices= async(req , res)=>{
+
+module.exports.verifyMnemo = async (req, res)=>{
+    try{
+        let mnemo = req.body.mnemo;
+        let wallet=await app.db.wallet().findOne({$and:[{UserId:req.user._id},{mnemo}]})
+        let verify = wallet ? true : false;
+        res.json({verify});
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+}
+
+
+exports.prices= (req , res)=>{
 	var prices = app.account.getPrices()
-	res.end(JSON.stringify(prices))
+	res.json(prices);
 }
 
 

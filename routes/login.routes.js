@@ -350,7 +350,7 @@ passport.authenticate('google_strategy_connection', { scope: ['profile', 'email'
 
 passport.use('google_strategy_connection', 
 new GoogleStrategy(app.config.googleCredentials("auth/callback/google/connection"),
-async function(req, accessToken, refreshToken, profile, cb) {
+async (req, accessToken, refreshToken, profile, cb)=> {
     googleAuthSignin(req, accessToken, refreshToken, profile, cb)
 }));
 
