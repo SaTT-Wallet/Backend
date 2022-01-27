@@ -549,6 +549,80 @@ exports.addyoutubeChannel= async (req, accessToken, refreshToken, profile, cb) =
 /*
 * end add linkedin channel strategy
 */
+
+
+/* 
+* begin connect account with facebook strategy
+*/
+exports.linkFacebookAccount= async (req, accessToken, refreshToken, profile, cb) => {
+    let state = req.query.state.split('|');
+            let user_id = +state[0];
+            let users = await app.db.sn_user().find({$or:[{ idOnSn: profile._json.token_for_business },{email:profile._json.email}]}).toArray()
+            if (users.length) {
+                cb(null, profile, {
+                    status: false,
+                    message: "account exist"
+                })
+            } else {
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business,email:profile._json.email } })
+                cb(null, profile, {
+                    status: true,
+                    message: 'account_linked_with success'
+                })
+            }
+}
+/*
+* end add linkedin channel strategy
+*/
+
+/* 
+* begin connect account with google strategy
+*/
+exports.linkGoogleAccount= async (req, accessToken, refreshToken, profile, done) => {
+    let state = req.query.state.split('|');
+    let user_id = +state[0];
+    let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id }]}).toArray();
+    if (userExist.length) {
+
+        done(null, profile, {
+            status: false,
+            message: "account exist"
+        })
+    } else {
+        await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id,email:profile.emails[0].value } })
+        done(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
+    }
+}
+/*
+
+/* 
+* begin connect account with telegram strategy
+*/
+exports.connectTelegramAccount= async(req, res) => {
+    try {
+        if (req.params.redirect == "security") {
+            url = "/home/settings/security";
+        } else {
+            url = "/social-registration/monetize-telegram";
+        }
+        res.redirect(app.config.basedURl + url + "?message=" + req.authInfo.message)
+    } catch (e) {
+        console.log(e)
+    }
+}
+exports.connectTelegramAccount= async(req, profile, cb) => {
+    let user_id = +req.params.idUser;
+    let users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
+    if (users.length) {
+        cb(null, profile, { message: "account exist" })
+    } else {
+        await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn3: profile.id } })
+        cb(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
+    }
+}
+/*
+* end add telegram channel strategy
+*/
 module.exports.verifyAuth = (req, res, next)=> {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1] 
