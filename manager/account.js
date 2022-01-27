@@ -4,6 +4,7 @@ module.exports = async function (app) {
 
 	var child = require('child_process');
 	var bip32 = require("bip32")
+	var bip38 = require('bip38');
 	var bip39 = require('bip39');
 	var bitcoinjs = require('bitcoinjs-lib');
 	var coinselect = require('coinselect');
@@ -29,8 +30,9 @@ module.exports = async function (app) {
 	accountManager.createSeed = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			var escpass = pass.replace(/'/g, "\\'");
-			var mnemonic = child.execSync(app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' mnemonic-new ',app.config.proc_opts).toString().replace("\n","");
-			const seed = await bip39.mnemonicToSeed(mnemonic,pass);
+		
+			const mnemonic = bip39.generateMnemonic(256);
+			const seed = bip39.mnemonicToSeedSync(mnemonic,pass)
 			const rootBtc = bip32.fromSeed(seed,app.config.networkSegWitCompat);
 			const rootBtcBc1 = bip32.fromSeed(seed,app.config.networkSegWit);
 			const rootEth = bip32.fromSeed(seed);
@@ -56,12 +58,13 @@ module.exports = async function (app) {
 		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
-			var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
-			var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
-			var count = await accountManager.getCount();
+			var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
+			// var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
+			 var btcWallet = {publicKey:pubBtc,addressSegWitCompat:address,addressSegWit:addressbc1,publicKeySegWit:childBtcBc1.publicKey.toString("hex"),ek:ek};
+			 var count = await accountManager.getCount();
 
-			app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet,mnemo:mnemonic});
-			resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});
+			 app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,btc: btcWallet,mnemo:mnemonic});
+			 resolve({address:"0x"+account.address,btcAddress:btcWallet.addressSegWitCompat});
 
 		})
 	}
@@ -571,7 +574,6 @@ module.exports = async function (app) {
 				v = app.web3.utils.hexToNumber(v);
 				console.log("bonus",myaccount,amount,v,r,s);
 				var gasPrice = await app.web3.eth.getGasPrice();
-				//var gas = await  ctrBonus.methods.getGap(myaccount,amount,v,r,s).estimateGas({from:myaccount,gasPrice: gasPrice});
 				var gas = 100000;
 				var receipt = await ctrBonus.methods.getGap(myaccount,amount,v,r,s).send({from:myaccount,gas:gas,gasPrice:gasPrice});
 

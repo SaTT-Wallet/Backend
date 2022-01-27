@@ -38,16 +38,16 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts} = require('../controllers/profile.controller')
+const {FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
     addlinkedinChannel,
     addyoutubeChannel,
-    
+    verifyAuth
 } = require('../middleware/passport.middleware')
 
-    const { verifyAuth} =require('../middleware/passport.middleware');
+
  /**
  * @swagger
  * /profile/account:
@@ -487,4 +487,106 @@ passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
     }
 });
 
-module.exports = router;
+ /**
+ * @swagger
+ * /profile/onBoarding:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: update user onboarding status.
+ *     description: update user when he enter the website first time.
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+  router.get('/onBoarding',verifyAuth, checkOnBoarding)
+
+
+   /**
+ * @swagger
+ * /profile/receiveMoney:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: request crypto from a satt user.
+ *     description: sending an email to another satt user requesting him to send you an amount of crypto.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               to:
+ *                 type: string
+ *               price :
+ *                   type: string
+ *               currency:
+ *                   type: string
+ *               name:
+ *                   type: string
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+    router.post('/receiveMoney',verifyAuth,requestMoney)
+
+
+ /**
+* @swagger
+* /profile/add/Legalprofile:
+*   post:
+*     tags:
+*     - "profile"
+*     summary: add user legal profile.
+*     description:  add user legal profile  <br> with access_token.
+*     requestBody:
+*       content:
+*         multipart/form-data:
+*           schema:      # Request body contents
+*             type: object
+*             properties:
+*               type:
+*                 type: string
+*               file:
+*                 type: string
+*                 format : base64
+*     responses:
+*       "200":
+*          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+*       "500":
+*          description: error:error message
+*/
+
+router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
+
+
+
+
+
+ /**
+ * @swagger
+ * /profile/legalUser/{id}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: update user onboarding status.
+ *     description: update user when he enter the website first time.
+ *     parameters:
+ *       - name: id
+ *         description: the  legal id.
+ *         in: path
+ *         required: true 
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+  router.get('/legalUser/:id',verifyAuth, checkOnBoarding)
+
+
+      module.exports = router;
