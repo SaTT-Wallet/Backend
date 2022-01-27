@@ -38,7 +38,21 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
+const {UpdateIntersts,
+    AddIntersts,
+    UserInterstes,
+     deleteLinkedinChannels,
+     profilePicture,updateProfile,
+      UserLegalProfile,
+      deleteFacebookChannels,
+       deleteGoogleChannels,
+       account,socialAccounts,
+       checkOnBoarding,
+       requestMoney
+       ,notificationUpdate,
+       changeNotificationsStatus,
+       confrimChangeMail,
+       getNotifications,changeEmail} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
@@ -532,6 +546,104 @@ passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
  *       "500":
  *          description: error:error message
  */
-  app.post('/receiveMoney',verifyAuth,requestMoney)
+    router.post('/receiveMoney',verifyAuth,requestMoney)
+   
+   /**
+ * @swagger
+ * /profile/notification/seen/:id:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: update notification status if it's seen or not by user.
+ *     parameters:
+ *       - name: id
+ *         description: id of the according selected notification by the user.
+ *     responses:
+ *        "200":
+ *          description: message  notification_seen
+ *        "500":
+ *          description: error:error message
+ */  
+    router.post('/notification/seen/:id', verifyAuth,notificationUpdate);
 
+     /**
+ * @swagger
+ * /profile/notification/issend/clicked:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: update notifications status of the user that are seen.
+ *     responses:
+ *        "200":
+ *          description: message  notification_seen
+ *        "500":
+ *          description: error:error message
+ */  
+    router.get('/notification/issend/clicked', verifyAuth,changeNotificationsStatus);
+  
+         /**
+ * @swagger
+ * /profile/notifications:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: retrieve all user notifications.
+ *     responses:
+ *        "200":
+ *          description: [{notifications}]
+ *        "500":
+ *          description: error:error message
+ */ 
+  router.get('/notifications',verifyAuth,getNotifications);
+   
+    /**
+ * @swagger
+ * /profile/changeEmail:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: user request change email .
+ *     description: allow user to take first step to change his email and it end an email to user for verification.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               email :
+ *                   type: string
+ *     responses:
+ *       "200":
+ *          description: email sent
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/changeEmail', verifyAuth,changeEmail);
+
+     /**
+ * @swagger
+ * /profile/confirmChangeEmail:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: confirm change email .
+ *     description: the user must send the code that he had received in his new email.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: number
+ *     responses:
+ *       "200":
+ *          description: email changed
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/confirmChangeEmail', verifyAuth,confrimChangeMail)
+  
 module.exports = router;
