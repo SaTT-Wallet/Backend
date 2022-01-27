@@ -325,7 +325,6 @@ module.exports = async function (app) {
 
 			var gasPrice = await ctr.getGasPrice();
 
-			//var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
 			var receipt = await  ctr.methods.answerBounty(opts.campaignContract,opts.idProm,opts.nbAbos).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerBounty transactionHash",hash)});
 			resolve({result : "OK",hash:receipt.hash});
 		}

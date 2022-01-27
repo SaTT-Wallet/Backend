@@ -35,7 +35,6 @@ module.exports = async function (app) {
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
-		console.log("campaign",campaign);
 		if(campaign && campaign.contract)
 		{
 
