@@ -428,7 +428,6 @@ exports.support = async( req, res)=>{
 
     try{
 
-        console.log("body", req.body);
 
 		let[name,email,subject,message] = [req.body.name,req.body.email,req.body.subject,req.body.message];
 		app.readHTMLFile(__dirname + '/../express/emailtemplate/contact_support.html' ,async(err, data) => {

@@ -410,5 +410,31 @@ exports.socialSignin = async(req, res)=>{
 
 
 
+exports.socialdisconnect = async(req, res)=>{
+    try {
+             let id = req.user._id
+
+        const social = req.params.social;
+        if (social === 'telegram') {
+            let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn3: null } });
+            res.end(JSON.stringify({ message: "deconnect successfully from telegram" })).status(200);
+        } else if (social === 'facebook') {
+            let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn: null } });
+            res.end(JSON.stringify({ message: "deconnect successfully from facebook" })).status(200);
+        } else {
+            let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn2: null } });
+            res.end(JSON.stringify({ message: "deconnect successfully from google" })).status(200);
+        }
+
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+
+}
+
+
+
+
+
 
 
