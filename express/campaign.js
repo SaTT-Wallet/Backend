@@ -369,9 +369,9 @@ module.exports =  app => {
 			var auth =	await app.crm.auth(token);
 			var cred = await app.account.unlock(auth.id,pass);
 
-			if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
-				ERC20token = app.config.ctrs.token.address.testnet;
-			}
+			// if(app.config.testnet && contract == app.config.ctrs.token.address.mainnet) {
+			// 	ERC20token = app.config.ctrs.token.address.testnet;
+			// }
 			var ret = await app.campaign.createCampaignAll(dataUrl,startDate,endDate,ratios,ERC20token,amount,cred);
 
 			response.end(JSON.stringify(ret));
