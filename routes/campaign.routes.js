@@ -393,6 +393,11 @@ router.post('/apply',verifyAuth,apply);
  *                 type: string
  *               brand:
  *                 type: string
+ *               description:
+ *                 type: string
+ *               reference:
+ *                 type: string
+
  *               countries:
  *                 type: array
  *                 items:
@@ -533,6 +538,10 @@ router.post('/apply',verifyAuth,apply);
 *               resume:
 *                 type: string
 *               brand:
+*                 type: string
+*               description:
+*                 type: string
+*               reference:
 *                 type: string
 *               cover:
 *                 type: string
