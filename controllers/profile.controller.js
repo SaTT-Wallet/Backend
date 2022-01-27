@@ -2,7 +2,8 @@
 var connection;
 
 var requirement= require('../helpers/utils')
-
+const handlebars = require('handlebars');
+const QRCode = require('qrcode')
 var connection;
 let app
 (connection = async function (){
@@ -210,4 +211,82 @@ exports.socialAccounts= async(req, response)=>{
         response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
     }
 
+}
+
+
+module.exports.checkOnBoarding = async(req, response)=>{
+    try {
+    const _id = +req.user._id;
+    await app.db.sn_user().updateOne({ _id }, { $set: { onBoarding: true } });
+    response.json({ success: "onBoarding updated" }).status(201);
+} catch (err) {
+    response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+}
+}
+
+
+module.exports.requestMoney = async(req, res)=>{
+	try{
+        let lang= /*req.query.lang ??*/ "en";
+        app.i18n.configureTranslation(lang);
+        const id = req.user._id;
+         let code = await QRCode.toDataURL(req.body.wallet);
+
+     await app.account.notificationManager(id, "send_demande_satt_event",{name :req.body.to, price :req.body.price, currency :req.body.cryptoCurrency} )
+
+         var result= await app.db.user().findOne({email:req.body.to});
+             if(result){
+    await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
+             }
+
+        app.readHTMLFile(__dirname + '/../express/emailtemplate/notification.html',async(err, data) => {
+            if (err) {
+              console.error(err)
+              return
+            }
+            let template = handlebars.compile(data);
+
+            var data_={
+                SaTT:{
+                    faq : app.config.Satt_faq,
+                    imageUrl : app.config.baseEmailImgURl,
+                    Url:app.config.basedURl
+                },
+                notification:{
+                    name:req.body.name,
+                    price:req.body.price,
+                    cryptoCurrency:req.body.cryptoCurrency,
+                    message:req.body.message,
+                    wallet:req.body.wallet
+                }
+            }
+
+            var htmlToSend = template(data_);
+
+            var mailOptions = {
+                from: app.config.mailSender,
+                to: req.body.to,
+                subject: 'Payment request',
+                html: htmlToSend,
+                attachments: [
+                    {
+                    filename: "codeQr.jpg",
+                    contentType:  'image/png',
+                    content: new Buffer.from(code.split("base64,")[1], "base64"),
+                    }
+                    ]
+           };
+
+       app.transporter.sendMail(mailOptions, (error, info)=>{
+            if (error) {
+                res.end(JSON.stringify(error))
+            } else {
+                res.end(JSON.stringify(info.response))
+            }
+          });
+        })
+
+    }catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
 }

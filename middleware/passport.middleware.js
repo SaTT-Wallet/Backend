@@ -72,6 +72,22 @@ passport.deserializeUser(async function(id, cb) {
 });
 
 
+const handleSocialMediaSignin = async (query,cb)=>{
+    var date = Math.floor(Date.now() / 1000) + 86400;
+    var user = await app.db.sn_user().findOne(query);
+    if (user) {
+        if (user.account_locked) {
+            let message = `account_locked:${user.date_locked}`
+            return cb({ error: true, message, blockedDate: user.date_locked })
+        }
+        let userAuth = app.cloneUser(user)
+        let token = app.generateAccessToken(userAuth);   
+        return cb(null, { id: user._id, token, expires_in: date });
+    } else {
+        return cb('Register First')
+    }
+}
+
 /* 
 * begin signin with email and password
 */
@@ -133,19 +149,7 @@ exports.emailConnection= async(req, res, next) => {
 * begin signin with facebook strategy
 */
 exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) => {
-    var date = Math.floor(Date.now() / 1000) + 86400;
-    var user = await app.db.sn_user().findOne({ idOnSn: profile._json.token_for_business })
-    if (user) {
-        if (user.account_locked) {
-            let message = `account_locked:${user.date_locked}`
-            return cb({ error: true, message, blockedDate: user.date_locked })
-        }
-        let userAuth = app.cloneUser(user)
-        let token = app.generateAccessToken(userAuth);   
-        return cb(null, { id: user._id, token, expires_in: date });
-    } else {
-        return cb('Register First')
-    }
+  await handleSocialMediaSignin({ idOnSn: profile._json.token_for_business },cb)
 }
 /* 
 *end signin with facebook strategy
@@ -155,20 +159,7 @@ exports.facebookAuthSignin= async (req, accessToken, refreshToken, profile, cb) 
 *begin signin with google strategy
 */
 exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
-    var date = Math.floor(Date.now() / 1000) + 86400;
-    var user = await app.db.sn_user().findOne({ idOnSn2: profile.id });
-    if (user) {
-        if (user.account_locked) {
-            let message = `account_locked:${user.date_locked}`
-            return cb({ error: true, message, blockedDate: user.date_locked })
-        }
-        let userAuth = app.cloneUser(user)
-        let token = app.generateAccessToken(userAuth); 
-        
-        return cb(null, { id: user._id, token, expires_in: date });
-    } else {
-        return cb('Register First')
-    }
+    await handleSocialMediaSignin({ idOnSn2: profile.id },cb)
 }
 /* 
 *end signin with google strategy
@@ -407,19 +398,7 @@ exports.signup_telegram_function=async(req, profile, cb) => {
 begin signin with telegram strategy
 */
 exports.signin_telegram_function=async(req, profile, cb) => {
-    var date = Math.floor(Date.now() / 1000) + 86400;
-    var user = await app.db.sn_user().findOne({ idOnSn3: profile.id });
-    if (user) {
-        if (user.account_locked) {
-            let message = `account_locked:${user.date_locked}`
-            return cb({ error: true, message, blockedDate: user.date_locked })
-        }
-        let userAuth = app.cloneUser(user)
-        let token = app.generateAccessToken(userAuth);
-        return cb(null, { id: user._id, token, expires_in: date });
-    } else {
-        return cb('account_invalide');
-    }
+    await handleSocialMediaSignin({ idOnSn3: profile.id },cb)
 }
 exports.telegramConnection= (req, res) => {
     try {

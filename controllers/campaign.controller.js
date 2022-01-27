@@ -645,3 +645,140 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 
 	  }
 
+	  module.exports.linkStats = async (req,res)=>{
+		try{
+			let totalToEarn;
+			const idProm = req.params.idProm;
+			const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
+			const payedAmount = info.payedAmount || "0";
+			const campaign = await app.db.campaigns().findOne({hash : info.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+			const ratio = campaign.ratios;
+			const bounties =campaign.bounties
+			let abosNumber =  info.abosNumber || 0;
+			info.currency = campaign.token.name
+			if(ratio.length){
+			 let socialStats = {likes: info.likes, shares:info.shares,views:info.views}
+			 let reachLimit =  app.campaign.getReachLimit(ratio,info.oracle); 
+			 if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",abosNumber,reachLimit); 
+			ratio.forEach(elem =>{
+				if(elem.oracle === info.oracle){
+				let view =new Big(elem["view"]).times(socialStats.views || "0")
+				let like =  new Big(elem["like"]).times(socialStats.likes || '0')
+				let share = new Big(elem["share"]).times(socialStats.shares || '0')
+				totalToEarn = view.plus(like).plus(share).toFixed()
+				}
+			})
+			info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;   
+		 }
+		   if(bounties.length){
+			 bounties.forEach( bounty=>{
+				 if(bounty.oracle === info.oracle){
+				   bounty.categories.forEach( category=>{
+					if( (+category.minFollowers <= +abosNumber)  && (+abosNumber <= +category.maxFollowers) ){
+					   info.totalToEarn = category.reward;					
+					 }else if(+abosNumber > +category.maxFollowers){
+					 info.totalToEarn = category.reward;	
+				  }
+				   })	
+					}			   
+					})
+		   }
+		   if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1];
+			res.json({prom : info})
+		 }catch (err) {
+			 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		  }
+	  }
+
+
+	  module.exports.increaseBudget= async(req, response) => {
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		var token = req.body.ERC20token;
+		var amount = req.body.amount;
+		try {
+			var cred = await app.account.unlock(req.user._id,pass);
+			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
+		
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+		cred && app.account.lock(cred.address);
+		if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+
+			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget, funds : fundsInfo.funds}});
+			 })
+			}
+		}
+	  }
+
+      module.exports.getLinks = async (req, res) => {
+		   const {id_wallet}=req.params;
+		   const limit=+req.query.limit || 50;
+		   const page=+req.query.page || 1;
+		   const skip=limit*(page-1);
+		   let arrayOfLinks=[];
+		   let allProms=[];
+		   let query= app.campaign.filterLinks(req,id_wallet);
+		var count=await app.db.campaign_link().find({id_wallet},{type : { $exists: true }}).count();
+		
+		let tri= (req.query.state==='owner') ? [['waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','indisponible','rejected','none'], "$type"] :
+		 [['harvest','already_recovered','waiting_for_validation','not_enough_budget','no_gains','indisponible','rejected','none'],"$type"]
+		let userLinks=await app.db.campaign_link().aggregate([{
+			$match: 
+				query
+		}, {
+			$addFields: {
+				sort: {
+					$indexOfArray: tri
+				}
+			}
+		},{
+			$sort: {
+				sort: 1,
+				appliedDate: -1,
+				_id: 1
+			}
+		}]).skip(skip).limit(limit).toArray();
+		for (var i = 0;i<userLinks.length;i++){
+			var result=userLinks[i];
+			let campaign=await app.db.campaigns().findOne({hash:result.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+		
+			if(campaign){		
+				let cmp={};
+				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=funds,cmp.ratio=campaign.ratios,cmp.bounties=campaign.bounties;		
+				result.campaign=cmp;
+				arrayOfLinks.push(result)
+			}
+		}
+			 allProms = req.query.campaign && req.query.state ? await app.campaign.influencersLinks(arrayOfLinks) : arrayOfLinks;
+
+		var Links ={Links:allProms,count}
+		res.json(Links);
+	  }
+
+      module.exports.getFunds = async (req, res)=>{
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		try {
+			var cred = await app.account.unlock(req.user._id,pass);
+			var ret = await app.campaign.getRemainingFunds(idCampaign,cred);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+		    cred && app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+				await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+					funds:["","0"]}});
+			}
+		}
+	  }

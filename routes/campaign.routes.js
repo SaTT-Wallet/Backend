@@ -2,9 +2,12 @@ let express = require('express');
 let router = express.Router();
 const {campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
-    totalSpent,apply, linkNotifications, 
+    totalSpent,apply, linkNotifications,
+    linkStats,increaseBudget, 
+    getLinks,getFunds,
     validateCampaign} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
+const { route } = require('./login.routes');
 
  	/**
  * @swagger
@@ -343,5 +346,103 @@ router.post('/apply',verifyAuth,apply);
 
  router.post('/validate',verifyAuth,validateCampaign);
 
+
+    /**
+ * @swagger
+ * /campaign/prom/stats/{idProm}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: link stats
+ *     description: return to user the link info and statistics 
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: the  idProm.
+ *         in: path
+ *         required: true
+
+ *     responses:
+ *       "200":
+ *          description:[list of campaigns]
+ *       "500":
+ *          description: error:"error"
+ */
+     router.get('/prom/stats/:idProm',linkStats);
+
+
+ 	/**
+ * @swagger
+ * /campaign/funding:
+ *   post:
+ *     summary: Increase budget.
+ *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     parameters:
+ *       - name: pass
+ *         description: password of user.
+ *       - name: amount
+ *         description: amount of campaign.
+ *       - name: ERC20token
+ *         description: ERC20token.
+ *       - name: idCampaign
+ *         description: campaign id.
+ *     responses:
+ *        "200":
+ *          description: data
+ */
+     router.post('/funding',verifyAuth,increaseBudget);
+
+
+      /**
+ * @swagger
+ * /campaign/filterLinks/{id_wallet}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: get loggedin user links
+ *     description: return  the links of users
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id_wallet
+ *         description: the address wallet of user.
+ *         in: path
+ *         required: true
+
+ *     responses:
+ *       "200":
+ *          description:[list of links]
+ *       "500":
+ *          description: error:"error"
+ */
+     router.get('/filterLinks/:id_wallet',getLinks);
+
+           /**
+ * @swagger
+ * /campaign/remaining:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: get remaining funds in a campaign
+ *     description: this api allow the user to retrieve his funds in an ended campaign
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               idCampaign:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description:[list of links]
+ *       "500":
+ *          description: error:"error"
+ */
+     router.post('/remaining',getFunds);
+     
 module.exports = router;
 

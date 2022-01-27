@@ -38,16 +38,16 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts} = require('../controllers/profile.controller')
+const {UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
     addlinkedinChannel,
     addyoutubeChannel,
-    
+    verifyAuth
 } = require('../middleware/passport.middleware')
 
-    const { verifyAuth} =require('../middleware/passport.middleware');
+
  /**
  * @swagger
  * /profile/account:
@@ -486,5 +486,52 @@ passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
     }
 });
+
+ /**
+ * @swagger
+ * /profile/onBoarding:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: update user onboarding status.
+ *     description: update user when he enter the website first time.
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+  router.get('/onBoarding',verifyAuth, checkOnBoarding)
+
+
+   /**
+ * @swagger
+ * /profile/receiveMoney:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: request crypto from a satt user.
+ *     description: sending an email to another satt user requesting him to send you an amount of crypto.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               to:
+ *                 type: string
+ *               price :
+ *                   type: string
+ *               currency:
+ *                   type: string
+ *               name:
+ *                   type: string
+ *     responses:
+ *       "200":
+ *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "500":
+ *          description: error:error message
+ */
+  app.post('/receiveMoney',verifyAuth,requestMoney)
 
 module.exports = router;
