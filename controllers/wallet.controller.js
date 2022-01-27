@@ -504,14 +504,58 @@ exports.bridge= async(req , res)=>{
 
 }
 
-
-exports.prices= async(req , res)=>{
-	var prices = app.account.getPrices()
-	res.end(JSON.stringify(prices))
+module.exports.getMnemo = async (req, res)=>{
+    try{
+        let wallet=await app.db.wallet().findOne({UserId:req.user._id},{projection: { mnemo: true }})
+        let mnemo=wallet.mnemo;
+        res.send(JSON.stringify({mnemo}));
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
 }
 
 
+module.exports.verifyMnemo = async (req, res)=>{
+    try{
+        let mnemo = req.body.mnemo;
+        let wallet=await app.db.wallet().findOne({$and:[{UserId:req.user._id},{mnemo}]})
+        let verify = wallet ? true : false;
+        res.json({verify});
+    } catch (err) {
+      res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+     }
+}
 
+
+exports.prices= (req , res)=>{
+	var prices = app.account.getPrices()
+	res.json(prices);
+}
+
+
+exports.createNewWallet= async(req , res)=>{
+    try {
+        var id = req.user._id;
+        var pass = req.body.pass;
+        var count = await app.account.hasAccount(id);	
+        var ret = {err:"account_exists"};
+        if(!count)
+        {
+            var ret = await app.account.createSeed(id,pass);
+        }
+        res.end(JSON.stringify(ret));
+
+
+    } catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }finally{
+        if(ret.address) await app.db.walletUserNode().insertOne({
+            wallet:ret.address,
+            idUser:id
+        })
+       !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
+    }
+}
 
 
 

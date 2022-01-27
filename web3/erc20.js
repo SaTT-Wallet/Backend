@@ -11,13 +11,11 @@ module.exports = async function (app) {
 			
 			var receipt = await contract.methods.approve(spender,amount).send({from:addr,gas:gas,gasPrice: gasPrice})
 			.once('transactionHash', (transactionHash)=>{
-				// console.log("approve transactionHash",transactionHash)
 				app.account.log("approve transactionHash",transactionHash)
 			});
 						
 
 			resolve({transactionHash:receipt.transactionHash,address:addr,spender:spender});
-			// console.log(receipt.transactionHash,"confirmed approval from",addr,"to",spender);
 			app.account.sysLog('approve',addr,`confirmed approval to ${spender}` )
 		});
 	}
@@ -26,7 +24,6 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			var contract = new app.web3.eth.Contract(app.config.ctrs.token.abi,token);
 			var amount = await contract.methods.allowance(addr,spender).call();
-			// console.log("approval",addr,"for",spender,amount.toString());
 			app.account.log("approval",addr,"for",spender,amount.toString())
 			resolve({amount:amount.toString()});
 		});
@@ -70,7 +67,6 @@ module.exports = async function (app) {
 
 				resolve({transactionHash:receipt.transactionHash,address:credentials.address,to:to,amount});
 				app.account.sysLog('erManager.transfer',credentials.address,`transfer confirmed transactionHash :${receipt.transactionHash} ${amount} to ${to}`);
-				// console.log(receipt.transactionHash,"confirmed transfer from",credentials.address,"to",to,"amount",amount);
 			}
 			catch (err) {
 				
