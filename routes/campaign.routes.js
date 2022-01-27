@@ -1,6 +1,6 @@
 let express = require('express');
 let router = express.Router();
-const {bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
+const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
@@ -756,6 +756,47 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
  */
  router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
      
+
+
+
+
+ /**
+ * @swagger
+ * /campaign/reject/{idLink}:
+ *   put:
+ *     tags:
+ *     - "campaign"
+ *     summary: reject link
+ *     description: admin of campaign can reject a link
+ *     parameters:
+ *       - name: idLink
+ *         description: the  idLink.
+ *         in: path
+ *         required: true
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               idCampaign:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               link:
+ *                 type: string
+ *               idUser:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+  router.put('/reject/:idLink',rejectLink);
+   
      
 module.exports = router;
 
