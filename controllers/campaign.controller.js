@@ -1050,3 +1050,60 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 		var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
 		response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
 	  }
+
+	 
+	  
+
+	  exports.rejectLink = async ( req , res)=>{
+		const lang = req.query.lang || "en";
+        app.i18n.configureTranslation(lang);
+
+		try {
+		   
+		 const title = req.body.title || "";
+		 const idCampaign = req.body.idCampaign
+         const idLink = req.params.idLink;
+		 const email = req.body.email
+		 let link = req.body.link;
+		 let reason = [];
+		req.body.reason.forEach((str)=>	reason.push({reason:str}))
+	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected",type:"rejected"}},{returnOriginal: false});
+
+		 let id = +req.body.idUser
+
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign,promHash:idLink})
+
+		readHTMLFile(__dirname + '/../express/emailtemplate/rejected_link.html' ,(err, html) => {
+			if (err) {
+				console.error(err)
+				return
+			  }
+			  let template = handlebars.compile(html);
+
+				let emailContent = {
+				reject_reason : reason,
+				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+				satt_faq : app.config.Satt_faq,
+				satt_url: app.config.basedURl,
+				cmp_title: title,
+				imgUrl: app.config.baseEmailImgURl
+				};
+					let htmlToSend = template(emailContent);
+
+					let mailOptions = {
+					 from: app.config.mailSender,
+					 to: email,
+					 subject: 'Your link has been rejected in a campaign',
+					 html: htmlToSend
+				};
+
+			  transporter.sendMail(mailOptions, (error, info)=>{
+						res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))
+				  });
+				})
+
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+	}
+	  }
