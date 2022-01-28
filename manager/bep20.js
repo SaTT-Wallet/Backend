@@ -1,7 +1,7 @@
 module.exports = async function (app) {
 
   	var bep20Manager = {};
-    var web3 = app.web3Bep20;
+    var web3 = app.web3Bep20Websocket;
 
 
 
