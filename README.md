@@ -58,114 +58,107 @@ To run SaTT API webservice Provider you will need NodeJS 12.0+ and npm Package m
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+
 full webservice list : 
 
    ```sh
-   POST /campaign/create
-POST /campaign/create/all
-POST /campaign/create/youtube
-POST /campaign/modify
-POST /campaign/fund
-POST /campaign/price/ratio
-POST /campaign/apply
-POST /campaign/validate
-POST /campaign/start
-POST /campaign/end
-POST /campaign/gains
-POST /campaign/gains2
-POST /campaign/remaining
-POST /campaign/tag
-POST /campaign/untag
-POST /token/approve
-GET /token/allowance/:addr/:spender
-POST /campaign/estimate/create/youtube
-POST /campaign/estimate/fund
-POST /campaign/estimate/apply
-POST /campaign/estimate/validate
-POST /campaign/estimate/gains
-POST /campaign/estimate/remaining
-POST /token/estimate/approve
 
-POST /auth/email
-GET /auth/fb
-GET /auth/google
-GET /auth/twitter
-GET /auth/telegram
-GET /auth/activate/:id/:code
-GET /auth/passlost
-POST /auth/passchange
-POST /auth/passrecover
+#  authentication endpoints
 
-GET /youtube/:id
-GET /facebook
-GET /instagram/:id
-GET /twitter/:user/:id
+GET /auth/captcha
+POST  /auth/verifyCaptcha
+POST  /auth/signin/mail
+POST  /auth/passlost
+POST  /auth/confirmCode
+POST  /auth/passrecover
+POST  /auth/signup/mail
+GET  /auth/signup/facebook
+GET  /auth/signin/facebook
+GET  /auth/signup/google
+GET  /auth/signin/google
+GET  /auth/signup/telegram
+GET  /auth/signin/telegram
+POST  /auth/resend/confirmationToken
+POST  /auth/save/firebaseAccessToken
+PUT  /auth/updateLastStep
+POST  /auth/apple
+POST   /auth/socialSignup
+POST   /auth/socialSignin
 
-GET /campaign/id/:id
-GET /campaign/all/:influencer
-GET /campaign/owner/:owner
-GET /campaign/draft/:token
-GET /proms/owner/:owner
-GET /campaign/:id/proms
-GET /campaign/:id/ratios
-GET /campaign/:id/funds
-GET /campaign/:id/status
-GET /campaign/:id/events
-GET /prom/:id/status
-GET /prom/:id/results
-GET /prom/:id/live
-GET /results/:id
-GET /isalreadysed/:type/:idpost/:iduser
-GET /isalreadysed/:type/:idpost
+#  campaign endpoints
 
-GET /v2/auth/:token
-GET /v2/erc20/:token/balance/:addr
-GET /v2/bep20/:token/balance/:addr
-GET /v2/mywallet/:token
-GET /v2/newallet/:token/:pass
-GET /v2/printseed/:token/:pass
-POST /v2/newallet2
-POST /v2/recover
-GET /v2/newalletbtc/:token/:pass
-GET /v2/resetpass/:token/:pass/:newpass
-GET /v2/export/:pass/:token
-GET /v2/exportbtc/:pass/:token
-GET /v2/transfer/:token/:pass/:to/:val/:gas/:estimate/:gasprice (passer en POST)
-GET /v2/transferether/:token/:pass/:to/:val/:gas/:estimate/:gasprice (passer en POST)
-GET /v2/transferbtc/:token/:pass/:to/:val (passer en POST)
-GET /v2/transferbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice
-GET /v2/transferetherbyuid/:token/:pass/:uid/:val/:gas/:estimate/:gasprice
-GET /v2/receivewalleteth/:token
-GET /v2/receivewalletbtc/:token
-GET /v2/confirmselleth/:token
-GET /v2/confirmsellbtc/:token
-GET /v2/ethpaylist
-GET /v2/btcpaylist
-GET /v2/ethreceive/:token/:fbid
-GET /v2/btcreceive/:token/:fbid
-GET /balance/:addr
-GET /gasprice
-GET /supply
-GET /supply2
-GET /checkaccount/:addr
-GET /v2/txs/:account
-GET /txs/:account/:txtype
-GET /supply/total
-GET /supply/circulating
-GET /factor/:id
-GET /factorvrfy/:id/:code
-GET /v2/erc20/:token/approval/:addr/:spender
-POST /v2/erc20/transfer
-POST /v2/erc20/allow
-GET /v2/bep20/:token/approval/:addr/:spender
-POST /v2/bep20/transfer
-POST /v2/bep20/allow
-POST /v2/bonus
-POST /v2/wrap
-POST /v2/unwrap
-GET /prices
-GET /v2/feebtc
-GET /v2/transferbnb/:token/:pass/:to/:val/:gas/:estimate/:gasprice
+POST   /campaign/bep20/:token/approval/:spender/:addr
+POST   /campaign/bep20/allow
+POST   /campaign/erc20/{token}/approval/:spender/:addr
+POST   /campaign/erc20/allow
+POST   /campaign/launch/performance
+POST   /campaign/launchBounty
+GET   /campaign/totalEarned
+GET   /campaign/campaigns
+GET   /campaign/details/{id}
+GET   /campaign/totalSpent
+GET   /campaign/pendingLink/{id}
+GET   /campaign/campaignPrompAll/{id}
+POST   /campaign/apply
+POST   /campaign/linkNotification
+POST   /campaign/validate
+POST   /campaign/gains
+POST   /campaign/save
+GET   /campaign/{idCampaign}/kits
+POST  /campaign/addKits
+PUT   /campaign/update/{idCampaign}
+GET   /campaign/prom/stats/{idProm}
+GET   /campaign/filterLinks/{id_wallet}
+POST  /campaign/funding
+POST   /campaign/remaining
+
+#   profile endpoints
+
+GET /profile/addChannel/facebook
+GET  /profile/addChannel/twitter
+GET  /profile/addChannel/linkedin
+GET  /profile/addChannel/youtube
+GET  /profile/account
+GET  /profile/picture
+PUT  /profile/UpdateProfile
+GET  /profile/UserLegal
+GET  /profile/UserIntersts
+POST  /profile/AddUserIntersts
+PUT  /profile/UpdateUserIntersts
+DELETE  /profile/RemoveGoogleChannels
+DELETE  /profile/RemoveFacebookChannels
+DELETE  /profile/RemoveLinkedInChannels
+GET  /profile/socialAccounts
+GET  /profile/onBoarding
+POST  /profile/receiveMoney
+POST /profile/add/Legalprofile
+GET  /profile/legalUser/:id
+
+#  wallet endpoints
+
+GET  /wallet/mywallet
+GET  /wallet/userBalance
+GET  /wallet/Bep20GasPrice
+GET  /wallet/cryptoDetails
+GET  /wallet/totalBalance
+GET  /wallet/Erc20GasPrice
+POST  /wallet/transferErc20
+POST  /wallet/transferBep20
+POST  /wallet/checkWalletToken
+POST  /wallet/addNewToken
+POST  /wallet/transfertBtc
+POST  /wallet/transfertBNB
+POST  /wallet/transfertEther
+POST  /wallet/getQuote
+POST  /wallet/payementRequest
+POST  /wallet/bridge
+POST  /wallet/exportBtc
+POST  /wallet/exportETH
+GET  /wallet/prices
+GET  /wallet/getMnemo
+POST  /wallet/verifyMnemo
+POST  /wallet/create
+
    ```
 
 
