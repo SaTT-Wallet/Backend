@@ -90,7 +90,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Geoffrey Moya - geoffrey@atayen.us
+For more information don't hesitate to contact us by email to dev@atayen.us
 
 
 
