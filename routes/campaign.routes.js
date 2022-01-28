@@ -757,6 +757,8 @@ router.post('/apply',verifyAuth,apply);
  * @swagger
  * /campaign/funding:
  *   post:
+ *     tags:
+ *     - "campaign"
  *     summary: Increase budget.
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
