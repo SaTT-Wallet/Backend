@@ -1,6 +1,6 @@
 let express = require('express');
 let router = express.Router();
-const {bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
+const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
@@ -757,6 +757,8 @@ router.post('/apply',verifyAuth,apply);
  * @swagger
  * /campaign/funding:
  *   post:
+ *     tags:
+ *     - "campaign"
  *     summary: Increase budget.
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
@@ -826,5 +828,110 @@ router.post('/apply',verifyAuth,apply);
      router.post('/remaining',getFunds);
 
 
+
+                /**
+ * @swagger
+ * /campaign/erc20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: erc20 aprroval
+ *     description: erc20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
+
+
+
+
+/**
+ * @swagger
+ * /campaign/bep20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: bep20 aprroval
+ *     description: bep20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+ router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
+     
+
+
+
+
+ /**
+ * @swagger
+ * /campaign/reject/{idLink}:
+ *   put:
+ *     tags:
+ *     - "campaign"
+ *     summary: reject link
+ *     description: admin of campaign can reject a link
+ *     parameters:
+ *       - name: idLink
+ *         description: the  idLink.
+ *         in: path
+ *         required: true
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               idCampaign:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               link:
+ *                 type: string
+ *               idUser:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+  router.put('/reject/:idLink',rejectLink);
+   
+     
 module.exports = router;
 

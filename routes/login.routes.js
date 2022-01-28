@@ -34,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin} = require('../controllers/login.controller')
+const {socialdisconnect,captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin,getQrCode,verifyQrCode} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -45,8 +45,8 @@ const {
     googleAuthSignin,
     facebookAuthSignin,
     signup_telegram_function,
-    signin_telegram_function
-    
+    signin_telegram_function,
+    verifyAuth
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
@@ -461,7 +461,7 @@ new TelegramStrategy({
  *       "500":
  *          description: error:error message
  */
-  router.post('/save/firebaseAccessToken',saveFirebaseAccessToken)
+  router.post('/save/firebaseAccessToken',verifyAuth,saveFirebaseAccessToken)
 
    /**
  * @swagger
@@ -588,4 +588,75 @@ new TelegramStrategy({
   *          description: error={error:true,message:'account_already_used'}
   */
 router.post('/socialSignin',socialSignin)
+
+
+
+
+  /**
+  * @swagger
+  * /auth/disconnect/{social}:
+  *   put:
+  *     tags:
+  *     - "auth"
+  *     summary: disconnect social account.
+  *     description: user disconnect social account <br> with access_token.
+  *     parameters:
+  *       - name: social
+  *         description: social can be facebook , google or telegram.
+  *         in: path
+  *         required: true
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+   router.put('/disconnect/:social', verifyAuth,socialdisconnect)
+ 
+ /**
+ * @swagger
+ * /auth/qrCode/:id:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: setting double authentication for user.
+ *     description: setting user google authentication.
+ *     parameters:
+ *       - name: id
+ *         description: userId.
+ *     responses:
+ *        "200":
+ *          description: data
+ *        "500":
+ *          description: error:error message
+ */
+router.get('/qrCode/:id',getQrCode)
+
+  /**
+  * @swagger
+  * /auth/verifyQrCode:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: auth with social for apple.
+  *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               code:
+  *                 type: number
+  *               id:
+  *                 type: string
+ 
+  *     responses:
+  *       "200":
+  *          description: { verifiedCode: verified }
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+router.post('/verifyQrCode',verifyQrCode);
+
 module.exports = router;
