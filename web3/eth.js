@@ -527,7 +527,7 @@ module.exports = async function (app) {
 
 		var transaction_content= All_Transactions.result
 		var erc20_or_bep20_transaction_content=Erc20_OR_BEP20_Transactions.result
-
+         console.error(transaction_content)
 		transaction_content.map((elem)=>{
              for(var i=0;i<erc20_or_bep20_transaction_content.length;i++){
 			    if(erc20_or_bep20_transaction_content[i].hash==elem.hash){
