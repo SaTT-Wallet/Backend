@@ -141,8 +141,9 @@ module.exports = async function (app) {
 
 	campaignManager.createCampaignAll = async function (dataUrl,startDate,endDate,ratios,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
-			var ctr = await campaignManager.getContractToken(token);
-			var gasPrice = await ctr.getGasPrice();
+			//var ctr = await campaignManager.getContractToken(token);
+			var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			var gasPrice = await app.web3Bep20.eth.getGasPrice();
 			// var gas = 600000;
 			console.log("1")
 			var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
