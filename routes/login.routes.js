@@ -85,7 +85,7 @@ router.get('/captcha',captcha)
  *     tags:
  *     - "auth"
  *     summary: check if valid captcha .
- *     description: before connection or create a new account you have to check captcha to verify that you are not a bot <br> without access_token.
+ *     description: Check captcha to verify that you are not a bot <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -111,7 +111,7 @@ router.get('/captcha',captcha)
  *     tags:
  *     - "auth"
  *     summary: check if email & password are correct.
- *     description: user enter his credentials, system check if user params are correct or not <br> without access_token.
+ *     description: Check credentials and return access token <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -139,7 +139,7 @@ router.post('/signin/mail',emailConnection)
  *     tags:
  *     - "auth"
  *     summary: get code to recover password.
- *     description: user receive one code in his email to recover his password <br> without access_token.
+ *     description: Send verification code to requested email <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -163,7 +163,7 @@ router.post('/signin/mail',emailConnection)
  *     tags:
  *     - "auth"
  *     summary: check if code correct.
- *     description: user check if the code that he received in his email is correct or not <br> without access_token.
+ *     description: check if verification code is correct <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -204,9 +204,9 @@ router.post('/signin/mail',emailConnection)
  *                 type: string
  *     responses:
  *       "200":
- *          description:"successfully" or "unauthorized"
+ *          description: successfully or unauthorized
  *       "500":
- *          description: error:"error"
+ *          description:  error:"error"
  */
 router.post('/passrecover',passRecover)
 
