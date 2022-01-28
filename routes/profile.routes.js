@@ -16,6 +16,7 @@ var FbStrategy = require('passport-facebook').Strategy;
 var TwitterStrategy = require('passport-twitter').Strategy;
 let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
+var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
 
 var session = require('express-session');
 
@@ -328,7 +329,7 @@ router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
  * /profile/addChannel/facebook:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -368,7 +369,7 @@ router.get('/callback/addChannel/facebook',
  * /profile/addChannel/twitter:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -414,7 +415,7 @@ router.get('/callback/addChannel/twitter',
  * /profile/addChannel/linkedin:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -451,7 +452,7 @@ passport.authenticate('linkedin_strategy_add_channel'), async(req, res) => {
  * /profile/addChannel/youtube:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -631,7 +632,7 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  * /profile/connect/facebook:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: link account with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -669,7 +670,7 @@ router.get('/callback/link/facebook',
  * /profile/connect/google:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: link account with google.
  *     description: user asked for signin with google, system redirect him to signin google page <br> without access_token.
  *     responses:
@@ -708,7 +709,7 @@ router.get('/callback/link/facebook',
  * /profile/connect/telegram:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: link account with telegram.
  *     description: user asked for signin with telegram, system redirect him to signin telegram page <br> without access_token.
  *     responses:
@@ -720,7 +721,7 @@ router.get('/callback/link/facebook',
        connectTelegramAccount
        )
         
-       passport.use("connect_telegram",
+       passport.use("link_telegram_account",
        new TelegramStrategy({
                botToken: app.config.telegramBotToken,
                passReqToCallback: true
