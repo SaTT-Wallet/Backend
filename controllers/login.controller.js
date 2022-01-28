@@ -304,8 +304,8 @@ exports.purgeAccount=async(req,res)=>{
 exports.authApple= async(req, res)=>{
     try {
         let date = Math.floor(Date.now() / 1000) + 86400;
-        let buff = Buffer.alloc(32);
-        let token = crypto.randomFillSync(buff).toString('hex');
+        // let buff = Buffer.alloc(32);
+        // let token = crypto.randomFillSync(buff).toString('hex');
         let email = req.body.mail;
         let id_apple = req.body.id_apple;
         let idSn = req.body.idSN;
@@ -313,8 +313,10 @@ exports.authApple= async(req, res)=>{
         let user = await app.db.sn_user().findOne({ email: email });
 
         if (user) {
-            if (user.idSn === idSn) {
-                await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
+            let userAuth = app.cloneUser(user);
+            let token = app.generateAccessToken(userAuth);
+            if (user.idSn === idSn) {              
+                // await app.db.accessToken().updateOne({ user_id: user._id }, { $set: { token: token, expires_at: date } });
                 let param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
                 res.send(JSON.stringify(param));
             } else {
@@ -323,7 +325,8 @@ exports.authApple= async(req, res)=>{
         } else {
             let snUser = { _id: Long.fromNumber(await app.account.handleId()), id_apple: id_apple, email: email, idSn: idSn, name: name }
             let user = await app.db.sn_user().insertOne(snUser);
-            await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
+            let token = app.generateAccessToken(user);
+            // await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
             let param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
             res.send(JSON.stringify(param));
         }
@@ -361,13 +364,12 @@ exports.socialSignUp= async(req,res)=>{
         }
         if (user) {
        
-                res.send(JSON.stringify({ message: "account_exists" }))
+                res.send(JSON.stringify({ message: "account_exists" }));
          
-        } else {;
+        } else {
             var date = Math.floor(Date.now() / 1000) + 86400;
             var user = await app.db.sn_user().insertOne(snUser);
             let token = app.generateAccessToken(user);
-            //await app.db.accessToken().insertOne({ client_id: 1, user_id: user.ops[0]._id, token: token, expires_at: date, scope: "user" });
             var param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
             res.send(JSON.stringify(param))
         }
@@ -393,7 +395,7 @@ exports.socialSignin = async(req, res)=>{
 
             let userAuth = app.cloneUser(user);
             let token = app.generateAccessToken(userAuth);
-            var param = { "access_token": token, "expires_in": token.expires_at, "token_type": "bearer", "scope": "user" };
+            var param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
             res.send(JSON.stringify(param))
 
         } else {
@@ -412,7 +414,7 @@ module.exports.getQrCode = async (req,res)=> {
             name: "SaTT_Token " + id
         });
         await app.db.sn_user().updateOne({ _id: id }, { $set: { secret: secret.ascii } });
-        qrcode.toDataURL(secret.otpauth_url, function(err, data) {
+        qrcode.toDataURL(secret.otpauth_url, (err, data) => {
             res.send(JSON.stringify({ qrCode: data, secret: secret.base32, googleAuthName: `SaTT_Token ${req.params.id}` }));
         })
     } catch (err) {
