@@ -230,9 +230,7 @@ exports.saveFirebaseAccessToken= async(req, response)=>{
 
 exports.updateLastStep= async(req, response)=>{
     try{
-    let token= await app.crm.checkToken(req,response);
-    var auth =	await app.crm.auth(token);
-    const id = auth.id;
+    const id = req.user._id;
     let profile = req.body;
     let password=Math.random().toString(36).slice(-8);
     const user =await app.db.sn_user().findOne({_id:id});
