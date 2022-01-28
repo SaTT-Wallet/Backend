@@ -572,7 +572,7 @@ exports.linkFacebookAccount= async (req, accessToken, refreshToken, profile, cb)
             }
 }
 /*
-* end add linkedin channel strategy
+* end connect account with facebook strategy
 */
 
 /* 
@@ -594,6 +594,8 @@ exports.linkGoogleAccount= async (req, accessToken, refreshToken, profile, done)
     }
 }
 /*
+* end connect account with google strategy
+*/
 
 /* 
 * begin connect account with telegram strategy
@@ -610,7 +612,7 @@ exports.connectTelegramAccount= async(req, res) => {
         console.log(e)
     }
 }
-exports.connectTelegramAccount= async(req, profile, cb) => {
+exports.telegram_connect_function= async(req, profile, cb) => {
     let user_id = +req.params.idUser;
     let users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
     if (users.length) {
@@ -621,7 +623,7 @@ exports.connectTelegramAccount= async(req, profile, cb) => {
     }
 }
 /*
-* end add telegram channel strategy
+* end connect account with telegram strategy
 */
 module.exports.verifyAuth = (req, res, next)=> {
     const authHeader = req.headers['authorization']
