@@ -1459,4 +1459,330 @@ exports.erc20Allow = async (req, res) => {
 			if(cred)
 			app.account.lock(cred.address);
 		}
-  };
+
+	  }
+
+
+	  exports.saveCampaign = async( req , res)=>{
+
+
+		try{
+		
+			const campaign = req.body;
+			campaign.idNode = "0" + req.user._id;
+			campaign.createdAt=Date.now();
+			campaign.updatedAt=Date.now();
+			campaign.type='draft';
+		const draft = await app.db.campaigns().insertOne(campaign);
+			res.end(JSON.stringify(draft.ops[0])).status(200);
+	
+		} catch (err) {
+			res.end(JSON.stringify(err));
+		}
+
+
+	  }
+
+
+	  exports.kits= async(req, response)=>{
+
+
+		try {
+		
+		const idCampaign= req.params.idCampaign;
+		gfsKit.files.find({ 'campaign.$id':app.ObjectId(idCampaign)}).toArray(function (err, files) {
+		response.end(JSON.stringify(files));
+		})
+		}catch (err) {
+		response.end(JSON.stringify(err));
+		}
+
+
+	  }
+
+
+
+	  exports.addKits =  async(req, res)=>{
+		try {
+		files=req.files;
+		if(typeof req.body.link === "string"){
+			links=Array(req.body.link);
+		}else{
+		     links=req.body.link;
+		}
+		const idCampaign = req.body.campaign
+		if(files || links){
+			if(files){
+				files.forEach((file)=>{
+					gfsKit.files.updateOne({ _id: file.id },{$set: { campaign : {
+						"$ref": "campaign",
+						"$id": app.ObjectId(idCampaign),
+						"$db": "atayen"
+					 }} })
+				})
+		} if(links){
+				links.forEach((link)=>{
+					 gfsKit.files.insertOne({ campaign : {
+					"$ref": "campaign",
+					"$id": app.ObjectId(idCampaign),
+					"$db": "atayen"
+			 		}, link : link })
+				})
+
+		}
+		res.send(JSON.stringify({success: 'Kit uploaded'})).status(200);
+		return;
+		}
+		
+		res.send('No matching data').status(401);
+		} catch (err) {
+			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');		}
+
+
+	  }
+
+
+	  exports.update = async(req , res)=>{
+
+
+		try {
+			let campaign = req.body;
+			campaign.updatedAt=Date.now();
+		
+		   const result = await app.db.campaigns().findOneAndUpdate({_id : app.ObjectId(req.params.idCampaign)}, {$set: campaign},{returnOriginal: false})
+		   const updatedCampaign = result.value
+		   res.send(JSON.stringify({updatedCampaign, success : "updated"}));
+   } catch (err) {
+   
+	   app.account.sysLogError(err)
+	   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+
+	  }
+
+
+	  module.exports.linkStats = async (req,res)=>{
+		try{
+			let totalToEarn;
+			const idProm = req.params.idProm;
+			const info =  await app.db.campaign_link().findOne({ id_prom : idProm });
+			const payedAmount = info.payedAmount || "0";
+			const campaign = await app.db.campaigns().findOne({hash : info.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+			const ratio = campaign.ratios;
+			const bounties =campaign.bounties
+			let abosNumber =  info.abosNumber || 0;
+			info.currency = campaign.token.name
+			if(ratio.length){
+			 let socialStats = {likes: info.likes, shares:info.shares,views:info.views}
+			 let reachLimit =  app.campaign.getReachLimit(ratio,info.oracle); 
+			 if(reachLimit) socialStats=  app.oracleManager.limitStats("",socialStats,"",abosNumber,reachLimit); 
+			ratio.forEach(elem =>{
+				if(elem.oracle === info.oracle){
+				let view =new Big(elem["view"]).times(socialStats.views || "0")
+				let like =  new Big(elem["like"]).times(socialStats.likes || '0')
+				let share = new Big(elem["share"]).times(socialStats.shares || '0')
+				totalToEarn = view.plus(like).plus(share).toFixed()
+				}
+			})
+			info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount)) ?new Big(totalToEarn).minus(new Big(payedAmount)) : totalToEarn ;   
+		 }
+		   if(bounties.length){
+			 bounties.forEach( bounty=>{
+				 if(bounty.oracle === info.oracle){
+				   bounty.categories.forEach( category=>{
+					if( (+category.minFollowers <= +abosNumber)  && (+abosNumber <= +category.maxFollowers) ){
+					   info.totalToEarn = category.reward;					
+					 }else if(+abosNumber > +category.maxFollowers){
+					 info.totalToEarn = category.reward;	
+				  }
+				   })	
+					}			   
+					})
+		   }
+		   if(new Big(info.totalToEarn).gt(new Big(campaign.funds[1]))) info.totalToEarn = campaign.funds[1];
+			res.json({prom : info})
+		 }catch (err) {
+			 res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		  }
+	  }
+
+
+	  module.exports.increaseBudget= async(req, response) => {
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		var token = req.body.ERC20token;
+		var amount = req.body.amount;
+		try {
+			var cred = await app.account.unlock(req.user._id,pass);
+			var ret = await app.campaign.fundCampaign(idCampaign,token,amount,cred);
+		
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+		cred && app.account.lock(cred.address);
+		if(ret.transactionHash){
+			const ctr = await app.campaign.getCampaignContract(idCampaign);
+			let fundsInfo = await ctr.methods.campaigns(idCampaign).call();
+
+			 await app.db.campaigns().findOne({hash : idCampaign},async (err, result)=>{
+				 let budget = new Big(result.cost).plus(new Big(amount)).toFixed();
+                 await app.db.campaigns().updateOne({hash:idCampaign}, {$set: {cost: budget, funds : fundsInfo.funds}});
+			 })
+			}
+		}
+	  }
+
+      module.exports.getLinks = async (req, res) => {
+		   const {id_wallet}=req.params;
+		   const limit=+req.query.limit || 50;
+		   const page=+req.query.page || 1;
+		   const skip=limit*(page-1);
+		   let arrayOfLinks=[];
+		   let allProms=[];
+		   let query= app.campaign.filterLinks(req,id_wallet);
+		var count=await app.db.campaign_link().find({id_wallet},{type : { $exists: true }}).count();
+		
+		let tri= (req.query.state==='owner') ? [['waiting_for_validation','harvest','already_recovered','not_enough_budget','no_gains','indisponible','rejected','none'], "$type"] :
+		 [['harvest','already_recovered','waiting_for_validation','not_enough_budget','no_gains','indisponible','rejected','none'],"$type"]
+		let userLinks=await app.db.campaign_link().aggregate([{
+			$match: 
+				query
+		}, {
+			$addFields: {
+				sort: {
+					$indexOfArray: tri
+				}
+			}
+		},{
+			$sort: {
+				sort: 1,
+				appliedDate: -1,
+				_id: 1
+			}
+		}]).skip(skip).limit(limit).toArray();
+		for (var i = 0;i<userLinks.length;i++){
+			var result=userLinks[i];
+			let campaign=await app.db.campaigns().findOne({hash:result.id_campaign},{ 'fields': { 'logo': 0,resume:0,description:0,tags:0,cover:0}});
+		
+			if(campaign){		
+				let cmp={};
+				const funds = campaign.funds ? campaign.funds[1] : campaign.cost;
+				cmp._id = campaign._id, cmp.currency= campaign.token.name, cmp.title=campaign.title,cmp.remaining=funds,cmp.ratio=campaign.ratios,cmp.bounties=campaign.bounties;		
+				result.campaign=cmp;
+				arrayOfLinks.push(result)
+			}
+		}
+			 allProms = req.query.campaign && req.query.state ? await app.campaign.influencersLinks(arrayOfLinks) : arrayOfLinks;
+
+		var Links ={Links:allProms,count}
+		res.json(Links);
+	  }
+
+      module.exports.getFunds = async (req, response)=>{
+		var pass = req.body.pass;
+		var idCampaign = req.body.idCampaign;
+		try {
+			var cred = await app.account.unlock(req.user._id,pass);
+			var ret = await app.campaign.getRemainingFunds(idCampaign,cred);
+			response.end(JSON.stringify(ret));
+		} catch (err) {
+			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+		}
+		finally {
+		    cred && app.account.lock(cred.address);
+			if(ret && ret.transactionHash){
+				await app.db.campaigns().updateOne({hash:idCampaign},{$set:{
+					funds:["","0"]}});
+			}
+		}
+	  }
+
+
+
+	  exports.bep20Approval = async ( req , response)=>{
+
+
+
+		var token = req.params.token;
+		var spender = req.params.spender;
+
+
+
+		console.log('params', req.params);
+
+
+		var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
+		console.log("allowance", allowance);
+
+		response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
+	  }
+
+
+
+
+	  exports.erc20Approval = async ( req , response)=>{
+		var token = req.params.token;
+		var spender = req.params.spender;
+		var allowance = await app.erc20.getApproval(token,req.params.addr,spender);
+		response.end(JSON.stringify({token:token,allowance:allowance,spender:spender}));
+	  }
+
+	 
+	  
+
+	  exports.rejectLink = async ( req , res)=>{
+		const lang = req.query.lang || "en";
+        app.i18n.configureTranslation(lang);
+
+		try {
+		   
+		 const title = req.body.title || "";
+		 const idCampaign = req.body.idCampaign
+         const idLink = req.params.idLink;
+		 const email = req.body.email
+		 let link = req.body.link;
+		 let reason = [];
+		req.body.reason.forEach((str)=>	reason.push({reason:str}))
+	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected",type:"rejected"}},{returnOriginal: false});
+
+		 let id = +req.body.idUser
+
+		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign,promHash:idLink})
+
+		readHTMLFile(__dirname + '/../express/emailtemplate/rejected_link.html' ,(err, html) => {
+			if (err) {
+				console.error(err)
+				return
+			  }
+			  let template = handlebars.compile(html);
+
+				let emailContent = {
+				reject_reason : reason,
+				cmp_link : app.config.basedURl + '/myWallet/campaign/' + idCampaign,
+				satt_faq : app.config.Satt_faq,
+				satt_url: app.config.basedURl,
+				cmp_title: title,
+				imgUrl: app.config.baseEmailImgURl
+				};
+					let htmlToSend = template(emailContent);
+
+					let mailOptions = {
+					 from: app.config.mailSender,
+					 to: email,
+					 subject: 'Your link has been rejected in a campaign',
+					 html: htmlToSend
+				};
+
+			  transporter.sendMail(mailOptions, (error, info)=>{
+						res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))
+				  });
+				})
+
+	} catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+
+	}
+	  }
+  
