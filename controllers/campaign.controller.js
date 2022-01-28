@@ -653,19 +653,10 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 	  }
 	  exports.gains=async(req,response)=>{
 
-
-
-
-	
-        let token=await app.crm.checkToken(req,response);
-		var auth =	await app.crm.auth(token);
 		var stats;
 		var requests = false;
 		var abi = [{"indexed":true,"name":"idRequest","type":"bytes32"},{"indexed":false,"name":"typeSN","type":"uint8"},{"indexed":false,"name":"idPost","type":"string"},{"indexed":false,"name":"idUser","type":"string"}];
 		try {
-
-			console.log("start");
-
 
 			var pass = req.body.pass;
 			var idProm = req.body.idProm;
@@ -679,13 +670,13 @@ module.exports.uploadCampaignLogo = multer({ storage : storageCampaignLogo,inMem
 			}
 
 			
-			var cred2 = await app.account.unlock(auth.id,pass);
+			var cred2 = await app.account.unlock(req.user._id,pass);
 			var ctr = await app.campaign.getPromContract(idProm);
 
 
 		    var gasPrice = await ctr.getGasPrice();
 			let prom = await ctr.methods.proms(idProm).call();
-            var linkedinData = prom.typeSN== "5" && await app.db.linkedinProfile().findOne({userId:auth.id},{projection: { accessToken: true,_id:false }})
+            var linkedinData = prom.typeSN== "5" && await app.db.linkedinProfile().findOne({userId:req.user._id},{projection: { accessToken: true,_id:false }})
             var link = await app.db.campaign_link().findOne({id_prom:idProm})
 			if(req.body.bounty) {
 				if(prom.funds.amount > 0 && prom.isPayed) {

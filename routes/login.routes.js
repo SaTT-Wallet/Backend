@@ -491,7 +491,7 @@ new TelegramStrategy({
  *       "500":
  *          description: error:error message
  */
- router.put('/updateLastStep',updateLastStep)
+ router.put('/updateLastStep',verifyAuth,updateLastStep)
 
  /**
  * @swagger
