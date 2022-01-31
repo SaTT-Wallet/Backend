@@ -26,7 +26,7 @@ const storage = new GridFsStorage({
     });
   },
 });
-const upload = multer({ storage });
+
 
 var connection;
 let app;
@@ -73,6 +73,24 @@ module.exports.uploadCampaignLogo = multer({
   storage: storageCampaignLogo,
   inMemory: true,
 }).single("file");
+
+let calcSNStat=(objNw,link)=>{
+	objNw.total++;
+	if(link.status!=="rejected"){
+			if(link.views) objNw.views+=Number(link.views);
+			if(link.likes) objNw.likes+=Number(link.likes);
+			if(link.shares) objNw.shares+=Number(link.shares);
+			if(link.status===true) objNw.accepted++;
+			if(link.status===false) objNw.pending++;
+	}	 
+	else objNw.rejected++;		  
+	return objNw;
+}
+
+let initStat=()=>{
+	return {total:0,views:0,likes:0,shares:0,accepted:0,pending:0,rejected:0}
+
+}
 
 var BN = require("bn.js");
 const conn = mongoose.createConnection(process.env.MONGOURI);
@@ -1541,8 +1559,6 @@ exports.erc20Allow = async (req, res) => {
 
 
 	  exports.update = async(req , res)=>{
-
-
 		try {
 			let campaign = req.body;
 			campaign.updatedAt=Date.now();
@@ -1697,6 +1713,55 @@ exports.erc20Allow = async (req, res) => {
 		}
 	  }
 
+	  module.exports.campaignStatistics = async (req, res) => {
+		try{
+			var hash=req.params.hash;
+			var arrayOfUser=[];
+			var arrayOfnbAbos =[]
+			var nbTotalUser =0;
+			var totalAbos = 0
+			let result={facebook:initStat(),twitter:initStat(),instagram:initStat(),youtube:initStat(),linkedin:initStat()}
+			var links=await app.db.campaign_link().find({id_campaign:hash}).toArray();
+			for(i=0;i<links.length;i++){
+				let link=links[i];
+				let oracle = link.oracle
+				result[oracle]=calcSNStat(result[oracle],link);
+				if(arrayOfUser.indexOf(link.id_wallet)===-1) {
+					nbTotalUser++;
+					arrayOfUser.push(link.id_wallet);
+				  }
+				  if(arrayOfnbAbos.indexOf(link.id_wallet+'|'+link.typeSN)===-1) {
+				  if(link.abosNumber)
+					totalAbos+=+link.abosNumber;
+					arrayOfUser.push(link.id_wallet+'|'+link.typeSN);
+				}
+			}			
+		  res.json({stat:result,creatorParticipate:nbTotalUser,reachTotal:totalAbos});
+		} catch (err) {
+		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+		 }
+	  }
+
+	  module.exports.campaignInvested = async (req, res) => {
+		  try{
+		    let	prices = app.account.getPrices();
+			let sattPrice$ = prices.SATT.price;
+			let totalInvested = '0';
+			let userCampaigns = await app.db.campaigns().find({idNode:"0"+req.user._id,hash:{ $exists: true}}).toArray();
+	
+			userCampaigns.forEach(elem=>{
+				totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
+			})
+			let totalInvestedUSD = sattPrice$ *parseFloat(new Big(totalInvested).div(etherInWei).toFixed(0));
+			totalInvested = new Big(totalInvested).toFixed()
+	
+	
+			res.json({totalInvested,totalInvestedUSD})
+		  }catch(e){
+
+		  }
+ 
+	  }
 
 
 	  exports.bep20Approval = async ( req , response)=>{

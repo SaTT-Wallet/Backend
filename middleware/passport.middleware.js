@@ -88,6 +88,25 @@ const handleSocialMediaSignin = async (query,cb)=>{
     }
 }
 
+let createUser = (enabled,_id,idSn,newsLetter,picLink=false,username,email=null,idOnSn,socialId,firstName=null,lastName=null,password=null) => {
+    const userObject = {};
+    const mongodate = new Date().toISOString();
+    var buff2 = Buffer.alloc(32);
+    var code = crypto.randomFillSync(buff2).toString('hex');
+    userObject.created = mongodate,userObject.updated = mongodate;
+    userObject.enabled = enabled, userObject.userSatt = true,userObject.failed_count = 0
+    userObject.confirmation_token =code,userObject.onBoarding =false,userObject.account_locked =false;
+    userObject._id = _id,userObject.idSn =  idSn,userObject.newsLetter = newsLetter ?? false;
+    userObject.locale = "en"
+  if(picLink)  userObject.picLink =picLink
+    userObject.username =username,userObject.email =email
+     if(idOnSn && socialId) userObject[idOnSn] = socialId
+     if(firstName) userObject.firstName =firstName;
+     if(lastName) userObject.firstName =lastName;
+     if(password) userObject.password = password;
+    return  userObject;
+  }
+
 /* 
 * begin signin with email and password
 */
@@ -171,33 +190,35 @@ exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
 */
 passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback: true },
     async function(req, username, password, done) {
+        console.error(4848484)
         var date = Math.floor(Date.now() / 1000) + 86400;
         var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
 
         if (user) {
             return done(null, false, { error: true, message: 'account_already_used' });
         } else {
-            var mongodate = new Date().toISOString();
-            var buff2 = Buffer.alloc(32);
-            var codex = crypto.randomFillSync(buff2).toString('hex');
-            let insert = await app.db.sn_user().insertOne({
-                _id: Long.fromNumber(await app.account.handleId()),
-                username: username.toLowerCase(),
-                email: username.toLowerCase(),
-                password: synfonyHash(password),
-                created: mongodate,
-                updated: mongodate,
-                newsLetter: req.body.newsLetter,
-                idSn: 0,
-                account_locked: false,
-                failed_count: 0,
-                locale: "en",
-                onBoarding: false,
-                enabled: 0,
-                confirmation_token: codex,
-                "userSatt": true
-            });
-           
+            // var mongodate = new Date().toISOString();
+            // var buff2 = Buffer.alloc(32);
+            // var codex = crypto.randomFillSync(buff2).toString('hex');
+            let createdUser = createUser(0,Long.fromNumber(await app.account.handleId()),0,req.body.newsLetter,'',username.toLowerCase(),username.toLowerCase(),false,false,'','',synfonyHash(password))
+            // let insert = await app.db.sn_user().insertOne({
+            //     _id: Long.fromNumber(await app.account.handleId()),
+            //     username: username.toLowerCase(),
+            //     email: username.toLowerCase(),
+            //     password: synfonyHash(password),
+            //     created: mongodate,
+            //     updated: mongodate,
+            //     newsLetter: req.body.newsLetter,
+            //     idSn: 0,
+            //     account_locked: false,
+            //     failed_count: 0,
+            //     locale: "en",
+            //     onBoarding: false,
+            //     enabled: 0,
+            //     confirmation_token: codex,
+            //     "userSatt": true
+            // });
+           let insert = await app.db.sn_user().insertOne(createdUser)
             let users = insert.ops;
             let token = app.generateAccessToken(users[0]);
             const lang = req.query.lang || "en";
@@ -263,31 +284,32 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
     } else {
-        var mongodate = new Date().toISOString();
+        /*var mongodate = new Date().toISOString();
         var buff2 = Buffer.alloc(32);
         var code = crypto.randomFillSync(buff2).toString('hex');
-        var id = Long.fromNumber(await app.account.handleId())
-        let insert = await app.db.sn_user().insertOne({
-            _id: id,
-            scopedId: profile.id,
-            idOnSn: profile._json.token_for_business,
-            email: profile._json.email,
-            username: profile.name,
-            firstName: profile.first_name,
-            lastName: profile.displayName,
-            created: mongodate,
-            onBoarding: false,
-            account_locked: false,
-            newsLetter: req.body.newsLetter,
-            failed_count: 0,
-            updated: mongodate,
-            idSn: 1,
-            locale: "en",
-            enabled: 1,
-            confirmation_token: code,
-            picLink: profile.photos.length ? profile.photos[0].value : false,
-            userSatt: true
-        });
+        var id = Long.fromNumber(await app.account.handleId())*/
+        let createdUser = createUser(1,Long.fromNumber(await app.account.handleId()),1,req.body.newsLetter,profile.photos.length ? profile.photos[0].value : false,profile.name,profile._json.email,'idOnSn',profile._json.token_for_business,profile.first_name,profile.displayName)
+        // let insert = await app.db.sn_user().insertOne({
+        //     _id: id,
+        //     idOnSn: profile._json.token_for_business,
+        //     email: profile._json.email,
+        //     username: profile.name,
+        //     firstName: profile.first_name,
+        //     lastName: profile.displayName,
+        //     created: mongodate,
+        //     onBoarding: false,
+        //     account_locked: false,
+        //     newsLetter: req.body.newsLetter,
+        //     failed_count: 0,
+        //     updated: mongodate,
+        //     idSn: 1,
+        //     locale: "en",
+        //     enabled: 1,
+        //     confirmation_token: code,
+        //     picLink: profile.photos.length ? profile.photos[0].value : false,
+        //     userSatt: true
+        // });
+        let insert = await app.db.sn_user().insertOne(createdUser)
         let token = app.generateAccessToken(insert.ops[0]);
         return cb(null, { id: id, token: token, expires_in: date });
     }
@@ -307,29 +329,31 @@ exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     if (users.length) {
         return cb('account_already_used&idSn=' + users[0].idSn)
     } else {
-        var mongodate = new Date().toISOString();
+        /*var mongodate = new Date().toISOString();
         var buff2 = Buffer.alloc(32);
-        var code = crypto.randomFillSync(buff2).toString('hex');
-        var insert = await app.db.sn_user().insertOne({
-            _id: Long.fromNumber(await app.account.handleId()),
-            idOnSn2: profile.id,
-            email: profile.emails.length ? profile.emails[0].value : false,
-            username: profile.displayName,
-            firstName: profile.name.givenName,
-            lastName: profile.name.familyName,
-            created: mongodate,
-            updated: mongodate,
-            idSn: 2,
-            newsLetter: req.body.newsLetter,
-            onBoarding: false,
-            account_locked: false,
-            failed_count: 0,
-            enabled: 1,
-            locale: profile._json.locale,
-            confirmation_token: code,
-            userSatt: true,
-            picLink: profile.photos.length ? profile.photos[0].value : false
-        });
+        var code = crypto.randomFillSync(buff2).toString('hex');*/
+        let createdUser = createUser(1,Long.fromNumber(await app.account.handleId()),2,req.body.newsLetter,profile.photos.length ? profile.photos[0].value : false,profile.displayName,profile.emails.length ? profile.emails[0].value : false,"idOnSn2",profile.id,profile.name.givenName,profile.name.familyName)
+        // var insert = await app.db.sn_user().insertOne({
+        //     _id: Long.fromNumber(await app.account.handleId()),
+        //     idOnSn2: profile.id,
+        //     email: profile.emails.length ? profile.emails[0].value : false,
+        //     username: profile.displayName,
+        //     firstName: profile.name.givenName,
+        //     lastName: profile.name.familyName,
+        //     created: mongodate,
+        //     updated: mongodate,
+        //     idSn: 2,
+        //     newsLetter: req.body.newsLetter,
+        //     onBoarding: false,
+        //     account_locked: false,
+        //     failed_count: 0,
+        //     enabled: 1,
+        //     locale: profile._json.locale,
+        //     confirmation_token: code,
+        //     userSatt: true,
+        //     picLink: profile.photos.length ? profile.photos[0].value : false
+        // });
+        let insert = await app.db.sn_user().insertOne(createdUser)
         var users = insert.ops;
         let token = app.generateAccessToken(users[0]);
         return cb(null, { id: profile.id, token: token, expires_in: date });
@@ -361,29 +385,31 @@ exports.signup_telegram_function=async(req, profile, cb) => {
     if (users.length) {
         return cb('account_already_used&idSn=' + users[0].idSn);
     } else {
-        var mongodate = new Date().toISOString();
-        var buff2 = Buffer.alloc(32);
-        var code = crypto.randomFillSync(buff2).toString('hex');
-        var insert = await app.db.sn_user().insertOne({
-            _id: Long.fromNumber(await app.account.handleId()),
-            idOnSn3: profile.id,
-            username: profile.email,
-            firstName: profile.first_name,
-            lastName: profile.last_name,
-            name: profile.username,
-            newsLetter: req.body.newsLetter,
-            picLink: profile.photo_url,
-            created: mongodate,
-            onBoarding: false,
-            account_locked: false,
-            failed_count: 0,
-            updated: mongodate,
-            idSn: 5,
-            locale: "en",
-            confirmation_token: code,
-            enabled: 1,
-            userSatt: true
-        });
+        // var mongodate = new Date().toISOString();
+        // var buff2 = Buffer.alloc(32);
+        // var code = crypto.randomFillSync(buff2).toString('hex');
+        let createdUser = createUser(1,Long.fromNumber(await app.account.handleId()),5,req.body.newsLetter,profile.photo_url,profile.email,'','idOnSn3',profile.id,profile.first_name,profile.last_name)
+        // var insert = await app.db.sn_user().insertOne({
+        //     _id: Long.fromNumber(await app.account.handleId()),
+        //     idOnSn3: profile.id,
+        //     username: profile.email,
+        //     firstName: profile.first_name,
+        //     lastName: profile.last_name,
+        //     name: profile.username,
+        //     newsLetter: req.body.newsLetter ?? false,
+        //     picLink: profile.photo_url,
+        //     created: mongodate,
+        //     onBoarding: false,
+        //     account_locked: false,
+        //     failed_count: 0,
+        //     updated: mongodate,
+        //     idSn: 5,
+        //     locale: "en",
+        //     confirmation_token: code,
+        //     enabled: 1,
+        //     userSatt: true
+        // });
+        let insert = await app.db.sn_user().insertOne(createdUser)
         var users = insert.ops;
         let token = app.generateAccessToken(users[0]);
         return cb(null, { id: users[0]._id, token: token, expires_in: date });
@@ -625,8 +651,7 @@ module.exports.verifyAuth = (req, res, next)=> {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1] 
     if(!token){
-        res.end(JSON.stringify({ error: "token required" }));
-        return;
+       return res.end(JSON.stringify({ error: "token required" }));
     }  
      
       jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
