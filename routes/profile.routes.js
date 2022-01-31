@@ -344,7 +344,7 @@ router.get('/addChannel/facebook/:idUser',(req, res, next) => {
 passport.use('facebook_strategy_add_channel', new FbStrategy(
 app.config.facebookCredentials("profile/callback/addChannel/facebook"),
 async(req, accessToken, refreshToken, profile, cb) => {
-    addFacebookChannel(req, accessToken, refreshToken, profile, cb)
+    addFacebookChannel(req, accessToken, refreshToken, profile, cb);
 }));
 
 router.get('/callback/addChannel/facebook',
