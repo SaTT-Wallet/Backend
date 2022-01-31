@@ -39,7 +39,21 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,AddIntersts,UserInterstes, deleteLinkedinChannels,profilePicture,updateProfile, UserLegalProfile,deleteFacebookChannels, deleteGoogleChannels,account,socialAccounts,checkOnBoarding,requestMoney} = require('../controllers/profile.controller')
+const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,
+    AddIntersts,
+    UserInterstes,
+     deleteLinkedinChannels,
+     profilePicture,updateProfile,
+      UserLegalProfile,
+      deleteFacebookChannels,
+       deleteGoogleChannels,
+       account,socialAccounts,
+       checkOnBoarding,
+       requestMoney
+       ,notificationUpdate,
+       changeNotificationsStatus,
+       confrimChangeMail,
+       getNotifications,changeEmail,verifyLink} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
@@ -595,7 +609,83 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
 
 
 
+
+   
+   /**
+ * @swagger
+ * /profile/notification/seen/:id:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: update notification status if it's seen or not by user.
+ *     parameters:
+ *       - name: id
+ *         description: id of the according selected notification by the user.
+ *     responses:
+ *        "200":
+ *          description: message  notification_seen
+ *        "500":
+ *          description: error:error message
+ */  
+    router.post('/notification/seen/:id', verifyAuth,notificationUpdate);
+
      /**
+ * @swagger
+ * /profile/notification/issend/clicked:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: update notifications status of the user that are seen.
+ *     responses:
+ *        "200":
+ *          description: message  notification_seen
+ *        "500":
+ *          description: error:error message
+ */  
+    router.get('/notification/issend/clicked', verifyAuth,changeNotificationsStatus);
+  
+         /**
+ * @swagger
+ * /profile/notifications:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: retrieve all user notifications.
+ *     responses:
+ *        "200":
+ *          description: [{notifications}]
+ *        "500":
+ *          description: error:error message
+ */ 
+  router.get('/notifications',verifyAuth,getNotifications);
+   
+    /**
+ * @swagger
+ * /profile/changeEmail:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: user request change email .
+ *     description: allow user to take first step to change his email and it end an email to user for verification.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *               email :
+ *                   type: string
+ *     responses:
+ *       "200":
+ *          description: email sent
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/changeEmail', verifyAuth,changeEmail);
+
+       /**
  * @swagger
  * /profile/SattSupport:
  *   post:
@@ -623,7 +713,8 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-      router.post('/SattSupport',support)
+router.post('/SattSupport',support)
+
 
 
 
@@ -733,3 +824,56 @@ router.get('/callback/link/facebook',
     
     
       module.exports = router;
+        /**
+ * @swagger
+ * /profile/confirmChangeEmail:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: confirm change email .
+ *     description: the user must send the code that he had received in his new email.
+       *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: number
+ *     responses:
+ *       "200":
+ *          description: email changed
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/confirmChangeEmail', verifyAuth,confrimChangeMail)
+
+        /**
+ * @swagger
+ * /profile/link/verify/{typeSN}/{idUser}/{idPost}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: confirm change email .
+ *     description: the user must send the code that he had received in his new email.
+ *     parameters:
+ *       - name: typeSN
+ *         description: typeSN.
+ *         in: path
+ *         required: true 
+ *       - name: idUser
+ *         description: idUser.
+ *         in: path
+ *         required: true
+ *       - name: idPost
+ *         description: idPost.
+ *         in: path
+ *         required: true  
+ *     responses:
+ *       "200":
+ *          description: description
+ *       "500":
+ *          description: error:error message
+ */
+ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth,verifyLink)
+  module.exports = router;

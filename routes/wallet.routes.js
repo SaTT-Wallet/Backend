@@ -3,7 +3,7 @@ let express = require('express');
 let router = express.Router();
 const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
-	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices,getMnemo,verifyMnemo,createNewWallet} = require('../controllers/wallet.controller')
+	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices,getMnemo,verifyMnemo,createNewWallet,removeToken,getTransactionHistory} = require('../controllers/wallet.controller')
 const { verifyAuth} =require('../middleware/passport.middleware');
 
 
@@ -575,5 +575,49 @@ router.post('/exportETH',verifyAuth, exportEth)
  *          description: error:error message
  */
   router.post('/create',verifyAuth,createNewWallet)
+
+
+   /**
+ * @swagger
+ * /wallet/create:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: remove added token.
+ *     description: add custom token add by user.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:removeToken
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/remove/token',verifyAuth, removeToken)
+  
+  /**
+ * @swagger
+ * /wallet/transaction_history/:address:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: create campaign {deprecated}.
+ *     description: parametres acceptées :body{campaign}.
+ *     parameters:
+ *       - name: address
+ *         description: user wallet address.
+ *     responses:
+ *        "200":
+ *          description: data
+ *        "500":
+ *          description: error:error message
+ */
+  router.get('/transaction_history/:address',getTransactionHistory)
 
 module.exports = router;
