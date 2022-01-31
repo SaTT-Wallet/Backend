@@ -58,8 +58,8 @@ try {
     var web3eth = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url,options));
     var web3Bsc  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket,options));
 
-    var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,config.testnet?app.config.ctrs.token.address.mainnet:app.config.ctrs.token.address.testnet);
-    var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,config.testnet?app.config.ctrs.bep20.address.mainnet:app.config.ctrs.bep20.address.testnet);
+    var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,app.config.testnet?app.config.ctrs.token.address.testnet:app.config.ctrs.token.address.mainnet);
+    var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,app.config.testnet?app.config.ctrs.bep20.address.testnet:app.config.ctrs.bep20.address.mainnet);
 
     return {web3eth,web3Bsc,ctrEth,ctrBsc};
   }
