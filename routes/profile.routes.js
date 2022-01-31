@@ -52,7 +52,7 @@ const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIn
        ,notificationUpdate,
        changeNotificationsStatus,
        confrimChangeMail,
-       getNotifications,changeEmail} = require('../controllers/profile.controller')
+       getNotifications,changeEmail,verifyLink} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
@@ -708,7 +708,7 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-        router.post('/SattSupport',support)
+router.post('/SattSupport',support)
 
 
 
@@ -737,5 +737,32 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  */
   router.post('/confirmChangeEmail', verifyAuth,confrimChangeMail)
 
-
+        /**
+ * @swagger
+ * /profile/link/verify/{typeSN}/{idUser}/{idPost}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: confirm change email .
+ *     description: the user must send the code that he had received in his new email.
+ *     parameters:
+ *       - name: typeSN
+ *         description: typeSN.
+ *         in: path
+ *         required: true 
+ *       - name: idUser
+ *         description: idUser.
+ *         in: path
+ *         required: true
+ *       - name: idPost
+ *         description: idPost.
+ *         in: path
+ *         required: true  
+ *     responses:
+ *       "200":
+ *          description: description
+ *       "500":
+ *          description: error:error message
+ */
+ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth,verifyLink)
   module.exports = router;

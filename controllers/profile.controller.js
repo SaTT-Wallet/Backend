@@ -611,3 +611,93 @@ module.exports.confrimChangeMail =  async (req,response) => {
         response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
     }
 }
+
+module.exports.verifyLink =  async (req,response) => {
+    try {
+        var userId=req.user._id;
+        var typeSN = req.params.typeSN;
+        var idUser = req.params.idUser;
+        var idPost = req.params.idPost;
+        if(!userId)
+            response.end('{error:"no user session"}')
+        var linked = false;
+        var deactivate = false;
+        var res = false;
+        switch (typeSN) {
+            case "1":
+                fbProfile = await app.db.fbProfile().findOne({UserId:userId });
+              if(fbProfile) {
+                    linked = true;
+                    res = await app.oracle.verifyFacebook(userId,idUser,idPost);
+                    if(res && res.deactivate === true) deactivate=true;
+                }
+            break;
+            case "2":
+            googleProfile = await app.db.googleProfile().findOne({UserId:userId });
+            if(googleProfile) {
+                
+                    var options = {
+                        method: 'POST',
+                        uri: 'https://oauth2.googleapis.com/token',
+                        body: {
+                          client_id:app.config.googleClientId,
+                          client_secret:app.config.googleClientSecret,
+                          refresh_token:googleProfile.refreshToken,
+                          grant_type:"refresh_token"
+                        },
+                        json: true
+                    };
+                    result = await rp(options);
+                    await app.db.googleProfile().updateOne({UserId:userId  }, { $set: {accessToken:result.access_token}});
+                      linked = true;
+                      res = await app.oracle.verifyYoutube(userId,idPost);
+                      if(res && res.deactivate === true) deactivate=true;		
+                }
+                
+            break;
+            case "3":
+            page = await app.db.fbPage().findOne({$and:[{UserId:userId},{ instagram_id: { $exists: true} }]});
+            if(page) {
+                linked = true;
+                res = await app.oracle.verifyInsta(userId,idPost);
+                if (res === "deactivate" )
+                deactivate=true;
+            }
+            
+            break;
+            case "4":
+            var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId});
+                if(twitterProfile) {
+                    linked = true;
+                    res = await app.oracle.verifyTwitter(userId,idPost);
+                    if (res === "deactivate" )
+                    deactivate=true;			
+                }
+    
+            break;
+            case "5":
+            var linkedinProfile = await app.db.linkedinProfile().findOne({userId});
+                if(linkedinProfile && linkedinProfile.pages.length > 0) {
+                    linked = true;
+                    res = await app.oracle.verifyLinkedin(linkedinProfile,idPost);
+                    if (res === "deactivate" )
+                    deactivate=true;
+                }
+    
+            break;
+            default:
+    
+        }
+    
+        if(!linked)
+            response.end('{error:"account not linked"}')
+        else if(res==="lien_invalid")
+            response.end('{error:"lien_invalid"}')
+        else if(deactivate)
+            response.end('{error:"account desactivated"}')
+        else
+            response.end('{result:'+(res?"true":"false")+'}');
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+}
