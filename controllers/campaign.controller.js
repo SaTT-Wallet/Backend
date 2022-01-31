@@ -1822,12 +1822,12 @@ exports.erc20Allow = async (req, res) => {
         let reason = [];
 	  	req.body.reason.forEach((str)=>	reason.push({reason:str}))
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected",type:"rejected"}},{returnOriginal: false});
-
+      console.log(rejectedLink)
 		 let id = +req.body.idUser
 
 		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign,promHash:idLink})
 
-		readHTMLFile(__dirname + '/../express/emailtemplate/rejected_link.html' ,(err, html) => {
+		app.readHTMLFile(__dirname + '/../express/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
 				console.error(err)
 				return
@@ -1851,7 +1851,7 @@ exports.erc20Allow = async (req, res) => {
 					 html: htmlToSend
 				};
 
-			  transporter.sendMail(mailOptions, (error, info)=>{
+			  app.transporter.sendMail(mailOptions, (error, info)=>{
 						res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))
 				  });
 				})
