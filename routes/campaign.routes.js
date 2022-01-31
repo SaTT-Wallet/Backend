@@ -803,10 +803,9 @@ router.post('/apply',verifyAuth,apply);
  *         description: the address wallet of user.
  *         in: path
  *         required: true
-
  *     responses:
  *       "200":
- *          description:[list of links]
+ *          description: list:[list of links]
  *       "500":
  *          description: error:"error"
  */
