@@ -191,15 +191,26 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               token:
- *                 type: string
- *               to:
+ *               ERC20token:
  *                 type: string
  *               amount:
  *                 type: string
- *               pass:
+ *               contract:
  *                 type: string
- *               symbole:
+ *               dataUrl:
+ *                 type: string
+ *               endDate:
+ *                 type: integer
+ *               startDate:
+ *                 type: integer
+ *               idCampaign:
+ *                 type: string
+ *               bounties:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               pass:
  *                 type: string
  *     responses:
  *       "200":
