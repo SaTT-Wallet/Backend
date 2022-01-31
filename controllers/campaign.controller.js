@@ -818,7 +818,7 @@ exports.validateCampaign = async (req, res) => {
         promHash: idApply,
       });
 
-      readHTMLFile(
+      app.readHTMLFile(
         __dirname + "/../express/emailtemplate/email_validated_link.html",
         (err, html) => {
           if (err) {
@@ -843,7 +843,7 @@ exports.validateCampaign = async (req, res) => {
             html: htmlToSend,
           };
 
-          transporter.sendMail(mailOptions);
+          app.transporter.sendMail(mailOptions);
         }
       );
     }
