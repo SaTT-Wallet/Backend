@@ -716,16 +716,28 @@ exports.linkNotifications = async (req, res) => {
 exports.validateCampaign = async (req, res) => {
   let idCampaign = req.body.idCampaign;
   let linkProm = req.body.link;
+  let idUser="0"+req.user._id;
+  const campaign = await app.db
+  .campaigns()
+  .findOne(
+    { _id: app.ObjectId(idCampaign) },
+    { fields: { logo: 0, resume: 0, description: 0, tags: 0, cover: 0 } }
+  );
   try {
-    let pass = req.body.pass;
+   
+    if(idUser === campaign.idNode){
+       let pass = req.body.pass;
     let idApply = req.body.idProm;
     const lang = /*req.query.lang ||*/ "en";
     app.i18n.configureTranslation(lang);
 
     var cred = await app.account.unlock(req.user._id, pass);
     var ret = await app.campaign.validateProm(idApply, cred);
-
     res.end(JSON.stringify(ret));
+    }else{
+      res.end(JSON.stringify({"message":"unothorized"}));
+    }
+   
   } catch (err) {
     res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
   } finally {
@@ -733,12 +745,7 @@ exports.validateCampaign = async (req, res) => {
       app.account.lock(cred.address);
     }
     if (ret && ret.transactionHash) {
-      const campaign = await app.db
-        .campaigns()
-        .findOne(
-          { _id: app.ObjectId(idCampaign) },
-          { fields: { logo: 0, resume: 0, description: 0, tags: 0, cover: 0 } }
-        );
+     
       const id = req.body.idUser;
       const email = req.body.email;
       let link = await app.db.campaign_link().findOne({ id_prom: idApply });
@@ -1732,17 +1739,23 @@ exports.erc20Allow = async (req, res) => {
 
 	  exports.rejectLink = async ( req , res)=>{
 		const lang = req.query.lang || "en";
-        app.i18n.configureTranslation(lang);
-
+    const title = req.body.title || "";
+    const idCampaign = req.body.idCampaign
+     const idLink = req.params.idLink;
+    const email = req.body.email
+    let link = req.body.link;
+    app.i18n.configureTranslation(lang);
+    let idUser="0"+req.user._id;
+    const campaign = await app.db
+    .campaigns()
+    .findOne(
+      { _id: app.ObjectId(idCampaign) },
+      { fields: { logo: 0, resume: 0, description: 0, tags: 0, cover: 0 } }
+    );
 		try {
-		   
-		 const title = req.body.title || "";
-		 const idCampaign = req.body.idCampaign
-         const idLink = req.params.idLink;
-		 const email = req.body.email
-		 let link = req.body.link;
-		 let reason = [];
-		req.body.reason.forEach((str)=>	reason.push({reason:str}))
+     if(idUser === campaign.idNode){
+        let reason = [];
+	  	req.body.reason.forEach((str)=>	reason.push({reason:str}))
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected",type:"rejected"}},{returnOriginal: false});
 
 		 let id = +req.body.idUser
@@ -1777,6 +1790,11 @@ exports.erc20Allow = async (req, res) => {
 						res.end(JSON.stringify({message :"success", prom : rejectedLink.value}))
 				  });
 				})
+     }
+     else{
+      res.end(JSON.stringify({"message":"unothorized"}));
+    }
+		
 
 	} catch (err) {
 		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');

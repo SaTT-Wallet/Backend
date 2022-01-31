@@ -455,7 +455,7 @@ router.post('/apply',verifyAuth,apply);
 
 /**
  * @swagger
- * /campaign/validate:
+ * /campaign/validateLink:
  *   post:
  *     tags:
  *     - "campaign"
@@ -486,7 +486,7 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:error message
  */
 
- router.post('/validate',verifyAuth,validateCampaign);
+ router.post('/validateLink',verifyAuth,validateCampaign);
 
   /**
  * @swagger
@@ -907,7 +907,7 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
 
  /**
  * @swagger
- * /campaign/reject/{idLink}:
+ * /campaign/rejectLink/{idLink}:
  *   put:
  *     tags:
  *     - "campaign"
@@ -940,7 +940,7 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
  *       "500":
  *          description: error:"error"
  */
-  router.put('/reject/:idLink',rejectLink);
+  router.put('/rejectLink/:idLink',verifyAuth,rejectLink);
    
      
 module.exports = router;
