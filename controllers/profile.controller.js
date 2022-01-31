@@ -474,5 +474,230 @@ exports.support = async( req, res)=>{
 		}catch (err) {
 		  res.send(JSON.stringify(err));
 	  }
+    }
+module.exports.notificationUpdate = async(req,res)=>{
+	try{
+        let id = req.params.id;
+        await app.db.notification().updateOne({_id:ObjectId(id)},{$set:{isSeen:true}});
+        res.send(JSON.stringify({message : "notification_seen"})).status(201);
+     }catch (err) {
+    res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+ }
+}
 
+
+module.exports.changeNotificationsStatus = async (req,res)=>{
+    try{
+		const idNode = "0" + req.user._id;
+		await app.db.notification().find({ $and: [ {idNode}, { isSend : false }]}).forEach((elem)=>{
+			elem.isSend = true;
+			app.db.notification().save(elem)
+		})
+		res.send(JSON.stringify({message :'Notification clicked'})).status(200);
+	}catch (err) {
+		res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+	}
+}
+
+module.exports.getNotifications = async (req,res) => {
+    try{
+        const idNode= "0" + req.user._id;
+        const arrayNotifications= await app.db.notification().find({idNode}).sort({created:-1}).toArray()
+        const limit=parseInt(req.query.limit) || 50;
+        const page=parseInt(req.query.page) || 1;
+        const startIndex=(page-1) * limit;
+        const endIndex=page * limit;
+
+        const notifications = {}
+        if(endIndex < arrayNotifications.length){
+            notifications.next ={
+                page:page+1,
+                limit:limit
+            }
+        }
+        if(startIndex > 0){
+            notifications.previous ={
+            page:page-1,
+            limit:limit
+            }
+        }
+        const isSend= await app.db.notification().find({idNode,isSend:false}).toArray()
+        notifications.isSend=isSend.length;
+        notifications.notifications=arrayNotifications.slice(startIndex, endIndex)
+        res.send(notifications);
+      }catch (err){
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+      }
+}
+
+module.exports.changeEmail = async(req,response) => {
+        var pass = req.body.pass;
+        var email = req.body.email;
+        var user = req.user;
+            if (user.password != synfonyHash(pass)) {
+                response.end(JSON.stringify("wrong password"));
+                return;
+            }
+            var existUser = await app.db.sn_user().findOne({ email });
+            if (existUser) {
+                response.end(JSON.stringify("duplicated email"));
+                return;
+            } else {
+
+                const code = Math.floor(100000 + Math.random() * 900000);
+                newEmail = {};
+                newEmail.email = email;
+                newEmail.expiring = Date.now() + (3600 * 20);
+                newEmail.code = code;
+
+                await app.db.sn_user().updateOne({ _id: Long.fromNumber(req.user._id) }, { $set: { newEmail } });
+
+                let requestDate = app.account.manageTime();
+                let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || "";
+                if (ip) ip = ip.split(":")[3];
+
+                const lang = req.query.lang || "en";
+                app.i18n.configureTranslation(lang);
+
+                // let subject = (lang == "en") ? "Satt wallet change email" : "";
+                app.readHTMLFile(__dirname + '/../express/emailtemplate/changeEmail.html', (err, html) => {
+                    var template = handlebars.compile(html);
+                    var replacements = {
+                        ip,
+                        requestDate,
+                        satt_url: app.config.basedURl,
+                        back_url: app.config.baseURl,
+                        satt_faq: app.config.Satt_faq,
+                        code,
+                        imgUrl: app.config.baseEmailImgURl,
+                    };
+                    var htmlToSend = template(replacements);
+
+                    var mailOptions = {
+                        from: app.config.mailSender,
+                        //to: user.email,
+                        to:  newEmail.email,
+                        subject: "Satt wallet change email",
+                        html: htmlToSend
+                    };
+                    app.transporter.sendMail(mailOptions, (error, info)=> {
+                        if (error) {
+                            console.log(error);
+                        } else {
+                            response.end(JSON.stringify({ 'message': 'Email sent' }));
+                        }
+
+                    })
+                })
+                response.end(JSON.stringify("success"));
+            }
+}
+module.exports.confrimChangeMail =  async (req,response) => {
+    try {
+        var id = req.user._id;
+        var code = req.body.code;
+        var user = await app.db.sn_user().findOne({ _id: Long.fromNumber(id) }, { projection: { newEmail: true } });
+
+        if (Date.now() >= user.newEmail.expiring) {
+            response.end(JSON.stringify("code expired")).status(200);
+        } else if (user.newEmail.code != code) {
+            response.end(JSON.stringify("code incorrect")).status(200);
+        } else {
+            var newEmail = user.newEmail.email;
+            await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { email: newEmail } });
+            response.end(JSON.stringify("email changed")).status(200);
+        }
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+}
+
+module.exports.verifyLink =  async (req,response) => {
+    try {
+        var userId=req.user._id;
+        var typeSN = req.params.typeSN;
+        var idUser = req.params.idUser;
+        var idPost = req.params.idPost;
+        if(!userId)
+            response.end('{error:"no user session"}')
+        var linked = false;
+        var deactivate = false;
+        var res = false;
+        switch (typeSN) {
+            case "1":
+                fbProfile = await app.db.fbProfile().findOne({UserId:userId });
+              if(fbProfile) {
+                    linked = true;
+                    res = await app.oracle.verifyFacebook(userId,idUser,idPost);
+                    if(res && res.deactivate === true) deactivate=true;
+                }
+            break;
+            case "2":
+            googleProfile = await app.db.googleProfile().findOne({UserId:userId });
+            if(googleProfile) {
+                
+                    var options = {
+                        method: 'POST',
+                        uri: 'https://oauth2.googleapis.com/token',
+                        body: {
+                          client_id:app.config.googleClientId,
+                          client_secret:app.config.googleClientSecret,
+                          refresh_token:googleProfile.refreshToken,
+                          grant_type:"refresh_token"
+                        },
+                        json: true
+                    };
+                    result = await rp(options);
+                    await app.db.googleProfile().updateOne({UserId:userId  }, { $set: {accessToken:result.access_token}});
+                      linked = true;
+                      res = await app.oracle.verifyYoutube(userId,idPost);
+                      if(res && res.deactivate === true) deactivate=true;		
+                }
+                
+            break;
+            case "3":
+            page = await app.db.fbPage().findOne({$and:[{UserId:userId},{ instagram_id: { $exists: true} }]});
+            if(page) {
+                linked = true;
+                res = await app.oracle.verifyInsta(userId,idPost);
+                if (res === "deactivate" )
+                deactivate=true;
+            }
+            
+            break;
+            case "4":
+            var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId});
+                if(twitterProfile) {
+                    linked = true;
+                    res = await app.oracle.verifyTwitter(userId,idPost);
+                    if (res === "deactivate" )
+                    deactivate=true;			
+                }
+    
+            break;
+            case "5":
+            var linkedinProfile = await app.db.linkedinProfile().findOne({userId});
+                if(linkedinProfile && linkedinProfile.pages.length > 0) {
+                    linked = true;
+                    res = await app.oracle.verifyLinkedin(linkedinProfile,idPost);
+                    if (res === "deactivate" )
+                    deactivate=true;
+                }
+    
+            break;
+            default:
+    
+        }
+    
+        if(!linked)
+            response.end('{error:"account not linked"}')
+        else if(res==="lien_invalid")
+            response.end('{error:"lien_invalid"}')
+        else if(deactivate)
+            response.end('{error:"account desactivated"}')
+        else
+            response.end('{result:'+(res?"true":"false")+'}');
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
 }
