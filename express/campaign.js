@@ -134,9 +134,9 @@ module.exports =  app => {
 
 
 
-	  cron.schedule(app.config.cronUpdateStat,()=>{
-		updateStat();
-		 })
+	//   cron.schedule(app.config.cronUpdateStat,()=>{
+	// 	updateStat();
+	// 	 })
 
 
 
