@@ -15,18 +15,18 @@ module.exports = async function (app) {
 
 
 		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
-			return campaignManager.contract;
+			return app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
 		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
-				return campaignManager.contractBep20;
+				return new app.web3Bep20.eth.Contract(pp.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
 		else	if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
 		{
 		
 
-			return campaignManager.contract;
+			return app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnet);
 
 		}
 		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase()){
-			return campaignManager.contractBep20;
+			return new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
 		}
 		
 	
@@ -159,8 +159,8 @@ module.exports = async function (app) {
 	campaignManager.createCampaignBounties = async function (dataUrl,startDate,endDate,bounties,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
-			// var ctr = await campaignManager.getContractToken(token);
-			var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			var ctr = await campaignManager.getContractToken(token);
+			//var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
 			var gasPrice = await app.web3Bep20.eth.getGasPrice();
 			var gas = await ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 			try {
