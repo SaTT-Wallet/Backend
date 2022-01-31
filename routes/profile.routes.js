@@ -808,6 +808,7 @@ router.get('/callback/link/facebook',
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
        router.get('/connect/telegram',
+       console.log("bot",app.config.telegramBotToken),
        passport.authenticate('link_telegram_account'),
        connectTelegramAccount
        )
@@ -823,7 +824,6 @@ router.get('/callback/link/facebook',
            }))
     
     
-      module.exports = router;
         /**
  * @swagger
  * /profile/confirmChangeEmail:
