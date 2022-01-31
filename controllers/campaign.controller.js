@@ -825,8 +825,6 @@ exports.validateCampaign = async (req, res) => {
   }
 };
 exports.gains = async (req, response) => {
-  let token = await app.crm.checkToken(req, response);
-  var auth = await app.crm.auth(token);
   var stats;
   var requests = false;
   var abi = [
@@ -836,7 +834,7 @@ exports.gains = async (req, response) => {
     { indexed: false, name: "idUser", type: "string" },
   ];
   try {
-    console.log("start");
+
 
     var pass = req.body.pass;
     var idProm = req.body.idProm;
@@ -848,7 +846,7 @@ exports.gains = async (req, response) => {
       return;
     }
 
-    var cred2 = await app.account.unlock(auth.id, pass);
+    var cred2 = await app.account.unlock(req.user._id, pass);
     var ctr = await app.campaign.getPromContract(idProm);
 
     var gasPrice = await ctr.getGasPrice();
@@ -858,7 +856,7 @@ exports.gains = async (req, response) => {
       (await app.db
         .linkedinProfile()
         .findOne(
-          { userId: auth.id },
+          { userId: req.user._id },
           { projection: { accessToken: true, _id: false } }
         ));
     var link = await app.db.campaign_link().findOne({ id_prom: idProm });
@@ -1680,7 +1678,7 @@ exports.erc20Allow = async (req, res) => {
 		res.json(Links);
 	  }
 
-      module.exports.getFunds = async (req, res)=>{
+      module.exports.getFunds = async (req, response)=>{
 		var pass = req.body.pass;
 		var idCampaign = req.body.idCampaign;
 		try {
