@@ -285,11 +285,12 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			var ctr;
 		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
-			ctr = ContractToken.contract;
+			
+			ctr =  new app.web3.eth.Contract(app.config.ctrs.oracle.abi,app.config.testnet?app.config.ctrs.oracle.address.testnet:app.config.ctrs.oracle.address.mainnet);
 			ctr.getGasPrice =  app.web3.eth.getGasPrice;
 		}
 		else {
-			ctr = ContractToken.contractBep20;
+			ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.oracle.abi,app.config.testnet?app.config.ctrs.oracle.address.testnetBep20:app.config.ctrs.oracle.address.mainnetBep20);
 			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
 		}
 
