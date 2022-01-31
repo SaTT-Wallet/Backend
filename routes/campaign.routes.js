@@ -5,9 +5,13 @@ const {campaign,pendingLink, campaigns,
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
     getLinks,getFunds,gains , addKits,update, kits, saveCampaign, upload,
-    validateCampaign} = require('../controllers/campaign.controller')
+    validateCampaign,campaignStatistics,campaignInvested} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
-const { route } = require('./login.routes');
+    const cron =require('node-cron');
+    const {updateStat} = require('../helpers/common');
+
+    
+    cron.schedule(process.env.CRON_UPDATE_STAT, ()=> updateStat())
 
  	/**
  * @swagger
@@ -685,6 +689,42 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:"error"
  */
      router.post('/remaining',getFunds);
+     
+
+       /**
+ * @swagger
+ * /campaign/statLinkCampaign/:hash:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: fetch campaign statistics.
+ *     description: parametres acceptées :body{campaign}.
+ *     parameters:
+ *       - name: hash
+ *         description: campaign hash.
+ *     responses:
+ *        "200":
+ *          description: data
+ *        "500":
+ *          description: error:error message
+ */
+     router.get('/statLinkCampaign/:hash',campaignStatistics);
+
+            /**
+ * @swagger
+ * /campaign/invested:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: fetch invested budget.
+ *     description: retrieve user total amount invested in all his campaigns.
+ *     responses:
+ *        "200":
+ *          description: object {totalInvested,totalInvestedUSD}
+ *        "500":
+ *          description: error:error message
+ */
+     router.get('/invested',verifyAuth,campaignInvested);
      
 module.exports = router;
 
