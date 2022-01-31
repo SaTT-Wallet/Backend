@@ -31,9 +31,9 @@ To run SaTT API webservice Provider you will need NodeJS 12.0+ and npm Package m
 
 ### Prerequisites
 
-
 * MongoDB database connection
 * Web3 service provider with [Geth](https://geth.ethereum.org/),[openerhereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
+* deployed smart contracts (token,campaign and oracle)
 * PM2 Process Manager, you can install it a described below : 
 
    ```sh
