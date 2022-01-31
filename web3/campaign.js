@@ -144,9 +144,9 @@ module.exports = async function (app) {
 			//var ctr = await campaignManager.getContractToken(token);
 			var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
 			var gasPrice = await app.web3Bep20.eth.getGasPrice();
-			// var gas = 600000;
+			var gas = 600000;
 			console.log("1")
-			var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
+			// var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 console.log("2")
 			try {
 
@@ -163,9 +163,9 @@ console.log("2")
 	campaignManager.createCampaignBounties = async function (dataUrl,startDate,endDate,bounties,token,amount,credentials) {
 		return new Promise(async (resolve, reject) => {
 
-			var ctr = await campaignManager.getContractToken(token);
-
-			var gasPrice = await ctr.getGasPrice();
+			// var ctr = await campaignManager.getContractToken(token);
+			var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			var gasPrice = await app.web3Bep20.eth.getGasPrice();
 			var gas = await ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 			try {
 
