@@ -734,6 +734,8 @@ exports.linkNotifications = async (req, res) => {
 exports.validateCampaign = async (req, res) => {
   let idCampaign = req.body.idCampaign;
   let linkProm = req.body.link;
+  let pass = req.body.pass;
+  let idApply = req.body.idProm;
   let idUser="0"+req.user._id;
   const campaign = await app.db
   .campaigns()
@@ -744,8 +746,7 @@ exports.validateCampaign = async (req, res) => {
   try {
    
     if(idUser === campaign.idNode){
-       let pass = req.body.pass;
-    let idApply = req.body.idProm;
+      
     const lang = /*req.query.lang ||*/ "en";
     app.i18n.configureTranslation(lang);
 
