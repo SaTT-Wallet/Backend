@@ -286,9 +286,11 @@ module.exports = async function (app) {
 			var ctr;
 		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
 			ctr = ContractToken.contract;
+			ctr.getGasPrice =  app.web3.eth.getGasPrice;
 		}
 		else {
 			ctr = ContractToken.contractBep20;
+			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
 		}
 
 		console.log("opts",opts);
@@ -314,9 +316,11 @@ module.exports = async function (app) {
 			var ctr;
 		if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
 			ctr = ContractToken.contract;
+			ctr.getGasPrice =  app.web3.eth.getGasPrice;
 		}
 		else {
 			ctr = ContractToken.contractBep20;
+			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
 		}
 
 		app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
