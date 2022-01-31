@@ -67,8 +67,8 @@ passport.serializeUser(function(user, cb) {
 });
 
 passport.deserializeUser(async function(id, cb) {
-    var users = await app.db.sn_user().find({ _id: Long.fromNumber(id) }).toArray();
-    cb(null, users[0]);
+    var user = await app.db.sn_user().findOne({ _id: Long.fromNumber(id) });
+    cb(null, user);
 });
 
 
@@ -440,14 +440,86 @@ exports.telegramConnection= (req, res) => {
 
 
 /* 
+* begin connect account with facebook strategy
+*/
+exports.linkFacebookAccount= async (req, accessToken, refreshToken, profile, cb) => {
+    let state = req.query.state.split('|');
+            let user_id = +state[0];
+            let users = await app.db.sn_user().find({$or:[{ idOnSn: profile._json.token_for_business },{email:profile._json.email}]}).toArray()
+            if (users.length) {
+                cb(null, profile, {
+                    status: false,
+                    message: "account exist"
+                })
+            } else {
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business,email:profile._json.email } })
+                cb(null, profile, {
+                    status: true,
+                    message: 'account_linked_with success'
+                })
+            }
+}
+/*
+* end connect account with facebook strategy
+*/
+
+/* 
+* begin connect account with google strategy
+*/
+exports.linkGoogleAccount= async (req, accessToken, refreshToken, profile, done) => {
+    let state = req.query.state.split('|');
+    let user_id = +state[0];
+    let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id }]}).toArray();
+    if (userExist.length) {
+
+        done(null, profile, {
+            status: false,
+            message: "account exist"
+        })
+    } else {
+        await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id,email:profile.emails[0].value } })
+        done(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
+    }
+}
+/*
+* end connect account with google strategy
+*/
+
+/* 
+* begin connect account with telegram strategy
+*/
+exports.connectTelegramAccount= async(req, res) => {
+    try {
+        if (req.params.redirect == "security") {
+            url = "/home/settings/security";
+        } else {
+            url = "/social-registration/monetize-telegram";
+        }
+        res.redirect(app.config.basedURl + url + "?message=" + req.authInfo.message)
+    } catch (e) {
+        console.log(e)
+    }
+}
+exports.telegram_connect_function= async(req, profile, cb) => {
+    let user_id = +req.params.idUser;
+    let users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
+    if (users.length) {
+        cb(null, profile, { message: "account exist" })
+    } else {
+        await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn3: profile.id } })
+        cb(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
+    }
+}
+/*
+* end connect account with telegram strategy
+*/
+
+
+/* 
 * begin add facebook channel strategy
 */
 exports.addFacebookChannel= async (req, accessToken, refreshToken, profile, cb) => {
-    const longTokenUrl = "https://graph.facebook.com/" + app.config.fbGraphVersion +
-    "/oauth/access_token?grant_type=fb_exchange_token&client_id=" + app.config.appId +
-    "&client_secret=" + app.config.appSecret + "&fb_exchange_token=" + accessToken;
-    let resToken = await rp({ uri: longTokenUrl, json: true });
-    let longToken = resToken.access_token;
+    let longToken = accessToken
     let UserId = +req.query.state.split('|')[0];
     let isInsta = false;
     let fbProfile = await app.db.fbProfile().findOne({ UserId });

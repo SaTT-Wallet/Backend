@@ -3,6 +3,8 @@ var connection;
 
 var requirement= require('../helpers/utils')
 const handlebars = require('handlebars');
+
+var ejs = require("ejs")
 const QRCode = require('qrcode')
 var connection;
 let app
@@ -15,9 +17,50 @@ const mongoose = require('mongoose');
 let gfsprofilePic;
 let gfsUserLegal;
 
+
+
+
+const conn=mongoose.createConnection(process.env.MONGOURI);
+
+conn.once('open', () => {
+  gfsprofilePic = Grid(conn.db, mongoose.mongo);
+  gfsprofilePic.collection('user_file');
+  gfsUserLegal = Grid(conn.db, mongoose.mongo);
+  gfsUserLegal.collection('user_legal');
+
+});
+
 const Grid = require('gridfs-stream');
 const GridFsStorage = require('multer-gridfs-storage');
 var Long = require('mongodb').Long;
+
+const multer = require('multer');
+
+
+
+
+
+const storageUserLegal = new GridFsStorage({
+    url:  process.env.MONGOURI,
+    options: { useNewUrlParser: true ,useUnifiedTopology: true},
+    file: (req, file) => {
+      return new Promise((resolve, reject) => {
+          const filename = file.originalname;
+          const fileInfo = {
+            filename: filename,
+            bucketName: 'user_legal'
+          };
+          resolve(fileInfo);
+      });
+    }
+  });
+
+
+
+
+   //const uploadUserLegal =  multer({storage : storageUserLegal})
+
+module.exports.uploadUserLegal = multer({storage : storageUserLegal}).single('file');
 
 
 exports.account= async(req, res)=>{
@@ -39,15 +82,7 @@ exports.account= async(req, res)=>{
 
 exports.profilePicture=  async(req, response)=>{
     try{
-    const conn=mongoose.createConnection(app.mongoURI);
 
-	conn.once('open', () => {
-	  gfsprofilePic = Grid(conn.db, mongoose.mongo);
-	  gfsprofilePic.collection('user_file');
-	  gfsUserLegal = Grid(conn.db, mongoose.mongo);
-	  gfsUserLegal.collection('user_legal');
-
-	});
         
         const idUser =   req.query.id ? +req.query.id : req.user._id;
         gfsprofilePic.files.findOne({ 'user.$id':idUser} , (err, file) => {
@@ -96,14 +131,7 @@ exports.updateProfile = async(req,res)=>{
 
 exports.UserLegalProfile= async(req , res)=>{
     try{
-        const conn=mongoose.createConnection(app.mongoURI);
-        conn.once('open', () => {
-          gfsprofilePic = Grid(conn.db, mongoose.mongo);
-          gfsprofilePic.collection('user_file');
-          gfsUserLegal = Grid(conn.db, mongoose.mongo);
-          gfsUserLegal.collection('user_legal');
-    
-        });
+   
         const idNode="0"+req.user._id;
         const files = await gfsUserLegal.files.find({idNode}).toArray()
         userLegal={};
@@ -122,6 +150,109 @@ exports.UserLegalProfile= async(req , res)=>{
     }
 
 }
+
+
+
+exports.addUserLegalProfile= async(req , res)=>{
+    try{
+   
+        const id = req.user._id;
+
+      const idNode = "0" + id;
+      let type = req.body.type;
+
+      console.log('body', req.body);
+
+      console.log(req.file);
+     if(type && req.file){
+        await gfsUserLegal.files.deleteMany({ $and : [{idNode}, {type}]});
+        await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode, DataUser : {
+            "$ref": "sn_user",
+            "$id": Long.fromNumber(id),
+            "$db": "atayen"
+         }, validate : false, type} })
+
+        await app.account.notificationManager(id,"save_legal_file_event",{type})
+
+        res.end(JSON.stringify({message :'legal processed'})).status(201);
+     }
+    }catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+
+}
+
+
+exports.addUserLegalProfile= async(req , res)=>{
+    try{
+   
+        const id = req.user._id;
+
+      const idNode = "0" + id;
+      let type = req.body.type;
+
+      console.log('body', req.body);
+
+      console.log(req.file);
+     if(type && req.file){
+        await gfsUserLegal.files.deleteMany({ $and : [{idNode}, {type}]});
+        await  gfsUserLegal.files.updateMany({ _id: req.file.id },{$set: {idNode, DataUser : {
+            "$ref": "sn_user",
+            "$id": Long.fromNumber(id),
+            "$db": "atayen"
+         }, validate : false, type} })
+
+        await app.account.notificationManager(id,"save_legal_file_event",{type})
+
+        res.end(JSON.stringify({message :'legal processed'})).status(201);
+     }
+    }catch (err) {
+        res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+    }
+
+}
+
+
+
+exports.FindUserLegalProfile= async(req , res)=>{
+    try{
+       
+
+        const id = req.user._id;
+
+        const userLegal = req.params.id
+        gfsUserLegal.files.findOne({ _id:app.ObjectId(userLegal)}  , (err, file) => {
+            if (!file || file.length === 0) {
+              return res.status(404).json({
+                err: 'No file exists'
+              });
+            }
+            else {
+                if(file.contentType){
+                    contentType = file.contentType
+                }else{
+                    contentType=file.mimeType
+                }
+                 res.writeHead(200, {
+                     'Content-type': contentType,
+                     'Content-Length': file.length,
+                     'Content-Disposition': `attachment; filename=${file.filename}`
+                 });
+                 const readstream = gfsUserLegal.createReadStream(file.filename);
+                   readstream.pipe(res);
+            }
+          });
+
+        }catch (err) {
+            res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+        }
+
+
+
+
+}
+
+
 
 exports.deleteGoogleChannels= async(req,res)=>{
     try {
@@ -291,6 +422,59 @@ module.exports.requestMoney = async(req, res)=>{
     }
 }
 
+
+exports.support = async( req, res)=>{
+
+
+    try{
+
+
+		let[name,email,subject,message] = [req.body.name,req.body.email,req.body.subject,req.body.message];
+		app.readHTMLFile(__dirname + '/../express/emailtemplate/contact_support.html' ,async(err, data) => {
+		  let mailContent={
+			  SaTT:{
+				  Url:app.config.baseUrl+'FAQ'
+			  },
+			  letter:{
+				  from:name+" ("+email+")",
+				  subject,
+				  message
+			  }
+		  }
+		 let dynamic_html=ejs.render(data, mailContent);
+
+
+          console.log("dynamic_html", dynamic_html);
+
+
+		  var mailOptions = {
+			  from: app.config.notificationMail,
+			  to:app.config.contactMail ,
+			  subject: 'customer service',
+			  html: dynamic_html
+		 };
+
+         console.log("mailOptions", mailOptions);
+
+	  await app.transporter.sendMail(mailOptions, function(error, info){
+
+
+        console.log('info',info);
+
+			 if (error) {
+
+                console.log("error", error);
+				 res.end(JSON.stringify(error))
+			 } else {
+
+				 res.end(JSON.stringify(info.response))
+			 }
+		   });
+		})
+		}catch (err) {
+		  res.send(JSON.stringify(err));
+	  }
+    }
 module.exports.notificationUpdate = async(req,res)=>{
 	try{
         let id = req.params.id;
@@ -408,7 +592,6 @@ module.exports.changeEmail = async(req,response) => {
                 response.end(JSON.stringify("success"));
             }
 }
-
 module.exports.confrimChangeMail =  async (req,response) => {
     try {
         var id = req.user._id;
@@ -424,6 +607,96 @@ module.exports.confrimChangeMail =  async (req,response) => {
             await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { email: newEmail } });
             response.end(JSON.stringify("email changed")).status(200);
         }
+    } catch (err) {
+        response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+}
+
+module.exports.verifyLink =  async (req,response) => {
+    try {
+        var userId=req.user._id;
+        var typeSN = req.params.typeSN;
+        var idUser = req.params.idUser;
+        var idPost = req.params.idPost;
+        if(!userId)
+            response.end('{error:"no user session"}')
+        var linked = false;
+        var deactivate = false;
+        var res = false;
+        switch (typeSN) {
+            case "1":
+                fbProfile = await app.db.fbProfile().findOne({UserId:userId });
+              if(fbProfile) {
+                    linked = true;
+                    res = await app.oracle.verifyFacebook(userId,idUser,idPost);
+                    if(res && res.deactivate === true) deactivate=true;
+                }
+            break;
+            case "2":
+            googleProfile = await app.db.googleProfile().findOne({UserId:userId });
+            if(googleProfile) {
+                
+                    var options = {
+                        method: 'POST',
+                        uri: 'https://oauth2.googleapis.com/token',
+                        body: {
+                          client_id:app.config.googleClientId,
+                          client_secret:app.config.googleClientSecret,
+                          refresh_token:googleProfile.refreshToken,
+                          grant_type:"refresh_token"
+                        },
+                        json: true
+                    };
+                    result = await rp(options);
+                    await app.db.googleProfile().updateOne({UserId:userId  }, { $set: {accessToken:result.access_token}});
+                      linked = true;
+                      res = await app.oracle.verifyYoutube(userId,idPost);
+                      if(res && res.deactivate === true) deactivate=true;		
+                }
+                
+            break;
+            case "3":
+            page = await app.db.fbPage().findOne({$and:[{UserId:userId},{ instagram_id: { $exists: true} }]});
+            if(page) {
+                linked = true;
+                res = await app.oracle.verifyInsta(userId,idPost);
+                if (res === "deactivate" )
+                deactivate=true;
+            }
+            
+            break;
+            case "4":
+            var twitterProfile = await app.db.twitterProfile().findOne({UserId:userId});
+                if(twitterProfile) {
+                    linked = true;
+                    res = await app.oracle.verifyTwitter(userId,idPost);
+                    if (res === "deactivate" )
+                    deactivate=true;			
+                }
+    
+            break;
+            case "5":
+            var linkedinProfile = await app.db.linkedinProfile().findOne({userId});
+                if(linkedinProfile && linkedinProfile.pages.length > 0) {
+                    linked = true;
+                    res = await app.oracle.verifyLinkedin(linkedinProfile,idPost);
+                    if (res === "deactivate" )
+                    deactivate=true;
+                }
+    
+            break;
+            default:
+    
+        }
+    
+        if(!linked)
+            response.end('{error:"account not linked"}')
+        else if(res==="lien_invalid")
+            response.end('{error:"lien_invalid"}')
+        else if(deactivate)
+            response.end('{error:"account desactivated"}')
+        else
+            response.end('{result:'+(res?"true":"false")+'}');
     } catch (err) {
         response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
     }

@@ -1,11 +1,11 @@
 let express = require('express');
 let router = express.Router();
-const {campaign,pendingLink, campaigns, 
+const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
     launchCampaign,campaignPromp,launchBounty, totalEarned, 
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
     getLinks,getFunds,gains , addKits,update, kits, saveCampaign, upload,
-    validateCampaign,campaignStatistics,campaignInvested} = require('../controllers/campaign.controller')
+    validateCampaign,campaignStatistics,campaignInvested,bep20Allow,erc20Allow} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
     const cron =require('node-cron');
     const {updateStat} = require('../helpers/common');
@@ -13,9 +13,131 @@ const {campaign,pendingLink, campaigns,
     
     cron.schedule(process.env.CRON_UPDATE_STAT, ()=> updateStat())
 
+
+
+
+
+ /**
+  * @swagger
+  * /campaign/bep20/{token}/approval/{spender}/{addr}:
+  *   post:
+  *     tags:
+  *     - "campaign"
+  *     summary: bep20 aprroval
+  *     description: bep20 aprroval
+  *     parameters:
+  *       - name: token
+  *         description: the  token.
+  *         in: path
+  *         required: true
+  *       - name: spender
+  *         description: the  spender.
+  *         in: path
+  *         required: true
+  *       - name: addr
+  *         description: the  addr.
+  *         in: path
+  *         required: true
+  *     responses:
+  *       "200":
+  *          description: data
+  *       "500":
+  *          description: error:"error"
+  */
+  router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
+     
+
+   /**
+  * @swagger
+  * /campaign/bep20/allow:
+  *   post:
+  *     tags:
+  *     - "campaign"
+  *     summary: bep20 allow
+  *     description: bep20 allow
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               spender:
+  *                 type: string
+  *               amount:
+  *                 type: string
+  *               pass:
+  *                 type: string
+  *               token:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: data
+  *       "500":
+  *          description: error:"error"
+  */
+    router.post('/bep20/allow',verifyAuth,bep20Allow);
+/**
+ * @swagger
+ * /campaign/erc20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: erc20 aprroval
+ *     description: erc20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+
+ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
+   /**
+  * @swagger
+  * /campaign/erc20/allow:
+  *   post:
+  *     tags:
+  *     - "campaign"
+  *     summary: erc20 allow
+  *     description: erc20 allow
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               spender:
+  *                 type: string
+  *               amount:
+  *                 type: string
+  *               token:
+  *                 type: string
+  *               pass:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: data
+  *       "500":
+  *          description: error:"error"
+  */
+  router.post('/erc20/allow',verifyAuth,erc20Allow);
+    
  	/**
  * @swagger
- * /launch/performance:
+ * /campaign/launch/performance:
  *   post:
  *     tags:
  *     - "campaign"
@@ -27,15 +149,26 @@ const {campaign,pendingLink, campaigns,
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               token:
- *                 type: string
- *               to:
+ *               ERC20token:
  *                 type: string
  *               amount:
  *                 type: string
- *               pass:
+ *               contract:
  *                 type: string
- *               symbole:
+ *               dataUrl:
+ *                 type: string
+ *               endDate:
+ *                 type: integer
+ *               startDate:
+ *                 type: integer
+ *               idCampaign:
+ *                 type: string
+ *               ratios:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               pass:
  *                 type: string
  *     responses:
  *       "200":
@@ -62,15 +195,26 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               token:
- *                 type: string
- *               to:
+ *               ERC20token:
  *                 type: string
  *               amount:
  *                 type: string
- *               pass:
+ *               contract:
  *                 type: string
- *               symbole:
+ *               dataUrl:
+ *                 type: string
+ *               endDate:
+ *                 type: integer
+ *               startDate:
+ *                 type: integer
+ *               idCampaign:
+ *                 type: string
+ *               bounties:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
+ *               pass:
  *                 type: string
  *     responses:
  *       "200":
@@ -397,6 +541,11 @@ router.post('/apply',verifyAuth,apply);
  *                 type: string
  *               brand:
  *                 type: string
+ *               description:
+ *                 type: string
+ *               reference:
+ *                 type: string
+
  *               countries:
  *                 type: array
  *                 items:
@@ -498,7 +647,6 @@ router.post('/apply',verifyAuth,apply);
 *                 format : base64
 *               link:
 *                 type: string
-
 *     responses:
 *       "200":
 *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
@@ -538,6 +686,10 @@ router.post('/apply',verifyAuth,apply);
 *               resume:
 *                 type: string
 *               brand:
+*                 type: string
+*               description:
+*                 type: string
+*               reference:
 *                 type: string
 *               cover:
 *                 type: string
@@ -655,10 +807,9 @@ router.post('/apply',verifyAuth,apply);
  *         description: the address wallet of user.
  *         in: path
  *         required: true
-
  *     responses:
  *       "200":
- *          description:[list of links]
+ *          description: list:[list of links]
  *       "500":
  *          description: error:"error"
  */
@@ -689,6 +840,112 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:"error"
  */
      router.post('/remaining',getFunds);
+
+
+
+                /**
+ * @swagger
+ * /campaign/erc20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: erc20 aprroval
+ *     description: erc20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
+
+
+
+
+/**
+ * @swagger
+ * /campaign/bep20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: bep20 aprroval
+ *     description: bep20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+ router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
+     
+
+
+
+
+ /**
+ * @swagger
+ * /campaign/reject/{idLink}:
+ *   put:
+ *     tags:
+ *     - "campaign"
+ *     summary: reject link
+ *     description: admin of campaign can reject a link
+ *     parameters:
+ *       - name: idLink
+ *         description: the  idLink.
+ *         in: path
+ *         required: true
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               idCampaign:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               link:
+ *                 type: string
+ *               idUser:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: data
+ *       "500":
+ *          description: error:"error"
+ */
+  router.put('/reject/:idLink',rejectLink);
+   
      
 
        /**
