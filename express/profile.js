@@ -33,22 +33,6 @@ module.exports = function (app) {
 
 	});
 
-	const storageUserLegal = new GridFsStorage({
-		url: mongoURI,
-		options: { useNewUrlParser: true ,useUnifiedTopology: true},
-		file: (req, file) => {
-		  return new Promise((resolve, reject) => {
-              const filename = file.originalname;
-			  const fileInfo = {
-				filename: filename,
-				bucketName: 'user_legal'
-			  };
-			  resolve(fileInfo);
-		  });
-		}
-	  });
-
-
 
 
 	  const storageProfilePic = new GridFsStorage({
@@ -65,6 +49,25 @@ module.exports = function (app) {
 		  });
 		}
 	  });
+
+
+
+	  const storageUserLegal = new GridFsStorage({
+		url: mongoURI,
+		options: { useNewUrlParser: true ,useUnifiedTopology: true},
+		file: (req, file) => {
+		  return new Promise((resolve, reject) => {
+              const filename = file.originalname;
+			  const fileInfo = {
+				filename: filename,
+				bucketName: 'user_legal'
+			  };
+			  resolve(fileInfo);
+		  });
+		}
+	  });
+
+
 
 
 	   const uploadUserLegal =  multer({storage : storageUserLegal})

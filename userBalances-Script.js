@@ -19,21 +19,7 @@
     app.token.followContract();
     
 
-    // cron.schedule('43 12 * * *',  () => {
-	// 	console.log(54545)
-	// 	   app.account.BalanceUsersStats("daily");
-	//   });
-
-	//   cron.schedule("* * 1 * *", () =>{
-	// 	app.account.BalanceUsersStats("monthly");
-	//   });
-
-    //   cron.schedule("0 0 * * 0", () =>{
-	// 	app.account.BalanceUsersStats("weekly");
-	//   });
-
-  
-    
+   
     
     }
     catch(e) {

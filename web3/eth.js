@@ -45,7 +45,6 @@ module.exports = async function (app) {
 
 			var receipt = await app.web3.eth.sendTransaction({from: credentials.address,value:amount, gas: gas,to:to,gasPrice: gasPrice})
 			.once('transactionHash', function(hash){
-				console.log("transactionHash",hash)
 			})
 
 			var tx = await app.web3.eth.getTransaction(receipt.transactionHash);
@@ -143,7 +142,6 @@ module.exports = async function (app) {
 		var signed = tx.toHex();
 		var hash = tx.getId();
 
-		console.log("btc signed tx ",signed);
 
 
 		var rec = child.execSync(app.config.btcCmd+' sendrawtransaction "'+signed+'"');
@@ -291,7 +289,6 @@ module.exports = async function (app) {
 				var signed = await app.web3Inf.eth.accounts.signTransaction(tx, "0x"+myWallet.getPrivateKey().toString('hex'));
 				var receipt = await app.web3Inf.eth.sendSignedTransaction(signed.rawTransaction)
 				.once('transactionHash', async function(hash){
-					console.log("transactionHash",hash)
 
 				});
 
@@ -307,14 +304,8 @@ module.exports = async function (app) {
 					to_id:userId
 				};
 
-				/////////////
-				//await cryptoManager.unlockReserve();
-				//console.log("recover eth ",to,bnamount.toString(),cred);
-				//await app.token.transfer(to,bnamount.toString(),cred);
-				/////////////
+			
 				var res = await app.db.sattbuy().insertOne({UserId:userId,to:to,amount:bnamount.toString(),type:"ETH",isNew:true});
-				console.log("eth satt buy filed",userId,to,bnamount.toString());
-				//////////////
 				resolve({result : "OK",hash:res.insertedId,amount:(tx.value/app.config.EtherWei)})
 			}
 
@@ -405,7 +396,6 @@ module.exports = async function (app) {
 				// btc electrum
 
 
-				console.log(" tx broadcast",rec);
 
 				var gasPrice = await app.web3.eth.getGasPrice();
 				var p = await app.db.rate().findOne({symbol:"BTC",date:{ $gt: Date.now()-800000 } });
@@ -420,17 +410,11 @@ module.exports = async function (app) {
 				};
 				var to = "0x"+account.keystore.address;
 
-				console.log("btc payback",signed);
 
 
-				///////
-				//await cryptoManager.unlockReserve();
-				//var ethres = await app.token.transfer(to,bn10.mul(bn).toString(),cred);
-				//////////
+
 				var finalamount = bn10.mul(bn).toString();
 				var res = await app.db.sattbuy().insertOne({UserId:userId,to:to,amount:finalamount,type:"BTC",isNew:true});
-				console.log("btc satt buy filed",userId,to,finalamount);
-				////////
 
 
 				resolve({btcTxHash:res.insertedId,amount:amount/100000000});

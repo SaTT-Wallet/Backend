@@ -30,9 +30,7 @@ module.exports = async function (app) {
 	accountManager.createSeed = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 			var escpass = pass.replace(/'/g, "\\'");
-			/*console.log("1",app.config.bxCommand+' seed -b 256 | '+app.config.bxCommand+' mnemonic-new ')
-			var mnemonic = child.execSync(app.config.bxCommand+' mnemonic-new  0d275a881757fcc70a680981d5edf286ea7a8f46d64d27ca86e190695947663e').toString().replace("\n","");
-			console.log("2")*/
+		
 			const mnemonic = bip39.generateMnemonic(256);
 			const seed = bip39.mnemonicToSeedSync(mnemonic,pass)
 			const rootBtc = bip32.fromSeed(seed,app.config.networkSegWitCompat);
@@ -576,7 +574,6 @@ module.exports = async function (app) {
 				v = app.web3.utils.hexToNumber(v);
 				console.log("bonus",myaccount,amount,v,r,s);
 				var gasPrice = await app.web3.eth.getGasPrice();
-				//var gas = await  ctrBonus.methods.getGap(myaccount,amount,v,r,s).estimateGas({from:myaccount,gasPrice: gasPrice});
 				var gas = 100000;
 				var receipt = await ctrBonus.methods.getGap(myaccount,amount,v,r,s).send({from:myaccount,gas:gas,gasPrice:gasPrice});
 
