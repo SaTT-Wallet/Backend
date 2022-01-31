@@ -15,23 +15,28 @@ module.exports = async function (app) {
 
 
 		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
-			return app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
-		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
-				return new app.web3Bep20.eth.Contract(pp.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
-		else	if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
 		{
-		
-
-			return app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnet);
-
+			var ctr =  app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
+			ctr.getGasPrice =  app.web3.eth.getGasPrice;
+		 
+		}
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
+		{
+			var ctr = new app.web3Bep20.eth.Contract(pp.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
+			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
+		}
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
+		{
+			var ctr = app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnet);
+			ctr.getGasPrice =  app.web3.eth.getGasPrice;
 		}
 		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase()){
-			return new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
 		}
 		
-	
-
-			}
+		return ctr;
+	}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
