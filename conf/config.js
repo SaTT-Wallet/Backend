@@ -200,6 +200,8 @@ module.exports = async function (app) {
       "/" +
       config.mongoBase;
 
+       // Mongo Database collection names
+
     config.walletCollection = process.env.WALLETCOLLECTION;
     config.contractCollection = process.env.CONTRACTCOLLECTION;
     config.requestCollection = process.env.REQUESTCOLLECTION;
@@ -237,13 +239,15 @@ module.exports = async function (app) {
     config.paymentCollection = process.env.PAYMENTCOLLECTION;
     config.igMediaCollection = process.env.IGMEDIACOLLECTION;
 
-   
+   // admin UID
 
     config.appAdminV2 = process.env.APP_ADMIN_V2;
 
+    // listen port
+
     config.listenPort = process.env.LISTEN_PORT;
 
-    config.AddrBtcVrfy = process.env.ADDR_BTC_VERFY;
+    // admin wallets 
     config.campaignWalletPath = process.env.CAMPAIGN_WALLET_PATH;
     config.SattReservePath = process.env.SATT_RESET_PATH;
     config.SattReserve = process.env.SATT_RESERVE
@@ -251,14 +255,12 @@ module.exports = async function (app) {
 
 
     config.SattReservePass = process.env.SATT_RESERVE_PASS;
-    config.AddrBtcExchange = process.env.ADDR_BTC_EXCHANGE;
+   
     config.atayenSubscriptionAddress = process.env.ATAYEN_SUBSCRIPTION_ADDRESS;
 
-    config.CrmAuthUrl = process.env.CRM_AUTH_URL;
+    
     config.PaidSatt = process.env.PAID_SATT;
-    config.gasPrice = process.env.GAS_PRICE;
-    config.gasEth = process.env.GAS_ETH;
-    config.EtherWei = process.env.ETH_WEI;
+    
 
     config.sattBep20 = {
       version: process.env.SATT_BEP20_VERSION,
@@ -287,16 +289,16 @@ module.exports = async function (app) {
 
     config.SattBep20Addr = process.env.SATT_BEP20_ADDR;
     config.bridge = process.env.BRIDGE;
-    config.sattReserveKs = {};
-    config.sattReserveKs34 = {};
+    
 
-    config.tokenContract = ""; //mainnet
+   //login settings
 
-    config.campaignContract = ""; //mainnet
-    config.campaignContractAdvFee = ""; //mainnet
+    
     config.failInterval=process.env.failInterval; 
     config.bad_login_limit=process.env.bad_login_limit;
     config.lockedPeriod=process.env.lockedPeriod;
+
+
 
     config.icoFactor = process.env.ICOFACTOR;
     config.masterSeed = process.env.MASTER_SEED;
@@ -312,13 +314,23 @@ module.exports = async function (app) {
     config.SSLCertFile = process.env.SSL_CER;
     config.SSLKeyFile = process.env.SSL_KEY;
 
+
+    // price api
+
     config.cmcApiKey = process.env.CMCAPIKEY;
 
+
+    // btc fee if api unavailable
+
     config.BtcFees = process.env.BTS_FEES;
+
+    // bitcoin explorer command (deprecated)
 
     config.bxCommand = process.env.BX_COMMAND;
     config.bxCommandEnd = process.env.BX_COMMAND_END;
     config.proc_opts = {};
+
+    // bitcoin core command
 
     config.btcCmd = process.env.BTC_CMD
     config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0";
@@ -359,6 +371,8 @@ module.exports = async function (app) {
       2: process.env.ACCOUNT_TYPE2,
       3: process.env.ACCOUNT_TYPE3,
     };
+
+   // etherscan api
     config.etherscanApiUrl =process.env.ETHERSCAN_APIURL
     config.etherscanApiUrlTx =process.env.ETHERSCAN_APIURLTX
     config.etherscanApiUrl_ =process.env.ETHERSCAN_APIURL_
@@ -370,7 +384,7 @@ module.exports = async function (app) {
     config.SattStep4 = process.env.SATT_STEP4;
     config.cmcUrl=process.env.CMR_URL;
 
-
+    // built-in displayed token
 
     config.Tokens = {
       SATT: {
@@ -482,8 +496,13 @@ module.exports = async function (app) {
     config.APIURLERC20 =
     process.env.API_URL_ERC20;
 
+    // simplex api
+
 
     config.sandBoxUri= config.testnet ?'https://sandbox.test-simplexcc.com' : "https://backend-wallet-api.simplexcc.com";
+
+
+    // well known reputation tokens
 
     config.token200 = [
       {
