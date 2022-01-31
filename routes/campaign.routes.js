@@ -938,6 +938,11 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
  *                 type: string
  *               idUser:
  *                 type: string
+ *               reason:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
  *     responses:
  *       "200":
  *          description: data
