@@ -8,7 +8,6 @@ try {
 
   app = await require("./db/db")(app);
   //app = await require("./web3/provider")(app);
-console.log(app);
   const options = {
     timeout: 30000, 
    
@@ -59,8 +58,8 @@ console.log(app);
     var web3eth = new Web3(new Web3.providers.WebsocketProvider(app.config.web3Url,options));
     var web3Bsc  = new Web3(new Web3.providers.WebsocketProvider(app.config.web3UrlBep20Websocket,options));
 
-    var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,config.testnet?app.config.ctrs.token.address.mainnet:app.config.ctrs.token.address.testnet);
-    var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,config.testnet?app.config.ctrs.bep20.address.mainnet:app.config.ctrs.bep20.address.testnet);
+    var ctrEth = new web3eth.eth.Contract(app.config.ctrs.token.abi,app.config.testnet?app.config.ctrs.token.address.testnet:app.config.ctrs.token.address.mainnet);
+    var ctrBsc = new web3Bsc.eth.Contract(app.config.ctrs.bep20.abi,app.config.testnet?app.config.ctrs.bep20.address.testnet:app.config.ctrs.bep20.address.mainnet);
 
     return {web3eth,web3Bsc,ctrEth,ctrBsc};
   }
@@ -82,7 +81,6 @@ console.log(app);
 
   bridge.eventETHtoBSC = async (error, evt) => {
 
-    console.log("eventETHtoBSC")
 
     if(error) {
       console.log(error);
@@ -100,10 +98,7 @@ console.log(app);
       var value = evt.returnValues.value;
       var from = evt.returnValues.from;
 
-      /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-        console.log("recup hack",evt);
-        return;
-      }*/
+    
 
 
       var log = {
@@ -146,10 +141,7 @@ console.log(app);
     }
     else {
 
-      /*if(from.toLowerCase() == "0x09fb1450e5d341acd5f15dcca4c7aebdb6057b3d" ||  from.toLowerCase() == "0xf382f4a8b305e1e64df1ac2c7d819c17e1a76666") {
-        console.log("recup hack",evt);
-        return;
-      }*/
+    
 
       var log = {
         type:"BSC-ETH",

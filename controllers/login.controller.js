@@ -32,7 +32,6 @@ var Long = require('mongodb').Long;
 var readHTMLFile = function(path, callback) {
     fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
         if (err) {
-            console.log('error ==',err)
             throw err;
             callback(err);
         } else {
@@ -437,6 +436,32 @@ module.exports.verifyQrCode = async (req, res) => {
         res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
     }
 }
+
+
+
+exports.socialdisconnect = async(req, res)=>{
+    try {
+             let id = req.user._id
+
+        const social = req.params.social;
+        if (social === 'telegram') {
+            let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn3: null } });
+            res.end(JSON.stringify({ message: "deconnect successfully from telegram" })).status(200);
+        } else if (social === 'facebook') {
+            let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn: null } });
+            res.end(JSON.stringify({ message: "deconnect successfully from facebook" })).status(200);
+        } else {
+            let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn2: null } });
+            res.end(JSON.stringify({ message: "deconnect successfully from google" })).status(200);
+        }
+
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+    }
+
+}
+
+
 
 
 
