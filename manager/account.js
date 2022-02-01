@@ -296,7 +296,7 @@ module.exports = async function (app) {
 
 
 
-	accountManager.hasAccount = async function (userId) {
+	accountManager.hasAccount =  userId => {
 		return new Promise( async (resolve, reject) => {
 			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
 			resolve(account && !account.unclaimed)
@@ -587,7 +587,6 @@ module.exports = async function (app) {
 	}
 
 	accountManager.wrapSatt = async function (amount,cred) {
-
 		return new Promise( async (resolve, reject) => {
 			try {
 				var addr = app.config.ctrs.wSaTT.address.mainnet;
@@ -616,7 +615,6 @@ module.exports = async function (app) {
 			}
 		})
 	}
-
 
 
 	accountManager.create2FA = async function (userId) {
@@ -733,7 +731,7 @@ module.exports = async function (app) {
 
 
 
-	  accountManager.getListCryptoByUid = async  (userId, crypto) => {
+	  accountManager.getListCryptoByUid = (userId, crypto) => {
 		return new Promise( async (resolve, reject) => {
 		 try {
 			let listOfCrypto=[];			
@@ -903,6 +901,7 @@ module.exports = async function (app) {
 
 accountManager.handleId=async function () {
 	var Collection=await app.db.UsersId().findOne()
+	
 	var id =Collection.UserId
 	
 	var UpdateCollection = await app.db.UsersId().replaceOne({UserId:id},{UserId:(id+1)})
@@ -1031,7 +1030,7 @@ accountManager.handleId=async function () {
 
 
 
-	   accountManager.getFacebookPages= async (UserId,accessToken, isInsta=false)=>{
+	   accountManager.getFacebookPages= (UserId,accessToken, isInsta=false)=>{
 		return new Promise( async (resolve, reject) => {
 			try {
 			let message="account_linked_with_success";
@@ -1073,7 +1072,7 @@ accountManager.handleId=async function () {
 				}
 		})
 	   }
-	   accountManager.updateAndGenerateCode = async (_id,type) =>{
+	   accountManager.updateAndGenerateCode = (_id,type) =>{
 		return new Promise( async (resolve, reject) => {
 			try{
 				const code = Math.floor(100000 + Math.random() * 900000);
