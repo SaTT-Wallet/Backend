@@ -1766,15 +1766,8 @@ exports.erc20Allow = async (req, res) => {
 
 	  exports.bep20Approval = async ( req , response)=>{
 
-
-
 		var token = req.params.token;
 		var spender = req.params.spender;
-
-
-
-		console.log('params', req.params);
-
 
 		var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
 		console.log("allowance", allowance);
@@ -1807,7 +1800,7 @@ exports.erc20Allow = async (req, res) => {
 		 const email = req.body.email
 		 let link = req.body.link;
 		 let reason = [];
-		req.body.reason.forEach((str)=>	reason.push({reason:str}))
+		 req.body.reason.forEach((str)=>	reason.push({reason:str}))
 	     const rejectedLink =  await app.db.campaign_link().findOneAndUpdate({ id_prom : idLink }, {$set: { status : "rejected",type:"rejected"}},{returnOriginal: false});
 
 		 let id = +req.body.idUser
