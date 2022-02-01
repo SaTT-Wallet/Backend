@@ -86,6 +86,7 @@ If the installation was successful, you should be able to run the following comm
    
 3. Edit .env file with the right properties
 
+
 4. Register and start PM2 service or install nodemon
    ```sh
    pm2 start app.js
@@ -95,12 +96,12 @@ If the installation was successful, you should be able to run the following comm
    ```sh
    npm start
    ```
+   or
 
-   or 
-    
-  ```sh
+   ```sh
    nodemon
    ```
+
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -108,6 +109,8 @@ If the installation was successful, you should be able to run the following comm
 After you run the project, you can navigate to [https://localhost:3015/docs](http://localhost:3015/docs) to see the full list of available endpoints.
 ## Project Structure
 The folder structure of this app is explained below:
+
+
 | Name                     | Description                                                                                   |
 | ------------------------ | --------------------------------------------------------------------------------------------- |
 | **node_modules**         | Contains all  npm dependencies                                                                |
