@@ -447,7 +447,7 @@ exports.socialdisconnect = async(req, res)=>{
 
         let socialField = {
             telegram:"idOnSn3",
-            facebook :"facebook",
+            facebook :"idOnSn",
             google:'idOnSn2'
         }
         let queryField = socialField[social]
