@@ -5,15 +5,23 @@ module.exports = async function (app) {
   return new Promise((resolve, reject) => {
     var config = {};
 
-   
+    //testnet mode
+    config.testnet = true;
+    
 
+
+   
+    // JSON RPC endpoints for ETH,BNB mainnet or testnet
+
+
+    config.web3Url = process.env.WEB3_URL;
+    config.web3UrlInf = process.env.WEB3_URL_INF;
+    config.web3UrlBep20 = process.env.WEB3_URL_BEP20;
+    config.web3UrlBep20Websocket = process.env.WEB3_URL_BEP20_WEBSOCKET;
 
     config.ethBridge="wss://ropsten.infura.io/ws/v3/0fab761c6a7f4934a892dddebf80f8e0";
     config.bscBridge="wss://apis.ankr.com/wss/8b547da7926f4c3ea2520e67343cb13a/b7c61a14f570c697e65cb693a683cda4/binance/full/test";
-
-    config.sandBoxKey=  process.env.SEND_BOX,
- 
-        config.uiad =process.env.UIAD
+    
 
     config.tokenMainnet=process.env.CONST_TOKEN_ADDRESS_MAINNET;
     config.tokenTestnet=process.env.CONST_TOKEN_ADDRESS_TESTNET;
@@ -41,8 +49,13 @@ module.exports = async function (app) {
     config.bep20BusdMainnet=process.env.CONST_BEP20_ADDRESS_BUSDMAINNET;
     config.bep20BusdTestNet=process.env.CONST_BEP20_ADDRESS_BUSDTESTNET;
 
+    // JSON RPC endpoints
 
+    config.sandBoxKey=  process.env.SEND_BOX,
+ 
+    config.uiad =process.env.UIAD
 
+    // cron job params
 
     config.cronUpdateStat=process.env.CRON_UPDATE_STAT;
     config.croninsertIntoRate= process.env.CRON_INSERT_INTO_RATE
@@ -50,12 +63,14 @@ module.exports = async function (app) {
     config.cronBalanceUsersStatsMonthly= process.env.CRON_WALLET_USERS_sTAT_MONTHLY
     config.cronBalanceUsersStatsWeekly= process.env.CRON_WALLET_USERS_sTAT_WEEKLY
 
+    
+
 
     config.orderSecret= process.env.ORDER_SECERET
-    config.testnet = true;
-    config.appId = process.env.APPID;
-    config.appSecret = process.env.APP_SECRET;
-    config.fbGraphVersion = process.env.FB_GRAPH_VERSION;
+    
+   
+
+    // mail sender options
 
     config.mailerOptions = {
       host: process.env.MAILER_HOST,
@@ -78,20 +93,28 @@ module.exports = async function (app) {
     config.notificationMail = process.env.NOTIFICATION_MAIL;
     config.contactMail = process.env.CONTACT_MAIL;
 
+   
+
+     // Facebook developer app access
+     config.appId = process.env.APPID;
+     config.appSecret = process.env.APP_SECRET;
+     config.fbGraphVersion = process.env.FB_GRAPH_VERSION;
+ 
+    
+
+     // Google oauth app options
+
     config.googleClientId = process.env.GOOGLE_CLIENTID;
     config.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-    config.twitterClientId = process.env.TWITTER_CLIENT_ID;
-    config.twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
-
-    config.telegramClientId = process.env.TELEGRAM_CLIENT_ID;
-    config.telegramClientSecret = process.env.TELEGRAM_CLIENT_SECRET;
-
-    config.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
     config.gdataApiKey = process.env.GDA_TAP_API_KEY;
 
-    config.linkedin_key = process.env.LINKEDIN_KEY;
-    config.linkedin_secret = process.env.LINKEDIN_SECRET;
+   
+
+    // Twitter oauth app options
+
+    config.twitterClientId = process.env.TWITTER_CLIENT_ID;
+    config.twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
 
     config.twitter = {
       consumer_key_alt: process.env.TWITTER_CONSUMER_KEY_ALT,
@@ -103,6 +126,27 @@ module.exports = async function (app) {
       access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     };
 
+    // Twitter oauth app options
+
+    
+
+    config.telegramClientId = process.env.TELEGRAM_CLIENT_ID;
+    config.telegramClientSecret = process.env.TELEGRAM_CLIENT_SECRET;
+
+    config.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+
+     
+    
+
+     // Linkedin app options
+
+    config.linkedin_key = process.env.LINKEDIN_KEY;
+    config.linkedin_secret = process.env.LINKEDIN_SECRET;
+
+    
+
+    // Base URLS
+
     config.Satt_faq = process.env.SATT_FAQ;
     config.baseUrl = process.env.BASEURL;
 
@@ -111,12 +155,14 @@ module.exports = async function (app) {
     config.basedURl = process.env.BASED_URL;
     config.v1Url = process.env.V1_URL;
 
+     // Base URLS
+
+
     config.symfonySalt = process.env.SYMPHONY_SATT;
 
-    config.web3Url = process.env.WEB3_URL;
-    config.web3UrlInf = process.env.WEB3_URL_INF;
-    config.web3UrlBep20 = process.env.WEB3_URL_BEP20;
-    config.web3UrlBep20Websocket = process.env.WEB3_URL_BEP20_WEBSOCKET;
+    // Admin wallets
+
+   
     config.oracleOwner = process.env.ORACLE_OWNER;
     config.oracleOwnerPass = process.env.ORACLE_OWNER_PASS;
 
@@ -125,10 +171,17 @@ module.exports = async function (app) {
     config.tokenOwner = process.env.TOKEN_OWNER;
     config.tokenOwnerPass = process.env.TOKEN_OWNER_PASS;
 
+
+    // Deprecated Mysql DB
+
     config.mysqlHost = process.env.MYSQL_HOST;
     config.mysqlUser = process.env.MYSQL_mysqlUser;
     config.mysqlPass = process.env.MYSQL_mysqlPass;
     config.mysqlDb = process.env.MYSQL_mysqlDb;
+
+    
+
+    // Mongo Database connection
 
     config.mongoBase = process.env.MONGO_BASE;
     config.mongoBaseCrm = process.env.MONGO_BASECRM;
@@ -146,6 +199,8 @@ module.exports = async function (app) {
       config.mongoPort +
       "/" +
       config.mongoBase;
+
+       // Mongo Database collection names
 
     config.walletCollection = process.env.WALLETCOLLECTION;
     config.contractCollection = process.env.CONTRACTCOLLECTION;
@@ -184,11 +239,15 @@ module.exports = async function (app) {
     config.paymentCollection = process.env.PAYMENTCOLLECTION;
     config.igMediaCollection = process.env.IGMEDIACOLLECTION;
 
+   // admin UID
+
     config.appAdminV2 = process.env.APP_ADMIN_V2;
+
+    // listen port
 
     config.listenPort = process.env.LISTEN_PORT;
 
-    config.AddrBtcVrfy = process.env.ADDR_BTC_VERFY;
+    // admin wallets 
     config.campaignWalletPath = process.env.CAMPAIGN_WALLET_PATH;
     config.SattReservePath = process.env.SATT_RESET_PATH;
     config.SattReserve = process.env.SATT_RESERVE
@@ -196,14 +255,12 @@ module.exports = async function (app) {
 
 
     config.SattReservePass = process.env.SATT_RESERVE_PASS;
-    config.AddrBtcExchange = process.env.ADDR_BTC_EXCHANGE;
+   
     config.atayenSubscriptionAddress = process.env.ATAYEN_SUBSCRIPTION_ADDRESS;
 
-    config.CrmAuthUrl = process.env.CRM_AUTH_URL;
+    
     config.PaidSatt = process.env.PAID_SATT;
-    config.gasPrice = process.env.GAS_PRICE;
-    config.gasEth = process.env.GAS_ETH;
-    config.EtherWei = process.env.ETH_WEI;
+    
 
     config.sattBep20 = {
       version: process.env.SATT_BEP20_VERSION,
@@ -232,16 +289,16 @@ module.exports = async function (app) {
 
     config.SattBep20Addr = process.env.SATT_BEP20_ADDR;
     config.bridge = process.env.BRIDGE;
-    config.sattReserveKs = {};
-    config.sattReserveKs34 = {};
+    
 
-    config.tokenContract = ""; //mainnet
+   //login settings
 
-    config.campaignContract = ""; //mainnet
-    config.campaignContractAdvFee = ""; //mainnet
+    
     config.failInterval=process.env.failInterval; 
     config.bad_login_limit=process.env.bad_login_limit;
     config.lockedPeriod=process.env.lockedPeriod;
+
+
 
     config.icoFactor = process.env.ICOFACTOR;
     config.masterSeed = process.env.MASTER_SEED;
@@ -257,13 +314,23 @@ module.exports = async function (app) {
     config.SSLCertFile = process.env.SSL_CER;
     config.SSLKeyFile = process.env.SSL_KEY;
 
+
+    // price api
+
     config.cmcApiKey = process.env.CMCAPIKEY;
 
+
+    // btc fee if api unavailable
+
     config.BtcFees = process.env.BTS_FEES;
+
+    // bitcoin explorer command (deprecated)
 
     config.bxCommand = process.env.BX_COMMAND;
     config.bxCommandEnd = process.env.BX_COMMAND_END;
     config.proc_opts = {};
+
+    // bitcoin core command
 
     config.btcCmd = process.env.BTC_CMD
     config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0";
@@ -304,6 +371,8 @@ module.exports = async function (app) {
       2: process.env.ACCOUNT_TYPE2,
       3: process.env.ACCOUNT_TYPE3,
     };
+
+   // etherscan api
     config.etherscanApiUrl =process.env.ETHERSCAN_APIURL
     config.etherscanApiUrlTx =process.env.ETHERSCAN_APIURLTX
     config.etherscanApiUrl_ =process.env.ETHERSCAN_APIURL_
@@ -315,7 +384,7 @@ module.exports = async function (app) {
     config.SattStep4 = process.env.SATT_STEP4;
     config.cmcUrl=process.env.CMR_URL;
 
-
+    // built-in displayed token
 
     config.Tokens = {
       SATT: {
@@ -427,8 +496,13 @@ module.exports = async function (app) {
     config.APIURLERC20 =
     process.env.API_URL_ERC20;
 
+    // simplex api
+
 
     config.sandBoxUri= config.testnet ?'https://sandbox.test-simplexcc.com' : "https://backend-wallet-api.simplexcc.com";
+
+
+    // well known reputation tokens
 
     config.token200 = [
       {

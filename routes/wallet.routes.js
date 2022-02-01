@@ -1,10 +1,20 @@
 
 let express = require('express');
 let router = express.Router();
+const cron =require('node-cron');
+
 const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
 	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
 	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices,getMnemo,verifyMnemo,createNewWallet,removeToken,getTransactionHistory} = require('../controllers/wallet.controller')
 const { verifyAuth} =require('../middleware/passport.middleware');
+const {BalanceUsersStats} = require('../helpers/common');
+
+
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY,  () => BalanceUsersStats("daily"));
+
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>BalanceUsersStats("monthly"));
+
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>BalanceUsersStats("weekly"));
 
 
 /**
@@ -579,7 +589,7 @@ router.post('/exportETH',verifyAuth, exportEth)
 
    /**
  * @swagger
- * /wallet/create:
+ * /wallet/remove/token:
  *   post:
  *     tags:
  *     - "wallets"

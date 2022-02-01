@@ -16,6 +16,7 @@ var FbStrategy = require('passport-facebook').Strategy;
 var TwitterStrategy = require('passport-twitter').Strategy;
 let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
+var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
 
 var session = require('express-session');
 
@@ -52,13 +53,17 @@ const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIn
        ,notificationUpdate,
        changeNotificationsStatus,
        confrimChangeMail,
-       getNotifications,changeEmail} = require('../controllers/profile.controller')
+       getNotifications,changeEmail,verifyLink} = require('../controllers/profile.controller')
 const { 
     addFacebookChannel,
     addTwitterChannel,
     addlinkedinChannel,
     addyoutubeChannel,
-    verifyAuth
+    verifyAuth,
+    telegram_connect_function,
+    connectTelegramAccount,
+    linkGoogleAccount,
+    linkFacebookAccount
 } = require('../middleware/passport.middleware')
 
 
@@ -338,7 +343,7 @@ router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
  * /profile/addChannel/facebook:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -353,7 +358,7 @@ router.get('/addChannel/facebook/:idUser',(req, res, next) => {
 passport.use('facebook_strategy_add_channel', new FbStrategy(
 app.config.facebookCredentials("profile/callback/addChannel/facebook"),
 async(req, accessToken, refreshToken, profile, cb) => {
-    addFacebookChannel(req, accessToken, refreshToken, profile, cb)
+    addFacebookChannel(req, accessToken, refreshToken, profile, cb);
 }));
 
 router.get('/callback/addChannel/facebook',
@@ -378,7 +383,7 @@ router.get('/callback/addChannel/facebook',
  * /profile/addChannel/twitter:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -424,7 +429,7 @@ router.get('/callback/addChannel/twitter',
  * /profile/addChannel/linkedin:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -461,7 +466,7 @@ passport.authenticate('linkedin_strategy_add_channel'), async(req, res) => {
  * /profile/addChannel/youtube:
  *   get:
  *     tags:
- *     - "auth"
+ *     - "profile"
  *     summary: signin with facebook.
  *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
  *     responses:
@@ -708,11 +713,116 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-        router.post('/SattSupport',support)
+router.post('/SattSupport',support)
 
 
 
 
+    /**
+ * @swagger
+ * /profile/connect/facebook:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: link account with facebook.
+ *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/connect/facebook/:idUser',(req, res, next) => {
+    let state = req.params.idUser + "|" + req.query.redirect;
+    passport.authenticate('link_facebook_account', { state: state })(req, res, next)
+})
+    
+passport.use('link_facebook_account', new FbStrategy(
+app.config.facebookCredentials("profile/callback/link/facebook"),
+async(req, accessToken, refreshToken, profile, cb) => {
+    linkFacebookAccount(req, accessToken, refreshToken, profile, cb)
+}));
+
+router.get('/callback/link/facebook',
+    passport.authenticate('link_facebook_account',
+     { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
+      async(req, response) => {
+        try {
+        let state = req.query.state.split('|');
+        let url = state[1];
+        response.redirect(app.config.basedURl + url + '?message=' + req.authInfo.message);
+
+        } catch (e) {
+            console.log(e)
+        }
+    }
+);
+
+   /**
+ * @swagger
+ * /profile/connect/google:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: link account with google.
+ *     description: user asked for signin with google, system redirect him to signin google page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+    router.get('/connect/google/:idUser',(req, res, next) => {
+        let state = req.params.idUser + "|" + req.query.redirect;
+        passport.authenticate('link_google_account', { scope: ['profile', 'email'], state: state })(req, res, next)
+    })
+        
+    passport.use('link_google_account', new GoogleStrategy(
+    app.config.googleCredentials("profile/callback/link/google"),
+    async(req, accessToken, refreshToken, profile, done) => {
+        linkGoogleAccount(req, accessToken, refreshToken, profile, done)
+    }));
+    
+    router.get('/callback/link/google',
+    passport.authenticate('link_google_account',
+         { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
+          async(req, res) => {
+            try {
+                let state = req.query.state.split('|');
+                let url = state[1];
+                let message = req.authInfo.message;
+                res.redirect(app.config.basedURl + url + '?message=' + message);
+    
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    );
+
+      /**
+ * @swagger
+ * /profile/connect/telegram:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: link account with telegram.
+ *     description: user asked for signin with telegram, system redirect him to signin telegram page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+       router.get('/connect/telegram',
+       passport.authenticate('link_telegram_account'),
+       connectTelegramAccount
+       )
+        
+       passport.use("link_telegram_account",
+       new TelegramStrategy({
+               botToken: app.config.telegramBotToken,
+               passReqToCallback: true
+           },
+           async (req, profile, cb) => {
+               telegram_connect_function(req, profile, cb);
+              
+           }))
+    
+    
         /**
  * @swagger
  * /profile/confirmChangeEmail:
@@ -737,5 +847,32 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  */
   router.post('/confirmChangeEmail', verifyAuth,confrimChangeMail)
 
-
+        /**
+ * @swagger
+ * /profile/link/verify/{typeSN}/{idUser}/{idPost}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: confirm change email .
+ *     description: the user must send the code that he had received in his new email.
+ *     parameters:
+ *       - name: typeSN
+ *         description: typeSN.
+ *         in: path
+ *         required: true 
+ *       - name: idUser
+ *         description: idUser.
+ *         in: path
+ *         required: true
+ *       - name: idPost
+ *         description: idPost.
+ *         in: path
+ *         required: true  
+ *     responses:
+ *       "200":
+ *          description: description
+ *       "500":
+ *          description: error:error message
+ */
+ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth,verifyLink)
   module.exports = router;
