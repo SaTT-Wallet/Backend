@@ -71,6 +71,7 @@ const { route } = require('./login.routes');
   *     summary: bep20 allow
   *     description: bep20 allow
   *     requestBody:
+  *       required: true
   *       content:
   *         application/json:
   *           schema:      # Request body contents
@@ -86,7 +87,18 @@ const { route } = require('./login.routes');
   *                 type: string
   *     responses:
   *       "200":
-  *          description: data
+  *          description: ok
+  *          content:
+  *             application/json:
+  *               schema:
+  *                 type: object
+  *                 properties:
+  *                   transactionHash:
+  *                     type: string
+  *                   address:
+  *                     type: string
+  *                   spender:
+  *                     type: string
   *       "500":
   *          description: error:"error"
   */
@@ -114,7 +126,26 @@ const { route } = require('./login.routes');
  *         required: true
  *     responses:
  *       "200":
- *          description: data
+ *          description: ok
+  *          content:
+  *             application/json:
+  *               schema:
+  *                 type: object
+  *                 properties:
+  *                   token:
+  *                     type: string
+  *                   allowance:
+  *                     type: object
+  *                     properties:
+  *                       amount:
+  *                         type: string
+  *                   spender:
+  *                     type: string
+  *                 example:
+  *                   token: "0x123456...654654"
+  *                   allowance:
+  *                     amount: "0"
+  *                   spender: "0x987654...3221"
  *       "500":
  *          description: error:"error"
  */
