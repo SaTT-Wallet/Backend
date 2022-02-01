@@ -1,6 +1,8 @@
 module.exports = async function (app) {
 
 	var child = require('child_process');
+
+	const bitcoinCore = require('bitcoin-core');
 	var bip32 = require("bip32")
 	var bip38 = require('bip38');
 	var bip39 = require('bip39');
@@ -49,6 +51,9 @@ module.exports = async function (app) {
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
 			if(!app.config.testnet) {
 			  child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+
+			  const client = new bitcoinCore({ host: app.config.btcHost,username:app.config.btcUser,password:app.config.btcPassword });
+				await new Client().importPubKey('default', false);
 		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
@@ -104,7 +109,9 @@ module.exports = async function (app) {
 			var pubBtc = childBtc.publicKey.toString("hex");
 			var account = app.web3.eth.accounts.privateKeyToAccount(privkey).encrypt(pass);
       if(!app.config.testnet) {
-			  child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+			  //child.execSync(app.config.btcCmd+" importpubkey "+pubBtc+" 'default' false");
+			  const client = new bitcoinCore({ host: app.config.btcHost,username:app.config.btcUser,password:app.config.btcPassword });
+			  await new Client().importPubKey('default', false);
 		  }
 			//await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
