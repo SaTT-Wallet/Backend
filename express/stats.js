@@ -1322,8 +1322,7 @@ const Grid = require('gridfs-stream');
 
 	  app.get('/campaignsStatistics', async (req, res) => {
 		try{
-			const token = req.headers["authorization"].split(" ")[1];
-		    await app.crm.auth(token);
+		
 			var totalAbos = 0;
 			let totalViews = 0; 
 			let totalPayed = 0;
