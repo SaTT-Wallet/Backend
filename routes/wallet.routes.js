@@ -589,7 +589,7 @@ router.post('/exportETH',verifyAuth, exportEth)
 
    /**
  * @swagger
- * /wallet/create:
+ * /wallet/remove/token:
  *   post:
  *     tags:
  *     - "wallets"
