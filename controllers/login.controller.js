@@ -389,7 +389,6 @@ exports.socialSignin = async(req, res)=>{
         }            
         if (user) {                
             var date = Math.floor(Date.now() / 1000) + 86400;
-
             let userAuth = app.cloneUser(user);
             let token = app.generateAccessToken(userAuth);
             var param = { "access_token": token, "expires_in": date, "token_type": "bearer", "scope": "user" };
@@ -406,13 +405,13 @@ exports.socialSignin = async(req, res)=>{
 
 module.exports.getQrCode = async (req,res)=> {
     try {
-        let id = +req.params.id
+        let id = req.user._id
         var secret = speakeasy.generateSecret({
             name: "SaTT_Token " + id
         });
         await app.db.sn_user().updateOne({ _id: id }, { $set: { secret: secret.ascii } });
         qrcode.toDataURL(secret.otpauth_url, (err, data) => {
-            res.send(JSON.stringify({ qrCode: data, secret: secret.base32, googleAuthName: `SaTT_Token ${req.params.id}` }));
+            res.send(JSON.stringify({ qrCode: data, secret: secret.base32, googleAuthName: `SaTT_Token ${id}` }));
         })
     } catch (err) {
         res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
@@ -421,7 +420,7 @@ module.exports.getQrCode = async (req,res)=> {
 
 module.exports.verifyQrCode = async (req, res) => {
     try {
-        let id = +req.body.id
+        let id = req.user._id
         let user = await app.db.sn_user().findOne({ _id: id })
         secret = user.secret;
         var code = req.body.code;
@@ -441,8 +440,7 @@ module.exports.verifyQrCode = async (req, res) => {
 
 exports.socialdisconnect = async(req, res)=>{
     try {
-             let id = req.user._id
-
+        let id = req.user._id
         const social = req.params.social;
         if (social === 'telegram') {
             let user = await app.db.sn_user().updateOne({ _id: Long.fromNumber(id) }, { $set: { idOnSn3: null } });

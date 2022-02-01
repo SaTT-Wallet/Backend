@@ -619,8 +619,6 @@ router.post('/apply',verifyAuth,apply);
 *       "500":
 *          description: error:"error"
 */
-
-
        router.get('/:idCampaign/kits',verifyAuth,kits);
 
 
