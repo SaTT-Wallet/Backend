@@ -6,17 +6,17 @@ const cron =require('node-cron');
 const Big = require('big.js');
 
 
-cron.schedule(app.config.cronBalanceUsersStatsDaily,  () => {
-	app.account.BalanceUsersStats("daily");
-});
+// cron.schedule(app.config.cronBalanceUsersStatsDaily,  () => {
+// 	app.account.BalanceUsersStats("daily");
+// });
 
-cron.schedule(app.config.cronBalanceUsersStatsMonthly, () =>{
- app.account.BalanceUsersStats("monthly");
-});
+// cron.schedule(app.config.cronBalanceUsersStatsMonthly, () =>{
+//  app.account.BalanceUsersStats("monthly");
+// });
 
-cron.schedule(app.config.cronBalanceUsersStatsWeekly, () =>{
- app.account.BalanceUsersStats("weekly");
-});
+// cron.schedule(app.config.cronBalanceUsersStatsWeekly, () =>{
+//  app.account.BalanceUsersStats("weekly");
+// });
 
 const Grid = require('gridfs-stream');
 
