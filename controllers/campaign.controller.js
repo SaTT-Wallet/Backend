@@ -1774,15 +1774,8 @@ exports.erc20Allow = async (req, res) => {
 
 	  exports.bep20Approval = async ( req , response)=>{
 
-
-
 		var token = req.params.token;
 		var spender = req.params.spender;
-
-
-
-		console.log('params', req.params);
-
 
 		var allowance = await app.bep20.getApproval(token,req.params.addr,spender);
 		console.log("allowance", allowance);

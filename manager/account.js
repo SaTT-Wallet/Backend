@@ -1,27 +1,21 @@
 module.exports = async function (app) {
 
-	const fs = require('fs')
-
 	var child = require('child_process');
 	var bip32 = require("bip32")
 	var bip38 = require('bip38');
 	var bip39 = require('bip39');
 	var bitcoinjs = require('bitcoinjs-lib');
-	var coinselect = require('coinselect');
 	const ethUtil = require('ethereumjs-util');
-	var BN = require("bn.js");
 	var speakeasy = require("speakeasy");
 	var QRCode = require('qrcode');
     var Big = require('big.js');
     var Long = require('mongodb').Long;
 	var rp = require('request-promise');
     const xChangePricesUrl = app.config.xChangePricesUrl;
-	var ctrBonus =  new app.web3.eth.Contract(app.config.ctrs.priceGap.abi,app.config.ctrs.priceGap.address.mainnet);
     const bad_login_limit = app.config.bad_login_limit;
 	const { createLogger, format, transports } = require('winston');
-	const { combine, timestamp, label, prettyPrint, myFormat } = format;
 
-	var ctrwSaTT =  new app.web3.eth.Contract(app.config.ctrs.wSaTT.abi,app.config.ctrs.wSaTT.address.mainnet);
+
 
 	var accountManager = {};
 
@@ -504,117 +498,7 @@ module.exports = async function (app) {
 		});
 	};
 
-	accountManager.getTxs = async function (myaccount,token) {
-		return new Promise( async (resolve, reject) => {
-			var txs  = await app.db.indexedtx().find({ token : token , $or: [ { from: myaccount }, { to : myaccount } ] }).sort({"date":-1}).toArray();
-			resolve(txs);
-		});
-	}
 
-	accountManager.getHolders = async function (token) {
-		return new Promise( async (resolve, reject) => {
-			var holders = [];
-			holders["0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253"] = {address :"0xAB8199eba802e7e6634d4389Bf23999b7Ae6b253",balance:"20000000000000000000000000000"};
-			var txs  = await app.db.indexedtx().find({ token : token} ).sort({"date":1}).toArray();
-
-			for(var i = 0;i<txs.length;i++)
-			{
-				var value = new BN(txs[i].value);
-				if(!holders[txs[i].to])
-				{
-					holders[txs[i].to] = {address :txs[i].to,balance:"0"};
-				}
-				holders[txs[i].from].balance = ((new BN(holders[txs[i].from].balance)).sub(value)).toString();
-				holders[txs[i].to].balance = ((new BN(holders[txs[i].to].balance)).add(value)).toString();
-
-				await app.db.balance2().updateOne({address:txs[i].from},{$set: {balance:holders[txs[i].from].balance}},{ upsert: true})
-				await app.db.balance2().updateOne({address:txs[i].to},{$set: {balance:holders[txs[i].to].balance}},{ upsert: true})
-			}
-
-
-
-    resolve("a")
-
-		})
-
-	}
-
-	accountManager.getTxsFullSatt = async function (myaccount) {
-		return new Promise( async (resolve, reject) => {
-		    var docs = await app.db.txs().find({from:myaccount}).sort({"date":1}).toArray();
-			resolve(docs);
-		 });
-	}
-
-	accountManager.getSubscription = async function (myaccount) {
-		return new Promise( async (resolve, reject) => {
-			var docs = await  app.db.txs().find({from:myaccount,to:app.config.atayenSubscriptionAddress}).sort({"date":1}).toArray();
-			resolve(docs);
-		});
-	}
-
-	accountManager.getBonus = async function (myaccount) {
-		return new Promise( async (resolve, reject) => {
-
-			try {
-
-				var txs = await  app.db.satt_tx().find({idWallet:myaccount}).toArray();
-				var amt = new BN(0);
-				for (var i =0;i<txs.length;i++)
-				{
-					amt = amt.add(new BN(txs[i].amount));
-				}
-				var amount = Math.round(amt.div(new BN("1000000000000000000")).toNumber());
-				var h1 = app.web3.utils.sha3(app.web3.eth.abi.encodeParameters(['address','uint256'],[myaccount,amount]));
-				app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-				var sign = await app.web3.eth.sign(h1,app.config.campaignOwner);
-				var r = sign.slice(0, 66)
-				var s = '0x' + sign.slice(66, 130)
-				var v = '0x' + sign.slice(130, 132)
-				v = app.web3.utils.hexToNumber(v);
-				console.log("bonus",myaccount,amount,v,r,s);
-				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas = 100000;
-				var receipt = await ctrBonus.methods.getGap(myaccount,amount,v,r,s).send({from:myaccount,gas:gas,gasPrice:gasPrice});
-
-				resolve(receipt.hash);
-			}
-			catch (e) {
-				reject({message:e.message});
-			}
-			//resolve("");
-		});
-	}
-
-	accountManager.wrapSatt = async function (amount,cred) {
-		return new Promise( async (resolve, reject) => {
-			try {
-				var addr = app.config.ctrs.wSaTT.address.mainnet;
-				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas = await  app.token.contract.methods.transfer(addr,amount).estimateGas({from:cred.address,gasPrice: gasPrice});
-				var receipt = await app.token.contract.methods.transfer(addr,amount).send({from:cred.address,gas:gas,gasPrice:gasPrice});
-				resolve(receipt.hash);
-				}
-			catch (e) {
-				reject({message:e.message});
-			}
-		})
-
-	}
-
-	accountManager.unWwrapSatt = async function (amount,cred) {
-		return new Promise( async (resolve, reject) => {
-			try {
-				var gasPrice = await app.web3.eth.getGasPrice();
-				var gas = await  ctrwSaTT.methods().contributeWSATT(amount).estimateGas({from:cred.address,gasPrice: gasPrice});
-				var receipt = await ctrwSaTT.methods().contributeWSATT(amount).send({from:cred.address,gas:gas,gasPrice:gasPrice});
-				resolve(receipt.hash);
-				}
-			catch (e) {
-				reject({message:e.message});
-			}
-		})
-	}
 
 
 	accountManager.create2FA = async function (userId) {
@@ -833,71 +717,63 @@ module.exports = async function (app) {
 	{headers}
 	@Output saving users with updated balances with the according time frame
 	*/
-	  accountManager.BalanceUsersStats = async (condition)=> {
+// 	  accountManager.BalanceUsersStats = async (condition)=> {
 
-	   let today = (new Date()).toLocaleDateString("en-US");
-	   let [currentDate, result]= [Math.round(new Date().getTime()/1000), {}];
+// 	   let today = (new Date()).toLocaleDateString("en-US");
+// 	   let [currentDate, result]= [Math.round(new Date().getTime()/1000), {}];
 
-	   [result.Date, result.convertDate] = [currentDate,today]
+// 	   [result.Date, result.convertDate] = [currentDate,today]
 
-	   const Fetch_crypto_price = {
-		method: 'GET',
-		uri: xChangePricesUrl,
-		json: true,
-		gzip: true
-	  };
 
-	   //let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices
+// 	   let Crypto =  app.account.getPrices();
 
-	   let Crypto =  app.account.getPrices();
-
-	      var users_;
+// 	      var users_;
 
 
 
-		if(condition === "daily"){
-		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
-		 }
-		else if(condition === "weekly"){
-			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
-	     }
-		else if(condition === "monthly"){
-			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
-	     }
+// 		if(condition === "daily"){
+// 		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
+// 		 }
+// 		else if(condition === "weekly"){
+// 			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
+// 	     }
+// 		else if(condition === "monthly"){
+// 			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
+// 	     }
 
-		 let[counter, usersCount] = [0,users_.length];
-		  while(counter<usersCount) {
-			    let balance;
+// 		 let[counter, usersCount] = [0,users_.length];
+// 		  while(counter<usersCount) {
+// 			    let balance;
 
-				var user = users_[counter];
-				let id = user._id; //storing user id in a variable
-				delete user._id
+// 				var user = users_[counter];
+// 				let id = user._id; //storing user id in a variable
+// 				delete user._id
 
-			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
+// 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
-			try{
-			 balance = await accountManager.getBalanceByUid(id, Crypto);
-			} catch (err) {
-				console.log(err)
-			}
+// 			try{
+// 			 balance = await accountManager.getBalanceByUid(id, Crypto);
+// 			} catch (err) {
+// 				console.log(err)
+// 			}
 
-			 result.Balance = balance["Total_balance"];
+// 			 result.Balance = balance["Total_balance"];
 
-			 if(!result.Balance || isNaN(parseInt(result.Balance)) || result.Balance === null){
-                counter++;
-			} else{
-			 user[condition].unshift(result);
-			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
-			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
-			 delete result.Balance ;
-			 delete id;
-             counter++;
-			}
+// 			 if(!result.Balance || isNaN(parseInt(result.Balance)) || result.Balance === null){
+//                 counter++;
+// 			} else{
+// 			 user[condition].unshift(result);
+// 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
+// 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
+// 			 delete result.Balance ;
+// 			 delete id;
+//              counter++;
+// 			}
 
-		}
+// 		}
 
 
-}
+// }
 
 accountManager.handleId=async function () {
 	var Collection=await app.db.UsersId().findOne()
