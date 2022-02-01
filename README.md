@@ -53,9 +53,6 @@ Also, be sure to have `git` available in your PATH, `npm` might need it (You can
    npm --version
       up to  6.x.x
 
-   If you need to update `npm`, you can make it using `npm`! Cool right? After running the following command, just open again the command line and be happy.
-
-    $ npm install npm -g
 
 
 If the installation was successful, you should be able to run the following command.
