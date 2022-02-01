@@ -79,21 +79,26 @@ If the installation was successful, you should be able to run the following comm
    ```sh
    git clone https://github.com/Atayen/node-satt.git
    ```
-2. cd <project_name>
+2.  ```sh
+   cd <project_name>
    npm install
-
+   ```
+   
 3. Edit .env file with the right properties
 
-34. Register and start PM2 service or install nodemon
+4. Register and start PM2 service or install nodemon
    ```sh
    pm2 start app.js
    ```
    or
-     ```sh
+
+   ```sh
    npm start
    ```
+
    or 
-      ```sh
+    
+  ```sh
    nodemon
    ```
 
@@ -103,19 +108,19 @@ If the installation was successful, you should be able to run the following comm
 After you run the project, you can navigate to [https://localhost:3015/docs](http://localhost:3015/docs) to see the full list of available endpoints.
 ## Project Structure
 The folder structure of this app is explained below:
-| Name | Description |
+| Name                     | Description                                                                                   |
 | ------------------------ | --------------------------------------------------------------------------------------------- |
-| **node_modules**         | Contains all  npm dependencies                                                            |
-| **helpers**              | Contains all requirements and the cron job actions                              |
-| **manager**              | Contains all the definitions of oracles
-| **/conf/**         | Contains all configuration for the blockChain part. 
-| **/controllers**         | Controllers define functions to serve various express routes. 
-| **/routes**              | Contain all express routes, separated by module/area of application .  
+| **node_modules**         | Contains all  npm dependencies                                                                |
+| **helpers**              | Contains all requirements and the cron job actions                                            |
+| **manager**              | Contains all the definitions of oracles                                                       |
+| **/conf/**               | Contains all configuration for the blockChain part.                                           |
+| **/controllers**         | Controllers define functions to serve various express routes.                                 |
+| **/routes**              | Contain all express routes, separated by module/area of application .                         |
 | **/middlewares**         | Express middlewares which process the incoming requests before handling them down to the routes
-| **src/routes**           | Contain all express routes, separated by module/area of application                       
-|  /app.js                 | Entry point to express app                                                               |
+| **src/routes**           | Contain all express routes, separated by module/area of application                           |
+|  /app.js                 | Entry point to express app                                                                    |
 | package.json             | Contains npm dependencies as well as the scripts  
-                                               |
+                                                                                                                           |
 
 
 # Swagger
