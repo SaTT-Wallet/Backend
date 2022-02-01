@@ -569,7 +569,7 @@ new TelegramStrategy({
   *     tags:
   *     - "auth"
   *     summary: auth with social for apple.
-  *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
+  *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
   *     requestBody:
   *       content:
   *         application/json:
@@ -583,9 +583,9 @@ new TelegramStrategy({
  
   *     responses:
   *       "200":
-  *          description: param={"account_doesnt_exist"}
+  *          description: param={"account_doesnt_exist"} <br> param={"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"} 
   *       "500":
-  *          description: error={error:true,message:'account_already_used'}
+  *          description: error={error:"invalid idSn"}
   */
 router.post('/socialSignin',socialSignin)
 
@@ -599,7 +599,7 @@ router.post('/socialSignin',socialSignin)
   *     tags:
   *     - "auth"
   *     summary: disconnect social account.
-  *     description: user disconnect social account <br> with access_token.
+  *     description: user enter his social network to disconnect <br> with access_token.
   *     parameters:
   *       - name: social
   *         description: social can be facebook , google or telegram.
@@ -607,30 +607,27 @@ router.post('/socialSignin',socialSignin)
   *         required: true
   *     responses:
   *       "200":
-  *          description: param={"account_doesnt_exist"}
+  *          description: message:"deconnect successfully from
   *       "500":
-  *          description: error={error:true,message:'account_already_used'}
+  *          description: error:"error"
   */
    router.put('/disconnect/:social', verifyAuth,socialdisconnect)
  
  /**
  * @swagger
- * /auth/qrCode/:id:
+ * /auth/qrCode:
  *   get:
  *     tags:
  *     - "auth"
  *     summary: setting double authentication for user.
- *     description: setting user google authentication.
- *     parameters:
- *       - name: id
- *         description: userId.
+ *     description: user can activate the 2fa.
  *     responses:
  *        "200":
- *          description: data
+ *          description: data={"qrCode":"image base 64","secret":"secret","googleAuthName":"SaTT_Token idUser"}
  *        "500":
  *          description: error:error message
  */
-router.get('/qrCode/:id',getQrCode)
+router.get('/qrCode',verifyAuth,getQrCode)
 
   /**
   * @swagger
@@ -638,25 +635,14 @@ router.get('/qrCode/:id',getQrCode)
   *   post:
   *     tags:
   *     - "auth"
-  *     summary: auth with social for apple.
-  *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               code:
-  *                 type: number
-  *               id:
-  *                 type: string
- 
+  *     summary: verify 2fa.
+  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
   *     responses:
   *       "200":
   *          description: { verifiedCode: verified }
   *       "500":
   *          description: error={error:true,message:'account_already_used'}
   */
-router.post('/verifyQrCode',verifyQrCode);
+router.post('/verifyQrCode',verifyAuth,verifyQrCode);
 
 module.exports = router;
