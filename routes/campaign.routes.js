@@ -175,7 +175,18 @@ const { route } = require('./login.routes');
   *                 type: string
   *     responses:
   *       "200":
-  *          description: data
+  *          description: ok
+  *          content:
+  *            application/json:
+  *              schema: 
+  *                type: object
+  *                properties:
+  *                  name:
+  *                    type: string
+  *                  message:
+  *                    type: string
+  *                  expiredAt:
+  *                    type: string
   *       "500":
   *          description: error:"error"
   */
