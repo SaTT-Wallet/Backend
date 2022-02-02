@@ -875,41 +875,6 @@ router.post('/apply',verifyAuth,apply);
  */
      router.post('/remaining',getFunds);
 
-
-
-                /**
- * @swagger
- * /campaign/erc20/{token}/approval/{spender}/{addr}:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: erc20 aprroval
- *     description: erc20 aprroval
- *     parameters:
- *       - name: token
- *         description: the  token.
- *         in: path
- *         required: true
- *       - name: spender
- *         description: the  spender.
- *         in: path
- *         required: true
- *       - name: addr
- *         description: the  addr.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: data
- *       "500":
- *          description: error:"error"
- */
-
-router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
-
-
-
-
 /**
  * @swagger
  * /campaign/bep20/{token}/approval/{spender}/{addr}:
