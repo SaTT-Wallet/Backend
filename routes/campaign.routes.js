@@ -15,7 +15,7 @@ const { route } = require('./login.routes');
 
  /**
   * @swagger
-  * /campaign/bep20/{token}/approval/{spender}/{addrrrrr}:
+  * /campaign/bep20/{token}/approval/{spender}/{addr}:
   *   post:
   *     tags:
   *     - "campaign"
