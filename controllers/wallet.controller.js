@@ -624,7 +624,6 @@ module.exports.getTransactionHistory =  async (req,response) => {
 		  var BNB_transactions= await rp(requestOptions_BNB_transactions);
 		  var BEP20_transactions= await rp(requestOptions_BEP20_transactions);
           var all_BNB_transactions=app.cryptoManager.FilterTransactionsByHash(BNB_transactions,BEP20_transactions,'BEP20')
-           console.log(all_BNB_transactions,"okodkpsdfk")
 		  const All_Transactions = all_Eth_transactions.concat(all_BNB_transactions)
 		  response.json(All_Transactions);
 	} catch (err) {

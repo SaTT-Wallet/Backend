@@ -98,7 +98,7 @@ let createUser = (enabled,_id,idSn,newsLetter,picLink=false,username,email=null,
     userObject.confirmation_token =code,userObject.onBoarding =false,userObject.account_locked =false;
     userObject._id = _id,userObject.idSn =  idSn,userObject.newsLetter = newsLetter ?? false;
     userObject.locale = "en"
-  if(picLink)  userObject.picLink =picLink
+    if(picLink)  userObject.picLink =picLink
     userObject.username =username,userObject.email =email
      if(idOnSn && socialId) userObject[idOnSn] = socialId
      if(firstName) userObject.firstName =firstName;
@@ -224,7 +224,7 @@ passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback:
             const lang = req.query.lang || "en";
             const code = await app.account.updateAndGenerateCode(users[0]._id, "validation");
             app.i18n.configureTranslation(lang);
-            readHTMLFile(__dirname +'/../express/emailtemplate/email_validated_code.html', (err, html) => {
+            readHTMLFile(__dirname +'/../public/emailtemplate/email_validated_code.html', (err, html) => {
                 var template = handlebars.compile(html);
                 var replacements = {
                     satt_faq: app.config.Satt_faq,

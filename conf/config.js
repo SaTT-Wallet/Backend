@@ -58,7 +58,6 @@ module.exports = async function (app) {
     // cron job params
 
     config.cronUpdateStat=process.env.CRON_UPDATE_STAT;
-    config.croninsertIntoRate= process.env.CRON_INSERT_INTO_RATE
     config.cronBalanceUsersStatsDaily= process.env.CRON_WALLET_USERS_sTAT_DAILY
     config.cronBalanceUsersStatsMonthly= process.env.CRON_WALLET_USERS_sTAT_MONTHLY
     config.cronBalanceUsersStatsWeekly= process.env.CRON_WALLET_USERS_sTAT_WEEKLY
@@ -90,7 +89,6 @@ module.exports = async function (app) {
 
     config.SupportMail = process.env.SUPPORT_MAIL;
 
-    config.notificationMail = process.env.NOTIFICATION_MAIL;
     config.contactMail = process.env.CONTACT_MAIL;
 
    
@@ -113,25 +111,17 @@ module.exports = async function (app) {
 
     // Twitter oauth app options
 
-    config.twitterClientId = process.env.TWITTER_CLIENT_ID;
-    config.twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
 
     config.twitter = {
       consumer_key_alt: process.env.TWITTER_CONSUMER_KEY_ALT,
       consumer_secret_alt: process.env.TWILTTER_CONSUMER_SECRET_ALT,
-      consumer_key_dev: process.env.TWITTER_CONSUMER_KEY_DEV,
       consumer_key: process.env.TWITTER_CONSUMER_KEY,
       consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
       access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
       access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     };
 
-    // Twitter oauth app options
 
-    
-
-    config.telegramClientId = process.env.TELEGRAM_CLIENT_ID;
-    config.telegramClientSecret = process.env.TELEGRAM_CLIENT_SECRET;
 
     config.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -164,27 +154,13 @@ module.exports = async function (app) {
 
    
     config.oracleOwner = process.env.ORACLE_OWNER;
-    config.oracleOwnerPass = process.env.ORACLE_OWNER_PASS;
 
     config.campaignOwner = process.env.CAMPAIGN_OWNER;
     config.campaignOwnerPass = process.env.CAMPAIGN_OWNER_PASS;
-    config.tokenOwner = process.env.TOKEN_OWNER;
-    config.tokenOwnerPass = process.env.TOKEN_OWNER_PASS;
-
-
-    // Deprecated Mysql DB
-
-    config.mysqlHost = process.env.MYSQL_HOST;
-    config.mysqlUser = process.env.MYSQL_mysqlUser;
-    config.mysqlPass = process.env.MYSQL_mysqlPass;
-    config.mysqlDb = process.env.MYSQL_mysqlDb;
-
     
-
     // Mongo Database connection
 
     config.mongoBase = process.env.MONGO_BASE;
-    config.mongoBaseCrm = process.env.MONGO_BASECRM;
 
     config.mongoUser = process.env.MONGO_USER;
     config.mongoPass = process.env.MONGO_PASS;
@@ -307,9 +283,7 @@ module.exports = async function (app) {
     config.derivePathLtc = "m/44'/2'/0'/0";
     config.ledgerAddress = process.env.LEDGER_ADDRESS;
     config.btcFee = process.env.BTC_FEE;
-    config.masterSeed = process.env.MASTER_SEED;
 
-    config.confirmUrl = process.env.CONFIRM_URL;
 
     config.SSLCertFile = process.env.SSL_CER;
     config.SSLKeyFile = process.env.SSL_KEY;
@@ -327,10 +301,14 @@ module.exports = async function (app) {
     // bitcoin explorer command (deprecated)
 
     config.bxCommand = process.env.BX_COMMAND;
-    config.bxCommandEnd = process.env.BX_COMMAND_END;
     config.proc_opts = {};
 
     // bitcoin core command
+
+    config.btcHost = process.env.BTC_HOST
+    config.btcUser = process.env.BTC_USER
+    config.btcPassword = process.env.BTC_PASSWORD
+
 
     config.btcCmd = process.env.BTC_CMD
     config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0";
@@ -364,17 +342,8 @@ module.exports = async function (app) {
 			wif: 0x80
 		};
 
-
-    config.accountType = {
-      0: process.env.ACCOUNT_TYPE0,
-      1: process.env.ACCOUNT_TYPE1,
-      2: process.env.ACCOUNT_TYPE2,
-      3: process.env.ACCOUNT_TYPE3,
-    };
-
    // etherscan api
     config.etherscanApiUrl =process.env.ETHERSCAN_APIURL
-    config.etherscanApiUrlTx =process.env.ETHERSCAN_APIURLTX
     config.etherscanApiUrl_ =process.env.ETHERSCAN_APIURL_
     config.bscscanApi =process.env.BSCSCAN_API
     config.deploy = false;
@@ -490,7 +459,6 @@ module.exports = async function (app) {
 
     config.xChangePricesUrl = process.env.XCHANGE_PRICE_URL;
 
-    config.auth_tokens = [process.env.AUTH_TOKENS];
     config.APIURLBEP20 =
     process.env.API_URL_BEP20;
     config.APIURLERC20 =
