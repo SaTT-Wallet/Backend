@@ -383,11 +383,13 @@ const Grid = require('gridfs-stream');
 
 	app.get('/v4/campaigns', async (req, response)=> {
 		try{
+			var count = await app.db.campaigns().find({hash:{ $exists: true}}).count();
 			var strangerDraft=[];
              if(req.query.idWallet){
 			const token = req.headers["authorization"].split(" ")[1];
 			var auth =	await app.crm.auth(token);
 			var idNode="0"+auth.id;		
+
 			strangerDraft= await app.db.campaigns().distinct("_id", { idNode:{ $ne:"0"+auth.id} , hash:{ $exists: false}});
 			 }
 			const limit=+req.query.limit || 10;
@@ -426,7 +428,7 @@ const Grid = require('gridfs-stream');
 			}
 		}
 
-			response.send(JSON.stringify(campaigns));
+			response.send(JSON.stringify(campaigns,count));
 		}catch(err){
 			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
 
