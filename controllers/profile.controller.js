@@ -370,7 +370,7 @@ module.exports.requestMoney = async(req, res)=>{
     await app.account.notificationManager(result._id, "demande_satt_event",{name :req.body.name, price :req.body.price, currency :req.body.cryptoCurrency} )
              }
 
-        app.readHTMLFile(__dirname + '/../express/emailtemplate/notification.html',async(err, data) => {
+        app.readHTMLFile(__dirname + '/../public/emailtemplate/notification.html',async(err, data) => {
             if (err) {
               console.error(err)
               return
@@ -430,7 +430,7 @@ exports.support = async( req, res)=>{
 
 
 		let[name,email,subject,message] = [req.body.name,req.body.email,req.body.subject,req.body.message];
-		app.readHTMLFile(__dirname + '/../express/emailtemplate/contact_support.html' ,async(err, data) => {
+		app.readHTMLFile(__dirname + '/../public/emailtemplate/contact_support.html' ,async(err, data) => {
 		  let mailContent={
 			  SaTT:{
 				  Url:app.config.baseUrl+'FAQ'
@@ -560,7 +560,7 @@ module.exports.changeEmail = async(req,response) => {
                 app.i18n.configureTranslation(lang);
 
                 // let subject = (lang == "en") ? "Satt wallet change email" : "";
-                app.readHTMLFile(__dirname + '/../express/emailtemplate/changeEmail.html', (err, html) => {
+                app.readHTMLFile(__dirname + '/../public/emailtemplate/changeEmail.html', (err, html) => {
                     var template = handlebars.compile(html);
                     var replacements = {
                         ip,

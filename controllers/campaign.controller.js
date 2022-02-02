@@ -683,7 +683,7 @@ exports.linkNotifications = async (req, res) => {
           await app.db.sn_user().findOne({ _id: owner }, (err, result) => {
             app.readHTMLFile(
               __dirname +
-                "/../express/emailtemplate/Email_Template_link_added.html",
+                "/../public/emailtemplate/Email_Template_link_added.html",
               async (err, html) => {
                 if (err) {
                   console.error(err);
@@ -820,7 +820,7 @@ exports.validateCampaign = async (req, res) => {
       });
 
       app.readHTMLFile(
-        __dirname + "/../express/emailtemplate/email_validated_link.html",
+        __dirname + "/../public/emailtemplate/email_validated_link.html",
         (err, html) => {
           if (err) {
             console.error(err);
@@ -1821,7 +1821,7 @@ exports.erc20Allow = async (req, res) => {
 
 		await app.account.notificationManager(id, "cmp_candidate_reject_link",{cmp_name:title, action : "link_rejected", cmp_link : link, cmp_hash: idCampaign,promHash:idLink})
 
-		app.readHTMLFile(__dirname + '/../express/emailtemplate/rejected_link.html' ,(err, html) => {
+		app.readHTMLFile(__dirname + '/../public/emailtemplate/rejected_link.html' ,(err, html) => {
 			if (err) {
 				console.error(err)
 				return
