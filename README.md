@@ -27,10 +27,35 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 <!-- GETTING STARTED -->
 ## Getting Started
 
-To run SaTT API webservice Provider you will need NodeJS 12.0+ and npm Package manager
+To run SaTT API webservice Provider you will need NodeJS 14.0+ and npm Package manager
 
 ### Prerequisites
 
+
+For development, you will only need Node.js and a node global package.
+
+### Node
+- #### Node installation on Windows
+
+  Just go on [official Node.js website](https://nodejs.org/) and download the installer.
+Also, be sure to have `git` available in your PATH, `npm` might need it (You can find git [here](https://git-scm.com/)).
+
+- #### Node installation on Ubuntu
+
+  You can install nodejs and npm easily with apt install, just run the following commands.
+
+      $ sudo apt install nodejs
+      $ sudo apt install npm
+
+   node --version
+      up to  v14.x.x
+
+   npm --version
+      up to  6.x.x
+
+
+
+If the installation was successful, you should be able to run the following command.
 * MongoDB database connection
 * Web3 service provider with [Geth](https://geth.ethereum.org/),[openerhereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
 * deployed smart contracts (token,campaign and oracle) in contract folder
@@ -51,17 +76,121 @@ To run SaTT API webservice Provider you will need NodeJS 12.0+ and npm Package m
    ```sh
    git clone https://github.com/Atayen/node-satt.git
    ```
-2. Edit conf/config.js file
+2.  ```sh
+   cd <project_name>
+   npm install
+   ```
+   
+3. Edit .env file with the right properties
 
-3. Register and start PM2 service 
+
+4. Register and start PM2 service or install nodemon
    ```sh
    pm2 start app.js
    ```
+   or
+
+   ```sh
+   npm start
+   ```
+   or
+
+   ```sh
+   nodemon
+   ```
+
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
 After you run the project, you can navigate to [https://localhost:3015/docs](http://localhost:3015/docs) to see the full list of available endpoints.
+## Project Structure
+The folder structure of this app is explained below:
+
+
+| Name                     | Description                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| **node_modules**         | Contains all  npm dependencies                                                                |
+| **helpers**              | Contains all requirements and the cron job actions                                            |
+| **manager**              | Contains all the definitions of oracles                                                       |
+| **/conf/**               | Contains all configuration for the blockChain part.                                           |
+| **/controllers**         | Controllers define functions to serve various express routes.                                 |
+| **/routes**              | Contain all express routes, separated by module/area of application .                         |
+| **/middlewares**         | Express middlewares which process the incoming requests before handling them down to the routes
+| **src/routes**           | Contain all express routes, separated by module/area of application                           |
+|  /app.js                 | Entry point to express app                                                                    |
+| package.json             | Contains npm dependencies as well as the scripts  
+                                                                                                                           |
+
+
+# Swagger
+## Specification
+The swagger specification file is named as swagger.yaml. The file is located under definition folder.
+Example:
+```
+paths:
+  /hello:
+    get:
+      x-swagger-router-controller: helloWorldRoute
+      operationId: helloWorldGet
+      tags:
+        - /hello
+      description: >-
+        Returns the current weather for the requested location using the
+        requested unit.
+      parameters:
+        - name: greeting
+          in: query
+          description: Name of greeting
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successful request.
+          schema:
+            $ref: '#/definitions/Hello'
+        default:
+          description: Invalid request.
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Hello:
+    properties:
+      msg:
+        type: string
+    required:
+      - msg
+  Error:
+    properties:
+      message:
+        type: string
+    required:
+      - message
+```
+### Highlights of the swagger.yaml File
+
+- /hello:
+  
+  Specifies how users should be routed when they make a request to this endpoint.
+- x-swagger-router-controller: helloWorldRoute
+
+  Specifies  which code file acts as the controller for this endpoint.
+- get:
+
+  Specifies the method being requested (GET, PUT, POST, etc.).
+- operationId: hello
+  
+  Specifies the direct method to invoke for this endpoint within the controller/router 
+- parameters:
+  
+   This section defines the parameters of your endpoint. They can be defined as path, query, header, formData, or body.
+- definitions:
+   
+   This section defines the structure of objects used in responses or as parameters.
+## Swagger Middleware
+The project is using npm module `swagger-tools` that provides middleware functions for metadata, security, validation and routing, and bundles Swagger UI into Express.
+
+<!-- Project Structure -->
 
 <!-- ROADMAP -->
 ## Roadmap
