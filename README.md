@@ -233,7 +233,7 @@ Contributions are what make the open source community such an amazing place to b
 
 
 
-  # Get Facebook cridentials
+  # Get Facebook credentials
 
 ![alt text](/public/3.png)
 
@@ -246,7 +246,7 @@ Contributions are what make the open source community such an amazing place to b
 
 
 PS: 
-All this cridentials refers to APPID,APP_SECRET,FB_GRAPH_VERSION in .env file
+All this credentials refers to APPID,APP_SECRET,FB_GRAPH_VERSION in .env file
 
 ```sh
 APPID=process.env.APPID
@@ -258,7 +258,7 @@ FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 
   To create a google app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
 
-  # Create Cridentialds
+  # Create Credentialds
 
 ![alt text](/public/11.png)
 
@@ -269,27 +269,48 @@ FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 
 
 
-  # Get Client cridedentials
+  # Get Client crededentials
 
 ![alt text](/public/33.png)
 
 
 
-  # Get Youtube configuration
+  # Create Youtube configuration
 
   ![alt text](/public/111.png)
 
 
 
+  # Get Youtube configuration
+
+  ![alt text](/public/222.png)
+
+
+
+
 
 PS: 
-All this cridentials refers to GOOGLE_CLIENTID,GOOGLE_CLIENT_SECRET and GDA_TAP_API_KEY in .env file
+All this credentials refers to GOOGLE_CLIENTID,GOOGLE_CLIENT_SECRET and GDA_TAP_API_KEY in .env file
 
 ```sh
 GOOGLE_CLIENTID=process.env.GOOGLE_CLIENTID
 GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
 GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 ```
+
+
+- #### LinkedIN configuration
+
+  To create a linkedin app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
+
+  # Create a new app
+
+![alt text](/public/333.png)
+
+
+  # Get linkedin crededentials
+
+![alt text](/public/444.png)
 
 
 <!-- LICENSE -->
