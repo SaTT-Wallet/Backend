@@ -212,6 +212,21 @@ Contributions are what make the open source community such an amazing place to b
 
 
 
+
+### Social networks
+
+
+- #### Facebook configuration
+
+
+  To create a Facebook app you should visit [official developer.facebook.com website](https://developers.facebook.com/apps/) and respect the following steps:
+
+  # create an app
+
+![alt text](/home/raja/Documents/workspace/projects/node-satt/public/1.png)
+
+
+
 <!-- LICENSE -->
 ## License
 
