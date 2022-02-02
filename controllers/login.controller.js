@@ -111,7 +111,7 @@ exports.codeRecover= async(req, response)=>{
         if (ip) ip = ip.split(":")[3];
 
         const code = await app.account.updateAndGenerateCode(user._id, "reset");
-        readHTMLFile(__dirname + '/../emails/reset_password_code.html', (err, html) => {
+        readHTMLFile(__dirname + '/../public/emails/reset_password_code.html', (err, html) => {
             let template = handlebars.compile(html);
             let replacements = {
                 ip,
@@ -121,7 +121,6 @@ exports.codeRecover= async(req, response)=>{
                 imgUrl: app.config.baseEmailImgURl,
                 satt_faq: app.config.Satt_faq,
             };
-
             let htmlToSend = template(replacements);
             let mailOptions = {
                 from: app.config.resetpassword_Email,
@@ -188,7 +187,7 @@ exports.resendConfirmationToken= async(req, response)=>{
         const code = await app.account.updateAndGenerateCode(user._id, "validation");
         const lang = req.query.lang || "en";
         app.i18n.configureTranslation(lang);
-        readHTMLFile(__dirname + '/../express/emailtemplate/email_validated_code.html', (err, html) => {
+        readHTMLFile(__dirname + '/../public/emailtemplate/email_validated_code.html', (err, html) => {
             var template = handlebars.compile(html);
             var replacements = {
                 satt_faq: app.config.Satt_faq,
