@@ -613,15 +613,17 @@ router.post('/exportETH',verifyAuth, exportEth)
   
   /**
  * @swagger
- * /wallet/transaction_history/:address:
+ * /wallet/transaction_history/{address}:
  *   get:
  *     tags:
  *     - "wallets"
- *     summary: create campaign {deprecated}.
- *     description: parametres acceptées :body{campaign}.
+ *     summary: transaction history.
+ *     description: user enter his wallet id and get her transaction history.
  *     parameters:
  *       - name: address
- *         description: user wallet address.
+ *         description: wallet id.
+ *         in: path
+ *         required: true
  *     responses:
  *        "200":
  *          description: data

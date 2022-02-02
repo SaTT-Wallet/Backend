@@ -13,7 +13,7 @@ module.exports = async function (app) {
     
           i18n.configure({
               locales: ['fr', 'en'],
-              directory: path.join(__dirname, '../express/locales'),
+              directory: path.join(__dirname, '../public/locales'),
               defaultLocale:lang, 
               queryParameter: 'lang',
               cookiename:'language'
