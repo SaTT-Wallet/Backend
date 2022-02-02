@@ -305,6 +305,11 @@ module.exports = async function (app) {
 
     // bitcoin core command
 
+    config.btcHost = process.env.BTC_HOST
+    config.btcUser = process.env.BTC_USER
+    config.btcPassword = process.env.BTC_PASSWORD
+
+
     config.btcCmd = process.env.BTC_CMD
     config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0";
     config.pathBtcSegwit = "m/84'/0'/0'/0/0";
