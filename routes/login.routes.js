@@ -124,7 +124,7 @@ router.get('/captcha',captcha)
  *                 type: string
  *     responses:
  *       "200":
- *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user "}
+ *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  *       "500":
  *          description: error={"error":true,"message":"invalid_credentials"} or {"error":true,"message":"account_locked",blockedDate:blockedDate}
  */
