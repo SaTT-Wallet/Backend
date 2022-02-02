@@ -228,7 +228,9 @@ Contributions are what make the open source community such an amazing place to b
 
   # Confirm app creation
 
+
 ![alt text](/public/2.png)
+
 
 
   # Get Facebook cridentials
@@ -236,7 +238,9 @@ Contributions are what make the open source community such an amazing place to b
 ![alt text](/public/3.png)
 
 
+
   # Get Facebook version
+
 
 ![alt text](/public/4.png)
 
@@ -250,7 +254,33 @@ APP_SECRET=process.env.APP_SECRET
 FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 ```
 
+- #### Google configuration
 
+  To create a google app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
+
+  # Create Cridentialds
+
+![alt text](/public/11.png)
+
+
+  # Fill out the form
+
+![alt text](/public/22.png)
+
+
+
+  # Get Client cridedentials
+
+![alt text](/public/33.png)
+
+
+PS: 
+All this cridentials refers to GOOGLE_CLIENTID,GOOGLE_CLIENT_SECRET in .env file
+
+```sh
+GOOGLE_CLIENTID=process.env.GOOGLE_CLIENTID
+GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
+```
 
 
 <!-- LICENSE -->
