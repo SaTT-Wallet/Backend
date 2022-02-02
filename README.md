@@ -221,9 +221,36 @@ Contributions are what make the open source community such an amazing place to b
 
   To create a Facebook app you should visit [official developer.facebook.com website](https://developers.facebook.com/apps/) and respect the following steps:
 
-  # create an app
+  # Create an app
 
 ![alt text](/public/1.png)
+
+
+  # Confirm app creation
+
+![alt text](/public/2.png)
+
+
+  # Get Facebook cridentials
+
+![alt text](/public/3.png)
+
+
+  # Get Facebook version
+
+![alt text](/public/4.png)
+
+
+PS: 
+All this cridentials refers to APPID,APP_SECRET,FB_GRAPH_VERSION in .env file
+
+```sh
+APPID=process.env.APPID
+APP_SECRET=process.env.APP_SECRET
+FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
+```
+
+
 
 
 <!-- LICENSE -->
