@@ -3,54 +3,16 @@ module.exports = async function (app) {
     var mongoClient = mongo.MongoClient;
 	app.ObjectId = mongo.ObjectId;
 
-	var mysql = require('mysql');
 
-	var myconn  = mysql.createPool({
-	  host     : app.config.mysqlHost,
-	  user     : app.config.mysqlUser,
-	  password : app.config.mysqlPass,
-	  database : app.config.mysqlDb,
-	  connectionLimit : 5,
-	});
 
 	app.db = {};
 
-	app.db.query = function (query) {
 
-		return new Promise( async (resolve, reject) => {
-
-			myconn.query(query, function (error, results, fields) {
-				if (error) {
-				  reject(error);
-				}
-				else {
-					resolve(results);
-				}
-
-			});
-		});
-
-	}
-
-	app.db.insert = function (query,fields) {
-		return new Promise( async (resolve, reject) => {
-
-			myconn.query(query,fields, function (error, results, fields) {
-				if (error) {
-				  reject(error);
-				}
-				else {
-					resolve(results);
-				}
-
-			});
-		});
-	}
 
 	var db = await mongoClient.connect("mongodb://" + app.config.mongoUser + ":" + app.config.mongoPass + "@" + app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBase, {useNewUrlParser: true,useUnifiedTopology: true}).catch(console.log)
 	
 
-	app.db.accessToken = function () {
+		app.db.accessToken = function () {
 				return db.db(app.config.mongoBase).collection(app.config.accessTokenCollection);
 			};
 
@@ -139,13 +101,6 @@ module.exports = async function (app) {
             return db.db(app.config.mongoBase).collection(app.config.applyCollection);
         };
 
-		/*app.db.sattbuy = function () {
-            return db.db(app.config.mongoBase).collection(app.config.sattBuyCollection);
-        };
-
-	/*	app.db.satt_tx = function () {
-            return db.db(app.config.mongoBase).collection('satt_transactions');
-        };*/
 
 		app.db.sn_user = function () {
             return db.db(app.config.mongoBase).collection(app.config.userCollection);
@@ -153,27 +108,7 @@ module.exports = async function (app) {
         app.db.sn_user_archived = function () {
             return db.db(app.config.mongoBase).collection(app.config.userArchiveCollection);
         };
-	/*	app.db.buy = function () {
-		return db.db(app.config.mongoBase).collection('buy_satt');
-			};
 
-		*/
-
-		/*app.db.indexedtx = function () {
-			return db.db(app.config.mongoBase).collection('indexed_tx');
-	};*/
-
-	/*	app.db.balance = function () {
-				return db.db(app.config.mongoBase).collection('balance');
-		};
-		app.db.balance2 = function () {
-				return db.db(app.config.mongoBase).collection('balance2');
-		};
-		app.db.delta = function () {
-				return db.db(app.config.mongoBase).collection('delta');
-		};
-		
-		*/
 		app.db.customToken = function () {
 			return db.db(app.config.mongoBase).collection(app.config.customTokenCollection);
 	    };
