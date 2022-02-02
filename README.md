@@ -274,12 +274,21 @@ FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 ![alt text](/public/33.png)
 
 
+
+  # Get Youtube configuration
+
+  ![alt text](/public/111.png)
+
+
+
+
 PS: 
-All this cridentials refers to GOOGLE_CLIENTID,GOOGLE_CLIENT_SECRET in .env file
+All this cridentials refers to GOOGLE_CLIENTID,GOOGLE_CLIENT_SECRET and GDA_TAP_API_KEY in .env file
 
 ```sh
 GOOGLE_CLIENTID=process.env.GOOGLE_CLIENTID
 GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
+GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 ```
 
 
