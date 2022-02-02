@@ -223,8 +223,7 @@ Contributions are what make the open source community such an amazing place to b
 
   # create an app
 
-![alt text](/home/raja/Documents/workspace/projects/node-satt/public/1.png)
-
+![alt text](/projects/node-satt/public/1.png)
 
 
 <!-- LICENSE -->
