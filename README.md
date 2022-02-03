@@ -64,10 +64,11 @@ Also, be sure to have `git` available in your PATH, `npm` might need it (You can
 
 1. MongoDB database connection
 2. Web3 service provider with [Geth](https://geth.ethereum.org/),[openethereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
-  - To install Geth Node you can follow this [Guide](https://geth.ethereum.org/docs/getting-started)
-  - Alternatively you can install [Parity](https://openethereum.github.io/Setup)
-  - Or subscribe to Infura Saas [Here](https://infura.io/register)
+   - To install Geth Node you can follow this [Guide](https://geth.ethereum.org/docs/getting-started)
+   - Alternatively you can install [Parity](https://openethereum.github.io/Setup)
+   - Or subscribe to Infura Saas [Here](https://infura.io/register)
 3. Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/)
+   - Available docs for deploying Smart contract in Remix environment can be found Here [Part1](https://remix-ide.readthedocs.io/en/latest/run.html) [Part2](https://remix-ide.readthedocs.io/en/latest/udapp.html)
 4. on campaign contract call modToken(<token_address>,true)
 5. on campaign contract call setOracle(<oracle_address>)
 6. on oracle contract call changeAsk(<campaign_address>,true)
