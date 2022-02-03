@@ -301,7 +301,7 @@ GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 
 - #### LinkedIN configuration
 
-  To create a linkedin app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
+  To create a linkedin app you should visit [official developer.linkedin.com website](https://developer.linkedin.com/) and respect the following steps:
 
   # Create a new app
 
@@ -327,17 +327,31 @@ LINKEDIN_SECRET=process.env.LINKEDIN_SECRET
 
 - #### Twitter  configuration
 
-  To create a linkedin app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
+  To create a linkedin app you should visit [official  developers.twitter.com website](https://developer.twitter.com/) and respect the following steps:
 
   # Create a new app
 
-![alt text](/public/333.png)
+![alt text](/public/1t.png)
 
 
-  # Get linkedin crededentials
+  # Set params for your app
 
-![alt text](/public/444.png)
+![alt text](/public/2t.png)
 
+
+
+  # Get your twitter credentialds
+
+![alt text](/public/3t.png)
+
+
+
+  # Get your twitter credentialds
+
+  you can regenerate again your credentials with more options
+  
+
+![alt text](/public/4t.png)
 
 
 PS: 
