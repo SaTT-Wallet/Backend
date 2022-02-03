@@ -313,6 +313,42 @@ GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 ![alt text](/public/444.png)
 
 
+
+PS: 
+All this credentials refers to LINKEDIN_KEY and LINKEDIN_SECRET in .env file
+
+```sh
+LINKEDIN_KEY=process.env.LINKEDIN_KEY
+LINKEDIN_SECRET=process.env.LINKEDIN_SECRET
+```
+
+
+
+
+- #### Twitter  configuration
+
+  To create a linkedin app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
+
+  # Create a new app
+
+![alt text](/public/333.png)
+
+
+  # Get linkedin crededentials
+
+![alt text](/public/444.png)
+
+
+
+PS: 
+All this credentials refers to LINKEDIN_KEY and LINKEDIN_SECRET in .env file
+
+```sh
+LINKEDIN_KEY=process.env.LINKEDIN_KEY
+LINKEDIN_SECRET=process.env.LINKEDIN_SECRET
+```
+
+
 <!-- LICENSE -->
 ## License
 
