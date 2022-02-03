@@ -25,6 +25,57 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 
 
 <!-- GETTING STARTED -->
+
+
+### Blockchain deployment
+
+
+1. You can check all our differents smart contracts in contract folder:
+
+![alt text](/public/contracts.png)
+
+
+2. To Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/):
+
+**create your file on Remix and paste your code there
+
+![alt text](/public/remix.png)
+
+**Compile your file.sol and check
+
+
+![alt text](/public/Compile.png)
+
+
+**To deploy your smart contract you should connect with your metamask account 
+
+![alt text](/public/deploy.png)
+
+3. To create node, Web3 service provider with [Geth](https://geth.ethereum.org/),[openethereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
+
+**Create new Ethereum app
+
+
+![alt text](/public/compile.png)
+
+
+**Get node credentials from infura such as PROJECTID, PROJECT SECRET, and the endpoints that we can use to connect to infura node(https, wss)
+
+
+![alt text](/public/keysinfura.png)
+
+
+```sh
+WEB3_URL=process.env.WEB3_URL
+```
+
+
+
+You can also install Geth Node you can follow this [Guide](https://geth.ethereum.org/docs/getting-started) or [Parity](https://openethereum.github.io/Setup)
+
+4. on campaign contract call modToken(<token_address>,true)
+5. on campaign contract call setOracle(<oracle_address>)
+6. on oracle contract call changeAsk(<campaign_address>,true)
 ## Getting Started
 
 To run SaTT API webservice Provider you will need NodeJS 14.0+ and npm Package manager
@@ -60,17 +111,7 @@ Also, be sure to have `git` available in your PATH, `npm` might need it (You can
    npm install pm2 -g
    ```
 
-### Blockchain deployment
 
-1. MongoDB database connection
-2. Web3 service provider with [Geth](https://geth.ethereum.org/),[openethereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
-  - To install Geth Node you can follow this [Guide](https://geth.ethereum.org/docs/getting-started)
-  - Alternatively you can install [Parity](https://openethereum.github.io/Setup)
-  - Or subscribe to Infura Saas [Here](https://infura.io/register)
-3. Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/)
-4. on campaign contract call modToken(<token_address>,true)
-5. on campaign contract call setOracle(<oracle_address>)
-6. on oracle contract call changeAsk(<campaign_address>,true)
 
 ### Installation
 
@@ -116,12 +157,12 @@ The folder structure of this app is explained below:
 | **node_modules**         | Contains all  npm dependencies                                                                |
 | **helpers**              | Contains all requirements and the cron job actions                                            |
 | **manager**              | Contains all the definitions of oracles                                                       |
-| **/conf/**               | Contains all configuration for the blockChain part.                                           |
-| **/controllers**         | Controllers define functions to serve various express routes.                                 |
-| **/routes**              | Contain all express routes, separated by module/area of application .                         |
-| **/middlewares**         | Express middlewares which process the incoming requests before handling them down to the routes
-| **src/routes**           | Contain all express routes, separated by module/area of application                           |
-|  /app.js                 | Entry point to express app                                                                    |
+| **conf**                 | Contains all configuration for the blockChain part.                                           |
+| **controllers**          | Controllers define functions to serve various express routes.                                 |
+| **routes**               | Contain all express routes, separated by module/area of application .                         |
+| **middlewares**          | Express middlewares which process the incoming requests before handling them down to the routes
+| **routes**               | Contain all express routes, separated by module/area of application                           |
+|  app.js                  | Entry point to express app                                                                    |
 | package.json             | Contains npm dependencies as well as the scripts  
                                                                                                                            |
 
