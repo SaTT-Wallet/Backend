@@ -244,7 +244,7 @@ const { route } = require('./login.routes');
  *                  amount:
  *                    type: string
  *       "500":
- *          description: error:error message
+ *          description: ERROR
  *          content:
  *            application/json:
  *              schema:
@@ -287,8 +287,30 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  transactionHash:
+ *                    type: string
+ *                  address:
+ *                    type: string
+ *                  to:
+ *                    type: string
+ *                  amount:
+ *                    type: string
  *       "500":
  *          description: error:error message
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
+ *              example:
+ *                error: error
  */
 
 router.post('/launchBounty',verifyAuth,launchBounty);
