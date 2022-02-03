@@ -415,6 +415,31 @@ TWITTER_ACCESS_TOKEN_KEY=process.env.TWITTER_ACCESS_TOKEN_KEY
 TWITTER_ACCESS_TOKEN_SECRET=process.env.TWITTER_ACCESS_TOKEN_SECRET
 ```
 
+- #### Telegram configuration
+
+
+  To create a Telegram bot you should set it via mobile Telegram application:
+
+  # BotFather
+
+![alt text](/public/bot1.png)
+
+
+  # Get your confirmation
+
+![alt text](/public/bot2.png)
+
+
+
+PS: 
+This credential refer to TELEGRAM_BOT_TOKEN in .env file
+
+
+
+```sh
+TELEGRAM_BOT_TOKEN=process.env.TELEGRAM_BOT_TOKEN
+
+```
 
 
 <!-- LICENSE -->
