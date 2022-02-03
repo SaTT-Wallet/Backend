@@ -1041,7 +1041,7 @@ accountManager.handleId=async function () {
 
 
 
-	   accountManager.getFacebookPages= async (UserId,accessToken, isInsta=false)=>{
+	   accountManager.getFacebookPages= (UserId,accessToken, isInsta=false)=>{
 		return new Promise( async (resolve, reject) => {
 			try {
 			let message="account_linked_with_success";
@@ -1061,9 +1061,10 @@ accountManager.handleId=async function () {
 						 }
 						 instagram_id = res.data[i].instagram_business_account.id;
 						 page.instagram_id=instagram_id;
-						 var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
+						 var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username,followers_count&access_token="+accessToken;
 						 var resMedia = await rp({uri:media,json: true})
 						 page.instagram_username = resMedia.username;
+						 page.subscribers=resMedia.followers_count
 					   }
 					   await app.db.fbPage().updateOne({id:res.data[i].id,UserId},{$set:page},{ upsert: true });
 					 }
