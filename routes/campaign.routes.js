@@ -5,13 +5,9 @@ const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns,
     totalSpent,apply, linkNotifications,
     linkStats,increaseBudget, 
     getLinks,getFunds,gains , addKits,update, kits, saveCampaign, upload,
-    validateCampaign,campaignStatistics,campaignInvested,bep20Allow,erc20Allow} = require('../controllers/campaign.controller')
+    validateCampaign,bep20Allow,erc20Allow} = require('../controllers/campaign.controller')
     const { verifyAuth} =require('../middleware/passport.middleware');
-    const cron =require('node-cron');
-    const {updateStat} = require('../helpers/common');
-
-    
-    cron.schedule(process.env.CRON_UPDATE_STAT, ()=> updateStat())
+const { route } = require('./login.routes');
 
 
 
@@ -40,7 +36,26 @@ const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns,
   *         required: true
   *     responses:
   *       "200":
-  *          description: data
+  *          description: ok
+  *          content:
+  *             application/json:
+  *               schema:
+  *                 type: object
+  *                 properties:
+  *                   token:
+  *                     type: string
+  *                   allowance:
+  *                     type: object
+  *                     properties:
+  *                       amount:
+  *                         type: string
+  *                   spender:
+  *                     type: string
+  *                 example:
+  *                   token: "0x123456...654654"
+  *                   allowance:
+  *                     amount: "0"
+  *                   spender: "0x987654...3221"
   *       "500":
   *          description: error:"error"
   */
@@ -56,6 +71,7 @@ const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns,
   *     summary: bep20 allow
   *     description: bep20 allow
   *     requestBody:
+  *       required: true
   *       content:
   *         application/json:
   *           schema:      # Request body contents
@@ -71,7 +87,18 @@ const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns,
   *                 type: string
   *     responses:
   *       "200":
-  *          description: data
+  *          description: ok
+  *          content:
+  *             application/json:
+  *               schema:
+  *                 type: object
+  *                 properties:
+  *                   transactionHash:
+  *                     type: string
+  *                   address:
+  *                     type: string
+  *                   spender:
+  *                     type: string
   *       "500":
   *          description: error:"error"
   */
@@ -99,7 +126,26 @@ const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns,
  *         required: true
  *     responses:
  *       "200":
- *          description: data
+ *          description: ok
+  *          content:
+  *             application/json:
+  *               schema:
+  *                 type: object
+  *                 properties:
+  *                   token:
+  *                     type: string
+  *                   allowance:
+  *                     type: object
+  *                     properties:
+  *                       amount:
+  *                         type: string
+  *                   spender:
+  *                     type: string
+  *                 example:
+  *                   token: "0x123456...654654"
+  *                   allowance:
+  *                     amount: "0"
+  *                   spender: "0x987654...3221"
  *       "500":
  *          description: error:"error"
  */
@@ -195,26 +241,15 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               ERC20token:
+ *               token:
+ *                 type: string
+ *               to:
  *                 type: string
  *               amount:
  *                 type: string
- *               contract:
- *                 type: string
- *               dataUrl:
- *                 type: string
- *               endDate:
- *                 type: integer
- *               startDate:
- *                 type: integer
- *               idCampaign:
- *                 type: string
- *               bounties:
- *                 type: array
- *                 items:
- *                  id:
- *                      type: string  
  *               pass:
+ *                 type: string
+ *               symbole:
  *                 type: string
  *     responses:
  *       "200":
@@ -459,7 +494,7 @@ router.post('/apply',verifyAuth,apply);
 
 /**
  * @swagger
- * /campaign/validateLink:
+ * /campaign/validate:
  *   post:
  *     tags:
  *     - "campaign"
@@ -490,7 +525,7 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:error message
  */
 
- router.post('/validateLink',verifyAuth,validateCampaign);
+ router.post('/validate',verifyAuth,validateCampaign);
 
   /**
  * @swagger
@@ -805,9 +840,10 @@ router.post('/apply',verifyAuth,apply);
  *         description: the address wallet of user.
  *         in: path
  *         required: true
+
  *     responses:
  *       "200":
- *          description: list:[list of links]
+ *          description:[list of links]
  *       "500":
  *          description: error:"error"
  */
@@ -909,7 +945,7 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
 
  /**
  * @swagger
- * /campaign/rejectLink/{idLink}:
+ * /campaign/reject/{idLink}:
  *   put:
  *     tags:
  *     - "campaign"
@@ -936,55 +972,14 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
  *                 type: string
  *               idUser:
  *                 type: string
- *               reason:
- *                 type: array
- *                 items:
- *                  id:
- *                      type: string  
  *     responses:
  *       "200":
  *          description: data
  *       "500":
  *          description: error:"error"
  */
-  router.put('/rejectLink/:idLink',verifyAuth,rejectLink);
+  router.put('/reject/:idLink',rejectLink);
    
-     
-
-       /**
- * @swagger
- * /campaign/statLinkCampaign/:hash:
- *   get:
- *     tags:
- *     - "campaign"
- *     summary: fetch campaign statistics.
- *     description: parametres acceptées :body{campaign}.
- *     parameters:
- *       - name: hash
- *         description: campaign hash.
- *     responses:
- *        "200":
- *          description: data
- *        "500":
- *          description: error:error message
- */
-     router.get('/statLinkCampaign/:hash',campaignStatistics);
-
-            /**
- * @swagger
- * /campaign/invested:
- *   get:
- *     tags:
- *     - "campaign"
- *     summary: fetch invested budget.
- *     description: retrieve user total amount invested in all his campaigns.
- *     responses:
- *        "200":
- *          description: object {totalInvested,totalInvestedUSD}
- *        "500":
- *          description: error:error message
- */
-     router.get('/invested',verifyAuth,campaignInvested);
      
 module.exports = router;
 
