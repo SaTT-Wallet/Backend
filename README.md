@@ -117,11 +117,11 @@ The folder structure of this app is explained below:
 | **node_modules**         | Contains all  npm dependencies                                                                |
 | **helpers**              | Contains all requirements and the cron job actions                                            |
 | **manager**              | Contains all the definitions of oracles                                                       |
-| **/conf/**               | Contains all configuration for the blockChain part.                                           |
-| **/controllers**         | Controllers define functions to serve various express routes.                                 |
-| **/routes**              | Contain all express routes, separated by module/area of application .                         |
-| **/middlewares**         | Express middlewares which process the incoming requests before handling them down to the routes
-| **src/routes**           | Contain all express routes, separated by module/area of application                           |
+| **conf**               | Contains all configuration for the blockChain part.                                           |
+| **controllers**         | Controllers define functions to serve various express routes.                                 |
+| **routes**              | Contain all express routes, separated by module/area of application .                         |
+| **middlewares**         | Express middlewares which process the incoming requests before handling them down to the routes
+| **routes**           | Contain all express routes, separated by module/area of application                           |
 |  /app.js                 | Entry point to express app                                                                    |
 | package.json             | Contains npm dependencies as well as the scripts  
                                                                                                                            |
