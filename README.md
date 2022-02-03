@@ -53,21 +53,24 @@ Also, be sure to have `git` available in your PATH, `npm` might need it (You can
    npm --version
       up to  6.x.x
 
-
-
-If the installation was successful, you should be able to run the following command.
-* MongoDB database connection
-* Web3 service provider with [Geth](https://geth.ethereum.org/),[openerhereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
-* deployed smart contracts (token,campaign and oracle) in contract folder
-* on campaign contract call modToken(<token_address>,true)
-* on campaign contract call setOracle(<oracle_address>)
-* on oracle contract call changeAsk(<campaign_address>,true)
-* PM2 Process Manager, you can install it a described below : 
+  If the installation was successful, you should be able to run the following command.
+  PM2 Process Manager, you can install it a described below : 
 
    ```sh
    npm install pm2 -g
    ```
- 
+
+### Blockchain deployment
+
+1. MongoDB database connection
+2. Web3 service provider with [Geth](https://geth.ethereum.org/),[openethereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
+  - To install Geth Node you can follow this [Guide](https://geth.ethereum.org/docs/getting-started)
+  - Alternatively you can install [Parity](https://openethereum.github.io/Setup)
+  - Or subscribe to Infura Saas [Here](https://infura.io/register)
+3. Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/)
+4. on campaign contract call modToken(<token_address>,true)
+5. on campaign contract call setOracle(<oracle_address>)
+6. on oracle contract call changeAsk(<campaign_address>,true)
 
 ### Installation
 
