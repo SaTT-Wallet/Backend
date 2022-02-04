@@ -379,7 +379,7 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                items:
  *                  type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
  *          content:
  *            application/json:
  *              schema:
@@ -404,55 +404,52 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: the  id.
+ *         description: campaign id
  *         in: path
  *         required: true
  *     responses:
  *       "200":
- *          description: list:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents
+ *                type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-  router.get('/details/:id',campaign);
-
-
-
-
-   /**
+router.get('/details/:id',campaign);
+/**
  * @swagger
  * /campaign/totalSpent:
  *   get:
  *     tags:
  *     - "campaign"
  *     summary: get campaign details
- *     description: return to user campaign detalds <br> with access_token 
+ *     description: return user's total spent budget <br> with access_token 
  *     produces:
  *       - application/json
-
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
  *       "500":
  *          description: error:"error"
  */
-
-
-    router.get('/totalSpent',verifyAuth,totalSpent);
-
-
-
-
-
-
-   /**
+router.get('/totalSpent',verifyAuth,totalSpent);
+/**
  * @swagger
  * /campaign/pendingLink/{id}:
  *   get:
  *     tags:
  *     - "campaign"
  *     summary: get campaign pending link
- *     description: return to user the list of campaign with pending link <br> without access_token 
+ *     description: return the list of campaign with pending link <br> without access_token 
  *     produces:
  *       - application/json
  *     parameters:
@@ -460,23 +457,27 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *         description: the  id.
  *         in: path
  *         required: true
-
-
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
-    router.get('/pendingLink/:id',pendingLink);
-
-
-
-
-   /**
+router.get('/pendingLink/:id',pendingLink);
+/**
  * @swagger
  * /campaign/campaignPrompAll/{id}:
  *   get:
@@ -491,16 +492,13 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *         description: the  id.
  *         in: path
  *         required: true
-
  *     responses:
  *       "200":
  *          description:[list of campaigns]
  *       "500":
  *          description: error:"error"
  */
-
-
-    router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
+router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
 
 
 
