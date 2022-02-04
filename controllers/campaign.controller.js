@@ -522,14 +522,9 @@ exports.pendingLink = async (req, res) => {
 
 exports.totalSpent = async (req, res) => {
   try {
-    const sattPrice = {
-      url: app.config.xChangePricesUrl,
-      method: "GET",
-      json: true,
-    };
-
+  
     let total = "0";
-    let prices = await rp(sattPrice);
+    let prices =  app.account.getPrices();
     let sattPrice$ = prices.SATT.price;
 
     let userCampaigns = await app.db
