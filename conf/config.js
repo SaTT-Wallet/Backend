@@ -223,7 +223,7 @@ module.exports = async function (app) {
 
     // admin wallets 
     config.campaignWalletPath = process.env.CAMPAIGN_WALLET_PATH;
-    config.SattReservePath = process.env.SATT_RESET_PATH;
+    config.SattReservePath = process.env.CAMPAIGN_WALLET_PATH;
     config.SattReserve = process.env.SATT_RESERVE
 
 
@@ -260,8 +260,8 @@ module.exports = async function (app) {
 
     //bridge bep20;
 
-    config.SattBep20Addr = process.env.SATT_BEP20_ADDR;
-    config.bridge = process.env.BRIDGE;
+    config.SattBep20Addr = process.env.SATT_RESERVE;
+    config.bridge = process.env.SATT_RESERVE;
     
 
    //login settings
@@ -451,8 +451,6 @@ module.exports = async function (app) {
         network:process.env.TOKEN_BUSD_NETWORK,
       },
     };
-
-    config.xChangePricesUrl = process.env.XCHANGE_PRICE_URL;
 
     config.APIURLBEP20 =
     process.env.API_URL_BEP20;
@@ -1469,7 +1467,7 @@ module.exports = async function (app) {
 							address: payment.idWallet,
 							tag: ""
 						},
-						original_http_ref_url: process.env.TRANSACTION_DETAILS_URL
+						original_http_ref_url: process.env.BASED_URL
 					}
 				}
 			}

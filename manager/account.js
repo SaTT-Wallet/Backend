@@ -13,7 +13,6 @@ module.exports = async function (app) {
     var Big = require('big.js');
     var Long = require('mongodb').Long;
 	var rp = require('request-promise');
-    const xChangePricesUrl = app.config.xChangePricesUrl;
     const bad_login_limit = app.config.bad_login_limit;
 	const { createLogger, format, transports } = require('winston');
 
