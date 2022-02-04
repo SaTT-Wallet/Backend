@@ -533,12 +533,27 @@ router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents 
+ *                type: object
+ *                properties:
+ *                  idCampaign:
+ *                    type: string
+ *                  idPost:
+ *                    type: string
+ *                  idProm:
+ *                    type: string
+ *                  isUser:
+ *                    type: string
+ *                  transactionHash:
+ *                    type: string
+ *                  typeSN:
+ *                    type: number
  *       "500":
  *          description: error:error message
  */
-
-
 router.post('/apply',verifyAuth,apply);
 
 
