@@ -365,18 +365,29 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *   get:
  *     tags:
  *     - "campaign"
- *     summary: get total earned
- *     description: return to user the total earned <br> without access_token 
+ *     summary: get campaigns list
+ *     description: Returns the list of campaigns <br> without access_token 
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: list:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  type: object
  *       "500":
  *          description: error:"error"
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
  router.get('/campaigns',verifyAuth,campaigns);
 
 
