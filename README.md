@@ -44,7 +44,7 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 **Compile your file.sol and check
 
 
-![alt text](/public/Compile.png)
+![alt text](/public/compile.png)
 
 
 **To deploy your smart contract you should connect with your metamask account 
