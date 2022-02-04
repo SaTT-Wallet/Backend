@@ -329,11 +329,31 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *     responses:
  *       "200":
  *          description: {"SattEarned","USDEarned","subscriptions"}
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  SattEarned:
+ *                    type: number
+ *                  USDEarned:
+ *                    type: number
+ *                  subscriptions:
+ *                    type: number
+ *              example:
+ *                SattEarned: 563200
+ *                USDEarned: 125
+ *                subscriptions: 54
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents  
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
 router.get('/totalEarned',verifyAuth,totalEarned);
 
 
