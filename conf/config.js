@@ -215,9 +215,7 @@ module.exports = async function (app) {
     config.paymentCollection = process.env.PAYMENTCOLLECTION;
     config.igMediaCollection = process.env.IGMEDIACOLLECTION;
 
-   // admin UID
 
-    config.appAdminV2 = process.env.APP_ADMIN_V2;
 
     // listen port
 
@@ -232,32 +230,31 @@ module.exports = async function (app) {
 
     config.SattReservePass = process.env.SATT_RESERVE_PASS;
    
-    config.atayenSubscriptionAddress = process.env.ATAYEN_SUBSCRIPTION_ADDRESS;
 
     
     config.PaidSatt = process.env.PAID_SATT;
     
 
     config.sattBep20 = {
-      version: process.env.SATT_BEP20_VERSION,
-      id: process.env.SATT_BEP20_ID,
-      address: process.env.SATT_BEP20_ADDRESS,
+      version: 3,
+      id: "4dc797da-5601-4a6f-bc49-a5c2f2236467",
+      address: "0x3f31cbacfec98b29eeb35566fd630c04e706ac46",
       crypto: {
         ciphertext:
-          process.env.SATT_BEP20_CRYPTO_CIPHERTEXT,
+          "2dba72cd6b838d3a2f28b8f3f41a456be5242de1970aeda4fa61a68a042e6352",
         cipherparams: {
-          iv: process.env.SATT_BEP20_CRYPTO_CIPHERPARAMS_IV,
+          iv: "e443f8ad2b0c58e55ef38d1c8e999cd8",
         },
-        cipher: process.env.SATT_BEP20_CRYPTO_CIPHER,
-        kdf: process.env.SATT_BEP20_CRYPTO_KDF,
+        cipher: "aes-128-ctr",
+        kdf: "scrypt",
         kdfparams: {
-          dklen: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_DKLEN,
-          salt: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_SALT,
-          n: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_N,
-          r: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_R,
-          p: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_P,
+          dklen: 32,
+          salt: "a6b7ffa902f4e1b061401d5667f34de81693c59d38295a07a7da96a51897abf2",
+          n: 8192,
+          r: 8,
+          p: 1,
         },
-        mac: process.env.SATT_BEP20_ADDR,
+        mac: "a2597a2ab7ce0b365a8ccb9a87caebd32b9d03636dad3b50532b77683135a1c5",
       },
     };
 
@@ -349,8 +346,6 @@ module.exports = async function (app) {
     config.deploy = false;
 
     config.SattBep20Addr = process.env.SATT_BEP20_ADDRR;
-    config.SattStep3 = process.env.SATT_STEP3;
-    config.SattStep4 = process.env.SATT_STEP4;
     config.cmcUrl=process.env.CMR_URL;
 
     // built-in displayed token
