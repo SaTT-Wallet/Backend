@@ -56,7 +56,7 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 **Create new Ethereum app
 
 
-![alt text](/public/compile.png)
+![alt text](/public/createinfura.png)
 
 
 **Get node credentials from infura such as PROJECTID, PROJECT SECRET, and the endpoints that we can use to connect to infura node(https, wss)
@@ -76,6 +76,9 @@ You can also install Geth Node you can follow this [Guide](https://geth.ethereum
 4. on campaign contract call modToken(<token_address>,true)
 5. on campaign contract call setOracle(<oracle_address>)
 6. on oracle contract call changeAsk(<campaign_address>,true)
+
+
+
 ## Getting Started
 
 To run SaTT API webservice Provider you will need NodeJS 14.0+ and npm Package manager
