@@ -321,6 +321,12 @@ exports.campaign = async (req, response) => {
   var campaign = await app.db
     .campaigns()
     .findOne({ _id: app.ObjectId(idCampaign) });
+
+
+  if(!campaign){
+      res.end("{'error': 'campaign not found'}");
+
+    }
   if (campaign && campaign.hash) {
     campaign.remaining = campaign.funds[1];
   }
