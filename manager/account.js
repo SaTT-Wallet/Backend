@@ -1041,7 +1041,7 @@ accountManager.handleId=async function () {
 
 
 
-	   accountManager.getFacebookPages= async (UserId,accessToken, isInsta=false)=>{
+	   accountManager.getFacebookPages= (UserId,accessToken, isInsta=false)=>{
 		return new Promise( async (resolve, reject) => {
 			try {
 			let message="account_linked_with_success";
@@ -1049,34 +1049,39 @@ accountManager.handleId=async function () {
 				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
-				   while(true) {
+				   if(res.data.length===0){
+					message="required_page"
+				   }
+				   else{
+					while(true) {
 		   
-					 for (var i = 0;i<res.data.length;i++) {
-					   let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name,subscribers:res.data[i].fan_count};
-					   
-					   if(res.data[i].instagram_business_account) {
-						 if(!isInsta){
-						   message+="_instagram_facebook";
-						   isInsta=true;
-						 }
-						 instagram_id = res.data[i].instagram_business_account.id;
-						 page.instagram_id=instagram_id;
-						 var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username&access_token="+accessToken;
-						 var resMedia = await rp({uri:media,json: true})
-						 page.instagram_username = resMedia.username;
-					   }
-					   await app.db.fbPage().updateOne({id:res.data[i].id,UserId},{$set:page},{ upsert: true });
-					 }
-					 if(!res.paging || !res.paging.next)
-					 {
-					   break;
-					 }
-					 res = await rp({uri:res.paging.next,json: true})
-				  }	   
-		
-				 if(!isInsta && res.data.length > 0) message+="_facebook";
-				 resolve(message)
-
+						for (var i = 0;i<res.data.length;i++) {
+						  let page={UserId:UserId,username:res.data[i].username,token:res.data[i].access_token,picture:res.data[i].picture.data.url,name:res.data[i].name,subscribers:res.data[i].fan_count};
+						  
+						  if(res.data[i].instagram_business_account) {
+							if(!isInsta){
+							  message+="_instagram_facebook";
+							  isInsta=true;
+							}
+							instagram_id = res.data[i].instagram_business_account.id;
+							page.instagram_id=instagram_id;
+							var media = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/"+instagram_id+"?fields=username,followers_count&access_token="+accessToken;
+							var resMedia = await rp({uri:media,json: true})
+							page.instagram_username = resMedia.username;
+							page.subscribers=resMedia.followers_count
+						  }
+						  await app.db.fbPage().updateOne({id:res.data[i].id,UserId},{$set:page},{ upsert: true });
+						}
+						if(!res.paging || !res.paging.next)
+						{
+						  break;
+						}
+						res = await rp({uri:res.paging.next,json: true})
+					 }	   
+		   
+					if(!isInsta && res.data.length > 0) message+="_facebook";
+				   }  
+				   resolve(message)
 				}catch (e) {
 					reject({message:e.message});
 				}
