@@ -1716,22 +1716,13 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		finally {
 			if(cred2) app.account.lock(cred2.address);
             if(ret && ret.transactionHash){
-			let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,_id:false }})
+				let campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { token: true,contract:true,_id:false }});
+				var campaignCurrency=campaign.token.name;
+				var campaignNetwork=campaign.token.network;
+				var campaignContract=campaign.contract;
 			let campaignType={};
 			let network = campaign.token.type == "erc20" ?  app.web3.eth :  app.web3Bep20.eth
-			// let event= await app.graph.getPromDetails(idProm);
-			// let updatedFUnds = {};
-
-            //    if(req.body.bounty) updatedFUnds.isPayed = true; 
-            //    updatedFUnds.payedAmount = event.totalAmount;
-			//    updatedFUnds.type="already_recovered";
-			//    await app.db.campaign_link().updateOne({id_prom:idProm}, {$set:updatedFUnds});
-
-			// 	campaignType.funds[0]=event.campaign.token;
-            //     campaignType.funds[1] = event.campaign.currentAmount;
-			// 	if(event.campaign.currentAmount === '0') campaignType.type='finished';
-			//     await app.db.campaigns().updateOne({hash:idCampaign},{$set:campaignType});
-
+			
 			let amount =await app.campaign.getTransactionAmount(ret.transactionHash,network)
 			let updatedFUnds = {};
 			await app.db.campaign_link().findOne({id_prom:idProm}, async(err, result)=>{
@@ -1746,6 +1737,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
                 campaignType.funds = result.funds
 				if(result.funds[1] === '0') campaignType.type='finished';
 			    await app.db.campaigns().updateOne({hash:idCampaign},{$set:campaignType});
+				await app.account.notificationManager(auth.id, "receive_transfer_event",{amount,currency:campaignCurrency ,from : campaignContract, transactionHash : ret.transactionHash, network:campaignNetwork})
 			}		
 		}
 	});
