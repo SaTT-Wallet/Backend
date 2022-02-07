@@ -32,7 +32,7 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 
 1. You can check all our differents smart contracts in contract folder:
 
-![alt text]]<img src="/public/contracts.png" width="20" height="50">
+![alt text]]<img src="/public/contracts.png" width="10" height="10">
 
 
 
