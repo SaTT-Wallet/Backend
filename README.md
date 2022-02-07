@@ -41,9 +41,6 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 
 ![alt text](/public/remix.png)
 
-
-<img src="/public/remix.png" width="20" height="20">
-
 **Compile your file.sol and check
 
 
