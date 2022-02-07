@@ -7,12 +7,9 @@ module.exports = async function (app ) {
 		var campaignAddress = await  app.campaign.deployContract();
 		var oracleAddress = await app.oracleManager.deployContract();
 		var r = await app.campaign.addOracle(oracleAddress);
-		console.log(r);
 		var r2 = await app.campaign.addToken(app.config.tokenContract);
-		console.log(r2);
 		var r3 = await app.oracleManager.addCampaign(campaignAddress);
-		console.log("all contracts deployed");
-		//followContracts();
+	
 	}
 
 

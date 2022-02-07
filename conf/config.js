@@ -5,15 +5,23 @@ module.exports = async function (app) {
   return new Promise((resolve, reject) => {
     var config = {};
 
-   
+    //testnet mode
+    config.testnet = true;
+    
 
+
+   
+    // JSON RPC endpoints for ETH,BNB mainnet or testnet
+
+
+    config.web3Url = process.env.WEB3_URL;
+    config.web3UrlInf = process.env.WEB3_URL_INF;
+    config.web3UrlBep20 = process.env.WEB3_URL_BEP20;
+    config.web3UrlBep20Websocket = process.env.WEB3_URL_BEP20_WEBSOCKET;
 
     config.ethBridge="wss://ropsten.infura.io/ws/v3/0fab761c6a7f4934a892dddebf80f8e0";
     config.bscBridge="wss://apis.ankr.com/wss/8b547da7926f4c3ea2520e67343cb13a/b7c61a14f570c697e65cb693a683cda4/binance/full/test";
-
-    config.sandBoxKey=  process.env.SEND_BOX,
- 
-        config.uiad =process.env.UIAD
+    
 
     config.tokenMainnet=process.env.CONST_TOKEN_ADDRESS_MAINNET;
     config.tokenTestnet=process.env.CONST_TOKEN_ADDRESS_TESTNET;
@@ -41,21 +49,27 @@ module.exports = async function (app) {
     config.bep20BusdMainnet=process.env.CONST_BEP20_ADDRESS_BUSDMAINNET;
     config.bep20BusdTestNet=process.env.CONST_BEP20_ADDRESS_BUSDTESTNET;
 
+    // JSON RPC endpoints
 
+    config.sandBoxKey=  process.env.SEND_BOX,
+ 
+    config.uiad =process.env.UIAD
 
+    // cron job params
 
     config.cronUpdateStat=process.env.CRON_UPDATE_STAT;
-    config.croninsertIntoRate= process.env.CRON_INSERT_INTO_RATE
     config.cronBalanceUsersStatsDaily= process.env.CRON_WALLET_USERS_sTAT_DAILY
     config.cronBalanceUsersStatsMonthly= process.env.CRON_WALLET_USERS_sTAT_MONTHLY
     config.cronBalanceUsersStatsWeekly= process.env.CRON_WALLET_USERS_sTAT_WEEKLY
 
+    
+
 
     config.orderSecret= process.env.ORDER_SECERET
-    config.testnet = true;
-    config.appId = process.env.APPID;
-    config.appSecret = process.env.APP_SECRET;
-    config.fbGraphVersion = process.env.FB_GRAPH_VERSION;
+    
+   
+
+    // mail sender options
 
     config.mailerOptions = {
       host: process.env.MAILER_HOST,
@@ -75,33 +89,53 @@ module.exports = async function (app) {
 
     config.SupportMail = process.env.SUPPORT_MAIL;
 
-    config.notificationMail = process.env.NOTIFICATION_MAIL;
     config.contactMail = process.env.CONTACT_MAIL;
+
+   
+
+     // Facebook developer app access
+     config.appId = process.env.APPID;
+     config.appSecret = process.env.APP_SECRET;
+     config.fbGraphVersion = process.env.FB_GRAPH_VERSION;
+ 
+    
+
+     // Google oauth app options
 
     config.googleClientId = process.env.GOOGLE_CLIENTID;
     config.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-    config.twitterClientId = process.env.TWITTER_CLIENT_ID;
-    config.twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
-
-    config.telegramClientId = process.env.TELEGRAM_CLIENT_ID;
-    config.telegramClientSecret = process.env.TELEGRAM_CLIENT_SECRET;
-
-    config.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
     config.gdataApiKey = process.env.GDA_TAP_API_KEY;
 
-    config.linkedin_key = process.env.LINKEDIN_KEY;
-    config.linkedin_secret = process.env.LINKEDIN_SECRET;
+   
+
+    // Twitter oauth app options
+
 
     config.twitter = {
       consumer_key_alt: process.env.TWITTER_CONSUMER_KEY_ALT,
       consumer_secret_alt: process.env.TWILTTER_CONSUMER_SECRET_ALT,
-      consumer_key_dev: process.env.TWITTER_CONSUMER_KEY_DEV,
       consumer_key: process.env.TWITTER_CONSUMER_KEY,
       consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
       access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
       access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     };
+
+
+
+    config.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+
+     
+    
+
+     // Linkedin app options
+
+    config.linkedin_key = process.env.LINKEDIN_KEY;
+    config.linkedin_secret = process.env.LINKEDIN_SECRET;
+
+    
+
+    // Base URLS
 
     config.Satt_faq = process.env.SATT_FAQ;
     config.baseUrl = process.env.BASEURL;
@@ -111,27 +145,22 @@ module.exports = async function (app) {
     config.basedURl = process.env.BASED_URL;
     config.v1Url = process.env.V1_URL;
 
+     // Base URLS
+
+
     config.symfonySalt = process.env.SYMPHONY_SATT;
 
-    config.web3Url = process.env.WEB3_URL;
-    config.web3UrlInf = process.env.WEB3_URL_INF;
-    config.web3UrlBep20 = process.env.WEB3_URL_BEP20;
-    config.web3UrlBep20Websocket = process.env.WEB3_URL_BEP20_WEBSOCKET;
+    // Admin wallets
+
+   
     config.oracleOwner = process.env.ORACLE_OWNER;
-    config.oracleOwnerPass = process.env.ORACLE_OWNER_PASS;
 
     config.campaignOwner = process.env.CAMPAIGN_OWNER;
     config.campaignOwnerPass = process.env.CAMPAIGN_OWNER_PASS;
-    config.tokenOwner = process.env.TOKEN_OWNER;
-    config.tokenOwnerPass = process.env.TOKEN_OWNER_PASS;
-
-    config.mysqlHost = process.env.MYSQL_HOST;
-    config.mysqlUser = process.env.MYSQL_mysqlUser;
-    config.mysqlPass = process.env.MYSQL_mysqlPass;
-    config.mysqlDb = process.env.MYSQL_mysqlDb;
+    
+    // Mongo Database connection
 
     config.mongoBase = process.env.MONGO_BASE;
-    config.mongoBaseCrm = process.env.MONGO_BASECRM;
 
     config.mongoUser = process.env.MONGO_USER;
     config.mongoPass = process.env.MONGO_PASS;
@@ -145,7 +174,9 @@ module.exports = async function (app) {
       ":" +
       config.mongoPort +
       "/" +
-      config.mongoBaseCrm;
+      config.mongoBase;
+
+       // Mongo Database collection names
 
     config.walletCollection = process.env.WALLETCOLLECTION;
     config.contractCollection = process.env.CONTRACTCOLLECTION;
@@ -184,64 +215,63 @@ module.exports = async function (app) {
     config.paymentCollection = process.env.PAYMENTCOLLECTION;
     config.igMediaCollection = process.env.IGMEDIACOLLECTION;
 
-    config.appAdminV2 = process.env.APP_ADMIN_V2;
+
+
+    // listen port
 
     config.listenPort = process.env.LISTEN_PORT;
 
-    config.AddrBtcVrfy = process.env.ADDR_BTC_VERFY;
+    // admin wallets 
     config.campaignWalletPath = process.env.CAMPAIGN_WALLET_PATH;
-    config.SattReservePath = process.env.SATT_RESET_PATH;
+    config.SattReservePath = process.env.CAMPAIGN_WALLET_PATH;
     config.SattReserve = process.env.SATT_RESERVE
 
 
 
     config.SattReservePass = process.env.SATT_RESERVE_PASS;
-    config.AddrBtcExchange = process.env.ADDR_BTC_EXCHANGE;
-    config.atayenSubscriptionAddress = process.env.ATAYEN_SUBSCRIPTION_ADDRESS;
+   
 
-    config.CrmAuthUrl = process.env.CRM_AUTH_URL;
+    
     config.PaidSatt = process.env.PAID_SATT;
-    config.gasPrice = process.env.GAS_PRICE;
-    config.gasEth = process.env.GAS_ETH;
-    config.EtherWei = process.env.ETH_WEI;
+    
 
     config.sattBep20 = {
-      version: process.env.SATT_BEP20_VERSION,
-      id: process.env.SATT_BEP20_ID,
-      address: process.env.SATT_BEP20_ADDRESS,
+      version: 3,
+      id: "4dc797da-5601-4a6f-bc49-a5c2f2236467",
+      address: "0x3f31cbacfec98b29eeb35566fd630c04e706ac46",
       crypto: {
         ciphertext:
-          process.env.SATT_BEP20_CRYPTO_CIPHERTEXT,
+          "2dba72cd6b838d3a2f28b8f3f41a456be5242de1970aeda4fa61a68a042e6352",
         cipherparams: {
-          iv: process.env.SATT_BEP20_CRYPTO_CIPHERPARAMS_IV,
+          iv: "e443f8ad2b0c58e55ef38d1c8e999cd8",
         },
-        cipher: process.env.SATT_BEP20_CRYPTO_CIPHER,
-        kdf: process.env.SATT_BEP20_CRYPTO_KDF,
+        cipher: "aes-128-ctr",
+        kdf: "scrypt",
         kdfparams: {
-          dklen: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_DKLEN,
-          salt: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_SALT,
-          n: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_N,
-          r: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_R,
-          p: process.env.SATT_BEP20_CRYPTO_KDFPARAMS_P,
+          dklen: 32,
+          salt: "a6b7ffa902f4e1b061401d5667f34de81693c59d38295a07a7da96a51897abf2",
+          n: 8192,
+          r: 8,
+          p: 1,
         },
-        mac: process.env.SATT_BEP20_ADDR,
+        mac: "a2597a2ab7ce0b365a8ccb9a87caebd32b9d03636dad3b50532b77683135a1c5",
       },
     };
 
     //bridge bep20;
 
-    config.SattBep20Addr = process.env.SATT_BEP20_ADDR;
-    config.bridge = process.env.BRIDGE;
-    config.sattReserveKs = {};
-    config.sattReserveKs34 = {};
+    config.SattBep20Addr = process.env.SATT_RESERVE;
+    config.bridge = process.env.SATT_RESERVE;
+    
 
-    config.tokenContract = ""; //mainnet
+   //login settings
 
-    config.campaignContract = ""; //mainnet
-    config.campaignContractAdvFee = ""; //mainnet
+    
     config.failInterval=process.env.failInterval; 
     config.bad_login_limit=process.env.bad_login_limit;
     config.lockedPeriod=process.env.lockedPeriod;
+
+
 
     config.icoFactor = process.env.ICOFACTOR;
     config.masterSeed = process.env.MASTER_SEED;
@@ -250,20 +280,32 @@ module.exports = async function (app) {
     config.derivePathLtc = "m/44'/2'/0'/0";
     config.ledgerAddress = process.env.LEDGER_ADDRESS;
     config.btcFee = process.env.BTC_FEE;
-    config.masterSeed = process.env.MASTER_SEED;
 
-    config.confirmUrl = process.env.CONFIRM_URL;
 
     config.SSLCertFile = process.env.SSL_CER;
     config.SSLKeyFile = process.env.SSL_KEY;
 
+
+    // price api
+
     config.cmcApiKey = process.env.CMCAPIKEY;
+
+
+    // btc fee if api unavailable
 
     config.BtcFees = process.env.BTS_FEES;
 
+    // bitcoin explorer command (deprecated)
+
     config.bxCommand = process.env.BX_COMMAND;
-    config.bxCommandEnd = process.env.BX_COMMAND_END;
     config.proc_opts = {};
+
+    // bitcoin core command
+
+    config.btcHost = process.env.BTC_HOST
+    config.btcUser = process.env.BTC_USER
+    config.btcPassword = process.env.BTC_PASSWORD
+
 
     config.btcCmd = process.env.BTC_CMD
     config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0";
@@ -271,49 +313,42 @@ module.exports = async function (app) {
     config.pathEth = "m/44'/60'/0'/0/0'";
 
     config.networkSegWitCompat = {
-      baseNetwork: process.env.NETWORKSEGWITCOMPACT_BASE_NETWORK,
-      messagePrefix: process.env.NETWORKSEGWITCOMPACT_MESSAGE_PRFIX,
-      bech32: process.env.NETWORKSEGWITCOMPACT_BECH32,
-      bip32: {
-        public: process.env.NETWORKSEGWITCOMPACT_BIP32_PUBLIC,
-        private: process.env.NETWORKSEGWITCOMPACT_BIP32_PRIVATE,
-      },
-      pubKeyHash: process.env.NETWORKSEGWITCOMPACT_PUBKEY_HASH,
-      scriptHash: process.env.NETWORKSEGWITCOMPACT_SCRIPT_HASH,
-      wif: process.env.NETWORKSEGWITCOMPACT_WIF,
-    };
+			baseNetwork: "bitcoin",
+			messagePrefix: '\x18Bitcoin Signed Message:\n',
+			bech32: 'bc',
+			bip32: {
+				public: 0x049d7cb2,
+				private: 0x049d7878
+			},
+			pubKeyHash: 0x00,
+			scriptHash: 0x05,
+			wif: 0x80
+		};
+
 
     config.networkSegWit = {
-      baseNetwork: process.env.NETWORKSEGWIT_BASENETWORK,
-      messagePrefix: process.env.NETWORKSEGWIT_MESSAGE_PREFIX,
-      bech32: process.env.NETWORKSEGWIT_BECH32,
-      bip32: {
-        public: process.env.NETWORKSEGWIT_BIP32_PUBLIC,
-        private: process.env.NETWORKSEGWIT_BIP32_PRIVATE,
-      },
-      pubKeyHash: process.env.NETWORKSEGWIT_PUBKEYHASH,
-      scriptHash: process.env.NETWORKSEGWIT_SCRIPTHASH,
-      wif: process.env.NETWORKSEGWIT_WIF,
-    };
+			baseNetwork: "bitcoin",
+			messagePrefix: '\x18Bitcoin Signed Message:\n',
+			bech32: 'bc',
+			bip32: {
+				public: 0x04b24746,
+				private: 0x04b2430c
+			},
+			pubKeyHash: 0x00,
+			scriptHash: 0x05,
+			wif: 0x80
+		};
 
-    config.accountType = {
-      0: process.env.ACCOUNT_TYPE0,
-      1: process.env.ACCOUNT_TYPE1,
-      2: process.env.ACCOUNT_TYPE2,
-      3: process.env.ACCOUNT_TYPE3,
-    };
+   // etherscan api
     config.etherscanApiUrl =process.env.ETHERSCAN_APIURL
-    config.etherscanApiUrlTx =process.env.ETHERSCAN_APIURLTX
     config.etherscanApiUrl_ =process.env.ETHERSCAN_APIURL_
     config.bscscanApi =process.env.BSCSCAN_API
     config.deploy = false;
 
     config.SattBep20Addr = process.env.SATT_BEP20_ADDRR;
-    config.SattStep3 = process.env.SATT_STEP3;
-    config.SattStep4 = process.env.SATT_STEP4;
     config.cmcUrl=process.env.CMR_URL;
 
-
+    // built-in displayed token
 
     config.Tokens = {
       SATT: {
@@ -417,16 +452,18 @@ module.exports = async function (app) {
       },
     };
 
-    config.xChangePricesUrl = process.env.XCHANGE_PRICE_URL;
-
-    config.auth_tokens = [process.env.AUTH_TOKENS];
     config.APIURLBEP20 =
     process.env.API_URL_BEP20;
     config.APIURLERC20 =
     process.env.API_URL_ERC20;
 
+    // simplex api
+
 
     config.sandBoxUri= config.testnet ?'https://sandbox.test-simplexcc.com' : "https://backend-wallet-api.simplexcc.com";
+
+
+    // well known reputation tokens
 
     config.token200 = [
       {
@@ -1379,7 +1416,25 @@ module.exports = async function (app) {
         passReqToCallback: true
       }
     }
+    config.twitterCredentials = callback => {
+      return {
+        consumerKey: app.config.twitter.consumer_key,
+        consumerSecret: app.config.twitter.consumer_secret,
+        callbackURL: app.config.baseUrl + callback,
+        passReqToCallback: true
+      }
+    }
 
+    config.linkedinCredentials = callback => {
+      return {
+        clientID: app.config.linkedin_key,
+        clientSecret: app.config.linkedin_secret,
+        callbackURL: app.config.baseUrl + callback, // "callback/link/linkedin",
+        scope: ['r_basicprofile', 'r_organization_social' , 'rw_organization_admin'],
+        passReqToCallback: true
+    }
+    }
+    config.scopeFacebookChannel=['email', 'read_insights', 'read_audience_network_insights', 'pages_show_list', 'instagram_basic', 'instagram_manage_insights', 'pages_read_engagement'];
     config.persmissionsObjFb = {scope:['public_profile', 'email']}
 
     config.paymentRequest =payment=>{
@@ -1412,7 +1467,7 @@ module.exports = async function (app) {
 							address: payment.idWallet,
 							tag: ""
 						},
-						original_http_ref_url: process.env.TRANSACTION_DETAILS_URL
+						original_http_ref_url: process.env.BASED_URL
 					}
 				}
 			}
