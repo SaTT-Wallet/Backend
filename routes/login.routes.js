@@ -34,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {captcha , purgeAccount,changePassword,verifyCaptcha,codeRecover,confirmCode,passRecover} = require('../controllers/login.controller')
+const {socialdisconnect,captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin,getQrCode,verifyQrCode} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -45,8 +45,8 @@ const {
     googleAuthSignin,
     facebookAuthSignin,
     signup_telegram_function,
-    signin_telegram_function
-    
+    signin_telegram_function,
+    verifyAuth
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
@@ -60,64 +60,6 @@ function authErrorHandler(err, req, res, next) {
     res.redirect(app.config.basedURl + '/auth/registration?message=' + message);
 }
 
-
-
-
-
-/**
- * @swagger
- * /auth/purgeAccount:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: desactivate account .
- *     description: desactivate user account  <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
-
- *     responses:
- *       "200":
- *          description: message:"success"
- *       "500":
- *          description: error:"wrong password"
- */
- router.post('/purgeAccount',purgeAccount)
-
-
-
-/**
- * @swagger
- * /auth/changePassword:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: change user password.
- *     description: user can change his password.<br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               id:
- *                 type: number
- *               newpass:
- *                 type: string
- *               oldpass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: message:"success"
- *       "500":
- *          description: error:"no account"
- */
- router.post('/changePassword',changePassword)
 /**
  * @swagger
  * /auth/captcha:
@@ -143,7 +85,7 @@ router.get('/captcha',captcha)
  *     tags:
  *     - "auth"
  *     summary: check if valid captcha .
- *     description: before connection or create a new account you have to check captcha to verify that you are not a bot <br> without access_token.
+ *     description: Check captcha to verify that you are not a bot <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -169,7 +111,7 @@ router.get('/captcha',captcha)
  *     tags:
  *     - "auth"
  *     summary: check if email & password are correct.
- *     description: user enter his credentials, system check if user params are correct or not <br> without access_token.
+ *     description: Check credentials and return access token <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -182,7 +124,7 @@ router.get('/captcha',captcha)
  *                 type: string
  *     responses:
  *       "200":
- *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user "}
  *       "500":
  *          description: error={"error":true,"message":"invalid_credentials"} or {"error":true,"message":"account_locked",blockedDate:blockedDate}
  */
@@ -197,7 +139,7 @@ router.post('/signin/mail',emailConnection)
  *     tags:
  *     - "auth"
  *     summary: get code to recover password.
- *     description: user receive one code in his email to recover his password <br> without access_token.
+ *     description: Send verification code to requested email <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -221,7 +163,7 @@ router.post('/signin/mail',emailConnection)
  *     tags:
  *     - "auth"
  *     summary: check if code correct.
- *     description: user check if the code that he received in his email is correct or not <br> without access_token.
+ *     description: check if verification code is correct <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -262,9 +204,9 @@ router.post('/signin/mail',emailConnection)
  *                 type: string
  *     responses:
  *       "200":
- *          description:"successfully" or "unauthorized"
+ *          description: successfully or unauthorized
  *       "500":
- *          description: error:"error"
+ *          description:  error:"error"
  */
 router.post('/passrecover',passRecover)
 
@@ -408,7 +350,7 @@ passport.authenticate('google_strategy_connection', { scope: ['profile', 'email'
 
 passport.use('google_strategy_connection', 
 new GoogleStrategy(app.config.googleCredentials("auth/callback/google/connection"),
-async function(req, accessToken, refreshToken, profile, cb) {
+async (req, accessToken, refreshToken, profile, cb)=> {
     googleAuthSignin(req, accessToken, refreshToken, profile, cb)
 }));
 
@@ -432,7 +374,6 @@ authSignInErrorHandler
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-// router.get('/signup/telegram',telegramSignup)
 router.get('/signup/telegram',
 passport.authenticate('auth_signup_telegramStrategy'),
 telegramSignup,authErrorHandler
@@ -472,5 +413,235 @@ new TelegramStrategy({
     signin_telegram_function(req, profile, cb)
     }
 ));
+
+/**
+ * @swagger
+ * /auth/resend/confirmationToken:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: resend confirmation code.
+ *     description: user enter his email, system check if email exist and will generate new code without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"Email sent"
+ *       "500":
+ *          description: error:error message
+ */
+ router.post('/resend/confirmationToken',resendConfirmationToken)
+
+ /**
+ * @swagger
+ * /auth/save/firebaseAccessToken:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: save firebase access token.
+ *     description: system allow user to save his firebase token to use notification .
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               fb_accesstoken:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"success"
+ *       "500":
+ *          description: error:error message
+ */
+  router.post('/save/firebaseAccessToken',verifyAuth,saveFirebaseAccessToken)
+
+   /**
+ * @swagger
+ * /auth/updateLastStep:
+ *   put:
+ *     tags:
+ *     - "auth"
+ *     summary: update last step.
+ *     description: system redirect user to page complete profile to verify his information and confirm his email .
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               completed:
+ *                 type: boolean
+ *               email:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: data= <br> {message:"updated successfully"} <br> {message:"updated successfully with same email"} <br> {message:"email already exists"}
+ *       "500":
+ *          description: error:error message
+ */
+ router.put('/updateLastStep',verifyAuth,updateLastStep)
+
+ /**
+ * @swagger
+ * /auth/apple:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: auth for apple.
+ *     description: user enter his credentials to login , system check if email exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id_apple:
+ *                 type: string
+ *               mail:
+ *                 type: string
+ *               idSN:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *       "500":
+ *          description: error={error:true,message:'account_already_used'}
+ */
+  router.post('/apple',authApple)
+
+
+
+  /**
+  * @swagger
+  * /auth/socialSignup:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: register with social for apple.
+  *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               name:
+  *                 type: string
+  *               idSn:
+  *                 type: string
+  *               id:
+  *                 type: string
+  *               photo:
+  *                 type: string
+  *               givenName:
+  *                 type: string
+  *               familyName:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"}
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+   router.post('/socialSignup',socialSignUp)
+ 
+ 
+ 
+ 
+  /**
+  * @swagger
+  * /auth/socialSignin:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: auth with social for apple.
+  *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               idSn:
+  *                 type: string
+  *               id:
+  *                 type: string
+ 
+  *     responses:
+  *       "200":
+  *          description: param={"account_doesnt_exist"} <br> param={"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"} 
+  *       "500":
+  *          description: error={error:"invalid idSn"}
+  */
+router.post('/socialSignin',socialSignin)
+
+
+
+
+  /**
+  * @swagger
+  * /auth/disconnect/{social}:
+  *   put:
+  *     tags:
+  *     - "auth"
+  *     summary: disconnect social account.
+  *     description: user enter his social network to disconnect <br> with access_token.
+  *     parameters:
+  *       - name: social
+  *         description: social can be facebook , google or telegram.
+  *         in: path
+  *         required: true
+  *     responses:
+  *       "200":
+  *          description: message:"deconnect successfully from
+  *       "500":
+  *          description: error:"error"
+  */
+   router.put('/disconnect/:social', verifyAuth,socialdisconnect)
+ 
+ /**
+ * @swagger
+ * /auth/qrCode:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: setting double authentication for user.
+ *     description: user can activate the 2fa.
+ *     responses:
+ *        "200":
+ *          description: data={"qrCode":"image base 64","secret":"secret","googleAuthName":"SaTT_Token idUser"}
+ *        "500":
+ *          description: error:error message
+ */
+router.get('/qrCode',verifyAuth,getQrCode)
+
+  /**
+  * @swagger
+  * /auth/verifyQrCode:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: verify 2fa.
+  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
+  *     responses:
+  *       "200":
+  *          description: { verifiedCode: verified }
+  *       "500":
+  *          description: error={error:true,message:'account_already_used'}
+  */
+router.post('/verifyQrCode',verifyAuth,verifyQrCode);
 
 module.exports = router;

@@ -30,7 +30,7 @@ module.exports = async function (app) {
     bep20Manager.mint = async  (amount) => {
       return new Promise(async (resolve, reject) => {
         try {
-          var gasPrice = await web3.eth.getGasPrice();
+          var gasPrice = await app.web3Bep20.eth.getGasPrice();
           var gas = 80000;
 
           var receipt = await bep20Manager.contract.methods.mint(amount).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPrice})
@@ -50,7 +50,7 @@ module.exports = async function (app) {
     bep20Manager.burn = async  (amount)  => {
       return new Promise(async (resolve, reject) => {
         try {
-          var gasPrice = await web3.eth.getGasPrice();
+          var gasPrice = await app.web3Bep20.eth.getGasPrice();
           var gas = 60000;
 
           var receipt = await bep20Manager.contract.methods.burn(amount).send({from:app.config.SattBep20Addr,gas:gas,gasPrice: gasPrice})
@@ -69,7 +69,7 @@ module.exports = async function (app) {
 
     bep20Manager.transfer = async  (to,amount) => {
   		return new Promise(async (resolve, reject) => {
-  			var gasPrice = await web3.eth.getGasPrice();
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
   			var gas  = 60000;
 
   			try {
@@ -87,11 +87,11 @@ module.exports = async function (app) {
 
     bep20Manager.transferNativeBNB = async  (to,amount,credentials) => {
   		return new Promise(async (resolve, reject) => {
-  			var gasPrice = await web3.eth.getGasPrice();
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
   			var gas  = 21000;
 
   			try {
-          var receipt = await web3.eth.sendTransaction({from: credentials.address,value:amount, gas: gas,to:to,gasPrice: gasPrice})
+          var receipt = await app.web3Bep20.eth.sendTransaction({from: credentials.address,value:amount, gas: gas,to:to,gasPrice: gasPrice})
   				.once('transactionHash', (transactionHash)=>{
             app.account.sysLog('transferNativeBNB',credentials.address,`transfer BNB transactionHash :${transactionHash}`);
   				})
@@ -106,7 +106,7 @@ module.exports = async function (app) {
     bep20Manager.getBalance = async function (token,addr) {
   		return new Promise(async (resolve, reject) => {
         try {
-          var contract = new web3.eth.Contract(app.config.ctrs.token.abi,token);
+          var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
           var amount = await contract.methods.balanceOf(addr).call();
           resolve({amount:amount.toString()});
         } catch (e) {
@@ -119,7 +119,7 @@ module.exports = async function (app) {
     bep20Manager.getBalanceNativeBNB = async function (addr) {
   		return new Promise(async (resolve, reject) => {
 
-      	var ether_balance = await web3.eth.getBalance(addr);
+      	var ether_balance = await app.web3Bep20.eth.getBalance(addr);
 
   			resolve({amount:ether_balance.toString()});
   		});
@@ -129,9 +129,9 @@ module.exports = async function (app) {
   		return new Promise(async (resolve, reject) => {
         console.log("approve",token,addr,spender,amount)
         try{
-  			var contract = new web3.eth.Contract(app.config.ctrs.token.abi,token);
+  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
 
-  			var gasPrice = await web3.eth.getGasPrice();
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
   			var gas = await contract.methods.approve(spender,amount).estimateGas({from:addr});
 
   			var receipt = await contract.methods.approve(spender,amount).send({from:addr,gas:gas,gasPrice: gasPrice})
@@ -149,7 +149,7 @@ module.exports = async function (app) {
 
   	bep20Manager.getApproval = async function (token,addr,spender) {
   		return new Promise(async (resolve, reject) => {
-  			var contract = new web3.eth.Contract(app.config.ctrs.token.abi,token);
+  			var contract = new app.web3Bep20.eth.Contract(app.config.ctrs.token.abi,token);
   			var amount = await contract.methods.allowance(addr,spender).call();
         app.account.log("approval",addr,"for",spender,amount.toString())
   			resolve({amount:amount.toString()});
@@ -158,7 +158,7 @@ module.exports = async function (app) {
 
     bep20Manager.transferBEP = async  (to,amount,credentials) => {
   		return new Promise(async (resolve, reject) => {
-  			var gasPrice = await web3.eth.getGasPrice();
+  			var gasPrice = await app.web3Bep20.eth.getGasPrice();
   			var gas  = 60000;
 
   			try {

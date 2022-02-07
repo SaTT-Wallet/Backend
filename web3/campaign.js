@@ -13,21 +13,36 @@ module.exports = async function (app) {
 
 	campaignManager.getContract = (address) => {
 
-		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
-			return campaignManager.contract;
-		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
-				return campaignManager.contractBep20;
-		else	if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
-				return campaignManager.contract;
-		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase())
-				return campaignManager.contractBep20;
 
-			}
+		if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnet.toLowerCase() )
+		{
+			var ctr =  app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnet);
+			ctr.getGasPrice =  app.web3.eth.getGasPrice;
+		 
+		}
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.mainnetBep20.toLowerCase())
+		{
+			var ctr = new app.web3Bep20.eth.Contract(pp.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.mainnetBep20);
+			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
+		}
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnet.toLowerCase() )
+		{
+			var ctr = app.web3.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnet);
+			ctr.getGasPrice =  app.web3.eth.getGasPrice;
+		}
+		else if(address.toLowerCase() == app.config.ctrs.campaign.address.testnetBep20.toLowerCase()){
+			var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
+		}
+		
+		return ctr;
+	}
 
 	campaignManager.getCampaignContract = async function (idCampaign) {
 		var campaign = await app.db.campaigns().findOne({hash:idCampaign},{projection: { contract: true }});
 		if(campaign && campaign.contract)
 		{
+
 
 			return campaignManager.getContract(campaign.contract);
 		}
@@ -39,7 +54,6 @@ module.exports = async function (app) {
 
 
 		var proms = await app.db.event().find({prom:idProm},{projection: { contract: true, _id:false }}).toArray();
-		//console.log("log",proms)
 		if(proms.length) {
 			return 	 campaignManager.getContract(proms[0].contract);
 		}
@@ -54,21 +68,20 @@ module.exports = async function (app) {
 		 token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase()||
 		 token.toLowerCase() == app.config.ctrs.token.address.daiMainnet.toLowerCase()
 		 )
-			return campaignManager.contract;
+			return app.web3.Contract(app.config.ctrs.token.abi,app.config.testnet?app.config.ctrs.token.address.testnet:app.config.ctrs.token.address.mainnet);
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase() ||
 		token.toLowerCase() == app.config.ctrs.bep20.address.busdMainnet.toLowerCase()
 		)
-				return campaignManager.contractBep20;
+				return new app.web3Bep20.eth.Contract(app.config.ctrs.bep20.abi,app.config.testnet?app.config.ctrs.bep20.address.testnet:app.config.ctrs.bep20.address.mainnet);
 		else	if(token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() ||
 		 token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
 		 token.toLowerCase() == app.config.ctrs.token.address.daiTesnet.toLowerCase()
 		 )
-				return campaignManager.contract;
+				return app.web3.Contract(app.config.ctrs.token.abi,app.config.testnet?app.config.ctrs.token.address.testnet:app.config.ctrs.token.address.mainnet);
 		else if(token.toLowerCase() == app.config.ctrs.bep20.address.testnet.toLowerCase()||
 		token.toLowerCase() == app.config.ctrs.bep20.address.busdTesnet.toLowerCase()
 		)
-				return campaignManager.contractBep20;
-
+				return  new app.web3Bep20.eth.Contract(app.config.ctrs.bep20.abi,app.config.testnet?app.config.ctrs.bep20.address.testnet:app.config.ctrs.bep20.address.mainnet);
 			}
 
 		campaignManager.isCentral =  function (idCampaign) {
@@ -126,7 +139,6 @@ module.exports = async function (app) {
 			var gasPrice = await ctr.getGasPrice();
 			var gas = 300000;
 			var receipt = await  ctr.methods.createPriceFundYt(dataUrl,startDate,endDate,likeRatio,viewRatio,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
-			console.log(receipt.events.CampaignCreated);
 			resolve(receipt.events.CampaignCreated.returnValues.id);
 		})
 	}
@@ -135,9 +147,8 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 			var ctr = await campaignManager.getContractToken(token);
 			var gasPrice = await ctr.getGasPrice();
-			// var gas = 600000;
-			var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
-
+			var gas = 600000;
+			//var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 			try {
 
 					var receipt = await  ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
@@ -154,8 +165,8 @@ module.exports = async function (app) {
 		return new Promise(async (resolve, reject) => {
 
 			var ctr = await campaignManager.getContractToken(token);
-
-			var gasPrice = await ctr.getGasPrice();
+			//var ctr = new app.web3Bep20.eth.Contract(app.config.ctrs.campaign.abi,app.config.ctrs.campaign.address.testnetBep20);
+			var gasPrice = await app.web3Bep20.eth.getGasPrice();
 			var gas = await ctr.methods.createPriceFundBounty(dataUrl,startDate,endDate,bounties,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
 			try {
 
@@ -283,19 +294,26 @@ module.exports = async function (app) {
 	campaignManager.validateProm = async function (idProm,credentials) {
 		return new Promise(async (resolve, reject) => {
 			try {
+
+				console.log("start validate prom");
 				var gas = 100000;
 					var ctr = await campaignManager.getPromContract(idProm);
-					//console.log(ctr);
+
+					console.log("idProm", idProm);
+					console.log("ctr", ctr);
 
 
 					var gasPrice = await ctr.getGasPrice();
+
+					console.log("gasPrice", gasPrice);
 				var receipt = await  ctr.methods.validateProm(idProm).send({from:credentials.address, gas:gas,gasPrice: gasPrice});
 				resolve({transactionHash:receipt.transactionHash,idProm:idProm});
                 receipt.transactionHash && app.account.sysLog("validateProm", credentials.address, `${receipt.transactionHash} confirmed validated prom ${idProm}`);
-			//	console.log(receipt.transactionHash,"confirmed validated prom ",idProm);
 			}
 			catch (err)
+
 			{
+				console.log("err",err);
 				reject(err);
 			}
 		})

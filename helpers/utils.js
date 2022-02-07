@@ -5,6 +5,8 @@ var app = express();
 
 
 const Big = require('big.js');
+const etherInWei = new Big(1000000000000000000);
+
 var rp = require('request-promise');
 const {randomUUID}= require('crypto');
 const { v5 : uuidv5 } = require('uuid')
@@ -12,8 +14,10 @@ var fs = require('fs');
 
 var nodemailer = require('nodemailer');
 const hasha = require('hasha');
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
+const GridFsStorage = require('multer-gridfs-storage');
 
 exports.connection = async ()=>{
 
@@ -22,9 +26,7 @@ exports.connection = async ()=>{
     app = await require("../conf/config")(app);
     app = await require("../conf/const")(app);
     app = await require("../db/db")(app);
-    app = await require("../crm/crm")(app);
     app = await require("../manager/i18n")(app);
-    app = await require("../fb/fb_init")(app);
     app = await require("../web3/oracle")(app);
     app= await require('../manager/notification')(app)
 
@@ -40,9 +42,7 @@ exports.connection = async ()=>{
     app = await require("../web3/initcontracts")(app);
 
 
-    var transporter = nodemailer.createTransport(app.config.mailerOptions);
-
- 
+   app.transporter = nodemailer.createTransport(app.config.mailerOptions);
 
     app.synfonyHash = function(pass) {
         var salted = pass + "{" + app.config.symfonySalt + "}";
@@ -59,13 +59,24 @@ exports.connection = async ()=>{
         const base64 = buff.toString('base64');
         return base64;
     }
+    
+    
+    app.cloneUser = user => {
+      const {daily,weekly, monthly,failed_count,account_locked,created,updated,confirmation_token,...newUser} = user;
+      return newUser;
+    }
+    //global function that generates user acessToken
+    app.generateAccessToken = user => jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '24h' });
+    
 
 
         app.mongoURI = app.config.mongoURI;
+        
 
     app.readHTMLFile = (path, callback) => {
 		fs.readFile(path, {encoding: 'utf-8'}, function (err, html) {
 		  if (err) {
+              console.log(err);
 			throw err;
 			callback(err);
 		  }
