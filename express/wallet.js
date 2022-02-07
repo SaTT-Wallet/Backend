@@ -1798,9 +1798,10 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			let requestQuote = req.body;
 			requestQuote["end_user_id"]= String(auth.id);
 			requestQuote["client_ip"]= req.addressIp;
+			requestQuote.requested_amount = +req.body.requested_amount
             requestQuote["payment_methods"]= ["credit_card"];
             requestQuote["wallet_id"]= "satt";
-		const simplexQuote ={
+			const simplexQuote ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
 			method: 'POST',
 			  body:requestQuote, 
