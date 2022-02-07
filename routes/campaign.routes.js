@@ -580,13 +580,18 @@ router.post('/apply',verifyAuth,apply);
 
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema: # Response body contents
+ *                type: object
+ *                properties:
+ *                  message:
+ *                    type: string
  *       "500":
  *          description: error:error message
  */
-
-
-         router.post('/linkNotification',linkNotifications);
+router.post('/linkNotification',linkNotifications);
 
 
 
