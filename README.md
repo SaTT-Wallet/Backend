@@ -32,17 +32,17 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 
 1. You can check all our differents smart contracts in contract folder:
 
+![alt text](/public/contracts.png)
 
-<img src="/public/contracts.png" width="50" height="50">
 
-/public/contracts.png
 2. To Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/):
 
 **create your file on Remix and paste your code there
 
+![alt text](/public/remix.png)
 
 
-<img src="/public/remix.png" width="50" height="50">
+<img src="/public/remix.png" width="20" height="20">
 
 **Compile your file.sol and check
 
