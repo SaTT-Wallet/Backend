@@ -175,7 +175,18 @@ const { route } = require('./login.routes');
   *                 type: string
   *     responses:
   *       "200":
-  *          description: data
+  *          description: ok
+  *          content:
+  *            application/json:
+  *              schema: 
+  *                type: object
+  *                properties:
+  *                  name:
+  *                    type: string
+  *                  message:
+  *                    type: string
+  *                  expiredAt:
+  *                    type: string
   *       "500":
   *          description: error:"error"
   */
@@ -219,8 +230,30 @@ const { route } = require('./login.routes');
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents
+ *                type: object
+ *                properties:
+ *                  transactionHash:
+ *                    type: string
+ *                  address:
+ *                    type: string
+ *                  to:
+ *                    type: string
+ *                  amount:
+ *                    type: string
  *       "500":
- *          description: error:error message
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
+ *              example:
+ *                error: error
  */
 
 
@@ -254,8 +287,30 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  transactionHash:
+ *                    type: string
+ *                  address:
+ *                    type: string
+ *                  to:
+ *                    type: string
+ *                  amount:
+ *                    type: string
  *       "500":
  *          description: error:error message
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
+ *              example:
+ *                error: error
  */
 
 router.post('/launchBounty',verifyAuth,launchBounty);
@@ -274,11 +329,31 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *     responses:
  *       "200":
  *          description: {"SattEarned","USDEarned","subscriptions"}
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  SattEarned:
+ *                    type: number
+ *                  USDEarned:
+ *                    type: number
+ *                  subscriptions:
+ *                    type: number
+ *              example:
+ *                SattEarned: 563200
+ *                USDEarned: 125
+ *                subscriptions: 54
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents  
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
 router.get('/totalEarned',verifyAuth,totalEarned);
 
 
@@ -290,18 +365,29 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *   get:
  *     tags:
  *     - "campaign"
- *     summary: get total earned
- *     description: return to user the total earned <br> without access_token 
+ *     summary: get campaigns list
+ *     description: Returns the list of campaigns <br> without access_token 
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: list:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
  router.get('/campaigns',verifyAuth,campaigns);
 
 
@@ -318,55 +404,52 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: the  id.
+ *         description: campaign id
  *         in: path
  *         required: true
  *     responses:
  *       "200":
- *          description: list:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents
+ *                type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-  router.get('/details/:id',campaign);
-
-
-
-
-   /**
+router.get('/details/:id',campaign);
+/**
  * @swagger
  * /campaign/totalSpent:
  *   get:
  *     tags:
  *     - "campaign"
  *     summary: get campaign details
- *     description: return to user campaign detalds <br> with access_token 
+ *     description: return user's total spent budget <br> with access_token 
  *     produces:
  *       - application/json
-
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
  *       "500":
  *          description: error:"error"
  */
-
-
-    router.get('/totalSpent',verifyAuth,totalSpent);
-
-
-
-
-
-
-   /**
+router.get('/totalSpent',verifyAuth,totalSpent);
+/**
  * @swagger
  * /campaign/pendingLink/{id}:
  *   get:
  *     tags:
  *     - "campaign"
  *     summary: get campaign pending link
- *     description: return to user the list of campaign with pending link <br> without access_token 
+ *     description: return the list of campaign with pending link <br> without access_token 
  *     produces:
  *       - application/json
  *     parameters:
@@ -374,23 +457,27 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *         description: the  id.
  *         in: path
  *         required: true
-
-
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
-    router.get('/pendingLink/:id',pendingLink);
-
-
-
-
-   /**
+router.get('/pendingLink/:id',pendingLink);
+/**
  * @swagger
  * /campaign/campaignPrompAll/{id}:
  *   get:
@@ -405,16 +492,13 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *         description: the  id.
  *         in: path
  *         required: true
-
  *     responses:
  *       "200":
  *          description:[list of campaigns]
  *       "500":
  *          description: error:"error"
  */
-
-
-    router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
+router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
 
 
 
@@ -449,12 +533,27 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents 
+ *                type: object
+ *                properties:
+ *                  idCampaign:
+ *                    type: string
+ *                  idPost:
+ *                    type: string
+ *                  idProm:
+ *                    type: string
+ *                  isUser:
+ *                    type: string
+ *                  transactionHash:
+ *                    type: string
+ *                  typeSN:
+ *                    type: number
  *       "500":
  *          description: error:error message
  */
-
-
 router.post('/apply',verifyAuth,apply);
 
 
@@ -481,13 +580,18 @@ router.post('/apply',verifyAuth,apply);
 
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema: # Response body contents
+ *                type: object
+ *                properties:
+ *                  message:
+ *                    type: string
  *       "500":
  *          description: error:error message
  */
-
-
-         router.post('/linkNotification',linkNotifications);
+router.post('/linkNotification',linkNotifications);
 
 
 
@@ -874,41 +978,6 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:"error"
  */
      router.post('/remaining',getFunds);
-
-
-
-                /**
- * @swagger
- * /campaign/erc20/{token}/approval/{spender}/{addr}:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: erc20 aprroval
- *     description: erc20 aprroval
- *     parameters:
- *       - name: token
- *         description: the  token.
- *         in: path
- *         required: true
- *       - name: spender
- *         description: the  spender.
- *         in: path
- *         required: true
- *       - name: addr
- *         description: the  addr.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: data
- *       "500":
- *          description: error:"error"
- */
-
-router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
-
-
-
 
 /**
  * @swagger
