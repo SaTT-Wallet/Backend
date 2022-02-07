@@ -2,6 +2,8 @@ var requirement= require('../helpers/utils')
 const crypto = require('crypto');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
+var Captcha = require('../model/captcha.model');
+
 var connection;
 let app
 (connection = async function (){
@@ -61,15 +63,13 @@ exports.changePassword= async(req, response)=>{
 
 }
 exports.captcha= async(req, res)=>{
-  
     try {
-        count = await app.db.captcha().count();
-        const random = Math.floor(Math.random() * count);
-        let captchas = await app.db.captcha().find().limit(1).skip(random).toArray();
-        let captcha = captchas[0];
+        let count=await Captcha.countDocuments();
+        let random = Math.floor(Math.random() * count);
+        let captcha = await Captcha.findOne().limit(1).skip(random);
         res.send(JSON.stringify({  captcha }));
     }   catch (err) {
-         res.end(JSON.stringify({ "error": err.message ? err.message : err.error })).status(500);
+         res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
     }
 }
 
