@@ -11,6 +11,8 @@ const hasha = require('hasha');
 ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise');
 const jwt = require('jsonwebtoken');
+var User = require('../model/user.model');
+
 var requirement= require('../helpers/utils')
 var readHTMLFile = function(path, callback) {
     fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
@@ -90,14 +92,10 @@ const handleSocialMediaSignin = async (query,cb)=>{
 
 let createUser = (enabled,_id,idSn,newsLetter,picLink=false,username,email=null,idOnSn,socialId,firstName=null,lastName=null,password=null) => {
     const userObject = {};
-    const mongodate = new Date().toISOString();
-    var buff2 = Buffer.alloc(32);
-    var code = crypto.randomFillSync(buff2).toString('hex');
-    userObject.created = mongodate,userObject.updated = mongodate;
     userObject.enabled = enabled, userObject.userSatt = true,userObject.failed_count = 0
-    userObject.confirmation_token =code,userObject.onBoarding =false,userObject.account_locked =false;
+    userObject.onBoarding =false,userObject.account_locked =false;
     userObject._id = _id,userObject.idSn =  idSn,userObject.newsLetter = newsLetter ?? false;
-    userObject.locale = "en"
+    userObject.locale = "en";
     if(picLink)  userObject.picLink =picLink
     userObject.username =username,userObject.email =email
      if(idOnSn && socialId) userObject[idOnSn] = socialId
@@ -190,39 +188,16 @@ exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
 */
 passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback: true },
     async function(req, username, password, done) {
-        console.error(4848484)
         var date = Math.floor(Date.now() / 1000) + 86400;
-        var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
-
+        var user = await User.findOne({email:username.toLowerCase()})
         if (user) {
             return done(null, false, { error: true, message: 'account_already_used' });
         } else {
-            // var mongodate = new Date().toISOString();
-            // var buff2 = Buffer.alloc(32);
-            // var codex = crypto.randomFillSync(buff2).toString('hex');
             let createdUser = createUser(0,Long.fromNumber(await app.account.handleId()),0,req.body.newsLetter,'',username.toLowerCase(),username.toLowerCase(),false,false,'','',synfonyHash(password))
-            // let insert = await app.db.sn_user().insertOne({
-            //     _id: Long.fromNumber(await app.account.handleId()),
-            //     username: username.toLowerCase(),
-            //     email: username.toLowerCase(),
-            //     password: synfonyHash(password),
-            //     created: mongodate,
-            //     updated: mongodate,
-            //     newsLetter: req.body.newsLetter,
-            //     idSn: 0,
-            //     account_locked: false,
-            //     failed_count: 0,
-            //     locale: "en",
-            //     onBoarding: false,
-            //     enabled: 0,
-            //     confirmation_token: codex,
-            //     "userSatt": true
-            // });
-           let insert = await app.db.sn_user().insertOne(createdUser)
-            let users = insert.ops;
-            let token = app.generateAccessToken(users[0]);
+            let user=new User(createdUser).save();
+            let token = app.generateAccessToken(createdUser);
             const lang = req.query.lang || "en";
-            const code = await app.account.updateAndGenerateCode(users[0]._id, "validation");
+            const code = await app.account.updateAndGenerateCode(createdUser._id, "validation");
             app.i18n.configureTranslation(lang);
             readHTMLFile(__dirname +'/../public/emailtemplate/email_validated_code.html', (err, html) => {
                 var template = handlebars.compile(html);
@@ -232,11 +207,10 @@ passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback:
                     code,
                     imgUrl: app.config.baseEmailImgURl,
                 };
-
                 var htmlToSend = template(replacements);
                 var mailOptions = {
                     from: app.config.mailSender,
-                    to: users[0].email.toLowerCase(),
+                    to: createdUser.email.toLowerCase(),
                     subject: 'Satt wallet activation',
                     html: htmlToSend
                 };
@@ -244,11 +218,11 @@ passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback:
                     if (error) {
                         app.account.sysLogError(error);
                     } else {
-                        app.account.log('Email sent: ', users[0].email.toLowerCase());
+                        app.account.log('Email sent: ', createdUser.email.toLowerCase());
                     }
                 });
             });
-            return done(null, { id: users[0]._id, token, expires_in: date, noredirect: req.body.noredirect });
+            return done(null, { id: createdUser._id, token, expires_in: date, noredirect: req.body.noredirect});
         };
     }
 ));
