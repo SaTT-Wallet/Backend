@@ -864,17 +864,8 @@ module.exports = async function (app) {
 
 	      var users_;
 
-
-
-		if(condition === "daily"){
-		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
-		 }
-		else if(condition === "weekly"){
-			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
-	     }
-		else if(condition === "monthly"){
-			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
-	     }
+		let queryField = condition +'.convertDate'
+		users_ = await app.db.sn_user().find({ $and:[{userSatt : true},{hasWallet:true}, {[queryField]: { $nin: [today] }}]}).toArray();
 
 		 let[counter, usersCount] = [0,users_.length];
 		  while(counter<usersCount) {

@@ -2285,6 +2285,13 @@ module.exports = function(app) {
             response.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
         }
     })
+
+
+    app.get('/user/status-wallet', async (req, res) => {
+        let userId = await app.db.wallet().find({},{projection: { UserId: true, _id:false }}).toArray()
+        userId.forEach(async user => await app.sn_user().updateOne({_id:user.UserId},{$set:{hasWallet : true}}));
+        res.json({message:"done"})
+        })
     app.get('/verifyToken', async(req, response) => {
         try {
             const token = req.headers["authorization"].split(" ")[1];
