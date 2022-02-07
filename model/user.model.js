@@ -9,7 +9,7 @@ const userSchema = mongoose.Schema({
    idOnSn2: { type: String},
    idOnSn3: { type: String},
    email: { type: String},
-   username: { type: String},
+   username: { type: String,required: true},
    firstName: { type: String},
    lastName:{ type: String},
    newsLetter: { type: Boolean},
@@ -21,7 +21,7 @@ const userSchema = mongoose.Schema({
    userSatt: { type: Boolean},
    picLink: { type: String},
    completed:  { type: Boolean},
-   password: { type: String},
+   password: { type: String,required: true},
    secureCode: {
      code: { type: Number},
      expiring: { type: Number},
@@ -69,6 +69,6 @@ const userSchema = mongoose.Schema({
   }, 
   isChanged:  { type: Boolean,default:false},
 
-},{timestamps:true,strict: false,collection: 'sn_user'}, );
+},{timestamps:true,strict: false,collection: 'sn_user'});
 const User = db.model("sn_user", userSchema);
 module.exports = User;
