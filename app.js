@@ -65,7 +65,7 @@
 		const swaggerSpec = swaggerJSDoc(options);
 		app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
-		app = await require("./db/db")(app);
+		// app = await require("./db/db")(app);
 
 		app = await require("./manager/oracle")(app);
 		app = await require("./web3/provider")(app);
