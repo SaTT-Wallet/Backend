@@ -374,7 +374,6 @@ authSignInErrorHandler
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-// router.get('/signup/telegram',telegramSignup)
 router.get('/signup/telegram',
 passport.authenticate('auth_signup_telegramStrategy'),
 telegramSignup,authErrorHandler
