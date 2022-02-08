@@ -841,13 +841,12 @@ module.exports = async function (app) {
 
 	   [result.Date, result.convertDate] = [currentDate,today]
 
-
 	   let Crypto =  app.account.getPrices();
 
 	      var users_;
 
 		let queryField = condition +'.convertDate'
-		users_ = await app.db.sn_user().find({ $and:[{userSatt : true},{hasWallet:true}, {[queryField]: { $nin: [today] }}]}).toArray();
+		users_ = await app.db.sn_user().find({ $and:[{userSatt : true},{hasWallet:true}, {[queryField]: { $nin: [today] }}]},{projection: {daily: true,weekly:true,monthly:true }}).toArray();
 
 		 let[counter, usersCount] = [0,users_.length];
 		  while(counter<usersCount) {
@@ -859,12 +858,8 @@ module.exports = async function (app) {
 
 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
 
-			try{
 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-			} catch (err) {
-				console.log(err)
-			}
-
+			
 			 result.Balance = balance["Total_balance"];
 
 			 if(!result.Balance || isNaN(parseInt(result.Balance)) || result.Balance === null){
