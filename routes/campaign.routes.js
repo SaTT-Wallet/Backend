@@ -452,6 +452,17 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                    type: string
  *                  ratios:
  *                    type: array
+ *                    items:
+ *                      type: object
+ *                      properties:
+ *                        like:
+ *                          type: string
+ *                        view:
+ *                          type: string
+ *                        share:
+ *                          type: string
+ *                        oracle:
+ *                          type: string
  *                  remaining:
  *                    type: string
  *                  remuneration:
