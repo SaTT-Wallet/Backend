@@ -190,9 +190,8 @@ const { route } = require('./login.routes');
   *       "500":
   *          description: error:"error"
   */
-  router.post('/erc20/allow',verifyAuth,erc20Allow);
-    
- 	/**
+router.post('/erc20/allow',verifyAuth,erc20Allow);
+/**
  * @swagger
  * /campaign/launch/performance:
  *   post:
@@ -223,13 +222,21 @@ const { route } = require('./login.routes');
  *               ratios:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string  
+ *                    type: object
+ *                    properties:
+ *                      like:
+ *                        type: string
+ *                      view:
+ *                        type: string
+ *                      share:
+ *                        type: string
+ *                      oracle:
+ *                        type: string
  *               pass:
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
  *          content:
  *            application/json:
  *              schema:      # Request body contents
@@ -255,12 +262,8 @@ const { route } = require('./login.routes');
  *              example:
  *                error: error
  */
-
-
 router.post('/launch/performance',verifyAuth,launchCampaign);
-
-
- 	/**
+/**
  * @swagger
  * /campaign/launchBounty:
  *   post:
@@ -314,8 +317,6 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  */
 
 router.post('/launchBounty',verifyAuth,launchBounty);
-
-
 /**
  * @swagger
  * /campaign/totalEarned:
@@ -355,10 +356,6 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *                    type: string
  */
 router.get('/totalEarned',verifyAuth,totalEarned);
-
-
-
-
 /**
  * @swagger
  * /campaign/campaigns:
@@ -414,6 +411,73 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *            application/json:
  *              schema:      # Request body contents
  *                type: object
+ *                properties:
+ *                  CampaignCover:
+ *                    type: string
+ *                  CampaignLogo:
+ *                    type: string
+ *                  bounties:
+ *                    type: array
+ *                  brand:
+ *                    type: string
+ *                  contract:
+ *                    type: string
+ *                  cost:
+ *                    type: string
+ *                  cost_usd:
+ *                    type: string
+ *                  countries:
+ *                    type: array
+ *                  cover:
+ *                    type: string
+ *                  coverSrc:
+ *                    type: string
+ *                  createdAt:
+ *                    type: datetime
+ *                  dataUrl:
+ *                    type: string
+ *                  description:
+ *                    type: string
+ *                  endDate:
+ *                    type: datetime
+ *                  funds:
+ *                    type: array
+ *                    items:
+ *                      type: string
+ *                  hash:
+ *                    type: string
+ *                  idNode:
+ *                    type: string
+ *                  logo:
+ *                    type: string
+ *                  ratios:
+ *                    type: array
+ *                  remaining:
+ *                    type: string
+ *                  remuneration:
+ *                    type: string
+ *                  resume:
+ *                    type: string
+ *                  startDate:
+ *                    type: datetime
+ *                  tags:
+ *                    type: array
+ *                    items:
+ *                      type: string
+ *                  title:
+ *                    type: string
+ *                  token:
+ *                    type: string
+ *                  transactionHash:
+ *                    type: string
+ *                  type:
+ *                    type: string
+ *                  updatedAt:
+ *                    type: datetime
+ *                  walletId:
+ *                    type: string
+ *                  _id:
+ *                    type: string
  *       "500":
  *          description: ERROR
  *          content:
@@ -555,9 +619,7 @@ router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
  *          description: error:error message
  */
 router.post('/apply',verifyAuth,apply);
-
-
-     	/**
+/**
  * @swagger
  * /campaign/linkNotification:
  *   post:
@@ -592,10 +654,6 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:error message
  */
 router.post('/linkNotification',linkNotifications);
-
-
-
-
 /**
  * @swagger
  * /campaign/validate:
@@ -628,7 +686,6 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:error message
  */
-
  router.post('/validate',verifyAuth,validateCampaign);
 
   /**
