@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-
+const db=mongoose.createConnection(process.env.MONGOURI);
 const walletSchema = mongoose.Schema({
-   UserId:{ type: Number, required: true,  ref: 'sn_users' },
+   UserId:{ type: Number},
    keystore: {
      version: { type: Number},
      id: { type: String},
@@ -32,7 +32,11 @@ const walletSchema = mongoose.Schema({
      ek: { type: String},
   },
    mnemo: { type: String}
+},
+{
+  collection: 'wallet'
 });
 
-const Wallet = mongoose.model("wallet", walletSchema);
+const Wallet = db.model("wallet", walletSchema);
 
+module.exports = Wallet;
