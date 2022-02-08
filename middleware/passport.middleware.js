@@ -90,11 +90,11 @@ const handleSocialMediaSignin = async (query,cb)=>{
     }
 }
 
-let createUser = (enabled,_id,idSn,newsLetter,picLink=false,username,email=null,idOnSn,socialId,firstName=null,lastName=null,password=null) => {
+let createUser = (enabled,idSn,newsLetter,picLink=false,username,email=null,idOnSn,socialId,firstName=null,lastName=null,password=null) => {
     const userObject = {};
     userObject.enabled = enabled, userObject.userSatt = true,userObject.failed_count = 0
     userObject.onBoarding =false,userObject.account_locked =false;
-    userObject._id = _id,userObject.idSn =  idSn,userObject.newsLetter = newsLetter ?? false;
+    userObject.idSn =  idSn,userObject.newsLetter = newsLetter ?? false;
     userObject.locale = "en";
     if(picLink)  userObject.picLink =picLink
     userObject.username =username,userObject.email =email
@@ -193,7 +193,7 @@ passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback:
         if (user) {
             return done(null, false, { error: true, message: 'account_already_used' });
         } else {
-            let createdUser = createUser(0,Long.fromNumber(await app.account.handleId()),0,req.body.newsLetter,'',username.toLowerCase(),username.toLowerCase(),false,false,'','',synfonyHash(password))
+            let createdUser = createUser(0,0,req.body.newsLetter,'',username.toLowerCase(),username.toLowerCase(),false,false,'','',synfonyHash(password))
             let user=new User(createdUser).save();
             let token = app.generateAccessToken(createdUser);
             const lang = req.query.lang || "en";
