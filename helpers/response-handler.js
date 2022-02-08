@@ -1,12 +1,17 @@
 class responseHandler {
     constructor() { }
 
-    makeResponse = (res, status, code, message, data) => {
+    makeResponseData = (res, code,message,data) => {
 		return res.status(code).send({
-			status,
 			code,
 			message,
 			data
+		});
+     }
+	 makeResponseError = (res,code,error) => {
+		return res.status(code).send({
+			code,
+			error
 		});
      }
 }
