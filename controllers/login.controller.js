@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
 var Captcha = require('../model/captcha.model');
+var User = require('../model/user.model');
+
 const { responseHandler } = require('../helpers/response-handler');
 
 
@@ -46,32 +48,35 @@ var readHTMLFile = function(path, callback) {
 
 
 
-exports.changePassword= async(req, response)=>{
-
-    var newpass = req.body.newpass;
-    var oldpass = req.body.oldpass;
-    var id = req.body.id;
-    var user = await app.db.sn_user().findOne({ _id: Long.fromNumber(id) });
-    if (user) {
-        if (user.password != app.synfonyHash(oldpass)) {
-            response.end('{error:"wrong password"}');
-            return;
+exports.changePassword= async(req, res)=>{
+    try{
+        var newpass = req.body.newpass;
+        var oldpass = req.body.oldpass;
+        var _id = req.user._id;
+        var user = await User().findOne({ _id });
+        if (user) {
+            if (user.password != app.synfonyHash(oldpass)) {
+                return responseHandler.makeResponseError(res, 401,"wrong password");
+            }else{
+                await app.db.sn_user().updateOne({ _id}, { $set: { password: app.synfonyHash(newpass) } });
+                return responseHandler.makeResponseData(res, 200,"changed",true);
+            }
+        } else {
+            return responseHandler.makeResponseError(res, 404, "no account");
         }
-        await app.db.sn_user().updateOne({ _id: id }, { $set: { password: app.synfonyHash(newpass) } });
-        response.end('{message:"changed"}');
-    } else {
-        response.end('{error:"no account"}');
+    } 
+    catch (err) {
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
-
 }
 exports.captcha= async(req, res)=>{
     try {
         let count= await Captcha.countDocuments();
         let random = Math.floor(Math.random() * count);
         let captcha = await Captcha.findOne().limit(1).skip(random);
-        return responseHandler.makeResponse(res, true, 200, "success", captcha);
+        return responseHandler.makeResponseData(res, 200, "success", captcha);
     }   catch (err) {
-        return responseHandler.makeResponse(res, false, 500, err.message ? err.message : err.error);
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
 }
 
