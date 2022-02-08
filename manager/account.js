@@ -305,6 +305,9 @@ module.exports = async function (app) {
 		return new Promise( async (resolve, reject) => {
 
 			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
+			if(!account || !account.unclaimed) return resolve(false)
+			
+
 			account = account[0];
 			
 			var address = "0x"+account.keystore.address;
