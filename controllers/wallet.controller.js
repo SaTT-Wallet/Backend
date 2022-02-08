@@ -1,10 +1,13 @@
 
 
-
-var requirement= require('../helpers/utils')
+var Wallet = require('../model/wallet.model');
 const rp = require('request-promise');
 const Big = require('big.js');
+var requirement= require('../helpers/utils')
+
 var connection;
+const { responseHandler } = require('../helpers/response-handler');
+
 let app
 (connection = async  ()=>{
     app = await requirement.connection();
@@ -15,19 +18,20 @@ let app
 
 
 
-exports.exportBtc=async(req,response)=>{
-
-    var pass = req.body.pass;
-    response.attachment();
+exports.exportBtc=async(req,res)=>{
 
     try {
+
         let id = req.user._id;
+        let pass = req.body.pass;
+
         var cred = await app.account.unlock(id,pass);
 
-        var ret = await app.account.exportkeyBtc(id,pass);
-        response.end(JSON.stringify(ret));
+        let ret = await app.account.exportkeyBtc(id,pass);
+        return responseHandler.makeResponseData(res.attachment(), 200, "success", ret);
+
     } catch (err) {
-        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
     finally {
             if(cred)
@@ -36,17 +40,18 @@ exports.exportBtc=async(req,response)=>{
 
 }
 
-exports.exportEth=async(req,response)=>{
+
+exports.exportEth=async(req,res)=>{
     var pass = req.body.pass;
-    response.attachment();
+    res.attachment();
 
     try {
         let id = req.user._id;
         var cred = await app.account.unlock(id,pass);
-        var ret = await app.account.exportkey(id,pass);
-        response.end(JSON.stringify(ret));
+        let ret = await app.account.exportkey(id,pass);
+        return responseHandler.makeResponseData(res.attachment(), 200, "success", ret);
     } catch (err) {
-        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
     finally {
         if(cred)
@@ -55,29 +60,27 @@ exports.exportEth=async(req,response)=>{
 
 }
 
-exports.mywallet= async(req, response)=>{
+exports.mywallet= async(req, res)=>{
 
     try{
         let id = req.user._id;
         var count = await app.account.hasAccount(id);
-        var ret = {err:"no_account"};
 
-        if(count)
-        {
+        if(count){
             var ret = await app.account.getAccount(id);
-
+            return responseHandler.makeResponseData(res, 200, "success", ret);
+        }else{
+            return responseHandler.makeResponseError(res, 404," wallet not found");
         }
-        
-        response.end(JSON.stringify(ret));
 
     } catch (err) {
-        response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
 
 }
 
 
-exports.userBalance= async(req, response)=>{
+exports.userBalance= async(req, res)=>{
 
 	try {
         let id = req.user._id;
@@ -85,9 +88,22 @@ exports.userBalance= async(req, response)=>{
         const balance = await app.account.getListCryptoByUid(id,Crypto);
 
         let listOfCrypto = [...new Set(balance.listOfCrypto)];
-        response.send(JSON.stringify({listOfCrypto}))
+
+        if(listOfCrypto){
+
+            return responseHandler.makeResponseData(res, 200, "success", listOfCrypto);
+
+
+        }else{
+            return responseHandler.makeResponseError(res, 404," You must create your wallet first");
+
+
+        }
+
+
+
     }catch (err) {
-       response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
 
 }
