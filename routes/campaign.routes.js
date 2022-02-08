@@ -433,13 +433,15 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                  coverSrc:
  *                    type: string
  *                  createdAt:
- *                    type: datetime
+ *                    type: string
+ *                    format: datetime
  *                  dataUrl:
  *                    type: string
  *                  description:
  *                    type: string
  *                  endDate:
- *                    type: datetime
+ *                    type: string
+ *                    format: datetime
  *                  funds:
  *                    type: array
  *                    items:
@@ -470,7 +472,8 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                  resume:
  *                    type: string
  *                  startDate:
- *                    type: datetime
+ *                    type: string
+ *                    format: datetime
  *                  tags:
  *                    type: array
  *                    items:
@@ -484,7 +487,8 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                  type:
  *                    type: string
  *                  updatedAt:
- *                    type: datetime
+ *                    type: string
+ *                    format: datetime
  *                  walletId:
  *                    type: string
  *                  _id:
@@ -504,8 +508,7 @@ router.get('/details/:id',campaign);
  * @swagger
  * /campaign/totalSpent:
  *   get:
- *     tags:
- *     - "campaign"
+ *     tags: ["campaign"]
  *     summary: get campaign details
  *     description: return user's total spent budget <br> with access_token 
  *     produces:
