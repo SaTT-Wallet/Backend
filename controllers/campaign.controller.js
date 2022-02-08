@@ -725,7 +725,7 @@ exports.linkNotifications = async (req, res) => {
       );
   } catch (err) {
     res.end(
-      '{"error"console.log(link,campaign_id):"' +
+      '{"error":"' +
         (err.message ? err.message : err.error) +
         '"}'
     );
