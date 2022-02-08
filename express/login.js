@@ -867,7 +867,7 @@ module.exports = function(app) {
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id,email:profile.emails[0].value } })
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id } })
                 done(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
             }
         }));
@@ -890,7 +890,7 @@ module.exports = function(app) {
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business,email:profile._json.email } })
+                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business } })
                 cb(null, profile, {
                     status: true,
                     message: 'account_linked_with success'

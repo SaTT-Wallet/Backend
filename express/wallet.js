@@ -330,10 +330,13 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}finally{
-			if(ret.address) await app.db.walletUserNode().insertOne({
+			if(ret.address) {
+				await app.db.walletUserNode().insertOne({
 				wallet:ret.address,
 				idUser:res.id
 			})
+				await app.db.sn_user().updateOne({_id:res.id},{$set:{hasWallet:true}});
+		}
            !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
 		}
 

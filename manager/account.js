@@ -686,15 +686,11 @@ module.exports = async function (app) {
       return new Promise( async (resolve, reject) => {
        try {
 
-		  var [ret,Total_balance,CryptoPrices] = [{err:"no_account"},0,crypto];
+		  var [Total_balance,CryptoPrices] = [0,crypto];
 		  var token_info=  Object.assign({}, app.config.Tokens);
 			delete token_info['SATT']
 			delete token_info['BNB']
-
-			var count = await accountManager.hasAccount(userId);
-
-            if(count){
-
+			
 				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
@@ -729,12 +725,6 @@ module.exports = async function (app) {
 						Total_balance=Total_balance.toFixed(2)
 
 						return resolve({Total_balance});
-
-
-
-			}else{
-				resolve(ret);
-			}
 	   }catch (e) {
 				reject({message:e.message});
 			}
@@ -851,14 +841,6 @@ module.exports = async function (app) {
 
 	   [result.Date, result.convertDate] = [currentDate,today]
 
-	   const Fetch_crypto_price = {
-		method: 'GET',
-		uri: xChangePricesUrl,
-		json: true,
-		gzip: true
-	  };
-
-	   //let Crypto = await rp(Fetch_crypto_price); //Query for getting crypto prices
 
 	   let Crypto =  app.account.getPrices();
 
