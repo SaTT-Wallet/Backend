@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+autoIncrement = require('mongoose-auto-increment');
 const db=mongoose.createConnection(process.env.MONGOURI);
+autoIncrement.initialize(db);
 const userSchema = mongoose.Schema({
-  _id: { type: Number },
    first_name: { type: String},
    name: { type: String},
    idSn:{ type: Number},
@@ -12,6 +13,7 @@ const userSchema = mongoose.Schema({
    username: { type: String,required: true},
    firstName: { type: String},
    lastName:{ type: String},
+   lastLogin: {  type: Date,default: Date.now},
    newsLetter: { type: Boolean},
    onBoarding: { type: Boolean},
    account_locked:  { type: Boolean},
@@ -29,7 +31,9 @@ const userSchema = mongoose.Schema({
   },
    hasWallet:{ type : Boolean, default:false},
    passphrase:  { type: Boolean,default:false},
+   is2FA: { type: Boolean,default:false},
    photoUpdated: { type: Boolean,default:false},
+   isChanged:  { type: Boolean,default:false},
    birthday: { type: String},
    gender: { type: String},
    daily: [
@@ -66,9 +70,13 @@ const userSchema = mongoose.Schema({
      e164Number:{ type: String},
      countryCode: { type: String},
      dialCode:{ type: String},
-  }, 
-  isChanged:  { type: Boolean,default:false},
-
+  }
 },{timestamps:true,strict: false,collection: 'sn_user'});
+userSchema.plugin(autoIncrement.plugin, {
+  model: 'sn_user',
+  field: '_id',
+  startAt: 100,
+  incrementBy: 1
+  });
 const User = db.model("sn_user", userSchema);
 module.exports = User;

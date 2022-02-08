@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
 var Captcha = require('../model/captcha.model');
+const { responseHandler } = require('../helpers/response-handler');
+
 
 var connection;
 let app
@@ -64,12 +66,12 @@ exports.changePassword= async(req, response)=>{
 }
 exports.captcha= async(req, res)=>{
     try {
-        let count=await Captcha.countDocuments();
+        let count= await Captcha.countDocuments();
         let random = Math.floor(Math.random() * count);
         let captcha = await Captcha.findOne().limit(1).skip(random);
-        res.send(JSON.stringify({  captcha }));
+        return responseHandler.makeResponse(res, true, 200, "success", captcha);
     }   catch (err) {
-         res.end(JSON.stringify({ "error": err.message ? err.message : err.error }));
+        return responseHandler.makeResponse(res, false, 500, err.message ? err.message : err.error);
     }
 }
 
