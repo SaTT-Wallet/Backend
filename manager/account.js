@@ -16,6 +16,8 @@ module.exports = async function (app) {
     const bad_login_limit = app.config.bad_login_limit;
 	const { createLogger, format, transports } = require('winston');
 
+	var Wallet = require('../model/wallet.model');
+
 
 
 	var accountManager = {};
@@ -221,9 +223,10 @@ module.exports = async function (app) {
 	accountManager.unlock = async function (userId,pass) {
 
 		return new Promise( async (resolve, reject) => {
-			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
-			account = account[0];
-			//app.web3.eth.accounts.wallet.clear();
+			
+
+			let account = await Wallet.findOne({UserId: parseInt(userId)})
+
 			try {
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 				app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass);
@@ -237,11 +240,10 @@ module.exports = async function (app) {
 
 
 	accountManager.unlockBSC = async function (userId,pass) {
+		let account = await Wallet.findOne({UserId: parseInt(userId)})
 
 		return new Promise( async (resolve, reject) => {
-			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
-			account = account[0];
-			//app.web3.eth.accounts.wallet.clear();
+		
 			try {
 				app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass);
 			}
@@ -263,7 +265,7 @@ module.exports = async function (app) {
 
 	accountManager.getCount = async function() {
 		return new Promise( async (resolve, reject) => {
-			var count = await app.db.wallet().countDocuments();
+			var count = await Wallet.countDocuments();
 			resolve(count+1);
 		});
 	}
@@ -298,7 +300,7 @@ module.exports = async function (app) {
 
 	accountManager.hasAccount =  userId => {
 		return new Promise( async (resolve, reject) => {
-			var account = await app.db.wallet().findOne({UserId: parseInt(userId)});
+			let account = await Wallet.findOne({UserId: parseInt(userId)})
 			resolve(account && !account.unclaimed)
 		});
 	};
@@ -306,8 +308,8 @@ module.exports = async function (app) {
 	accountManager.getAccount = async function (userId) {
 		return new Promise( async (resolve, reject) => {
 
-			var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
-			account = account[0];
+			let account = await Wallet.findOne({UserId: parseInt(userId)})
+
 			
 			var address = "0x"+account.keystore.address;
 
@@ -444,11 +446,10 @@ module.exports = async function (app) {
 
 	accountManager.exportkey = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
+			let account = await Wallet.findOne({UserId: parseInt(userId)})
 
 			try {
-				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
-				account = account[0];
-
+			
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 				resolve(account.keystore);
 			}
@@ -466,9 +467,11 @@ module.exports = async function (app) {
 	accountManager.exportkeyBtc = async function (userId,pass) {
 		return new Promise( async (resolve, reject) => {
 
+
+			let account = await Wallet.findOne({UserId: parseInt(userId)})
+
 			try {
-				var account = await app.db.wallet().find({UserId: parseInt(userId)}).sort( { _id: 1 } ).toArray();
-				account = account[0];
+				
 				app.web3.eth.accounts.wallet.decrypt([account.keystore], pass);
 				resolve(account.btc.ek);
 			}
@@ -575,6 +578,9 @@ module.exports = async function (app) {
 				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
+
+
+			//	let userTokens = await
 
 				let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
 			    if(userTokens.length){
