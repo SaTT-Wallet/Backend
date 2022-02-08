@@ -686,15 +686,11 @@ module.exports = async function (app) {
       return new Promise( async (resolve, reject) => {
        try {
 
-		  var [ret,Total_balance,CryptoPrices] = [{err:"no_account"},0,crypto];
+		  var [Total_balance,CryptoPrices] = [0,crypto];
 		  var token_info=  Object.assign({}, app.config.Tokens);
 			delete token_info['SATT']
 			delete token_info['BNB']
-
-			var count = await accountManager.hasAccount(userId);
-
-            if(count){
-
+			
 				let ret = await accountManager.getAccount(userId)
 				delete ret.btc
 				delete ret.version
@@ -729,12 +725,6 @@ module.exports = async function (app) {
 						Total_balance=Total_balance.toFixed(2)
 
 						return resolve({Total_balance});
-
-
-
-			}else{
-				resolve(ret);
-			}
 	   }catch (e) {
 				reject({message:e.message});
 			}

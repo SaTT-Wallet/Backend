@@ -330,10 +330,13 @@ module.exports = function (app) {
 		} catch (err) {
 			response.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}finally{
-			if(ret.address) await app.db.walletUserNode().insertOne({
+			if(ret.address) {
+				await app.db.walletUserNode().insertOne({
 				wallet:ret.address,
 				idUser:res.id
 			})
+				await app.db.sn_user().updateOne({_id:res.id},{$set:{hasWallet:true}});
+		}
            !count && ret.address && app.account.sysLog("/newallet2",req.addressIp,`new wallet for created ${ret.address}`);
 		}
 
@@ -1798,9 +1801,10 @@ app.post('/wallet/remove/token', async (req, res) =>{
 			let requestQuote = req.body;
 			requestQuote["end_user_id"]= String(auth.id);
 			requestQuote["client_ip"]= req.addressIp;
+			requestQuote.requested_amount = +req.body.requested_amount
             requestQuote["payment_methods"]= ["credit_card"];
             requestQuote["wallet_id"]= "satt";
-		const simplexQuote ={
+			const simplexQuote ={
 			url: app.config.sandBoxUri +"/wallet/merchant/v2/quote",
 			method: 'POST',
 			  body:requestQuote, 

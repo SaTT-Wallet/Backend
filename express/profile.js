@@ -544,8 +544,7 @@ app.put('/profile/notification/issend/clicked', async (req, res) =>{
             return;
             }
 			}
-
-
+           if(profile.is2FA) profile.is2FA = JSON.parse(profile.is2FA)
 		   const result = await app.db.sn_user().findOneAndUpdate({_id : id}, {$set: profile},{returnOriginal: false});
 		   const updatedProfile= result.value;
 		   res.send(JSON.stringify({updatedProfile, success : "updated"})).status(201);
