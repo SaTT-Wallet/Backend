@@ -34,7 +34,7 @@ try {
 } catch (e) {
     console.log(e)
 }
-const {socialdisconnect,captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin,getQrCode,verifyQrCode} = require('../controllers/login.controller')
+const {changePassword,socialdisconnect,captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin,getQrCode,verifyQrCode} = require('../controllers/login.controller')
 const { 
     emailConnection,
     telegramConnection,
@@ -78,6 +78,36 @@ function authErrorHandler(err, req, res, next) {
  */
 router.get('/captcha',captcha)
 
+
+/**
+ * @swagger
+ * /auth/changePassword:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: change password .
+ *     description: user set his old and new password, system check if user and password are matched or not <br> with access_token
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               newpass:
+ *                 type: string
+ *               oldpass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: message:"changed"
+ *       "401":
+ *          description: error:"wrong password"
+ *       "404":
+ *          description: error:"no account"
+ *       "500":
+ *          description: error:"error"
+ */
+ router.post('/changePassword',verifyAuth,changePassword)
 /**
  * @swagger
  * /auth/verifyCaptcha:
