@@ -411,88 +411,8 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *            application/json:
  *              schema:      # Request body contents
  *                type: object
- *                properties:
- *                  CampaignCover:
- *                    type: string
- *                  CampaignLogo:
- *                    type: string
- *                  bounties:
- *                    type: array
- *                  brand:
- *                    type: string
- *                  contract:
- *                    type: string
- *                  cost:
- *                    type: string
- *                  cost_usd:
- *                    type: string
- *                  countries:
- *                    type: array
- *                  cover:
- *                    type: string
- *                  coverSrc:
- *                    type: string
- *                  createdAt:
- *                    type: string
- *                    format: datetime
- *                  dataUrl:
- *                    type: string
- *                  description:
- *                    type: string
- *                  endDate:
- *                    type: string
- *                    format: datetime
- *                  funds:
- *                    type: array
- *                    items:
- *                      type: string
- *                  hash:
- *                    type: string
- *                  idNode:
- *                    type: string
- *                  logo:
- *                    type: string
- *                  ratios:
- *                    type: array
- *                    items:
- *                      type: object
- *                      properties:
- *                        like:
- *                          type: string
- *                        view:
- *                          type: string
- *                        share:
- *                          type: string
- *                        oracle:
- *                          type: string
- *                  remaining:
- *                    type: string
- *                  remuneration:
- *                    type: string
- *                  resume:
- *                    type: string
- *                  startDate:
- *                    type: string
- *                    format: datetime
- *                  tags:
- *                    type: array
- *                    items:
- *                      type: string
- *                  title:
- *                    type: string
- *                  token:
- *                    type: string
- *                  transactionHash:
- *                    type: string
- *                  type:
- *                    type: string
- *                  updatedAt:
- *                    type: string
- *                    format: datetime
- *                  walletId:
- *                    type: string
- *                  _id:
- *                    type: string
+ *                $ref: '#/definitions/Campaign'
+ *                  
  *       "500":
  *          description: ERROR
  *          content:
@@ -559,20 +479,28 @@ router.get('/pendingLink/:id',pendingLink);
  * @swagger
  * /campaign/campaignPrompAll/{id}:
  *   get:
- *     tags:
- *     - "campaign"
+ *     tags: ["campaign"]
  *     summary: get campaign pending link
  *     description: return to user the list of campaign promp ALl <br> without access_token 
  *     produces:
- *       - application/json
+ *     - application/json
  *     parameters:
- *       - name: id
- *         description: the  id.
- *         in: path
- *         required: true
+ *     - in: path
+ *       name: id
+ *       type: string
+ *       description: the campaign id.
+ *       
+ *       required: true
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents  
+ *                type: array
+ *                items:
+ *                  type: object
+ *                  $ref: '#/definitions/Campaign'
  *       "500":
  *          description: error:"error"
  */
@@ -1119,6 +1047,95 @@ router.post('/linkNotification',linkNotifications);
  *          description: error:"error"
  */
   router.put('/reject/:idLink',rejectLink);
+
+
+/**
+ * @swagger
+ * definitions:
+ *  Campaign:
+ *    properties:
+ *      CampaignCover:
+ *        type: string
+ *      CampaignLogo:
+ *        type: string
+ *      bounties:
+ *        type: array
+ *      brand:
+ *        type: string
+ *      contract:
+ *        type: string
+ *      cost:
+ *        type: string
+ *      cost_usd:
+ *        type: string
+ *      countries:
+ *        type: array
+ *      cover:
+ *        type: string
+ *      coverSrc:
+ *        type: string
+ *      createdAt:
+ *        type: string
+ *        format: datetime
+ *      dataUrl:
+ *        type: string
+ *      description:
+ *        type: string
+ *      endDate:
+ *        type: string
+ *        format: datetime
+ *      funds:
+ *        type: array
+ *        items:
+ *          type: string
+ *      hash:
+ *        type: string
+ *      idNode:
+ *        type: string
+ *      logo:
+ *        type: string
+ *      ratios:
+ *        type: array
+ *        items:
+ *          type: object
+ *          properties:
+ *            like:
+ *              type: string
+ *            view:
+ *              type: string
+ *            share:
+ *              type: string
+ *            oracle:
+ *              type: string
+ *      remaining:
+ *        type: string
+ *      remuneration:
+ *        type: string
+ *      resume:
+ *        type: string
+ *      startDate:
+ *        type: string
+ *        format: datetime
+ *      tags:
+ *        type: array
+ *        items:
+ *          type: string
+ *      title:
+ *        type: string
+ *      token:
+ *        type: string
+ *      transactionHash:
+ *        type: string
+ *      type:
+ *        type: string
+ *      updatedAt:
+ *        type: string
+ *        format: datetime
+ *      walletId:
+ *        type: string
+ *      _id:
+ *        type: string
+ */  
    
      
 module.exports = router;
