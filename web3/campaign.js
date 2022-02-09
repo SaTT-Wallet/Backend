@@ -562,8 +562,8 @@ module.exports = async function (app) {
                 var gas = 100000
                 var ctr = await campaignManager.getPromContract(idProm)
 
-                console.log('idProm', idProm)
-                console.log('ctr', ctr)
+                // console.log('idProm', idProm)
+                // console.log('ctr', ctr)
 
                 var gasPrice = await ctr.getGasPrice()
 
