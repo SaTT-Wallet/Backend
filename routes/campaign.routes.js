@@ -175,13 +175,23 @@ const { route } = require('./login.routes');
   *                 type: string
   *     responses:
   *       "200":
-  *          description: data
+  *          description: ok
+  *          content:
+  *            application/json:
+  *              schema: 
+  *                type: object
+  *                properties:
+  *                  name:
+  *                    type: string
+  *                  message:
+  *                    type: string
+  *                  expiredAt:
+  *                    type: string
   *       "500":
   *          description: error:"error"
   */
-  router.post('/erc20/allow',verifyAuth,erc20Allow);
-    
- 	/**
+router.post('/erc20/allow',verifyAuth,erc20Allow);
+/**
  * @swagger
  * /campaign/launch/performance:
  *   post:
@@ -212,22 +222,48 @@ const { route } = require('./login.routes');
  *               ratios:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string  
+ *                    type: object
+ *                    properties:
+ *                      like:
+ *                        type: string
+ *                      view:
+ *                        type: string
+ *                      share:
+ *                        type: string
+ *                      oracle:
+ *                        type: string
  *               pass:
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents
+ *                type: object
+ *                properties:
+ *                  transactionHash:
+ *                    type: string
+ *                  address:
+ *                    type: string
+ *                  to:
+ *                    type: string
+ *                  amount:
+ *                    type: string
  *       "500":
- *          description: error:error message
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
+ *              example:
+ *                error: error
  */
-
-
 router.post('/launch/performance',verifyAuth,launchCampaign);
-
-
- 	/**
+/**
  * @swagger
  * /campaign/launchBounty:
  *   post:
@@ -254,13 +290,33 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  transactionHash:
+ *                    type: string
+ *                  address:
+ *                    type: string
+ *                  to:
+ *                    type: string
+ *                  amount:
+ *                    type: string
  *       "500":
  *          description: error:error message
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
+ *              example:
+ *                error: error
  */
 
 router.post('/launchBounty',verifyAuth,launchBounty);
-
-
 /**
  * @swagger
  * /campaign/totalEarned:
@@ -274,34 +330,61 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *     responses:
  *       "200":
  *          description: {"SattEarned","USDEarned","subscriptions"}
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents
+ *                type: object
+ *                properties:
+ *                  SattEarned:
+ *                    type: number
+ *                  USDEarned:
+ *                    type: number
+ *                  subscriptions:
+ *                    type: number
+ *              example:
+ *                SattEarned: 563200
+ *                USDEarned: 125
+ *                subscriptions: 54
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents  
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
 router.get('/totalEarned',verifyAuth,totalEarned);
-
-
-
-
 /**
  * @swagger
  * /campaign/campaigns:
  *   get:
  *     tags:
  *     - "campaign"
- *     summary: get total earned
- *     description: return to user the total earned <br> without access_token 
+ *     summary: get campaigns list
+ *     description: Returns the list of campaigns <br> without access_token 
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: list:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
  router.get('/campaigns',verifyAuth,campaigns);
 
 
@@ -318,55 +401,53 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: the  id.
+ *         description: campaign id
  *         in: path
  *         required: true
  *     responses:
  *       "200":
- *          description: list:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents
+ *                type: object
+ *                $ref: '#/definitions/Campaign'
+ *                  
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-  router.get('/details/:id',campaign);
-
-
-
-
-   /**
+router.get('/details/:id',campaign);
+/**
  * @swagger
  * /campaign/totalSpent:
  *   get:
- *     tags:
- *     - "campaign"
+ *     tags: ["campaign"]
  *     summary: get campaign details
- *     description: return to user campaign detalds <br> with access_token 
+ *     description: return user's total spent budget <br> with access_token 
  *     produces:
  *       - application/json
-
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
  *       "500":
  *          description: error:"error"
  */
-
-
-    router.get('/totalSpent',verifyAuth,totalSpent);
-
-
-
-
-
-
-   /**
+router.get('/totalSpent',verifyAuth,totalSpent);
+/**
  * @swagger
  * /campaign/pendingLink/{id}:
  *   get:
  *     tags:
  *     - "campaign"
  *     summary: get campaign pending link
- *     description: return to user the list of campaign with pending link <br> without access_token 
+ *     description: return the list of campaign with pending link <br> without access_token 
  *     produces:
  *       - application/json
  *     parameters:
@@ -374,47 +455,56 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *         description: the  id.
  *         in: path
  *         required: true
-
-
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  type: object
  *       "500":
- *          description: error:"error"
+ *          description: ERROR
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  error:
+ *                    type: string
  */
-
-
-    router.get('/pendingLink/:id',pendingLink);
-
-
-
-
-   /**
+router.get('/pendingLink/:id',pendingLink);
+/**
  * @swagger
  * /campaign/campaignPrompAll/{id}:
  *   get:
- *     tags:
- *     - "campaign"
+ *     tags: ["campaign"]
  *     summary: get campaign pending link
  *     description: return to user the list of campaign promp ALl <br> without access_token 
  *     produces:
- *       - application/json
+ *     - application/json
  *     parameters:
- *       - name: id
- *         description: the  id.
- *         in: path
- *         required: true
-
+ *     - in: path
+ *       name: id
+ *       type: string
+ *       description: the campaign id.
+ *       
+ *       required: true
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents  
+ *                type: array
+ *                items:
+ *                  type: object
+ *                  $ref: '#/definitions/Campaign'
  *       "500":
  *          description: error:"error"
  */
-
-
-    router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
+router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
 
 
 
@@ -449,16 +539,29 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema: # Request body contents 
+ *                type: object
+ *                properties:
+ *                  idCampaign:
+ *                    type: string
+ *                  idPost:
+ *                    type: string
+ *                  idProm:
+ *                    type: string
+ *                  isUser:
+ *                    type: string
+ *                  transactionHash:
+ *                    type: string
+ *                  typeSN:
+ *                    type: number
  *       "500":
  *          description: error:error message
  */
-
-
 router.post('/apply',verifyAuth,apply);
-
-
-     	/**
+/**
  * @swagger
  * /campaign/linkNotification:
  *   post:
@@ -481,17 +584,18 @@ router.post('/apply',verifyAuth,apply);
 
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema: # Response body contents
+ *                type: object
+ *                properties:
+ *                  message:
+ *                    type: string
  *       "500":
  *          description: error:error message
  */
-
-
-         router.post('/linkNotification',linkNotifications);
-
-
-
-
+router.post('/linkNotification',linkNotifications);
 /**
  * @swagger
  * /campaign/validate:
@@ -524,7 +628,6 @@ router.post('/apply',verifyAuth,apply);
  *       "500":
  *          description: error:error message
  */
-
  router.post('/validate',verifyAuth,validateCampaign);
 
   /**
@@ -875,41 +978,6 @@ router.post('/apply',verifyAuth,apply);
  */
      router.post('/remaining',getFunds);
 
-
-
-                /**
- * @swagger
- * /campaign/erc20/{token}/approval/{spender}/{addr}:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: erc20 aprroval
- *     description: erc20 aprroval
- *     parameters:
- *       - name: token
- *         description: the  token.
- *         in: path
- *         required: true
- *       - name: spender
- *         description: the  spender.
- *         in: path
- *         required: true
- *       - name: addr
- *         description: the  addr.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: data
- *       "500":
- *          description: error:"error"
- */
-
-router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
-
-
-
-
 /**
  * @swagger
  * /campaign/bep20/{token}/approval/{spender}/{addr}:
@@ -979,6 +1047,95 @@ router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
  *          description: error:"error"
  */
   router.put('/reject/:idLink',rejectLink);
+
+
+/**
+ * @swagger
+ * definitions:
+ *  Campaign:
+ *    properties:
+ *      CampaignCover:
+ *        type: string
+ *      CampaignLogo:
+ *        type: string
+ *      bounties:
+ *        type: array
+ *      brand:
+ *        type: string
+ *      contract:
+ *        type: string
+ *      cost:
+ *        type: string
+ *      cost_usd:
+ *        type: string
+ *      countries:
+ *        type: array
+ *      cover:
+ *        type: string
+ *      coverSrc:
+ *        type: string
+ *      createdAt:
+ *        type: string
+ *        format: datetime
+ *      dataUrl:
+ *        type: string
+ *      description:
+ *        type: string
+ *      endDate:
+ *        type: string
+ *        format: datetime
+ *      funds:
+ *        type: array
+ *        items:
+ *          type: string
+ *      hash:
+ *        type: string
+ *      idNode:
+ *        type: string
+ *      logo:
+ *        type: string
+ *      ratios:
+ *        type: array
+ *        items:
+ *          type: object
+ *          properties:
+ *            like:
+ *              type: string
+ *            view:
+ *              type: string
+ *            share:
+ *              type: string
+ *            oracle:
+ *              type: string
+ *      remaining:
+ *        type: string
+ *      remuneration:
+ *        type: string
+ *      resume:
+ *        type: string
+ *      startDate:
+ *        type: string
+ *        format: datetime
+ *      tags:
+ *        type: array
+ *        items:
+ *          type: string
+ *      title:
+ *        type: string
+ *      token:
+ *        type: string
+ *      transactionHash:
+ *        type: string
+ *      type:
+ *        type: string
+ *      updatedAt:
+ *        type: string
+ *        format: datetime
+ *      walletId:
+ *        type: string
+ *      _id:
+ *        type: string
+ */  
    
      
 module.exports = router;
