@@ -132,7 +132,7 @@ exports.readHTMLFileProfile = (path, event, body, ip, requestDate, code, newEmai
       var mailOptions = {
         from: app.config.notificationMail,
         to: app.config.contactMail,
-        subject: 'customer service',
+        subject: 'Customer service',
         html: htmlToSend,
       };
     }
@@ -186,7 +186,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
     var template = handlebars.compile(html);
 
     if (event === 'codeRecover') {
-      console.log('--------- codeRecover call');
+      console.log('--------- user.email', user);
       var replacements = {
         ip,
         code,
