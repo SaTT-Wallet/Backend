@@ -17,7 +17,7 @@ module.exports = async function (app) {
 	const { createLogger, format, transports } = require('winston');
 
 	var Wallet = require('../model/wallet.model');
-
+    var CustomToken = require('../model/customToken.model')
 
 
 	var accountManager = {};
@@ -580,9 +580,9 @@ module.exports = async function (app) {
 				delete ret.version
 
 
-			//	let userTokens = await
+		  		let userTokens = await CustomToken.find({sn_users:  {$in: [userId]}})
 
-				let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
+				//let userTokens = await app.db.customToken().find({sn_users:  {$in: [userId]}}).toArray();
 			    if(userTokens.length){
 				for(let i = 0; i < userTokens.length; i++){
                 let symbol = userTokens[i].symbol
