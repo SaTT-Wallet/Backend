@@ -1,6 +1,8 @@
 
 
 var Wallet = require('../model/wallet.model');
+var User = require('../model/user.model');
+
 const rp = require('request-promise');
 const Big = require('big.js');
 var requirement= require('../helpers/utils')
@@ -93,14 +95,10 @@ exports.userBalance= async(req, res)=>{
 
             return responseHandler.makeResponseData(res, 200, "success", listOfCrypto);
 
-
         }else{
             return responseHandler.makeResponseError(res, 404," You must create your wallet first");
 
-
         }
-
-
 
     }catch (err) {
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
@@ -130,8 +128,10 @@ exports.gasPriceErc20= async(req,res)=>{
 
 exports.cryptoDetails= async(req, res)=>{
 
-    var prices = app.account.getPrices()
-		res.end(JSON.stringify(prices))
+    let prices = app.account.getPrices()
+
+    return responseHandler.makeResponseData(res, 200, "success", prices);
+
 }
 
 exports.totalBalances= async(req, res)=>{
@@ -139,12 +139,15 @@ exports.totalBalances= async(req, res)=>{
 
         var id = req.user._id;
         let Crypto =  app.account.getPrices(); 
-      
       var Total_balance = await app.account.getBalanceByUid(id, Crypto);
-      res.end(JSON.stringify({Total_balance:Total_balance.Total_balance})).status(201);
+
+
+
+      return responseHandler.makeResponseData(res, 200, "success", {Total_balance:Total_balance.Total_balance});
+
 
     } catch (err) {
-        res.end(JSON.stringify({error:err.message?err.message:err.error}))
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
     }
     finally{
         if(id){
@@ -155,7 +158,7 @@ exports.totalBalances= async(req, res)=>{
         if(!user.daily[0] || user.daily[0].convertDate !== today){
           user.daily.unshift({Date : date, Balance : Total_balance.Total_balance, convertDate : today});
           if(user.daily.length > 7){user.daily.pop()}
-          await app.db.sn_user().updateOne({_id : id}, {$set: user});
+          await User.updateOne({_id : id}, {$set: user});
         }
         }
     }
