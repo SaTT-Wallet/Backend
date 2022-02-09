@@ -190,9 +190,8 @@ const { route } = require('./login.routes');
   *       "500":
   *          description: error:"error"
   */
-  router.post('/erc20/allow',verifyAuth,erc20Allow);
-    
- 	/**
+router.post('/erc20/allow',verifyAuth,erc20Allow);
+/**
  * @swagger
  * /campaign/launch/performance:
  *   post:
@@ -223,13 +222,21 @@ const { route } = require('./login.routes');
  *               ratios:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string  
+ *                    type: object
+ *                    properties:
+ *                      like:
+ *                        type: string
+ *                      view:
+ *                        type: string
+ *                      share:
+ *                        type: string
+ *                      oracle:
+ *                        type: string
  *               pass:
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: ok
  *          content:
  *            application/json:
  *              schema:      # Request body contents
@@ -255,12 +262,8 @@ const { route } = require('./login.routes');
  *              example:
  *                error: error
  */
-
-
 router.post('/launch/performance',verifyAuth,launchCampaign);
-
-
- 	/**
+/**
  * @swagger
  * /campaign/launchBounty:
  *   post:
@@ -314,8 +317,6 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  */
 
 router.post('/launchBounty',verifyAuth,launchBounty);
-
-
 /**
  * @swagger
  * /campaign/totalEarned:
@@ -355,10 +356,6 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *                    type: string
  */
 router.get('/totalEarned',verifyAuth,totalEarned);
-
-
-
-
 /**
  * @swagger
  * /campaign/campaigns:
@@ -414,6 +411,8 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *            application/json:
  *              schema:      # Request body contents
  *                type: object
+ *                $ref: '#/definitions/Campaign'
+ *                  
  *       "500":
  *          description: ERROR
  *          content:
@@ -429,8 +428,7 @@ router.get('/details/:id',campaign);
  * @swagger
  * /campaign/totalSpent:
  *   get:
- *     tags:
- *     - "campaign"
+ *     tags: ["campaign"]
  *     summary: get campaign details
  *     description: return user's total spent budget <br> with access_token 
  *     produces:
@@ -481,20 +479,28 @@ router.get('/pendingLink/:id',pendingLink);
  * @swagger
  * /campaign/campaignPrompAll/{id}:
  *   get:
- *     tags:
- *     - "campaign"
+ *     tags: ["campaign"]
  *     summary: get campaign pending link
  *     description: return to user the list of campaign promp ALl <br> without access_token 
  *     produces:
- *       - application/json
+ *     - application/json
  *     parameters:
- *       - name: id
- *         description: the  id.
- *         in: path
- *         required: true
+ *     - in: path
+ *       name: id
+ *       type: string
+ *       description: the campaign id.
+ *       
+ *       required: true
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:      # Request body contents  
+ *                type: array
+ *                items:
+ *                  type: object
+ *                  $ref: '#/definitions/Campaign'
  *       "500":
  *          description: error:"error"
  */
@@ -555,9 +561,7 @@ router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
  *          description: error:error message
  */
 router.post('/apply',verifyAuth,apply);
-
-
-     	/**
+/**
  * @swagger
  * /campaign/linkNotification:
  *   post:
@@ -592,10 +596,6 @@ router.post('/apply',verifyAuth,apply);
  *          description: error:error message
  */
 router.post('/linkNotification',linkNotifications);
-
-
-
-
 /**
  * @swagger
  * /campaign/validate:
@@ -628,7 +628,6 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:error message
  */
-
  router.post('/validate',verifyAuth,validateCampaign);
 
   /**
@@ -1048,6 +1047,95 @@ router.post('/linkNotification',linkNotifications);
  *          description: error:"error"
  */
   router.put('/reject/:idLink',rejectLink);
+
+
+/**
+ * @swagger
+ * definitions:
+ *  Campaign:
+ *    properties:
+ *      CampaignCover:
+ *        type: string
+ *      CampaignLogo:
+ *        type: string
+ *      bounties:
+ *        type: array
+ *      brand:
+ *        type: string
+ *      contract:
+ *        type: string
+ *      cost:
+ *        type: string
+ *      cost_usd:
+ *        type: string
+ *      countries:
+ *        type: array
+ *      cover:
+ *        type: string
+ *      coverSrc:
+ *        type: string
+ *      createdAt:
+ *        type: string
+ *        format: datetime
+ *      dataUrl:
+ *        type: string
+ *      description:
+ *        type: string
+ *      endDate:
+ *        type: string
+ *        format: datetime
+ *      funds:
+ *        type: array
+ *        items:
+ *          type: string
+ *      hash:
+ *        type: string
+ *      idNode:
+ *        type: string
+ *      logo:
+ *        type: string
+ *      ratios:
+ *        type: array
+ *        items:
+ *          type: object
+ *          properties:
+ *            like:
+ *              type: string
+ *            view:
+ *              type: string
+ *            share:
+ *              type: string
+ *            oracle:
+ *              type: string
+ *      remaining:
+ *        type: string
+ *      remuneration:
+ *        type: string
+ *      resume:
+ *        type: string
+ *      startDate:
+ *        type: string
+ *        format: datetime
+ *      tags:
+ *        type: array
+ *        items:
+ *          type: string
+ *      title:
+ *        type: string
+ *      token:
+ *        type: string
+ *      transactionHash:
+ *        type: string
+ *      type:
+ *        type: string
+ *      updatedAt:
+ *        type: string
+ *        format: datetime
+ *      walletId:
+ *        type: string
+ *      _id:
+ *        type: string
+ */  
    
      
 module.exports = router;
