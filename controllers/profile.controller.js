@@ -325,7 +325,7 @@ module.exports.checkOnBoarding = async (req, response) => {
 
 module.exports.requestMoney = async (req, res) => {
   try {
-    let lang = /*req.query.lang ??*/ 'en';
+    let lang = 'en';
     app.i18n.configureTranslation(lang);
     const id = req.user._id;
     let code = await QRCode.toDataURL(req.body.wallet);
@@ -347,10 +347,13 @@ module.exports.requestMoney = async (req, res) => {
     readHTMLFileProfile(
       __dirname + '/../public/emailtemplate/notification.html',
       'notification',
-      req.body
+      req.body,
+      null,
+      null,
+      code
     );
 
-    res.end(JSON.stringify('success'));
+    res.end(JSON.stringify({ message: 'Email was sent to ' + req.body.to }));
   } catch (err) {
     res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
   }
@@ -364,11 +367,12 @@ exports.support = async (req, res) => {
       req.body
     );
 
-    res.end(JSON.stringify('success'));
+    res.end(JSON.stringify({ message: 'Email was sent' }));
   } catch (err) {
     res.send(JSON.stringify(err));
   }
 };
+
 module.exports.notificationUpdate = async (req, res) => {
   try {
     let id = req.params.id;
@@ -474,7 +478,7 @@ module.exports.changeEmail = async (req, res) => {
       newEmail
     );
 
-    res.end(JSON.stringify('success'));
+    res.end(JSON.stringify({ message: 'Email was sent to ' + user.email }));
   }
 };
 module.exports.confrimChangeMail = async (req, response) => {

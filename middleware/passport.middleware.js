@@ -128,7 +128,6 @@ passport.use(
     async (req, username, password, done) => {
       var date = Math.floor(Date.now() / 1000) + 86400;
       var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
-      console.log('---------- user', username);
       if (user) {
         if (user.password == app.synfonyHash(password)) {
           app.account.sysLog('authentification', req.addressIp, `valid ${username}`);

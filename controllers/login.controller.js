@@ -114,7 +114,6 @@ exports.codeRecover = async (req, res) => {
     readHTMLFileLogin(
       __dirname + '/../public/emails/reset_password_code.html',
       'codeRecover',
-      null,
       ip,
       requestDate,
       code,
