@@ -1,75 +1,60 @@
-
-
 <!-- ABOUT THE PROJECT -->
+
 ## SaTT Wallet API
-
-
 
 Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://satt.atayen.us/)
 
 It provides :
-* Masterseed HD Wallet management for SaTT and other main cryptos.
-* Transaction management
-* Advertising campaign management
 
+-   Masterseed HD Wallet management for SaTT and other main cryptos.
+-   Transaction management
+-   Advertising campaign management
 
 ### Built With
 
 This projetct is build in JavaScript for NodeJS and these main npm modules :
-* [Express](https://expressjs.com/)
-* [Mongodb](https://github.com/mongodb/node-mongodb-native)
-* [Web3.js](https://web3js.readthedocs.io/en/v1.3.0/)                   
-* [Passport.js](http://www.passportjs.org/)
-* [bn.js](https://github.com/indutny/bn.js/)
 
-
+-   [Express](https://expressjs.com/)
+-   [Mongodb](https://github.com/mongodb/node-mongodb-native)
+-   [Web3.js](https://web3js.readthedocs.io/en/v1.3.0/)
+-   [Passport.js](http://www.passportjs.org/)
+-   [bn.js](https://github.com/indutny/bn.js/)
 
 <!-- GETTING STARTED -->
 
-
 ### Blockchain deployment
-
 
 1. You can check all our differents smart contracts in contract folder:
 
 ![alt text](/public/contracts.png)
 
-
 2. To Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/):
 
-**create your file on Remix and paste your code there
+\*\*create your file on Remix and paste your code there
 
 ![alt text](/public/remix.png)
 
-**Compile your file.sol and check
-
+\*\*Compile your file.sol and check
 
 ![alt text](/public/compile.png)
 
-
-**To deploy your smart contract you should connect with your metamask account 
+\*\*To deploy your smart contract you should connect with your metamask account
 
 ![alt text](/public/deploy.png)
 
 3. To create node, Web3 service provider with [Geth](https://geth.ethereum.org/),[openethereum](https://github.com/openethereum/openethereum) or [Infura](https://infura.io/) SaaS
 
-**Create new Ethereum app
-
+\*\*Create new Ethereum app
 
 ![alt text](/public/createinfura.png)
 
-
-**Get node credentials from infura such as PROJECTID, PROJECT SECRET, and the endpoints that we can use to connect to infura node(https, wss)
-
+\*\*Get node credentials from infura such as PROJECTID, PROJECT SECRET, and the endpoints that we can use to connect to infura node(https, wss)
 
 ![alt text](/public/keysinfura.png)
-
 
 ```sh
 WEB3_URL=process.env.WEB3_URL
 ```
-
-
 
 You can also install Geth Node you can follow this [Guide](https://geth.ethereum.org/docs/getting-started) or [Parity](https://openethereum.github.io/Setup)
 
@@ -77,103 +62,105 @@ You can also install Geth Node you can follow this [Guide](https://geth.ethereum
 5. on campaign contract call setOracle(<oracle_address>)
 6. on oracle contract call changeAsk(<campaign_address>,true)
 
-
-
 ## Getting Started
 
 To run SaTT API webservice Provider you will need NodeJS 14.0+ and npm Package manager
 
 ### Prerequisites
 
-
 For development, you will only need Node.js and a node global package.
 
 ### Node
-- #### Node installation on Windows
 
-  Just go on [official Node.js website](https://nodejs.org/) and download the installer.
-Also, be sure to have `git` available in your PATH, `npm` might need it (You can find git [here](https://git-scm.com/)).
+-   #### Node installation on Windows
 
-- #### Node installation on Ubuntu
+    Just go on [official Node.js website](https://nodejs.org/) and download the installer.
+    Also, be sure to have `git` available in your PATH, `npm` might need it (You can find git [here](https://git-scm.com/)).
 
-  You can install nodejs and npm easily with apt install, just run the following commands.
+-   #### Node installation on Ubuntu
 
-      $ sudo apt install nodejs
-      $ sudo apt install npm
+    You can install nodejs and npm easily with apt install, just run the following commands.
 
-   node --version
-      up to  v14.x.x
+        $ sudo apt install nodejs
+        $ sudo apt install npm
 
-   npm --version
-      up to  6.x.x
+    node --version
+    up to v14.x.x
 
-  If the installation was successful, you should be able to run the following command.
-  PM2 Process Manager, you can install it a described below : 
+    npm --version
+    up to 6.x.x
 
-   ```sh
-   npm install pm2 -g
-   ```
+    If the installation was successful, you should be able to run the following command.
+    PM2 Process Manager, you can install it a described below :
 
-
+    ```sh
+    npm install pm2 -g
+    ```
 
 ### Installation
 
-
 1. Clone the repo
-   ```sh
-   git clone https://github.com/Atayen/node-satt.git
-   ```
-2.  ```sh
+    ```sh
+    git clone https://github.com/Atayen/node-satt.git
+    ```
+2. ```sh
    cd <project_name>
    npm install
    ```
-   
+
+````
+
 3. Edit .env file with the right properties
 
 
 4. Register and start PM2 service or install nodemon
-   ```sh
-   pm2 start app.js
-   ```
-   or
+```sh
+pm2 start app.js
+````
 
-   ```sh
-   npm start
-   ```
-   or
+or
 
-   ```sh
-   nodemon
-   ```
+```sh
+npm start
+```
 
+or
+
+```sh
+nodemon
+```
 
 <!-- USAGE EXAMPLES -->
+
 ## Usage
 
 After you run the project, you can navigate to [https://localhost:3015/docs](http://localhost:3015/docs) to see the full list of available endpoints.
+
 ## Project Structure
+
 The folder structure of this app is explained below:
 
-
-| Name                     | Description                                                                                   |
-| ------------------------ | --------------------------------------------------------------------------------------------- |
-| **node_modules**         | Contains all  npm dependencies                                                                |
-| **helpers**              | Contains all requirements and the cron job actions                                            |
-| **manager**              | Contains all the definitions of oracles                                                       |
-| **conf**                 | Contains all configuration for the blockChain part.                                           |
-| **controllers**          | Controllers define functions to serve various express routes.                                 |
-| **routes**               | Contain all express routes, separated by module/area of application .                         |
-| **middlewares**          | Express middlewares which process the incoming requests before handling them down to the routes
-| **routes**               | Contain all express routes, separated by module/area of application                           |
-|  app.js                  | Entry point to express app                                                                    |
-| package.json             | Contains npm dependencies as well as the scripts  
-                                                                                                                           |
-
+| Name             | Description                                                                                     |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| **node_modules** | Contains all npm dependencies                                                                   |
+| **helpers**      | Contains all requirements and the cron job actions                                              |
+| **manager**      | Contains all the definitions of oracles                                                         |
+| **conf**         | Contains all configuration for the blockChain part.                                             |
+| **controllers**  | Controllers define functions to serve various express routes.                                   |
+| **routes**       | Contain all express routes, separated by module/area of application .                           |
+| **middlewares**  | Express middlewares which process the incoming requests before handling them down to the routes |
+| **routes**       | Contain all express routes, separated by module/area of application                             |
+| app.js           | Entry point to express app                                                                      |
+| package.json     | Contains npm dependencies as well as the scripts                                                |
+|                  |
 
 # Swagger
+
 ## Specification
+
 The swagger specification file is named as swagger.yaml. The file is located under definition folder.
 Example:
+
 ```
 paths:
   /hello:
@@ -214,39 +201,46 @@ definitions:
     required:
       - message
 ```
+
 ### Highlights of the swagger.yaml File
 
-- /hello:
-  
-  Specifies how users should be routed when they make a request to this endpoint.
-- x-swagger-router-controller: helloWorldRoute
+-   /hello:
 
-  Specifies  which code file acts as the controller for this endpoint.
-- get:
+    Specifies how users should be routed when they make a request to this endpoint.
 
-  Specifies the method being requested (GET, PUT, POST, etc.).
-- operationId: hello
-  
-  Specifies the direct method to invoke for this endpoint within the controller/router 
-- parameters:
-  
-   This section defines the parameters of your endpoint. They can be defined as path, query, header, formData, or body.
-- definitions:
-   
-   This section defines the structure of objects used in responses or as parameters.
+-   x-swagger-router-controller: helloWorldRoute
+
+    Specifies which code file acts as the controller for this endpoint.
+
+-   get:
+
+    Specifies the method being requested (GET, PUT, POST, etc.).
+
+-   operationId: hello
+
+    Specifies the direct method to invoke for this endpoint within the controller/router
+
+-   parameters:
+
+    This section defines the parameters of your endpoint. They can be defined as path, query, header, formData, or body.
+
+-   definitions:
+    This section defines the structure of objects used in responses or as parameters.
+
 ## Swagger Middleware
+
 The project is using npm module `swagger-tools` that provides middleware functions for metadata, security, validation and routing, and bundles Swagger UI into Express.
 
 <!-- Project Structure -->
 
 <!-- ROADMAP -->
+
 ## Roadmap
 
 See the [open issues](https://github.com/Atayen/node-satt/issues) for a list of proposed features (and known issues).
 
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -257,42 +251,29 @@ Contributions are what make the open source community such an amazing place to b
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
-
-
 ### Social networks
 
+-   #### Facebook configuration
 
-- #### Facebook configuration
+    To create a Facebook app you should visit [official developer.facebook.com website](https://developers.facebook.com/apps/) and respect the following steps:
 
-
-  To create a Facebook app you should visit [official developer.facebook.com website](https://developers.facebook.com/apps/) and respect the following steps:
-
-  # Create an app
+    # Create an app
 
 ![alt text](/public/1.png)
 
-
-  # Confirm app creation
-
+# Confirm app creation
 
 ![alt text](/public/2.png)
 
-
-
-  # Get Facebook credentials
+# Get Facebook credentials
 
 ![alt text](/public/3.png)
 
-
-
-  # Get Facebook version
-
+# Get Facebook version
 
 ![alt text](/public/4.png)
 
-
-PS: 
+PS:
 All this credentials refers to APPID,APP_SECRET,FB_GRAPH_VERSION in .env file
 
 ```sh
@@ -301,42 +282,31 @@ APP_SECRET=process.env.APP_SECRET
 FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 ```
 
-- #### Google configuration
+-   #### Google configuration
 
-  To create a google app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
+    To create a google app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
 
-  # Create Credentialds
+    # Create Credentialds
 
 ![alt text](/public/11.png)
 
-
-  # Fill out the form
+# Fill out the form
 
 ![alt text](/public/22.png)
 
-
-
-  # Get Client crededentials
+# Get Client crededentials
 
 ![alt text](/public/33.png)
 
+# Create Youtube configuration
 
+![alt text](/public/111.png)
 
-  # Create Youtube configuration
+# Get Youtube configuration
 
-  ![alt text](/public/111.png)
+![alt text](/public/222.png)
 
-
-
-  # Get Youtube configuration
-
-  ![alt text](/public/222.png)
-
-
-
-
-
-PS: 
+PS:
 All this credentials refers to GOOGLE_CLIENTID,GOOGLE_CLIENT_SECRET and GDA_TAP_API_KEY in .env file
 
 ```sh
@@ -345,24 +315,19 @@ GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
 GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 ```
 
+-   #### LinkedIN configuration
 
-- #### LinkedIN configuration
+    To create a linkedin app you should visit [official developer.linkedin.com website](https://developer.linkedin.com/) and respect the following steps:
 
-  To create a linkedin app you should visit [official developer.linkedin.com website](https://developer.linkedin.com/) and respect the following steps:
-
-  # Create a new app
+    # Create a new app
 
 ![alt text](/public/333.png)
 
-
-  # Get linkedin crededentials
+# Get linkedin crededentials
 
 ![alt text](/public/444.png)
 
-
-
-
-PS: 
+PS:
 All this credentials refers to LINKEDIN_KEY and LINKEDIN_SECRET in .env file
 
 ```sh
@@ -370,41 +335,29 @@ LINKEDIN_KEY=process.env.LINKEDIN_KEY
 LINKEDIN_SECRET=process.env.LINKEDIN_SECRET
 ```
 
+-   #### Twitter configuration
 
+    To create a linkedin app you should visit [official developers.twitter.com website](https://developer.twitter.com/) and respect the following steps:
 
-
-- #### Twitter  configuration
-
-  To create a linkedin app you should visit [official  developers.twitter.com website](https://developer.twitter.com/) and respect the following steps:
-
-  # Create a new app
+    # Create a new app
 
 ![alt text](/public/1t.png)
 
-
-  # Set params for your app
+# Set params for your app
 
 ![alt text](/public/2t.png)
 
-
-
-  # Get your twitter credentialds
+# Get your twitter credentialds
 
 ![alt text](/public/3t.png)
 
+# Get your twitter credentialds
 
-
-  # Get your twitter credentialds
-
-  you can regenerate again your credentials with more options
-
+you can regenerate again your credentials with more options
 
 ![alt text](/public/4t.png)
 
-
-
-
-PS: 
+PS:
 All this credentials refers to TWITTER_CONSUMER_KEY_ALT, TWILTTER_CONSUMER_SECRET_ALT,TWITTER_CONSUMER_SECRET_DEV,TWITTER_CONSUMER_KEY
 TWITTER_CONSUMER_SECRET,TWITTER_ACCESS_TOKEN_KEY and TWITTER_ACCESS_TOKEN_SECRET in .env file
 
@@ -418,64 +371,46 @@ TWITTER_ACCESS_TOKEN_KEY=process.env.TWITTER_ACCESS_TOKEN_KEY
 TWITTER_ACCESS_TOKEN_SECRET=process.env.TWITTER_ACCESS_TOKEN_SECRET
 ```
 
-- #### Telegram configuration
+-   #### Telegram configuration
 
+    To create a Telegram bot you should set it via mobile Telegram application:
 
-  To create a Telegram bot you should set it via mobile Telegram application:
-
-  # BotFather
+    # BotFather
 
 ![alt text](/public/bot1.png)
 
-
-  # Get your confirmation
+# Get your confirmation
 
 ![alt text](/public/bot2.png)
 
-
-
-PS: 
+PS:
 This credential refer to TELEGRAM_BOT_TOKEN in .env file
-
-
 
 ```sh
 TELEGRAM_BOT_TOKEN=process.env.TELEGRAM_BOT_TOKEN
 
 ```
 
+-   #### CoinMarketCap
 
+We get data refer tou Satt token from [official coinmarketcap.com/api website](https://coinmarketcap.com/api/) and respect the following steps:
 
-- #### CoinMarketCap
-
-
- We get data refer tou Satt token from [official  coinmarketcap.com/api website](https://coinmarketcap.com/api/) and respect the following steps:
-
-
-
-
-  # Create your account
+# Create your account
 
 ![alt text](/public/marketcap0.png)
 
-
-
-  # Get your crededentials
+# Get your crededentials
 
 ![alt text](/public/marketcap1.png)
 
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-
-
 <!-- CONTACT -->
+
 ## Contact
 
 For more information don't hesitate to contact us by email to dev@atayen.us
-
-
-
-
