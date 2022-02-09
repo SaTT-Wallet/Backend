@@ -6,6 +6,7 @@
     "description": "Satt NodeJS backend",
     "main": "app.js",
     "scripts": {
+        "prepare": "husky install",
         "newVersion": " node changepackage.js",
         "push": "git checkout developement && git pull && node changepackage.js develop  && git add package.json && git commit -m  NewVersionpackage && git push"
     },
@@ -105,6 +106,13 @@
         "xmlhttprequest-ssl": ">=1.6.2"
     },
     "devDependencies": {
-        "nodemon": "^2.0.15"
+      "husky": "^7.0.4",
+      "lint-staged": "^12.3.3",
+      "nodemon": "^2.0.15",
+      "prettier": "2.5.1"
+    },
+    "lint-staged": {
+      "*.{js,css,md}": "prettier --write"
     }
+   
 }
