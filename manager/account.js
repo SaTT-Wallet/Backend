@@ -1210,7 +1210,6 @@ module.exports = async function (app) {
                 { _id: +id },
                 { projection: { fireBaseAccessToken: true, _id: false } }
             )
-
         if (user.fireBaseAccessToken) {
             let data = {
                 message: {

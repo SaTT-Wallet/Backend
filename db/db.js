@@ -8,6 +8,10 @@ module.exports = async function (app) {
     var db = await mongoClient
         .connect(
             'mongodb://' +
+                app.config.mongoUser +
+                ':' +
+                app.config.mongoPass +
+                '@' +
                 app.config.mongoHost +
                 ':' +
                 app.config.mongoPort +
