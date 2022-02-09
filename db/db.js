@@ -58,7 +58,11 @@ module.exports = async function (app) {
             .db(app.config.mongoBase)
             .collection(app.config.notifCollection)
     }
-
+    app.db.CampaignLinkStatistic = function () {
+        return db
+            .db(app.config.mongoBase)
+            .collection(app.config.linkStatCollection)
+    }
     app.db.UserLegal = function () {
         return db
             .db(app.config.mongoBase)
@@ -71,6 +75,11 @@ module.exports = async function (app) {
             .collection(app.config.userIDCollection)
     }
 
+    app.db.contact = function () {
+        return db
+            .db(app.config.mongoBase)
+            .collection(app.config.contactCollection)
+    }
     app.db.campaign_link = function () {
         return db.db(app.config.mongoBase).collection(app.config.linkCollection)
     }

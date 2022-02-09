@@ -2,6 +2,9 @@ var requirement = require('../helpers/utils')
 const crypto = require('crypto')
 const qrcode = require('qrcode')
 const speakeasy = require('speakeasy')
+var Captcha = require('../model/captcha.model')
+const { responseHandler } = require('../helpers/response-handler')
+
 var connection
 let app
 ;(connection = async function () {
@@ -57,20 +60,17 @@ exports.changePassword = async (req, response) => {
 }
 exports.captcha = async (req, res) => {
     try {
-        count = await app.db.captcha().count()
-        const random = Math.floor(Math.random() * count)
-        let captchas = await app.db
-            .captcha()
-            .find()
-            .limit(1)
-            .skip(random)
-            .toArray()
-        let captcha = captchas[0]
-        res.send(JSON.stringify({ captcha }))
+        let count = await Captcha.countDocuments()
+        let random = Math.floor(Math.random() * count)
+        let captcha = await Captcha.findOne().limit(1).skip(random)
+        return responseHandler.makeResponse(res, true, 200, 'success', captcha)
     } catch (err) {
-        res.end(
-            JSON.stringify({ error: err.message ? err.message : err.error })
-        ).status(500)
+        return responseHandler.makeResponse(
+            res,
+            false,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
