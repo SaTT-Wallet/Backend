@@ -1,10 +1,15 @@
 {
     "name": "node-satt",
-    "version": "1.0.0",
+    "version": "2.0.1",
     "author": "Atayen, Inc",
     "license": "ISC",
     "description": "Satt NodeJS backend",
     "main": "app.js",
+    "scripts": {
+        "prepare": "husky install",
+        "newVersion": " node changepackage.js",
+        "push": "git checkout developement && git pull && node changepackage.js develop  && git add package.json && git commit -m  NewVersionpackage && git push"
+    },
     "dependencies": {
         "@apollo/client": "^3.4.17",
         "ansi-regex": ">=5.0.1",
@@ -56,6 +61,7 @@
         "moment": "^2.22.2",
         "mongodb": "^3.1.10",
         "mongoose": "^5.12.3",
+        "mongoose-auto-increment": "^5.0.1",
         "mpath": "^0.8.4",
         "multer": "^1.4.2",
         "multer-gridfs-storage": "^4.2.0",
@@ -107,8 +113,5 @@
     },
     "lint-staged": {
         "*.{js,css,md}": "prettier --write"
-    },
-    "scripts": {
-        "prepare": "husky install"
     }
 }
