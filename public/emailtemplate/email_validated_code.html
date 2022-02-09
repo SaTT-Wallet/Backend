@@ -1,56 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta name="viewport" content="width=device-width"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Atayen</title>
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-</head>
-<body style="background-color: #f6f6ff;">
-<table  align="center" style="background-color: #fff;">
-    <tr align="left">
-        <td style="padding:10px"><img src="{{imgUrl}}/SaTT-logo_.png" alt="logo"></td>
-    </tr>
-    <tr align="center">
-        <td><img src="{{imgUrl}}/welcome-code.png" alt=""></td>
-    </tr>
-    <tr align="center">
-        <td><span style="color: #9f33b9;font-size: 50px;font-weight: 700;font-family: system-ui;">Welcome !</span></td>
-    </tr>
-    <tr align="center" >
-        <td style="padding: 20px 0;"><span style="font-size: 20px;font-weight: 700;font-family: system-ui;">Your registration is almost complete !</span></td>
-    </tr>
-    <tr align="center">
-        <td style="padding: 0 50px;padding-bottom: 20px;"><span style="font-size: 16px;font-weight: 500;font-family: system-ui;">Protecting your wallet is our priority. <br>Please confirme your account by entering this cood at the validation page.</span></td>
-    </tr>
-    <tr align="center">
-        <td style="padding-bottom: 10px 0;"><span style="font-size: 16px;font-weight: 400;font-family: system-ui;">Your validation code :</span></td>
-    </tr>
-    <tr align="center">
-        <td style="padding: 30px 0;">
-            <span style="color: #fff; background-color: #6ecda0;
-            padding: 10px 35px;font-size: 36px; font-weight: 700;border-radius: 30px;font-family: system-ui;">{{code}}</span>
-            </td>
-    </tr>
-    <tr align="center">
-        <td><span style="font-size: 12px;font-weight: 500;font-family: system-ui;">This code will only be valid for 5 min</span></td>
-    </tr>
-    <tr align="center">
-        <td style="padding-top: 10px;padding-bottom: 35px;text-decoration-line: underline;">
-            <span style="font-size: 13px;font-weight: 500;font-family: system-ui;">If you are not the originator of this registration,<br> 
-            please contact support.</span>
-        </td>
-    </tr>
-    <tr align="center" style="background-color: #1f2337;">
-        <td style=" padding: 20px 0;">    
-            <a href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"><img style="width: 10px;padding: 0 10px;"src="{{imgUrl}}/Facebook_em.png" alt=""></a>
-            <a href="https://t.me/satttoken"><img style="width: 24px;padding: 0 10px;"src="{{imgUrl}}/Telegram_em.png" alt=""></a>
-            <a href="https://twitter.com/SaTT_Token"><img style="width: 25px;padding: 0 10px;"src="{{imgUrl}}/Twitter_em.png" alt=""></a>
-            <a href="https://bitcointalk.org/index.php?topic=3407522"><img style="width: 18px;padding: 0 10px;"src="{{imgUrl}}/Bitcoin_em.png" alt=""></a>
-            <br>
-            <span style="font-size:15px;font-weight: 600;color:#fff;font-family: system-ui;padding-top: 10px;display: block;">Copyright © 2021 Atayen, Inc. <br> All right reserved </span>
-        </td>
-    </tr>
-</table>
-</body>
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Atayen</title>
+        <meta
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            name="viewport"
+        />
+    </head>
+    <body style="background-color: #f6f6ff">
+        <table align="center" style="background-color: #fff">
+            <tr align="left">
+                <td style="padding: 10px">
+                    <img src="{{imgUrl}}/SaTT-logo_.png" alt="logo" />
+                </td>
+            </tr>
+            <tr align="center">
+                <td><img src="{{imgUrl}}/welcome-code.png" alt="" /></td>
+            </tr>
+            <tr align="center">
+                <td>
+                    <span
+                        style="
+                            color: #9f33b9;
+                            font-size: 50px;
+                            font-weight: 700;
+                            font-family: system-ui;
+                        "
+                        >Welcome !</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td style="padding: 20px 0">
+                    <span
+                        style="
+                            font-size: 20px;
+                            font-weight: 700;
+                            font-family: system-ui;
+                        "
+                        >Your registration is almost complete !</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td style="padding: 0 50px; padding-bottom: 20px">
+                    <span
+                        style="
+                            font-size: 16px;
+                            font-weight: 500;
+                            font-family: system-ui;
+                        "
+                        >Protecting your wallet is our priority. <br />Please
+                        confirme your account by entering this cood at the
+                        validation page.</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td style="padding-bottom: 10px 0">
+                    <span
+                        style="
+                            font-size: 16px;
+                            font-weight: 400;
+                            font-family: system-ui;
+                        "
+                        >Your validation code :</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td style="padding: 30px 0">
+                    <span
+                        style="
+                            color: #fff;
+                            background-color: #6ecda0;
+                            padding: 10px 35px;
+                            font-size: 36px;
+                            font-weight: 700;
+                            border-radius: 30px;
+                            font-family: system-ui;
+                        "
+                        >{{code}}</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td>
+                    <span
+                        style="
+                            font-size: 12px;
+                            font-weight: 500;
+                            font-family: system-ui;
+                        "
+                        >This code will only be valid for 5 min</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td
+                    style="
+                        padding-top: 10px;
+                        padding-bottom: 35px;
+                        text-decoration-line: underline;
+                    "
+                >
+                    <span
+                        style="
+                            font-size: 13px;
+                            font-weight: 500;
+                            font-family: system-ui;
+                        "
+                        >If you are not the originator of this registration,<br />
+                        please contact support.</span
+                    >
+                </td>
+            </tr>
+            <tr align="center" style="background-color: #1f2337">
+                <td style="padding: 20px 0">
+                    <a
+                        href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"
+                        ><img
+                            style="width: 10px; padding: 0 10px"
+                            src="{{imgUrl}}/Facebook_em.png"
+                            alt=""
+                    /></a>
+                    <a href="https://t.me/satttoken"
+                        ><img
+                            style="width: 24px; padding: 0 10px"
+                            src="{{imgUrl}}/Telegram_em.png"
+                            alt=""
+                    /></a>
+                    <a href="https://twitter.com/SaTT_Token"
+                        ><img
+                            style="width: 25px; padding: 0 10px"
+                            src="{{imgUrl}}/Twitter_em.png"
+                            alt=""
+                    /></a>
+                    <a href="https://bitcointalk.org/index.php?topic=3407522"
+                        ><img
+                            style="width: 18px; padding: 0 10px"
+                            src="{{imgUrl}}/Bitcoin_em.png"
+                            alt=""
+                    /></a>
+                    <br />
+                    <span
+                        style="
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: #fff;
+                            font-family: system-ui;
+                            padding-top: 10px;
+                            display: block;
+                        "
+                        >Copyright © 2021 Atayen, Inc. <br />
+                        All right reserved
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </body>
 </html>
