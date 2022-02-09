@@ -3,338 +3,412 @@
 <html lang="en" class="ie8"> <![endif]-->
 <!--[if !IE]><!-->
 <html lang="en">
-<!--<![endif]-->
-<head>
-    <meta name="viewport" content="width=device-width"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Atayen</title>
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap" rel="stylesheet">
-    <style>
-        .main {
-            width: 100%;
-            text-align: center;
-        }
+    <!--<![endif]-->
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Atayen</title>
+        <meta
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            name="viewport"
+        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            .main {
+                width: 100%;
+                text-align: center;
+            }
 
-        a {
-            text-decoration: none;
-        }
+            a {
+                text-decoration: none;
+            }
 
-        .icon {
-            width: 15px;
-        }
+            .icon {
+                width: 15px;
+            }
 
-        .content {
-            width: 720px;
-            font-style: normal;
-            font-weight: normal;
-            color: #FFFFFF;
-            display: inline-table;
-            border: 1px solid #D6D6E8;
-        }
+            .content {
+                width: 720px;
+                font-style: normal;
+                font-weight: normal;
+                color: #ffffff;
+                display: inline-table;
+                border: 1px solid #d6d6e8;
+            }
 
-        .content .top {
-            color: #FFF;
-            padding: 15px 10px;
-            margin-bottom: 20px;
-        }
+            .content .top {
+                color: #fff;
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
 
-        .content .top .col {
-            display: inline-block;
-            width: 48%;
-        }
+            .content .top .col {
+                display: inline-block;
+                width: 48%;
+            }
 
-        .content .top .col a {
-            font-family: 'Roboto', sans-serif;
-            font-size: 14px;
-            line-height: 16px;
-            letter-spacing: 0.03em;
-            color: #F6F6FF;
-        }
+            .content .top .col a {
+                font-family: 'Roboto', sans-serif;
+                font-size: 14px;
+                line-height: 16px;
+                letter-spacing: 0.03em;
+                color: #f6f6ff;
+            }
 
-        .content .mail-header {
-            background-image: url("https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png");
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-            padding-bottom: 35px;
-        }
+            .content .mail-header {
+                background-image: url('https://web-preprod.iframe-apps.com/images/img_mail/password_bg.png');
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                align-items: center;
+                text-align: center;
+                width: 100%;
+                padding-bottom: 35px;
+            }
 
-        .content .mail-header h2 {
-            font-family: 'Lato', sans-serif;
-            font-style: normal;
-            font-weight: bold;
-            font-size: 40px;
-            line-height: 50px;
-            letter-spacing: 1px;
-            color: #FFF;
-            margin-bottom: 20px;
-            margin-top: 25px;
-        }
+            .content .mail-header h2 {
+                font-family: 'Lato', sans-serif;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 40px;
+                line-height: 50px;
+                letter-spacing: 1px;
+                color: #fff;
+                margin-bottom: 20px;
+                margin-top: 25px;
+            }
 
-        .content .mail-header a.btn {
-            font-family: 'Lato', sans-serif;
-            font-style: normal;
-            font-weight: 900;
-            font-size: 18px;
-            line-height: 22px;
-            letter-spacing: 0.03em;
-            color: #F6F6FF;
-            background: #00CC9E;
-            border-radius: 30px;
-        }
+            .content .mail-header a.btn {
+                font-family: 'Lato', sans-serif;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 18px;
+                line-height: 22px;
+                letter-spacing: 0.03em;
+                color: #f6f6ff;
+                background: #00cc9e;
+                border-radius: 30px;
+            }
 
-        .content .mail-header p.subtitle {
-            font-family: 'Lato', sans-serif;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 22px;
-            text-align: center;
-            letter-spacing: 0.02em;
-            color: #FFFFFF;
-        }
+            .content .mail-header p.subtitle {
+                font-family: 'Lato', sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                line-height: 22px;
+                text-align: center;
+                letter-spacing: 0.02em;
+                color: #ffffff;
+            }
 
-        .content .mail-header p {
-            font-family: 'Roboto', sans-serif;
-            font-size: 14px;
-            line-height: 16px;
-            letter-spacing: 0.03em;
-        }
+            .content .mail-header p {
+                font-family: 'Roboto', sans-serif;
+                font-size: 14px;
+                line-height: 16px;
+                letter-spacing: 0.03em;
+            }
 
-        .content .mail-body {
-            color: #1F2337;
-            font-style: normal;
-            font-family: 'Roboto', sans-serif;
-            padding: 30px;
-        }
+            .content .mail-body {
+                color: #1f2337;
+                font-style: normal;
+                font-family: 'Roboto', sans-serif;
+                padding: 30px;
+            }
 
-        .content .mail-body .subtitle {
-            margin-top: 15px;
-            margin-bottom: 15px;
-            font-family: 'Lato', sans-serif;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 22px;
-            text-align: center;
-            letter-spacing: 0.02em;
-        }
+            .content .mail-body .subtitle {
+                margin-top: 15px;
+                margin-bottom: 15px;
+                font-family: 'Lato', sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                line-height: 22px;
+                text-align: center;
+                letter-spacing: 0.02em;
+            }
 
-        .content .mail-body p {
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 16px;
-            text-align: center;
-        }
+            .content .mail-body p {
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 16px;
+                text-align: center;
+            }
 
-        .content .mail-body a.contact {
-            color: #4048FF;
-        }
+            .content .mail-body a.contact {
+                color: #4048ff;
+            }
 
-        .content .mail-body .actions {
-            margin-top: 30px;
-            margin-bottom: 30px;
-            text-align: center;
-            margin-top: 25px;
-            margin-bottom: 40px;
-        }
+            .content .mail-body .actions {
+                margin-top: 30px;
+                margin-bottom: 30px;
+                text-align: center;
+                margin-top: 25px;
+                margin-bottom: 40px;
+            }
 
-        .content .mail-body .actions a {
-            width: auto;
-            min-width: 245px;
-            margin-top: 10px;
-            font-family: 'Lato', sans-serif;
-            font-style: normal;
-            font-weight: 900;
-            font-size: 18px;
-            line-height: 22px;
-            padding: 15px 35px;
-            align-items: center;
-            text-align: center;
-            letter-spacing: 0.03em;
-            border-radius: 30px;
-            display: inline-block;
-            margin-left: 10px;
-            margin-right: 10px;
-        }
+            .content .mail-body .actions a {
+                width: auto;
+                min-width: 245px;
+                margin-top: 10px;
+                font-family: 'Lato', sans-serif;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 18px;
+                line-height: 22px;
+                padding: 15px 35px;
+                align-items: center;
+                text-align: center;
+                letter-spacing: 0.03em;
+                border-radius: 30px;
+                display: inline-block;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
 
-        .content .mail-body .actions a.primary {
-            color: #F6F6FF;
-            background: #4048FF;
-        }
+            .content .mail-body .actions a.primary {
+                color: #f6f6ff;
+                background: #4048ff;
+            }
 
-        .content .mail-body .actions a.secondary {
-            color: #4048FF;
-            background: #FFFFFF;
-            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-        }
+            .content .mail-body .actions a.secondary {
+                color: #4048ff;
+                background: #ffffff;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+            }
 
-        .content .mail-footer {
-            border-top: 1px solid #D6D6E8;
-            text-align: center;
-            color: #4048FF;
-            padding: 25px;
-            text-transform: uppercase;
-            margin-left: 35px;
-            margin-right: 35px;
-        }
+            .content .mail-footer {
+                border-top: 1px solid #d6d6e8;
+                text-align: center;
+                color: #4048ff;
+                padding: 25px;
+                text-transform: uppercase;
+                margin-left: 35px;
+                margin-right: 35px;
+            }
 
-        .content .mail-footer a {
-            font-family: 'Roboto', sans-serif;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 16px;
-            text-align: center;
-            letter-spacing: 0.03em;
-            padding: 1px 10px;
-        }
+            .content .mail-footer a {
+                font-family: 'Roboto', sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 16px;
+                text-align: center;
+                letter-spacing: 0.03em;
+                padding: 1px 10px;
+            }
 
-        .content .mail-footer a.border-l {
-            border-left: solid 1px;
-        }
+            .content .mail-footer a.border-l {
+                border-left: solid 1px;
+            }
 
-        .mail-body .col.img {
-            width: 30%;
-            text-align: center;
-        }
+            .mail-body .col.img {
+                width: 30%;
+                text-align: center;
+            }
 
-        .mail-body .col.text {
-            width: 69%;
-            text-align: left !important;
-        }
+            .mail-body .col.text {
+                width: 69%;
+                text-align: left !important;
+            }
 
-        .sub-footer {
-            background: #4048FF;
-            padding: 30px 40px;
-            text-align: center;
-        }
+            .sub-footer {
+                background: #4048ff;
+                padding: 30px 40px;
+                text-align: center;
+            }
 
-        .sub-footer h2 {
-            font-family: Lato;
-            font-style: normal;
-            font-weight: bold;
-            font-size: 40px;
-            line-height: 50px;
-            text-align: center;
-            letter-spacing: 1px;
-            color: #FFFFFF;
-        }
+            .sub-footer h2 {
+                font-family: Lato;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 40px;
+                line-height: 50px;
+                text-align: center;
+                letter-spacing: 1px;
+                color: #ffffff;
+            }
 
-        .sub-footer p {
-            font-family: Roboto;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 18px;
-            text-align: center;
-            letter-spacing: 0.04em;
-            color: #FFFFFF
-        }
+            .sub-footer p {
+                font-family: Roboto;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 18px;
+                text-align: center;
+                letter-spacing: 0.04em;
+                color: #ffffff;
+            }
 
-        .footer {
-            padding: 30px 40px;
-            background: #1F2337;
-            text-align: center;
-        }
+            .footer {
+                padding: 30px 40px;
+                background: #1f2337;
+                text-align: center;
+            }
 
-        .footer .social-network {
-            margin-bottom: 10px;
-        }
+            .footer .social-network {
+                margin-bottom: 10px;
+            }
 
-        .footer .social-network a {
-            margin-left: 10px;
-            margin-right: 10px;
-        }
+            .footer .social-network a {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
 
-        .footer .copyright {
-            font-family: Roboto;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 12px;
-            line-height: 14px;
-            text-align: center;
-            letter-spacing: 0.03em;
-            color: #FFFFFF;
-        }
-    </style>
-</head>
-<body>
-<div class="main" align="center">
-    <div class="content">
-        <div class="mail-header">
-            <div class="top">
-                <div class="col" align="left">
-                    <img src="https://web-preprod.iframe-apps.com/images/img_mail/logo.png" alt="">
+            .footer .copyright {
+                font-family: Roboto;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 12px;
+                line-height: 14px;
+                text-align: center;
+                letter-spacing: 0.03em;
+                color: #ffffff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="main" align="center">
+            <div class="content">
+                <div class="mail-header">
+                    <div class="top">
+                        <div class="col" align="left">
+                            <img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/logo.png"
+                                alt=""
+                            />
+                        </div>
+                        <div class="col" align="right">
+                            <a href="{{satt_url}}"
+                                >Voir la version en ligne
+                                <img
+                                    class="icon"
+                                    src="https://web-preprod.iframe-apps.com/images/img_mail/right_arrow.png"
+                            /></a>
+                        </div>
+                    </div>
+                    <img
+                        src="https://web-preprod.iframe-apps.com/images/img_mail/password.png"
+                        alt=""
+                    />
+                    <h2>Bienvenue !</h2>
+                    <p>
+                        Votre inscription est presque finie ! <br />
+                        Il ne vous reste plus qu'à valider votre inscription
+                        pour<br />
+                        accéder à tous les services proposés par SaTT.
+                    </p>
+                    <div class="actions">
+                        <a href="{{validation_url}}" class="primary"
+                            >Je valide mon mail</a
+                        >
+                    </div>
                 </div>
-                <div class="col" align="right">
-                    <a href="{{satt_url}}">Voir la version en ligne <img class="icon" src="https://web-preprod.iframe-apps.com/images/img_mail/right_arrow.png"></a>
+                <div class="mail-body">
+                    <div>
+                        <div class="col img">
+                            <img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/wallet.png"
+                                alt=""
+                            />
+                        </div>
+                        <div class="col text">
+                            <div class="subtitle" align="left">
+                                Commencez par créer votre portefeuille
+                            </div>
+                            <p>
+                                Votre inscription est presque finie ! Il ne vous
+                                reste plus qu'à valider votre inscription pour
+                                accéder à tous les services proposés par SaTT.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="col img">
+                            <img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/audience.png"
+                                alt=""
+                            />
+                        </div>
+                        <div class="col text">
+                            <div class="subtitle" align="left">
+                                Monétisez votre audience !
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet, consectetur
+                                adipiscing elit. Integer eu sodales augue.
+                                Phasellus ultrices consectetur ligula rhoncus
+                                egestas. Fusce eleifend a elit scelerisque
+                                scelerisque.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="col img">
+                            <img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/campain.png"
+                                alt=""
+                            />
+                        </div>
+                        <div class="col text">
+                            <div class="subtitle" align="left">
+                                Lancez vos campagnes !
+                            </div>
+                            <p>
+                                Lorem ipsum dolor sit amet, consectetur
+                                adipiscing elit. Integer eu sodales augue.
+                                Phasellus ultrices consectetur ligula rhoncus
+                                egestas. Fusce eleifend a elit scelerisque
+                                scelerisque.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <img src="https://web-preprod.iframe-apps.com/images/img_mail/password.png" alt="">
-            <h2>Bienvenue !</h2>
-            <p>Votre inscription est presque finie ! <br>
-                Il ne vous reste plus qu'à valider votre inscription pour<br>
-                accéder à tous les services proposés par SaTT. </p>
-            <div class="actions">
-                <a href="{{validation_url}}" class="primary">Je valide mon mail</a>
+                <div class="sub-footer" align="center">
+                    <h2>Vous avez des questions ?</h2>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        Integer eu sodales augue. Phasellus ultrices consectetur
+                        ligula rhoncus egestas. Fusce eleifend a elit
+                        scelerisque scelerisque.
+                    </p>
+                    <div class="actions">
+                        <a href="https://satt.atayen.us/#/faq" class="secondary"
+                            >Consultez la FAQ</a
+                        >
+                    </div>
+                </div>
+                <div class="footer">
+                    <div class="social-network">
+                        <a
+                            href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"
+                            ><img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/Facebook.png"
+                        /></a>
+                        <a href="https://t.me/satttoken"
+                            ><img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/Telegram.png"
+                        /></a>
+                        <a href="https://twitter.com/SaTT_Token"
+                            ><img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/Twitter.png"
+                        /></a>
+                        <a
+                            href="https://bitcointalk.org/index.php?topic=3407522"
+                            ><img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/Bitcoin.png"
+                        /></a>
+                        <a href=""
+                            ><img
+                                src="https://web-preprod.iframe-apps.com/images/img_mail/Messenger.png"
+                        /></a>
+                    </div>
+                    <div class="copyright">
+                        Copyright © 2020 Atayen, Inc. <br />
+                        All right reserved
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="mail-body">
-            <div>
-                <div class="col img"><img src="https://web-preprod.iframe-apps.com/images/img_mail/wallet.png" alt=""></div>
-                <div class="col text">
-                    <div class="subtitle" align="left">Commencez par créer votre portefeuille</div>
-                    <p>Votre inscription est presque finie !
-                        Il ne vous reste plus qu'à valider votre inscription pour accéder à tous les services proposés par SaTT. </p>
-                </div>
-            </div>
-            <div>
-                <div class="col img"><img src="https://web-preprod.iframe-apps.com/images/img_mail/audience.png" alt=""></div>
-                <div class="col text">
-                    <div class="subtitle" align="left"> Monétisez votre audience !</div>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Integer eu sodales augue.
-                        Phasellus ultrices consectetur ligula rhoncus egestas.
-                        Fusce eleifend a elit scelerisque scelerisque.</p>
-                </div>
-            </div>
-            <div>
-                <div class="col img"><img src="https://web-preprod.iframe-apps.com/images/img_mail/campain.png" alt=""></div>
-                <div class="col text">
-                    <div class="subtitle" align="left"> Lancez vos campagnes !</div>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                        Integer eu sodales augue. Phasellus ultrices consectetur ligula rhoncus egestas.
-                        Fusce eleifend a elit scelerisque scelerisque.</p>
-                </div>
-            </div>
-
-        </div>
-        <div class="sub-footer" align="center">
-            <h2>Vous avez des questions ?</h2>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Integer eu sodales augue. Phasellus ultrices consectetur ligula rhoncus egestas.
-                Fusce eleifend a elit scelerisque scelerisque.</p>
-            <div class="actions">
-                <a href="https://satt.atayen.us/#/faq" class="secondary">Consultez la FAQ</a>
-            </div>
-        </div>
-        <div class="footer">
-            <div class="social-network">
-                <a href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Facebook.png"></a>
-                <a href="https://t.me/satttoken"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Telegram.png"></a>
-                <a href="https://twitter.com/SaTT_Token"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Twitter.png"></a>
-                <a href="https://bitcointalk.org/index.php?topic=3407522"><img src="https://web-preprod.iframe-apps.com/images/img_mail/Bitcoin.png"></a>
-                <a href=""><img src="https://web-preprod.iframe-apps.com/images/img_mail/Messenger.png"></a>
-            </div>
-            <div class="copyright">
-                Copyright © 2020 Atayen, Inc. <br>
-                All right reserved
-            </div>
-        </div>
-    </div>
-</div>
-</body>
+    </body>
 </html>

@@ -1,108 +1,125 @@
-let express = require('express');
-let router = express.Router();
-const {rejectLink,bep20Approval,erc20Approval,campaign,pendingLink, campaigns, 
-    launchCampaign,campaignPromp,launchBounty, totalEarned, 
-    totalSpent,apply, linkNotifications,
-    linkStats,increaseBudget, 
-    getLinks,getFunds,gains , addKits,update, kits, saveCampaign, upload,
-    validateCampaign,bep20Allow,erc20Allow} = require('../controllers/campaign.controller')
-    const { verifyAuth} =require('../middleware/passport.middleware');
-const { route } = require('./login.routes');
+let express = require('express')
+let router = express.Router()
+const {
+    rejectLink,
+    bep20Approval,
+    erc20Approval,
+    campaign,
+    pendingLink,
+    campaigns,
+    launchCampaign,
+    campaignPromp,
+    launchBounty,
+    totalEarned,
+    totalSpent,
+    apply,
+    linkNotifications,
+    linkStats,
+    increaseBudget,
+    getLinks,
+    getFunds,
+    gains,
+    addKits,
+    update,
+    kits,
+    saveCampaign,
+    upload,
+    validateCampaign,
+    bep20Allow,
+    erc20Allow,
+} = require('../controllers/campaign.controller')
+const { verifyAuth } = require('../middleware/passport.middleware')
+const { route } = require('./login.routes')
 
+/**
+ * @swagger
+ * /campaign/bep20/{token}/approval/{spender}/{addr}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: bep20 aprroval
+ *     description: bep20 aprroval
+ *     parameters:
+ *       - name: token
+ *         description: the  token.
+ *         in: path
+ *         required: true
+ *       - name: spender
+ *         description: the  spender.
+ *         in: path
+ *         required: true
+ *       - name: addr
+ *         description: the  addr.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: ok
+ *          content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   token:
+ *                     type: string
+ *                   allowance:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: string
+ *                   spender:
+ *                     type: string
+ *                 example:
+ *                   token: "0x123456...654654"
+ *                   allowance:
+ *                     amount: "0"
+ *                   spender: "0x987654...3221"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
 
-
-
-
- /**
-  * @swagger
-  * /campaign/bep20/{token}/approval/{spender}/{addr}:
-  *   post:
-  *     tags:
-  *     - "campaign"
-  *     summary: bep20 aprroval
-  *     description: bep20 aprroval
-  *     parameters:
-  *       - name: token
-  *         description: the  token.
-  *         in: path
-  *         required: true
-  *       - name: spender
-  *         description: the  spender.
-  *         in: path
-  *         required: true
-  *       - name: addr
-  *         description: the  addr.
-  *         in: path
-  *         required: true
-  *     responses:
-  *       "200":
-  *          description: ok
-  *          content:
-  *             application/json:
-  *               schema:
-  *                 type: object
-  *                 properties:
-  *                   token:
-  *                     type: string
-  *                   allowance:
-  *                     type: object
-  *                     properties:
-  *                       amount:
-  *                         type: string
-  *                   spender:
-  *                     type: string
-  *                 example:
-  *                   token: "0x123456...654654"
-  *                   allowance:
-  *                     amount: "0"
-  *                   spender: "0x987654...3221"
-  *       "500":
-  *          description: error:"error"
-  */
-  router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
-     
-
-   /**
-  * @swagger
-  * /campaign/bep20/allow:
-  *   post:
-  *     tags:
-  *     - "campaign"
-  *     summary: bep20 allow
-  *     description: bep20 allow
-  *     requestBody:
-  *       required: true
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               spender:
-  *                 type: string
-  *               amount:
-  *                 type: string
-  *               pass:
-  *                 type: string
-  *               token:
-  *                 type: string
-  *     responses:
-  *       "200":
-  *          description: ok
-  *          content:
-  *             application/json:
-  *               schema:
-  *                 type: object
-  *                 properties:
-  *                   transactionHash:
-  *                     type: string
-  *                   address:
-  *                     type: string
-  *                   spender:
-  *                     type: string
-  *       "500":
-  *          description: error:"error"
-  */
-    router.post('/bep20/allow',verifyAuth,bep20Allow);
+/**
+ * @swagger
+ * /campaign/bep20/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: bep20 allow
+ *     description: bep20 allow
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               spender:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               token:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: ok
+ *          content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   transactionHash:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *                   spender:
+ *                     type: string
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/bep20/allow', verifyAuth, bep20Allow)
 /**
  * @swagger
  * /campaign/erc20/{token}/approval/{spender}/{addr}:
@@ -127,70 +144,70 @@ const { route } = require('./login.routes');
  *     responses:
  *       "200":
  *          description: ok
-  *          content:
-  *             application/json:
-  *               schema:
-  *                 type: object
-  *                 properties:
-  *                   token:
-  *                     type: string
-  *                   allowance:
-  *                     type: object
-  *                     properties:
-  *                       amount:
-  *                         type: string
-  *                   spender:
-  *                     type: string
-  *                 example:
-  *                   token: "0x123456...654654"
-  *                   allowance:
-  *                     amount: "0"
-  *                   spender: "0x987654...3221"
+ *          content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   token:
+ *                     type: string
+ *                   allowance:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: string
+ *                   spender:
+ *                     type: string
+ *                 example:
+ *                   token: "0x123456...654654"
+ *                   allowance:
+ *                     amount: "0"
+ *                   spender: "0x987654...3221"
  *       "500":
  *          description: error:"error"
  */
 
- router.post('/erc20/:token/approval/:spender/:addr',erc20Approval);
-   /**
-  * @swagger
-  * /campaign/erc20/allow:
-  *   post:
-  *     tags:
-  *     - "campaign"
-  *     summary: erc20 allow
-  *     description: erc20 allow
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               spender:
-  *                 type: string
-  *               amount:
-  *                 type: string
-  *               token:
-  *                 type: string
-  *               pass:
-  *                 type: string
-  *     responses:
-  *       "200":
-  *          description: ok
-  *          content:
-  *            application/json:
-  *              schema: 
-  *                type: object
-  *                properties:
-  *                  name:
-  *                    type: string
-  *                  message:
-  *                    type: string
-  *                  expiredAt:
-  *                    type: string
-  *       "500":
-  *          description: error:"error"
-  */
-router.post('/erc20/allow',verifyAuth,erc20Allow);
+router.post('/erc20/:token/approval/:spender/:addr', erc20Approval)
+/**
+ * @swagger
+ * /campaign/erc20/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: erc20 allow
+ *     description: erc20 allow
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               spender:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               token:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: ok
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  name:
+ *                    type: string
+ *                  message:
+ *                    type: string
+ *                  expiredAt:
+ *                    type: string
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/erc20/allow', verifyAuth, erc20Allow)
 /**
  * @swagger
  * /campaign/launch/performance:
@@ -262,7 +279,7 @@ router.post('/erc20/allow',verifyAuth,erc20Allow);
  *              example:
  *                error: error
  */
-router.post('/launch/performance',verifyAuth,launchCampaign);
+router.post('/launch/performance', verifyAuth, launchCampaign)
 /**
  * @swagger
  * /campaign/launchBounty:
@@ -316,7 +333,7 @@ router.post('/launch/performance',verifyAuth,launchCampaign);
  *                error: error
  */
 
-router.post('/launchBounty',verifyAuth,launchBounty);
+router.post('/launchBounty', verifyAuth, launchBounty)
 /**
  * @swagger
  * /campaign/totalEarned:
@@ -324,7 +341,7 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *     tags:
  *     - "campaign"
  *     summary: get total earned
- *     description: return to user the total earned <br> without access_token 
+ *     description: return to user the total earned <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -349,13 +366,13 @@ router.post('/launchBounty',verifyAuth,launchBounty);
  *          description: ERROR
  *          content:
  *            application/json:
- *              schema:      # Request body contents  
+ *              schema:      # Request body contents
  *                type: object
  *                properties:
  *                  error:
  *                    type: string
  */
-router.get('/totalEarned',verifyAuth,totalEarned);
+router.get('/totalEarned', verifyAuth, totalEarned)
 /**
  * @swagger
  * /campaign/campaigns:
@@ -363,7 +380,7 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *     tags:
  *     - "campaign"
  *     summary: get campaigns list
- *     description: Returns the list of campaigns <br> without access_token 
+ *     description: Returns the list of campaigns <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -385,18 +402,16 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                  error:
  *                    type: string
  */
- router.get('/campaigns',verifyAuth,campaigns);
+router.get('/campaigns', verifyAuth, campaigns)
 
-
-
- /**
+/**
  * @swagger
  * /campaign/details/{id}:
  *   get:
  *     tags:
  *     - "campaign"
  *     summary: get campaign details
- *     description: return to user campaign detalds <br> with access_token 
+ *     description: return to user campaign detalds <br> with access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -412,7 +427,7 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *              schema:      # Request body contents
  *                type: object
  *                $ref: '#/definitions/Campaign'
- *                  
+ *
  *       "500":
  *          description: ERROR
  *          content:
@@ -423,14 +438,14 @@ router.get('/totalEarned',verifyAuth,totalEarned);
  *                  error:
  *                    type: string
  */
-router.get('/details/:id',campaign);
+router.get('/details/:id', campaign)
 /**
  * @swagger
  * /campaign/totalSpent:
  *   get:
  *     tags: ["campaign"]
  *     summary: get campaign details
- *     description: return user's total spent budget <br> with access_token 
+ *     description: return user's total spent budget <br> with access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -439,7 +454,7 @@ router.get('/details/:id',campaign);
  *       "500":
  *          description: error:"error"
  */
-router.get('/totalSpent',verifyAuth,totalSpent);
+router.get('/totalSpent', verifyAuth, totalSpent)
 /**
  * @swagger
  * /campaign/pendingLink/{id}:
@@ -447,7 +462,7 @@ router.get('/totalSpent',verifyAuth,totalSpent);
  *     tags:
  *     - "campaign"
  *     summary: get campaign pending link
- *     description: return the list of campaign with pending link <br> without access_token 
+ *     description: return the list of campaign with pending link <br> without access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -474,14 +489,14 @@ router.get('/totalSpent',verifyAuth,totalSpent);
  *                  error:
  *                    type: string
  */
-router.get('/pendingLink/:id',pendingLink);
+router.get('/pendingLink/:id', pendingLink)
 /**
  * @swagger
  * /campaign/campaignPrompAll/{id}:
  *   get:
  *     tags: ["campaign"]
  *     summary: get campaign pending link
- *     description: return to user the list of campaign promp ALl <br> without access_token 
+ *     description: return to user the list of campaign promp ALl <br> without access_token
  *     produces:
  *     - application/json
  *     parameters:
@@ -489,14 +504,14 @@ router.get('/pendingLink/:id',pendingLink);
  *       name: id
  *       type: string
  *       description: the campaign id.
- *       
+ *
  *       required: true
  *     responses:
  *       "200":
  *          description: ok
  *          content:
  *            application/json:
- *              schema:      # Request body contents  
+ *              schema:      # Request body contents
  *                type: array
  *                items:
  *                  type: object
@@ -504,12 +519,9 @@ router.get('/pendingLink/:id',pendingLink);
  *       "500":
  *          description: error:"error"
  */
-router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
+router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
 
-
-
-
-     	/**
+/**
  * @swagger
  * /campaign/apply:
  *   post:
@@ -542,7 +554,7 @@ router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
  *          description: ok
  *          content:
  *            application/json:
- *              schema: # Request body contents 
+ *              schema: # Request body contents
  *                type: object
  *                properties:
  *                  idCampaign:
@@ -560,7 +572,7 @@ router.get('/campaignPrompAll/:id',verifyAuth,campaignPromp);
  *       "500":
  *          description: error:error message
  */
-router.post('/apply',verifyAuth,apply);
+router.post('/apply', verifyAuth, apply)
 /**
  * @swagger
  * /campaign/linkNotification:
@@ -595,7 +607,7 @@ router.post('/apply',verifyAuth,apply);
  *       "500":
  *          description: error:error message
  */
-router.post('/linkNotification',linkNotifications);
+router.post('/linkNotification', linkNotifications)
 /**
  * @swagger
  * /campaign/validate:
@@ -628,9 +640,9 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:error message
  */
- router.post('/validate',verifyAuth,validateCampaign);
+router.post('/validate', verifyAuth, validateCampaign)
 
-  /**
+/**
  * @swagger
  * /campaign/gains:
  *   post:
@@ -657,9 +669,9 @@ router.post('/linkNotification',linkNotifications);
  *          description: error:error message
  */
 
-   router.post('/gains', verifyAuth,gains);
- 
-     /**
+router.post('/gains', verifyAuth, gains)
+
+/**
  * @swagger
  * /campaign/save:
  *   post:
@@ -731,155 +743,143 @@ router.post('/linkNotification',linkNotifications);
  *          description: error:error message
  */
 
-      router.post('/save', verifyAuth,saveCampaign);
+router.post('/save', verifyAuth, saveCampaign)
 
+/**
+ * @swagger
+ * /campaign/{idCampaign}/kits:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: get campaign pending link
+ *     description: return to user the list of campaign promp ALl <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: idCampaign
+ *         description: the  idCampaign.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description:[list of campaigns]
+ *       "500":
+ *          description: error:"error"
+ */
+router.get('/:idCampaign/kits', verifyAuth, kits)
 
+/**
+ * @swagger
+ * /campaign/addKits:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: add kits.
+ *     description:  user create new campaign  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaign:
+ *                 type: string
+ *               file:
+ *                 type: string
+ *                 format : base64
+ *               link:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
 
+router.post('/addKits', upload, addKits)
 
-      /**
-* @swagger
-* /campaign/{idCampaign}/kits:
-*   get:
-*     tags:
-*     - "campaign"
-*     summary: get campaign pending link
-*     description: return to user the list of campaign promp ALl <br> without access_token 
-*     produces:
-*       - application/json
-*     parameters:
-*       - name: idCampaign
-*         description: the  idCampaign.
-*         in: path
-*         required: true
-*     responses:
-*       "200":
-*          description:[list of campaigns]
-*       "500":
-*          description: error:"error"
-*/
-       router.get('/:idCampaign/kits',verifyAuth,kits);
+/**
+ * @swagger
+ * /campaign/update/{idCampaign}:
+ *   put:
+ *     tags:
+ *     - "campaign"
+ *     summary: create new campaign.
+ *     description:  user create new campaign  <br> with access_token.
+ *     parameters:
+ *       - name: idCampaign
+ *         description: the  campaign id.
+ *         in: path
+ *         required: true
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               resume:
+ *                 type: string
+ *               brand:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               reference:
+ *                 type: string
+ *               cover:
+ *                 type: string
+ *               logo:
+ *                 type: string
+ *               countries:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *               token:
+ *                 type: object
+ *                 properties:
+ *                    name:
+ *                      type: string
+ *                    type:
+ *                      type: string
+ *                    addr:
+ *                      type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *               endDate:
+ *                 type: date
+ *               startDate:
+ *                 type: date
+ *               remuneration:
+ *                 type: string
+ *               cost:
+ *                 type: string
+ *               cost_usd:
+ *                 type: string
+ *               ratios:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *               bounties:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
+ *
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
 
-
-
-
-          /**
-* @swagger
-* /campaign/addKits:
-*   post:
-*     tags:
-*     - "campaign"
-*     summary: add kits.
-*     description:  user create new campaign  <br> with access_token.
-*     requestBody:
-*       content:
-*         multipart/form-data:
-*           schema:      # Request body contents
-*             type: object
-*             properties:
-*               campaign:
-*                 type: string
-*               file:
-*                 type: string
-*                 format : base64
-*               link:
-*                 type: string
-*     responses:
-*       "200":
-*          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
-*       "500":
-*          description: error:error message
-*/
-
-   router.post('/addKits',upload,addKits);
-
-
-
-
-
-
-
-  /**
-* @swagger
-* /campaign/update/{idCampaign}:
-*   put:
-*     tags:
-*     - "campaign"
-*     summary: create new campaign.
-*     description:  user create new campaign  <br> with access_token.
-*     parameters:
-*       - name: idCampaign
-*         description: the  campaign id.
-*         in: path
-*         required: true
-*     requestBody:
-*       content:
-*         application/json:
-*           schema:      # Request body contents
-*             type: object
-*             properties:
-*               title:
-*                 type: string
-*               resume:
-*                 type: string
-*               brand:
-*                 type: string
-*               description:
-*                 type: string
-*               reference:
-*                 type: string
-*               cover:
-*                 type: string
-*               logo:
-*                 type: string
-*               countries:
-*                 type: array
-*                 items:
-*                  id:
-*                      type: string              
-*               token:
-*                 type: object
-*                 properties:
-*                    name:
-*                      type: string
-*                    type:
-*                      type: string
-*                    addr:
-*                      type: string
-*               tags:
-*                 type: array
-*                 items:
-*                  id:
-*                      type: string  
-*               endDate:
-*                 type: date
-*               startDate:
-*                 type: date 
-*               remuneration:
-*                 type: string 
-*               cost:
-*                 type: string 
-*               cost_usd:
-*                 type: string 
-*               ratios:
-*                 type: array
-*                 items:
-*                  id:
-*                      type: string  
-*               bounties:
-*                 type: array
-*                 items:
-*                  id:
-*                      type: string  
-* 
-*     responses:
-*       "200":
-*          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
-*       "500":
-*          description: error:error message
-*/
-
-   router.put('/update/:idCampaign', verifyAuth,update);
-    /**
+router.put('/update/:idCampaign', verifyAuth, update)
+/**
  * @swagger
  * /campaign/prom/stats/{idProm}:
  *   get:
@@ -901,10 +901,9 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:"error"
  */
-     router.get('/prom/stats/:idProm',linkStats);
+router.get('/prom/stats/:idProm', linkStats)
 
-
- 	/**
+/**
  * @swagger
  * /campaign/funding:
  *   post:
@@ -925,10 +924,9 @@ router.post('/linkNotification',linkNotifications);
  *        "200":
  *          description: data
  */
-     router.post('/funding',verifyAuth,increaseBudget);
+router.post('/funding', verifyAuth, increaseBudget)
 
-
-      /**
+/**
  * @swagger
  * /campaign/filterLinks/{id_wallet}:
  *   get:
@@ -950,9 +948,9 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:"error"
  */
-     router.get('/filterLinks/:id_wallet',getLinks);
+router.get('/filterLinks/:id_wallet', getLinks)
 
-           /**
+/**
  * @swagger
  * /campaign/remaining:
  *   post:
@@ -976,7 +974,7 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:"error"
  */
-     router.post('/remaining',getFunds);
+router.post('/remaining', getFunds)
 
 /**
  * @swagger
@@ -1005,13 +1003,9 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:"error"
  */
- router.post('/bep20/:token/approval/:spender/:addr',bep20Approval);
-     
+router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
 
-
-
-
- /**
+/**
  * @swagger
  * /campaign/reject/{idLink}:
  *   put:
@@ -1046,8 +1040,7 @@ router.post('/linkNotification',linkNotifications);
  *       "500":
  *          description: error:"error"
  */
-  router.put('/reject/:idLink',rejectLink);
-
+router.put('/reject/:idLink', rejectLink)
 
 /**
  * @swagger
@@ -1135,8 +1128,6 @@ router.post('/linkNotification',linkNotifications);
  *        type: string
  *      _id:
  *        type: string
- */  
-   
-     
-module.exports = router;
+ */
 
+module.exports = router

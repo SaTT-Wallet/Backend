@@ -1,10 +1,8 @@
 clone:
-  depth: full
+    depth: full
 pipelines:
-  branches:
-    '{main,development}':
-    - step:
-        script:
-          - git push --mirror git@github.com:Atayen/node-satt.git
-          
-     
+    branches:
+        '{main,development}':
+            - step:
+                  script:
+                      - git push --mirror git@github.com:Atayen/node-satt.git
