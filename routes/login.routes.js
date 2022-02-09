@@ -1,41 +1,66 @@
-var express = require('express');
-var app = express();
-var connection;
-(connection = async function (){
- app = await require("../conf/config")(app);
- app = await require("../conf/const")(app);
- app = await require("../db/db")(app);
- app = await require("../web3/provider")(app);
- app = await require("../manager/account")(app);
- app = await require("../manager/i18n")(app);
-})();
+var express = require('express')
+var app = express()
+var connection
+;(connection = async function () {
+    app = await require('../conf/config')(app)
+    app = await require('../conf/const')(app)
+    app = await require('../db/db')(app)
+    app = await require('../web3/provider')(app)
+    app = await require('../manager/account')(app)
+    app = await require('../manager/i18n')(app)
+})()
 
-const passport = require('passport');
-let router = express.Router();
+const passport = require('passport')
+let router = express.Router()
 router.use(passport.initialize())
-var session = require('express-session');
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
-var FbStrategy = require('passport-facebook').Strategy;
-var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+var session = require('express-session')
+var GoogleStrategy = require('passport-google-oauth20').Strategy
+var FbStrategy = require('passport-facebook').Strategy
+var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
-var Long = require('mongodb').Long;
+var Long = require('mongodb').Long
 
-passport.serializeUser(function(user, cb) {
-    cb(null, user);
-});
+passport.serializeUser(function (user, cb) {
+    cb(null, user)
+})
 
-passport.deserializeUser(async function(id, cb) {
-    var users = await app.db.sn_user().find({ _id: Long.fromNumber(id) }).toArray();
-    cb(null, users[0]);
-});
+passport.deserializeUser(async function (id, cb) {
+    var users = await app.db
+        .sn_user()
+        .find({ _id: Long.fromNumber(id) })
+        .toArray()
+    cb(null, users[0])
+})
 try {
-    router.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8', resave: true, saveUninitialized: true })); 
-    router.use(passport.session());
+    router.use(
+        session({
+            secret: 'fe3fF4FFGTSCSHT57UI8I8',
+            resave: true,
+            saveUninitialized: true,
+        })
+    )
+    router.use(passport.session())
 } catch (e) {
     console.log(e)
 }
-const {changePassword,socialdisconnect,captcha,verifyCaptcha,codeRecover,confirmCode,passRecover,resendConfirmationToken,saveFirebaseAccessToken,updateLastStep,authApple,socialSignUp,socialSignin,getQrCode,verifyQrCode} = require('../controllers/login.controller')
-const { 
+const {
+    changePassword,
+    socialdisconnect,
+    captcha,
+    verifyCaptcha,
+    codeRecover,
+    confirmCode,
+    passRecover,
+    resendConfirmationToken,
+    saveFirebaseAccessToken,
+    updateLastStep,
+    authApple,
+    socialSignUp,
+    socialSignin,
+    getQrCode,
+    verifyQrCode,
+} = require('../controllers/login.controller')
+const {
     emailConnection,
     telegramConnection,
     emailSignup,
@@ -46,18 +71,18 @@ const {
     facebookAuthSignin,
     signup_telegram_function,
     signin_telegram_function,
-    verifyAuth
+    verifyAuth,
 } = require('../middleware/passport.middleware')
 
 function authSignInErrorHandler(err, req, res, next) {
-    let message = err.message ? err.message : err;
-    res.redirect(app.config.basedURl + '/auth/login?message=' + message);
+    let message = err.message ? err.message : err
+    res.redirect(app.config.basedURl + '/auth/login?message=' + message)
 }
 
 function authErrorHandler(err, req, res, next) {
     console.log(err)
-    let message = err.message ? err.message : err;
-    res.redirect(app.config.basedURl + '/auth/registration?message=' + message);
+    let message = err.message ? err.message : err
+    res.redirect(app.config.basedURl + '/auth/registration?message=' + message)
 }
 
 /**
@@ -76,8 +101,7 @@ function authErrorHandler(err, req, res, next) {
  *       "500":
  *          description: error:"error"
  */
-router.get('/captcha',captcha)
-
+router.get('/captcha', captcha)
 
 /**
  * @swagger
@@ -107,7 +131,7 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: error:"error"
  */
- router.post('/changePassword',verifyAuth,changePassword)
+router.post('/changePassword', verifyAuth, changePassword)
 /**
  * @swagger
  * /auth/verifyCaptcha:
@@ -132,7 +156,7 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: error:"wrong captcha"
  */
- router.post('/verifyCaptcha',verifyCaptcha)
+router.post('/verifyCaptcha', verifyCaptcha)
 
 /**
  * @swagger
@@ -158,9 +182,7 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: error={"error":true,"message":"invalid_credentials"} or {"error":true,"message":"account_locked",blockedDate:blockedDate}
  */
-router.post('/signin/mail',emailConnection)
-
-
+router.post('/signin/mail', emailConnection)
 
 /**
  * @swagger
@@ -184,9 +206,9 @@ router.post('/signin/mail',emailConnection)
  *       "500":
  *          description: error=account not exists
  */
- router.post('/passlost',codeRecover)
+router.post('/passlost', codeRecover)
 
- /**
+/**
  * @swagger
  * /auth/confirmCode:
  *   post:
@@ -212,9 +234,9 @@ router.post('/signin/mail',emailConnection)
  *       "500":
  *          description: message="wrong code or code expired"
  */
-  router.post('/confirmCode',confirmCode)
+router.post('/confirmCode', confirmCode)
 
-  /**
+/**
  * @swagger
  * /auth/passrecover:
  *   post:
@@ -238,9 +260,7 @@ router.post('/signin/mail',emailConnection)
  *       "500":
  *          description:  error:"error"
  */
-router.post('/passrecover',passRecover)
-
-
+router.post('/passrecover', passRecover)
 
 /**
  * @swagger
@@ -268,10 +288,9 @@ router.post('/passrecover',passRecover)
  *       "500":
  *          description: error={error:true,message:'account_already_used'}
  */
- router.post('/signup/mail',emailSignup)
+router.post('/signup/mail', emailSignup)
 
-
- /**
+/**
  * @swagger
  * /auth/signup/facebook:
  *   get:
@@ -283,25 +302,43 @@ router.post('/passrecover',passRecover)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/signup/facebook',async(req, res, next) => {
-    passport.authenticate('auth_signup_facebookStrategy',app.config.persmissionsObjFb)
-    (req,res,next)
+router.get('/signup/facebook', async (req, res, next) => {
+    passport.authenticate(
+        'auth_signup_facebookStrategy',
+        app.config.persmissionsObjFb
+    )(req, res, next)
 })
-passport.use('auth_signup_facebookStrategy', new FbStrategy(app.config.facebookCredentials("auth/callback/facebook/signup"),
-async (req, accessToken, refreshToken, profile, cb) => {
-        facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
-    })
-);   
-router.get('/callback/facebook/signup',passport.authenticate('auth_signup_facebookStrategy'), async function(req, response) {
-    try {
-        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-        response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-    } catch (e) {
-        console.log(e)
-    }
-},
-authSignInErrorHandler);
-
+passport.use(
+    'auth_signup_facebookStrategy',
+    new FbStrategy(
+        app.config.facebookCredentials('auth/callback/facebook/signup'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+router.get(
+    '/callback/facebook/signup',
+    passport.authenticate('auth_signup_facebookStrategy'),
+    async function (req, response) {
+        try {
+            var param = {
+                access_token: req.user.token,
+                expires_in: req.user.expires_in,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+            response.redirect(
+                app.config.basedURl +
+                    '/auth/login?token=' +
+                    JSON.stringify(param)
+            )
+        } catch (e) {
+            console.log(e)
+        }
+    },
+    authSignInErrorHandler
+)
 
 /**
  * @swagger
@@ -315,28 +352,43 @@ authSignInErrorHandler);
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/signin/facebook',async(req, res, next) => {
-passport.authenticate('facebook_strategy_connection')(req,res,next)})
+router.get('/signin/facebook', async (req, res, next) => {
+    passport.authenticate('facebook_strategy_connection')(req, res, next)
+})
 
-passport.use("facebook_strategy_connection", 
-new FbStrategy(app.config.facebookCredentials("auth/callback/facebook/connection"),
-async function(req, accessToken, refreshToken, profile, cb) {
-    facebookAuthSignin(req, accessToken, refreshToken, profile, cb)
-}))
-router.get('/callback/facebook/connection',
-passport.authenticate('facebook_strategy_connection'), async function(req, response) {
-    try {
-        var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-        response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-    } catch (e) {
-        console.log(e)
-    }
-},
-authSignInErrorHandler
-);
+passport.use(
+    'facebook_strategy_connection',
+    new FbStrategy(
+        app.config.facebookCredentials('auth/callback/facebook/connection'),
+        async function (req, accessToken, refreshToken, profile, cb) {
+            facebookAuthSignin(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+router.get(
+    '/callback/facebook/connection',
+    passport.authenticate('facebook_strategy_connection'),
+    async function (req, response) {
+        try {
+            var param = {
+                access_token: req.user.token,
+                expires_in: req.user.expires_in,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+            response.redirect(
+                app.config.basedURl +
+                    '/auth/login?token=' +
+                    JSON.stringify(param)
+            )
+        } catch (e) {
+            console.log(e)
+        }
+    },
+    authSignInErrorHandler
+)
 
-
- /**
+/**
  * @swagger
  * /auth/signup/google:
  *   get:
@@ -348,20 +400,39 @@ authSignInErrorHandler
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/signup/google',async(req, res, next) => {
-passport.authenticate('auth_signup_googleStrategy', { scope: ['profile', 'email']})(req, res, next)})
+router.get('/signup/google', async (req, res, next) => {
+    passport.authenticate('auth_signup_googleStrategy', {
+        scope: ['profile', 'email'],
+    })(req, res, next)
+})
 
-passport.use('auth_signup_googleStrategy', new GoogleStrategy(app.config.googleCredentials("auth/callback/google/signup"),
-async (req, accessToken, refreshToken, profile, cb)=> {
-    googleAuthSignup(req,accessToken,refreshToken,profile,cb);
-}));
-router.get('/callback/google/signup', 
-  passport.authenticate('auth_signup_googleStrategy', { scope: ['profile', 'email'] }), async (req, response) =>{
-     var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-  response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-},
-authSignInErrorHandler);
-
+passport.use(
+    'auth_signup_googleStrategy',
+    new GoogleStrategy(
+        app.config.googleCredentials('auth/callback/google/signup'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            googleAuthSignup(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+router.get(
+    '/callback/google/signup',
+    passport.authenticate('auth_signup_googleStrategy', {
+        scope: ['profile', 'email'],
+    }),
+    async (req, response) => {
+        var param = {
+            access_token: req.user.token,
+            expires_in: req.user.expires_in,
+            token_type: 'bearer',
+            scope: 'user',
+        }
+        response.redirect(
+            app.config.basedURl + '/auth/login?token=' + JSON.stringify(param)
+        )
+    },
+    authSignInErrorHandler
+)
 
 /**
  * @swagger
@@ -375,24 +446,42 @@ authSignInErrorHandler);
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/signin/google',async(req, res, next) => {
-passport.authenticate('google_strategy_connection', { scope: ['profile', 'email', ] })(req, res, next)})
+router.get('/signin/google', async (req, res, next) => {
+    passport.authenticate('google_strategy_connection', {
+        scope: ['profile', 'email'],
+    })(req, res, next)
+})
 
-passport.use('google_strategy_connection', 
-new GoogleStrategy(app.config.googleCredentials("auth/callback/google/connection"),
-async (req, accessToken, refreshToken, profile, cb)=> {
-    googleAuthSignin(req, accessToken, refreshToken, profile, cb)
-}));
+passport.use(
+    'google_strategy_connection',
+    new GoogleStrategy(
+        app.config.googleCredentials('auth/callback/google/connection'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            googleAuthSignin(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
 
-router.get('/callback/google/connection',
-passport.authenticate('google_strategy_connection', { scope: ['profile', 'email'] }), async function(req, response) {
-    var param = { "access_token": req.user.token, "expires_in": req.user.expires_in, "token_type": "bearer", "scope": "user" };
-    response.redirect(app.config.basedURl + "/auth/login?token=" + JSON.stringify(param))
-},
-authSignInErrorHandler
-);
+router.get(
+    '/callback/google/connection',
+    passport.authenticate('google_strategy_connection', {
+        scope: ['profile', 'email'],
+    }),
+    async function (req, response) {
+        var param = {
+            access_token: req.user.token,
+            expires_in: req.user.expires_in,
+            token_type: 'bearer',
+            scope: 'user',
+        }
+        response.redirect(
+            app.config.basedURl + '/auth/login?token=' + JSON.stringify(param)
+        )
+    },
+    authSignInErrorHandler
+)
 
-   /**
+/**
  * @swagger
  * /auth/signup/telegram:
  *   get:
@@ -404,21 +493,26 @@ authSignInErrorHandler
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/signup/telegram',
-passport.authenticate('auth_signup_telegramStrategy'),
-telegramSignup,authErrorHandler
+router.get(
+    '/signup/telegram',
+    passport.authenticate('auth_signup_telegramStrategy'),
+    telegramSignup,
+    authErrorHandler
 )
-passport.use('auth_signup_telegramStrategy',
-new TelegramStrategy({
-        botToken: app.config.telegramBotToken,
-        passReqToCallback: true
-    },
-    async function(req, profile, cb) {
-    signup_telegram_function(req, profile, cb)
-    }
-));
+passport.use(
+    'auth_signup_telegramStrategy',
+    new TelegramStrategy(
+        {
+            botToken: app.config.telegramBotToken,
+            passReqToCallback: true,
+        },
+        async function (req, profile, cb) {
+            signup_telegram_function(req, profile, cb)
+        }
+    )
+)
 
- /**
+/**
  * @swagger
  * /auth/signin/telegram:
  *   get:
@@ -430,19 +524,24 @@ new TelegramStrategy({
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-  router.get('/signin/telegram',
-  passport.authenticate('telegramStrategyConnection'),
-  telegramConnection,authSignInErrorHandler
-  )
-  passport.use('telegramStrategyConnection',
-    new TelegramStrategy({
-        botToken: app.config.telegramBotToken,
-        passReqToCallback: true
-    },
-    async function(req, profile, cb) {
-    signin_telegram_function(req, profile, cb)
-    }
-));
+router.get(
+    '/signin/telegram',
+    passport.authenticate('telegramStrategyConnection'),
+    telegramConnection,
+    authSignInErrorHandler
+)
+passport.use(
+    'telegramStrategyConnection',
+    new TelegramStrategy(
+        {
+            botToken: app.config.telegramBotToken,
+            passReqToCallback: true,
+        },
+        async function (req, profile, cb) {
+            signin_telegram_function(req, profile, cb)
+        }
+    )
+)
 
 /**
  * @swagger
@@ -466,9 +565,9 @@ new TelegramStrategy({
  *       "500":
  *          description: error:error message
  */
- router.post('/resend/confirmationToken',resendConfirmationToken)
+router.post('/resend/confirmationToken', resendConfirmationToken)
 
- /**
+/**
  * @swagger
  * /auth/save/firebaseAccessToken:
  *   post:
@@ -490,9 +589,9 @@ new TelegramStrategy({
  *       "500":
  *          description: error:error message
  */
-  router.post('/save/firebaseAccessToken',verifyAuth,saveFirebaseAccessToken)
+router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
 
-   /**
+/**
  * @swagger
  * /auth/updateLastStep:
  *   put:
@@ -520,9 +619,9 @@ new TelegramStrategy({
  *       "500":
  *          description: error:error message
  */
- router.put('/updateLastStep',verifyAuth,updateLastStep)
+router.put('/updateLastStep', verifyAuth, updateLastStep)
 
- /**
+/**
  * @swagger
  * /auth/apple:
  *   post:
@@ -550,48 +649,43 @@ new TelegramStrategy({
  *       "500":
  *          description: error={error:true,message:'account_already_used'}
  */
-  router.post('/apple',authApple)
+router.post('/apple', authApple)
 
+/**
+ * @swagger
+ * /auth/socialSignup:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: register with social for apple.
+ *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               idSn:
+ *                 type: string
+ *               id:
+ *                 type: string
+ *               photo:
+ *                 type: string
+ *               givenName:
+ *                 type: string
+ *               familyName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: param={"account_doesnt_exist"}
+ *       "500":
+ *          description: error={error:true,message:'account_already_used'}
+ */
+router.post('/socialSignup', socialSignUp)
 
-
-  /**
-  * @swagger
-  * /auth/socialSignup:
-  *   post:
-  *     tags:
-  *     - "auth"
-  *     summary: register with social for apple.
-  *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               name:
-  *                 type: string
-  *               idSn:
-  *                 type: string
-  *               id:
-  *                 type: string
-  *               photo:
-  *                 type: string
-  *               givenName:
-  *                 type: string
-  *               familyName:
-  *                 type: string
-  *     responses:
-  *       "200":
-  *          description: param={"account_doesnt_exist"}
-  *       "500":
-  *          description: error={error:true,message:'account_already_used'}
-  */
-   router.post('/socialSignup',socialSignUp)
- 
- 
- 
- 
-  /**
+/**
   * @swagger
   * /auth/socialSignin:
   *   post:
@@ -616,33 +710,30 @@ new TelegramStrategy({
   *       "500":
   *          description: error={error:"invalid idSn"}
   */
-router.post('/socialSignin',socialSignin)
+router.post('/socialSignin', socialSignin)
 
+/**
+ * @swagger
+ * /auth/disconnect/{social}:
+ *   put:
+ *     tags:
+ *     - "auth"
+ *     summary: disconnect social account.
+ *     description: user enter his social network to disconnect <br> with access_token.
+ *     parameters:
+ *       - name: social
+ *         description: social can be facebook , google or telegram.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: message:"deconnect successfully from
+ *       "500":
+ *          description: error:"error"
+ */
+router.put('/disconnect/:social', verifyAuth, socialdisconnect)
 
-
-
-  /**
-  * @swagger
-  * /auth/disconnect/{social}:
-  *   put:
-  *     tags:
-  *     - "auth"
-  *     summary: disconnect social account.
-  *     description: user enter his social network to disconnect <br> with access_token.
-  *     parameters:
-  *       - name: social
-  *         description: social can be facebook , google or telegram.
-  *         in: path
-  *         required: true
-  *     responses:
-  *       "200":
-  *          description: message:"deconnect successfully from
-  *       "500":
-  *          description: error:"error"
-  */
-   router.put('/disconnect/:social', verifyAuth,socialdisconnect)
- 
- /**
+/**
  * @swagger
  * /auth/qrCode:
  *   get:
@@ -656,22 +747,22 @@ router.post('/socialSignin',socialSignin)
  *        "500":
  *          description: error:error message
  */
-router.get('/qrCode',verifyAuth,getQrCode)
+router.get('/qrCode', verifyAuth, getQrCode)
 
-  /**
-  * @swagger
-  * /auth/verifyQrCode:
-  *   post:
-  *     tags:
-  *     - "auth"
-  *     summary: verify 2fa.
-  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
-  *     responses:
-  *       "200":
-  *          description: { verifiedCode: verified }
-  *       "500":
-  *          description: error={error:true,message:'account_already_used'}
-  */
-router.post('/verifyQrCode',verifyAuth,verifyQrCode);
+/**
+ * @swagger
+ * /auth/verifyQrCode:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: verify 2fa.
+ *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
+ *     responses:
+ *       "200":
+ *          description: { verifiedCode: verified }
+ *       "500":
+ *          description: error={error:true,message:'account_already_used'}
+ */
+router.post('/verifyQrCode', verifyAuth, verifyQrCode)
 
-module.exports = router;
+module.exports = router

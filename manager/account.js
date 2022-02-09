@@ -88,15 +88,13 @@ module.exports = async function (app) {
             }
             var count = await accountManager.getCount()
 
-            app.db
-                .wallet()
-                .insertOne({
-                    UserId: parseInt(userId),
-                    keystore: account,
-                    num: count,
-                    btc: btcWallet,
-                    mnemo: mnemonic,
-                })
+            app.db.wallet().insertOne({
+                UserId: parseInt(userId),
+                keystore: account,
+                num: count,
+                btc: btcWallet,
+                mnemo: mnemonic,
+            })
             resolve({
                 address: '0x' + account.address,
                 btcAddress: btcWallet.addressSegWitCompat,
@@ -193,19 +191,17 @@ module.exports = async function (app) {
             }
             var count = await accountManager.getCount()
 
-            var result = await app.db
-                .wallet()
-                .updateOne(
-                    { UserId: parseInt(userId) },
-                    {
-                        $set: {
-                            keystore: account,
-                            num: count,
-                            btc: btcWallet,
-                            mnemo: mnemonic,
-                        },
-                    }
-                )
+            var result = await app.db.wallet().updateOne(
+                { UserId: parseInt(userId) },
+                {
+                    $set: {
+                        keystore: account,
+                        num: count,
+                        btc: btcWallet,
+                        mnemo: mnemonic,
+                    },
+                }
+            )
         })
     }
 
@@ -605,14 +601,12 @@ module.exports = async function (app) {
                 account = app.web3.eth.accounts.create().encrypt(defaultpass)
                 var btcWallet = accountManager.genBtcWallet(defaultpass)
                 var count = await accountManager.getCount()
-                app.db
-                    .wallet()
-                    .insertOne({
-                        UserId: parseInt(userId),
-                        keystore: account,
-                        num: count,
-                        btc: btcWallet,
-                    })
+                app.db.wallet().insertOne({
+                    UserId: parseInt(userId),
+                    keystore: account,
+                    num: count,
+                    btc: btcWallet,
+                })
                 resolve({
                     address: '0x' + account.address,
                     btcAddress: btcWallet.addressSegWitCompat,
@@ -756,7 +750,13 @@ module.exports = async function (app) {
                 var count = await accountManager.getCount()
                 var btcWallet = accountManager.genBtcWallet(pass)
 
-                //app.db.wallet().insertOne({UserId:parseInt(userId),keystore:account,num:count,unclaimed:true,btc:btcWallet});
+                app.db.wallet().insertOne({
+                    UserId: parseInt(userId),
+                    keystore: account,
+                    num: count,
+                    unclaimed: true,
+                    btc: btcWallet,
+                })
                 app.db
                     .passwallet()
                     .insertOne({ UserId: parseInt(userId), value: pass })
@@ -1156,12 +1156,10 @@ module.exports = async function (app) {
             if (CheckRef) {
                 return { error: true, message: 'Already referred' }
             } else {
-                await app.db
-                    .referral()
-                    .insertOne({
-                        parrain: Long.fromNumber(referral),
-                        filleul: Long.fromNumber(userId),
-                    })
+                await app.db.referral().insertOne({
+                    parrain: Long.fromNumber(referral),
+                    filleul: Long.fromNumber(userId),
+                })
                 return { error: false, message: 'Referral successfully saved' }
             }
         } else {
