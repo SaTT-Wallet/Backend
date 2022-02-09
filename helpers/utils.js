@@ -200,7 +200,6 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
         var template = handlebars.compile(html)
 
         if (event === 'codeRecover') {
-            console.log('--------- user.email', user)
             var replacements = {
                 ip,
                 code,
@@ -243,7 +242,15 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
     })
 }
 
-exports.readHTMLFileCampaign = (path, event, title, email, reason, link) => {
+exports.readHTMLFileCampaign = (
+    path,
+    event,
+    title,
+    email,
+    idCampaign,
+    reason,
+    link
+) => {
     readHTMLFile(path, async (err, html) => {
         var template = handlebars.compile(html)
 
