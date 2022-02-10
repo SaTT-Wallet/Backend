@@ -7,7 +7,12 @@ const {
     GoogleProfile,
     FbProfile,
     LinkedinProfile,
+    Interests,
 } = require('../model/index')
+
+const { responseHandler } = require('../helpers/response-handler')
+const makeResponseData = responseHandler.makeResponseData
+const makeResponseError = responseHandler.makeResponseError
 
 var ejs = require('ejs')
 const QRCode = require('qrcode')
@@ -264,77 +269,65 @@ exports.deleteGoogleChannels = async (req, res) => {
         const UserId = req.user._id
         const result = await GoogleProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            res.end(
-                JSON.stringify({
-                    message: 'No channel was found',
-                    deletedCount: result.deletedCount,
-                })
-            )
+            return makeResponseError(res, 404, 'No channel was found')
         } else {
-            res.end(JSON.stringify({ message: 'deleted successfully' }))
+            return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.deleteFacebookChannels = async (req, res) => {
     try {
-        const UserId = 2
+        const UserId = req.user._id
         const result = await FbProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            res.end(
-                JSON.stringify({
-                    message: 'No channel was found',
-                    deletedCount: result.deletedCount,
-                })
-            )
+            return makeResponseError(res, 404, 'No channel was found')
         } else {
-            res.end(JSON.stringify({ message: 'deleted successfully' }))
+            return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.deleteLinkedinChannels = async (req, res) => {
     try {
-        const userId = 2
+        const userId = req.user._id
         const result = await LinkedinProfile.deleteMany(
             { userId },
             { $set: { pages: [] } }
         )
         if (result.deletedCount === 0) {
-            res.end(
-                JSON.stringify({
-                    message: 'No channel was found',
-                    deletedCount: result.deletedCount,
-                })
-            )
+            return makeResponseError(res, 404, 'No channel was found')
         } else {
-            res.end(JSON.stringify({ message: 'deleted successfully' }))
+            return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.UserInterstes = async (req, res) => {
     try {
-        let id = req.user._id
-        const interests = await app.db.interests().findOne({ _id: id })
-        res.send(JSON.stringify(interests)).status(201)
+        const userId = req.user._id
+        const interests = await Interests.findOne({ userId })
+        if (!interests) {
+            return makeResponseError(res, 404, 'No interest was found')
+        }
+        return makeResponseData(res, 200, 'success', interests)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.AddIntersts = async (req, res) => {
     try {
         let userInterests = req.body
-        userInterests._id = Long.fromNumber(req.user._id)
-        await app.db.interests().insertOne(userInterests)
-        res.send(JSON.stringify({ message: 'interests added' })).status(201)
+        userInterests.userId = req.user._id
+        const interests = await Interests.create(userInterests)
+        return makeResponseData(res, 200, 'interests added', interests)
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
