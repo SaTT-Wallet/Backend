@@ -15,12 +15,9 @@ let app
 
 exports.exportBtc = async (req, res) => {
     try {
-        let id = req.user._id
-        let pass = req.body.pass
+        var cred = await app.account.unlock(req, res)
 
-        var cred = await app.account.unlock(id, pass)
-
-        let ret = await app.account.exportkeyBtc(id, pass)
+        let ret = await app.account.exportkeyBtc(req, res)
         return responseHandler.makeResponseData(
             res.attachment(),
             200,
@@ -28,24 +25,18 @@ exports.exportBtc = async (req, res) => {
             ret
         )
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
     } finally {
         if (cred) app.account.lock(cred.address)
     }
 }
 
 exports.exportEth = async (req, res) => {
-    var pass = req.body.pass
     res.attachment()
 
     try {
         let id = req.user._id
-        var cred = await app.account.unlock(id, pass)
-        let ret = await app.account.exportkey(id, pass)
+        var cred = await app.account.unlock(req, res)
+        let ret = await app.account.exportkey(req, res)
         return responseHandler.makeResponseData(
             res.attachment(),
             200,
@@ -53,11 +44,11 @@ exports.exportEth = async (req, res) => {
             ret
         )
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+        // return responseHandler.makeResponseError(
+        //     res,
+        //     500,
+        //     err.message ? err.message : err.error
+        // )
     } finally {
         if (cred) app.account.lock(cred.address)
     }
@@ -65,25 +56,16 @@ exports.exportEth = async (req, res) => {
 
 exports.mywallet = async (req, res) => {
     try {
-        let id = req.user._id
-        var count = await app.account.hasAccount(id)
+        var count = await app.account.hasAccount(req, res)
 
-        if (count) {
-            var ret = await app.account.getAccount(id)
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                404,
-                ' wallet not found'
-            )
-        }
+        var ret = await app.account.getAccount(req, res)
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+        // return responseHandler.makeResponseError(
+        //     res,
+        //     500,
+        //     err.message ? err.message : err.error
+        // )
     }
 }
 
@@ -91,7 +73,7 @@ exports.userBalance = async (req, res) => {
     try {
         let id = req.user._id
         let Crypto = app.account.getPrices()
-        const balance = await app.account.getListCryptoByUid(id, Crypto)
+        const balance = await app.account.getListCryptoByUid(req, res)
 
         let listOfCrypto = [...new Set(balance.listOfCrypto)]
 
@@ -120,14 +102,19 @@ exports.userBalance = async (req, res) => {
 
 exports.gasPriceBep20 = async (req, res) => {
     var gasPrice = await app.web3Bep20.eth.getGasPrice()
-    res.end(JSON.stringify({ gasPrice: gasPrice / 1000000000 }))
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
 }
 
 exports.gasPriceErc20 = async (req, res) => {
     let app = await requirement.connection()
 
     var gasPrice = await app.web3.eth.getGasPrice()
-    res.end(JSON.stringify({ gasPrice: gasPrice / 1000000000 }))
+
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
 }
 
 exports.cryptoDetails = async (req, res) => {
