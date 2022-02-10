@@ -1040,7 +1040,7 @@ router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
  *       "500":
  *          description: error:"error"
  */
-router.put('/reject/:idLink', verifyAuth, rejectLink)
+router.put('/reject/:idLink', rejectLink)
 
 /**
  * @swagger

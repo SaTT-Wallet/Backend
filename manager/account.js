@@ -14,6 +14,10 @@ module.exports = async function (app) {
     var rp = require('request-promise')
     const bad_login_limit = app.config.bad_login_limit
     const { createLogger, format, transports } = require('winston')
+    const { responseHandler } = require('../helpers/response-handler')
+
+    var Wallet = require('../model/wallet.model')
+    var CustomToken = require('../model/customToken.model')
 
     var accountManager = {}
 
@@ -368,37 +372,40 @@ module.exports = async function (app) {
         })
     }
 
-    accountManager.unlock = async function (userId, pass) {
-        return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .find({ UserId: parseInt(userId) })
-                .sort({ _id: 1 })
-                .toArray()
-            account = account[0]
-            //app.web3.eth.accounts.wallet.clear();
+    accountManager.unlock = async function (req, res) {
+        let id = req.user._id
+        let pass = req.body.pass
+
+        let account = await Wallet.findOne({ UserId: parseInt(id) })
+        if (account) {
             try {
                 app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
                 app.web3Bep20.eth.accounts.wallet.decrypt(
                     [account.keystore],
                     pass
                 )
+
+                return { address: '0x' + account.keystore.address }
             } catch (e) {
-                reject({ error: 'Wrong password' })
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'Wrong password'
+                )
             }
-            resolve({ address: '0x' + account.keystore.address })
-        })
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                'Account not found'
+            )
+        }
     }
 
     accountManager.unlockBSC = async function (userId, pass) {
+        let account = await Wallet.findOne({ UserId: parseInt(userId) })
+
         return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .find({ UserId: parseInt(userId) })
-                .sort({ _id: 1 })
-                .toArray()
-            account = account[0]
-            //app.web3.eth.accounts.wallet.clear();
             try {
                 app.web3Bep20.eth.accounts.wallet.decrypt(
                     [account.keystore],
@@ -422,7 +429,7 @@ module.exports = async function (app) {
 
     accountManager.getCount = async function () {
         return new Promise(async (resolve, reject) => {
-            var count = await app.db.wallet().countDocuments()
+            var count = await Wallet.countDocuments()
             resolve(count + 1)
         })
     }
@@ -489,24 +496,25 @@ module.exports = async function (app) {
         }
     }
 
-    accountManager.hasAccount = (userId) => {
-        return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
-            resolve(account && !account.unclaimed)
-        })
+    accountManager.hasAccount = async (req, res) => {
+        let userId = req.user._id
+        console.log('userId' + userId)
+
+        let account = await Wallet.findOne({ UserId: parseInt(userId) })
+
+        if (account) {
+            return account && !account.unclaimed
+        } else {
+            responseHandler.makeResponseError(res, 404, ' Account not found')
+        }
     }
 
-    accountManager.getAccount = async function (userId) {
-        return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .find({ UserId: parseInt(userId) })
-                .sort({ _id: 1 })
-                .toArray()
-            account = account[0]
+    accountManager.getAccount = async function (req, res) {
+        let userId = req.user._id
 
+        let account = await Wallet.findOne({ UserId: parseInt(userId) })
+
+        if (account) {
             var address = '0x' + account.keystore.address
 
             var ether_balance = await app.web3.eth.getBalance(address)
@@ -516,20 +524,20 @@ module.exports = async function (app) {
                 .balanceOf(address)
                 .call()
 
-            var res = {
+            var result = {
                 address: '0x' + account.keystore.address,
                 ether_balance: ether_balance,
                 bnb_balance: bnb_balance,
                 satt_balance: satt_balance ? satt_balance.toString() : 0,
                 version: account.mnemo ? 2 : 1,
             }
-            res.btc_balance = 0
+            result.btc_balance = 0
             if (
                 !app.config.testnet &&
                 account.btc &&
                 account.btc.addressSegWitCompat
             ) {
-                res.btc = account.btc.addressSegWitCompat
+                result.btc = account.btc.addressSegWitCompat
 
                 try {
                     var utxo = JSON.parse(
@@ -541,21 +549,23 @@ module.exports = async function (app) {
                         )
                     )
 
-                    if (!utxo.length) res.btc_balance = '0'
+                    if (!utxo.length) result.btc_balance = '0'
                     else {
                         var red = utxo.reduce(function (r, cur) {
                             r.amount += parseFloat(cur.amount)
                             return r
                         })
-                        res.btc_balance = Math.floor(red.amount * 100000000)
+                        result.btc_balance = Math.floor(red.amount * 100000000)
                     }
                 } catch (e) {
-                    console.log(e)
-                    res.btc_balance = 0
+                    result.btc_balance = 0
                 }
             }
-            resolve(res)
-        })
+
+            return result
+        } else {
+            responseHandler.makeResponseError(res, 404, ' Account not found')
+        }
     }
 
     accountManager.createAccount = async function (userId, pass) {
@@ -713,47 +723,58 @@ module.exports = async function (app) {
         })
     }
 
-    accountManager.exportkey = async function (userId, pass) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                var account = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .sort({ _id: 1 })
-                    .toArray()
-                account = account[0]
+    accountManager.exportkey = async function (req, res) {
+        let id = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId: parseInt(id) })
 
+        if (account) {
+            try {
                 app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
-                resolve(account.keystore)
+                return account.keystore
             } catch (e) {
-                reject({ error: 'Wrong password' })
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'Wrong password'
+                )
             } finally {
                 app.web3.eth.accounts.wallet.remove(
                     '0x' + account.keystore.address
                 )
             }
-        })
+        } else {
+            responseHandler.makeResponseError(res, 404, 'Account not found')
+        }
     }
 
-    accountManager.exportkeyBtc = async function (userId, pass) {
-        return new Promise(async (resolve, reject) => {
+    accountManager.exportkeyBtc = async function (req, res) {
+        let id = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId: parseInt(id) })
+
+        if (account) {
             try {
-                var account = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .sort({ _id: 1 })
-                    .toArray()
-                account = account[0]
                 app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
-                resolve(account.btc.ek)
+                return account.btc.ek
             } catch (e) {
-                reject({ error: 'Wrong password' })
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'Wrong password'
+                )
             } finally {
                 app.web3.eth.accounts.wallet.remove(
                     '0x' + account.keystore.address
                 )
             }
-        })
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                'Account not found'
+            )
+        }
     }
 
     accountManager.getAddrByUid = async function (userId) {
@@ -868,14 +889,14 @@ module.exports = async function (app) {
                 var count = await accountManager.hasAccount(userId)
 
                 if (count) {
-                    let ret = await accountManager.getAccount(userId)
+                    let ret = await accountManager.getAccount(req, res)
                     delete ret.btc
                     delete ret.version
 
-                    let userTokens = await app.db
-                        .customToken()
-                        .find({ sn_users: { $in: [userId] } })
-                        .toArray()
+                    let userTokens = await CustomToken.find({
+                        sn_users: { $in: [userId] },
+                    })
+
                     if (userTokens.length) {
                         for (let i = 0; i < userTokens.length; i++) {
                             let symbol = userTokens[i].symbol
@@ -950,8 +971,10 @@ module.exports = async function (app) {
         })
     }
 
-    accountManager.getListCryptoByUid = (userId, crypto) => {
+    accountManager.getListCryptoByUid = async (req, res) => {
         return new Promise(async (resolve, reject) => {
+            let id = req.user._id
+            let crypto = app.account.getPrices()
             try {
                 let listOfCrypto = []
                 var token_info = Object.assign({}, app.config.Tokens)
@@ -960,14 +983,18 @@ module.exports = async function (app) {
                 delete token_info['BNB']
                 var CryptoPrices = crypto
 
-                var ret = await accountManager.getAccount(userId)
+                console.log('dddd')
+                var ret = await accountManager.getAccount(id)
+
+                console.log(ret)
                 delete ret.btc
                 delete ret.version
 
-                let userTokens = await app.db
-                    .customToken()
-                    .find({ sn_users: { $in: [userId] } })
-                    .toArray()
+                let userTokens = await CustomToken.find({
+                    sn_users: { $in: [id] },
+                })
+
+                console.log('userTokens', userTokens)
                 if (userTokens.length) {
                     for (let i = 0; i < userTokens.length; i++) {
                         let symbol = userTokens[i].symbol
