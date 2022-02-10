@@ -11,6 +11,8 @@ const hasha = require('hasha')
 ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
+var User = require('../model/user.model')
+
 var requirement = require('../helpers/utils')
 var readHTMLFileLogin = requirement.readHTMLFileLogin
 
@@ -301,7 +303,7 @@ passport.use(
                 code,
                 user
             )
-            app.account.log('Email was sent to ' + user.email.toLowerCase())
+            app.account.log('Email was sent to ' + user.email)
             return done(null, {
                 id: createdUser._id,
                 token,

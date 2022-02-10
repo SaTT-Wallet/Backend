@@ -2,6 +2,12 @@ var connection
 
 var requirement = require('../helpers/utils')
 const handlebars = require('handlebars')
+const {
+    User,
+    GoogleProfile,
+    FbProfile,
+    LinkedinProfile,
+} = require('../model/index')
 
 var ejs = require('ejs')
 const QRCode = require('qrcode')
@@ -97,7 +103,7 @@ exports.updateProfile = async (req, res) => {
         const id = req.user._id
         let profile = req.body
         if (profile.email) {
-            const user = await app.db.sn_user().findOne({
+            const user = await User.findOne({
                 $and: [{ email: profile.email }, { _id: { $nin: [id] } }],
             })
             if (user) {
@@ -105,13 +111,11 @@ exports.updateProfile = async (req, res) => {
                 return
             }
         }
-        const result = await app.db
-            .sn_user()
-            .findOneAndUpdate(
-                { _id: id },
-                { $set: profile },
-                { returnOriginal: false }
-            )
+        const result = await User.findOneAndUpdate(
+            { _id: id },
+            { $set: profile },
+            { returnOriginal: false }
+        )
         const updatedProfile = result.value
         res.send(JSON.stringify({ updatedProfile, success: 'updated' })).status(
             201
@@ -257,9 +261,18 @@ exports.FindUserLegalProfile = async (req, res) => {
 
 exports.deleteGoogleChannels = async (req, res) => {
     try {
-        let id = req.user._id
-        await app.db.googleProfile().deleteMany({ UserId: id })
-        res.end(JSON.stringify({ message: 'deleted successfully' }))
+        const UserId = req.user._id
+        const result = await GoogleProfile.deleteMany({ UserId })
+        if (result.deletedCount === 0) {
+            res.end(
+                JSON.stringify({
+                    message: 'No channel was found',
+                    deletedCount: result.deletedCount,
+                })
+            )
+        } else {
+            res.end(JSON.stringify({ message: 'deleted successfully' }))
+        }
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -267,10 +280,18 @@ exports.deleteGoogleChannels = async (req, res) => {
 
 exports.deleteFacebookChannels = async (req, res) => {
     try {
-        let UserId = req.user._id
-        await app.db.fbPage().deleteMany({ UserId })
-        await app.db.fbProfile().deleteMany({ UserId })
-        res.end(JSON.stringify({ message: 'deleted successfully' }))
+        const UserId = 2
+        const result = await FbProfile.deleteMany({ UserId })
+        if (result.deletedCount === 0) {
+            res.end(
+                JSON.stringify({
+                    message: 'No channel was found',
+                    deletedCount: result.deletedCount,
+                })
+            )
+        } else {
+            res.end(JSON.stringify({ message: 'deleted successfully' }))
+        }
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -278,11 +299,21 @@ exports.deleteFacebookChannels = async (req, res) => {
 
 exports.deleteLinkedinChannels = async (req, res) => {
     try {
-        let userId = req.user._id
-        await app.db
-            .linkedinProfile()
-            .updateOne({ userId }, { $set: { pages: [] } })
-        res.end(JSON.stringify({ message: 'deleted successfully' }))
+        const userId = 2
+        const result = await LinkedinProfile.deleteMany(
+            { userId },
+            { $set: { pages: [] } }
+        )
+        if (result.deletedCount === 0) {
+            res.end(
+                JSON.stringify({
+                    message: 'No channel was found',
+                    deletedCount: result.deletedCount,
+                })
+            )
+        } else {
+            res.end(JSON.stringify({ message: 'deleted successfully' }))
+        }
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
