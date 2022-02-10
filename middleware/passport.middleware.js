@@ -293,6 +293,7 @@ passport.use(
                 synfonyHash(password)
             )
             let user = new User(createdUser).save()
+            createdUser._id = user._id
             let token = app.generateAccessToken(createdUser)
             const lang = req.query.lang || 'en'
             const code = await app.account.updateAndGenerateCode(
