@@ -384,7 +384,6 @@ exports.campaignPromp = async (req, res) => {
                 },
             }
         )
-
         let ctr = await app.campaign.getCampaignContract(campaign.hash)
         if (!ctr) {
             res.end('{}')
@@ -804,7 +803,6 @@ exports.validateCampaign = async (req, res) => {
             let link = await app.db
                 .campaign_link()
                 .findOne({ id_prom: idApply })
-
             let userWallet = await app.db.wallet().findOne(
                 {
                     'keystore.address': link.id_wallet
@@ -819,7 +817,6 @@ exports.validateCampaign = async (req, res) => {
                     .linkedinProfile()
                     .findOne({ userId: userWallet.UserId }))
             let userId = link.oracle === 'instagram' ? userWallet.UserId : null
-
             let socialOracle = await app.campaign.getPromApplyStats(
                 link.oracle,
                 link,
@@ -2064,46 +2061,6 @@ exports.rejectLink = async (req, res) => {
             res.end(
                 JSON.stringify({ message: 'success', prom: rejectedLink.value })
             )
-
-            // app.readHTMLFile(
-            //     __dirname + '/../public/emailtemplate/rejected_link.html',
-            //     (err, html) => {
-            //         if (err) {
-            //             console.error(err)
-            //             return
-            //         }
-            //         let template = handlebars.compile(html)
-
-            //         let emailContent = {
-            //             reject_reason: reason,
-            //             cmp_link:
-            //                 app.config.basedURl +
-            //                 '/myWallet/campaign/' +
-            //                 idCampaign,
-            //             satt_faq: app.config.Satt_faq,
-            //             satt_url: app.config.basedURl,
-            //             cmp_title: title,
-            //             imgUrl: app.config.baseEmailImgURl,
-            //         }
-            //         let htmlToSend = template(emailContent)
-
-            //         let mailOptions = {
-            //             from: app.config.mailSender,
-            //             to: email,
-            //             subject: 'Your link has been rejected in a campaign',
-            //             html: htmlToSend,
-            //         }
-
-            //         app.transporter.sendMail(mailOptions, (error, info) => {
-            //             res.end(
-            //                 JSON.stringify({
-            //                     message: 'success',
-            //                     prom: rejectedLink.value,
-            //                 })
-            //             )
-            //         })
-            //     }
-            // )
         } else {
             res.end(JSON.stringify({ message: 'unothorized' }))
         }

@@ -369,7 +369,7 @@ module.exports.checkOnBoarding = async (req, response) => {
 
 module.exports.requestMoney = async (req, res) => {
     try {
-        let lang = 'en'
+        let lang = /*req.query.lang ??*/ 'en'
         app.i18n.configureTranslation(lang)
         const id = req.user._id
         let code = await QRCode.toDataURL(req.body.wallet)

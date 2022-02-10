@@ -1,111 +1,142 @@
-var requirement = require('../helpers/utils')
+var Wallet = require('../model/wallet.model')
+var User = require('../model/user.model')
+
 const rp = require('request-promise')
 const Big = require('big.js')
+var requirement = require('../helpers/utils')
+
 var connection
+const { responseHandler } = require('../helpers/response-handler')
+
 let app
 ;(connection = async () => {
     app = await requirement.connection()
 })()
 
-exports.exportBtc = async (req, response) => {
-    var pass = req.body.pass
-    response.attachment()
-
+exports.exportBtc = async (req, res) => {
     try {
-        let id = req.user._id
-        var cred = await app.account.unlock(id, pass)
+        var cred = await app.account.unlock(req, res)
 
-        var ret = await app.account.exportkeyBtc(id, pass)
-        response.end(JSON.stringify(ret))
-    } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        let ret = await app.account.exportkeyBtc(req, res)
+        return responseHandler.makeResponseData(
+            res.attachment(),
+            200,
+            'success',
+            ret
         )
+    } catch (err) {
     } finally {
         if (cred) app.account.lock(cred.address)
     }
 }
 
-exports.exportEth = async (req, response) => {
-    var pass = req.body.pass
-    response.attachment()
+exports.exportEth = async (req, res) => {
+    res.attachment()
 
     try {
         let id = req.user._id
-        var cred = await app.account.unlock(id, pass)
-        var ret = await app.account.exportkey(id, pass)
-        response.end(JSON.stringify(ret))
-    } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        var cred = await app.account.unlock(req, res)
+        let ret = await app.account.exportkey(req, res)
+        return responseHandler.makeResponseData(
+            res.attachment(),
+            200,
+            'success',
+            ret
         )
+    } catch (err) {
+        // return responseHandler.makeResponseError(
+        //     res,
+        //     500,
+        //     err.message ? err.message : err.error
+        // )
     } finally {
         if (cred) app.account.lock(cred.address)
     }
 }
 
-exports.mywallet = async (req, response) => {
+exports.mywallet = async (req, res) => {
     try {
-        let id = req.user._id
-        var count = await app.account.hasAccount(id)
-        var ret = { err: 'no_account' }
+        var count = await app.account.hasAccount(req, res)
 
-        if (count) {
-            var ret = await app.account.getAccount(id)
-        }
-
-        response.end(JSON.stringify(ret))
+        var ret = await app.account.getAccount(req, res)
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
-        )
+        // return responseHandler.makeResponseError(
+        //     res,
+        //     500,
+        //     err.message ? err.message : err.error
+        // )
     }
 }
 
-exports.userBalance = async (req, response) => {
+exports.userBalance = async (req, res) => {
     try {
         let id = req.user._id
         let Crypto = app.account.getPrices()
-        const balance = await app.account.getListCryptoByUid(id, Crypto)
+        const balance = await app.account.getListCryptoByUid(req, res)
 
         let listOfCrypto = [...new Set(balance.listOfCrypto)]
-        response.send(JSON.stringify({ listOfCrypto }))
+
+        if (listOfCrypto) {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                listOfCrypto
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                ' You must create your wallet first'
+            )
+        }
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     }
 }
 
 exports.gasPriceBep20 = async (req, res) => {
     var gasPrice = await app.web3Bep20.eth.getGasPrice()
-    res.end(JSON.stringify({ gasPrice: gasPrice / 1000000000 }))
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
 }
 
 exports.gasPriceErc20 = async (req, res) => {
     let app = await requirement.connection()
 
     var gasPrice = await app.web3.eth.getGasPrice()
-    res.end(JSON.stringify({ gasPrice: gasPrice / 1000000000 }))
+
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
 }
 
 exports.cryptoDetails = async (req, res) => {
-    var prices = app.account.getPrices()
-    res.end(JSON.stringify(prices))
+    let prices = app.account.getPrices()
+
+    return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
 
 exports.totalBalances = async (req, res) => {
     try {
         var id = req.user._id
         let Crypto = app.account.getPrices()
-
         var Total_balance = await app.account.getBalanceByUid(id, Crypto)
-        res.end(
-            JSON.stringify({ Total_balance: Total_balance.Total_balance })
-        ).status(201)
+
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            Total_balance: Total_balance.Total_balance,
+        })
     } catch (err) {
-        res.end(
-            JSON.stringify({ error: err.message ? err.message : err.error })
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     } finally {
         if (id) {
@@ -126,7 +157,7 @@ exports.totalBalances = async (req, res) => {
                 if (user.daily.length > 7) {
                     user.daily.pop()
                 }
-                await app.db.sn_user().updateOne({ _id: id }, { $set: user })
+                await User.updateOne({ _id: id }, { $set: user })
             }
         }
     }

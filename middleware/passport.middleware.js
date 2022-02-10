@@ -39,12 +39,12 @@ var connection
     app = await require('../conf/config')(app)
     app = await require('../conf/const')(app)
     app = await require('../db/db')(app)
+    app = await requirement.connection()
     app = await require('../web3/provider')(app)
     app = await require('../manager/account')(app)
     app = await require('../manager/i18n')(app)
     app = await require('../manager/oracle')(app)
     app = await require('../web3/oracle')(app)
-    app = await requirement.connection()
 })()
 var session = require('express-session')
 
@@ -89,7 +89,6 @@ const handleSocialMediaSignin = async (query, cb) => {
 
 let createUser = (
     enabled,
-    _id,
     idSn,
     newsLetter,
     picLink = false,
@@ -102,19 +101,11 @@ let createUser = (
     password = null
 ) => {
     const userObject = {}
-    const mongodate = new Date().toISOString()
-    var buff2 = Buffer.alloc(32)
-    var code = crypto.randomFillSync(buff2).toString('hex')
-    ;(userObject.created = mongodate), (userObject.updated = mongodate)
     ;(userObject.enabled = enabled),
         (userObject.userSatt = true),
         (userObject.failed_count = 0)
-    ;(userObject.confirmation_token = code),
-        (userObject.onBoarding = false),
-        (userObject.account_locked = false)
-    ;(userObject._id = _id),
-        (userObject.idSn = idSn),
-        (userObject.newsLetter = newsLetter ?? false)
+    ;(userObject.onBoarding = false), (userObject.account_locked = false)
+    ;(userObject.idSn = idSn), (userObject.newsLetter = newsLetter ?? false)
     userObject.locale = 'en'
     if (picLink) userObject.picLink = picLink
     ;(userObject.username = username), (userObject.email = email)
@@ -138,7 +129,7 @@ passport.use(
                 .sn_user()
                 .findOne({ email: username.toLowerCase() })
             if (user) {
-                if (user.password == app.synfonyHash(password)) {
+                if (user.password == synfonyHash(password)) {
                     app.account.sysLog(
                         'authentification',
                         req.addressIp,
@@ -270,24 +261,16 @@ passport.use(
         password,
         done
     ) {
-        console.error(4848484)
         var date = Math.floor(Date.now() / 1000) + 86400
-        var user = await app.db
-            .sn_user()
-            .findOne({ email: username.toLowerCase() })
-
+        var user = await User.findOne({ email: username.toLowerCase() })
         if (user) {
             return done(null, false, {
                 error: true,
                 message: 'account_already_used',
             })
         } else {
-            // var mongodate = new Date().toISOString();
-            // var buff2 = Buffer.alloc(32);
-            // var codex = crypto.randomFillSync(buff2).toString('hex');
             let createdUser = createUser(
                 0,
-                Long.fromNumber(await app.account.handleId()),
                 0,
                 req.body.newsLetter,
                 '',
@@ -299,29 +282,12 @@ passport.use(
                 '',
                 synfonyHash(password)
             )
-            // let insert = await app.db.sn_user().insertOne({
-            //     _id: Long.fromNumber(await app.account.handleId()),
-            //     username: username.toLowerCase(),
-            //     email: username.toLowerCase(),
-            //     password: synfonyHash(password),
-            //     created: mongodate,
-            //     updated: mongodate,
-            //     newsLetter: req.body.newsLetter,
-            //     idSn: 0,
-            //     account_locked: false,
-            //     failed_count: 0,
-            //     locale: "en",
-            //     onBoarding: false,
-            //     enabled: 0,
-            //     confirmation_token: codex,
-            //     "userSatt": true
-            // });
-            let insert = await app.db.sn_user().insertOne(createdUser)
-            let users = insert.ops
-            let token = app.generateAccessToken(users[0])
+            let user = new User(createdUser).save()
+            createdUser._id = user._id
+            let token = app.generateAccessToken(createdUser)
             const lang = req.query.lang || 'en'
             const code = await app.account.updateAndGenerateCode(
-                users[0]._id,
+                createdUser._id,
                 'validation'
             )
             app.i18n.configureTranslation(lang)
@@ -333,12 +299,11 @@ passport.use(
                 null,
                 null,
                 code,
-                users[0]
+                user
             )
-            app.account.log('Email was sent to ' + users[0].email.toLowerCase())
-
+            app.account.log('Email was sent to ' + user.email.toLowerCase())
             return done(null, {
-                id: users[0]._id,
+                id: createdUser._id,
                 token,
                 expires_in: date,
                 noredirect: req.body.noredirect,
