@@ -7,6 +7,7 @@ const {
     GoogleProfile,
     FbProfile,
     LinkedinProfile,
+    TwitterProfile,
     Interests,
 } = require('../model/index')
 
@@ -326,7 +327,9 @@ exports.AddIntersts = async (req, res) => {
     try {
         let userInterests = req.body
         userInterests.userId = req.user._id
-        const interests = await Interests.create(userInterests)
+        let newInterests = new Interests(userInterests)
+
+        const interests = await newInterests.save()
         return makeResponseData(res, 200, 'interests added', interests)
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
@@ -337,39 +340,35 @@ exports.UpdateIntersts = async (req, res) => {
     try {
         let id = req.user._id
         let userInterests = req.body.interests
-        await app.db
-            .interests()
-            .replaceOne(
-                { _id: Long.fromNumber(id) },
-                { interests: userInterests }
-            )
-        res.send(JSON.stringify({ message: 'interests updated' })).status(201)
+        const interests = await Interests.findOneAndUpdate(
+            { userId: id },
+            { $set: { interests: userInterests } },
+            {
+                new: true,
+            }
+        )
+        if (interests.nModified === 0) {
+            return makeResponseError(res, 404, 'updated failed')
+        }
+        return makeResponseData(res, 201, 'interests updated', interests)
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
-exports.socialAccounts = async (req, response) => {
+exports.socialAccounts = async (req, res) => {
     try {
-        var UserId = req.user._id
+        let UserId = req.user._id
         let networks = {}
-        var channelsGoogle = await app.db
-            .googleProfile()
-            .find({ UserId })
-            .toArray()
-        var channelsTwitter = await app.db
-            .twitterProfile()
-            .find({ UserId })
-            .toArray()
-        let channelsFacebook = await app.db.fbPage().find({ UserId }).toArray()
-        let channelsLinkedin = await app.db
-            .linkedinProfile()
-            .findOne({ userId: UserId })
+        let channelsGoogle = await GoogleProfile.find({ UserId })
+        let channelsTwitter = await TwitterProfile.find({ UserId })
+        let channelsFacebook = await FbProfile.find({ UserId })
+        let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
-        response.send(JSON.stringify(networks))
+        return makeResponseData(res, 200, 'success', networks)
     } catch (err) {
         response.end(
             '{"error":"' + (err.message ? err.message : err.error) + '"}'
@@ -377,13 +376,17 @@ exports.socialAccounts = async (req, response) => {
     }
 }
 
-module.exports.checkOnBoarding = async (req, response) => {
+module.exports.checkOnBoarding = async (req, res) => {
     try {
-        const _id = +req.user._id
-        await app.db
-            .sn_user()
-            .updateOne({ _id }, { $set: { onBoarding: true } })
-        response.json({ success: 'onBoarding updated' }).status(201)
+        const _id = req.user._id
+        const result = await User.updateOne(
+            { _id },
+            { $set: { onBoarding: true } }
+        )
+        if (result.nModified === 0) {
+            return makeResponseError(res, 404, 'user not found')
+        }
+        return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
         response.end(
             '{"error":"' + (err.message ? err.message : err.error) + '"}'
@@ -404,7 +407,7 @@ module.exports.requestMoney = async (req, res) => {
             currency: req.body.cryptoCurrency,
         })
 
-        var result = await app.db.user().findOne({ email: req.body.to })
+        var result = await User.findOne({ email: req.body.to })
         if (result) {
             await app.account.notificationManager(
                 result._id,
@@ -415,6 +418,8 @@ module.exports.requestMoney = async (req, res) => {
                     currency: req.body.cryptoCurrency,
                 }
             )
+        } else {
+            return makeResponseError(res, 404, 'user not found')
         }
         readHTMLFileProfile(
             __dirname + '/../public/emailtemplate/notification.html',
@@ -424,8 +429,7 @@ module.exports.requestMoney = async (req, res) => {
             null,
             code
         )
-
-        res.end(JSON.stringify({ message: 'Email was sent to ' + req.body.to }))
+        return makeResponseData(res, 202, 'Email was sent to ' + req.body.to)
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -438,10 +442,9 @@ exports.support = async (req, res) => {
             'contact_support',
             req.body
         )
-
-        res.end(JSON.stringify({ message: 'Email was sent' }))
+        return makeResponseData(res, 202, 'Email was sent')
     } catch (err) {
-        res.send(JSON.stringify(err))
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
