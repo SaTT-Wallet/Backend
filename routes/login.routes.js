@@ -59,7 +59,8 @@ const {
     socialSignin,
     getQrCode,
     verifyQrCode,
-    purgeAccount
+    purgeAccount,
+    refreshToken
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -106,6 +107,34 @@ router.get('/captcha',captcha)
 
 /**
  * @swagger
+ * /auth/verifyCaptcha:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: check if valid captcha .
+ *     description: Check captcha to verify that you are not a bot <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *               position:
+ *                 type: number
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"wrong captcha"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+ router.post('/verifyCaptcha',verifyCaptcha)
+
+ /**
+ * @swagger
  * /auth/purge:
  *   post:
  *     tags:
@@ -132,35 +161,7 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: code,<br>error
  */
- router.post('/purge',verifyAuth,purgeAccount)
-
-/**
- * @swagger
- * /auth/verifyCaptcha:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: check if valid captcha .
- *     description: Check captcha to verify that you are not a bot <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               _id:
- *                 type: string
- *               position:
- *                 type: number
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"wrong captcha"
- *       "500":
- *          description: code,<br>error:"error"
- */
- router.post('/verifyCaptcha',verifyCaptcha)
+  router.post('/purge',verifyAuth,purgeAccount)
 
 /**
  * @swagger
@@ -853,5 +854,21 @@ router.get('/qrCode', verifyAuth, getQrCode)
   *          description: error
   */
 router.post('/verifyQrCode',verifyAuth,verifyQrCode);
+
+ /**
+  * @swagger
+  * /auth/refreshToken:
+  *   get:
+  *     tags:
+  *     - "auth"
+  *     summary: verify 2fa.
+  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
+  *     responses:
+  *       "200":
+  *          description: code,message,data:{ verifiedCode:verified(true/false) }
+  *       "500":
+  *          description: error
+  */
+  router.get('/refreshToken', refreshToken);
 
 module.exports = router
