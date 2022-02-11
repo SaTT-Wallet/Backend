@@ -16,6 +16,7 @@ module.exports = async function (app) {
     const bad_login_limit = app.config.bad_login_limit;
 	const { createLogger, format, transports } = require('winston');
 
+	var User = require('../model/user.model');
 
 
 	var accountManager = {};
@@ -854,8 +855,7 @@ accountManager.handleId=async function () {
 	}
 
 	accountManager.isBlocked = async (user, auth=false)=>{
-
-		let dateNow = Math.floor(Date.now() / 1000);
+		let dateNow = Math.floor(Date.now() / 1000);		
 		var  res = false;
 		let logBlock = {};
 		if(auth){
@@ -869,7 +869,6 @@ accountManager.handleId=async function () {
 			  logBlock.account_locked = false
 			   res = false
 			 }
-
 		 } 
 		} else{
 		  let failed_count = user.failed_count? user.failed_count + 1 : 1;  
@@ -880,7 +879,9 @@ accountManager.handleId=async function () {
 			  logBlock.failed_count = 0
 			  res= true
 			}
+			
 		 else if (!user.account_locked  && (failed_count >= bad_login_limit) && accountManager.differenceBetweenDates(user.dateFirstAttempt, dateNow) < app.config.failInterval ) {
+
 			logBlock.account_locked = true
 			logBlock.failed_count = 0
 			logBlock.date_locked = dateNow   
@@ -888,7 +889,7 @@ accountManager.handleId=async function () {
 		  } 
 		  else if(failed_count >= bad_login_limit) logBlock.failed_count = 1
 		}
-	if(Object.keys(logBlock).length) await app.db.sn_user().updateOne({_id : user._id},{$set:logBlock})
+	if(Object.keys(logBlock).length) await User.updateOne({_id : user._id},{$set:logBlock})
         
 		return {res,blockedDate:dateNow, auth};
 		 
@@ -954,18 +955,12 @@ accountManager.handleId=async function () {
 				}
 		})
 	   }
-	   accountManager.updateAndGenerateCode = (_id,type) =>{
-		return new Promise( async (resolve, reject) => {
-			try{
+	   accountManager.updateAndGenerateCode = async(_id,type) =>{
 				const code = Math.floor(100000 + Math.random() * 900000);
 				let secureCode = {}
 				secureCode.code=code, secureCode.expiring = (Date.now() + (3600*20)*5),secureCode.type = type;
-				await app.db.sn_user().updateOne({_id},{$set:{secureCode}})
-				resolve(code)
-			}catch (e) {
-					reject({message:e.message});
-				}
-		}) 
+				await User.updateOne({_id},{$set:{secureCode}})
+				return code;
 	   }
 
 	   /*logger object of application logs */
