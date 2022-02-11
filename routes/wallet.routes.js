@@ -377,7 +377,7 @@ router.post('/transfertEther', verifyAuth, transfertEther)
  *             type: object
  *             properties:
  *               digital_currency:
- *                 type: string
+ *                 type: string!
  *               fiat_currency:
  *                 type: string
  *               requested_amount:
