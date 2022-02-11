@@ -599,6 +599,8 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *                   type: string
  *               name:
  *                   type: string
+ *               wallet:
+ *                   type: string
  *     responses:
  *       "200":
  *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired

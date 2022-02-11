@@ -89,6 +89,8 @@ module.exports = async function (app) {
 
         config.contactMail = process.env.CONTACT_MAIL
 
+        config.notificationMail = process.env.NOTIFICATION_MAIL
+
         // Facebook developer app access
         config.appId = process.env.APPID
         config.appSecret = process.env.APP_SECRET
