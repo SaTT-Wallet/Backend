@@ -12,6 +12,7 @@ ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise');
 const jwt = require('jsonwebtoken');
 var User = require('../model/user.model');
+const { responseHandler } = require('../helpers/response-handler');
 
 var requirement= require('../helpers/utils')
 var readHTMLFile = function(path, callback) {
@@ -69,14 +70,14 @@ passport.serializeUser(function(user, cb) {
 });
 
 passport.deserializeUser(async function(id, cb) {
-    var user = await app.db.sn_user().findOne({ _id: Long.fromNumber(id) });
+    var user = await User().findOne({ _id: Long.fromNumber(id) });
     cb(null, user);
 });
 
 
 const handleSocialMediaSignin = async (query,cb)=>{
     var date = Math.floor(Date.now() / 1000) + 86400;
-    var user = await app.db.sn_user().findOne(query);
+    var user = await User.findOne(query);
     if (user) {
         if (user.account_locked) {
             let message = `account_locked:${user.date_locked}`
@@ -101,25 +102,24 @@ let createUser = (enabled,idSn,newsLetter,picLink=false,username,email=null,idOn
      if(idOnSn && socialId) userObject[idOnSn] = socialId
      if(firstName) userObject.firstName =firstName;
      if(lastName) userObject.firstName =lastName;
-     if(password) userObject.password = password;
+     userObject.password = password ?? synfonyHash(crypto.randomUUID());
     return  userObject;
-  }
-
+}
 /* 
 * begin signin with email and password
 */
 passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true },
             async (req, username, password, done)=> {
                 var date = Math.floor(Date.now() / 1000) + 86400;  
-                var user = await app.db.sn_user().findOne({ email: username.toLowerCase() });
+                var user = await User.findOne({ email: username.toLowerCase()});
                 if (user) {
                     if (user.password == synfonyHash(password)) {
                         app.account.sysLog("authentification", req.addressIp, `valid ${username}`);
                         let validAuth = await app.account.isBlocked(user, true);
                         if (!validAuth.res && validAuth.auth == true) {
-                            let userAuth = app.cloneUser(user)
+                            let userAuth = app.cloneUser(user.toObject())
                             let token = app.generateAccessToken(userAuth); 
-                            await app.db.sn_user().updateOne({ _id: Long.fromNumber(user._id) }, { $set: { failed_count: 0 } });
+                            await User.updateOne({ _id: Long.fromNumber(user._id) }, { $set: { failed_count: 0 } });
                             return done(null, { id: user._id, token, expires_in: date, noredirect: req.body.noredirect });
                         } else {
                             return done(null, false, { error: true, message: 'account_locked', blockedDate: validAuth.blockedDate });
@@ -139,17 +139,14 @@ exports.emailConnection= async(req, res, next) => {
     passport.authenticate('signinEmailStrategy',{session: false},
         (err, user, info) => {
             if (err) {
-                return res.end(JSON.stringify(err))
+                return responseHandler.makeResponseError(res, 401,err);
             }
-
             if (!user) {
-                return res.end(JSON.stringify(info))
+                return responseHandler.makeResponseError(res, 401,info);
             }
-
             req.logIn(user, function(err) {
-                req.session.user = user.id;
                 var param = { "access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user" };
-                return res.end(JSON.stringify(param))
+                return responseHandler.makeResponseData(res, 200, "success", param);    
             });
 
         })(req, res, next)
@@ -189,12 +186,13 @@ exports.googleAuthSignin= async (req,accessToken,refreshToken,profile,cb) => {
 passport.use('auth_signup_emailStrategy', new LocalStrategy({ passReqToCallback: true },
     async function(req, username, password, done) {
         var date = Math.floor(Date.now() / 1000) + 86400;
-        var user = await User.findOne({email:username.toLowerCase()})
+        let user = await User.findOne({email:username.toLowerCase()})
         if (user) {
             return done(null, false, { error: true, message: 'account_already_used' });
         } else {
-            let createdUser = createUser(0,0,req.body.newsLetter,'',username.toLowerCase(),username.toLowerCase(),false,false,'','',synfonyHash(password))
-            let user=new User(createdUser).save();
+            var createdUser = createUser(0,0,req.body.newsLetter,'',username.toLowerCase(),username.toLowerCase(),false,false,'','',synfonyHash(password))
+            let user =await new User(createdUser).save();
+            createdUser._id=user._id;
             let token = app.generateAccessToken(createdUser);
             const lang = req.query.lang || "en";
             const code = await app.account.updateAndGenerateCode(createdUser._id, "validation");
@@ -230,17 +228,16 @@ exports.emailSignup= async(req, res, next) => {
     passport.authenticate('auth_signup_emailStrategy',
             (err, user, info) => {
                 if (err) {
-                    return res.end(JSON.stringify(err))
+                    return responseHandler.makeResponseError(res, 401,err);
                 }
 
                 if (!user) {
-                    return res.end(JSON.stringify(info))
+                    return responseHandler.makeResponseError(res, 401,info);
                 }
 
                 req.logIn(user, function(err) {
-
                     var param = { "access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user" };
-                    return res.end(JSON.stringify(param))
+                    return responseHandler.makeResponseData(res, 200, "success", param);    
                 });
 
             })(req, res, next);
@@ -254,38 +251,15 @@ exports.emailSignup= async(req, res, next) => {
 */
 exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    var user = await app.db.sn_user().findOne({ idOnSn: profile._json.token_for_business });
+    var user = await User.findOne({$or:[{ idOnSn: profile._json.token_for_business },{email:profile._json.email}]});
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
     } else {
-        /*var mongodate = new Date().toISOString();
-        var buff2 = Buffer.alloc(32);
-        var code = crypto.randomFillSync(buff2).toString('hex');
-        var id = Long.fromNumber(await app.account.handleId())*/
-        let createdUser = createUser(1,Long.fromNumber(await app.account.handleId()),1,req.body.newsLetter,profile.photos.length ? profile.photos[0].value : false,profile.name,profile._json.email,'idOnSn',profile._json.token_for_business,profile.first_name,profile.displayName)
-        // let insert = await app.db.sn_user().insertOne({
-        //     _id: id,
-        //     idOnSn: profile._json.token_for_business,
-        //     email: profile._json.email,
-        //     username: profile.name,
-        //     firstName: profile.first_name,
-        //     lastName: profile.displayName,
-        //     created: mongodate,
-        //     onBoarding: false,
-        //     account_locked: false,
-        //     newsLetter: req.body.newsLetter,
-        //     failed_count: 0,
-        //     updated: mongodate,
-        //     idSn: 1,
-        //     locale: "en",
-        //     enabled: 1,
-        //     confirmation_token: code,
-        //     picLink: profile.photos.length ? profile.photos[0].value : false,
-        //     userSatt: true
-        // });
-        let insert = await app.db.sn_user().insertOne(createdUser)
-        let token = app.generateAccessToken(insert.ops[0]);
-        return cb(null, { id: id, token: token, expires_in: date });
+        let createdUser = createUser(1,1,req.body.newsLetter,profile.photos.length ? profile.photos[0].value : false,profile.name,profile._json.email,'idOnSn',profile._json.token_for_business,profile.first_name,profile.displayName)
+        let user =await new User(createdUser).save();
+        createdUser._id=user._id;
+        let token = app.generateAccessToken(createdUser);
+        return cb(null, { id: createdUser._id, token: token, expires_in: date });
     }
 }
 /* 
@@ -299,38 +273,15 @@ exports.facebookAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
 
 exports.googleAuthSignup= async (req,accessToken,refreshToken,profile,cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    var users = await app.db.sn_user().find({ $or: [{ idOnSn2: profile.id }, { email: profile._json.email }] }).toArray()
-    if (users.length) {
-        return cb('account_already_used&idSn=' + users[0].idSn)
+    var user = await User.findOne({ $or: [{ idOnSn2: profile.id }, { email: profile._json.email }] });
+    if (user) {
+        return cb('account_already_used&idSn=' + user.idSn)
     } else {
-        /*var mongodate = new Date().toISOString();
-        var buff2 = Buffer.alloc(32);
-        var code = crypto.randomFillSync(buff2).toString('hex');*/
-        let createdUser = createUser(1,Long.fromNumber(await app.account.handleId()),2,req.body.newsLetter,profile.photos.length ? profile.photos[0].value : false,profile.displayName,profile.emails.length ? profile.emails[0].value : false,"idOnSn2",profile.id,profile.name.givenName,profile.name.familyName)
-        // var insert = await app.db.sn_user().insertOne({
-        //     _id: Long.fromNumber(await app.account.handleId()),
-        //     idOnSn2: profile.id,
-        //     email: profile.emails.length ? profile.emails[0].value : false,
-        //     username: profile.displayName,
-        //     firstName: profile.name.givenName,
-        //     lastName: profile.name.familyName,
-        //     created: mongodate,
-        //     updated: mongodate,
-        //     idSn: 2,
-        //     newsLetter: req.body.newsLetter,
-        //     onBoarding: false,
-        //     account_locked: false,
-        //     failed_count: 0,
-        //     enabled: 1,
-        //     locale: profile._json.locale,
-        //     confirmation_token: code,
-        //     userSatt: true,
-        //     picLink: profile.photos.length ? profile.photos[0].value : false
-        // });
-        let insert = await app.db.sn_user().insertOne(createdUser)
-        var users = insert.ops;
-        let token = app.generateAccessToken(users[0]);
-        return cb(null, { id: profile.id, token: token, expires_in: date });
+        let createdUser = createUser(1,2,req.body.newsLetter,profile.photos.length ? profile.photos[0].value : false,profile.displayName,profile.emails.length ? profile.emails[0].value : false,"idOnSn2",profile.id,profile.name.givenName,profile.name.familyName)
+        let user = await new User(createdUser).save();
+        createdUser._id=user._id;
+        let token = app.generateAccessToken(createdUser);
+        return cb(null, { id: createdUser._id, token: token, expires_in: date });
     }
 }
 
@@ -355,38 +306,15 @@ exports.telegramSignup= async(req, res) => {
 
 exports.signup_telegram_function=async(req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400;
-    var users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
-    if (users.length) {
-        return cb('account_already_used&idSn=' + users[0].idSn);
+    var user = await User.findOne({ idOnSn3: profile.id })
+    if (user) {
+        return cb('account_already_used&idSn=' + user.idSn);
     } else {
-        // var mongodate = new Date().toISOString();
-        // var buff2 = Buffer.alloc(32);
-        // var code = crypto.randomFillSync(buff2).toString('hex');
-        let createdUser = createUser(1,Long.fromNumber(await app.account.handleId()),5,req.body.newsLetter,profile.photo_url,profile.email,'','idOnSn3',profile.id,profile.first_name,profile.last_name)
-        // var insert = await app.db.sn_user().insertOne({
-        //     _id: Long.fromNumber(await app.account.handleId()),
-        //     idOnSn3: profile.id,
-        //     username: profile.email,
-        //     firstName: profile.first_name,
-        //     lastName: profile.last_name,
-        //     name: profile.username,
-        //     newsLetter: req.body.newsLetter ?? false,
-        //     picLink: profile.photo_url,
-        //     created: mongodate,
-        //     onBoarding: false,
-        //     account_locked: false,
-        //     failed_count: 0,
-        //     updated: mongodate,
-        //     idSn: 5,
-        //     locale: "en",
-        //     confirmation_token: code,
-        //     enabled: 1,
-        //     userSatt: true
-        // });
-        let insert = await app.db.sn_user().insertOne(createdUser)
-        var users = insert.ops;
-        let token = app.generateAccessToken(users[0]);
-        return cb(null, { id: users[0]._id, token: token, expires_in: date });
+        let createdUser = createUser(1,5,req.body.newsLetter,profile.photo_url,profile.email,'','idOnSn3',profile.id,profile.first_name,profile.last_name)
+        let user = await new User(createdUser).save();
+        createdUser._id=user._id;
+        let token = app.generateAccessToken(createdUser);
+        return cb(null, { id: createdUser._id, token: token, expires_in: date });
     }
 }
 /* 
@@ -419,14 +347,14 @@ exports.telegramConnection= (req, res) => {
 exports.linkFacebookAccount= async (req, accessToken, refreshToken, profile, cb) => {
     let state = req.query.state.split('|');
             let user_id = +state[0];
-            let users = await app.db.sn_user().find({$or:[{ idOnSn: profile._json.token_for_business },{email:profile._json.email}]}).toArray()
-            if (users.length) {
+            let user = await User().findOne({ idOnSn: profile._json.token_for_business })
+            if (user) {
                 cb(null, profile, {
                     status: false,
                     message: "account exist"
                 })
             } else {
-                await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business,email:profile._json.email } })
+                await User().updateOne({ _id: user_id }, { $set: { idOnSn: profile._json.token_for_business} })
                 cb(null, profile, {
                     status: true,
                     message: 'account_linked_with success'
@@ -443,16 +371,16 @@ exports.linkFacebookAccount= async (req, accessToken, refreshToken, profile, cb)
 exports.linkGoogleAccount= async (req, accessToken, refreshToken, profile, done) => {
     let state = req.query.state.split('|');
     let user_id = +state[0];
-    let userExist = await app.db.sn_user().find({$or:[{ idOnSn2: profile.id }]}).toArray();
-    if (userExist.length) {
+    let userExist = await User().findOne({ idOnSn2: profile.id });
+    if (userExist) {
 
         done(null, profile, {
             status: false,
             message: "account exist"
         })
     } else {
-        await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id,email:profile.emails[0].value } })
-        done(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
+        await User().updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id} })
+        done(null, profile, { status: true, message: 'account_linked_with success' }) 
     }
 }
 /*
@@ -476,12 +404,12 @@ exports.connectTelegramAccount= async(req, res) => {
 }
 exports.telegram_connect_function= async(req, profile, cb) => {
     let user_id = +req.params.idUser;
-    let users = await app.db.sn_user().find({ idOnSn3: profile.id }).toArray()
-    if (users.length) {
+    let user = await User().findOne({ idOnSn3: profile.id })
+    if (user) {
         cb(null, profile, { message: "account exist" })
     } else {
-        await app.db.sn_user().updateOne({ _id: user_id }, { $set: { idOnSn3: profile.id } })
-        cb(null, profile, { status: true, message: 'account_linked_with success' }) //(null, false, {message: 'account_invalide'});
+        await User().updateOne({ _id: user_id }, { $set: { idOnSn3: profile.id } })
+        cb(null, profile, { status: true, message: 'account_linked_with success' }) 
     }
 }
 /*
@@ -625,15 +553,12 @@ module.exports.verifyAuth = (req, res, next)=> {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1] 
     if(!token){
-       return res.end(JSON.stringify({ error: "token required" }));
-    }  
-     
+        return responseHandler.makeResponseError(res, 401,"token required");
+    }
       jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-  
       if (err) return res.json(err)
-  
-      req.user = user
-
+      req.user =  user
       next();
     })
   }
+module.exports.createUser =createUser;
