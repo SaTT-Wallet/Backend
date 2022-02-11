@@ -1,4 +1,5 @@
 var requirement = require('../helpers/utils')
+var readHTMLFileCampaign = requirement.readHTMLFileCampaign
 var ObjectId = require('mongodb').ObjectId
 var fs = require('fs')
 const multer = require('multer')
@@ -372,7 +373,7 @@ exports.campaign = async (req, response) => {
 exports.campaignPromp = async (req, res) => {
     try {
         const campaign = await app.db.campaigns().findOne(
-            { _id: app.ObjectId(req.params.idCampaign) },
+            { _id: app.ObjectId(req.params.id) },
             {
                 fields: {
                     logo: 0,
@@ -734,54 +735,30 @@ exports.linkNotifications = async (req, res) => {
                 await app.db
                     .sn_user()
                     .findOne({ _id: owner }, (err, result) => {
-                        app.readHTMLFile(
+                        readHTMLFileCampaign(
                             __dirname +
                                 '/../public/emailtemplate/Email_Template_link_added.html',
-                            async (err, html) => {
-                                if (err) {
-                                    console.error(err)
-                                    return
-                                }
+                            'linkNotifications',
+                            element.title,
+                            result.email,
+                            null,
+                            link
+                        )
 
-                                let template = handlebars.compile(html)
-
-                                let emailContent = {
-                                    cmp_name: element.title,
-                                    cmp_link: link,
-                                    cmp_imgUrl: app.config.baseEmailImgURl,
-                                    cmp_satt_faq: app.config.Satt_faq,
-                                }
-                                let htmlToSend = template(emailContent)
-
-                                var mailOptions = {
-                                    from: app.config.mailSender,
-                                    to: result.email,
-                                    subject:
-                                        'New link was added To your campaign',
-                                    html: htmlToSend,
-                                }
-
-                                await app.transporter.sendMail(
-                                    mailOptions,
-                                    function (error, info) {
-                                        if (error) {
-                                            res.end(JSON.stringify(error))
-                                        } else {
-                                            res.end(
-                                                JSON.stringify({
-                                                    message: 'succes',
-                                                })
-                                            )
-                                        }
-                                    }
-                                )
-                            }
+                        res.end(
+                            JSON.stringify({
+                                message: 'Email was sent to ' + result.email,
+                            })
                         )
                     })
             }
         )
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.end(
+            '{"error"console.log(link,campaign_id):"' +
+                (err.message ? err.message : err.error) +
+                '"}'
+        )
     }
 }
 
@@ -869,7 +846,7 @@ exports.validateCampaign = async (req, res) => {
                 : app.campaign.getReward(link, campaign.bounties)
             socialOracle.totalToEarn = link.totalToEarn
             socialOracle.type = app.campaign.getButtonStatus(link)
-            await app.db
+            const acceptedLink = await app.db
                 .campaign_link()
                 .updateOne({ id_prom: idApply }, { $set: socialOracle })
 
@@ -886,6 +863,18 @@ exports.validateCampaign = async (req, res) => {
                 }
             )
 
+            // readHTMLFileCampaign(
+            //     __dirname +
+            //         '/../public/emailtemplate/email_validated_link.html',
+            //     'campaignValidation',
+            //     campaign.title,
+            //     email,
+            //     idCampaign
+            // )
+
+            // res.end(
+            //     JSON.stringify({ message: 'success', prom: acceptedLink.value })
+            // )
             app.readHTMLFile(
                 __dirname +
                     '/../public/emailtemplate/email_validated_link.html',
@@ -2038,7 +2027,7 @@ exports.rejectLink = async (req, res) => {
     try {
         if (idUser === campaign.idNode) {
             let reason = []
-            req.body.reason.forEach((str) => reason.push({ reason: str }))
+            // req.body.reason.forEach((str) => reason.push({ reason: str }))
             const rejectedLink = await app.db
                 .campaign_link()
                 .findOneAndUpdate(
@@ -2046,8 +2035,7 @@ exports.rejectLink = async (req, res) => {
                     { $set: { status: 'rejected', type: 'rejected' } },
                     { returnOriginal: false }
                 )
-            console.log(rejectedLink)
-            let id = +req.body.idUser
+            let id = req.user._id
 
             await app.account.notificationManager(
                 id,
@@ -2061,44 +2049,17 @@ exports.rejectLink = async (req, res) => {
                 }
             )
 
-            app.readHTMLFile(
+            readHTMLFileCampaign(
                 __dirname + '/../public/emailtemplate/rejected_link.html',
-                (err, html) => {
-                    if (err) {
-                        console.error(err)
-                        return
-                    }
-                    let template = handlebars.compile(html)
+                'rejectLink',
+                title,
+                email,
+                idCampaign,
+                reason
+            )
 
-                    let emailContent = {
-                        reject_reason: reason,
-                        cmp_link:
-                            app.config.basedURl +
-                            '/myWallet/campaign/' +
-                            idCampaign,
-                        satt_faq: app.config.Satt_faq,
-                        satt_url: app.config.basedURl,
-                        cmp_title: title,
-                        imgUrl: app.config.baseEmailImgURl,
-                    }
-                    let htmlToSend = template(emailContent)
-
-                    let mailOptions = {
-                        from: app.config.mailSender,
-                        to: email,
-                        subject: 'Your link has been rejected in a campaign',
-                        html: htmlToSend,
-                    }
-
-                    app.transporter.sendMail(mailOptions, (error, info) => {
-                        res.end(
-                            JSON.stringify({
-                                message: 'success',
-                                prom: rejectedLink.value,
-                            })
-                        )
-                    })
-                }
+            res.end(
+                JSON.stringify({ message: 'success', prom: rejectedLink.value })
             )
         } else {
             res.end(JSON.stringify({ message: 'unothorized' }))
