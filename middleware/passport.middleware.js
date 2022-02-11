@@ -114,7 +114,7 @@ passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true 
                         let validAuth = await app.account.isBlocked(user, true);
                         if (!validAuth.res && validAuth.auth == true) {
                             let userAuth = app.cloneUser(user.toObject())
-                            let token = app.generateAccessToken(userAuth); 
+                            let token = app.generateAccessToken(userAuth);
                             await User.updateOne({ _id: Long.fromNumber(user._id) }, { $set: { failed_count: 0 } });
                             return done(null, { id: user._id, token, expires_in: date, noredirect: req.body.noredirect });
                         } else {
@@ -160,7 +160,7 @@ exports.emailConnection = async (req, res, next) => {
                 return responseHandler.makeResponseError(res, 401,info);
             }
             req.logIn(user, function(err) {
-                var param = { "access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user" };
+                var param = {"access_token": user.token, "expires_in": user.expires_in, "token_type": "bearer", "scope": "user" };
                 return responseHandler.makeResponseData(res, 200, "success", param);    
             });
 
@@ -283,7 +283,6 @@ exports.emailSignup= async(req, res, next) => {
 /*
  * end signin with email and password
  */
-
 /* 
 * begin signup with facebook strategy
 */
@@ -665,7 +664,7 @@ module.exports.verifyAuth = (req, res, next) => {
     if(!token){
         return responseHandler.makeResponseError(res, 401,"token required");
     }
-      jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
       if (err) return res.json(err)
       req.user =  user
       next();
