@@ -1,21 +1,47 @@
+let express = require('express')
+let router = express.Router()
+const cron = require('node-cron')
 
-let express = require('express');
-let router = express.Router();
-const cron =require('node-cron');
+const {
+    exportEth,
+    exportBtc,
+    bridge,
+    payementRequest,
+    getQuote,
+    transfertEther,
+    transfertBNB,
+    transfertBtc,
+    gasPriceErc20,
+    checkWalletToken,
+    addNewToken,
+    transfertBep20,
+    mywallet,
+    transfertErc20,
+    totalBalances,
+    userBalance,
+    gasPriceBep20,
+    cryptoDetails,
+    prices,
+    getMnemo,
+    verifyMnemo,
+    createNewWallet,
+    removeToken,
+    getTransactionHistory,
+} = require('../controllers/wallet.controller')
+const { verifyAuth } = require('../middleware/passport.middleware')
+const { BalanceUsersStats } = require('../helpers/common')
 
-const {exportEth,exportBtc,bridge, payementRequest, getQuote,transfertEther, transfertBNB, transfertBtc, 
-	gasPriceErc20,checkWalletToken, addNewToken, transfertBep20, mywallet, 
-	transfertErc20,totalBalances, userBalance,gasPriceBep20, cryptoDetails,prices,getMnemo,verifyMnemo,createNewWallet,removeToken,getTransactionHistory} = require('../controllers/wallet.controller')
-const { verifyAuth} =require('../middleware/passport.middleware');
-const {BalanceUsersStats} = require('../helpers/common');
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
+    BalanceUsersStats('daily')
+)
 
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
+    BalanceUsersStats('monthly')
+)
 
-cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY,  () => BalanceUsersStats("daily"));
-
-cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>BalanceUsersStats("monthly"));
-
-cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>BalanceUsersStats("weekly"));
-
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
+    BalanceUsersStats('weekly')
+)
 
 /**
  * @swagger
@@ -33,7 +59,7 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>BalanceUsersStats(
  *       "500":
  *          description: error:"error"
  */
-router.get('/mywallet',verifyAuth,mywallet)
+router.get('/mywallet', verifyAuth, mywallet)
 
 /**
  * @swagger
@@ -51,10 +77,7 @@ router.get('/mywallet',verifyAuth,mywallet)
  *       "500":
  *          description: error:"error"
  */
-router.get('/userBalance',verifyAuth,userBalance)
-
-
-
+router.get('/userBalance', verifyAuth, userBalance)
 
 /**
  * @swagger
@@ -73,11 +96,7 @@ router.get('/userBalance',verifyAuth,userBalance)
  *          description: error:"error"
  */
 
-
 router.get('/Bep20GasPrice', gasPriceBep20)
-
-
-
 
 /**
  * @swagger
@@ -113,11 +132,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *          description: error:"error"
  */
-router.get('/totalBalance',verifyAuth, totalBalances);
-
-
-
-
+router.get('/totalBalance', verifyAuth, totalBalances)
 
 /**
  * @swagger
@@ -126,7 +141,7 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *     tags:
  *     - "wallets"
  *     summary: gas price ERC20
- *     description: return gas price of ERC20 network <br> without access_token 
+ *     description: return gas price of ERC20 network <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -136,13 +151,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *          description: error:"error"
  */
 
+router.get('/Erc20GasPrice', gasPriceErc20)
 
-
- router.get('/Erc20GasPrice', gasPriceErc20)
-
-
-
- 	/**
+/**
  * @swagger
  * /wallet/transferErc20:
  *   post:
@@ -172,12 +183,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/transferErc20',verifyAuth, transfertErc20)
- 
+router.post('/transferErc20', verifyAuth, transfertErc20)
 
-
-
- 	/**
+/**
  * @swagger
  * /wallet/transferBep20:
  *   post:
@@ -209,12 +217,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/transferBep20',verifyAuth, transfertBep20)
+router.post('/transferBep20', verifyAuth, transfertBep20)
 
-
-
-
- 	/**
+/**
  * @swagger
  * /wallet/checkWalletToken:
  *   post:
@@ -239,11 +244,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *          description: error:error message
  */
 
- router.post('/checkWalletToken',verifyAuth, checkWalletToken)
+router.post('/checkWalletToken', verifyAuth, checkWalletToken)
 
-
-
- 	/**
+/**
  * @swagger
  * /wallet/addNewToken:
  *   post:
@@ -273,10 +276,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/addNewToken',verifyAuth, addNewToken)
+router.post('/addNewToken', verifyAuth, addNewToken)
 
-
- 	/**
+/**
  * @swagger
  * /wallet/transfertBtc:
  *   post:
@@ -302,10 +304,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/transfertBtc',verifyAuth, transfertBtc)
+router.post('/transfertBtc', verifyAuth, transfertBtc)
 
-
- 	/**
+/**
  * @swagger
  * /wallet/transfertBNB:
  *   post:
@@ -331,8 +332,8 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *       "500":
  *          description: error:error message
  */
- router.post('/transfertBNB',verifyAuth, transfertBNB)
-  	/**
+router.post('/transfertBNB', verifyAuth, transfertBNB)
+/**
  * @swagger
  * /wallet/transfertEther:
  *   post:
@@ -359,12 +360,9 @@ router.get('/totalBalance',verifyAuth, totalBalances);
  *          description: error:error message
  */
 
+router.post('/transfertEther', verifyAuth, transfertEther)
 
-
-router.post('/transfertEther',verifyAuth, transfertEther)
-
-
- 	/**
+/**
  * @swagger
  * /wallet/getQuote:
  *   post:
@@ -392,10 +390,9 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
- router.post('/getQuote',verifyAuth, getQuote)
+router.post('/getQuote', verifyAuth, getQuote)
 
-
- 	/**
+/**
  * @swagger
  * /wallet/payementRequest:
  *   post:
@@ -421,10 +418,9 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
- router.post('/payementRequest',verifyAuth, payementRequest)
+router.post('/payementRequest', verifyAuth, payementRequest)
 
-
- /**
+/**
  * @swagger
  * /wallet/bridge:
  *   post:
@@ -450,10 +446,9 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-  router.post('/bridge',verifyAuth, bridge)
+router.post('/bridge', verifyAuth, bridge)
 
-
- 	/**
+/**
  * @swagger
  * /wallet/exportBtc:
  *   post:
@@ -476,11 +471,9 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-	  router.post('/exportBtc',verifyAuth, exportBtc)
+router.post('/exportBtc', verifyAuth, exportBtc)
 
-
-
-	   	/**
+/**
  * @swagger
  * /wallet/exportETH:
  *   post:
@@ -503,9 +496,9 @@ router.post('/transfertEther',verifyAuth, transfertEther)
  *       "500":
  *          description: error:error message
  */
-router.post('/exportETH',verifyAuth, exportEth)
+router.post('/exportETH', verifyAuth, exportEth)
 
-   /**
+/**
  * @swagger
  * /wallet/prices:
  *   get:
@@ -519,10 +512,9 @@ router.post('/exportETH',verifyAuth, exportEth)
  *       "500":
  *          description: error:error message
  */
-	router.get('/prices', prices)
+router.get('/prices', prices)
 
-
-   /**
+/**
  * @swagger
  * /wallet/getMnemo:
  *   get:
@@ -536,9 +528,9 @@ router.post('/exportETH',verifyAuth, exportEth)
  *       "500":
  *          description: error:error message
  */
- router.get('/getMnemo',verifyAuth,getMnemo);
+router.get('/getMnemo', verifyAuth, getMnemo)
 
-   /**
+/**
  * @swagger
  * /wallet/verifyMnemo:
  *   post:
@@ -546,7 +538,7 @@ router.post('/exportETH',verifyAuth, exportEth)
  *     - "wallets"
  *     summary: check passphrase.
  *     description: verify if the user got his seed phrase.
-  *     requestBody:
+ *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
@@ -560,9 +552,9 @@ router.post('/exportETH',verifyAuth, exportEth)
  *       "500":
  *          description: error:error message
  */
- router.post('/verifyMnemo',verifyAuth,verifyMnemo);
+router.post('/verifyMnemo', verifyAuth, verifyMnemo)
 
- /**
+/**
  * @swagger
  * /wallet/create:
  *   post:
@@ -584,10 +576,9 @@ router.post('/exportETH',verifyAuth, exportEth)
  *       "500":
  *          description: error:error message
  */
-  router.post('/create',verifyAuth,createNewWallet)
+router.post('/create', verifyAuth, createNewWallet)
 
-
-   /**
+/**
  * @swagger
  * /wallet/remove/token:
  *   post:
@@ -609,9 +600,9 @@ router.post('/exportETH',verifyAuth, exportEth)
  *       "500":
  *          description: error:error message
  */
-  router.post('/remove/token',verifyAuth, removeToken)
-  
-  /**
+router.post('/remove/token', verifyAuth, removeToken)
+
+/**
  * @swagger
  * /wallet/transaction_history/{address}:
  *   get:
@@ -630,6 +621,6 @@ router.post('/exportETH',verifyAuth, exportEth)
  *        "500":
  *          description: error:error message
  */
-  router.get('/transaction_history/:address',getTransactionHistory)
+router.get('/transaction_history/:address', getTransactionHistory)
 
-module.exports = router;
+module.exports = router
