@@ -30,13 +30,15 @@ const userSchema = mongoose.Schema(
             expiring: { type: Number },
             type: { type: String },
         },
-        hasWallet: { type: Boolean, default: false },
+        hasWallet: { type: Boolean },
         passphrase: { type: Boolean, default: false },
         is2FA: { type: Boolean, default: false },
         photoUpdated: { type: Boolean, default: false },
         isChanged: { type: Boolean, default: false },
         birthday: { type: String },
         gender: { type: String },
+        created: { type: Date, default: Date.now },
+
         daily: [
             {
                 Date: { type: Number },
