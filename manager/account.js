@@ -1240,6 +1240,7 @@ module.exports = async function (app) {
                 }
             }
         } else {
+            console.log(user)
             let failed_count = user.failed_count ? user.failed_count + 1 : 1
             logBlock.failed_count = failed_count
             if (failed_count == 1) logBlock.dateFirstAttempt = dateNow
@@ -1263,9 +1264,7 @@ module.exports = async function (app) {
                 logBlock.failed_count = 1
         }
         if (Object.keys(logBlock).length)
-            await app.db
-                .sn_user()
-                .updateOne({ _id: user._id }, { $set: logBlock })
+            await User.updateOne({ _id: user._id }, { $set: logBlock })
 
         return { res, blockedDate: dateNow, auth }
     }
@@ -1364,22 +1363,18 @@ module.exports = async function (app) {
             }
         })
     }
-    accountManager.updateAndGenerateCode = (_id, type) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const code = Math.floor(100000 + Math.random() * 900000)
-                let secureCode = {}
-                ;(secureCode.code = code),
-                    (secureCode.expiring = Date.now() + 3600 * 20 * 5),
-                    (secureCode.type = type)
-                await app.db
-                    .sn_user()
-                    .updateOne({ _id }, { $set: { secureCode } })
-                resolve(code)
-            } catch (e) {
-                reject({ message: e.message })
-            }
-        })
+    accountManager.updateAndGenerateCode = async (_id, type) => {
+        try {
+            const code = Math.floor(100000 + Math.random() * 900000)
+            let secureCode = {}
+            ;(secureCode.code = code),
+                (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+                (secureCode.type = type)
+            await User.updateOne({ _id }, { $set: { secureCode } })
+            return code
+        } catch (e) {
+            reject({ message: e.message })
+        }
     }
 
     /*logger object of application logs */

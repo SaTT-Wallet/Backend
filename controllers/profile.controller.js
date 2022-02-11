@@ -2,6 +2,17 @@ var connection
 
 var requirement = require('../helpers/utils')
 const handlebars = require('handlebars')
+const {
+    User,
+    GoogleProfile,
+    FbProfile,
+    LinkedinProfile,
+    Interests,
+} = require('../model/index')
+
+const { responseHandler } = require('../helpers/response-handler')
+const makeResponseData = responseHandler.makeResponseData
+const makeResponseError = responseHandler.makeResponseError
 
 var ejs = require('ejs')
 const QRCode = require('qrcode')
@@ -29,6 +40,8 @@ const GridFsStorage = require('multer-gridfs-storage')
 var Long = require('mongodb').Long
 
 const multer = require('multer')
+
+const { readHTMLFileProfile } = require('../helpers/utils')
 
 const storageUserLegal = new GridFsStorage({
     url: process.env.MONGOURI,
@@ -95,7 +108,7 @@ exports.updateProfile = async (req, res) => {
         const id = req.user._id
         let profile = req.body
         if (profile.email) {
-            const user = await app.db.sn_user().findOne({
+            const user = await User.findOne({
                 $and: [{ email: profile.email }, { _id: { $nin: [id] } }],
             })
             if (user) {
@@ -103,13 +116,11 @@ exports.updateProfile = async (req, res) => {
                 return
             }
         }
-        const result = await app.db
-            .sn_user()
-            .findOneAndUpdate(
-                { _id: id },
-                { $set: profile },
-                { returnOriginal: false }
-            )
+        const result = await User.findOneAndUpdate(
+            { _id: id },
+            { $set: profile },
+            { returnOriginal: false }
+        )
         const updatedProfile = result.value
         res.send(JSON.stringify({ updatedProfile, success: 'updated' })).status(
             201
@@ -255,53 +266,68 @@ exports.FindUserLegalProfile = async (req, res) => {
 
 exports.deleteGoogleChannels = async (req, res) => {
     try {
-        let id = req.user._id
-        await app.db.googleProfile().deleteMany({ UserId: id })
-        res.end(JSON.stringify({ message: 'deleted successfully' }))
+        const UserId = req.user._id
+        const result = await GoogleProfile.deleteMany({ UserId })
+        if (result.deletedCount === 0) {
+            return makeResponseError(res, 404, 'No channel was found')
+        } else {
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.deleteFacebookChannels = async (req, res) => {
     try {
-        let UserId = req.user._id
-        await app.db.fbPage().deleteMany({ UserId })
-        await app.db.fbProfile().deleteMany({ UserId })
-        res.end(JSON.stringify({ message: 'deleted successfully' }))
+        const UserId = req.user._id
+        const result = await FbProfile.deleteMany({ UserId })
+        if (result.deletedCount === 0) {
+            return makeResponseError(res, 404, 'No channel was found')
+        } else {
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.deleteLinkedinChannels = async (req, res) => {
     try {
-        let userId = req.user._id
-        await app.db
-            .linkedinProfile()
-            .updateOne({ userId }, { $set: { pages: [] } })
-        res.end(JSON.stringify({ message: 'deleted successfully' }))
+        const userId = req.user._id
+        const result = await LinkedinProfile.deleteMany(
+            { userId },
+            { $set: { pages: [] } }
+        )
+        if (result.deletedCount === 0) {
+            return makeResponseError(res, 404, 'No channel was found')
+        } else {
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.UserInterstes = async (req, res) => {
     try {
-        let id = req.user._id
-        const interests = await app.db.interests().findOne({ _id: id })
-        res.send(JSON.stringify(interests)).status(201)
+        const userId = req.user._id
+        const interests = await Interests.findOne({ userId })
+        if (!interests) {
+            return makeResponseError(res, 404, 'No interest was found')
+        }
+        return makeResponseData(res, 200, 'success', interests)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
 exports.AddIntersts = async (req, res) => {
     try {
         let userInterests = req.body
-        userInterests._id = Long.fromNumber(req.user._id)
-        await app.db.interests().insertOne(userInterests)
-        res.send(JSON.stringify({ message: 'interests added' })).status(201)
+        userInterests.userId = req.user._id
+        const interests = await Interests.create(userInterests)
+        return makeResponseData(res, 200, 'interests added', interests)
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -390,59 +416,16 @@ module.exports.requestMoney = async (req, res) => {
                 }
             )
         }
-
-        app.readHTMLFile(
+        readHTMLFileProfile(
             __dirname + '/../public/emailtemplate/notification.html',
-            async (err, data) => {
-                if (err) {
-                    console.error(err)
-                    return
-                }
-                let template = handlebars.compile(data)
-
-                var data_ = {
-                    SaTT: {
-                        faq: app.config.Satt_faq,
-                        imageUrl: app.config.baseEmailImgURl,
-                        Url: app.config.basedURl,
-                    },
-                    notification: {
-                        name: req.body.name,
-                        price: req.body.price,
-                        cryptoCurrency: req.body.cryptoCurrency,
-                        message: req.body.message,
-                        wallet: req.body.wallet,
-                    },
-                }
-
-                var htmlToSend = template(data_)
-
-                var mailOptions = {
-                    from: app.config.mailSender,
-                    to: req.body.to,
-                    subject: 'Payment request',
-                    html: htmlToSend,
-                    attachments: [
-                        {
-                            filename: 'codeQr.jpg',
-                            contentType: 'image/png',
-                            content: new Buffer.from(
-                                code.split('base64,')[1],
-                                'base64'
-                            ),
-                        },
-                    ],
-                }
-
-                app.transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        res.end(JSON.stringify(error))
-                    } else {
-                        res.end(JSON.stringify(info.response))
-                    }
-                })
-            }
+            'notification',
+            req.body,
+            null,
+            null,
+            code
         )
+
+        res.end(JSON.stringify({ message: 'Email was sent to ' + req.body.to }))
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -450,57 +433,18 @@ module.exports.requestMoney = async (req, res) => {
 
 exports.support = async (req, res) => {
     try {
-        let [name, email, subject, message] = [
-            req.body.name,
-            req.body.email,
-            req.body.subject,
-            req.body.message,
-        ]
-        app.readHTMLFile(
+        readHTMLFileProfile(
             __dirname + '/../public/emailtemplate/contact_support.html',
-            async (err, data) => {
-                let mailContent = {
-                    SaTT: {
-                        Url: app.config.baseUrl + 'FAQ',
-                    },
-                    letter: {
-                        from: name + ' (' + email + ')',
-                        subject,
-                        message,
-                    },
-                }
-                let dynamic_html = ejs.render(data, mailContent)
-
-                console.log('dynamic_html', dynamic_html)
-
-                var mailOptions = {
-                    from: app.config.notificationMail,
-                    to: app.config.contactMail,
-                    subject: 'customer service',
-                    html: dynamic_html,
-                }
-
-                console.log('mailOptions', mailOptions)
-
-                await app.transporter.sendMail(
-                    mailOptions,
-                    function (error, info) {
-                        console.log('info', info)
-
-                        if (error) {
-                            console.log('error', error)
-                            res.end(JSON.stringify(error))
-                        } else {
-                            res.end(JSON.stringify(info.response))
-                        }
-                    }
-                )
-            }
+            'contact_support',
+            req.body
         )
+
+        res.end(JSON.stringify({ message: 'Email was sent' }))
     } catch (err) {
         res.send(JSON.stringify(err))
     }
 }
+
 module.exports.notificationUpdate = async (req, res) => {
     try {
         let id = req.params.id
@@ -572,17 +516,17 @@ module.exports.getNotifications = async (req, res) => {
     }
 }
 
-module.exports.changeEmail = async (req, response) => {
+module.exports.changeEmail = async (req, res) => {
     var pass = req.body.pass
     var email = req.body.email
     var user = req.user
-    if (user.password != synfonyHash(pass)) {
-        response.end(JSON.stringify('wrong password'))
+    if (user.password != app.synfonyHash(pass)) {
+        res.end(JSON.stringify('wrong password'))
         return
     }
     var existUser = await app.db.sn_user().findOne({ email })
     if (existUser) {
-        response.end(JSON.stringify('duplicated email'))
+        res.end(JSON.stringify('duplicated email'))
         return
     } else {
         const code = Math.floor(100000 + Math.random() * 900000)
@@ -607,38 +551,18 @@ module.exports.changeEmail = async (req, response) => {
         app.i18n.configureTranslation(lang)
 
         // let subject = (lang == "en") ? "Satt wallet change email" : "";
-        app.readHTMLFile(
-            __dirname + '/../public/emailtemplate/changeEmail.html',
-            (err, html) => {
-                var template = handlebars.compile(html)
-                var replacements = {
-                    ip,
-                    requestDate,
-                    satt_url: app.config.basedURl,
-                    back_url: app.config.baseURl,
-                    satt_faq: app.config.Satt_faq,
-                    code,
-                    imgUrl: app.config.baseEmailImgURl,
-                }
-                var htmlToSend = template(replacements)
 
-                var mailOptions = {
-                    from: app.config.mailSender,
-                    //to: user.email,
-                    to: newEmail.email,
-                    subject: 'Satt wallet change email',
-                    html: htmlToSend,
-                }
-                app.transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        console.log(error)
-                    } else {
-                        response.end(JSON.stringify({ message: 'Email sent' }))
-                    }
-                })
-            }
+        readHTMLFileProfile(
+            __dirname + '/../public/emailtemplate/changeEmail.html',
+            'changeEmail',
+            null,
+            ip,
+            requestDate,
+            code,
+            newEmail
         )
-        response.end(JSON.stringify('success'))
+
+        res.end(JSON.stringify({ message: 'Email was sent to ' + user.email }))
     }
 }
 module.exports.confrimChangeMail = async (req, response) => {
