@@ -1,60 +1,79 @@
-var express = require('express');
-var app = express();
-var connection;
-(connection = async function (){
- app = await require("../conf/config")(app);
- app = await require("../conf/const")(app);
- app = await require("../db/db")(app);
- app = await require("../web3/provider")(app);
- app = await require("../manager/account")(app);
- 
- app = await require("../manager/i18n")(app);
-})();
+var express = require('express')
+var app = express()
+var connection
+;(connection = async function () {
+    app = await require('../conf/config')(app)
+    app = await require('../conf/const')(app)
+    app = await require('../db/db')(app)
+    app = await require('../web3/provider')(app)
+    app = await require('../manager/account')(app)
 
-const passport = require('passport');
-var FbStrategy = require('passport-facebook').Strategy;
-var TwitterStrategy = require('passport-twitter').Strategy;
-let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
-var TelegramStrategy = require('passport-telegram-official').TelegramStrategy;
+    app = await require('../manager/i18n')(app)
+})()
 
-var session = require('express-session');
+const passport = require('passport')
+var FbStrategy = require('passport-facebook').Strategy
+var TwitterStrategy = require('passport-twitter').Strategy
+let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy
+var GoogleStrategy = require('passport-google-oauth20').Strategy
+var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
-let router = express.Router();
+var session = require('express-session')
+
+let router = express.Router()
 router.use(passport.initialize())
 
-var Long = require('mongodb').Long;
+var Long = require('mongodb').Long
 
-passport.serializeUser(function(user, cb) {
-    cb(null, user);
-});
+passport.serializeUser(function (user, cb) {
+    cb(null, user)
+})
 
-passport.deserializeUser(async function(id, cb) {
-    var users = await app.db.sn_user().find({ _id: Long.fromNumber(id) }).toArray();
-    cb(null, users[0]);
-});
+passport.deserializeUser(async function (id, cb) {
+    var users = await app.db
+        .sn_user()
+        .find({ _id: Long.fromNumber(id) })
+        .toArray()
+    cb(null, users[0])
+})
 try {
-    router.use(session({ secret: 'fe3fF4FFGTSCSHT57UI8I8', resave: true, saveUninitialized: true })); 
-    router.use(passport.session());
+    router.use(
+        session({
+            secret: 'fe3fF4FFGTSCSHT57UI8I8',
+            resave: true,
+            saveUninitialized: true,
+        })
+    )
+    router.use(passport.session())
 } catch (e) {
     console.log(e)
 }
-const {support,FindUserLegalProfile,uploadUserLegal,addUserLegalProfile,UpdateIntersts,
+const {
+    support,
+    FindUserLegalProfile,
+    uploadUserLegal,
+    addUserLegalProfile,
+    UpdateIntersts,
     AddIntersts,
     UserInterstes,
-     deleteLinkedinChannels,
-     profilePicture,updateProfile,
-      UserLegalProfile,
-      deleteFacebookChannels,
-       deleteGoogleChannels,
-       account,socialAccounts,
-       checkOnBoarding,
-       requestMoney
-       ,notificationUpdate,
-       changeNotificationsStatus,
-       confrimChangeMail,
-       getNotifications,changeEmail,verifyLink} = require('../controllers/profile.controller')
-const { 
+    deleteLinkedinChannels,
+    profilePicture,
+    updateProfile,
+    UserLegalProfile,
+    deleteFacebookChannels,
+    deleteGoogleChannels,
+    account,
+    socialAccounts,
+    checkOnBoarding,
+    requestMoney,
+    notificationUpdate,
+    changeNotificationsStatus,
+    confrimChangeMail,
+    getNotifications,
+    changeEmail,
+    verifyLink,
+} = require('../controllers/profile.controller')
+const {
     addFacebookChannel,
     addTwitterChannel,
     addlinkedinChannel,
@@ -63,11 +82,10 @@ const {
     telegram_connect_function,
     connectTelegramAccount,
     linkGoogleAccount,
-    linkFacebookAccount
+    linkFacebookAccount,
 } = require('../middleware/passport.middleware')
 
-
- /**
+/**
  * @swagger
  * /profile/account:
  *   get:
@@ -81,9 +99,9 @@ const {
  *       "500":
  *          description: error:error message
  */
-router.get('/account',verifyAuth, account)
+router.get('/account', verifyAuth, account)
 
- /**
+/**
  * @swagger
  * /profile/picture:
  *   get:
@@ -98,11 +116,9 @@ router.get('/account',verifyAuth, account)
  *          description: error:error message
  */
 
+router.get('/picture', verifyAuth, profilePicture)
 
-router.get('/picture',verifyAuth, profilePicture)
-
-
- 	/**
+/**
  * @swagger
  * /profile/UpdateProfile:
  *   put:
@@ -151,18 +167,16 @@ router.get('/picture',verifyAuth, profilePicture)
  *                       type: string
  *                    zipCode:
  *                      type: string
- *                      
+ *
  *     responses:
  *       "200":
  *          description: err:email already exists, <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
-  router.put('/UpdateProfile',verifyAuth, updateProfile)
+router.put('/UpdateProfile', verifyAuth, updateProfile)
 
-
-
-   /**
+/**
  * @swagger
  * /profile/UserLegal:
  *   get:
@@ -177,11 +191,9 @@ router.get('/picture',verifyAuth, profilePicture)
  *          description: error:error message
  */
 
+router.get('/UserLegal', verifyAuth, UserLegalProfile)
 
-router.get('/UserLegal',verifyAuth, UserLegalProfile)
-
-
-   /**
+/**
  * @swagger
  * /profile/UserIntersts:
  *   get:
@@ -196,12 +208,9 @@ router.get('/UserLegal',verifyAuth, UserLegalProfile)
  *          description: error:error message
  */
 
+router.get('/UserIntersts', verifyAuth, UserInterstes)
 
-router.get('/UserIntersts',verifyAuth, UserInterstes)
-
-
-
- 	/**
+/**
  * @swagger
  * /profile/AddUserIntersts:
  *   post:
@@ -220,18 +229,16 @@ router.get('/UserIntersts',verifyAuth, UserInterstes)
  *                 items:
  *                  id:
  *                      type: string
- *                      
+ *
  *     responses:
  *       "200":
- *          description: err:E11000 duplicate key error collection"<br> 
+ *          description: err:E11000 duplicate key error collection"<br>
  *       "500":
  *          description: error:error message
  */
-router.post('/AddUserIntersts',verifyAuth, AddIntersts)
+router.post('/AddUserIntersts', verifyAuth, AddIntersts)
 
-
-
- 	/**
+/**
  * @swagger
  * /profile/UpdateUserIntersts:
  *   put:
@@ -250,20 +257,16 @@ router.post('/AddUserIntersts',verifyAuth, AddIntersts)
  *                 items:
  *                  id:
  *                      type: string
- *                      
+ *
  *     responses:
  *       "200":
  *          description: err:<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
  *          description: error:error message
  */
-    router.put('/UpdateUserIntersts',verifyAuth, UpdateIntersts)
+router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
 
-
-
-
-
-   /**
+/**
  * @swagger
  * /profile/RemoveGoogleChannels:
  *   delete:
@@ -278,10 +281,9 @@ router.post('/AddUserIntersts',verifyAuth, AddIntersts)
  *          description: error:error message
  */
 
+router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
 
-router.delete('/RemoveGoogleChannels',verifyAuth, deleteGoogleChannels)
-
-   /**
+/**
  * @swagger
  * /profile/RemoveFacebookChannels:
  *   delete:
@@ -296,10 +298,9 @@ router.delete('/RemoveGoogleChannels',verifyAuth, deleteGoogleChannels)
  *          description: error:error message
  */
 
+router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
 
-    router.delete('/RemoveFacebookChannels',verifyAuth, deleteFacebookChannels)
-
-       /**
+/**
  * @swagger
  * /profile/RemoveLinkedInChannels:
  *   delete:
@@ -314,15 +315,9 @@ router.delete('/RemoveGoogleChannels',verifyAuth, deleteGoogleChannels)
  *          description: error:error message
  */
 
+router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
 
-router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
-
-
-
-
- 
-
- /**
+/**
  * @swagger
  * /profile/socialAccounts:
  *   get:
@@ -336,9 +331,9 @@ router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
  *       "500":
  *          description: error:error message
  */
-  router.get('/socialAccounts',verifyAuth, socialAccounts)
+router.get('/socialAccounts', verifyAuth, socialAccounts)
 
-  /**
+/**
  * @swagger
  * /profile/addChannel/facebook:
  *   get:
@@ -350,35 +345,56 @@ router.delete('/RemoveLinkedInChannels',verifyAuth, deleteLinkedinChannels)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/facebook/:idUser',(req, res, next) => {
-    const state = req.params.idUser + '|' + req.query.redirect;
-    passport.authenticate('facebook_strategy_add_channel', { scope: ['email', 'read_insights', 'pages_show_list', 'instagram_basic', 'instagram_manage_insights', 'pages_read_engagement'], state })(req, res, next)
+router.get('/addChannel/facebook/:idUser', (req, res, next) => {
+    const state = req.params.idUser + '|' + req.query.redirect
+    passport.authenticate('facebook_strategy_add_channel', {
+        scope: [
+            'email',
+            'read_insights',
+            'pages_show_list',
+            'instagram_basic',
+            'instagram_manage_insights',
+            'pages_read_engagement',
+        ],
+        state,
+    })(req, res, next)
 })
-    
-passport.use('facebook_strategy_add_channel', new FbStrategy(
-app.config.facebookCredentials("profile/callback/addChannel/facebook"),
-async(req, accessToken, refreshToken, profile, cb) => {
-    addFacebookChannel(req, accessToken, refreshToken, profile, cb);
-}));
 
-router.get('/callback/addChannel/facebook',
-    passport.authenticate('facebook_strategy_add_channel',
-     { failureRedirect: app.config.basedURl + '/home/settings/social-networks?message=access-denied' }),
-      async(req, response) => {
+passport.use(
+    'facebook_strategy_add_channel',
+    new FbStrategy(
+        app.config.facebookCredentials('profile/callback/addChannel/facebook'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            addFacebookChannel(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+
+router.get(
+    '/callback/addChannel/facebook',
+    passport.authenticate('facebook_strategy_add_channel', {
+        failureRedirect:
+            app.config.basedURl +
+            '/home/settings/social-networks?message=access-denied',
+    }),
+    async (req, response) => {
         try {
-            redirect = req.query.state.split('|')[1];
-            let message = req.authInfo.message;
-            response.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=fb");
-
+            redirect = req.query.state.split('|')[1]
+            let message = req.authInfo.message
+            response.redirect(
+                app.config.basedURl +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=fb'
+            )
         } catch (e) {
             console.log(e)
         }
     }
-);
+)
 
-
-
-  /**
+/**
  * @swagger
  * /profile/addChannel/twitter:
  *   get:
@@ -390,41 +406,52 @@ router.get('/callback/addChannel/facebook',
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/twitter/:idUser',(req, res, next) => {
-        var state = req.params.idUser + "|" + req.query.redirect
-        req.session.state = state;
-        passport.authenticate('twitter_strategy_add_channel', {
-            scope: ['profile', 'email'],
-            accessType: 'offline',
-            prompt: 'consent',
-            state: state
-        })(req, res, next)
+router.get('/addChannel/twitter/:idUser', (req, res, next) => {
+    var state = req.params.idUser + '|' + req.query.redirect
+    req.session.state = state
+    passport.authenticate('twitter_strategy_add_channel', {
+        scope: ['profile', 'email'],
+        accessType: 'offline',
+        prompt: 'consent',
+        state: state,
+    })(req, res, next)
 })
-    
-passport.use('twitter_strategy_add_channel', new TwitterStrategy(app.config.twitterCredentials('profile/callback/addChannel/twitter'),
-async (req, accessToken, tokenSecret, profile, cb) => {
-    addTwitterChannel(req, accessToken, tokenSecret, profile, cb);
-}));
 
-router.get('/callback/addChannel/twitter',
-    passport.authenticate('twitter_strategy_add_channel', 
-    { failureRedirect: app.config.basedURl + '/home/settings/social-networks?message=access-denied'}), 
-    async function(req, response) {
-    try {
-        redirect = req.session.state.split('|')[1];
-        if (req.authInfo.message) {
-            message = req.authInfo.message;
-        } else {
-            message = "account_linked_with_success";
+passport.use(
+    'twitter_strategy_add_channel',
+    new TwitterStrategy(
+        app.config.twitterCredentials('profile/callback/addChannel/twitter'),
+        async (req, accessToken, tokenSecret, profile, cb) => {
+            addTwitterChannel(req, accessToken, tokenSecret, profile, cb)
         }
-        response.redirect(app.config.basedURl + redirect + '?message=' + message);
+    )
+)
 
-    } catch (e) {
-        console.log(e)
+router.get(
+    '/callback/addChannel/twitter',
+    passport.authenticate('twitter_strategy_add_channel', {
+        failureRedirect:
+            app.config.basedURl +
+            '/home/settings/social-networks?message=access-denied',
+    }),
+    async function (req, response) {
+        try {
+            redirect = req.session.state.split('|')[1]
+            if (req.authInfo.message) {
+                message = req.authInfo.message
+            } else {
+                message = 'account_linked_with_success'
+            }
+            response.redirect(
+                app.config.basedURl + redirect + '?message=' + message
+            )
+        } catch (e) {
+            console.log(e)
+        }
     }
-});
+)
 
-  /**
+/**
  * @swagger
  * /profile/addChannel/linkedin:
  *   get:
@@ -436,32 +463,49 @@ router.get('/callback/addChannel/twitter',
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-   router.get('/addChannel/linkedin/:idUser',(req, res, next) => {
-    let state = req.params.idUser + '|' + req.query.redirect;
-    passport.authenticate('linkedin_strategy_add_channel', { state })(req, res, next)
+router.get('/addChannel/linkedin/:idUser', (req, res, next) => {
+    let state = req.params.idUser + '|' + req.query.redirect
+    passport.authenticate('linkedin_strategy_add_channel', { state })(
+        req,
+        res,
+        next
+    )
 })
 
-passport.use('linkedin_strategy_add_channel', new LinkedInStrategy(app.config.linkedinCredentials('profile/callback/addChannel/linkedin'), 
-async(req, accessToken, refreshToken, profile, done) => {
-    addlinkedinChannel(req, accessToken, refreshToken, profile, done)
-}));
+passport.use(
+    'linkedin_strategy_add_channel',
+    new LinkedInStrategy(
+        app.config.linkedinCredentials('profile/callback/addChannel/linkedin'),
+        async (req, accessToken, refreshToken, profile, done) => {
+            addlinkedinChannel(req, accessToken, refreshToken, profile, done)
+        }
+    )
+)
 
-
-
-router.get('/callback/addChannel/linkedin',
-passport.authenticate('linkedin_strategy_add_channel'), async(req, res) => {
-    try {
-        let redirect = req.query.state.split('|')[1];
-        let message = req.authInfo.message;
-        res.redirect(app.config.basedURl + redirect + '?message=' + message+"&sn=linkd");
-    } catch (err) {
-        app.account.sysLogError(err);
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+router.get(
+    '/callback/addChannel/linkedin',
+    passport.authenticate('linkedin_strategy_add_channel'),
+    async (req, res) => {
+        try {
+            let redirect = req.query.state.split('|')[1]
+            let message = req.authInfo.message
+            res.redirect(
+                app.config.basedURl +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=linkd'
+            )
+        } catch (err) {
+            app.account.sysLogError(err)
+            res.end(
+                '{"error":"' + (err.message ? err.message : err.error) + '"}'
+            )
+        }
     }
-});
+)
 
-
-  /**
+/**
  * @swagger
  * /profile/addChannel/youtube:
  *   get:
@@ -473,40 +517,51 @@ passport.authenticate('linkedin_strategy_add_channel'), async(req, res) => {
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/youtube/:idUser',(req, res, next) => {
+router.get('/addChannel/youtube/:idUser', (req, res, next) => {
     var state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('youtube_strategy_add_channel', {
-        scope: ['profile', 'email', "https://www.googleapis.com/auth/youtube.readonly"],
+        scope: [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/youtube.readonly',
+        ],
         accessType: 'offline',
         prompt: 'consent',
-        state: state
+        state: state,
     })(req, res, next)
 })
-passport.use('youtube_strategy_add_channel', new GoogleStrategy(app.config.googleCredentials('profile/callback/addChannel/youtube'),
-async (req, accessToken, refreshToken, profile, cb) => {
-    addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
-}));
-
-
-
-router.get('/callback/addChannel/youtube',
-passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
-    try {
-        redirect = req.query.state.split('|')[1]
-        if (req.authInfo.message) {
-            message = req.authInfo.message;
-        } else {
-            message = "account_linked_with_success";
+passport.use(
+    'youtube_strategy_add_channel',
+    new GoogleStrategy(
+        app.config.googleCredentials('profile/callback/addChannel/youtube'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
         }
-        res.redirect(app.config.basedURl + redirect + '?message=' + message);
+    )
+)
 
-    } catch (err) {
-        app.account.sysLogError(err);
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
+router.get(
+    '/callback/addChannel/youtube',
+    passport.authenticate('youtube_strategy_add_channel'),
+    async (req, res) => {
+        try {
+            redirect = req.query.state.split('|')[1]
+            if (req.authInfo.message) {
+                message = req.authInfo.message
+            } else {
+                message = 'account_linked_with_success'
+            }
+            res.redirect(app.config.basedURl + redirect + '?message=' + message)
+        } catch (err) {
+            app.account.sysLogError(err)
+            res.end(
+                '{"error":"' + (err.message ? err.message : err.error) + '"}'
+            )
+        }
     }
-});
+)
 
- /**
+/**
  * @swagger
  * /profile/onBoarding:
  *   get:
@@ -520,10 +575,9 @@ passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
  *       "500":
  *          description: error:error message
  */
-  router.get('/onBoarding',verifyAuth, checkOnBoarding)
+router.get('/onBoarding', verifyAuth, checkOnBoarding)
 
-
-   /**
+/**
  * @swagger
  * /profile/receiveMoney:
  *   post:
@@ -531,7 +585,7 @@ passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
  *     - "profile"
  *     summary: request crypto from a satt user.
  *     description: sending an email to another satt user requesting him to send you an amount of crypto.
-       *     requestBody:
+ *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
@@ -545,47 +599,50 @@ passport.authenticate('youtube_strategy_add_channel'), async(req, res) => {
  *                   type: string
  *               name:
  *                   type: string
+ *               wallet:
+ *                   type: string
  *     responses:
  *       "200":
  *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
  *       "500":
  *          description: error:error message
  */
-    router.post('/receiveMoney',verifyAuth,requestMoney)
+router.post('/receiveMoney', verifyAuth, requestMoney)
 
+/**
+ * @swagger
+ * /profile/add/Legalprofile:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: add user legal profile.
+ *     description:  add user legal profile  <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *               file:
+ *                 type: string
+ *                 format : base64
+ *     responses:
+ *       "200":
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "500":
+ *          description: error:error message
+ */
 
- /**
-* @swagger
-* /profile/add/Legalprofile:
-*   post:
-*     tags:
-*     - "profile"
-*     summary: add user legal profile.
-*     description:  add user legal profile  <br> with access_token.
-*     requestBody:
-*       content:
-*         multipart/form-data:
-*           schema:      # Request body contents
-*             type: object
-*             properties:
-*               type:
-*                 type: string
-*               file:
-*                 type: string
-*                 format : base64
-*     responses:
-*       "200":
-*          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
-*       "500":
-*          description: error:error message
-*/
+router.post(
+    '/add/Legalprofile',
+    uploadUserLegal,
+    verifyAuth,
+    addUserLegalProfile
+)
 
-router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
-
-
-
-
- /**
+/**
  * @swagger
  * /profile/legalUserUpload/{id}:
  *   get:
@@ -597,21 +654,16 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       - name: id
  *         description: the  legal id.
  *         in: path
- *         required: true 
+ *         required: true
  *     responses:
  *       "200":
  *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
  *       "500":
  *          description: error:error message
  */
-  router.get('/legalUserUpload/:id',verifyAuth, FindUserLegalProfile)
+router.get('/legalUserUpload/:id', verifyAuth, FindUserLegalProfile)
 
-
-
-
-
-   
-   /**
+/**
  * @swagger
  * /profile/notification/seen/:id:
  *   post:
@@ -626,10 +678,10 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *          description: message  notification_seen
  *        "500":
  *          description: error:error message
- */  
-    router.post('/notification/seen/:id', verifyAuth,notificationUpdate);
+ */
+router.post('/notification/seen/:id', verifyAuth, notificationUpdate)
 
-     /**
+/**
  * @swagger
  * /profile/notification/issend/clicked:
  *   get:
@@ -641,10 +693,14 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *          description: message  notification_seen
  *        "500":
  *          description: error:error message
- */  
-    router.get('/notification/issend/clicked', verifyAuth,changeNotificationsStatus);
-  
-         /**
+ */
+router.get(
+    '/notification/issend/clicked',
+    verifyAuth,
+    changeNotificationsStatus
+)
+
+/**
  * @swagger
  * /profile/notifications:
  *   get:
@@ -656,10 +712,10 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *          description: [{notifications}]
  *        "500":
  *          description: error:error message
- */ 
-  router.get('/notifications',verifyAuth,getNotifications);
-   
-    /**
+ */
+router.get('/notifications', verifyAuth, getNotifications)
+
+/**
  * @swagger
  * /profile/changeEmail:
  *   post:
@@ -667,7 +723,7 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *     - "profile"
  *     summary: user request change email .
  *     description: allow user to take first step to change his email and it end an email to user for verification.
-       *     requestBody:
+ *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
@@ -683,9 +739,9 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-  router.post('/changeEmail', verifyAuth,changeEmail);
+router.post('/changeEmail', verifyAuth, changeEmail)
 
-       /**
+/**
  * @swagger
  * /profile/SattSupport:
  *   post:
@@ -693,7 +749,7 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *     - "profile"
  *     summary: satt contact.
  *     description: send email to satt contact.
-       *     requestBody:
+ *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
@@ -713,12 +769,9 @@ router.post('/add/Legalprofile',uploadUserLegal,verifyAuth,addUserLegalProfile)
  *       "500":
  *          description: error:error message
  */
-router.post('/SattSupport',support)
+router.post('/SattSupport', support)
 
-
-
-
-    /**
+/**
  * @swagger
  * /profile/connect/facebook:
  *   get:
@@ -730,33 +783,46 @@ router.post('/SattSupport',support)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/connect/facebook/:idUser',(req, res, next) => {
-    let state = req.params.idUser + "|" + req.query.redirect;
-    passport.authenticate('link_facebook_account', { state: state })(req, res, next)
+router.get('/connect/facebook/:idUser', (req, res, next) => {
+    let state = req.params.idUser + '|' + req.query.redirect
+    passport.authenticate('link_facebook_account', { state: state })(
+        req,
+        res,
+        next
+    )
 })
-    
-passport.use('link_facebook_account', new FbStrategy(
-app.config.facebookCredentials("profile/callback/link/facebook"),
-async(req, accessToken, refreshToken, profile, cb) => {
-    linkFacebookAccount(req, accessToken, refreshToken, profile, cb)
-}));
 
-router.get('/callback/link/facebook',
-    passport.authenticate('link_facebook_account',
-     { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
-      async(req, response) => {
+passport.use(
+    'link_facebook_account',
+    new FbStrategy(
+        app.config.facebookCredentials('profile/callback/link/facebook'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            linkFacebookAccount(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+
+router.get(
+    '/callback/link/facebook',
+    passport.authenticate('link_facebook_account', {
+        failureRedirect:
+            app.config.basedURl +
+            '/home/settings/social-networks?message=access-denied',
+    }),
+    async (req, response) => {
         try {
-        let state = req.query.state.split('|');
-        let url = state[1];
-        response.redirect(app.config.basedURl + url + '?message=' + req.authInfo.message);
-
+            let state = req.query.state.split('|')
+            let url = state[1]
+            response.redirect(
+                app.config.basedURl + url + '?message=' + req.authInfo.message
+            )
         } catch (e) {
             console.log(e)
         }
     }
-);
+)
 
-   /**
+/**
  * @swagger
  * /profile/connect/google:
  *   get:
@@ -768,34 +834,44 @@ router.get('/callback/link/facebook',
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-    router.get('/connect/google/:idUser',(req, res, next) => {
-        let state = req.params.idUser + "|" + req.query.redirect;
-        passport.authenticate('link_google_account', { scope: ['profile', 'email'], state: state })(req, res, next)
-    })
-        
-    passport.use('link_google_account', new GoogleStrategy(
-    app.config.googleCredentials("profile/callback/link/google"),
-    async(req, accessToken, refreshToken, profile, done) => {
-        linkGoogleAccount(req, accessToken, refreshToken, profile, done)
-    }));
-    
-    router.get('/callback/link/google',
-    passport.authenticate('link_google_account',
-         { failureRedirect: app.config.basedURl+'/home/settings/social-networks?message=access-denied' }),
-          async(req, res) => {
-            try {
-                let state = req.query.state.split('|');
-                let url = state[1];
-                let message = req.authInfo.message;
-                res.redirect(app.config.basedURl + url + '?message=' + message);
-    
-            } catch (e) {
-                console.log(e)
-            }
-        }
-    );
+router.get('/connect/google/:idUser', (req, res, next) => {
+    let state = req.params.idUser + '|' + req.query.redirect
+    passport.authenticate('link_google_account', {
+        scope: ['profile', 'email'],
+        state: state,
+    })(req, res, next)
+})
 
-      /**
+passport.use(
+    'link_google_account',
+    new GoogleStrategy(
+        app.config.googleCredentials('profile/callback/link/google'),
+        async (req, accessToken, refreshToken, profile, done) => {
+            linkGoogleAccount(req, accessToken, refreshToken, profile, done)
+        }
+    )
+)
+
+router.get(
+    '/callback/link/google',
+    passport.authenticate('link_google_account', {
+        failureRedirect:
+            app.config.basedURl +
+            '/home/settings/social-networks?message=access-denied',
+    }),
+    async (req, res) => {
+        try {
+            let state = req.query.state.split('|')
+            let url = state[1]
+            let message = req.authInfo.message
+            res.redirect(app.config.basedURl + url + '?message=' + message)
+        } catch (e) {
+            console.log(e)
+        }
+    }
+)
+
+/**
  * @swagger
  * /profile/connect/telegram:
  *   get:
@@ -807,23 +883,26 @@ router.get('/callback/link/facebook',
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-       router.get('/connect/telegram',
-       passport.authenticate('link_telegram_account'),
-       connectTelegramAccount
-       )
-        
-       passport.use("link_telegram_account",
-       new TelegramStrategy({
-               botToken: app.config.telegramBotToken,
-               passReqToCallback: true
-           },
-           async (req, profile, cb) => {
-               telegram_connect_function(req, profile, cb);
-              
-           }))
-    
-    
-        /**
+router.get(
+    '/connect/telegram',
+    passport.authenticate('link_telegram_account'),
+    connectTelegramAccount
+)
+
+passport.use(
+    'link_telegram_account',
+    new TelegramStrategy(
+        {
+            botToken: app.config.telegramBotToken,
+            passReqToCallback: true,
+        },
+        async (req, profile, cb) => {
+            telegram_connect_function(req, profile, cb)
+        }
+    )
+)
+
+/**
  * @swagger
  * /profile/confirmChangeEmail:
  *   post:
@@ -831,7 +910,7 @@ router.get('/callback/link/facebook',
  *     - "profile"
  *     summary: confirm change email .
  *     description: the user must send the code that he had received in his new email.
-       *     requestBody:
+ *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
@@ -845,9 +924,9 @@ router.get('/callback/link/facebook',
  *       "500":
  *          description: error:error message
  */
-  router.post('/confirmChangeEmail', verifyAuth,confrimChangeMail)
+router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
 
-        /**
+/**
  * @swagger
  * /profile/link/verify/{typeSN}/{idUser}/{idPost}:
  *   get:
@@ -859,7 +938,7 @@ router.get('/callback/link/facebook',
  *       - name: typeSN
  *         description: typeSN.
  *         in: path
- *         required: true 
+ *         required: true
  *       - name: idUser
  *         description: idUser.
  *         in: path
@@ -867,12 +946,12 @@ router.get('/callback/link/facebook',
  *       - name: idPost
  *         description: idPost.
  *         in: path
- *         required: true  
+ *         required: true
  *     responses:
  *       "200":
  *          description: description
  *       "500":
  *          description: error:error message
  */
- router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth,verifyLink)
-  module.exports = router;
+router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
+module.exports = router

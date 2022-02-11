@@ -1,5 +1,4 @@
 var requirement= require('../helpers/utils')
-const crypto = require('crypto');
 const qrcode = require('qrcode');
 const speakeasy = require('speakeasy');
 var Captcha = require('../model/captcha.model');
@@ -10,67 +9,53 @@ const { responseHandler } = require('../helpers/response-handler');
 const { 
     createUser
 } = require('../middleware/passport.middleware')
+const { readHTMLFileLogin } = require('../helpers/utils')
 
 var connection;
-let app
-(connection = async function (){
-    app = await requirement.connection();
-  
-})();
-const hasha = require('hasha');
+let app;
+(connection = async function () {
+    app = await requirement.connection()
+})()
 
-const fs = require('fs');
-var handlebars = require('handlebars');
-
-var synfonyHash = function(pass) {
-    var salted = pass + "{" + app.config.symfonySalt + "}";
-
-    var buff = hasha(salted, { encoding: "buffer" });
-    var saltBuff = Buffer.from(salted);
-    var arr = [];
-
-    for (var i = 1; i < 5000; i++) {
-        arr = [buff, saltBuff];
-        buff = hasha(Buffer.concat(arr), { algorithm: "sha512", encoding: "buffer" });
-    }
-
-    const base64 = buff.toString('base64');
-    return base64;
-}
-var Long = require('mongodb').Long;
-var readHTMLFile = function(path, callback) {
-    fs.readFile(path, { encoding: 'utf-8' }, function(err, html) {
-        if (err) {
-            throw err;
-            callback(err);
-        } else {
-            callback(null, html);
-        }
-    });
-};
-
-exports.changePassword= async(req, res)=>{
-    try{
-        let newpass = req.body.newpass;
-        let oldpass = req.body.oldpass;
-        let _id = req.user._id;
-        let user = await User.findOne({ _id });
+exports.changePassword = async (req, res) => {
+    try {
+        var newpass = req.body.newpass
+        var oldpass = req.body.oldpass
+        var _id = req.user._id
+        var user = await User().findOne({ _id })
         if (user) {
             if (user.password != app.synfonyHash(oldpass)) {
-                return responseHandler.makeResponseError(res, 401,"wrong password");
-            }else{
-                await User.updateOne({ _id}, { $set: { password: app.synfonyHash(newpass) } });
-                return responseHandler.makeResponseData(res, 200,"changed",true);
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'wrong password'
+                )
+            } else {
+                await app.db
+                    .sn_user()
+                    .updateOne(
+                        { _id },
+                        { $set: { password: app.synfonyHash(newpass) } }
+                    )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'changed',
+                    true
+                )
             }
         } else {
-            return responseHandler.makeResponseError(res, 404, "no account");
+            return responseHandler.makeResponseError(res, 404, 'no account')
         }
-    } 
-    catch (err) {
-        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
-exports.captcha= async(req, res)=>{
+exports.captcha = async (req, res) => {
     try {
         let count= await Captcha.countDocuments();
         let random = Math.floor(Math.random() * count);
@@ -117,31 +102,16 @@ exports.codeRecover= async(req, res)=>{
         if (ip) ip = ip.split(":")[3];
 
         let code = await app.account.updateAndGenerateCode(user._id, "reset");
-        readHTMLFile(__dirname + '/../public/emails/reset_password_code.html', (err, html) => {
-            let template = handlebars.compile(html);
-            let replacements = {
-                ip,
-                code,
-                requestDate,
-                satt_url: app.config.basedURl,
-                imgUrl: app.config.baseEmailImgURl,
-                satt_faq: app.config.Satt_faq,
-            };
-            let htmlToSend = template(replacements);
-            let mailOptions = {
-                from: app.config.resetpassword_Email,
-                to: user.email,
-                subject: 'Satt wallet password recover',
-                html: htmlToSend
-            };
-            app.transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    return responseHandler.makeResponseError(res, 500, error.message ? error.message : error.error,false);
-                } else {
-                    return responseHandler.makeResponseData(res, 200, 'Email was sent to ' + user.email, user.email);
-                }
-            });
-        });
+        readHTMLFileLogin(
+            __dirname + '/../public/emails/reset_password_code.html',
+            'codeRecover',
+            ip,
+            requestDate,
+            code,
+            user
+        )
+        return responseHandler.makeResponseData(res, 200, 'Email was sent to ' + user.email, user.email);
+
     } catch (err) {
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
     }
@@ -202,30 +172,15 @@ exports.resendConfirmationToken= async(req, res)=>{
             let code = await app.account.updateAndGenerateCode(user._id, "validation");
             let lang = req.query.lang || "en";
             app.i18n.configureTranslation(lang);
-            readHTMLFile(__dirname + '/../public/emailtemplate/email_validated_code.html', (err, html) => {
-                var template = handlebars.compile(html);
-                var replacements = {
-                    satt_faq: app.config.Satt_faq,
-                    satt_url: app.config.basedURl,
-                    code,
-                    imgUrl: app.config.baseEmailImgURl,
-                };
-                var htmlToSend = template(replacements);
-                var mailOptions = {
-                    from: app.config.mailSender,
-                    to: user.email.toLowerCase(),
-                    subject: 'Satt wallet activation',
-                    html: htmlToSend
-                };
-                app.transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        app.account.sysLogError(error);
-                    } else {
-                        app.account.log('Email sent: ', user.email);
-                        return responseHandler.makeResponseData(res, 200, "Email sent", true);
-                    }
-                });
-            });
+            readHTMLFileLogin(
+                __dirname + '/../public/emailtemplate/email_validated_code.html',
+                'emailValidation',
+                null,
+                null,
+                code,
+                user
+            )
+            return responseHandler.makeResponseData(res, 200, "Email sent", true);
         }
      
     } catch (err) {
@@ -281,19 +236,18 @@ exports.updateLastStep= async(req, res)=>{
 
 exports.purgeAccount=async(req,res)=>{
     try {
-        let pass = req.body.pass;
+        let password = req.body.password;
         let reason = req.body.reason;
-        if(req.user.password === app.synfonyHash(pass)){
+        if(req.user.password === app.synfonyHash(password)){
              if(reason) req.user.reason=reason;
-             await UserArchived().insertOne(req.user);
-             await User().deleteOne({ _id: Long.fromNumber(req.user._id) });
+             await new UserArchived(req.user).save();
+             await User.deleteOne({ _id: req.user._id });
              return responseHandler.makeResponseData(res, 200, "account deleted", true);
         }else
         return responseHandler.makeResponseError(res, 401, "wrong password",false);
     } catch (err) {
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
     }
-
 }
 
 exports.authApple= async(req, res)=>{
@@ -325,11 +279,9 @@ exports.authApple= async(req, res)=>{
     } catch (err) {
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
     }
-
-
 }
 
-exports.socialSignUp= async(req,res)=>{
+exports.socialSignUp = async (req, res) => {
     try {
        let snUser= createUser (0,req.body.idSn,true,req.body.photo,req.body.name,req.body.email,null,null,req.body.givenName,req.body.familyName)
         let socialField = req.body.idSn === "1" ? "idOnSn" : "idOnSn2"
@@ -368,10 +320,9 @@ exports.socialSignin = async(req, res)=>{
     } catch (err) {
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
     }
-
 }
 
-module.exports.getQrCode = async (req,res)=> {
+module.exports.getQrCode = async (req, res) => {
     try {
         let id = req.user._id
         let secret = speakeasy.generateSecret({
@@ -395,7 +346,7 @@ module.exports.verifyQrCode = async (req, res) => {
         let verified = speakeasy.totp.verify({
             secret: secret,
             encoding: 'ascii',
-            token: code
+            token: code,
         })
         let data={ verifiedCode: verified }
         return responseHandler.makeResponseData(res, 200, "success", data);
@@ -409,9 +360,9 @@ exports.socialdisconnect = async(req, res)=>{
         let _id = req.user._id
         let social = req.params.social;
         let socialField = {
-            telegram:"idOnSn3",
-            facebook :"idOnSn",
-            google:'idOnSn2'
+            telegram: 'idOnSn3',
+            facebook: 'idOnSn',
+            google: 'idOnSn2',
         }
         let queryField = socialField[social]
          await User.updateOne({ _id }, { $set: { [queryField]: null } });
@@ -419,12 +370,4 @@ exports.socialdisconnect = async(req, res)=>{
     } catch (err) {
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
     }
-
 }
-
-
-
-
-
-
-
