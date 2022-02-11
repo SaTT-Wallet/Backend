@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
-autoIncrement = require('mongoose-auto-increment');
 const db=mongoose.createConnection(process.env.MONGOURI);
-autoIncrement.initialize(db);
 const userArchivedSchema = mongoose.Schema({
+  _id:{type: Number},
   first_name: { type: String},
   name: { type: String},
   idSn:{ type: Number},
@@ -18,10 +17,12 @@ const userArchivedSchema = mongoose.Schema({
   onBoarding: { type: Boolean},
   account_locked:  { type: Boolean},
   failed_count:{ type: Number},
+  date_locked:{ type: Number},
   enabled: { type: Number},
   locale: { type: String},
   userSatt: { type: Boolean},
   picLink: { type: String},
+  dateFirstAttempt:{type: Number},
   completed:  { type: Boolean},
   password: { type: String,required: true},
   secureCode: {
@@ -32,6 +33,7 @@ const userArchivedSchema = mongoose.Schema({
   hasWallet:{ type : Boolean, default:false},
   passphrase:  { type: Boolean,default:false},
   is2FA: { type: Boolean,default:false},
+  secret: { type: String},
   photoUpdated: { type: Boolean,default:false},
   isChanged:  { type: Boolean,default:false},
   birthday: { type: String},
@@ -72,11 +74,5 @@ const userArchivedSchema = mongoose.Schema({
     dialCode:{ type: String},
  }
 },{timestamps:true,strict: false,collection: 'sn_user_archived'});
-userArchivedSchema.plugin(autoIncrement.plugin, {
-  model: 'sn_user_archived',
-  field: '_id',
-  startAt: 100,
-  incrementBy: 1
-  });
-const UserArchived = mongoose.model("sn_user_archived", userArchivedSchema);
+const UserArchived = db.model("sn_user_archived", userArchivedSchema);
 module.exports = UserArchived;
