@@ -9,6 +9,7 @@ const {
     LinkedinProfile,
     TwitterProfile,
     Interests,
+    Notification,
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -451,10 +452,12 @@ exports.support = async (req, res) => {
 module.exports.notificationUpdate = async (req, res) => {
     try {
         let id = req.params.id
-        await app.db
-            .notification()
-            .updateOne({ _id: ObjectId(id) }, { $set: { isSeen: true } })
-        res.send(JSON.stringify({ message: 'notification_seen' })).status(201)
+
+        const result = await Notification.updateOne(
+            { _id: ObjectId(id) },
+            { $set: { isSeen: true } }
+        )
+        return makeResponseData(res, 201, 'notification seen')
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -463,16 +466,14 @@ module.exports.notificationUpdate = async (req, res) => {
 module.exports.changeNotificationsStatus = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        await app.db
-            .notification()
-            .find({ $and: [{ idNode }, { isSend: false }] })
-            .forEach((elem) => {
-                elem.isSend = true
-                app.db.notification().save(elem)
-            })
-        res.send(JSON.stringify({ message: 'Notification clicked' })).status(
-            200
+        const result = await Notification.updateMany(
+            { $and: [{ idNode }, { isSend: false }] },
+            { $set: { isSeen: true } }
         )
+        if (result.nModified === 0) {
+            return makeResponseError(res, 404, 'No notifications found')
+        }
+        return makeResponseData(res, 200, 'Notification clicked')
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
@@ -481,11 +482,12 @@ module.exports.changeNotificationsStatus = async (req, res) => {
 module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const arrayNotifications = await app.db
-            .notification()
-            .find({ idNode })
-            .sort({ created: -1 })
-            .toArray()
+        const arrayNotifications = await Notification.find({ idNode })
+
+        if (arrayNotifications.length === 0) {
+            return makeResponseError(res, 404, 'No notifications found')
+        }
+
         const limit = parseInt(req.query.limit) || 50
         const page = parseInt(req.query.page) || 1
         const startIndex = (page - 1) * limit
@@ -504,16 +506,16 @@ module.exports.getNotifications = async (req, res) => {
                 limit: limit,
             }
         }
-        const isSend = await app.db
-            .notification()
-            .find({ idNode, isSend: false })
-            .toArray()
+        const isSend = await Notification.find({
+            idNode,
+            isSend: false,
+        })
         notifications.isSend = isSend.length
         notifications.notifications = arrayNotifications.slice(
             startIndex,
             endIndex
         )
-        res.send(notifications)
+        return makeResponseData(res, 200, 'success', notifications)
     } catch (err) {
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
