@@ -34,7 +34,7 @@ exports.exportBtc = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -78,15 +78,19 @@ exports.exportEth = async (req, res) => {
 exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
+            console.log('start')
             var count = await app.account.hasAccount(req, res)
 
+            console.log(count)
+
             var ret = await app.account.getAccount(req, res)
+            console.log(ret)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -117,7 +121,7 @@ exports.userBalance = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -164,7 +168,7 @@ exports.totalBalances = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -228,7 +232,7 @@ exports.transfertErc20 = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -354,7 +358,7 @@ exports.checkWalletToken = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
 
@@ -510,7 +514,7 @@ exports.transfertBtc = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -675,7 +679,7 @@ exports.getQuote = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -739,7 +743,7 @@ exports.payementRequest = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -814,7 +818,7 @@ module.exports.getMnemo = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -842,7 +846,7 @@ module.exports.verifyMnemo = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -863,8 +867,6 @@ exports.createNewWallet = async (req, res) => {
     try {
         var id = req.user._id
 
-        console.log(req.user)
-
         console.log(req.user.hasWallet)
 
         if (req.user.hasWallet == false) {
@@ -877,11 +879,15 @@ exports.createNewWallet = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 401,
-                'Account already exist'
+                'Wallet already exist'
             )
         }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     } finally {
         console.log(req.user)
         if (req.user.hasWallet == false) {
@@ -890,7 +896,7 @@ exports.createNewWallet = async (req, res) => {
                     wallet: ret.address,
                     idUser: id,
                 })
-                let user = await User.updateOne(
+                await User.updateOne(
                     { _id: parseInt(id) },
                     {
                         $set: {
@@ -908,22 +914,32 @@ module.exports.removeToken = async (req, res) => {
         if (req.user.hasWallet == true) {
             let id = req.user._id
             const { tokenAdress } = req.body
-            let token2 = await app.db.customToken().findOne({ tokenAdress })
-            let splicedArray = token2.sn_users.filter((item) => item !== id)
-            await app.db
-                .customToken()
-                .updateOne(
+            let token = await CustomToken.findOne({ tokenAdress })
+
+            if (token) {
+                console.log(token, 'token2')
+                let splicedArray = token.sn_users.filter((item) => item !== id)
+                await CustomToken.updateOne(
                     { tokenAdress },
                     { $set: { sn_users: splicedArray } }
                 )
-            res.end(JSON.stringify({ message: 'token removed' }))
-
-            return responseHandler.makeResponseData(res, 200, 'token removed')
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'token removed'
+                )
+            } else {
+                return responseHandler.makeResponseError(
+                    res,
+                    404,
+                    'Token not found'
+                )
+            }
         } else {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Account not found'
+                'Wallet not found'
             )
         }
     } catch (err) {
@@ -955,15 +971,6 @@ module.exports.getTransactionHistory = async (req, res) => {
             gzip: true,
         }
 
-        /* const requestOptions_BTC_transactions = {
-			method: 'GET',
-			uri: 'https://blockchain.info/rawaddr/'+ btcAddress ,
-			json: true,
-			gzip: true
-		};*/
-
-        //var BTC_transactions =  await rp(requestOptions_BTC_transactions);
-        //console.log(BTC_transactions)
         var Eth_transactions = await rp(requestOptions_ETH_transactions)
         var ERC20_transactions = await rp(requestOptions_ERC20_transactions)
         var all_Eth_transactions = app.cryptoManager.FilterTransactionsByHash(
@@ -971,7 +978,6 @@ module.exports.getTransactionHistory = async (req, res) => {
             ERC20_transactions,
             'ERC20'
         )
-
         //BNB Network
         const requestOptions_BNB_transactions = {
             method: 'GET',
@@ -996,10 +1002,15 @@ module.exports.getTransactionHistory = async (req, res) => {
         )
         const All_Transactions =
             all_Eth_transactions.concat(all_BNB_transactions)
-        response.json(All_Transactions)
+
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            All_Transactions,
+        })
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     }
 }
