@@ -16,8 +16,12 @@ module.exports = async function (app) {
     const { createLogger, format, transports } = require('winston')
     const { responseHandler } = require('../helpers/response-handler')
 
-    var Wallet = require('../model/wallet.model')
-    var CustomToken = require('../model/customToken.model')
+    const {
+        Notification,
+        Wallet,
+        CustomToken,
+        User,
+    } = require('../model/index')
 
     var accountManager = {}
 
@@ -1230,13 +1234,11 @@ module.exports = async function (app) {
             created: new Date(),
         }
 
-        await app.db.notification().insertOne(notification)
-        let user = await app.db
-            .sn_user()
-            .findOne(
-                { _id: +id },
-                { projection: { fireBaseAccessToken: true, _id: false } }
-            )
+        await Notification.save(notification)
+        let user = await User.findOne(
+            { _id: +id },
+            { projection: { fireBaseAccessToken: true, _id: false } }
+        )
         if (user.fireBaseAccessToken) {
             let data = {
                 message: {

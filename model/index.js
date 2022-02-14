@@ -5,7 +5,9 @@ const LinkedinProfile = require('../model/linkedinProfile.model')
 const Interests = require('../model/interests.model')
 const TwitterProfile = require('../model/twitterProfile.model')
 const Notification = require('../model/notification.model')
-
+const FbPage = require('../model/fbPage.model')
+const Wallet = require('../model/wallet.model')
+const CustomToken = require('../model/customToken.model')
 module.exports = {
     User,
     GoogleProfile,
@@ -14,4 +16,7 @@ module.exports = {
     Interests,
     TwitterProfile,
     Notification,
+    FbPage,
+    Wallet,
+    CustomToken,
 }
