@@ -10,6 +10,7 @@ const {
     TwitterProfile,
     Interests,
     Notification,
+    FbPage,
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -69,13 +70,15 @@ module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
 exports.account = async (req, res) => {
     try {
         if (req.user) {
-            res.end(JSON.stringify(req.user))
+            return makeResponseData(res, 200, 'success', req.user)
         } else {
-            res.end(JSON.stringify({ error: 'user not found' }))
+            return makeResponseError(res, 404, 'user not found')
         }
     } catch (err) {
-        res.end(
-            JSON.stringify({ error: err.message ? err.message : err.error })
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
         )
     }
 }
@@ -85,9 +88,7 @@ exports.profilePicture = async (req, response) => {
         const idUser = req.query.id ? +req.query.id : req.user._id
         gfsprofilePic.files.findOne({ 'user.$id': idUser }, (err, file) => {
             if (!file || file.length === 0) {
-                return response.json({
-                    err: 'No file exists',
-                })
+                return makeResponseError(response, 404, 'No file exists')
             } else {
                 response.writeHead(200, {
                     'Content-Type': 'image/png',
@@ -99,8 +100,10 @@ exports.profilePicture = async (req, response) => {
             }
         })
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return makeResponseError(
+            response,
+            400,
+            err.message ? err.message : err.error
         )
     }
 }
@@ -114,21 +117,21 @@ exports.updateProfile = async (req, res) => {
                 $and: [{ email: profile.email }, { _id: { $nin: [id] } }],
             })
             if (user) {
-                res.end(JSON.stringify({ message: 'email already exists' }))
-                return
+                return makeResponseError(res, 406, 'email already exists')
             }
         }
-        const result = await User.findOneAndUpdate(
+        const updatedProfile = await User.findOneAndUpdate(
             { _id: id },
             { $set: profile },
-            { returnOriginal: false }
+            { new: true }
         )
-        const updatedProfile = result.value
-        res.send(JSON.stringify({ updatedProfile, success: 'updated' })).status(
-            201
-        )
+        return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -145,7 +148,60 @@ exports.UserLegalProfile = async (req, res) => {
         }
         res.send(userLegal)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.addUserLegalProfile = async (req, res) => {
+    try {
+        const id = req.user._id
+
+        const idNode = '0' + id
+        let type = req.body.type
+
+        console.log('body', req.body)
+
+        console.log(req.file)
+        if (type && req.file) {
+            await gfsUserLegal.files.deleteMany({
+                $and: [{ idNode }, { type }],
+            })
+            const updatedLegalProfile = await gfsUserLegal.files.updateMany(
+                { _id: req.file.id },
+                {
+                    $set: {
+                        idNode,
+                        DataUser: {
+                            $ref: 'sn_user',
+                            $id: Long.fromNumber(id),
+                            $db: 'atayen',
+                        },
+                        validate: false,
+                        type,
+                    },
+                }
+            )
+
+            await app.account.notificationManager(id, 'save_legal_file_event', {
+                type,
+            })
+            return makeResponseData(
+                res,
+                201,
+                'legal processed',
+                updatedLegalProfile
+            )
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -182,52 +238,14 @@ exports.addUserLegalProfile = async (req, res) => {
             await app.account.notificationManager(id, 'save_legal_file_event', {
                 type,
             })
-
-            res.end(JSON.stringify({ message: 'legal processed' })).status(201)
+            return makeResponseData(res, 201, 'legal processed')
         }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
-    }
-}
-
-exports.addUserLegalProfile = async (req, res) => {
-    try {
-        const id = req.user._id
-
-        const idNode = '0' + id
-        let type = req.body.type
-
-        console.log('body', req.body)
-
-        console.log(req.file)
-        if (type && req.file) {
-            await gfsUserLegal.files.deleteMany({
-                $and: [{ idNode }, { type }],
-            })
-            await gfsUserLegal.files.updateMany(
-                { _id: req.file.id },
-                {
-                    $set: {
-                        idNode,
-                        DataUser: {
-                            $ref: 'sn_user',
-                            $id: Long.fromNumber(id),
-                            $db: 'atayen',
-                        },
-                        validate: false,
-                        type,
-                    },
-                }
-            )
-
-            await app.account.notificationManager(id, 'save_legal_file_event', {
-                type,
-            })
-
-            res.end(JSON.stringify({ message: 'legal processed' })).status(201)
-        }
-    } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -240,9 +258,7 @@ exports.FindUserLegalProfile = async (req, res) => {
             { _id: app.ObjectId(userLegal) },
             (err, file) => {
                 if (!file || file.length === 0) {
-                    return res.status(404).json({
-                        err: 'No file exists',
-                    })
+                    return makeResponseError(res, 404, 'No file exists')
                 } else {
                     if (file.contentType) {
                         contentType = file.contentType
@@ -262,7 +278,11 @@ exports.FindUserLegalProfile = async (req, res) => {
             }
         )
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -271,12 +291,16 @@ exports.deleteGoogleChannels = async (req, res) => {
         const UserId = req.user._id
         const result = await GoogleProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel was found')
+            return makeResponseError(res, 404, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -285,12 +309,16 @@ exports.deleteFacebookChannels = async (req, res) => {
         const UserId = req.user._id
         const result = await FbProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel was found')
+            return makeResponseError(res, 404, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -302,12 +330,16 @@ exports.deleteLinkedinChannels = async (req, res) => {
             { $set: { pages: [] } }
         )
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel was found')
+            return makeResponseError(res, 404, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -316,11 +348,15 @@ exports.UserInterstes = async (req, res) => {
         const userId = req.user._id
         const interests = await Interests.findOne({ userId })
         if (!interests) {
-            return makeResponseError(res, 404, 'No interest was found')
+            return makeResponseError(res, 404, 'No interest found')
         }
         return makeResponseData(res, 200, 'success', interests)
     } catch (err) {
-        res.send('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -333,7 +369,11 @@ exports.AddIntersts = async (req, res) => {
         const interests = await newInterests.save()
         return makeResponseData(res, 200, 'interests added', interests)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -353,7 +393,11 @@ exports.UpdateIntersts = async (req, res) => {
         }
         return makeResponseData(res, 201, 'interests updated', interests)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -371,8 +415,10 @@ exports.socialAccounts = async (req, res) => {
         networks.linkedin = channelsLinkedin?.pages || []
         return makeResponseData(res, 200, 'success', networks)
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
         )
     }
 }
@@ -389,8 +435,10 @@ module.exports.checkOnBoarding = async (req, res) => {
         }
         return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
         )
     }
 }
@@ -432,7 +480,11 @@ module.exports.requestMoney = async (req, res) => {
         )
         return makeResponseData(res, 202, 'Email was sent to ' + req.body.to)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -445,21 +497,28 @@ exports.support = async (req, res) => {
         )
         return makeResponseData(res, 202, 'Email was sent')
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
 module.exports.notificationUpdate = async (req, res) => {
+    let id = req.params.id
     try {
-        let id = req.params.id
-
         const result = await Notification.updateOne(
-            { _id: ObjectId(id) },
+            { _id: mongoose.Types.ObjectId(id) },
             { $set: { isSeen: true } }
         )
         return makeResponseData(res, 201, 'notification seen')
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -475,7 +534,11 @@ module.exports.changeNotificationsStatus = async (req, res) => {
         }
         return makeResponseData(res, 200, 'Notification clicked')
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -517,7 +580,11 @@ module.exports.getNotifications = async (req, res) => {
         )
         return makeResponseData(res, 200, 'success', notifications)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -526,13 +593,11 @@ module.exports.changeEmail = async (req, res) => {
     var email = req.body.email
     var user = req.user
     if (user.password != app.synfonyHash(pass)) {
-        res.end(JSON.stringify('wrong password'))
-        return
+        return makeResponseError(res, 406, 'wrong password')
     }
-    var existUser = await app.db.sn_user().findOne({ email })
+    var existUser = await User.findOne({ email })
     if (existUser) {
-        res.end(JSON.stringify('duplicated email'))
-        return
+        return makeResponseError(res, 406, 'duplicated email')
     } else {
         const code = Math.floor(100000 + Math.random() * 900000)
         newEmail = {}
@@ -540,12 +605,10 @@ module.exports.changeEmail = async (req, res) => {
         newEmail.expiring = Date.now() + 3600 * 20
         newEmail.code = code
 
-        await app.db
-            .sn_user()
-            .updateOne(
-                { _id: Long.fromNumber(req.user._id) },
-                { $set: { newEmail } }
-            )
+        const result = await User.updateOne(
+            { _id: Long.fromNumber(req.user._id) },
+            { $set: { newEmail } }
+        )
 
         let requestDate = app.account.manageTime()
         let ip =
@@ -566,55 +629,52 @@ module.exports.changeEmail = async (req, res) => {
             code,
             newEmail
         )
-
-        res.end(JSON.stringify({ message: 'Email was sent to ' + user.email }))
+        return makeResponseData(res, 200, 'Email was sent to ' + email)
     }
 }
-module.exports.confrimChangeMail = async (req, response) => {
+module.exports.confrimChangeMail = async (req, res) => {
     try {
         var id = req.user._id
         var code = req.body.code
-        var user = await app.db
-            .sn_user()
-            .findOne(
-                { _id: Long.fromNumber(id) },
-                { projection: { newEmail: true } }
-            )
+        var user = await User.findOne({ _id: Long.fromNumber(id) }).select(
+            'newEmail'
+        )
 
         if (Date.now() >= user.newEmail.expiring) {
-            response.end(JSON.stringify('code expired')).status(200)
+            return makeResponseError(res, 406, 'code expired')
         } else if (user.newEmail.code != code) {
-            response.end(JSON.stringify('code incorrect')).status(200)
+            return makeResponseError(res, 406, 'code incorrect')
         } else {
             var newEmail = user.newEmail.email
-            await app.db
-                .sn_user()
-                .updateOne(
-                    { _id: Long.fromNumber(id) },
-                    { $set: { email: newEmail } }
-                )
-            response.end(JSON.stringify('email changed')).status(200)
+            await User.updateOne(
+                { _id: Long.fromNumber(id) },
+                { $set: { email: newEmail } }
+            )
+            return makeResponseData(res, 200, 'email changed ')
         }
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return makeResponseError(
+            res,
+            400,
+            err.message ? err.message : err.error
         )
     }
 }
 
 module.exports.verifyLink = async (req, response) => {
     try {
-        var userId = req.user._id
+        var userId = 1
         var typeSN = req.params.typeSN
         var idUser = req.params.idUser
         var idPost = req.params.idPost
-        if (!userId) response.end('{error:"no user session"}')
+        if (!userId) return makeResponseError(response, 405, 'no user session')
         var linked = false
         var deactivate = false
         var res = false
         switch (typeSN) {
             case '1':
-                fbProfile = await app.db.fbProfile().findOne({ UserId: userId })
+                var fbProfile = await FbProfile.findOne({ UserId: userId })
+
                 if (fbProfile) {
                     linked = true
                     res = await app.oracle.verifyFacebook(
@@ -626,9 +686,10 @@ module.exports.verifyLink = async (req, response) => {
                 }
                 break
             case '2':
-                googleProfile = await app.db
-                    .googleProfile()
-                    .findOne({ UserId: userId })
+                var googleProfile = await GoogleProfile.findOne({
+                    UserId: userId,
+                })
+
                 if (googleProfile) {
                     var options = {
                         method: 'POST',
@@ -641,13 +702,11 @@ module.exports.verifyLink = async (req, response) => {
                         },
                         json: true,
                     }
-                    result = await rp(options)
-                    await app.db
-                        .googleProfile()
-                        .updateOne(
-                            { UserId: userId },
-                            { $set: { accessToken: result.access_token } }
-                        )
+                    var result = await rp(options)
+                    await GoogleProfile.updateOne(
+                        { UserId: userId },
+                        { $set: { accessToken: result.access_token } }
+                    )
                     linked = true
                     res = await app.oracle.verifyYoutube(userId, idPost)
                     if (res && res.deactivate === true) deactivate = true
@@ -655,7 +714,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '3':
-                page = await app.db.fbPage().findOne({
+                var page = await FbPage.findOne({
                     $and: [
                         { UserId: userId },
                         { instagram_id: { $exists: true } },
@@ -669,9 +728,9 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '4':
-                var twitterProfile = await app.db
-                    .twitterProfile()
-                    .findOne({ UserId: userId })
+                var twitterProfile = await TwitterProfile.findOne({
+                    UserId: userId,
+                })
                 if (twitterProfile) {
                     linked = true
                     res = await app.oracle.verifyTwitter(userId, idPost)
@@ -680,9 +739,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '5':
-                var linkedinProfile = await app.db
-                    .linkedinProfile()
-                    .findOne({ userId })
+                var linkedinProfile = await LinkedinProfile.findOne({ userId })
                 if (linkedinProfile && linkedinProfile.pages.length > 0) {
                     linked = true
                     res = await app.oracle.verifyLinkedin(
@@ -696,13 +753,19 @@ module.exports.verifyLink = async (req, response) => {
             default:
         }
 
-        if (!linked) response.end('{error:"account not linked"}')
-        else if (res === 'lien_invalid') response.end('{error:"lien_invalid"}')
-        else if (deactivate) response.end('{error:"account desactivated"}')
+        if (!linked)
+            return makeResponseError(response, 406, 'account not linked')
+        else if (res === 'lien_invalid')
+            return makeResponseError(response, 406, 'invalid link')
+        else if (deactivate)
+            return makeResponseError(response, 406, 'account desactivated')
         else response.end('{result:' + (res ? 'true' : 'false') + '}')
+        return makeResponseError(response, 406, res ? 'true' : 'false')
     } catch (err) {
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return makeResponseError(
+            response,
+            400,
+            err.message ? err.message : err.error
         )
     }
 }
