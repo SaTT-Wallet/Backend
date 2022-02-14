@@ -19,6 +19,7 @@ module.exports = async function (app) {
     var User = require('../model/user.model')
     var CustomToken = require('../model/customToken.model')
     var Notification = require('../model/notification.model')
+    var PassWallet = require('../model/passwallet.model')
 
     var accountManager = {}
 
@@ -77,10 +78,8 @@ module.exports = async function (app) {
             })
             await new Client().importPubKey('default', false)
         }
-        //await rp({uri:app.config.btcElectrumUrl+"pubkey/",method: 'POST',body:{pubkey:pubBtc},json: true});
 
         var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
-        // var ek = child.execSync(app.config.bxCommand+' ec-to-ek \''+escpass+'\' '+childBtc.privateKey.toString("hex"),app.config.proc_opts).toString().replace("\n","");
         var btcWallet = {
             publicKey: pubBtc,
             addressSegWitCompat: address,
@@ -362,7 +361,6 @@ module.exports = async function (app) {
                 if (address) resolve(address)
                 else reject({ error: 'no seed' })
             } catch (e) {
-                console.log(e)
                 reject({ error: 'Wrong password' })
             } finally {
                 app.web3.eth.accounts.wallet.remove(
@@ -483,7 +481,6 @@ module.exports = async function (app) {
 
     accountManager.hasAccount = async (req, res) => {
         let userId = req.user._id
-        console.log('userId' + userId)
 
         let account = await Wallet.findOne({ UserId: parseInt(userId) })
 
@@ -606,7 +603,7 @@ module.exports = async function (app) {
                 account = app.web3.eth.accounts.create().encrypt(defaultpass)
                 var btcWallet = accountManager.genBtcWallet(defaultpass)
                 var count = await accountManager.getCount()
-                app.db.wallet().insertOne({
+                Wallet.create({
                     UserId: parseInt(userId),
                     keystore: account,
                     num: count,
@@ -775,16 +772,14 @@ module.exports = async function (app) {
                 var count = await accountManager.getCount()
                 var btcWallet = accountManager.genBtcWallet(pass)
 
-                app.db.wallet().insertOne({
+                Wallet.create({
                     UserId: parseInt(userId),
                     keystore: account,
                     num: count,
                     unclaimed: true,
                     btc: btcWallet,
                 })
-                app.db
-                    .passwallet()
-                    .insertOne({ UserId: parseInt(userId), value: pass })
+                PassWallet.create({ UserId: parseInt(userId), value: pass })
                 resolve('0x' + account.address)
             }
         })
@@ -1083,67 +1078,6 @@ module.exports = async function (app) {
         }
     }
 
-    /*
-	@description: Script that loops & calculate users balances
-	@params:
-    condition : a condition when you should execute the script it should be ('daily','weekly','monthly')
-	{headers}
-	@Output saving users with updated balances with the according time frame
-	*/
-    // 	  accountManager.BalanceUsersStats = async (condition)=> {
-
-    // 	   let today = (new Date()).toLocaleDateString("en-US");
-    // 	   let [currentDate, result]= [Math.round(new Date().getTime()/1000), {}];
-
-    // 	   [result.Date, result.convertDate] = [currentDate,today]
-
-    // 	   let Crypto =  app.account.getPrices();
-
-    // 	      var users_;
-
-    // 		if(condition === "daily"){
-    // 		    users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"daily.convertDate": { $nin: [today] }}]}).toArray();
-    // 		 }
-    // 		else if(condition === "weekly"){
-    // 			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"weekly.convertDate": { $nin: [today] }}]}).toArray();;
-    // 	     }
-    // 		else if(condition === "monthly"){
-    // 			users_ = await app.db.sn_user().find({ $and:[{userSatt : true}, {"monthly.convertDate": { $nin: [today] }}]}).toArray();
-    // 	     }
-
-    // 		 let[counter, usersCount] = [0,users_.length];
-    // 		  while(counter<usersCount) {
-    // 			    let balance;
-
-    // 				var user = users_[counter];
-    // 				let id = user._id; //storing user id in a variable
-    // 				delete user._id
-
-    // 			if(!user[condition]){user[condition] = []}; //adding time frame field in users depending on condition if it doesn't exist.
-
-    // 			try{
-    // 			 balance = await accountManager.getBalanceByUid(id, Crypto);
-    // 			} catch (err) {
-    // 				console.log(err)
-    // 			}
-
-    // 			 result.Balance = balance["Total_balance"];
-
-    // 			 if(!result.Balance || isNaN(parseInt(result.Balance)) || result.Balance === null){
-    //                 counter++;
-    // 			} else{
-    // 			 user[condition].unshift(result);
-    // 			 if(user[condition].length>7){user[condition].pop();} //balances array should not exceed 7 elements
-    // 			 await app.db.sn_user().updateOne({_id:id}, {$set: user});
-    // 			 delete result.Balance ;
-    // 			 delete id;
-    //              counter++;
-    // 			}
-
-    // 		}
-
-    // }
-
     accountManager.handleId = async function () {
         var Collection = await app.db.UsersId().findOne()
 
@@ -1157,30 +1091,6 @@ module.exports = async function (app) {
             return userId
         } else {
             return 'error'
-        }
-    }
-
-    accountManager.HandleReferral = async function (referral, userId) {
-        let user = await app.db
-            .sn_user()
-            .findOne({ _id: Long.fromNumber(referral) })
-
-        if (user) {
-            var CheckRef = await app.db
-                .referral()
-                .findOne({ filleul: Long.fromNumber(userId) })
-
-            if (CheckRef) {
-                return { error: true, message: 'Already referred' }
-            } else {
-                await app.db.referral().insertOne({
-                    parrain: Long.fromNumber(referral),
-                    filleul: Long.fromNumber(userId),
-                })
-                return { error: false, message: 'Referral successfully saved' }
-            }
-        } else {
-            return { error: true, message: 'wrong referral code check again' }
         }
     }
 
@@ -1240,7 +1150,6 @@ module.exports = async function (app) {
                 }
             }
         } else {
-            console.log(user)
             let failed_count = user.failed_count ? user.failed_count + 1 : 1
             logBlock.failed_count = failed_count
             if (failed_count == 1) logBlock.dateFirstAttempt = dateNow

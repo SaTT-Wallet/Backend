@@ -55,9 +55,11 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
  *       - application/json
  *     responses:
  *       "200":
- *          description: wallet:{"address":"address","ether_balance":"balance","bnb_balance":"balance","satt_balance":"balance","btc_balance":0}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:"error"
+ *          description: code,<br>error:"error"
  */
 router.get('/mywallet', verifyAuth, mywallet)
 
@@ -73,9 +75,11 @@ router.get('/mywallet', verifyAuth, mywallet)
  *       - application/json
  *     responses:
  *       "200":
- *          description: listOfCrypto:[{ list of crypto}]
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:"error"
+ *          description: code,<br>error:"error"
  */
 router.get('/userBalance', verifyAuth, userBalance)
 
@@ -91,7 +95,7 @@ router.get('/userBalance', verifyAuth, userBalance)
  *       - application/json
  *     responses:
  *       "200":
- *          description: data:{ "gasPrice":gas price}
+ *          description: code,<br>message:"success"
  *       "500":
  *          description: error:"error"
  */
@@ -110,7 +114,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  *       - application/json
  *     responses:
  *       "200":
- *          description: list:[{list of crypto}]
+ *          description: code,<br>message:"success"
  *       "500":
  *          description: error:"error"
  */
@@ -128,9 +132,11 @@ router.get('/cryptoDetails', cryptoDetails)
  *       - application/json
  *     responses:
  *       "200":
- *          description: Total_balance:Total_balance
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:"error"
+ *          description: code,<br>error:"error"
  */
 router.get('/totalBalance', verifyAuth, totalBalances)
 
@@ -179,9 +185,13 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/transferErc20', verifyAuth, transfertErc20)
 
@@ -213,9 +223,13 @@ router.post('/transferErc20', verifyAuth, transfertErc20)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/transferBep20', verifyAuth, transfertBep20)
 
@@ -239,11 +253,13 @@ router.post('/transferBep20', verifyAuth, transfertBep20)
  *                 type: string
  *     responses:
  *       "200":
- *          description: error:not a token address <br> data:{message:Token found,tokenName:tokenName,symbol:symbol,decimal:decimal,tokenAdress:tokenAdress,network:network}
- *       "500":
- *          description: error:error message
- */
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found" /"not a token address"
 
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
 router.post('/checkWalletToken', verifyAuth, checkWalletToken)
 
 /**
@@ -272,9 +288,13 @@ router.post('/checkWalletToken', verifyAuth, checkWalletToken)
  *                 type: number
  *     responses:
  *       "200":
- *          description: message:token already added <br> data:token added
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found" /"not a token address"
+ *       "401":
+ *          description: code,<br>error:"token already added"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/addNewToken', verifyAuth, addNewToken)
 
@@ -300,9 +320,13 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget" /"wrong password"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/transfertBtc', verifyAuth, transfertBtc)
 
@@ -328,9 +352,13 @@ router.post('/transfertBtc', verifyAuth, transfertBtc)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget" /"wrong password"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/transfertBNB', verifyAuth, transfertBNB)
 /**
@@ -355,11 +383,14 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget" /"wrong password"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
-
 router.post('/transfertEther', verifyAuth, transfertEther)
 
 /**
@@ -386,9 +417,13 @@ router.post('/transfertEther', verifyAuth, transfertEther)
  *                 type: string
  *     responses:
  *       "200":
- *          description: error:Transaction amount too low. Please enter a value of 50 USD or more. <br> data:{user_id:user_id,quote_id:quote_id,wallet_id:satt,digital_money:{currency:currency,amount:amount},fiat_money:{currency:currency,base_amount:base_amount,total_amount:total_amount},valid_until:valid_until}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
+ *       "403":
+ *          description: code,<br>error:"Please enter amount of 50 USD or more"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/getQuote', verifyAuth, getQuote)
 
@@ -414,9 +449,11 @@ router.post('/getQuote', verifyAuth, getQuote)
  *                 type: string
  *     responses:
  *       "200":
- *          description: {"is_kyc_update_required":true,"payment_id":payment_id}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/payementRequest', verifyAuth, payementRequest)
 
@@ -464,12 +501,13 @@ router.post('/bridge', verifyAuth, bridge)
  *             properties:
  *               pass:
  *                 type: string
-
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/exportBtc', verifyAuth, exportBtc)
 
@@ -492,9 +530,11 @@ router.post('/exportBtc', verifyAuth, exportBtc)
 
  *     responses:
  *       "200":
- *          description: err:Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/exportETH', verifyAuth, exportEth)
 
@@ -508,9 +548,9 @@ router.post('/exportETH', verifyAuth, exportEth)
  *     description: get prices.
  *     responses:
  *       "200":
- *          description: list:[{list of crypto}]
+ *          description: code,<br>message:"success"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.get('/prices', prices)
 
@@ -524,9 +564,11 @@ router.get('/prices', prices)
  *     description: get wallet seed.
  *     responses:
  *       "200":
- *          description: mnemo:[seed]
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.get('/getMnemo', verifyAuth, getMnemo)
 
@@ -548,9 +590,11 @@ router.get('/getMnemo', verifyAuth, getMnemo)
  *                 type: string
  *     responses:
  *       "200":
- *          description: mnemo:[seed]
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Wallet not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/verifyMnemo', verifyAuth, verifyMnemo)
 
@@ -572,9 +616,11 @@ router.post('/verifyMnemo', verifyAuth, verifyMnemo)
  *                 type: string
  *     responses:
  *       "200":
- *          description: list:[{list of crypto}]
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
 router.post('/create', verifyAuth, createNewWallet)
 
@@ -616,10 +662,12 @@ router.post('/remove/token', verifyAuth, removeToken)
  *         in: path
  *         required: true
  *     responses:
- *        "200":
- *          description: data
- *        "500":
- *          description: error:error message
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: code,<br>error:"Token not found" /"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
  */
 router.get('/transaction_history/:address', getTransactionHistory)
 
