@@ -1273,7 +1273,6 @@ module.exports = async function (app) {
                 }
             }
         } else {
-            console.log(user)
             let failed_count = user.failed_count ? user.failed_count + 1 : 1
             logBlock.failed_count = failed_count
             if (failed_count == 1) logBlock.dateFirstAttempt = dateNow

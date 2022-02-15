@@ -121,25 +121,23 @@ passport.use('signinEmailStrategy', new emailStrategy({ passReqToCallback: true 
                             return done(null, false, { error: true, message: 'account_locked', blockedDate: validAuth.blockedDate });
                         }
                     } else {
+                        let validAuth = await app.account.isBlocked(user, false);
+                        app.account.sysLog("authentification", req.addressIp, `invalid ${username} ${password}`);
+                        if (validAuth.res) {
+                            return done(null, false, { error: true, message: 'account_locked', blockedDate: validAuth.blockedDate });
+                        }
                         return done(null, false, {
                             error: true,
-                            message: 'account_locked',
+                            message: 'invalid_credentials',
                             blockedDate: validAuth.blockedDate,
                         })
                     }
                 } else {
-                    let validAuth = await app.account.isBlocked(user, false)
                     app.account.sysLog(
                         'authentification',
                         req.addressIp,
                         `invalid ${username} ${password}`
                     )
-                    if (validAuth.res)
-                        return done(null, false, {
-                            error: true,
-                            message: 'account_locked',
-                            blockedDate: validAuth.blockedDate,
-                        })
                     return done(null, false, {
                         error: true,
                         message: 'invalid_credentials',
