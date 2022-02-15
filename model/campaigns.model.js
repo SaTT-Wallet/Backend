@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const db = mongoose.createConnection(process.env.MONGOURI)
 
 const campaignsSchema = mongoose.Schema(
     {
@@ -56,7 +57,9 @@ const campaignsSchema = mongoose.Schema(
         transactionHash: { type: String },
         walletId: { type: String },
     },
-    { timestamps: true }
+    { timestamps: true, collection: 'campaigns' }
 )
 
-const Campaigns = mongoose.model('campaigns', campaignsSchema)
+const Campaigns = db.model('campaigns', campaignsSchema)
+
+module.exports = Campaigns
