@@ -96,6 +96,8 @@ const {
  *     responses:
  *       "200":
  *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "404":
+ *          description: user not found
  *       "500":
  *          description: error:error message
  */
@@ -112,6 +114,8 @@ router.get('/account', verifyAuth, account)
  *     responses:
  *       "200":
  *          description: user:{picture} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "404":
+ *          description: No file exists
  *       "500":
  *          description: error:error message
  */
@@ -169,13 +173,18 @@ router.get('/picture', verifyAuth, profilePicture)
  *                      type: string
  *
  *     responses:
- *       "200":
- *          description: err:email already exists, <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "201":
+ *          description: profile updated, <br> {"code":"status code","message":"profile updated","data":"user information"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "404":
+ *          description: err:<br> user not found
+ *       "406":
+ *          description: err:<br> email already exists
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.put('/UpdateProfile', verifyAuth, updateProfile)
-
 /**
  * @swagger
  * /profile/UserLegal:
@@ -186,9 +195,11 @@ router.put('/UpdateProfile', verifyAuth, updateProfile)
  *     description: return to user the legals picture.  <br> with access_token
  *     responses:
  *       "200":
- *          description: legal:[{_id,length,chunkSize, uploadDate,filename,md5,contentType,DataUser:{$ref,$id,$db},idNode,type,validate}] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: success, {"code":"status code","message":"success","data":{"legal":[{_id,length,chunkSize, uploadDate,filename,md5,contentType,DataUser:{$ref,$id,$db},idNode,type,validate}]}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.get('/UserLegal', verifyAuth, UserLegalProfile)
@@ -203,9 +214,13 @@ router.get('/UserLegal', verifyAuth, UserLegalProfile)
  *     description: return to user the list of his intersts.  <br> with access_token
  *     responses:
  *       "200":
- *          description: interests:[] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: success, {"code":"status code","message":"success","data":{"interests":[]}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No interest found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.get('/UserIntersts', verifyAuth, UserInterstes)
@@ -231,10 +246,12 @@ router.get('/UserIntersts', verifyAuth, UserInterstes)
  *                      type: string
  *
  *     responses:
- *       "200":
- *          description: err:E11000 duplicate key error collection"<br>
+ *       "201":
+ *          description: interests added, {"code":"status code","message":"interests added","data":{"interests":[],"_id","userId"}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "500":
- *          description: error:error message
+ *          description: error:<br> Server error
  */
 router.post('/AddUserIntersts', verifyAuth, AddIntersts)
 
