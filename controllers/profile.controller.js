@@ -77,7 +77,7 @@ exports.account = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -102,7 +102,7 @@ exports.profilePicture = async (req, response) => {
     } catch (err) {
         return makeResponseError(
             response,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -125,11 +125,14 @@ exports.updateProfile = async (req, res) => {
             { $set: profile },
             { new: true }
         )
+        if (updatedProfile.nModified === 0) {
+            return makeResponseError(res, 404, 'user not found')
+        }
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -150,7 +153,7 @@ exports.UserLegalProfile = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -159,7 +162,6 @@ exports.UserLegalProfile = async (req, res) => {
 exports.addUserLegalProfile = async (req, res) => {
     try {
         const id = req.user._id
-        console.log('---------start', id)
         const idNode = '0' + id
         let type = req.body.type
 
@@ -189,20 +191,16 @@ exports.addUserLegalProfile = async (req, res) => {
                 }
             )
 
-            await app.account.notificationManager(
-                req,
-                'save_legal_file_event',
-                {
-                    type,
-                }
-            )
-            return makeResponseData(res, 201, 'legal processed')
+            await app.account.notificationManager(id, 'save_legal_file_event', {
+                type,
+            })
+            return makeResponseData(res, 201, 'legal saved')
         }
     } catch (err) {
         console.log(err)
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -239,7 +237,7 @@ exports.FindUserLegalProfile = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -257,7 +255,7 @@ exports.deleteGoogleChannels = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -275,7 +273,7 @@ exports.deleteFacebookChannels = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -296,7 +294,7 @@ exports.deleteLinkedinChannels = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -313,7 +311,7 @@ exports.UserInterstes = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -323,14 +321,13 @@ exports.AddIntersts = async (req, res) => {
     try {
         let userInterests = req.body
         userInterests.userId = req.user._id
-        let newInterests = new Interests(userInterests)
 
-        const interests = await newInterests.save()
-        return makeResponseData(res, 200, 'interests added', interests)
+        let interests = await Interests.create(userInterests)
+        return makeResponseData(res, 201, 'interests added', interests)
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -354,7 +351,7 @@ exports.UpdateIntersts = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -376,7 +373,7 @@ exports.socialAccounts = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -396,7 +393,7 @@ module.exports.checkOnBoarding = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -412,36 +409,36 @@ module.exports.requestMoney = async (req, res) => {
         await app.account.notificationManager(id, 'send_demande_satt_event', {
             name: req.body.to,
             price: req.body.price,
-            currency: req.body.cryptoCurrency,
+            currency: req.body.currency,
         })
 
-        // var result = await User.findOne({ email: req.body.to })
-        // if (result) {
-        //     await app.account.notificationManager(
-        //         result._id,
-        //         'demande_satt_event',
-        //         {
-        //             name: req.body.name,
-        //             price: req.body.price,
-        //             currency: req.body.cryptoCurrency,
-        //         }
-        //     )
-        // } else {
-        //     return makeResponseError(res, 404, 'user not found')
-        // }
-        // readHTMLFileProfile(
-        //     __dirname + '/../public/emailtemplate/notification.html',
-        //     'notification',
-        //     req.body,
-        //     null,
-        //     null,
-        //     code
-        // )
+        var result = await User.findOne({ email: req.body.to })
+        if (result) {
+            await app.account.notificationManager(
+                result._id,
+                'demande_satt_event',
+                {
+                    name: req.body.name,
+                    price: req.body.price,
+                    currency: req.body.currency,
+                }
+            )
+        } else {
+            return makeResponseError(res, 404, 'user not found')
+        }
+        readHTMLFileProfile(
+            __dirname + '/../public/emailtemplate/notification.html',
+            'notification',
+            req.body,
+            null,
+            null,
+            code
+        )
         return makeResponseData(res, 202, 'Email was sent to ' + req.body.to)
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -458,7 +455,7 @@ exports.support = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -475,7 +472,7 @@ module.exports.notificationUpdate = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -495,7 +492,7 @@ module.exports.changeNotificationsStatus = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -541,7 +538,7 @@ module.exports.getNotifications = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -551,44 +548,53 @@ module.exports.changeEmail = async (req, res) => {
     var pass = req.body.pass
     var email = req.body.email
     var user = req.user
-    if (user.password != app.synfonyHash(pass)) {
-        return makeResponseError(res, 406, 'wrong password')
-    }
-    var existUser = await User.findOne({ email })
-    if (existUser) {
-        return makeResponseError(res, 406, 'duplicated email')
-    } else {
-        const code = Math.floor(100000 + Math.random() * 900000)
-        newEmail = {}
-        newEmail.email = email
-        newEmail.expiring = Date.now() + 3600 * 20
-        newEmail.code = code
 
-        const result = await User.updateOne(
-            { _id: Long.fromNumber(req.user._id) },
-            { $set: { newEmail } }
+    try {
+        if (user.password != app.synfonyHash(pass)) {
+            return makeResponseError(res, 406, 'wrong password')
+        }
+        var existUser = await User.findOne({ email })
+        if (existUser) {
+            return makeResponseError(res, 406, 'duplicated email')
+        } else {
+            const code = Math.floor(100000 + Math.random() * 900000)
+            newEmail = {}
+            newEmail.email = email
+            newEmail.expiring = Date.now() + 3600 * 20
+            newEmail.code = code
+
+            const result = await User.updateOne(
+                { _id: Long.fromNumber(req.user._id) },
+                { $set: { newEmail } }
+            )
+
+            let requestDate = app.account.manageTime()
+            let ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+            if (ip) ip = ip.split(':')[3]
+
+            const lang = req.query.lang || 'en'
+            app.i18n.configureTranslation(lang)
+
+            // let subject = (lang == "en") ? "Satt wallet change email" : "";
+
+            readHTMLFileProfile(
+                __dirname + '/../public/emailtemplate/changeEmail.html',
+                'changeEmail',
+                null,
+                ip,
+                requestDate,
+                code,
+                newEmail
+            )
+            return makeResponseData(res, 200, 'Email was sent to ' + email)
+        }
+    } catch (error) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
-
-        let requestDate = app.account.manageTime()
-        let ip =
-            req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-        if (ip) ip = ip.split(':')[3]
-
-        const lang = req.query.lang || 'en'
-        app.i18n.configureTranslation(lang)
-
-        // let subject = (lang == "en") ? "Satt wallet change email" : "";
-
-        readHTMLFileProfile(
-            __dirname + '/../public/emailtemplate/changeEmail.html',
-            'changeEmail',
-            null,
-            ip,
-            requestDate,
-            code,
-            newEmail
-        )
-        return makeResponseData(res, 200, 'Email was sent to ' + email)
     }
 }
 module.exports.confrimChangeMail = async (req, res) => {
@@ -614,7 +620,7 @@ module.exports.confrimChangeMail = async (req, res) => {
     } catch (err) {
         return makeResponseError(
             res,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
@@ -725,7 +731,7 @@ module.exports.verifyLink = async (req, response) => {
     } catch (err) {
         return makeResponseError(
             response,
-            400,
+            500,
             err.message ? err.message : err.error
         )
     }
