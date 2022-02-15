@@ -1234,11 +1234,13 @@ module.exports = async function (app) {
             created: new Date(),
         }
 
-        await Notification.save(notification)
-        let user = await User.findOne(
-            { _id: +id },
-            { projection: { fireBaseAccessToken: true, _id: false } }
+        const newNotification = new Notification(notification)
+        await newNotification.save()
+
+        let user = await User.findOne({ _id: +id }).select(
+            'fireBaseAccessToken '
         )
+
         if (user.fireBaseAccessToken) {
             let data = {
                 message: {

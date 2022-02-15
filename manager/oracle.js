@@ -8,6 +8,13 @@ module.exports = async function (app) {
     var jsdomlib = require('jsdom')
     var jsdom = jsdomlib.JSDOM
 
+    const {
+        FbPage,
+        GoogleProfile,
+        TwitterProfile,
+        LinkedinProfile,
+    } = require('../model/index')
+
     var tweet = new Twitter({
         consumer_key: app.config.twitter.consumer_key_alt,
         consumer_secret: app.config.twitter.consumer_secret_alt,
@@ -480,10 +487,9 @@ module.exports = async function (app) {
     oracleManager.verifyFacebook = async function (userId, pageName, idPost) {
         return new Promise(async (resolve, reject) => {
             try {
-                var page = await app.db
-                    .fbPage()
-                    .findOne({ username: pageName, UserId: userId })
-
+                var page = await FbPage.findOne({
+                    $and: [{ UserId: userId }, { username: pageName }],
+                })
                 if (page) {
                     var token = page.token
                     var idPage = page.id
@@ -513,9 +519,9 @@ module.exports = async function (app) {
     oracleManager.verifyYoutube = async function (userId, idPost) {
         return new Promise(async (resolve, reject) => {
             try {
-                var googleProfile = await app.db
-                    .googleProfile()
-                    .findOne({ UserId: userId })
+                var googleProfile = await GoogleProfile.findOne({
+                    UserId: userId,
+                })
 
                 var res = await rp({
                     uri: 'https://www.googleapis.com/youtube/v3/videos',
@@ -529,9 +535,10 @@ module.exports = async function (app) {
 
                 if (res.items) {
                     var channelId = res.items[0]?.snippet.channelId
-                    var googleProfile = await app.db
-                        .googleProfile()
-                        .findOne({ UserId: userId, channelId: channelId })
+                    var googleProfile = await GoogleProfile.findOne({
+                        UserId: userId,
+                        channelId: channelId,
+                    })
                     resolve(googleProfile)
                 } else {
                     resolve(false)
@@ -547,13 +554,15 @@ module.exports = async function (app) {
                 var media =
                     'http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
                     idPost
+
                 var resMedia = await rp({ uri: media, json: true })
-                page = await app.db.fbPage().findOne({
+                var page = await FbPage.findOne({
                     $and: [
                         { UserId: userId },
                         { instagram_username: resMedia.author_name },
                     ],
                 })
+
                 if (page && !page.deactivate) resolve(true)
                 else if (page && page.deactivate === true) resolve('deactivate')
                 else resolve(false)
@@ -567,16 +576,10 @@ module.exports = async function (app) {
     oracleManager.verifyTwitter = async function (userId, idPost) {
         return new Promise(async (resolve, reject) => {
             try {
-                var twitterProfile = await app.db.twitterProfile().findOne(
-                    { UserId: userId },
-                    {
-                        projection: {
-                            access_token_key: true,
-                            access_token_secret: true,
-                            id: true,
-                        },
-                    }
-                )
+                var twitterProfile = await TwitterProfile.findOne({
+                    UserId: userId,
+                }).select('access_token_key access_token_secret id')
+
                 if (twitterProfile.deactivate === true) resolve('deactivate')
                 else {
                     var tweet = new Twitter2({
