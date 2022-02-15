@@ -8,6 +8,7 @@ const Notification = require('../model/notification.model')
 const FbPage = require('../model/fbPage.model')
 const Wallet = require('../model/wallet.model')
 const CustomToken = require('../model/customToken.model')
+
 module.exports = {
     User,
     GoogleProfile,

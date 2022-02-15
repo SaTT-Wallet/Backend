@@ -75,7 +75,7 @@ exports.connection = async () => {
     }
     //global function that generates user acessToken
     app.generateAccessToken = (user) =>
-        jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '24h' })
+        jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '24h' })
 
     app.mongoURI = app.config.mongoURI
 

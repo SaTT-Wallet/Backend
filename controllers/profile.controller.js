@@ -159,7 +159,7 @@ exports.UserLegalProfile = async (req, res) => {
 exports.addUserLegalProfile = async (req, res) => {
     try {
         const id = req.user._id
-
+        console.log('---------start', id)
         const idNode = '0' + id
         let type = req.body.type
 
@@ -189,12 +189,17 @@ exports.addUserLegalProfile = async (req, res) => {
                 }
             )
 
-            await app.account.notificationManager(id, 'save_legal_file_event', {
-                type,
-            })
+            await app.account.notificationManager(
+                req,
+                'save_legal_file_event',
+                {
+                    type,
+                }
+            )
             return makeResponseData(res, 201, 'legal processed')
         }
     } catch (err) {
+        console.log(err)
         return makeResponseError(
             res,
             400,
@@ -202,50 +207,6 @@ exports.addUserLegalProfile = async (req, res) => {
         )
     }
 }
-
-// exports.addUserLegalProfile = async (req, res) => {
-//     try {
-//         const id = req.user._id
-
-//         const idNode = '0' + id
-//         let type = req.body.type
-
-//         console.log('body', req.body)
-
-//         console.log(req.file)
-//         if (type && req.file) {
-//             await gfsUserLegal.files.deleteMany({
-//                 $and: [{ idNode }, { type }],
-//             })
-//             await gfsUserLegal.files.updateMany(
-//                 { _id: req.file.id },
-//                 {
-//                     $set: {
-//                         idNode,
-//                         DataUser: {
-//                             $ref: 'sn_user',
-//                             $id: Long.fromNumber(id),
-//                             $db: 'atayen',
-//                         },
-//                         validate: false,
-//                         type,
-//                     },
-//                 }
-//             )
-
-//             await app.account.notificationManager(id, 'save_legal_file_event', {
-//                 type,
-//             })
-//             return makeResponseData(res, 201, 'legal processed')
-//         }
-//     } catch (err) {
-//         return makeResponseError(
-//             res,
-//             400,
-//             err.message ? err.message : err.error
-//         )
-//     }
-// }
 
 exports.FindUserLegalProfile = async (req, res) => {
     try {
