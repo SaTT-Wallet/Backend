@@ -377,11 +377,15 @@ module.exports = async function (app) {
         let account = await Wallet.findOne({ UserId: parseInt(id) })
 
         try {
-            app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
+            let walletEth = app.web3.eth.accounts.wallet.decrypt(
+                [account.keystore],
+                pass
+            )
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
 
             return { address: '0x' + account.keystore.address }
         } catch (e) {
+            console.log(e)
             return responseHandler.makeResponseError(res, 401, 'Wrong password')
         }
     }

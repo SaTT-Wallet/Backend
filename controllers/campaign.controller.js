@@ -1,6 +1,8 @@
 var requirement = require('../helpers/utils')
 var readHTMLFileCampaign = requirement.readHTMLFileCampaign
-var ObjectId = require('mongodb').ObjectId
+var ObjectID = require('mongodb').ObjectId
+
+var ObjectId = new ObjectID()
 var fs = require('fs')
 const multer = require('multer')
 const Big = require('big.js')
@@ -10,6 +12,10 @@ const handlebars = require('handlebars')
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
 var mongoose = require('mongoose')
+
+var Campaigns = require('../model/campaigns.model')
+var CampaignLink = require('../model/campaignLink.model')
+const { responseHandler } = require('../helpers/response-handler')
 
 const { v4: uuidv4 } = require('uuid')
 
@@ -261,12 +267,12 @@ exports.totalEarned = async (req, res) => {
     }
 }
 
-exports.campaigns = async (req, response) => {
+exports.campaigns = async (req, res) => {
     try {
         var strangerDraft = []
         if (req.query.idWallet) {
             var idNode = '0' + req.user._id
-            strangerDraft = await app.db.campaigns().distinct('_id', {
+            strangerDraft = await Campaigns.distinct('_id', {
                 idNode: { $ne: '0' + req.user._id },
                 hash: { $exists: false },
             })
@@ -279,100 +285,121 @@ exports.campaigns = async (req, response) => {
 
         let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
 
-        let campaigns = await app.db
-            .campaigns()
-            .aggregate([
-                {
-                    $match: query,
-                },
-                {
-                    $addFields: {
-                        sortPriority: { $eq: ['$idNode', idNode] },
-                        sort: {
-                            $indexOfArray: tri,
-                        },
+        let campaigns = await Campaigns.aggregate([
+            {
+                $match: query,
+            },
+            {
+                $addFields: {
+                    sortPriority: { $eq: ['$idNode', idNode] },
+                    sort: {
+                        $indexOfArray: tri,
                     },
                 },
-                {
-                    $sort: {
-                        sort: 1,
-                        sortPriority: -1,
-                        _id: 1,
-                    },
+            },
+            {
+                $sort: {
+                    sort: 1,
+                    sortPriority: -1,
+                    _id: 1,
                 },
-                {
-                    $project: {
-                        countries: 0,
-                        description: 0,
-                        resume: 0,
-                        coverSrc: 0,
-                    },
+            },
+            {
+                $project: {
+                    countries: 0,
+                    description: 0,
+                    resume: 0,
+                    coverSrc: 0,
                 },
-            ])
+            },
+        ])
             .skip(skip)
             .limit(limit)
-            .toArray()
 
         if (req.query.idWallet) {
             for (var i = 0; i < campaigns.length; i++) {
-                proms = await app.db
-                    .campaign_link()
-                    .find({ id_campaign: campaigns[i].hash, id_wallet })
-                    .toArray()
+                proms = await CampaignLink.find({
+                    id_campaign: campaigns[i].hash,
+                    id_wallet,
+                }).toArray()
                 if (proms.length) campaigns[i].proms = proms
             }
         }
 
-        response.send(JSON.stringify(campaigns[0]))
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            data: campaigns[0],
+        })
     } catch (err) {
-        response.send(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        console.log('err', err)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     }
 }
 
-exports.campaign = async (req, response) => {
-    var idCampaign = req.params.id
+exports.campaign = async (req, res) => {
+    try {
+        var idCampaign = req.params.id
 
-    var campaign = await app.db
-        .campaigns()
-        .findOne({ _id: app.ObjectId(idCampaign) })
+        var campaign = await Campaigns.findOne({
+            _id: app.ObjectId(idCampaign),
+        })
 
-    if (!campaign) {
-        res.end("{'error': 'campaign not found'}")
-    }
-    if (campaign && campaign.hash) {
-        campaign.remaining = campaign.funds[1]
-    }
-    file = await gfs.files.findOne({ 'campaign.$id': campaign._id })
-    if (file) {
-        const readstream = gfs.createReadStream(file)
-        CampaignCover = ''
-        for await (const chunk of readstream) {
-            CampaignCover = chunk.toString('base64')
+        if (campaign) {
+            campaign.remaining = campaign.funds[1]
+            file = await gfs.files.findOne({ 'campaign.$id': campaign._id })
+            if (file) {
+                const readstream = gfs.createReadStream(file)
+                CampaignCover = ''
+                for await (const chunk of readstream) {
+                    CampaignCover = chunk.toString('base64')
+                }
+                campaign.CampaignCover = CampaignCover
+            } else {
+                campaign.CampaignCover = ''
+            }
+
+            let logo = await gfsLogo.files.findOne({
+                'campaign.$id': campaign._id,
+            })
+            if (logo) {
+                const readstream = gfsLogo.createReadStream(logo)
+                CampaignLogo = ''
+                for await (const chunk of readstream) {
+                    CampaignLogo = chunk.toString('base64')
+                }
+                campaign.CampaignLogo = CampaignLogo
+            } else {
+                campaign.CampaignLogo = ''
+            }
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                campaign
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                'Campaign  not found'
+            )
         }
-        campaign.CampaignCover = CampaignCover
-    } else {
-        campaign.CampaignCover = ''
+    } catch (err) {
+        console.log(err)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
-
-    let logo = await gfsLogo.files.findOne({ 'campaign.$id': campaign._id })
-    if (logo) {
-        const readstream = gfsLogo.createReadStream(logo)
-        CampaignLogo = ''
-        for await (const chunk of readstream) {
-            CampaignLogo = chunk.toString('base64')
-        }
-        campaign.CampaignLogo = CampaignLogo
-    } else {
-        campaign.CampaignLogo = ''
-    }
-    response.end(JSON.stringify(campaign))
 }
 
 exports.campaignPromp = async (req, res) => {
     try {
-        const campaign = await app.db.campaigns().findOne(
+        const campaign = await Campaigns.findOne(
             { _id: app.ObjectId(req.params.id) },
             {
                 fields: {
@@ -395,22 +422,19 @@ exports.campaignPromp = async (req, res) => {
             const bounties = campaign.bounties
             let allLinks
             if (req.query.influencer)
-                allLinks = await app.db
-                    .campaign_link()
-                    .find({
-                        $and: [
-                            {
-                                id_campaign: campaign.hash,
-                                id_wallet: req.query.influencer,
-                            },
-                        ],
-                    })
-                    .toArray()
+                allLinks = await CampaignLink.find({
+                    $and: [
+                        {
+                            id_campaign: campaign.hash,
+                            id_wallet: req.query.influencer,
+                        },
+                    ],
+                })
             if (!req.query.influencer)
-                allLinks = await app.db
-                    .campaign_link()
-                    .find({ id_campaign: campaign.hash })
-                    .toArray()
+                allLinks = await CampaignLink.find({
+                    id_campaign: campaign.hash,
+                })
+
             const allProms = await app.campaign.influencersLinks(allLinks)
 
             for (let i = 0; i < allProms.length; i++) {
@@ -506,11 +530,17 @@ exports.campaignPromp = async (req, res) => {
                     })
                 }
             }
-            res.send(JSON.stringify({ allProms }))
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                allProms,
+            })
         }
     } catch (err) {
         app.account.sysLogError(err)
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -554,7 +584,7 @@ exports.pendingLink = async (req, res) => {
     }
     res.status(202).json(pendingLinks)
 }
-
+//check if still used campaignCrm collection
 exports.totalSpent = async (req, res) => {
     try {
         let total = '0'

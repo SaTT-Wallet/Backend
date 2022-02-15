@@ -20,6 +20,7 @@ let app
 
 exports.exportBtc = async (req, res) => {
     try {
+        console.log(req.user.hasWallet)
         if (req.user.hasWallet == true) {
             var cred = await app.account.unlock(req, res)
 
