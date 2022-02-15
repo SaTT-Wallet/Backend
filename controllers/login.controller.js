@@ -373,26 +373,3 @@ exports.socialdisconnect = async(req, res)=>{
         return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
     }
 }
-
-exports.refreshToken = async(req, res)=>{
-    try {
-        const authHeader = req.headers['authorization']
-        const token = authHeader && authHeader.split(' ')[1]
-        if (token == null) return res.sendStatus(401)
-        jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    
-          if (err) {
-            return res.sendStatus(401)
-          }
-          delete user.iat;
-          delete user.exp;
-          const refreshedToken = app.generateAccessToken(user);
-          req.user=user;
-          res.send({
-            accessToken: refreshedToken,
-          });
-        });
-    } catch (err) {
-        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error,false);
-    }
-}
