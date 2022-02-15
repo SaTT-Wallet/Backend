@@ -402,7 +402,7 @@ exports.purgeAccount = async (req, res) => {
         let reason = req.body.reason
         if (req.user.password === app.synfonyHash(password)) {
             if (reason) req.user.reason = reason
-            await new UserArchived(req.user).save()
+            await UserArchived.create(req.user)
             await User.deleteOne({ _id: req.user._id })
             return responseHandler.makeResponseData(
                 res,
@@ -473,7 +473,7 @@ exports.authApple = async (req, res) => {
                 ''
             )
             createdUser.id_apple = id_apple
-            let user = await new User(createdUser).save()
+            let user = await User.create(createdUser);
             createdUser._id = user._id
             let token = app.generateAccessToken(createdUser)
             let param = {
@@ -520,7 +520,7 @@ exports.socialSignUp = async (req, res) => {
             )
         } else {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let user = await new User(snUser).save()
+            let user =  User.create(snUser);
             snUser._id = user._id
             let token = app.generateAccessToken(snUser)
             let param = {
