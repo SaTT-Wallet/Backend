@@ -11,7 +11,6 @@ const {
     campaignPromp,
     launchBounty,
     totalEarned,
-    totalSpent,
     apply,
     linkNotifications,
     linkStats,
@@ -439,22 +438,7 @@ router.get('/campaigns', verifyAuth, campaigns)
  *                    type: string
  */
 router.get('/details/:id', campaign)
-/**
- * @swagger
- * /campaign/totalSpent:
- *   get:
- *     tags: ["campaign"]
- *     summary: get campaign details
- *     description: return user's total spent budget <br> with access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: ok
- *       "500":
- *          description: error:"error"
- */
-router.get('/totalSpent', verifyAuth, totalSpent)
+
 /**
  * @swagger
  * /campaign/pendingLink/{id}:
