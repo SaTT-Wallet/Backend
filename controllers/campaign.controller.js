@@ -584,31 +584,6 @@ exports.pendingLink = async (req, res) => {
     }
     res.status(202).json(pendingLinks)
 }
-//check if still used campaignCrm collection
-exports.totalSpent = async (req, res) => {
-    try {
-        let total = '0'
-        let prices = app.account.getPrices()
-        let sattPrice$ = prices.SATT.price
-
-        let userCampaigns = await app.db
-            .campaignCrm()
-            .find({ idNode: '0' + req.user._id, hash: { $exists: true } })
-            .toArray()
-        userCampaigns.forEach(async (campaign) => {
-            let result = await app.campaign.campaignStats(campaign.hash)
-            total = new Big(total).plus(new Big(result.spent))
-        })
-
-        let totalSpentInUSD =
-            sattPrice$ * parseFloat(new Big(total).div(etherInWei).toFixed(0))
-        let totalSpent = new Big(total).toFixed()
-
-        res.end(JSON.stringify({ totalSpent, totalSpentInUSD })).status(200)
-    } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
-    }
-}
 
 exports.apply = async (req, response) => {
     var pass = req.body.pass

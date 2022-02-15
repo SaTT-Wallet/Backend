@@ -11,7 +11,6 @@ var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 const { responseHandler } = require('../helpers/response-handler')
-
 var requirement = require('../helpers/utils')
 var readHTMLFileLogin = requirement.readHTMLFileLogin
 
@@ -125,13 +124,16 @@ passport.use(
             var date = Math.floor(Date.now() / 1000) + 86400
             var user = await User.findOne({ email: username.toLowerCase() })
             if (user) {
+                let validAuth = await app.account.isBlocked(user, true)
+
                 if (user.password == synfonyHash(password)) {
                     app.account.sysLog(
                         'authentification',
                         req.addressIp,
                         `valid ${username}`
                     )
-                    let validAuth = await app.account.isBlocked(user, true)
+
+                    console.log(validAuth)
                     if (!validAuth.res && validAuth.auth == true) {
                         let userAuth = app.cloneUser(user.toObject())
                         let token = app.generateAccessToken(userAuth)
