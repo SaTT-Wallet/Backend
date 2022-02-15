@@ -371,21 +371,23 @@ module.exports = async function (app) {
     }
 
     accountManager.unlock = async function (req, res) {
-        let id = req.user._id
-        let pass = req.body.pass
-
-        let account = await Wallet.findOne({ UserId: parseInt(id) })
+        console.log('im here')
 
         try {
+            let id = req.user._id
+            let pass = req.body.pass
+
+            let account = await Wallet.findOne({ UserId: parseInt(id) })
             let walletEth = app.web3.eth.accounts.wallet.decrypt(
                 [account.keystore],
                 pass
             )
+
+            console.log(walletEth, 'walletEth')
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
 
             return { address: '0x' + account.keystore.address }
         } catch (e) {
-            console.log(e)
             return responseHandler.makeResponseError(res, 401, 'Wrong password')
         }
     }
