@@ -7,9 +7,10 @@ const notificationSchema = mongoose.Schema(
         type: { type: String },
         status: { type: String },
         label: {
-            cmp_name: { type: String },
-            cmp_hash: { type: String },
-            linkHash: { type: String },
+            type: { type: String },
+            //     cmp_name: { type: String },
+            //     cmp_hash: { type: String },
+            //     linkHash: { type: String },
         },
         isSeen: { type: Boolean },
         isSend: { type: Boolean },

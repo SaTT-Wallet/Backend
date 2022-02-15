@@ -1,7 +1,7 @@
 var connection
 
 var requirement = require('../helpers/utils')
-const handlebars = require('handlebars')
+var rp = require('request-promise')
 const {
     User,
     GoogleProfile,
@@ -146,7 +146,7 @@ exports.UserLegalProfile = async (req, res) => {
                 userLegal.legal[i].validate = true
             }
         }
-        res.send(userLegal)
+        return makeResponseData(res, 200, 'success', userLegal)
     } catch (err) {
         return makeResponseError(
             res,
@@ -163,9 +163,9 @@ exports.addUserLegalProfile = async (req, res) => {
         const idNode = '0' + id
         let type = req.body.type
 
-        console.log('body', req.body)
+        // console.log('body', req.body)
+        // console.log('---------', req.file)
 
-        console.log(req.file)
         if (type && req.file) {
             await gfsUserLegal.files.deleteMany({
                 $and: [{ idNode }, { type }],
@@ -183,55 +183,9 @@ exports.addUserLegalProfile = async (req, res) => {
                         validate: false,
                         type,
                     },
-                }
-            )
-
-            await app.account.notificationManager(id, 'save_legal_file_event', {
-                type,
-            })
-            return makeResponseData(
-                res,
-                201,
-                'legal processed',
-                updatedLegalProfile
-            )
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            400,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.addUserLegalProfile = async (req, res) => {
-    try {
-        const id = req.user._id
-
-        const idNode = '0' + id
-        let type = req.body.type
-
-        console.log('body', req.body)
-
-        console.log(req.file)
-        if (type && req.file) {
-            await gfsUserLegal.files.deleteMany({
-                $and: [{ idNode }, { type }],
-            })
-            await gfsUserLegal.files.updateMany(
-                { _id: req.file.id },
+                },
                 {
-                    $set: {
-                        idNode,
-                        DataUser: {
-                            $ref: 'sn_user',
-                            $id: Long.fromNumber(id),
-                            $db: 'atayen',
-                        },
-                        validate: false,
-                        type,
-                    },
+                    new: true,
                 }
             )
 
@@ -248,6 +202,50 @@ exports.addUserLegalProfile = async (req, res) => {
         )
     }
 }
+
+// exports.addUserLegalProfile = async (req, res) => {
+//     try {
+//         const id = req.user._id
+
+//         const idNode = '0' + id
+//         let type = req.body.type
+
+//         console.log('body', req.body)
+
+//         console.log(req.file)
+//         if (type && req.file) {
+//             await gfsUserLegal.files.deleteMany({
+//                 $and: [{ idNode }, { type }],
+//             })
+//             await gfsUserLegal.files.updateMany(
+//                 { _id: req.file.id },
+//                 {
+//                     $set: {
+//                         idNode,
+//                         DataUser: {
+//                             $ref: 'sn_user',
+//                             $id: Long.fromNumber(id),
+//                             $db: 'atayen',
+//                         },
+//                         validate: false,
+//                         type,
+//                     },
+//                 }
+//             )
+
+//             await app.account.notificationManager(id, 'save_legal_file_event', {
+//                 type,
+//             })
+//             return makeResponseData(res, 201, 'legal processed')
+//         }
+//     } catch (err) {
+//         return makeResponseError(
+//             res,
+//             400,
+//             err.message ? err.message : err.error
+//         )
+//     }
+// }
 
 exports.FindUserLegalProfile = async (req, res) => {
     try {
@@ -456,28 +454,28 @@ module.exports.requestMoney = async (req, res) => {
             currency: req.body.cryptoCurrency,
         })
 
-        var result = await User.findOne({ email: req.body.to })
-        if (result) {
-            await app.account.notificationManager(
-                result._id,
-                'demande_satt_event',
-                {
-                    name: req.body.name,
-                    price: req.body.price,
-                    currency: req.body.cryptoCurrency,
-                }
-            )
-        } else {
-            return makeResponseError(res, 404, 'user not found')
-        }
-        readHTMLFileProfile(
-            __dirname + '/../public/emailtemplate/notification.html',
-            'notification',
-            req.body,
-            null,
-            null,
-            code
-        )
+        // var result = await User.findOne({ email: req.body.to })
+        // if (result) {
+        //     await app.account.notificationManager(
+        //         result._id,
+        //         'demande_satt_event',
+        //         {
+        //             name: req.body.name,
+        //             price: req.body.price,
+        //             currency: req.body.cryptoCurrency,
+        //         }
+        //     )
+        // } else {
+        //     return makeResponseError(res, 404, 'user not found')
+        // }
+        // readHTMLFileProfile(
+        //     __dirname + '/../public/emailtemplate/notification.html',
+        //     'notification',
+        //     req.body,
+        //     null,
+        //     null,
+        //     code
+        // )
         return makeResponseData(res, 202, 'Email was sent to ' + req.body.to)
     } catch (err) {
         return makeResponseError(
@@ -663,7 +661,7 @@ module.exports.confrimChangeMail = async (req, res) => {
 
 module.exports.verifyLink = async (req, response) => {
     try {
-        var userId = 1
+        var userId = req.user._id
         var typeSN = req.params.typeSN
         var idUser = req.params.idUser
         var idPost = req.params.idPost
@@ -682,7 +680,10 @@ module.exports.verifyLink = async (req, response) => {
                         idUser,
                         idPost
                     )
-                    if (res && res.deactivate === true) deactivate = true
+
+                    if (res && res.deactivate === true) {
+                        deactivate = true
+                    }
                 }
                 break
             case '2':
@@ -758,9 +759,8 @@ module.exports.verifyLink = async (req, response) => {
         else if (res === 'lien_invalid')
             return makeResponseError(response, 406, 'invalid link')
         else if (deactivate)
-            return makeResponseError(response, 406, 'account desactivated')
-        else response.end('{result:' + (res ? 'true' : 'false') + '}')
-        return makeResponseError(response, 406, res ? 'true' : 'false')
+            return makeResponseError(response, 406, 'account deactivated')
+        else return makeResponseError(response, 406, res ? 'true' : 'false')
     } catch (err) {
         return makeResponseError(
             response,
