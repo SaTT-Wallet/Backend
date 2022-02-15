@@ -45,8 +45,6 @@ exports.exportBtc = async (req, res) => {
 }
 
 exports.exportEth = async (req, res) => {
-    res.attachment()
-
     try {
         if (req.user.hasWallet == true) {
             let id = req.user._id
