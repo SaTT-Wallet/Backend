@@ -102,7 +102,7 @@ function authErrorHandler(err, req, res, next) {
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.get('/captcha',captcha)
+router.get('/captcha', captcha)
 
 /**
  * @swagger
@@ -130,9 +130,9 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: code,<br>error:"error"
  */
- router.post('/verifyCaptcha',verifyCaptcha)
+router.post('/verifyCaptcha', verifyCaptcha)
 
- /**
+/**
  * @swagger
  * /auth/purge:
  *   post:
@@ -160,7 +160,7 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: code,<br>error
  */
-  router.post('/purge',verifyAuth,purgeAccount)
+router.post('/purge', verifyAuth, purgeAccount)
 
 /**
  * @swagger
@@ -190,7 +190,7 @@ router.get('/captcha',captcha)
  *       "500":
  *          description: error:"error"
  */
- router.post('/changePassword',verifyAuth,changePassword)
+router.post('/changePassword', verifyAuth, changePassword)
 /**
  * @swagger
  * /auth/signin/mail:
@@ -309,7 +309,7 @@ router.post('/confirmCode', confirmCode)
  *       "500":
  *          description: error=eror
  */
-router.post('/passrecover',passRecover)
+router.post('/passrecover', passRecover)
 
 /**
  * @swagger
@@ -706,70 +706,70 @@ router.put('/updateLastStep', verifyAuth, updateLastStep)
  *       "500":
  *          description: error
  */
-  router.post('/apple',authApple)
+router.post('/apple', authApple)
 
-  /**
-  * @swagger
-  * /auth/socialSignup:
-  *   post:
-  *     tags:
-  *     - "auth"
-  *     summary: register with social for apple.
-  *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               name:
-  *                 type: string
-  *               idSn:
-  *                 type: string
-  *               id:
-  *                 type: string
-  *               photo:
-  *                 type: string
-  *               givenName:
-  *                 type: string
-  *               familyName:
-  *                 type: string
-  *     responses:
-  *       "200":
-  *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
-  *       "401":
-  *          description: code,<br>message:"account_exists"
-  *       "500":
-  *          description: error
-  */
-   router.post('/socialSignup',socialSignUp)
- 
-  /**
-  * @swagger
-  * /auth/socialSignin:
-  *   post:
-  *     tags:
-  *     - "auth"
-  *     summary: auth with social for apple.
-  *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               idSn:
-  *                 type: string
-  *               id:
-  *                 type: string
-  *     responses:
-  *       "200":
-  *          description: code,<br>message,<br>param:{"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"} 
-  *       "401":
-  *          description: code,<br>message
-  *       "500":
-  *          description: error
-  */
+/**
+ * @swagger
+ * /auth/socialSignup:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: register with social for apple.
+ *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               idSn:
+ *                 type: string
+ *               id:
+ *                 type: string
+ *               photo:
+ *                 type: string
+ *               givenName:
+ *                 type: string
+ *               familyName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *       "401":
+ *          description: code,<br>message:"account_exists"
+ *       "500":
+ *          description: error
+ */
+router.post('/socialSignup', socialSignUp)
+
+/**
+ * @swagger
+ * /auth/socialSignin:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: auth with social for apple.
+ *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               idSn:
+ *                 type: string
+ *               id:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message,<br>param:{"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"}
+ *       "401":
+ *          description: code,<br>message
+ *       "500":
+ *          description: error
+ */
 router.post('/socialSignin', socialSignin)
 
 /**
@@ -793,28 +793,28 @@ router.post('/socialSignin', socialSignin)
  */
 router.put('/disconnect/:social', verifyAuth, socialdisconnect)
 
-  /**
-  * @swagger
-  * /auth/disconnect/{social}:
-  *   put:
-  *     tags:
-  *     - "auth"
-  *     summary: disconnect social account.
-  *     description: user enter his social network to disconnect <br> with access_token.
-  *     parameters:
-  *       - name: social
-  *         description: social can be facebook , google or telegram.
-  *         in: path
-  *         required: true
-  *     responses:
-  *       "200":
-  *          description: code,<br>message:"deconnect successfully from social
-  *       "500":
-  *          description: error
-  */
-   router.put('/disconnect/:social', verifyAuth,socialdisconnect)
- 
- /**
+/**
+ * @swagger
+ * /auth/disconnect/{social}:
+ *   put:
+ *     tags:
+ *     - "auth"
+ *     summary: disconnect social account.
+ *     description: user enter his social network to disconnect <br> with access_token.
+ *     parameters:
+ *       - name: social
+ *         description: social can be facebook , google or telegram.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"deconnect successfully from social
+ *       "500":
+ *          description: error
+ */
+router.put('/disconnect/:social', verifyAuth, socialdisconnect)
+
+/**
  * @swagger
  * /auth/qrCode:
  *   get:
