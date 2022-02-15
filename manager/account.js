@@ -1102,10 +1102,7 @@ module.exports = async function (app) {
         }
     }
 
-    accountManager.notificationManager = async (req, NotifType, label) => {
-        let id = req.user._id
-        console.log('---------start', req.user._id)
-
+    accountManager.notificationManager = async (id, NotifType, label) => {
         let notification = {
             idNode: '0' + id,
             type: NotifType,
@@ -1119,8 +1116,7 @@ module.exports = async function (app) {
             created: new Date(),
         }
 
-        const newNotification = new Notification(notification)
-        await newNotification.save()
+        await Notification.create(notification)
 
         let user = await User.findOne({ _id: +id }).select(
             'fireBaseAccessToken '
