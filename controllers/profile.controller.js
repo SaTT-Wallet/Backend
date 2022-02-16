@@ -126,7 +126,7 @@ exports.updateProfile = async (req, res) => {
             { new: true }
         )
         if (updatedProfile.nModified === 0) {
-            return makeResponseError(res, 404, 'user not found')
+            return makeResponseError(res, 400, 'update failed')
         }
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
@@ -303,11 +303,21 @@ exports.deleteLinkedinChannels = async (req, res) => {
 exports.UserInterstes = async (req, res) => {
     try {
         const userId = req.user._id
-        const interests = await Interests.findOne({ userId })
-        if (!interests) {
+        let allInterests = []
+
+        const result = await Interests.find({ userId })
+
+        if (!result.length) {
             return makeResponseError(res, 404, 'No interest found')
+        } else if (result.length >= 2) {
+            result.forEach((item, index) => {
+                allInterests = [...allInterests, ...item.interests]
+            })
+        } else {
+            allInterests = [...result[0].interests]
         }
-        return makeResponseData(res, 200, 'success', interests)
+
+        return makeResponseData(res, 200, 'success', allInterests)
     } catch (err) {
         return makeResponseError(
             res,
