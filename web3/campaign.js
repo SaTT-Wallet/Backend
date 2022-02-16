@@ -1,6 +1,9 @@
 const { number } = require('bitcoinjs-lib/src/script')
 const { ObjectId } = require('bson')
 
+var Campaigns = require('../model/campaigns.model')
+var CampaignLink = require('../model/campaignLink.model')
+
 module.exports = async function (app) {
     var fs = require('fs')
     var child = require('child_process')
@@ -52,9 +55,10 @@ module.exports = async function (app) {
     }
 
     campaignManager.getCampaignContract = async function (idCampaign) {
-        var campaign = await app.db
-            .campaigns()
-            .findOne({ hash: idCampaign }, { projection: { contract: true } })
+        var campaign = await Campaigns.findOne(
+            { hash: idCampaign },
+            { contract: 1 }
+        )
         if (campaign && campaign.contract) {
             return campaignManager.getContract(campaign.contract)
         } else return false

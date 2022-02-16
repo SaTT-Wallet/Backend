@@ -15,6 +15,12 @@ var mongoose = require('mongoose')
 
 var Campaigns = require('../model/campaigns.model')
 var CampaignLink = require('../model/campaignLink.model')
+
+var LinkedinProfile = require('../model/linkedinProfile.model')
+
+var Wallet = require('../model/wallet.model')
+var Event = require('../model/event.model')
+
 const { responseHandler } = require('../helpers/response-handler')
 
 const { v4: uuidv4 } = require('uuid')
@@ -330,7 +336,6 @@ exports.campaigns = async (req, res) => {
             data: campaigns[0],
         })
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -388,7 +393,6 @@ exports.campaign = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -585,8 +589,7 @@ exports.pendingLink = async (req, res) => {
     res.status(202).json(pendingLinks)
 }
 
-exports.apply = async (req, response) => {
-    var pass = req.body.pass
+exports.apply = async (req, res) => {
     var idCampaign = req.body.idCampaign
     var typeSN = req.body.typeSN
     var idPost = req.body.idPost
@@ -598,19 +601,23 @@ exports.apply = async (req, response) => {
 
     var id = req.user._id
     try {
-        let promExist = await app.db
-            .campaign_link()
-            .findOne({ id_campaign: hash, idPost })
-        if (promExist)
-            response.end(JSON.stringify({ message: 'Link already sent' }))
-        var cred = await app.account.unlock(id, pass)
+        let promExist = await CampaignLink.findOne({ idCampaign: hash, idPost })
+
+        if (promExist) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Link already sent'
+            )
+        }
+
+        var cred = await app.account.unlock(req, res)
+
         if (typeSN == 5) {
-            var linkedinProfile = await app.db
-                .linkedinProfile()
-                .findOne(
-                    { userId: req.user._id },
-                    { projection: { accessToken: true, _id: false } }
-                )
+            var linkedinProfile = await LinkedinProfile.findOne(
+                { userId: id },
+                { accessToken: 1, _id: 0 }
+            )
             var linkedinInfo = await app.oracle.getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString()
@@ -627,10 +634,12 @@ exports.apply = async (req, response) => {
             cred
         )
 
-        response.end(JSON.stringify(ret))
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        response.end(
-            JSON.stringify({ error: err.message ? err.message : err.error })
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     } finally {
         cred && app.account.lock(cred.address)
@@ -639,7 +648,7 @@ exports.apply = async (req, response) => {
                 prom.instagramUserName = await app.oracle.getInstagramUserName(
                     idPost
                 )
-            await app.account.notificationManager(id, 'apply_campaign', {
+            await app.account.notificationManager(req, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
@@ -666,13 +675,13 @@ exports.apply = async (req, response) => {
                 prom.idUser,
                 linkedinProfile
             )
-            let userWallet = await app.db.wallet().findOne(
+            let userWallet = await Wallet.findOne(
                 {
                     'keystore.address': prom.id_wallet
                         .toLowerCase()
                         .substring(2),
                 },
-                { projection: { UserId: true, _id: false } }
+                { UserId: 1, _id: 0 }
             )
             let userId = prom.oracle === 'instagram' ? userWallet.UserId : null
             let socialOracle = await app.campaign.getPromApplyStats(
@@ -685,12 +694,10 @@ exports.apply = async (req, response) => {
             prom.views = socialOracle.views
             ;(prom.likes = socialOracle.likes),
                 (prom.shares = socialOracle.shares || '0')
-            await app.db
-                .campaign_link()
-                .updateOne(
-                    { _id: app.ObjectId(insert.ops[0]._id) },
-                    { $set: prom }
-                )
+            await CampaignLink.updateOne(
+                { _id: app.ObjectId(insert.ops[0]._id) },
+                { $set: prom }
+            )
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -701,7 +708,7 @@ exports.apply = async (req, response) => {
                 owner: contract._address.toLowerCase(),
             }
 
-            await app.db.event().insertOne(event)
+            await Event.create(event)
         }
     }
 }
@@ -1062,7 +1069,6 @@ exports.gains = async (req, response) => {
                 stats.views != prevstat[0].views
             ) {
                 var evts = await app.campaign.updatePromStats(idProm, cred2)
-                console.log('oracle log', evts)
                 var evt = evts.events[0]
                 var idRequest = evt.raw.topics[1]
                 var log = app.web3.eth.abi.decodeLog(
@@ -1079,7 +1085,6 @@ exports.gains = async (req, response) => {
             }
         }
         if (requests && requests.length) {
-            console.log('updateOracle', requests)
             await app.db.request().updateOne(
                 { id: requests[0].id },
                 {
@@ -1096,18 +1101,6 @@ exports.gains = async (req, response) => {
                     },
                 },
                 { upsert: true }
-            )
-            console.log(
-                {
-                    gasPrice: gasPrice,
-                    from: app.config.campaignOwner,
-                    campaignContract: ctr.options.address,
-                    idRequest: requests[0].id,
-                    likes: stats.likes,
-                    shares: stats.shares,
-                    views: stats.views,
-                },
-                'answer Call logged data'
             )
 
             await app.oracleManager.answerCall({
@@ -1992,7 +1985,6 @@ exports.bep20Approval = async (req, response) => {
     var spender = req.params.spender
 
     var allowance = await app.bep20.getApproval(token, req.params.addr, spender)
-    console.log('allowance', allowance)
 
     response.end(
         JSON.stringify({ token: token, allowance: allowance, spender: spender })
