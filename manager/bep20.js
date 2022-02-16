@@ -210,15 +210,20 @@ module.exports = async function (app) {
     }
 
     bep20Manager.getApproval = async function (token, addr, spender) {
-        return new Promise(async (resolve, reject) => {
-            var contract = new app.web3Bep20.eth.Contract(
+      try{
+           var contract = new app.web3Bep20.eth.Contract(
                 app.config.ctrs.token.abi,
                 token
             )
             var amount = await contract.methods.allowance(addr, spender).call()
             app.account.log('approval', addr, 'for', spender, amount.toString())
-            resolve({ amount: amount.toString() })
-        })
+            return { amount: amount.toString() }
+        }
+           catch(err){
+            return { amount:'0'}
+
+           }
+        
     }
 
     bep20Manager.transferBEP = async (to, amount, credentials) => {

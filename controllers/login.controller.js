@@ -650,3 +650,23 @@ exports.socialdisconnect = async (req, res) => {
         )
     }
 }
+
+exports.logout = async (req, res) => {
+    try {
+        let _id = req.user._id
+        await User.updateOne({_id},{$set:{fireBaseAccessToken:null}})
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            "success",
+            false
+        )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}

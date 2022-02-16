@@ -59,7 +59,8 @@ const {
     socialSignin,
     getQrCode,
     verifyQrCode,
-    purgeAccount
+    purgeAccount,
+    logout
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -853,6 +854,22 @@ router.get('/qrCode', verifyAuth, getQrCode)
   *          description: error
   */
 router.post('/verifyQrCode',verifyAuth,verifyQrCode);
+
+  /**
+  * @swagger
+  * /auth/logout:
+  *   get:
+  *     tags:
+  *     - "auth"
+  *     summary: logout.
+  *     description: logout.
+  *     responses:
+  *       "200":
+  *          description: code,message
+  *       "500":
+  *          description: error
+  */
+   router.get('/logout',verifyAuth,logout);
 
 
 module.exports = router
