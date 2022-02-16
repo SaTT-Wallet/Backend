@@ -345,7 +345,7 @@ exports.UpdateIntersts = async (req, res) => {
             }
         )
         if (interests.nModified === 0) {
-            return makeResponseError(res, 404, 'updated failed')
+            return makeResponseError(res, 400, 'updated failed')
         }
         return makeResponseData(res, 201, 'interests updated', interests)
     } catch (err) {
@@ -369,6 +369,14 @@ exports.socialAccounts = async (req, res) => {
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
+        if (
+            !channelsGoogle.length &&
+            !channelsLinkedin.length &&
+            !channelsTwitter.length &&
+            !channelsFacebook.length
+        ) {
+            return makeResponseError(res, 404, 'No channel found')
+        }
         return makeResponseData(res, 200, 'success', networks)
     } catch (err) {
         return makeResponseError(
@@ -434,6 +442,7 @@ module.exports.requestMoney = async (req, res) => {
             null,
             code
         )
+
         return makeResponseData(res, 202, 'Email was sent to ' + req.body.to)
     } catch (err) {
         return makeResponseError(
@@ -451,7 +460,7 @@ exports.support = async (req, res) => {
             'contact_support',
             req.body
         )
-        return makeResponseData(res, 202, 'Email was sent')
+        return makeResponseData(res, 200, 'Email was sent')
     } catch (err) {
         return makeResponseError(
             res,
@@ -463,11 +472,19 @@ exports.support = async (req, res) => {
 
 module.exports.notificationUpdate = async (req, res) => {
     let id = req.params.id
+
+    if (id === '{id}' || !id) {
+        return makeResponseError(res, 406, 'id field is missing')
+    }
+
     try {
         const result = await Notification.updateOne(
             { _id: mongoose.Types.ObjectId(id) },
             { $set: { isSeen: true } }
         )
+        if (result.nModified === 0) {
+            return makeResponseError(res, 400, 'updated failed')
+        }
         return makeResponseData(res, 201, 'notification seen')
     } catch (err) {
         return makeResponseError(
@@ -606,7 +623,7 @@ module.exports.confrimChangeMail = async (req, res) => {
         )
 
         if (Date.now() >= user.newEmail.expiring) {
-            return makeResponseError(res, 406, 'code expired')
+            return makeResponseError(res, 401, 'code expired')
         } else if (user.newEmail.code != code) {
             return makeResponseError(res, 406, 'code incorrect')
         } else {
@@ -628,11 +645,18 @@ module.exports.confrimChangeMail = async (req, res) => {
 
 module.exports.verifyLink = async (req, response) => {
     try {
-        var userId = req.user._id
+        var userId = 1
         var typeSN = req.params.typeSN
         var idUser = req.params.idUser
         var idPost = req.params.idPost
-        if (!userId) return makeResponseError(response, 405, 'no user session')
+
+        if (!typeSN || !idUser || !idPost) {
+            return makeResponseError(response, 400, 'please provide all fields')
+        }
+
+        if (!userId) {
+            return makeResponseError(response, 405, 'no user session')
+        }
         var linked = false
         var deactivate = false
         var res = false
@@ -726,8 +750,14 @@ module.exports.verifyLink = async (req, response) => {
         else if (res === 'lien_invalid')
             return makeResponseError(response, 406, 'invalid link')
         else if (deactivate)
-            return makeResponseError(response, 406, 'account deactivated')
-        else return makeResponseError(response, 406, res ? 'true' : 'false')
+            return makeResponseError(response, 405, 'account deactivated')
+        else
+            return makeResponseData(
+                response,
+                200,
+                'success',
+                res ? 'true' : 'false'
+            )
     } catch (err) {
         return makeResponseError(
             response,
