@@ -382,8 +382,6 @@ module.exports = async function (app) {
                 [account.keystore],
                 pass
             )
-
-            console.log(walletEth, 'walletEth')
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
 
             return { address: '0x' + account.keystore.address }
@@ -393,14 +391,12 @@ module.exports = async function (app) {
     }
 
     accountManager.unlockBSC = async function (req, res) {
-        let userId = req.user._id
+        let UserId = req.user._id
         let pass = req.body.pass
-
-        let account = await Wallet.findOne({ UserId: parseInt(userId) })
-
+        console.log(UserId)
+        let account = await Wallet.findOne({ UserId })
         try {
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
-
             return { address: '0x' + account.keystore.address }
         } catch (e) {
             return responseHandler.makeResponseError(res, 401, 'Wrong password')

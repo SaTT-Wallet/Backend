@@ -4,7 +4,7 @@ const {
     rejectLink,
     bep20Approval,
     erc20Approval,
-    campaign,
+    campaignDetails,
     pendingLink,
     campaigns,
     launchCampaign,
@@ -32,28 +32,26 @@ const { route } = require('./login.routes')
 
 /**
  * @swagger
- * /campaign/bep20/{token}/approval/{spender}/{addr}:
+ * /campaign/bep20/approval:
  *   post:
  *     tags:
  *     - "campaign"
  *     summary: bep20 aprroval
  *     description: bep20 aprroval
- *     parameters:
- *       - name: token
- *         description: the  token.
- *         in: path
- *         required: true
- *       - name: spender
- *         description: the  spender.
- *         in: path
- *         required: true
- *       - name: addr
- *         description: the  addr.
- *         in: path
- *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
  *     responses:
  *       "200":
- *          description: ok
+ *          description: code,<br> message,<br> data:{token:tokenAddress,allowance:allowance,spender:campaignAddress}
  *          content:
  *             application/json:
  *               schema:
@@ -76,7 +74,7 @@ const { route } = require('./login.routes')
  *       "500":
  *          description: error:"error"
  */
-router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
+router.post('/bep20/approval',verifyAuth, bep20Approval)
 
 /**
  * @swagger
@@ -93,17 +91,17 @@ router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               spender:
+ *               campaignAddress:
  *                 type: string
  *               amount:
  *                 type: string
  *               pass:
  *                 type: string
- *               token:
+ *               tokenAddress:
  *                 type: string
  *     responses:
  *       "200":
- *          description: ok
+ *          description: code,<br> message,<br> data:{transactionHash:transactionHash,address:address,campaignAddress:campaignAddress}
  *          content:
  *             application/json:
  *               schema:
@@ -121,25 +119,23 @@ router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
 router.post('/bep20/allow', verifyAuth, bep20Allow)
 /**
  * @swagger
- * /campaign/erc20/{token}/approval/{spender}/{addr}:
+ * /campaign/erc20/approval:
  *   post:
  *     tags:
  *     - "campaign"
  *     summary: erc20 aprroval
  *     description: erc20 aprroval
- *     parameters:
- *       - name: token
- *         description: the  token.
- *         in: path
- *         required: true
- *       - name: spender
- *         description: the  spender.
- *         in: path
- *         required: true
- *       - name: addr
- *         description: the  addr.
- *         in: path
- *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
  *     responses:
  *       "200":
  *          description: ok
@@ -165,8 +161,7 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *       "500":
  *          description: error:"error"
  */
-
-router.post('/erc20/:token/approval/:spender/:addr', erc20Approval)
+router.post('/erc20/approval',verifyAuth, erc20Approval)
 /**
  * @swagger
  * /campaign/erc20/allow:
@@ -181,11 +176,11 @@ router.post('/erc20/:token/approval/:spender/:addr', erc20Approval)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               spender:
+ *               campaignAddress:
  *                 type: string
  *               amount:
  *                 type: string
- *               token:
+ *               tokenAddress:
  *                 type: string
  *               pass:
  *                 type: string
@@ -437,7 +432,7 @@ router.get('/campaigns', verifyAuth, campaigns)
  *                  error:
  *                    type: string
  */
-router.get('/details/:id', campaign)
+router.get('/details/:id', campaignDetails)
 
 /**
  * @swagger
@@ -962,35 +957,6 @@ router.post('/remaining', getFunds)
 
 /**
  * @swagger
- * /campaign/bep20/{token}/approval/{spender}/{addr}:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: bep20 aprroval
- *     description: bep20 aprroval
- *     parameters:
- *       - name: token
- *         description: the  token.
- *         in: path
- *         required: true
- *       - name: spender
- *         description: the  spender.
- *         in: path
- *         required: true
- *       - name: addr
- *         description: the  addr.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: data
- *       "500":
- *          description: error:"error"
- */
-router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
-
-/**
- * @swagger
  * /campaign/reject/{idLink}:
  *   put:
  *     tags:
@@ -1025,93 +991,5 @@ router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
  *          description: error:"error"
  */
 router.put('/reject/:idLink', rejectLink)
-
-/**
- * @swagger
- * definitions:
- *  Campaign:
- *    properties:
- *      CampaignCover:
- *        type: string
- *      CampaignLogo:
- *        type: string
- *      bounties:
- *        type: array
- *      brand:
- *        type: string
- *      contract:
- *        type: string
- *      cost:
- *        type: string
- *      cost_usd:
- *        type: string
- *      countries:
- *        type: array
- *      cover:
- *        type: string
- *      coverSrc:
- *        type: string
- *      createdAt:
- *        type: string
- *        format: datetime
- *      dataUrl:
- *        type: string
- *      description:
- *        type: string
- *      endDate:
- *        type: string
- *        format: datetime
- *      funds:
- *        type: array
- *        items:
- *          type: string
- *      hash:
- *        type: string
- *      idNode:
- *        type: string
- *      logo:
- *        type: string
- *      ratios:
- *        type: array
- *        items:
- *          type: object
- *          properties:
- *            like:
- *              type: string
- *            view:
- *              type: string
- *            share:
- *              type: string
- *            oracle:
- *              type: string
- *      remaining:
- *        type: string
- *      remuneration:
- *        type: string
- *      resume:
- *        type: string
- *      startDate:
- *        type: string
- *        format: datetime
- *      tags:
- *        type: array
- *        items:
- *          type: string
- *      title:
- *        type: string
- *      token:
- *        type: string
- *      transactionHash:
- *        type: string
- *      type:
- *        type: string
- *      updatedAt:
- *        type: string
- *        format: datetime
- *      walletId:
- *        type: string
- *      _id:
- *        type: string
- */
 
 module.exports = router
