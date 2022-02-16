@@ -269,7 +269,7 @@ exports.totalEarned = async (req, res) => {
 
 exports.campaigns = async (req, res) => {
     try {
-        var strangerDraft = []
+        let strangerDraft = []
         if (req.query.idWallet) {
             var idNode = '0' + req.user._id
             strangerDraft = await Campaigns.distinct('_id', {
@@ -277,10 +277,10 @@ exports.campaigns = async (req, res) => {
                 hash: { $exists: false },
             })
         }
-        const limit = +req.query.limit || 10
-        const page = +req.query.page || 1
-        const skip = limit * (page - 1)
-        const id_wallet = req.query.idWallet
+        let limit = +req.query.limit || 10
+        let page = +req.query.page || 1
+        let skip = limit * (page - 1)
+        let id_wallet = req.query.idWallet
         let query = app.campaign.sortOutPublic(req, idNode, strangerDraft)
 
         let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
@@ -312,9 +312,7 @@ exports.campaigns = async (req, res) => {
                     coverSrc: 0,
                 },
             },
-        ])
-            .skip(skip)
-            .limit(limit)
+        ]).skip(skip).limit(limit)
 
         if (req.query.idWallet) {
             for (var i = 0; i < campaigns.length; i++) {
@@ -327,10 +325,9 @@ exports.campaigns = async (req, res) => {
         }
 
         return responseHandler.makeResponseData(res, 200, 'success', {
-            data: campaigns[0],
+            data: campaigns,
         })
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -339,7 +336,7 @@ exports.campaigns = async (req, res) => {
     }
 }
 
-exports.campaign = async (req, res) => {
+exports.campaignDetails = async (req, res) => {
     try {
         var idCampaign = req.params.id
 
@@ -349,31 +346,6 @@ exports.campaign = async (req, res) => {
 
         if (campaign) {
             campaign.remaining = campaign.funds[1]
-            file = await gfs.files.findOne({ 'campaign.$id': campaign._id })
-            if (file) {
-                const readstream = gfs.createReadStream(file)
-                CampaignCover = ''
-                for await (const chunk of readstream) {
-                    CampaignCover = chunk.toString('base64')
-                }
-                campaign.CampaignCover = CampaignCover
-            } else {
-                campaign.CampaignCover = ''
-            }
-
-            let logo = await gfsLogo.files.findOne({
-                'campaign.$id': campaign._id,
-            })
-            if (logo) {
-                const readstream = gfsLogo.createReadStream(logo)
-                CampaignLogo = ''
-                for await (const chunk of readstream) {
-                    CampaignLogo = chunk.toString('base64')
-                }
-                campaign.CampaignLogo = CampaignLogo
-            } else {
-                campaign.CampaignLogo = ''
-            }
             return responseHandler.makeResponseData(
                 res,
                 200,
@@ -1177,15 +1149,19 @@ exports.gains = async (req, response) => {
 
 exports.saveCampaign = async (req, res) => {
     try {
-        const campaign = req.body
+        let campaign = req.body
         campaign.idNode = '0' + req.user._id
         campaign.createdAt = Date.now()
         campaign.updatedAt = Date.now()
         campaign.type = 'draft'
-        const draft = await app.db.campaigns().insertOne(campaign)
-        res.end(JSON.stringify(draft.ops[0])).status(200)
+        let draft = await Campaigns.create(campaign)
+        return responseHandler.makeResponseData(res, 200, 'success', draft)
     } catch (err) {
-        res.end(JSON.stringify(err))
+         return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1518,42 +1494,62 @@ module.exports.getFunds = async (req, res) => {
 }
 
 exports.bep20Approval = async (req, res) => {
-    var token = req.params.token
-    var spender = req.params.spender
-
-    var allowance = await app.bep20.getApproval(token, req.params.addr, spender)
-
-    res.end(
-        JSON.stringify({ token: token, allowance: allowance, spender: spender })
-    )
+    try{
+    let tokenAddress = req.body.tokenAddress;
+    let campaignAddress=req.body.campaignAddress;
+    let account = await app.account.getAccount(req, res)
+    let allowance = await app.bep20.getApproval(tokenAddress, account.address, campaignAddress)
+    return responseHandler.makeResponseData(res, 200, 'success', { token: tokenAddress, allowance: allowance, spender: campaignAddress })
+    }
+    catch(err){
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+    
 }
 
 exports.erc20Approval = async (req, res) => {
-    var token = req.params.token
-    var spender = req.params.spender
-    var allowance = await app.erc20.getApproval(token, req.params.addr, spender)
-    res.end(
-        JSON.stringify({ token: token, allowance: allowance, spender: spender })
-    )
+    try{
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress;
+        let account = await app.account.getAccount(req, res);
+        let allowance = await app.erc20.getApproval(tokenAddress, account.address, campaignAddress)
+        return responseHandler.makeResponseData(res, 200, 'success', { token: tokenAddress, allowance: allowance, spender: campaignAddress })
+    }
+    catch(err){
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
 }
 
 exports.bep20Allow = async (req, res) => {
     try {
-        var spender = req.body.spender
-        var amount = req.body.amount
-        var pass = req.body.pass
-        const bep20TOken = req.body.token
-        var cred = await app.account.unlockBSC(req.user._id, pass)
-        cred.from_id = req.user._id
-        var ret = await app.bep20.approve(
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let bep20TOken = req.body.tokenAddress
+        let cred = await app.account.unlockBSC(req,res)
+        let ret = await app.bep20.approve(
             bep20TOken,
             cred.address,
-            spender,
+            campaignAddress,
             amount
         )
-        res.end(JSON.stringify(ret))
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
     } finally {
         if (cred) app.account.lockBSC(cred.address)
     }
@@ -1561,16 +1557,19 @@ exports.bep20Allow = async (req, res) => {
 
 exports.erc20Allow = async (req, res) => {
     try {
-        var spender = req.body.spender
-        var amount = req.body.amount
-        var pass = req.body.pass
-        const token = req.body.token
-        var cred = await app.account.unlock(req.user._id, pass)
-        cred.from_id = req.user._id
-        var ret = await app.erc20.approve(token, cred.address, spender, amount)
-        res.end(JSON.stringify(ret))
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let tokenAddress = req.body.tokenAddress
+        let cred = await app.account.unlock(req,res)
+        let ret = await app.erc20.approve(tokenAddress, cred.address, campaignAddress, amount)
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
     } finally {
         if (cred) app.account.lock(cred.address)
     }
@@ -1987,26 +1986,6 @@ module.exports.campaignInvested = async (req, res) => {
     } catch (e) {}
 }
 
-exports.bep20Approval = async (req, response) => {
-    var token = req.params.token
-    var spender = req.params.spender
-
-    var allowance = await app.bep20.getApproval(token, req.params.addr, spender)
-    console.log('allowance', allowance)
-
-    response.end(
-        JSON.stringify({ token: token, allowance: allowance, spender: spender })
-    )
-}
-
-exports.erc20Approval = async (req, response) => {
-    var token = req.params.token
-    var spender = req.params.spender
-    var allowance = await app.erc20.getApproval(token, req.params.addr, spender)
-    response.end(
-        JSON.stringify({ token: token, allowance: allowance, spender: spender })
-    )
-}
 
 exports.rejectLink = async (req, res) => {
     const lang = req.query.lang || 'en'
