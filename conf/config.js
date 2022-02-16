@@ -1420,7 +1420,6 @@ module.exports = async function (app) {
         config.persmissionsObjFb = { scope: ['public_profile', 'email'] }
 
         config.paymentRequest = (payment) => {
-            console.log(payment.installDate)
             return {
                 account_details: {
                     app_provider_id: 'satt',
