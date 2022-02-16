@@ -428,7 +428,7 @@ const Grid = require('gridfs-stream');
 			}
 		}
 
-			response.send(JSON.stringify(campaigns,count));
+			response.send(JSON.stringify({campaigns,count}));
 		}catch(err){
 			response.send('{"error":"'+(err.message?err.message:err.error)+'"}');
 
