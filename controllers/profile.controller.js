@@ -645,7 +645,7 @@ module.exports.confrimChangeMail = async (req, res) => {
 
 module.exports.verifyLink = async (req, response) => {
     try {
-        var userId = 1
+        var userId = req.user._id
         var typeSN = req.params.typeSN
         var idUser = req.params.idUser
         var idPost = req.params.idPost
@@ -654,9 +654,6 @@ module.exports.verifyLink = async (req, response) => {
             return makeResponseError(response, 400, 'please provide all fields')
         }
 
-        if (!userId) {
-            return makeResponseError(response, 405, 'no user session')
-        }
         var linked = false
         var deactivate = false
         var res = false
