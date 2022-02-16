@@ -402,7 +402,7 @@ exports.purgeAccount = async (req, res) => {
         let reason = req.body.reason
         if (req.user.password === app.synfonyHash(password)) {
             if (reason) req.user.reason = reason
-            await new UserArchived(req.user).save()
+            await UserArchived.create(req.user)
             await User.deleteOne({ _id: req.user._id })
             return responseHandler.makeResponseData(
                 res,
@@ -473,7 +473,7 @@ exports.authApple = async (req, res) => {
                 ''
             )
             createdUser.id_apple = id_apple
-            let user = await new User(createdUser).save()
+            let user = await User.create(createdUser);
             createdUser._id = user._id
             let token = app.generateAccessToken(createdUser)
             let param = {
@@ -520,7 +520,7 @@ exports.socialSignUp = async (req, res) => {
             )
         } else {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let user = await new User(snUser).save()
+            let user =  User.create(snUser);
             snUser._id = user._id
             let token = app.generateAccessToken(snUser)
             let param = {
@@ -641,33 +641,6 @@ exports.socialdisconnect = async (req, res) => {
             `deconnect successfully from ${social}`,
             false
         )
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error,
-            false
-        )
-    }
-}
-
-exports.refreshToken = async (req, res) => {
-    try {
-        const authHeader = req.headers['authorization']
-        const token = authHeader && authHeader.split(' ')[1]
-        if (token == null) return res.sendStatus(401)
-        jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-            if (err) {
-                return res.sendStatus(401)
-            }
-            delete user.iat
-            delete user.exp
-            const refreshedToken = app.generateAccessToken(user)
-            req.user = user
-            res.send({
-                accessToken: refreshedToken,
-            })
-        })
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
