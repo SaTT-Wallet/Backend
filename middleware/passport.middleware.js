@@ -11,6 +11,7 @@ var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 const { responseHandler } = require('../helpers/response-handler')
+
 var requirement = require('../helpers/utils')
 var readHTMLFileLogin = requirement.readHTMLFileLogin
 
@@ -124,16 +125,13 @@ passport.use(
             var date = Math.floor(Date.now() / 1000) + 86400
             var user = await User.findOne({ email: username.toLowerCase() })
             if (user) {
-                let validAuth = await app.account.isBlocked(user, true)
-
                 if (user.password == synfonyHash(password)) {
                     app.account.sysLog(
                         'authentification',
                         req.addressIp,
                         `valid ${username}`
                     )
-
-                    console.log(validAuth)
+                    let validAuth = await app.account.isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
                         let userAuth = app.cloneUser(user.toObject())
                         let token = app.generateAccessToken(userAuth)
@@ -155,25 +153,31 @@ passport.use(
                         })
                     }
                 } else {
+                    let validAuth = await app.account.isBlocked(user, false)
+                    app.account.sysLog(
+                        'authentification',
+                        req.addressIp,
+                        `invalid ${username} ${password}`
+                    )
+                    if (validAuth.res) {
+                        return done(null, false, {
+                            error: true,
+                            message: 'account_locked',
+                            blockedDate: validAuth.blockedDate,
+                        })
+                    }
                     return done(null, false, {
                         error: true,
-                        message: 'account_locked',
+                        message: 'invalid_credentials',
                         blockedDate: validAuth.blockedDate,
                     })
                 }
             } else {
-                let validAuth = await app.account.isBlocked(user, false)
                 app.account.sysLog(
                     'authentification',
                     req.addressIp,
                     `invalid ${username} ${password}`
                 )
-                if (validAuth.res)
-                    return done(null, false, {
-                        error: true,
-                        message: 'account_locked',
-                        blockedDate: validAuth.blockedDate,
-                    })
                 return done(null, false, {
                     error: true,
                     message: 'invalid_credentials',
@@ -823,10 +827,11 @@ module.exports.verifyAuth = (req, res, next) => {
     if (!token) {
         return responseHandler.makeResponseError(res, 401, 'token required')
     }
-    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-        if (err) return res.json(err)
-        req.user = user
-        next()
+      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+      if (err) return res.json(err)
+      newUser = await User.findOne({ _id:user._id });
+      req.user =  newUser
+      next();
     })
 }
 module.exports.createUser = createUser
