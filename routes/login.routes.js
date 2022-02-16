@@ -59,8 +59,7 @@ const {
     socialSignin,
     getQrCode,
     verifyQrCode,
-    purgeAccount,
-    refreshToken,
+    purgeAccount
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -831,44 +830,29 @@ router.put('/disconnect/:social', verifyAuth, socialdisconnect)
  */
 router.get('/qrCode', verifyAuth, getQrCode)
 
-/**
- * @swagger
- * /auth/verifyQrCode:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: verify 2fa.
- *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               code:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,message,data:{ verifiedCode:verified(true/false) }
- *       "500":
- *          description: error
- */
-router.post('/verifyQrCode', verifyAuth, verifyQrCode)
+  /**
+  * @swagger
+  * /auth/verifyQrCode:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: verify 2fa.
+  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               code:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: code,message,data:{ verifiedCode:verified(true/false) }
+  *       "500":
+  *          description: error
+  */
+router.post('/verifyQrCode',verifyAuth,verifyQrCode);
 
-/**
- * @swagger
- * /auth/refreshToken:
- *   get:
- *     tags:
- *     - "auth"
- *     summary: verify 2fa.
- *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
- *     responses:
- *       "200":
- *          description: code,message,data:{ verifiedCode:verified(true/false) }
- *       "500":
- *          description: error
- */
-router.get('/refreshToken', refreshToken)
 
 module.exports = router
