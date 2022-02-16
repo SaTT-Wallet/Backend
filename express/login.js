@@ -1906,6 +1906,18 @@ module.exports = function(app) {
         done(null, profile, { status: true, message: 'account_linked_with_success' })
     }));
 
+
+    app.get('/logout', async(req, res) =>{
+        try{
+            let token = req.headers["authorization"].split(" ")[1];
+            let auth =  await app.crm.auth(token);
+            let _id = auth.id;
+            await app.db.sn_user().updateOne({_id},{$set:{fireBaseAccessToken:null}})
+            res.end(JSON.stringify({message:"success"}))
+        }catch (err) {
+            res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+         } 
+    });
     app.get('/callback/link/linkedin', passport.authenticate('linkedin_link'), async(req, res) => {
         try {
             let { accessToken, userId, linkedinId } = req.query;
