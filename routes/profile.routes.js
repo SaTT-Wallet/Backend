@@ -179,10 +179,8 @@ router.get('/picture', verifyAuth, profilePicture)
  *          description: profile updated, <br> {"code":"status code","message":"profile updated","data":"user information"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired
- *       "404":
- *          description: err:<br> user not found
  *       "406":
- *          description: err:<br> email already exists
+ *          description: error:<br> email already exists
  *       "500":
  *          description: error:<br> server error
  */
