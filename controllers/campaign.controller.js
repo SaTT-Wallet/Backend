@@ -15,6 +15,14 @@ var mongoose = require('mongoose')
 
 var Campaigns = require('../model/campaigns.model')
 var CampaignLink = require('../model/campaignLink.model')
+
+var LinkedinProfile = require('../model/linkedinProfile.model')
+
+var Wallet = require('../model/wallet.model')
+var Event = require('../model/event.model')
+var Ban = require('../model/ban.model')
+var Request = require('../model/request.model')
+
 const { responseHandler } = require('../helpers/response-handler')
 
 const { v4: uuidv4 } = require('uuid')
@@ -378,8 +386,7 @@ exports.campaignPromp = async (req, res) => {
         )
         let ctr = await app.campaign.getCampaignContract(campaign.hash)
         if (!ctr) {
-            res.end('{}')
-            return
+            return responseHandler.makeResponseData(res, 200, 'success', {})
         } else {
             const funds = campaign.funds ? campaign.funds[1] : campaign.cost
 
@@ -432,6 +439,8 @@ exports.campaignPromp = async (req, res) => {
                             result.abosNumber,
                             reachLimit
                         )
+
+                    console.log('ratio', ratio)
                     ratio.forEach((num) => {
                         if (
                             num.oracle === result.oracle ||
@@ -468,6 +477,8 @@ exports.campaignPromp = async (req, res) => {
                             bounty.oracle ==
                                 app.oracle.findBountyOracle(result.typeSN)
                         ) {
+                            bounty = bounty.toObject()
+
                             bounty.categories.forEach((category) => {
                                 if (
                                     +category.minFollowers <=
@@ -500,6 +511,7 @@ exports.campaignPromp = async (req, res) => {
             })
         }
     } catch (err) {
+        console.log('err', err)
         app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
@@ -550,8 +562,7 @@ exports.pendingLink = async (req, res) => {
     res.status(202).json(pendingLinks)
 }
 
-exports.apply = async (req, response) => {
-    var pass = req.body.pass
+exports.apply = async (req, res) => {
     var idCampaign = req.body.idCampaign
     var typeSN = req.body.typeSN
     var idPost = req.body.idPost
@@ -563,19 +574,23 @@ exports.apply = async (req, response) => {
 
     var id = req.user._id
     try {
-        let promExist = await app.db
-            .campaign_link()
-            .findOne({ id_campaign: hash, idPost })
-        if (promExist)
-            response.end(JSON.stringify({ message: 'Link already sent' }))
-        var cred = await app.account.unlock(id, pass)
+        let promExist = await CampaignLink.findOne({ idCampaign: hash, idPost })
+
+        if (promExist) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Link already sent'
+            )
+        }
+
+        var cred = await app.account.unlock(req, res)
+
         if (typeSN == 5) {
-            var linkedinProfile = await app.db
-                .linkedinProfile()
-                .findOne(
-                    { userId: req.user._id },
-                    { projection: { accessToken: true, _id: false } }
-                )
+            var linkedinProfile = await LinkedinProfile.findOne(
+                { userId: id },
+                { accessToken: 1, _id: 0 }
+            )
             var linkedinInfo = await app.oracle.getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString()
@@ -592,10 +607,12 @@ exports.apply = async (req, response) => {
             cred
         )
 
-        response.end(JSON.stringify(ret))
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        response.end(
-            JSON.stringify({ error: err.message ? err.message : err.error })
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     } finally {
         cred && app.account.lock(cred.address)
@@ -604,7 +621,7 @@ exports.apply = async (req, response) => {
                 prom.instagramUserName = await app.oracle.getInstagramUserName(
                     idPost
                 )
-            await app.account.notificationManager(id, 'apply_campaign', {
+            await app.account.notificationManager(req, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
@@ -625,19 +642,21 @@ exports.apply = async (req, response) => {
             prom.appliedDate = date
             prom.oracle = app.oracle.findBountyOracle(prom.typeSN)
             var insert = await app.db.campaign_link().insertOne(prom)
+
             prom.abosNumber = await app.oracleManager.answerAbos(
                 prom.typeSN,
                 prom.idPost,
-                prom.idUser,
+                idUser,
                 linkedinProfile
             )
-            let userWallet = await app.db.wallet().findOne(
+
+            let userWallet = await Wallet.findOne(
                 {
                     'keystore.address': prom.id_wallet
                         .toLowerCase()
                         .substring(2),
                 },
-                { projection: { UserId: true, _id: false } }
+                { UserId: 1, _id: 0 }
             )
             let userId = prom.oracle === 'instagram' ? userWallet.UserId : null
             let socialOracle = await app.campaign.getPromApplyStats(
@@ -650,12 +669,10 @@ exports.apply = async (req, response) => {
             prom.views = socialOracle.views
             ;(prom.likes = socialOracle.likes),
                 (prom.shares = socialOracle.shares || '0')
-            await app.db
-                .campaign_link()
-                .updateOne(
-                    { _id: app.ObjectId(insert.ops[0]._id) },
-                    { $set: prom }
-                )
+            await CampaignLink.updateOne(
+                { _id: app.ObjectId(insert.ops[0]._id) },
+                { $set: prom }
+            )
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -666,7 +683,7 @@ exports.apply = async (req, response) => {
                 owner: contract._address.toLowerCase(),
             }
 
-            await app.db.event().insertOne(event)
+            await Event.create(event)
         }
     }
 }
@@ -735,10 +752,11 @@ exports.linkNotifications = async (req, res) => {
 exports.validateCampaign = async (req, res) => {
     let idCampaign = req.body.idCampaign
     let linkProm = req.body.link
-    let pass = req.body.pass
     let idApply = req.body.idProm
     let idUser = '0' + req.user._id
-    const campaign = await app.db.campaigns().findOne(
+
+    console.log()
+    const campaign = await Campaigns.findOne(
         { _id: app.ObjectId(idCampaign) },
         {
             fields: {
@@ -752,17 +770,23 @@ exports.validateCampaign = async (req, res) => {
     )
     try {
         if (idUser === campaign.idNode) {
-            const lang = /*req.query.lang ||*/ 'en'
+            const lang = 'en'
             app.i18n.configureTranslation(lang)
 
-            var cred = await app.account.unlock(req.user._id, pass)
+            var cred = await app.account.unlock(req, res)
+
             var ret = await app.campaign.validateProm(idApply, cred)
-            res.end(JSON.stringify(ret))
+
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
-            res.end(JSON.stringify({ message: 'unothorized' }))
+            return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     } finally {
         if (cred) {
             app.account.lock(cred.address)
@@ -770,22 +794,18 @@ exports.validateCampaign = async (req, res) => {
         if (ret && ret.transactionHash) {
             const id = req.body.idUser
             const email = req.body.email
-            let link = await app.db
-                .campaign_link()
-                .findOne({ id_prom: idApply })
-            let userWallet = await app.db.wallet().findOne(
+            let link = await CampaignLink.findOne({ id_prom: idApply })
+            let userWallet = await Wallet.findOne(
                 {
                     'keystore.address': link.id_wallet
                         .toLowerCase()
                         .substring(2),
                 },
-                { projection: { UserId: true, _id: false } }
+                { UserId: 1, _id: 0 }
             )
             let linkedinProfile =
                 link.oracle == 'linkedin' &&
-                (await app.db
-                    .linkedinProfile()
-                    .findOne({ userId: userWallet.UserId }))
+                (await LinkedinProfile.findOne({ userId: userWallet.UserId }))
             let userId = link.oracle === 'instagram' ? userWallet.UserId : null
             let socialOracle = await app.campaign.getPromApplyStats(
                 link.oracle,
@@ -816,12 +836,13 @@ exports.validateCampaign = async (req, res) => {
                 : app.campaign.getReward(link, campaign.bounties)
             socialOracle.totalToEarn = link.totalToEarn
             socialOracle.type = app.campaign.getButtonStatus(link)
-            const acceptedLink = await app.db
-                .campaign_link()
-                .updateOne({ id_prom: idApply }, { $set: socialOracle })
+            const acceptedLink = await CampaignLink.updateOne(
+                { id_prom: idApply },
+                { $set: socialOracle }
+            )
 
             await app.account.notificationManager(
-                id,
+                req,
                 'cmp_candidate_accept_link',
                 {
                     cmp_name: campaign.title,
@@ -832,55 +853,21 @@ exports.validateCampaign = async (req, res) => {
                     promHash: idApply,
                 }
             )
-
-            // readHTMLFileCampaign(
-            //     __dirname +
-            //         '/../public/emailtemplate/email_validated_link.html',
-            //     'campaignValidation',
-            //     campaign.title,
-            //     email,
-            //     idCampaign
-            // )
-
-            // res.end(
-            //     JSON.stringify({ message: 'success', prom: acceptedLink.value })
-            // )
-            app.readHTMLFile(
+            readHTMLFileCampaign(
                 __dirname +
                     '/../public/emailtemplate/email_validated_link.html',
-                (err, html) => {
-                    if (err) {
-                        console.error(err)
-                        return
-                    }
-                    let template = handlebars.compile(html)
-
-                    let emailContent = {
-                        cmp_link:
-                            app.config.basedURl +
-                            '/myWallet/campaign/' +
-                            idCampaign,
-                        satt_faq: app.config.Satt_faq,
-                        satt_url: app.config.basedURl,
-                        cmp_title: campaign.title,
-                        imgUrl: app.config.baseEmailImgURl,
-                    }
-                    let htmlToSend = template(emailContent)
-
-                    let mailOptions = {
-                        from: app.config.mailSender,
-                        to: email,
-                        subject: 'Your link has been accepted in a campaign',
-                        html: htmlToSend,
-                    }
-
-                    app.transporter.sendMail(mailOptions)
-                }
+                'campaignValidation',
+                campaign.title,
+                email,
+                idCampaign
             )
         }
     }
 }
-exports.gains = async (req, response) => {
+exports.gains = async (req, res) => {
+    var idProm = req.body.idProm
+    var idCampaign = req.body.idCampaign
+    var hash = req.body.hash
     var stats
     var requests = false
     var abi = [
@@ -890,42 +877,41 @@ exports.gains = async (req, response) => {
         { indexed: false, name: 'idUser', type: 'string' },
     ]
     try {
-        var pass = req.body.pass
-        var idProm = req.body.idProm
-        var idCampaign = req.body.idCampaign
-
-        var count = await app.db.ban().find({ idProm: idProm }).count()
+        var count = await Ban.find({ idProm: idProm }).count()
         if (count) {
-            response.end('{"error":"oracle not available"}')
-            return
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                'oracle not available'
+            )
         }
 
-        var cred2 = await app.account.unlock(req.user._id, pass)
+        var cred2 = await app.account.unlock(req, res)
         var ctr = await app.campaign.getPromContract(idProm)
 
         var gasPrice = await ctr.getGasPrice()
         let prom = await ctr.methods.proms(idProm).call()
         var linkedinData =
             prom.typeSN == '5' &&
-            (await app.db
-                .linkedinProfile()
-                .findOne(
-                    { userId: req.user._id },
-                    { projection: { accessToken: true, _id: false } }
-                ))
-        var link = await app.db.campaign_link().findOne({ id_prom: idProm })
+            (await LinkedinProfile.findOne(
+                { userId: req.user._id },
+                { accessToken: 1, _id: 0 }
+            ))
+        var link = await CampaignLink.findOne({ id_prom: idProm })
         if (req.body.bounty) {
             if (prom.funds.amount > 0 && prom.isPayed) {
                 var ret = await app.campaign.getGains(idProm, cred2)
-                response.end(JSON.stringify(ret))
-                return
-            }
-            let campaign = await app.db
-                .campaigns()
-                .findOne(
-                    { hash: idCampaign },
-                    { projection: { bounties: true } }
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    ret
                 )
+            }
+            let campaign = await Campaigns.findOne(
+                { hash: hash },
+                { bounties: 1 }
+            )
             let bountie = campaign.bounties.find(
                 (b) => b.oracle == app.oracle.findBountyOracle(prom.typeSN)
             )
@@ -942,13 +928,13 @@ exports.gains = async (req, response) => {
                 stats = (+maxBountieFollowers - 1).toString()
             }
 
-            await app.db.request().updateOne(
+            await Request.updateOne(
                 { id: idProm },
                 {
                     $set: {
                         nbAbos: stats,
                         isBounty: true,
-                        isNew: false,
+                        new: false,
                         date: Date.now(),
                         typeSN: prom.typeSN,
                         idPost: prom.idPost,
@@ -967,21 +953,22 @@ exports.gains = async (req, response) => {
                 })
             } finally {
                 var ret = await app.campaign.getGains(idProm, cred2)
-                response.end(JSON.stringify(ret))
-                return
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    ret
+                )
             }
         }
 
-        var prevstat = await app.db
-            .request()
-            .find({
-                isNew: false,
-                typeSN: prom.typeSN,
-                idPost: prom.idPost,
-                idUser: prom.idUser,
-            })
-            .sort({ date: -1 })
-            .toArray()
+        var prevstat = await Request.find({
+            new: false,
+            typeSN: prom.typeSN,
+            idPost: prom.idPost,
+            idUser: prom.idUser,
+        }).sort({ date: -1 })
+
         stats = await app.oracleManager.answerOne(
             prom.typeSN,
             prom.idPost,
@@ -1009,16 +996,14 @@ exports.gains = async (req, response) => {
         stats.shares = stats.shares || 0
         stats.likes = stats.likes || 0
 
-        requests = await app.db
-            .request()
-            .find({
-                isNew: true,
-                isBounty: false,
-                typeSN: prom.typeSN,
-                idPost: prom.idPost,
-                idUser: prom.idUser,
-            })
-            .toArray()
+        requests = await Request.find({
+            new: true,
+            isBounty: false,
+            typeSN: prom.typeSN,
+            idPost: prom.idPost,
+            idUser: prom.idUser,
+        })
+
         if (!requests.length) {
             if (
                 !prevstat.length ||
@@ -1027,7 +1012,6 @@ exports.gains = async (req, response) => {
                 stats.views != prevstat[0].views
             ) {
                 var evts = await app.campaign.updatePromStats(idProm, cred2)
-                console.log('oracle log', evts)
                 var evt = evts.events[0]
                 var idRequest = evt.raw.topics[1]
                 var log = app.web3.eth.abi.decodeLog(
@@ -1044,8 +1028,7 @@ exports.gains = async (req, response) => {
             }
         }
         if (requests && requests.length) {
-            console.log('updateOracle', requests)
-            await app.db.request().updateOne(
+            await Request.updateOne(
                 { id: requests[0].id },
                 {
                     $set: {
@@ -1053,7 +1036,7 @@ exports.gains = async (req, response) => {
                         likes: stats.likes,
                         shares: stats.shares,
                         views: stats.views,
-                        isNew: false,
+                        new: false,
                         date: Date.now(),
                         typeSN: prom.typeSN,
                         idPost: prom.idPost,
@@ -1061,18 +1044,6 @@ exports.gains = async (req, response) => {
                     },
                 },
                 { upsert: true }
-            )
-            console.log(
-                {
-                    gasPrice: gasPrice,
-                    from: app.config.campaignOwner,
-                    campaignContract: ctr.options.address,
-                    idRequest: requests[0].id,
-                    likes: stats.likes,
-                    shares: stats.shares,
-                    views: stats.views,
-                },
-                'answer Call logged data'
             )
 
             await app.oracleManager.answerCall({
@@ -1088,21 +1059,23 @@ exports.gains = async (req, response) => {
 
         var ret = await app.campaign.getGains(idProm, cred2)
 
-        response.end(JSON.stringify(ret))
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         app.account.sysLogError(err)
-        response.end(
-            JSON.stringify({ error: err.message ? err.message : err.error })
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     } finally {
         if (cred2) app.account.lock(cred2.address)
         if (ret && ret.transactionHash) {
-            let campaign = await app.db
-                .campaigns()
-                .findOne(
-                    { hash: idCampaign },
-                    { projection: { token: true, _id: false } }
-                )
+            console.log('start here')
+            let campaign = await Campaigns.findOne(
+                { hash: hash },
+                { token: 1, _id: 0 }
+            )
+
             let campaignType = {}
             let network =
                 campaign.token.type == 'erc20'
@@ -1114,9 +1087,9 @@ exports.gains = async (req, response) => {
                 network
             )
             let updatedFUnds = {}
-            await app.db
-                .campaign_link()
-                .findOne({ id_prom: idProm }, async (err, result) => {
+            await CampaignLink.findOne(
+                { id_prom: idProm },
+                async (err, result) => {
                     if (req.body.bounty) updatedFUnds.isPayed = true
                     updatedFUnds.payedAmount = !result.payedAmount
                         ? amount
@@ -1124,18 +1097,18 @@ exports.gains = async (req, response) => {
                               .plus(new Big(amount))
                               .toFixed()
                     updatedFUnds.type = 'already_recovered'
-                    await app.db
-                        .campaign_link()
-                        .updateOne({ id_prom: idProm }, { $set: updatedFUnds })
-                })
+                    await CampaignLink.updateOne(
+                        { id_prom: idProm },
+                        { $set: updatedFUnds }
+                    )
+                }
+            )
 
-            let contract = await app.campaign.getCampaignContract(idCampaign)
-            var result = await contract.methods.campaigns(idCampaign).call()
+            let contract = await app.campaign.getCampaignContract(hash)
+            var result = await contract.methods.campaigns(hash).call()
             campaignType.funds = result.funds
             if (result.funds[1] === '0') campaignType.type = 'finished'
-            await app.db
-                .campaigns()
-                .updateOne({ hash: idCampaign }, { $set: campaignType })
+            await Campaigns.updateOne({ hash: hash }, { $set: campaignType })
         }
     }
 }
@@ -1342,7 +1315,7 @@ module.exports.increaseBudget = async (req, response) => {
     } finally {
         cred && app.account.lock(cred.address)
         if (ret.transactionHash) {
-            const ctr = await app.campaign.getCampaignContract(idCampaign)
+            const ctr = await app.campaign.getCampaignContract(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
 
             await app.db
@@ -1746,7 +1719,7 @@ module.exports.increaseBudget = async (req, response) => {
     } finally {
         cred && app.account.lock(cred.address)
         if (ret.transactionHash) {
-            const ctr = await app.campaign.getCampaignContract(idCampaign)
+            const ctr = await app.campaign.getCampaignContract(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
 
             await app.db
