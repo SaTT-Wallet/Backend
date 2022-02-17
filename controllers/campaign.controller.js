@@ -119,41 +119,37 @@ conn.once('open', () => {
     gfsKit.collection('campaign_kit')
 })
 
-module.exports.launchCampaign = async (req, response) => {
-    var pass = req.body.pass
+module.exports.launchCampaign = async (req, res) => {
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
     var endDate = req.body.endDate
-    var ERC20token = req.body.ERC20token
+    var tokenAddress = req.body.tokenAddress
     var amount = req.body.amount
     var ratios = req.body.ratios
     var contract = req.body.contract
     let id = req.body.idCampaign
     try {
-        var cred = await app.account.unlock(req.user._id, pass)
-
-        // if(app.config.testnet && token == app.config.ctrs.token.address.mainnet) {
-        // 	ERC20token = app.config.ctrs.token.address.testnet;
-        // }
+        var cred = await app.account.unlock(req,res)
         var ret = await app.campaign.createCampaignAll(
             dataUrl,
             startDate,
             endDate,
             ratios,
-            ERC20token,
+            tokenAddress,
             amount,
             cred
         )
-
-        response.end(JSON.stringify(ret))
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         app.account.sysLogError(err)
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     } finally {
         cred && app.account.lock(cred.address)
-        if (ret && ret.hash) {
+        if (ret?.hash) {
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -166,12 +162,10 @@ module.exports.launchCampaign = async (req, response) => {
                 walletId: cred.address,
                 type: 'inProgress',
             }
-            await app.db
-                .campaigns()
+            await Campaigns
                 .updateOne(
                     { _id: app.ObjectId(id) },
-                    { $set: campaign },
-                    { $unset: { bounties: '', coverSrc: '' } }
+                    { $set: campaign }
                 )
         }
     }
@@ -341,7 +335,7 @@ exports.campaignDetails = async (req, res) => {
         var idCampaign = req.params.id
 
         var campaign = await Campaigns.findOne({
-            _id: app.ObjectId(idCampaign),
+            _id: app.ObjectId(idCampaign)
         })
 
         if (campaign) {
@@ -360,7 +354,6 @@ exports.campaignDetails = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1230,19 +1223,21 @@ exports.update = async (req, res) => {
     try {
         let campaign = req.body
         campaign.updatedAt = Date.now()
-
-        const result = await app.db
-            .campaigns()
-            .findOneAndUpdate(
+        Campaigns.findOneAndUpdate(
                 { _id: app.ObjectId(req.params.idCampaign) },
                 { $set: campaign },
-                { returnOriginal: false }
+                { new: true },
+                (err, updatedCampaign)=>{
+                    return responseHandler.makeResponseData(res, 200, 'updated', updatedCampaign)
+                }
             )
-        const updatedCampaign = result.value
-        res.send(JSON.stringify({ updatedCampaign, success: 'updated' }))
     } catch (err) {
         app.account.sysLogError(err)
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1646,26 +1641,6 @@ exports.addKits = async (req, res) => {
 
         res.send('No matching data').status(401)
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
-    }
-}
-
-exports.update = async (req, res) => {
-    try {
-        let campaign = req.body
-        campaign.updatedAt = Date.now()
-
-        const result = await app.db
-            .campaigns()
-            .findOneAndUpdate(
-                { _id: app.ObjectId(req.params.idCampaign) },
-                { $set: campaign },
-                { returnOriginal: false }
-            )
-        const updatedCampaign = result.value
-        res.send(JSON.stringify({ updatedCampaign, success: 'updated' }))
-    } catch (err) {
-        app.account.sysLogError(err)
         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }

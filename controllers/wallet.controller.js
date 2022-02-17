@@ -866,21 +866,23 @@ exports.prices = (req, res) => {
 exports.createNewWallet = async (req, res) => {
     try {
         var id = req.user._id
-
-        console.log(req.user.hasWallet)
-
-        if (req.user.hasWallet == false) {
-            var ret = await app.account.createSeed(req, res)
-
-            return responseHandler.makeResponseData(res, 200, 'success', {
-                ret,
-            })
-        } else {
+        if (req.user.hasWallet) {
             return responseHandler.makeResponseError(
                 res,
                 401,
                 'Wallet already exist'
             )
+        } else {
+            var ret = await app.account.createSeed(req, res)
+                await User.updateOne(
+                    { _id: id },
+                    {
+                        $set: {
+                            hasWallet: true,
+                        },
+                    }
+                )
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -889,23 +891,12 @@ exports.createNewWallet = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        console.log(req.user)
-        if (req.user.hasWallet == false) {
-            if (ret.address) {
+            if (ret?.address) {
                 await Wallet.create({
                     wallet: ret.address,
-                    idUser: id,
+                    idUser: id
                 })
-                await User.updateOne(
-                    { _id: parseInt(id) },
-                    {
-                        $set: {
-                            hasWallet: true,
-                        },
-                    }
-                )
             }
-        }
     }
 }
 
@@ -917,7 +908,6 @@ module.exports.removeToken = async (req, res) => {
             let token = await CustomToken.findOne({ tokenAdress })
 
             if (token) {
-                console.log(token, 'token2')
                 let splicedArray = token.sn_users.filter((item) => item !== id)
                 await CustomToken.updateOne(
                     { tokenAdress },
