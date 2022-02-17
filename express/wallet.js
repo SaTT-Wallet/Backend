@@ -1707,7 +1707,7 @@ app.post('/wallet/add/token', async (req, res) =>{
 			const token = req.headers["authorization"].split(" ")[1];
 			let auth = await app.crm.auth(token);
 			let customToken = {};
-			let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,req.body.decimal,req.body.network]
+			let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,+req.body.decimal,req.body.network]
 			
 			let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: [auth.id]} });
 			if(tokenExist){
