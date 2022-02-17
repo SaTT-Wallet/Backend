@@ -133,7 +133,7 @@ module.exports = async function (app) {
             address: app.config.SattReserve,
             gasPrice: bngasPrice.add(bngasPlus),
         }
-        var buys = await app.db.sattbuy().find({ isNew: true }).toArray()
+        var buys = await app.db.sattbuy().find({ new: true }).toArray()
         console.log('cron pay satt start', buys.length, 'elements')
         await app.cryptoManager.unlockReserve()
         for (var i = 0; i < buys.length; i++) {
@@ -142,7 +142,7 @@ module.exports = async function (app) {
 
             await app.db
                 .sattbuy()
-                .updateOne({ _id: buy._id }, { $set: { isNew: false } })
+                .updateOne({ _id: buy._id }, { $set: { new: false } })
         }
         console.log('cron pay satt end')
     }
@@ -152,7 +152,7 @@ module.exports = async function (app) {
         var bngasPrice = new BN('' + gasPrice)
         var bngasPlus = new BN(10000000000)
 
-        var buys = await app.db.sattbuy().find({ isNew: true }).toArray()
+        var buys = await app.db.sattbuy().find({ new: true }).toArray()
         console.log('cron pay satt start', buys.length, 'elements')
         //await app.cryptoManager.unlockReserve();
         for (var i = 0; i < buys.length; i++) {
@@ -192,7 +192,7 @@ module.exports = async function (app) {
 
             await app.db
                 .sattbuy()
-                .updateOne({ _id: buy._id }, { $set: { isNew: false } })
+                .updateOne({ _id: buy._id }, { $set: { new: false } })
         }
         console.log('cron pay satt end')
     }

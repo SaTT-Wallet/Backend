@@ -30,7 +30,7 @@ module.exports = async function (app) {
         var idPost = evt.returnValues.idPost
         var idUser = evt.returnValues.idUser
 
-        var request = await app.db.request().findOne({ id: idRequest })
+        var request = await Request.findOne({ id: idRequest })
         if (!request) {
             var answer = {
                 _id: idRequest,
@@ -40,10 +40,12 @@ module.exports = async function (app) {
                 idPost: idPost,
                 idUser: idUser,
                 isBounty: isBounty,
-                isNew: true,
+                new: true,
             }
 
-            await app.db.request().insertOne(answer)
+            console.log(answer)
+
+            await Request.create(answer)
         } else {
             console.log('response already sent')
         }
@@ -167,7 +169,7 @@ module.exports = async function (app) {
 
         var requests = await app.db
             .request()
-            .find({ isNew: true, isBounty: false })
+            .find({ new: true, isBounty: false })
             .toArray()
         for (var i = 0; i < requests.length; i++) {
             var request = requests[i]
@@ -201,7 +203,7 @@ module.exports = async function (app) {
             var prevstat = await app.db
                 .request()
                 .find({
-                    isNew: false,
+                    new: false,
                     typeSN: request.typeSN,
                     idPost: request.idPost,
                     idUser: request.idUser,
@@ -223,7 +225,7 @@ module.exports = async function (app) {
                             likes: res.likes,
                             shares: res.shares,
                             views: res.views,
-                            isNew: false,
+                            new: false,
                         },
                     }
                 )
@@ -252,7 +254,7 @@ module.exports = async function (app) {
 
             var requests = await app.db
                 .request()
-                .find({ isNew: true, isBounty: true })
+                .find({ new: true, isBounty: true })
                 .toArray()
             for (var i = 0; i < requests.length; i++) {
                 var request = requests[i]
@@ -269,7 +271,7 @@ module.exports = async function (app) {
                             likes: res.likes,
                             shares: res.shares,
                             views: res.views,
-                            isNew: false,
+                            new: false,
                         },
                     }
                 )

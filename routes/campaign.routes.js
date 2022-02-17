@@ -644,7 +644,7 @@ router.post('/validate', verifyAuth, validateCampaign)
  *                 type: string
  *               idProm:
  *                 type: string
- *               idCampaign:
+ *               hash:
  *                 type: string
  *     responses:
  *       "200":
@@ -870,7 +870,7 @@ router.put('/update/:idCampaign', verifyAuth, update)
  *     tags:
  *     - "campaign"
  *     summary: link stats
- *     description: return to user the link info and statistics 
+ *     description: return to user the link info and statistics
  *     produces:
  *       - application/json
  *     parameters:
@@ -878,13 +878,13 @@ router.put('/update/:idCampaign', verifyAuth, update)
  *         description: the  idProm.
  *         in: path
  *         required: true
-
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
- *          description: error:"error"
+ *          description: error:error message
  */
+
 router.get('/prom/stats/:idProm', linkStats)
 
 /**
