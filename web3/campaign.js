@@ -562,16 +562,11 @@ module.exports = async function (app) {
     campaignManager.validateProm = async function (idProm, credentials) {
         return new Promise(async (resolve, reject) => {
             try {
-                console.log('start validate prom')
                 var gas = 100000
                 var ctr = await campaignManager.getPromContract(idProm)
 
-                console.log('idProm', idProm)
-                console.log('ctr', ctr)
-
                 var gasPrice = await ctr.getGasPrice()
 
-                console.log('gasPrice', gasPrice)
                 var receipt = await ctr.methods.validateProm(idProm).send({
                     from: credentials.address,
                     gas: gas,
@@ -964,11 +959,14 @@ module.exports = async function (app) {
         try {
             let payedAmount = result.payedAmount || '0'
             let totalToEarn = '0'
+
+            // console.log(bounties[0].oracle);
             bounties.forEach((bounty) => {
                 if (
                     bounty.oracle === result.oracle ||
                     bounty.oracle == app.oracle.findBountyOracle(result.typeSN)
                 ) {
+                    bounty = bounty.toObject()
                     bounty.categories.forEach((category) => {
                         if (
                             +category.minFollowers <= +result.abosNumber &&

@@ -363,7 +363,7 @@ module.exports = async function (app) {
                     to: to,
                     amount: bnamount.toString(),
                     type: 'ETH',
-                    isNew: true,
+                    new: true,
                 })
                 resolve({
                     result: 'OK',
@@ -488,7 +488,7 @@ module.exports = async function (app) {
                     to: to,
                     amount: finalamount,
                     type: 'BTC',
-                    isNew: true,
+                    new: true,
                 })
 
                 resolve({
