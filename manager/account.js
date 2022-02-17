@@ -382,6 +382,7 @@ module.exports = async function (app) {
 
             return { address: '0x' + account.keystore.address }
         } catch (err) {
+            console.log(err)
             return responseHandler.makeResponseError(
                 res,
                 500,
@@ -1098,9 +1099,8 @@ module.exports = async function (app) {
         }
     }
 
-    accountManager.notificationManager = async (req, NotifType, label) => {
-        let id = req.user._id
-
+    accountManager.notificationManager = async (id, NotifType, label) => {
+        console.log(id, 'id')
         let notification = {
             idNode: '0' + id,
             type: NotifType,

@@ -58,6 +58,7 @@ module.exports = async function (app) {
 
     campaignManager.getCampaignContract = async function (hash) {
         var campaign = await Campaigns.findOne({ hash: hash }, { contract: 1 })
+
         if (campaign && campaign.contract) {
             return campaignManager.getContract(campaign.contract)
         } else return false
@@ -416,7 +417,7 @@ module.exports = async function (app) {
     ) {
         return new Promise(async (resolve, reject) => {
             var gas = 100000
-            var ctr = await campaignManager.getCampaignContract(hash)
+            var ctr = await campaignManager.getCampaignContract(idCampaign)
             var gasPrice = await ctr.getGasPrice()
             var receipt = await ctr.methods
                 .priceRatioCampaign(
@@ -457,17 +458,10 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 400000
-                var ctr = await campaignManager.getCampaignContract(hash)
+                var ctr = await campaignManager.getCampaignContract(idCampaign)
 
-                //var gasPrice = 4000000000;
                 var gasPrice = await ctr.getGasPrice()
 
-                // var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
-                // if(isDoubled)
-                // {
-                // 	reject({message:"Link already sent"});
-                // }
-                // else {
                 var receipt = await ctr.methods
                     .applyCampaign(idCampaign, typeSN, idPost, idUser)
                     .send({
@@ -510,7 +504,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 400000
-                var ctr = await campaignManager.getCampaignContract(hash)
+                var ctr = await campaignManager.getCampaignContract(idCampaign)
                 var gasPrice = await ctr.getGasPrice()
 
                 var receipt = await ctr.methods
@@ -619,7 +613,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 100000
-                var ctr = await campaignManager.getCampaignContract(hash)
+                var ctr = await campaignManager.getCampaignContract(idCampaign)
                 var gasPrice = await ctr.getGasPrice()
                 var receipt = await ctr.methods.startCampaign(idCampaign).send({
                     from: credentials.address,
@@ -649,7 +643,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 1000000
-                var ctr = await campaignManager.getCampaignContract(hash)
+                var ctr = await campaignManager.getCampaignContract(idCampaign)
                 var gasPrice = await ctr.getGasPrice()
                 if (gasPrice < 4000000000) gasPrice = 4000000000
                 var receipt = await ctr.methods
@@ -736,7 +730,7 @@ module.exports = async function (app) {
 
     campaignManager.endCampaign = async function (idCampaign, credentials) {
         return new Promise(async (resolve, reject) => {
-            var ctr = await campaignManager.getCampaignContract(hash)
+            var ctr = await campaignManager.getCampaignContract(idCampaign)
             var gas = 100000
             var gasPrice = await ctr.getGasPrice()
             var receipt = await ctr.methods.endCampaign(idCampaign).send({
@@ -820,32 +814,22 @@ module.exports = async function (app) {
         })
     }
 
-    campaignManager.getRemainingFunds = async function (
-        idCampaign,
-        credentials
-    ) {
+    campaignManager.getRemainingFunds = async function (hash, credentials) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 200000
                 var ctr = await campaignManager.getCampaignContract(hash)
-                var gasPrice = await app.web3.eth.getGasPrice()
+                var gasPrice = await ctr.getGasPrice()
+                var receipt = await ctr.methods.getRemainingFunds(hash).send({
+                    from: credentials.address,
+                    gas: gas,
+                    gasPrice: gasPrice,
+                })
 
-                var receipt = await ctr.methods
-                    .getRemainingFunds(idCampaign)
-                    .send({
-                        from: credentials.address,
-                        gas: gas,
-                        gasPrice: gasPrice,
-                    })
                 resolve({
                     transactionHash: receipt.transactionHash,
-                    idCampaign: idCampaign,
+                    hash: hash,
                 })
-                console.log(
-                    receipt.transactionHash,
-                    'confirmed gains remaining for',
-                    idCampaign
-                )
             } catch (err) {
                 reject(err)
             }
