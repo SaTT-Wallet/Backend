@@ -3,6 +3,8 @@ const { ObjectId } = require('bson')
 
 var Campaigns = require('../model/campaigns.model')
 var CampaignLink = require('../model/campaignLink.model')
+var Wallet = require('../model/wallet.model')
+var User = require('../model/user.model')
 
 module.exports = async function (app) {
     var fs = require('fs')
@@ -54,11 +56,8 @@ module.exports = async function (app) {
         return ctr
     }
 
-    campaignManager.getCampaignContract = async function (idCampaign) {
-        var campaign = await Campaigns.findOne(
-            { hash: idCampaign },
-            { contract: 1 }
-        )
+    campaignManager.getCampaignContract = async function (hash) {
+        var campaign = await Campaigns.findOne({ hash: hash }, { contract: 1 })
         if (campaign && campaign.contract) {
             return campaignManager.getContract(campaign.contract)
         } else return false
@@ -417,7 +416,7 @@ module.exports = async function (app) {
     ) {
         return new Promise(async (resolve, reject) => {
             var gas = 100000
-            var ctr = await campaignManager.getCampaignContract(idCampaign)
+            var ctr = await campaignManager.getCampaignContract(hash)
             var gasPrice = await ctr.getGasPrice()
             var receipt = await ctr.methods
                 .priceRatioCampaign(
@@ -458,7 +457,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 400000
-                var ctr = await campaignManager.getCampaignContract(idCampaign)
+                var ctr = await campaignManager.getCampaignContract(hash)
 
                 //var gasPrice = 4000000000;
                 var gasPrice = await ctr.getGasPrice()
@@ -511,18 +510,9 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 400000
-                var ctr = await campaignManager.getCampaignContract(idCampaign)
+                var ctr = await campaignManager.getCampaignContract(hash)
                 var gasPrice = await ctr.getGasPrice()
-                //var gasPrice = 4000000000;
 
-                //console.log(idCampaign,typeSN,idPost,idUser);
-                /*var isDoubled = await ctr.methods.getIsUsed(idCampaign,typeSN,idPost,idUser).call();
-
-			if(isDoubled)
-			{
-				reject({message:"Link already sent"});
-			}
-			else {*/
                 var receipt = await ctr.methods
                     .applyAndValidate(
                         idCampaign,
@@ -629,7 +619,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 100000
-                var ctr = await campaignManager.getCampaignContract(idCampaign)
+                var ctr = await campaignManager.getCampaignContract(hash)
                 var gasPrice = await ctr.getGasPrice()
                 var receipt = await ctr.methods.startCampaign(idCampaign).send({
                     from: credentials.address,
@@ -659,7 +649,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 1000000
-                var ctr = await campaignManager.getCampaignContract(idCampaign)
+                var ctr = await campaignManager.getCampaignContract(hash)
                 var gasPrice = await ctr.getGasPrice()
                 if (gasPrice < 4000000000) gasPrice = 4000000000
                 var receipt = await ctr.methods
@@ -746,7 +736,7 @@ module.exports = async function (app) {
 
     campaignManager.endCampaign = async function (idCampaign, credentials) {
         return new Promise(async (resolve, reject) => {
-            var ctr = await campaignManager.getCampaignContract(idCampaign)
+            var ctr = await campaignManager.getCampaignContract(hash)
             var gas = 100000
             var gasPrice = await ctr.getGasPrice()
             var receipt = await ctr.methods.endCampaign(idCampaign).send({
@@ -837,7 +827,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 200000
-                var ctr = await campaignManager.getCampaignContract(idCampaign)
+                var ctr = await campaignManager.getCampaignContract(hash)
                 var gasPrice = await app.web3.eth.getGasPrice()
 
                 var receipt = await ctr.methods
@@ -1263,17 +1253,16 @@ module.exports = async function (app) {
                             )
                     }
 
-                    let wallets = await app.db
-                        .wallet()
-                        .find({ 'keystore.address': { $in: addresses } })
-                        .toArray()
+                    let wallets = await Wallet.find({
+                        'keystore.address': { $in: addresses },
+                    })
+
                     for (let i = 0; i < wallets.length; i++) {
                         idByAddress['0x' + wallets[i].keystore.address] =
                             'id#' + wallets[i].UserId
                         if (ids.indexOf(wallets[i].UserId) == -1)
                             ids.push(wallets[i].UserId)
                     }
-                    //let users = await app.db.user().find({_id: { $in: ids } },{_id :1},{email:1}).toArray();
                     let users = await app.db
                         .user()
                         .find({ _id: { $in: ids } })
@@ -1382,9 +1371,9 @@ module.exports = async function (app) {
     campaignManager.campaignStats = async (idCampaign) => {
         return new Promise(async (resolve, reject) => {
             try {
-                const result = await app.db
-                    .campaigns()
-                    .findOne({ _id: app.ObjectId(idCampaign) })
+                const result = await Campaigns.findOne({
+                    _id: app.ObjectId(idCampaign),
+                })
                 if (result.hash) {
                     const ctr = await app.campaign.getCampaignContract(
                         result.hash
