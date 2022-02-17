@@ -419,8 +419,7 @@ exports.campaignPromp = async (req, res) => {
         )
         let ctr = await app.campaign.getCampaignContract(campaign.hash)
         if (!ctr) {
-            res.end('{}')
-            return
+            return responseHandler.makeResponseData(res, 200, 'success', {})
         } else {
             const funds = campaign.funds ? campaign.funds[1] : campaign.cost
 
@@ -473,6 +472,8 @@ exports.campaignPromp = async (req, res) => {
                             result.abosNumber,
                             reachLimit
                         )
+
+                    console.log('ratio', ratio)
                     ratio.forEach((num) => {
                         if (
                             num.oracle === result.oracle ||
@@ -509,6 +510,8 @@ exports.campaignPromp = async (req, res) => {
                             bounty.oracle ==
                                 app.oracle.findBountyOracle(result.typeSN)
                         ) {
+                            bounty = bounty.toObject()
+
                             bounty.categories.forEach((category) => {
                                 if (
                                     +category.minFollowers <=
@@ -541,6 +544,7 @@ exports.campaignPromp = async (req, res) => {
             })
         }
     } catch (err) {
+        console.log('err', err)
         app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
@@ -897,8 +901,6 @@ exports.gains = async (req, res) => {
     var idProm = req.body.idProm
     var idCampaign = req.body.idCampaign
     var hash = req.body.hash
-
-    console.log(idCampaign)
     var stats
     var requests = false
     var abi = [
@@ -1340,7 +1342,7 @@ module.exports.increaseBudget = async (req, response) => {
     } finally {
         cred && app.account.lock(cred.address)
         if (ret.transactionHash) {
-            const ctr = await app.campaign.getCampaignContract(idCampaign)
+            const ctr = await app.campaign.getCampaignContract(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
 
             await app.db
@@ -1741,7 +1743,7 @@ module.exports.increaseBudget = async (req, response) => {
     } finally {
         cred && app.account.lock(cred.address)
         if (ret.transactionHash) {
-            const ctr = await app.campaign.getCampaignContract(idCampaign)
+            const ctr = await app.campaign.getCampaignContract(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
 
             await app.db
