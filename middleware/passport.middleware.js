@@ -779,7 +779,6 @@ exports.addyoutubeChannel = async (
         qs: { access_token: accessToken, part: 'snippet', mine: true },
         json: true,
     })
-    console.log('result', res)
     if (res.pageInfo.totalResults == 0) {
         cb(null, profile, {
             message: 'channel obligatoire',
@@ -827,11 +826,11 @@ module.exports.verifyAuth = (req, res, next) => {
     if (!token) {
         return responseHandler.makeResponseError(res, 401, 'token required')
     }
-      jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-      if (err) return res.json(err)
-      newUser = await User.findOne({ _id:user._id });
-      req.user =  newUser
-      next();
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+        if (err) return res.json(err)
+        newUser = await User.findOne({ _id: user._id })
+        req.user = newUser
+        next()
     })
 }
 module.exports.createUser = createUser
