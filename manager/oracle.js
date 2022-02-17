@@ -44,7 +44,7 @@ module.exports = async function (app) {
 
                     resolve(res.fan_count)
                 } else {
-                    resolve('indisponible')
+                    resolve(null)
                 }
             } catch (err) {
                 reject(err)
@@ -77,7 +77,7 @@ module.exports = async function (app) {
                     })
                     resolve(res.items[0].statistics.subscriberCount)
                 } else {
-                    resolve('indisponible')
+                    resolve(null)
                 }
             } catch (err) {
                 reject(err)
@@ -126,7 +126,7 @@ module.exports = async function (app) {
                     })
                     if (res.followers_count)
                         resolve((followers = res.followers_count))
-                    else resolve('indisponible')
+                    else resolve(null)
                 }
                 resolve(followers)
             } catch (err) {
@@ -158,7 +158,7 @@ module.exports = async function (app) {
                         resolve(tweet_res.user.followers_count)
                     },
                     (err) => {
-                        resolve('indisponible')
+                        resolve(null)
                     }
                 )
             } catch (err) {
