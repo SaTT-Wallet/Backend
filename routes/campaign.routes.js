@@ -216,7 +216,7 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               ERC20token:
+ *               tokenAddress:
  *                 type: string
  *               amount:
  *                 type: string
@@ -807,6 +807,8 @@ router.post('/addKits', upload, addKits)
  *               reference:
  *                 type: string
  *               cover:
+ *                 type: string
+ *               coverSrc:
  *                 type: string
  *               logo:
  *                 type: string
