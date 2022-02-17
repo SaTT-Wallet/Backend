@@ -21,7 +21,7 @@ exports.changePassword = async (req, res) => {
         var newpass = req.body.newpass
         var oldpass = req.body.oldpass
         var _id = req.user._id
-        var user = await User().findOne({ _id })
+        var user = await User.findOne({ _id })
         if (user) {
             if (user.password != app.synfonyHash(oldpass)) {
                 return responseHandler.makeResponseError(
@@ -317,7 +317,7 @@ exports.resendConfirmationToken = async (req, res) => {
 exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
-        await User().updateOne(
+        await User.updateOne(
             { _id: req.user._id },
             { $set: { fireBaseAccessToken: data.fb_accesstoken } }
         )
