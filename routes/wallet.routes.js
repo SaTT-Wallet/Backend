@@ -109,7 +109,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  *     tags:
  *     - "wallets"
  *     summary: get crypto list details
- *     description: return detail of crypto list to user <br> with access_token
+ *     description: return detail of crypto list to user <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
