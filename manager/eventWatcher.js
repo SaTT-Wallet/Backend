@@ -12,62 +12,17 @@ module.exports = async function (app) {
 
     var eventWatcher = {}
 
-    eventWatcher.campaignCreated = async function (error, evt) {
-        var idCampaign = evt.returnValues.id
-        var startDate = evt.returnValues.startDate
-        var endDate = evt.returnValues.endDate
-        var dataUrl = evt.returnValues.dataUrl
-        let blockchainType = 'erc20'
-        var tx
-        var ev = {
-            id: idCampaign,
-            type: 'created',
-            date: Math.floor(Date.now() / 1000),
-            txhash: evt.transactionHash,
-            contract: evt.address.toLowerCase(),
-        }
+    // eventWatcher.campaignCreated = async function (error, evt) {
+    //     var ev = {
+    //         id: evt.returnValues.id,
+    //         type: 'modified',
+    //         date: Math.floor(Date.now() / 1000),
+    //         txhash: evt.transactionHash,
+    //         contract: evt.address.toLowerCase(),
+    //     }
 
-        if (
-            ev.contract ==
-                app.config.ctrs.campaign.address.mainnetBep20.toLowerCase() ||
-            ev.contract ==
-                app.config.ctrs.campaign.address.testnetBep20.toLowerCase()
-        ) {
-            blockchainType = 'bep20'
-            tx = await app.web3Bep20.eth.getTransaction(evt.transactionHash)
-        } else {
-            tx = await app.web3.eth.getTransaction(evt.transactionHash)
-        }
-
-        var campaign = {
-            id: idCampaign,
-            blockchainType,
-            startDate: startDate,
-            endDate: endDate,
-            dataUrl: dataUrl,
-            status: 'created',
-            owner: tx.from.toLowerCase(),
-            contract: evt.address.toLowerCase(),
-        }
-        app.db.campaign().findOne({ id: idCampaign }, function (cmp, err) {
-            if (cmp) {
-                app.db.campaign().updateOne(
-                    { id: idCampaign },
-                    {
-                        $set: {
-                            startDate: startDate,
-                            endDate: endDate,
-                            dataUrl: dataUrl,
-                        },
-                    }
-                )
-                ev.type = 'modified'
-            } else {
-                app.db.campaign().insertOne(campaign)
-            }
-            app.db.event().insertOne(ev)
-        })
-    }
+    //     Event.create(ev)
+    // }
 
     eventWatcher.campaignFundsSpent = function (error, evt) {
         var idCampaign = evt.returnValues.id
@@ -112,9 +67,9 @@ module.exports = async function (app) {
     //	app.campaign.contract.events.CampaignApplied ( /*{fromBlock:0},*/eventWatcher.campaignApplied);
 
     app.campaign.contractBep20WS.events.allEvents(async function (err, evt) {
-        if (evt.event == 'CampaignCreated') {
-            await eventWatcher.campaignCreated(err, evt)
-        }
+        // if (evt.event == 'CampaignCreated') {
+        //     await eventWatcher.campaignCreated(err, evt)
+        // }
 
         if (evt.event == 'CampaignFundsSpent') {
             await eventWatcher.campaignFundsSpent(err, evt)

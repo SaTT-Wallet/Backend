@@ -175,11 +175,20 @@ module.exports.launchCampaign = async (req, res) => {
                     { _id: app.ObjectId(id) },
                     { $set: campaign }
                 )
+                let event = {
+                    id: ret.hash,
+                    type: 'modified',
+                    date: Math.floor(Date.now() / 1000),
+                    txhash: ret.transactionHash,
+                    contract: contract.toLowerCase(),
+                }
+                await Event.create(event)
         }
+       
     }
 }
 
-module.exports.launchBounty = async (req, response) => {
+module.exports.launchBounty = async (req, res) => {
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
     var endDate = req.body.endDate
@@ -199,11 +208,14 @@ module.exports.launchBounty = async (req, response) => {
             amount,
             cred
         )
-        response.end(JSON.stringify(ret))
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+
     } catch (err) {
         app.account.sysLogError(err)
-        response.end(
-            '{"error":"' + (err.message ? err.message : err.error) + '"}'
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     } finally {
         cred && app.account.lock(cred.address)
@@ -220,13 +232,20 @@ module.exports.launchBounty = async (req, response) => {
                 type: 'inProgress',
                 walletId: cred.address,
             }
-            await app.db
-                .campaigns()
+            await Campaigns
                 .updateOne(
                     { _id: app.ObjectId(id) },
                     { $set: campaign },
                     { $unset: { coverSrc: '', ratios: '' } }
                 )
+                let event = {
+                    id: ret.hash,
+                    type: 'modified',
+                    date: Math.floor(Date.now() / 1000),
+                    txhash: ret.transactionHash,
+                    contract: contract.toLowerCase(),
+                }
+                await Event.create(event)
         }
     }
 }
@@ -1465,19 +1484,6 @@ exports.erc20Allow = async (req, res) => {
     }
 }
 
-exports.saveCampaign = async (req, res) => {
-    try {
-        const campaign = req.body
-        campaign.idNode = '0' + req.user._id
-        campaign.createdAt = Date.now()
-        campaign.updatedAt = Date.now()
-        campaign.type = 'draft'
-        const draft = await app.db.campaigns().insertOne(campaign)
-        res.end(JSON.stringify(draft.ops[0])).status(200)
-    } catch (err) {
-        res.end(JSON.stringify(err))
-    }
-}
 
 module.exports.linkStats = async (req, res) => {
     try {

@@ -154,7 +154,7 @@ module.exports = async function (app) {
           token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase() ||
           token.toLowerCase() == app.config.ctrs.token.address.daiMainnet.toLowerCase())
         {
-            var ctr = app.web3.Contract(
+            var ctr = app.web3.eth.Contract(
                 app.config.ctrs.campaign.abi,
                 app.config.ctrs.campaign.address.mainnet
             )
@@ -164,7 +164,7 @@ module.exports = async function (app) {
                token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
                token.toLowerCase() == app.config.ctrs.token.address.daiTesnet.toLowerCase())
         {
-            var ctr = app.web3.Contract(
+            var ctr = new app.web3.eth.Contract(
                 app.config.ctrs.campaign.abi,
                 app.config.ctrs.campaign.address.testnet
             )
