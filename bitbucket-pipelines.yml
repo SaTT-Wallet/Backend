@@ -11,6 +11,8 @@ pipelines:
             - step:
                 name: put file on production 
                 script: 
-                  -  echo ${ENV} > .env   
+                  -  echo "gdah:pipe" > .env   
+                  -  echo "gdah:pipe2" > .env 
+                  -  echo "gdah:pipe3" > .env 
                   -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts
                   -  sshpass -p ${SCP_PASSWORD} scp -v -pr ../build/ gdah@92.243.9.233:/home/oracles/DevOps/
