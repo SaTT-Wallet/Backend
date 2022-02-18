@@ -301,6 +301,11 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *                 type: integer
  *               endDate:
  *                 type: integer
+ *               bounties:
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string  
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
