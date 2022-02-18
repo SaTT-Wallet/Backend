@@ -11,7 +11,6 @@ pipelines:
             - step:
                 name: put file on production 
                 script: 
+                  -  echo ${ENV} > .env   
                   -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts
-                  -  rm -rf .env
-                  -  echo ${ENV} >> .env
                   -  sshpass -p ${SCP_PASSWORD} scp -v -pr ../build/ gdah@92.243.9.233:/home/oracles/DevOps/
