@@ -137,7 +137,7 @@ module.exports.launchCampaign = async (req, res) => {
     var contract = req.body.contract
     let id = req.body.idCampaign
     try {
-        var cred = await app.account.unlock(req,res)
+        var cred = await app.account.unlock(req, res)
         var ret = await app.campaign.createCampaignAll(
             dataUrl,
             startDate,
@@ -183,6 +183,7 @@ module.exports.launchCampaign = async (req, res) => {
                     contract: contract.toLowerCase(),
                 }
                 await Event.create(event)
+
         }
        
     }
@@ -198,7 +199,7 @@ module.exports.launchBounty = async (req, res) => {
     var bounties = req.body.bounties
     try {
         var cred = await app.account.unlock(req, res)
-        
+
         var ret = await app.campaign.createCampaignBounties(
             dataUrl,
             startDate,
@@ -295,7 +296,9 @@ exports.campaigns = async (req, res) => {
                     coverSrc: 0,
                 },
             },
-        ]).skip(skip).limit(limit)
+        ])
+            .skip(skip)
+            .limit(limit)
 
         if (req.query.idWallet) {
             for (var i = 0; i < campaigns.length; i++) {
@@ -324,7 +327,7 @@ exports.campaignDetails = async (req, res) => {
         var idCampaign = req.params.id
 
         var campaign = await Campaigns.findOne({
-            _id: app.ObjectId(idCampaign)
+            _id: app.ObjectId(idCampaign),
         })
 
         if (campaign) {
@@ -1063,7 +1066,7 @@ exports.saveCampaign = async (req, res) => {
         let draft = await Campaigns.create(campaign)
         return responseHandler.makeResponseData(res, 200, 'success', draft)
     } catch (err) {
-         return responseHandler.makeResponseError(
+        return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
@@ -1076,8 +1079,13 @@ exports.kits = async (req, res) => {
         const idCampaign = req.params.idCampaign
         gfsKit.files
             .find({ 'campaign.$id': app.ObjectId(idCampaign) })
-            .toArray( (err, files)=> {
-                return responseHandler.makeResponseData(res, 200, 'success', files)
+            .toArray((err, files) => {
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    files
+                )
             })
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1090,40 +1098,42 @@ exports.kits = async (req, res) => {
 
 exports.addKits = async (req, res) => {
     try {
-        let files = req.files;
-        let links = typeof req.body.link === 'string' ? Array(req.body.link) : req.body.link
+        let files = req.files
+        let links =
+            typeof req.body.link === 'string'
+                ? Array(req.body.link)
+                : req.body.link
         let idCampaign = req.body.campaign
-       
-            if (files) {
-                files.forEach((file) => {
-                    gfsKit.files.updateOne(
-                        { _id: file.id },
-                        {
-                            $set: {
-                                campaign: {
-                                    $ref: 'campaign',
-                                    $id: app.ObjectId(idCampaign),
-                                    $db: 'atayen',
-                                },
+
+        if (files) {
+            files.forEach((file) => {
+                gfsKit.files.updateOne(
+                    { _id: file.id },
+                    {
+                        $set: {
+                            campaign: {
+                                $ref: 'campaign',
+                                $id: app.ObjectId(idCampaign),
+                                $db: 'atayen',
                             },
-                        }
-                    )
-                })
-            }
-            if (links) {
-                links.forEach((link) => {
-                    gfsKit.files.insertOne({
-                        campaign: {
-                            $ref: 'campaign',
-                            $id: app.ObjectId(idCampaign),
-                            $db: 'atayen',
                         },
-                        link: link,
-                    })
+                    }
+                )
+            })
+        }
+        if (links) {
+            links.forEach((link) => {
+                gfsKit.files.insertOne({
+                    campaign: {
+                        $ref: 'campaign',
+                        $id: app.ObjectId(idCampaign),
+                        $db: 'atayen',
+                    },
+                    link: link,
                 })
-            }
-            return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false)
-        
+            })
+        }
+        return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1138,13 +1148,18 @@ exports.update = async (req, res) => {
         let campaign = req.body
         campaign.updatedAt = Date.now()
         Campaigns.findOneAndUpdate(
-                { _id: app.ObjectId(req.params.idCampaign) },
-                { $set: campaign },
-                { new: true },
-                (err, updatedCampaign)=>{
-                    return responseHandler.makeResponseData(res, 200, 'updated', updatedCampaign)
-                }
-            )
+            { _id: app.ObjectId(req.params.idCampaign) },
+            { $set: campaign },
+            { new: true },
+            (err, updatedCampaign) => {
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'updated',
+                    updatedCampaign
+                )
+            }
+        )
     } catch (err) {
         app.account.sysLogError(err)
         return responseHandler.makeResponseError(
@@ -1403,14 +1418,21 @@ module.exports.getFunds = async (req, res) => {
 }
 
 exports.bep20Approval = async (req, res) => {
-    try{
-    let tokenAddress = req.body.tokenAddress;
-    let campaignAddress=req.body.campaignAddress;
-    let account = await app.account.getAccount(req, res)
-    let allowance = await app.bep20.getApproval(tokenAddress, account.address, campaignAddress)
-    return responseHandler.makeResponseData(res, 200, 'success', { token: tokenAddress, allowance: allowance, spender: campaignAddress })
-    }
-    catch(err){
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await app.account.getAccount(req, res)
+        let allowance = await app.bep20.getApproval(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1418,18 +1440,24 @@ exports.bep20Approval = async (req, res) => {
             false
         )
     }
-    
 }
 
 exports.erc20Approval = async (req, res) => {
-    try{
+    try {
         let tokenAddress = req.body.tokenAddress
-        let campaignAddress = req.body.campaignAddress;
-        let account = await app.account.getAccount(req, res);
-        let allowance = await app.erc20.getApproval(tokenAddress, account.address, campaignAddress)
-        return responseHandler.makeResponseData(res, 200, 'success', { token: tokenAddress, allowance: allowance, spender: campaignAddress })
-    }
-    catch(err){
+        let campaignAddress = req.body.campaignAddress
+        let account = await app.account.getAccount(req, res)
+        let allowance = await app.erc20.getApproval(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1444,7 +1472,7 @@ exports.bep20Allow = async (req, res) => {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let bep20TOken = req.body.tokenAddress
-        let cred = await app.account.unlockBSC(req,res)
+        let cred = await app.account.unlockBSC(req, res)
         let ret = await app.bep20.approve(
             bep20TOken,
             cred.address,
@@ -1469,8 +1497,13 @@ exports.erc20Allow = async (req, res) => {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let tokenAddress = req.body.tokenAddress
-        let cred = await app.account.unlock(req,res)
-        let ret = await app.erc20.approve(tokenAddress, cred.address, campaignAddress, amount)
+        let cred = await app.account.unlock(req, res)
+        let ret = await app.erc20.approve(
+            tokenAddress,
+            cred.address,
+            campaignAddress,
+            amount
+        )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1483,7 +1516,6 @@ exports.erc20Allow = async (req, res) => {
         if (cred) app.account.lock(cred.address)
     }
 }
-
 
 module.exports.linkStats = async (req, res) => {
     try {
@@ -1800,7 +1832,6 @@ module.exports.campaignInvested = async (req, res) => {
         res.json({ totalInvested, totalInvestedUSD })
     } catch (e) {}
 }
-
 
 exports.rejectLink = async (req, res) => {
     const lang = req.query.lang || 'en'

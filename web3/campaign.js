@@ -86,68 +86,58 @@ module.exports = async function (app) {
                 app.config.ctrs.token.address.tetherMainnet.toLowerCase() ||
             token.toLowerCase() ==
                 app.config.ctrs.token.address.daiMainnet.toLowerCase()
-        )
-        {
+        ) {
             ctr = app.web3.Contract(
                 app.config.ctrs.token.abi,
                 app.config.testnet
                     ? app.config.ctrs.token.address.testnet
                     : app.config.ctrs.token.address.mainnet
             )
-            ctr.getGasPrice =  app.web3.eth.getGasPrice;
-        }
-             
-        else if (
+            ctr.getGasPrice = app.web3.eth.getGasPrice
+        } else if (
             token.toLowerCase() ==
                 app.config.ctrs.bep20.address.mainnet.toLowerCase() ||
             token.toLowerCase() ==
                 app.config.ctrs.bep20.address.busdMainnet.toLowerCase()
-        ){
-            ctr= new app.web3Bep20.eth.Contract(
-                        app.config.ctrs.bep20.abi,
-                        app.config.testnet
-                            ? app.config.ctrs.bep20.address.testnet
-                            : app.config.ctrs.bep20.address.mainnet
-                    )
-            ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
-        }
-            
-        else if (
+        ) {
+            ctr = new app.web3Bep20.eth.Contract(
+                app.config.ctrs.bep20.abi,
+                app.config.testnet
+                    ? app.config.ctrs.bep20.address.testnet
+                    : app.config.ctrs.bep20.address.mainnet
+            )
+            ctr.getGasPrice = app.web3Bep20.eth.getGasPrice
+        } else if (
             token.toLowerCase() ==
                 app.config.ctrs.token.address.testnet.toLowerCase() ||
             token.toLowerCase() ==
                 app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
             token.toLowerCase() ==
                 app.config.ctrs.token.address.daiTesnet.toLowerCase()
-        )
-        {
-                var ctr= app.web3.Contract(
-                        app.config.ctrs.token.abi,
-                        app.config.testnet
-                            ? app.config.ctrs.token.address.testnet
-                            : app.config.ctrs.token.address.mainnet
-                    )
-                ctr.getGasPrice =  app.web3.eth.getGasPrice;  
-        }
-           
-        else if (
+        ) {
+            var ctr = app.web3.Contract(
+                app.config.ctrs.token.abi,
+                app.config.testnet
+                    ? app.config.ctrs.token.address.testnet
+                    : app.config.ctrs.token.address.mainnet
+            )
+            ctr.getGasPrice = app.web3.eth.getGasPrice
+        } else if (
             token.toLowerCase() ==
                 app.config.ctrs.bep20.address.testnet.toLowerCase() ||
             token.toLowerCase() ==
                 app.config.ctrs.bep20.address.busdTesnet.toLowerCase()
-        )
-        {
-        ctr= new app.web3Bep20.eth.Contract(
+        ) {
+            ctr = new app.web3Bep20.eth.Contract(
                 app.config.ctrs.bep20.abi,
                 app.config.testnet
                     ? app.config.ctrs.bep20.address.testnet
                     : app.config.ctrs.bep20.address.mainnet
             )
-            ctr.getGasPrice =  app.web3Bep20.eth.getGasPrice;
+            ctr.getGasPrice = app.web3Bep20.eth.getGasPrice
         }
-           return ctr
+        return ctr
     }
-
 
     campaignManager.getContractCampaign = async function (token) {
       if( token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() ||
@@ -169,31 +159,31 @@ module.exports = async function (app) {
                 app.config.ctrs.campaign.address.testnet
             )
             ctr.getGasPrice = app.web3.eth.getGasPrice
-        } 
-      else if( token.toLowerCase() == app.config.ctrs.bep20.address.mainnet.toLowerCase() ||
-               token.toLowerCase() == app.config.ctrs.bep20.address.busdMainnet.toLowerCase())
-        {
+        } else if (
+            token.toLowerCase() ==
+                app.config.ctrs.bep20.address.mainnet.toLowerCase() ||
+            token.toLowerCase() ==
+                app.config.ctrs.bep20.address.busdMainnet.toLowerCase()
+        ) {
             var ctr = new app.web3Bep20.eth.Contract(
                 app.config.ctrs.campaign.abi,
                 app.config.ctrs.campaign.address.mainnetBep20
             )
             ctr.getGasPrice = app.web3Bep20.eth.getGasPrice
-        }
-      else if (
+        } else if (
             token.toLowerCase() ==
                 app.config.ctrs.bep20.address.testnet.toLowerCase() ||
             token.toLowerCase() ==
                 app.config.ctrs.bep20.address.busdTesnet.toLowerCase()
-        )
-        {
+        ) {
             var ctr = new app.web3Bep20.eth.Contract(
                 app.config.ctrs.campaign.abi,
                 app.config.ctrs.campaign.address.testnetBep20
             )
             ctr.getGasPrice = app.web3Bep20.eth.getGasPrice
         }
-        
-           return ctr
+
+        return ctr
     }
     campaignManager.isCentral = function (idCampaign) {
         /*
@@ -315,16 +305,15 @@ module.exports = async function (app) {
         credentials
     ) {
         return new Promise(async (resolve, reject) => {
-            var ctr= await campaignManager.getContractCampaign(token)
+            var ctr = await campaignManager.getContractCampaign(token)
             // var ctr = await campaignManager.getContractToken(token)
             var gasPrice = await ctr.getGasPrice()
             var gas = 600000
-            console.log("gasPrice",gasPrice);
-            console.log("gas",gas);
+            console.log('gasPrice', gasPrice)
+            console.log('gas', gas)
 
             //var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
             try {
-              
                 var receipt = await ctr.methods
                     .createPriceFundAll(
                         dataUrl,
@@ -366,7 +355,7 @@ module.exports = async function (app) {
         credentials
     ) {
         return new Promise(async (resolve, reject) => {
-            var ctr= await campaignManager.getContractCampaign(token)
+            var ctr = await campaignManager.getContractCampaign(token)
             var gasPrice = await ctr.getGasPrice()
             var gas = await ctr.methods
                 .createPriceFundBounty(
