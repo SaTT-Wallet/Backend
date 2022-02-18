@@ -591,7 +591,7 @@ router.post('/apply', verifyAuth, apply)
  *       "500":
  *          description: error:error message
  */
-router.post('/linkNotification', linkNotifications)
+router.post('/linkNotification', verifyAuth, linkNotifications)
 /**
  * @swagger
  * /campaign/validate:
@@ -896,13 +896,11 @@ router.get('/prom/stats/:idProm', linkStats)
  *     summary: Increase budget.
  *     description: parametres acceptées :body{campaign} , headers{headers}.
  *     parameters:
- *       - name: pass
- *         description: password of user.
  *       - name: amount
  *         description: amount of campaign.
  *       - name: ERC20token
  *         description: ERC20token.
- *       - name: idCampaign
+ *       - name: hash
  *         description: campaign id.
  *     responses:
  *        "200":
@@ -925,14 +923,11 @@ router.post('/funding', verifyAuth, increaseBudget)
  *         description: the address wallet of user.
  *         in: path
  *         required: true
-
  *     responses:
- *       "200":
- *          description:[list of links]
- *       "500":
- *          description: error:"error"
+ *        "200":
+ *          description: data
  */
-router.get('/filterLinks/:id_wallet', getLinks)
+router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
 
 /**
  * @swagger
@@ -948,17 +943,18 @@ router.get('/filterLinks/:id_wallet', getLinks)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               pass:
+ *               hash:
  *                 type: string
- *               idCampaign:
+ *               pass:
  *                 type: string
  *     responses:
  *       "200":
- *          description:[list of links]
+ *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
  *       "500":
- *          description: error:"error"
+ *          description: error:error message
  */
-router.post('/remaining', getFunds)
+
+router.post('/remaining', verifyAuth, getFunds)
 
 /**
  * @swagger
@@ -1024,7 +1020,7 @@ router.post('/bep20/:token/approval/:spender/:addr', bep20Approval)
  *       "500":
  *          description: error:"error"
  */
-router.put('/reject/:idLink', rejectLink)
+router.put('/reject/:idLink', verifyAuth, rejectLink)
 
 /**
  * @swagger
