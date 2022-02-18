@@ -33,7 +33,12 @@ const userSchema = mongoose.Schema(
             expiring: { type: Number },
             type: { type: String },
         },
-        hasWallet: { type: Boolean },
+        newEmail: {
+            email: { type: String },
+            expiring: { type: Number },
+            code: { type: Number },
+        },
+        hasWallet: { type: Boolean, default: false },
         passphrase: { type: Boolean, default: false },
         is2FA: { type: Boolean, default: false },
         secret: { type: String },
