@@ -17,6 +17,8 @@ const campaignLinkSchema = mongoose.Schema(
         likes: { type: Number, default: 0 },
         shares: { type: Number, default: 0 },
         views: { type: Number, default: 0 },
+        totalToEarn: { type: String },
+        payedAmount: { type: String },
     },
     {
         collection: 'campaign_link',
