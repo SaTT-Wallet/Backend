@@ -15,10 +15,14 @@ module.exports = async function (app) {
     const bad_login_limit = app.config.bad_login_limit
     const { createLogger, format, transports } = require('winston')
     const { responseHandler } = require('../helpers/response-handler')
-    var Wallet = require('../model/wallet.model')
-    var User = require('../model/user.model')
-    var CustomToken = require('../model/customToken.model')
-    var Notification = require('../model/notification.model')
+
+    const {
+        Notification,
+        Wallet,
+        CustomToken,
+        User,
+    } = require('../model/index')
+
     var PassWallet = require('../model/passwallet.model')
 
     var accountManager = {}
@@ -1100,7 +1104,6 @@ module.exports = async function (app) {
     }
 
     accountManager.notificationManager = async (id, NotifType, label) => {
-        console.log(id, 'id')
         let notification = {
             idNode: '0' + id,
             type: NotifType,
@@ -1115,10 +1118,11 @@ module.exports = async function (app) {
         }
 
         await Notification.create(notification)
-        let user = await User.findOne(
-            { _id: +id },
-            { fireBaseAccessToken: true, _id: 0 }
+
+        let user = await User.findOne({ _id: +id }).select(
+            'fireBaseAccessToken '
         )
+
         if (user.fireBaseAccessToken) {
             let data = {
                 message: {
