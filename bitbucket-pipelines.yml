@@ -12,3 +12,4 @@ pipelines:
                 name: put file on production 
                 script: 
                   -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts     
+                  -  sshpass -p ${SCP_PASSWORD} scp -v -pr . gdah@92.243.9.233:/home/oracles/DevOps/
