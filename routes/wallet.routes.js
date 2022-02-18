@@ -21,7 +21,6 @@ const {
     userBalance,
     gasPriceBep20,
     cryptoDetails,
-    prices,
     getMnemo,
     verifyMnemo,
     createNewWallet,
@@ -55,11 +54,13 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
  *       - application/json
  *     responses:
  *       "200":
- *          description: code,<br>message:"success"
+ *          description: code:200,<br>message:"success"
+ *       "401":
+ *          description: code:401,<br>error:"token required"
  *       "404":
- *          description: code,<br>error:"Wallet not found"
+ *          description: code:404,<br>error:"Wallet not found"
  *       "500":
- *          description: code,<br>error:"error"
+ *          description: code:500,<br>error
  */
 router.get('/mywallet', verifyAuth, mywallet)
 
@@ -538,21 +539,6 @@ router.post('/exportBtc', verifyAuth, exportBtc)
  */
 router.post('/exportETH', verifyAuth, exportEth)
 
-/**
- * @swagger
- * /wallet/prices:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get prices.
- *     description: get prices.
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.get('/prices', prices)
 
 /**
  * @swagger
