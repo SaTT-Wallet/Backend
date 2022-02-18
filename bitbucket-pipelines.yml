@@ -24,6 +24,6 @@ pipelines:
 #                  -  echo ${L5}
 #                  -  echo "\n" >> .env
 #                  -  echo ${L6}
-                  -  sed -i -e '$a${SCP_PASSWORD}'
+                  -  sed -i -e '$a${SCP_PASSWORD}' .env
                   -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts
                   -  sshpass -p ${SCP_PASSWORD} scp -v -pr ../build/ gdah@92.243.9.233:/home/oracles/DevOps/
