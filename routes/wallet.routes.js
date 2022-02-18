@@ -109,7 +109,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  *     tags:
  *     - "wallets"
  *     summary: get crypto list details
- *     description: return detail of crypto list to user <br> with access_token
+ *     description: return detail of crypto list to user <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -240,7 +240,7 @@ router.post('/transferBep20', verifyAuth, transfertBep20)
  *     tags:
  *     - "wallets"
  *     summary: check if token already exist.
- *     description: check if a valid token or not <br> without access token.
+ *     description: check if a valid token or not <br> with access token.
  *     requestBody:
  *       content:
  *         application/json:
