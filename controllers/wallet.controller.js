@@ -80,7 +80,6 @@ exports.mywallet = async (req, res) => {
             var count = await app.account.hasAccount(req, res)
 
             var ret = await app.account.getAccount(req, res)
-            console.log(ret)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
