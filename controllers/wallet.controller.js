@@ -46,11 +46,10 @@ exports.exportBtc = async (req, res) => {
 
 exports.exportEth = async (req, res) => {
     try {
-        
         if (req.user.hasWallet == true) {
             let id = req.user._id
             var cred = await app.account.unlock(req, res)
-            console.log("creddddd",cred)
+            console.log('creddddd', cred)
             let ret = await app.account.exportkey(req, res)
             return responseHandler.makeResponseData(
                 res.attachment(),
@@ -871,14 +870,14 @@ exports.createNewWallet = async (req, res) => {
             )
         } else {
             var ret = await app.account.createSeed(req, res)
-                await User.updateOne(
-                    { _id: id },
-                    {
-                        $set: {
-                            hasWallet: true,
-                        },
-                    }
-                )
+            await User.updateOne(
+                { _id: id },
+                {
+                    $set: {
+                        hasWallet: true,
+                    },
+                }
+            )
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
@@ -888,12 +887,12 @@ exports.createNewWallet = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-            if (ret?.address) {
-                await Wallet.create({
-                    wallet: ret.address,
-                    idUser: id
-                })
-            }
+        if (ret?.address) {
+            await Wallet.create({
+                wallet: ret.address,
+                idUser: id,
+            })
+        }
     }
 }
 
@@ -901,9 +900,9 @@ module.exports.removeToken = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             let id = req.user._id
-            const { tokenAdress } = req.body
-            let token = await CustomToken.findOne({ tokenAdress })
+            const tokenAdress = req.body.tokenAddress
 
+            let token = await CustomToken.findOne({ tokenAdress })
             if (token) {
                 let splicedArray = token.sn_users.filter((item) => item !== id)
                 await CustomToken.updateOne(
