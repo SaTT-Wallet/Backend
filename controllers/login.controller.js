@@ -473,7 +473,7 @@ exports.authApple = async (req, res) => {
                 ''
             )
             createdUser.id_apple = id_apple
-            let user = await User.create(createdUser);
+            let user = await User.create(createdUser)
             createdUser._id = user._id
             let token = app.generateAccessToken(createdUser)
             let param = {
@@ -520,7 +520,7 @@ exports.socialSignUp = async (req, res) => {
             )
         } else {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let user =  User.create(snUser);
+            let user = User.create(snUser)
             snUser._id = user._id
             let token = app.generateAccessToken(snUser)
             let param = {

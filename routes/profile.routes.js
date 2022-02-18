@@ -95,9 +95,11 @@ const {
  *     description: get account details.
  *     responses:
  *       "200":
- *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: success, <br> {"code":"status code","message":"success","data":"user information"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.get('/account', verifyAuth, account)
 
@@ -111,9 +113,13 @@ router.get('/account', verifyAuth, account)
  *     description: return to user his picture.  <br> without access_token
  *     responses:
  *       "200":
- *          description: user:{picture} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: success, <br> {"code":"status code","message":"success","data":"success"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "404":
+ *          description: error:<br> No file exists
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.get('/picture', verifyAuth, profilePicture)
@@ -169,13 +175,16 @@ router.get('/picture', verifyAuth, profilePicture)
  *                      type: string
  *
  *     responses:
- *       "200":
- *          description: err:email already exists, <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "201":
+ *          description: profile updated, <br> {"code":"status code","message":"profile updated","data":"user information"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "406":
+ *          description: error:<br> email already exists
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.put('/UpdateProfile', verifyAuth, updateProfile)
-
 /**
  * @swagger
  * /profile/UserLegal:
@@ -186,9 +195,11 @@ router.put('/UpdateProfile', verifyAuth, updateProfile)
  *     description: return to user the legals picture.  <br> with access_token
  *     responses:
  *       "200":
- *          description: legal:[{_id,length,chunkSize, uploadDate,filename,md5,contentType,DataUser:{$ref,$id,$db},idNode,type,validate}] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: success, {"code":"status code","message":"success","data":{"legal":[{_id,length,chunkSize, uploadDate,filename,md5,contentType,DataUser:{$ref,$id,$db},idNode,type,validate}]}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.get('/UserLegal', verifyAuth, UserLegalProfile)
@@ -203,9 +214,13 @@ router.get('/UserLegal', verifyAuth, UserLegalProfile)
  *     description: return to user the list of his intersts.  <br> with access_token
  *     responses:
  *       "200":
- *          description: interests:[] <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: success, {"code":"status code","message":"success","data":{"interests":[]}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No interest found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.get('/UserIntersts', verifyAuth, UserInterstes)
@@ -225,16 +240,18 @@ router.get('/UserIntersts', verifyAuth, UserInterstes)
  *             type: object
  *             properties:
  *               interests:
- *                 type: array
+ *                 type: array+
  *                 items:
  *                  id:
  *                      type: string
  *
  *     responses:
- *       "200":
- *          description: err:E11000 duplicate key error collection"<br>
+ *       "201":
+ *          description: interests added, {"code":"status code","message":"interests added","data":{"interests":[],"_id","userId"}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "500":
- *          description: error:error message
+ *          description: error:<br> Server error
  */
 router.post('/AddUserIntersts', verifyAuth, AddIntersts)
 
@@ -259,10 +276,14 @@ router.post('/AddUserIntersts', verifyAuth, AddIntersts)
  *                      type: string
  *
  *     responses:
- *       "200":
- *          description: err:<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "201":
+ *          description: interests updated, {"code":"status code","message":"interests added","data":{"interests":[],"_id","userId"}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "400":
+ *          description: error:<br> updated failed
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
 
@@ -276,9 +297,13 @@ router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
  *     description: allow user to delete all his google channels.  <br> without access_token
  *     responses:
  *       "200":
- *          description: message:{deleted successfully} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
@@ -293,9 +318,13 @@ router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
  *     description: allow user to delete all his facebook channels.  <br> without access_token
  *     responses:
  *       "200":
- *          description: message:{deleted successfully} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
@@ -310,9 +339,13 @@ router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
  *     description: allow user to delete all his linkedin channels.  <br> without access_token
  *     responses:
  *       "200":
- *          description: message:{deleted successfully} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
@@ -327,9 +360,13 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
  *     description: fetch social media linked to user account .
  *     responses:
  *       "200":
- *          description: data:{google:[],twitter:[],facebook:[],linkedin:[]}
+ *          description: success, {"code":"status code","message":"success"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.get('/socialAccounts', verifyAuth, socialAccounts)
 
@@ -571,9 +608,11 @@ router.get(
  *     description: update user when he enter the website first time.
  *     responses:
  *       "200":
- *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: onBoarding updated, {"code":"status code","message":"onBoarding updated","data":true}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.get('/onBoarding', verifyAuth, checkOnBoarding)
 
@@ -602,10 +641,14 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *               wallet:
  *                   type: string
  *     responses:
- *       "200":
- *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *       "202":
+ *          description: Email was sent, {"code":"status code","message":"Email was sent"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> user not found
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.post('/receiveMoney', verifyAuth, requestMoney)
 
@@ -629,10 +672,12 @@ router.post('/receiveMoney', verifyAuth, requestMoney)
  *                 type: string
  *                 format : base64
  *     responses:
- *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *       "201":
+ *          description: legal saved, {"code":"status code","message":"legal saved"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 
 router.post(
@@ -657,27 +702,40 @@ router.post(
  *         required: true
  *     responses:
  *       "200":
- *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: Download file
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No file exists
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.get('/legalUserUpload/:id', verifyAuth, FindUserLegalProfile)
 
 /**
  * @swagger
- * /profile/notification/seen/:id:
+ * /profile/notification/seen/{id}:
  *   post:
  *     tags:
  *     - "profile"
  *     summary: update notification status if it's seen or not by user.
  *     parameters:
- *       - name: id
+ *       - in: path
+ *         name: id
+ *         required: true
  *         description: id of the according selected notification by the user.
+ *
  *     responses:
- *        "200":
- *          description: message  notification_seen
- *        "500":
- *          description: error:error message
+ *       "200":
+ *          description: notification seen,{"code":"status code","message":"notification seen"}
+ *       "400":
+ *          description: error:<br> updated failed
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "406":
+ *          description: error:<br> id field is missing
+ *       "500":
+ *          description: error:<br> server error
  */
 router.post('/notification/seen/:id', verifyAuth, notificationUpdate)
 
@@ -689,10 +747,14 @@ router.post('/notification/seen/:id', verifyAuth, notificationUpdate)
  *     - "profile"
  *     summary: update notifications status of the user that are seen.
  *     responses:
- *        "200":
- *          description: message  notification_seen
- *        "500":
- *          description: error:error message
+ *       "200":
+ *          description: Notification clicked,{"code":"status code","message":"Notification clicked"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No notifications found
+ *       "500":
+ *          description: error:<br> server error
  */
 router.get(
     '/notification/issend/clicked',
@@ -708,10 +770,14 @@ router.get(
  *     - "profile"
  *     summary: retrieve all user notifications.
  *     responses:
- *        "200":
- *          description: [{notifications}]
- *        "500":
- *          description: error:error message
+ *       "200":
+ *          description: success,{"code":"status code","message":"success","data":{"isSend","notifications":[]}}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No notifications found
+ *       "500":
+ *          description: error:<br> server error
  */
 router.get('/notifications', verifyAuth, getNotifications)
 
@@ -735,9 +801,13 @@ router.get('/notifications', verifyAuth, getNotifications)
  *                   type: string
  *     responses:
  *       "200":
- *          description: email sent
+ *          description: Email was sent,{"code":"status code","message":"Email was sent"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "406":
+ *          description: error:<br> wrong password <br> duplicated
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.post('/changeEmail', verifyAuth, changeEmail)
 
@@ -765,9 +835,11 @@ router.post('/changeEmail', verifyAuth, changeEmail)
  *                   type: string
  *     responses:
  *       "200":
- *          description: user:{_id,idOnSn2,email,username...} <br> Invalid Access Token <br> error:user not found <br> error:AC_Token expired
+ *          description: Email was sent,{"code":"status code","message":"Email was sent"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.post('/SattSupport', support)
 
@@ -920,9 +992,13 @@ passport.use(
  *                 type: number
  *     responses:
  *       "200":
- *          description: email changed
+ *          description: email changed,{"code":"status code","message":"email changed"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "406":
+ *          description: error:<br> code incorrect
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
 
@@ -949,9 +1025,17 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
  *         required: true
  *     responses:
  *       "200":
- *          description: description
+ *          description: email changed,{"code":"status code","message":"email changed"}
+ *       "400":
+ *          description: error:<br> please provide all fields
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "405":
+ *          description: error:<br> account deactivated <br> no user session <br>
+ *       "406":
+ *          description: error:<br> account not linked <br> invalid link <br>
  *       "500":
- *          description: error:error message
+ *          description: error:<br> server error
  */
 router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
 module.exports = router
