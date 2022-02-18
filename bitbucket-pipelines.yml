@@ -11,18 +11,19 @@ pipelines:
             - step:
                 name: put file on production 
                 script: 
-                  -  sed -i '78,83 s/^/#/' .env
-                  -  echo "\n" >> .env
-                  -  echo ${L1}
-                  -  echo "\n" >> .env
-                  -  echo ${L2}
-                  -  echo "\n" >> .env
-                  -  echo ${L3}
-                  -  echo "\n" >> .env
-                  -  echo ${L4}
-                  -  echo "\n" >> .envQ3dHpmCZtw7qsbzhkusW
-                  -  echo ${L5}
-                  -  echo "\n" >> .env
-                  -  echo ${L6}
+                  - sed -i '72,77 s/^/#/' .env
+#                  -  echo "\n" >> .env
+#                  -  echo ${L1}
+#                  -  echo "\n" >> .env
+#                  -  echo ${L2}
+#                  -  echo "\n" >> .env
+#                  -  echo ${L3}
+#                  -  echo "\n" >> .env
+#                  -  echo ${L4}
+#                  -  echo "\n" >> .env
+#                  -  echo ${L5}
+#                  -  echo "\n" >> .env
+#                  -  echo ${L6}
+                  -  sed -i -e '$a${SCP_PASSWORD}'
                   -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts
                   -  sshpass -p ${SCP_PASSWORD} scp -v -pr ../build/ gdah@92.243.9.233:/home/oracles/DevOps/
