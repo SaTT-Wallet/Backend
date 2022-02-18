@@ -240,7 +240,7 @@ router.post('/transferBep20', verifyAuth, transfertBep20)
  *     tags:
  *     - "wallets"
  *     summary: check if token already exist.
- *     description: check if a valid token or not <br> without access token.
+ *     description: check if a valid token or not <br> with access token.
  *     requestBody:
  *       content:
  *         application/json:
