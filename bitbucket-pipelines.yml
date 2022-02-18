@@ -19,6 +19,6 @@ pipelines:
                   -  sed -i -e '$a'${L5} .env
                   -  sed -i -e '$a'${L6} .env
                   -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts
-                  -  sshpass -p ${SCP_PASSWORD} ssh gdah@92.243.9.233 "cd /home/oracles/DevOps/build/ && pm2 stop app.js"
+                  -  sshpass -p ${SCP_PASSWORD} ssh gdah@92.243.9.233 "cd /home/oracles/DevOps/build/ && pm2 stop 0"
                   -  sshpass -p ${SCP_PASSWORD} scp -v -pr ../build/ gdah@92.243.9.233:/home/oracles/DevOps/
-                  -  sshpass -p ${SCP_PASSWORD} ssh gdah@92.243.9.233 "cd /home/oracles/DevOps/build/ && pm2 start app.js"
+                  -  sshpass -p ${SCP_PASSWORD} ssh gdah@92.243.9.233 "cd /home/oracles/DevOps/build/ && pm2 start 0"
