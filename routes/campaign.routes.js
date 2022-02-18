@@ -5,12 +5,10 @@ const {
     bep20Approval,
     erc20Approval,
     campaignDetails,
-    pendingLink,
     campaigns,
     launchCampaign,
     campaignPromp,
     launchBounty,
-    totalEarned,
     apply,
     linkNotifications,
     linkStats,
@@ -28,7 +26,6 @@ const {
     erc20Allow,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
-const { route } = require('./login.routes')
 
 /**
  * @swagger
@@ -288,16 +285,22 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               token:
+ *               tokenAddress:
  *                 type: string
- *               to:
+ *               contract:
+ *                 type: string
+ *               idCampaign:
+ *                 type: string
+ *               dataUrl:
  *                 type: string
  *               amount:
  *                 type: string
  *               pass:
  *                 type: string
- *               symbole:
- *                 type: string
+ *               startDate:
+ *                 type: integer
+ *               endDate:
+ *                 type: integer
  *     responses:
  *       "200":
  *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
@@ -328,45 +331,7 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  */
 
 router.post('/launchBounty', verifyAuth, launchBounty)
-/**
- * @swagger
- * /campaign/totalEarned:
- *   get:
- *     tags:
- *     - "campaign"
- *     summary: get total earned
- *     description: return to user the total earned <br> without access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: {"SattEarned","USDEarned","subscriptions"}
- *          content:
- *            application/json:
- *              schema: # Request body contents
- *                type: object
- *                properties:
- *                  SattEarned:
- *                    type: number
- *                  USDEarned:
- *                    type: number
- *                  subscriptions:
- *                    type: number
- *              example:
- *                SattEarned: 563200
- *                USDEarned: 125
- *                subscriptions: 54
- *       "500":
- *          description: ERROR
- *          content:
- *            application/json:
- *              schema:      # Request body contents
- *                type: object
- *                properties:
- *                  error:
- *                    type: string
- */
-router.get('/totalEarned', verifyAuth, totalEarned)
+
 /**
  * @swagger
  * /campaign/campaigns:
@@ -434,41 +399,6 @@ router.get('/campaigns', verifyAuth, campaigns)
  */
 router.get('/details/:id', campaignDetails)
 
-/**
- * @swagger
- * /campaign/pendingLink/{id}:
- *   get:
- *     tags:
- *     - "campaign"
- *     summary: get campaign pending link
- *     description: return the list of campaign with pending link <br> without access_token
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: the  id.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema:
- *                type: array
- *                items:
- *                  type: object
- *       "500":
- *          description: ERROR
- *          content:
- *            application/json:
- *              schema:
- *                type: object
- *                properties:
- *                  error:
- *                    type: string
- */
-router.get('/pendingLink/:id', pendingLink)
 /**
  * @swagger
  * /campaign/campaignPrompAll/{id}:
@@ -695,9 +625,9 @@ router.post('/gains', verifyAuth, gains)
  *                  id:
  *                      type: string  
  *               endDate:
- *                 type: date
+ *                 type: integer
  *               startDate:
- *                 type: date 
+ *                 type: integer 
  *               remuneration:
  *                 type: string 
  *               cost:
@@ -741,9 +671,9 @@ router.post('/save', verifyAuth, saveCampaign)
  *         required: true
  *     responses:
  *       "200":
- *          description:[list of campaigns]
+ *          description: code,<br>message,<br>data[{}]
  *       "500":
- *          description: error:"error"
+ *          description: code,<br>error
  */
 router.get('/:idCampaign/kits', verifyAuth, kits)
 
@@ -775,7 +705,7 @@ router.get('/:idCampaign/kits', verifyAuth, kits)
  *          description: error:error message
  */
 
-router.post('/addKits', upload, addKits)
+router.post('/addKits',verifyAuth, upload, addKits)
 
 /**
  * @swagger
