@@ -71,7 +71,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *       "500":
  *          description: error:"error"
  */
-router.post('/bep20/approval',verifyAuth, bep20Approval)
+router.post('/bep20/approval', verifyAuth, bep20Approval)
 
 /**
  * @swagger
@@ -158,7 +158,7 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/erc20/approval',verifyAuth, erc20Approval)
+router.post('/erc20/approval', verifyAuth, erc20Approval)
 /**
  * @swagger
  * /campaign/erc20/allow:
@@ -230,18 +230,27 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *               ratios:
  *                 type: array
  *                 items:
- *                    type: object
- *                    properties:
- *                      like:
- *                        type: string
- *                      view:
- *                        type: string
- *                      share:
- *                        type: string
- *                      oracle:
- *                        type: string
- *               pass:
- *                 type: string
+ *                     oneOf:
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
  *     responses:
  *       "200":
  *          description: ok
@@ -604,12 +613,15 @@ router.post('/gains', verifyAuth, gains)
  *                 type: string
  *               reference:
  *                 type: string
-
  *               countries:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string              
+ *                   type: object
+ *                   properties:
+ *                     item_id:
+ *                            type: integer
+ *                     item_text:
+ *                            type: string
  *               token:
  *                 type: object
  *                 properties:
@@ -623,28 +635,50 @@ router.post('/gains', verifyAuth, gains)
  *                 type: array
  *                 items:
  *                  id:
- *                      type: string  
+ *                      type: string
  *               endDate:
  *                 type: integer
  *               startDate:
- *                 type: integer 
+ *                 type: integer
  *               remuneration:
- *                 type: string 
+ *                 type: string
  *               cost:
- *                 type: string 
+ *                 type: string
  *               cost_usd:
- *                 type: string 
+ *                 type: string
  *               ratios:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string  
+ *                     oneOf:
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
  *               bounties:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string  
- * 
+ *                     oneOf:
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *
  *     responses:
  *       "200":
  *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
@@ -705,7 +739,7 @@ router.get('/:idCampaign/kits', verifyAuth, kits)
  *          description: error:error message
  */
 
-router.post('/addKits',verifyAuth, upload, addKits)
+router.post('/addKits', verifyAuth, upload, addKits)
 
 /**
  * @swagger
@@ -745,8 +779,12 @@ router.post('/addKits',verifyAuth, upload, addKits)
  *               countries:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string
+ *                   type: object 
+ *                   properties:
+ *                     item_id:
+ *                            type: integer
+ *                     item_text:
+ *                            type: string   
  *               token:
  *                 type: object
  *                 properties:
@@ -774,14 +812,36 @@ router.post('/addKits',verifyAuth, upload, addKits)
  *               ratios:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string
+ *                     oneOf:
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
  *               bounties:
  *                 type: array
  *                 items:
- *                  id:
- *                      type: string
- *
+ *                     oneOf:
+ *                         - type: string
+ *                         - type: string
+ *                         - type: integer
+ *                         - type: string
+
  *     responses:
  *       "200":
  *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
