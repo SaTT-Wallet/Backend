@@ -36,8 +36,12 @@
             openapi: '3.0.0',
             info: {
                 title: 'API for node-satt',
+                version: '2.0.1',
+                description:
+                    'Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager',
                 customCss: '.swagger-ui .topbar { display: none }',
             },
+            host: 'https://api-preprod2.satt-token.com:3015/',
             components: {
                 securitySchemes: {
                     bearerAuth: {
