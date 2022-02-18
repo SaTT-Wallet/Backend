@@ -378,10 +378,7 @@ exports.facebookAuthSignup = async (
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({
-        $or: [
-            { idOnSn: profile._json.token_for_business },
-            { email: profile._json.email },
-        ],
+        idOnSn: profile._json.token_for_business,
     })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
@@ -417,7 +414,7 @@ exports.googleAuthSignup = async (
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({
-        $or: [{ idOnSn2: profile.id }, { email: profile._json.email }],
+        idOnSn2: profile.id,
     })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
