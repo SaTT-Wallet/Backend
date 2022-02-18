@@ -79,8 +79,6 @@ exports.exportEth = async (req, res) => {
 exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var count = await app.account.hasAccount(req, res)
-
             var ret = await app.account.getAccount(req, res)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -91,11 +89,11 @@ exports.mywallet = async (req, res) => {
             )
         }
     } catch (err) {
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -855,10 +853,6 @@ module.exports.verifyMnemo = async (req, res) => {
     }
 }
 
-exports.prices = (req, res) => {
-    var prices = app.account.getPrices()
-    res.json(prices)
-}
 
 exports.createNewWallet = async (req, res) => {
     try {
