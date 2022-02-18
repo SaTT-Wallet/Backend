@@ -386,6 +386,7 @@ module.exports = async function (app) {
 
             return { address: '0x' + account.keystore.address }
         } catch (err) {
+            console.log(err)
             return responseHandler.makeResponseError(
                 res,
                 500,

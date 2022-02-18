@@ -5,7 +5,7 @@ const campaignLinkSchema = mongoose.Schema(
         id_prom: { type: String },
         typeSN: { type: Number },
         idUser: { type: String },
-        status: { type: Boolean },
+        status: { type: mongoose.Schema.Types.Mixed },
         type: { type: String },
         id_wallet: { type: String },
         idPost: { type: String },
