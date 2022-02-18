@@ -180,30 +180,22 @@ module.exports.launchCampaign = async (req, res) => {
 }
 
 module.exports.launchBounty = async (req, response) => {
-    var pass = req.body.pass
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
     var endDate = req.body.endDate
-    var ERC20token = req.body.ERC20token
+    var tokenAddress = req.body.tokenAddress
     var amount = req.body.amount
     let [id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
     try {
-        var cred = await app.account.unlock(req.user._id, pass)
-
-        if (
-            app.config.testnet &&
-            ERC20token == app.config.ctrs.token.address.mainnet
-        ) {
-            ERC20token = app.config.ctrs.token.address.testnet
-        }
-
+        var cred = await app.account.unlock(req, res)
+        
         var ret = await app.campaign.createCampaignBounties(
             dataUrl,
             startDate,
             endDate,
             bounties,
-            ERC20token,
+            tokenAddress,
             amount,
             cred
         )
@@ -236,36 +228,6 @@ module.exports.launchBounty = async (req, response) => {
                     { $unset: { coverSrc: '', ratios: '' } }
                 )
         }
-    }
-}
-
-exports.totalEarned = async (req, res) => {
-    try {
-        let address = req.params.addr
-        let prices
-        let sattPrice$
-        let total = 0
-
-        prices = app.account.getPrices()
-        sattPrice$ = prices.SATT.price
-        const subscriptions = await app.db
-            .apply()
-            .find({ $and: [{ influencer: address }, { isAccepted: true }] })
-            .toArray()
-        subscriptions.forEach((elem) => {
-            total =
-                total +
-                parseFloat(new Big(elem.totalGains).div(etherInWei).toFixed(4))
-        })
-        let totalEarned = Number((total * sattPrice$).toFixed(2))
-        const result = {
-            SattEarned: total,
-            USDEarned: totalEarned,
-            subscriptions: subscriptions.length,
-        }
-        res.send(JSON.stringify(result)).status(200)
-    } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
@@ -519,47 +481,6 @@ exports.campaignPromp = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
-}
-
-exports.pendingLink = async (req, res) => {
-    let links = []
-    let pendingLinks = []
-    let campaigns = await app.db
-        .campaigns()
-        .find(
-            { hash: { $exists: true }, type: 'apply' },
-            { projection: { hash: true, _id: false } }
-        )
-        .toArray()
-    for (let i = 0; i < campaigns.length; i++) {
-        links.push(
-            ...(await app.db
-                .campaign_link()
-                .find(
-                    { id_campaign: campaigns[i].hash, type: 'harvest' },
-                    { projection: { id_wallet: true, _id: false } }
-                )
-                .toArray())
-        )
-    }
-
-    for (let i = 0; i < links.length; i++) {
-        let userId = await app.db
-            .wallet()
-            .findOne(
-                { 'keystore.address': links[i].id_wallet.substring(2) },
-                { projection: { UserId: true, _id: false } }
-            )
-        let userEmail = await app.db
-            .sn_user()
-            .findOne(
-                { _id: userId.UserId },
-                { projection: { email: true, _id: false } }
-            )
-        links[i].email = userEmail.email
-        pendingLinks.push(links[i])
-    }
-    res.status(202).json(pendingLinks)
 }
 
 exports.apply = async (req, res) => {
@@ -1131,29 +1052,29 @@ exports.saveCampaign = async (req, res) => {
     }
 }
 
-exports.kits = async (req, response) => {
+exports.kits = async (req, res) => {
     try {
         const idCampaign = req.params.idCampaign
         gfsKit.files
             .find({ 'campaign.$id': app.ObjectId(idCampaign) })
-            .toArray(function (err, files) {
-                response.end(JSON.stringify(files))
+            .toArray( (err, files)=> {
+                return responseHandler.makeResponseData(res, 200, 'success', files)
             })
     } catch (err) {
-        response.end(JSON.stringify(err))
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
 exports.addKits = async (req, res) => {
     try {
-        files = req.files
-        if (typeof req.body.link === 'string') {
-            links = Array(req.body.link)
-        } else {
-            links = req.body.link
-        }
-        const idCampaign = req.body.campaign
-        if (files || links) {
+        let files = req.files;
+        let links = typeof req.body.link === 'string' ? Array(req.body.link) : req.body.link
+        let idCampaign = req.body.campaign
+       
             if (files) {
                 files.forEach((file) => {
                     gfsKit.files.updateOne(
@@ -1182,13 +1103,14 @@ exports.addKits = async (req, res) => {
                     })
                 })
             }
-            res.send(JSON.stringify({ success: 'Kit uploaded' })).status(200)
-            return
-        }
-
-        res.send('No matching data').status(401)
+            return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false)
+        
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1554,67 +1476,6 @@ exports.saveCampaign = async (req, res) => {
         res.end(JSON.stringify(draft.ops[0])).status(200)
     } catch (err) {
         res.end(JSON.stringify(err))
-    }
-}
-
-exports.kits = async (req, response) => {
-    try {
-        const idCampaign = req.params.idCampaign
-        gfsKit.files
-            .find({ 'campaign.$id': app.ObjectId(idCampaign) })
-            .toArray(function (err, files) {
-                response.end(JSON.stringify(files))
-            })
-    } catch (err) {
-        response.end(JSON.stringify(err))
-    }
-}
-
-exports.addKits = async (req, res) => {
-    try {
-        files = req.files
-        if (typeof req.body.link === 'string') {
-            links = Array(req.body.link)
-        } else {
-            links = req.body.link
-        }
-        const idCampaign = req.body.campaign
-        if (files || links) {
-            if (files) {
-                files.forEach((file) => {
-                    gfsKit.files.updateOne(
-                        { _id: file.id },
-                        {
-                            $set: {
-                                campaign: {
-                                    $ref: 'campaign',
-                                    $id: app.ObjectId(idCampaign),
-                                    $db: 'atayen',
-                                },
-                            },
-                        }
-                    )
-                })
-            }
-            if (links) {
-                links.forEach((link) => {
-                    gfsKit.files.insertOne({
-                        campaign: {
-                            $ref: 'campaign',
-                            $id: app.ObjectId(idCampaign),
-                            $db: 'atayen',
-                        },
-                        link: link,
-                    })
-                })
-            }
-            res.send(JSON.stringify({ success: 'Kit uploaded' })).status(200)
-            return
-        }
-
-        res.send('No matching data').status(401)
-    } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
     }
 }
 
