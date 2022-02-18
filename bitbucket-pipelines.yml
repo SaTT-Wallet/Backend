@@ -1,8 +1,14 @@
+image: atayen/atayen:1.0
 clone:
     depth: full
 pipelines:
     branches:
-        '{main,development}':
+        DevOps: 
+            - step: 
+                name:  check Directory 
+                script: 
+                  - /bin/ls /opt/atlassian/pipelines/agent/build/
             - step:
-                  script:
-                      - git push --mirror git@github.com:Atayen/node-satt.git
+                name: put file on production 
+                script: 
+                  -  ssh-keyscan -H 92.243.9.233 >> ~/.ssh/known_hosts     
