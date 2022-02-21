@@ -534,7 +534,7 @@ exports.linkFacebookAccount = async (
         idOnSn: profile._json.token_for_business,
     })
     if (user) {
-        cb(null, profile, {
+       return cb(null, profile, {
             status: false,
             message: 'account exist',
         })
@@ -543,7 +543,7 @@ exports.linkFacebookAccount = async (
             { _id: user_id },
             { $set: { idOnSn: profile._json.token_for_business } }
         )
-        cb(null, profile, {
+        return cb(null, profile, {
             status: true,
             message: 'account_linked_with success',
         })
@@ -567,7 +567,7 @@ exports.linkGoogleAccount = async (
     let user_id = +state[0]
     let userExist = await User().findOne({ idOnSn2: profile.id })
     if (userExist) {
-        done(null, profile, {
+        return done(null, profile, {
             status: false,
             message: 'account exist',
         })
@@ -576,7 +576,7 @@ exports.linkGoogleAccount = async (
             { _id: user_id },
             { $set: { idOnSn2: profile.id } }
         )
-        done(null, profile, {
+       return done(null, profile, {
             status: true,
             message: 'account_linked_with success',
         })
@@ -607,13 +607,13 @@ exports.telegram_connect_function = async (req, profile, cb) => {
     let user_id = +req.params.idUser
     let user = await User().findOne({ idOnSn3: profile.id })
     if (user) {
-        cb(null, profile, { message: 'account exist' })
+        return cb(null, profile, { message: 'account exist' })
     } else {
         await User().updateOne(
             { _id: user_id },
             { $set: { idOnSn3: profile.id } }
         )
-        cb(null, profile, {
+        return cb(null, profile, {
             status: true,
             message: 'account_linked_with success',
         })
@@ -678,10 +678,11 @@ exports.addTwitterChannel = async (
     var twitterProfile = await TwitterProfile
         .findOne({ $and: [{ UserId: user_id }, { twitter_id: res.id }] })
     if (twitterProfile) {
-        cb(null, profile, {
+        return cb(null, profile, {
             status: false,
             message: 'account exist',
         })
+        
     } else {
         profile.access_token_key = accessToken
         profile.access_token_secret = tokenSecret
