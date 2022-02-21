@@ -437,8 +437,8 @@ router.get(
  *   get:
  *     tags:
  *     - "profile"
- *     summary: signin with facebook.
- *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
+ *     summary: signin with twitter.
+ *     description: user asked for signin with twitter, system redirect him to signin with twitter account <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -494,8 +494,8 @@ router.get(
  *   get:
  *     tags:
  *     - "profile"
- *     summary: signin with facebook.
- *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
+ *     summary: signin with linkedin.
+ *     description: user asked for signin with linkedin, system redirect him to signin with linkedin account <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -548,8 +548,8 @@ router.get(
  *   get:
  *     tags:
  *     - "profile"
- *     summary: signin with facebook.
- *     description: user asked for signin with facebook, system redirect him to signin facebook page <br> without access_token.
+ *     summary: signin with youtube.
+ *     description: user asked for signin with youtube, system redirect him to signin with youtube account <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -641,7 +641,7 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *               wallet:
  *                   type: string
  *     responses:
- *       "202":
+ *       "200":
  *          description: Email was sent, {"code":"status code","message":"Email was sent"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
