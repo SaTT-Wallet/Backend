@@ -60,7 +60,7 @@ const {
     getQrCode,
     verifyQrCode,
     purgeAccount,
-    logout,
+    logout
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -99,9 +99,7 @@ function authErrorHandler(err, req, res, next) {
  *       - application/json
  *     responses:
  *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"unauthorized"
+ *          description: code,<br>message,<br>data:{_id,originalImage,puzzle,position}
  *       "500":
  *          description: code,<br>error:"error"
  */
@@ -142,7 +140,7 @@ router.post('/verifyCaptcha', verifyCaptcha)
  *     tags:
  *     - "auth"
  *     summary: purge Account .
- *     description: purge user account <br> without access_token
+ *     description: return captcha to user to allow authentication action <br> without access_token
  *     produces:
  *       - application/json
  *     requestBody:
@@ -187,7 +185,7 @@ router.post('/purge', verifyAuth, purgeAccount)
  *       "200":
  *          description: code,<br>message:"changed"
  *       "401":
- *          description: code,<br>error:"wrong password"/"unautorized"
+ *          description: code,<br>error:"wrong password"
  *       "404":
  *          description: error:"no account"
  *       "500":
@@ -214,11 +212,11 @@ router.post('/changePassword', verifyAuth, changePassword)
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,<br>message:"success"
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user "}
  *       "401":
- *          description: code,<br>error:"wrong password"/"invalid_credentials"
+ *          description: code,<br>error
  *       "500":
- *          description: error:"error"
+ *          description: error=eror
  */
 router.post('/signin/mail', emailConnection)
 
@@ -276,7 +274,7 @@ router.post('/passlost', codeRecover)
  *       "404":
  *          description: code,<br>error"user not found"
  *       "401":
- *          description: code,error "'wrong code"/"code expired"
+ *          description: code,error
  *       "500":
  *          description: error=eror
  */
@@ -308,7 +306,7 @@ router.post('/confirmCode', confirmCode)
  *       "404":
  *          description: code,<br>error"user not found"
  *       "401":
- *          description: code,error"wrong code"/"code expired"
+ *          description: code,error
  *       "500":
  *          description: error=eror
  */
@@ -336,7 +334,7 @@ router.post('/passrecover', passRecover)
  *                 type: boolean
  *     responses:
  *       "200":
- *          description: code,<br>message,<br>
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  *       "401":
  *          description: code,<br>error:{error:true,message:'account_already_used'}
  *       "500":
@@ -654,7 +652,7 @@ router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
  *     tags:
  *     - "auth"
  *     summary: update last step.
- *     description: system redirect user to page complete profile to verify his information and confirm his email<br> with access token .
+ *     description: system redirect user to page complete profile to verify his information and confirm his email .
  *     requestBody:
  *       content:
  *         application/json:
@@ -673,7 +671,7 @@ router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
  *       "200":
  *          description: code,<br>message
  *       "401":
- *          description: code,<br>error:"email already exists"/"unauthorized"
+ *          description: code,<br>error:"email already exists"
  *       "500":
  *          description: error
  */
@@ -703,7 +701,7 @@ router.put('/updateLastStep', verifyAuth, updateLastStep)
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,message:"success"
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  *       "401":
  *          description: code,<br>error:"account_exists_with_another_courrier"
  *       "500":
@@ -739,7 +737,7 @@ router.post('/apple', authApple)
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,message:"success"
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  *       "401":
  *          description: code,<br>message:"account_exists"
  *       "500":
@@ -791,8 +789,6 @@ router.post('/socialSignin', socialSignin)
  *     responses:
  *       "200":
  *          description: message:"deconnect successfully from
- *       "401":
- *          description: code,<br>message "unautorized"
  *       "500":
  *          description: error:"error"
  */
@@ -814,8 +810,6 @@ router.put('/disconnect/:social', verifyAuth, socialdisconnect)
  *     responses:
  *       "200":
  *          description: code,<br>message:"deconnect successfully from social
- *       "401":
- *          description: code,<br>message "unautorized"
  *       "500":
  *          description: error
  */
@@ -828,57 +822,54 @@ router.put('/disconnect/:social', verifyAuth, socialdisconnect)
  *     tags:
  *     - "auth"
  *     summary: setting two factor authentication for user.
- *     description: user can activate the 2fa<br> with access token.
+ *     description: user can activate the 2fa.
  *     responses:
  *        "200":
  *          description: code,<br>message,<br>data:"image base 64"
- *        "401":
- *          description: code,<br>message:"unautorized"
  *        "500":
  *          description: error
  */
 router.get('/qrCode', verifyAuth, getQrCode)
 
-/**
- * @swagger
- * /auth/verifyQrCode:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: verify 2fa.
- *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               code:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,message,data:{ verifiedCode:verified(true/false) }
- *       "401":
- *          description: code,<br>message:"unautorized"
- *       "500":
- *          description: error
- */
-router.post('/verifyQrCode', verifyAuth, verifyQrCode)
+  /**
+  * @swagger
+  * /auth/verifyQrCode:
+  *   post:
+  *     tags:
+  *     - "auth"
+  *     summary: verify 2fa.
+  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:      # Request body contents
+  *             type: object
+  *             properties:
+  *               code:
+  *                 type: string
+  *     responses:
+  *       "200":
+  *          description: code,message,data:{ verifiedCode:verified(true/false) }
+  *       "500":
+  *          description: error
+  */
+router.post('/verifyQrCode',verifyAuth,verifyQrCode);
 
-/**
- * @swagger
- * /auth/logout:
- *   get:
- *     tags:
- *     - "auth"
- *     summary: logout.
- *     description: logout.
- *     responses:
- *       "200":
- *          description: code,message
- *       "500":
- *          description: error
- */
-router.get('/logout', verifyAuth, logout)
+  /**
+  * @swagger
+  * /auth/logout:
+  *   get:
+  *     tags:
+  *     - "auth"
+  *     summary: logout.
+  *     description: logout.
+  *     responses:
+  *       "200":
+  *          description: code,message
+  *       "500":
+  *          description: error
+  */
+   router.get('/logout',verifyAuth,logout);
+
 
 module.exports = router

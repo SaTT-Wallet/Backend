@@ -15,6 +15,7 @@ module.exports = async function (app) {
     const bad_login_limit = app.config.bad_login_limit
     const { createLogger, format, transports } = require('winston')
     const { responseHandler } = require('../helpers/response-handler')
+    var FbPage =require('../model/fbPage.model')
 
     const {
         Notification,
@@ -1256,8 +1257,7 @@ module.exports = async function (app) {
                             var resMedia = await rp({ uri: media, json: true })
                             page.instagram_username = resMedia.username
                         }
-                        await app.db
-                            .fbPage()
+                        await FbPage
                             .updateOne(
                                 { id: res.data[i].id, UserId },
                                 { $set: page },
