@@ -4,7 +4,7 @@ const db = mongoose.createConnection(process.env.MONGOURI)
 const linkedinProfileSchema = mongoose.Schema(
     {
         accessToken: { type: String },
-        UserId: { type: Number, required: true, ref: 'sn_users' },
+        userId: { type: Number, required: true, ref: 'sn_user' },
         linkedinId: { type: String },
         pages: [
             {
