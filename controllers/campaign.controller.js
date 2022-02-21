@@ -171,22 +171,19 @@ module.exports.launchCampaign = async (req, res) => {
                 walletId: cred.address,
                 type: 'inProgress',
             }
-            await Campaigns
-                .updateOne(
-                    { _id: app.ObjectId(id) },
-                    { $set: campaign }
-                )
-                let event = {
-                    id: ret.hash,
-                    type: 'modified',
-                    date: Math.floor(Date.now() / 1000),
-                    txhash: ret.transactionHash,
-                    contract: contract.toLowerCase(),
-                }
-                await Event.create(event)
-
+            await Campaigns.updateOne(
+                { _id: app.ObjectId(id) },
+                { $set: campaign }
+            )
+            let event = {
+                id: ret.hash,
+                type: 'modified',
+                date: Math.floor(Date.now() / 1000),
+                txhash: ret.transactionHash,
+                contract: contract.toLowerCase(),
+            }
+            await Event.create(event)
         }
-       
     }
 }
 
@@ -211,7 +208,6 @@ module.exports.launchBounty = async (req, res) => {
             cred
         )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
-
     } catch (err) {
         app.account.sysLogError(err)
         return responseHandler.makeResponseError(
@@ -234,20 +230,19 @@ module.exports.launchBounty = async (req, res) => {
                 type: 'inProgress',
                 walletId: cred.address,
             }
-            await Campaigns
-                .updateOne(
-                    { _id: app.ObjectId(id) },
-                    { $set: campaign },
-                    { $unset: { coverSrc: '', ratios: '' } }
-                )
-                let event = {
-                    id: ret.hash,
-                    type: 'modified',
-                    date: Math.floor(Date.now() / 1000),
-                    txhash: ret.transactionHash,
-                    contract: contract.toLowerCase(),
-                }
-                await Event.create(event)
+            await Campaigns.updateOne(
+                { _id: app.ObjectId(id) },
+                { $set: campaign },
+                { $unset: { coverSrc: '', ratios: '' } }
+            )
+            let event = {
+                id: ret.hash,
+                type: 'modified',
+                date: Math.floor(Date.now() / 1000),
+                txhash: ret.transactionHash,
+                contract: contract.toLowerCase(),
+            }
+            await Event.create(event)
         }
     }
 }
@@ -1176,9 +1171,9 @@ module.exports.linkStats = async (req, res) => {
     try {
         let totalToEarn
         const idProm = req.params.idProm
-        const info = await app.db.campaign_link().findOne({ id_prom: idProm })
+        const info = await Campaigns.findOne({ id_prom: idProm })
         const payedAmount = info.payedAmount || '0'
-        const campaign = await app.db.campaigns().findOne(
+        const campaign = await Campaigns.findOne(
             { hash: info.id_campaign },
             {
                 fields: {
@@ -1247,7 +1242,11 @@ module.exports.linkStats = async (req, res) => {
             info.totalToEarn = campaign.funds[1]
         res.json({ prom: info })
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1640,15 +1639,6 @@ exports.getLinks = async (req, res) => {
 
         var Links = { Links: allProms, count }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
-
-        // }else{
-        //     return responseHandler.makeResponseError(
-        //         res,
-        //         404,
-        //         'Wallet address not found'
-        //     )
-
-        // }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
