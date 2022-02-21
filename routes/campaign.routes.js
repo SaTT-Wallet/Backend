@@ -50,7 +50,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *       "200":
  *          description: code,<br>message:"success"
  *       "401":
- *          description: code,<br>error:"unauthorized"
+ *          description: code,<br>error:"Unauthorized"
  *       "500":
  *          description: error:"error"
  */
