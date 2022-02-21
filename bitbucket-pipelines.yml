@@ -11,7 +11,7 @@ pipelines:
             - step:
                 name: put file on production 
                 script: 
-                  - sed -i '72,77 s/^/#/' .env
+                  - sed -i '74,79 s/^/#/' .env
                   -  sed -i -e '$a'${L1} .env
                   -  sed -i -e '$a'${L2} .env
                   -  sed -i -e '$a'${L3} .env
