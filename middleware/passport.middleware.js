@@ -110,7 +110,7 @@ let createUser = (
     ;(userObject.username = username), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
-    if (lastName) userObject.firstName = lastName
+    if (lastName) userObject.lastName = lastName
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
 }
@@ -388,12 +388,12 @@ exports.facebookAuthSignup = async (
             1,
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
-            profile.name,
+            profile._json.email,
             profile._json.email,
             'idOnSn',
             profile._json.token_for_business,
-            profile.first_name,
-            profile.displayName
+            profile._json.name.split(' ')[0],
+            profile._json.name.split(' ')[1]
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
@@ -644,7 +644,7 @@ exports.addFacebookChannel = async (
             .fbProfile()
             .updateOne({ UserId }, { $set: { accessToken: longToken } })
     } else {
-        ;[profile.accessToken, profile.UserId] = [longToken, UserId]
+        [profile.accessToken, profile.UserId] = [longToken, UserId]
         await app.db.fbProfile().insertOne(profile)
     }
     return cb(null, { id: UserId, token: accessToken }, { message })
