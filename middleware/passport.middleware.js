@@ -12,6 +12,7 @@ const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 var FbProfile =require('../model/fbProfile.model')
 var TwitterProfile =require('../model/twitterProfile.model')
+var GoogleProfile =require('../model/googleProfile.model')
 
 const { responseHandler } = require('../helpers/response-handler')
 
@@ -778,17 +779,15 @@ exports.addyoutubeChannel = async (
         json: true,
     })
     if (res.pageInfo.totalResults == 0) {
-        cb(null, profile, {
+       return cb(null, profile, {
             message: 'channel obligatoire',
         })
     }
     var channelId = res.items[0].id
-    var channelGoogle = await app.db
-        .googleProfile()
-        .find({ channelId: channelId, UserId: user_id })
-        .toArray()
+    var channelGoogle = await GoogleProfile
+        .find({ channelId: channelId, UserId: user_id });
     if (channelGoogle.length > 0) {
-        cb(null, profile, {
+        return cb(null, profile, {
             message: 'account exist',
         })
     } else {
@@ -810,7 +809,7 @@ exports.addyoutubeChannel = async (
         user_google.channelImage = result.items[0].snippet.thumbnails
         user_google.channelStatistics = result.items[0].statistics
         user_google.channelId = channelId
-        await app.db.googleProfile().insertOne(user_google)
+        await GoogleProfile.create(user_google)
 
         return cb(null, { id: user_id })
     }
