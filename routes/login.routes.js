@@ -363,7 +363,7 @@ router.get('/signup/facebook', async (req, res, next) => {
 passport.use(
     'auth_signup_facebookStrategy',
     new FbStrategy(
-        app.config.facebookCredentials('/auth/callback/facebook/signup'),
+        app.config.facebookCredentials('auth/callback/facebook/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
             facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
@@ -411,7 +411,7 @@ router.get('/signin/facebook', async (req, res, next) => {
 passport.use(
     'facebook_strategy_connection',
     new FbStrategy(
-        app.config.facebookCredentials('/auth/callback/facebook/connection'),
+        app.config.facebookCredentials('auth/callback/facebook/connection'),
         async function (req, accessToken, refreshToken, profile, cb) {
             facebookAuthSignin(req, accessToken, refreshToken, profile, cb)
         }
@@ -461,7 +461,7 @@ router.get('/signup/google', async (req, res, next) => {
 passport.use(
     'auth_signup_googleStrategy',
     new GoogleStrategy(
-        app.config.googleCredentials('/auth/callback/google/signup'),
+        app.config.googleCredentials('auth/callback/google/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
             googleAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
@@ -507,7 +507,7 @@ router.get('/signin/google', async (req, res, next) => {
 passport.use(
     'google_strategy_connection',
     new GoogleStrategy(
-        app.config.googleCredentials('/auth/callback/google/connection'),
+        app.config.googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
             googleAuthSignin(req, accessToken, refreshToken, profile, cb)
         }
