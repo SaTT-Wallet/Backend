@@ -22,7 +22,6 @@ var ejs = require('ejs')
 exports.connection = async () => {
     app = await require('../conf/config')(app)
     app = await require('../conf/const')(app)
-    app = await require('../db/db')(app)
     app = await require('../manager/i18n')(app)
     app = await require('../web3/oracle')(app)
     app = await require('../manager/notification')(app)
