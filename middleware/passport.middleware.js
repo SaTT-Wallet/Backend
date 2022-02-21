@@ -742,8 +742,9 @@ exports.addlinkedinChannel = async (
                 redirect +
                 '?message=channel obligatoire&sn=linkd'
         )
+
     await LinkedinProfile
-        .updateOne({ userId }, { $set: linkedinProfile })
+        .updateOne({ userId }, { $set: linkedinProfile },{ upsert: true })
     return done(null, profile, {
         status: true,
         message: 'account_linked_with_success',
