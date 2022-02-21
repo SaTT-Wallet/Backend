@@ -129,7 +129,7 @@ router.get('/captcha', captcha)
  *       "200":
  *          description: code,<br>message:"success"
  *       "401":
- *          description: code,<br>error:"wrong captcha"/"unauthorized"
+ *          description: code,<br>error:"wrong captcha"
  *       "500":
  *          description: code,<br>error:"error"
  */
@@ -336,7 +336,7 @@ router.post('/passrecover', passRecover)
  *                 type: boolean
  *     responses:
  *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *          description: code,<br>message,<br>
  *       "401":
  *          description: code,<br>error:{error:true,message:'account_already_used'}
  *       "500":
@@ -703,7 +703,7 @@ router.put('/updateLastStep', verifyAuth, updateLastStep)
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *          description: code,message:"success"
  *       "401":
  *          description: code,<br>error:"account_exists_with_another_courrier"
  *       "500":
@@ -739,7 +739,7 @@ router.post('/apple', authApple)
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *          description: code,message:"success"
  *       "401":
  *          description: code,<br>message:"account_exists"
  *       "500":
