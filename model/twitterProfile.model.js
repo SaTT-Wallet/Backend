@@ -159,7 +159,7 @@ const twitterProfileSchema = mongoose.Schema(
         _accessLevel: { type: String },
         access_token_key: { type: String },
         access_token_secret: { type: String },
-        UserId: { type: Number, required: true, ref: 'sn_users' },
+        UserId: { type: Number, required: true, ref: 'sn_user' },
         subscibers: { type: Number },
         twitter_id: { type: String },
     },
