@@ -13,6 +13,7 @@ var User = require('../model/user.model')
 var FbProfile =require('../model/fbProfile.model')
 var TwitterProfile =require('../model/twitterProfile.model')
 var GoogleProfile =require('../model/googleProfile.model')
+var LinkedinProfile =require('../model/linkedinProfile.model')
 
 const { responseHandler } = require('../helpers/response-handler')
 
@@ -710,20 +711,11 @@ exports.addlinkedinChannel = async (
     profile,
     done
 ) => {
-    userId = Number(req.query.state.split('|')[0])
-    linkedinId = profile.id
-    const linkedinData = {
-        url: 'https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',
-        method: 'GET',
-        headers: {
-            Authorization: 'Bearer ' + accessToken,
-            'X-Restli-Protocol-Version': '2.0.0',
-        },
-        json: true,
-    }
+    let userId = Number(req.query.state.split('|')[0])
     let redirect = req.query.state.split('|')[1]
+    let linkedinId = profile.id
+    const linkedinData = app.config.config.linkedinPages(accessToken)
     let linkedinPages = await rp(linkedinData)
-
     var linkedinProfile = { accessToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
@@ -750,10 +742,9 @@ exports.addlinkedinChannel = async (
                 redirect +
                 '?message=channel obligatoire&sn=linkd'
         )
-    await app.db
-        .linkedinProfile()
-        .updateOne({ userId }, { $set: linkedinProfile }, { upsert: true })
-    done(null, profile, {
+    await LinkedinProfile
+        .updateOne({ userId }, { $set: linkedinProfile })
+    return done(null, profile, {
         status: true,
         message: 'account_linked_with_success',
     })
