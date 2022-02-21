@@ -10,6 +10,9 @@ ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
+var FbProfile =require('../model/fbProfile.model')
+var TwitterProfile =require('../model/twitterProfile.model')
+
 const { responseHandler } = require('../helpers/response-handler')
 
 var requirement = require('../helpers/utils')
@@ -110,7 +113,7 @@ let createUser = (
     ;(userObject.username = username), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
-    if (lastName) userObject.firstName = lastName
+    if (lastName) userObject.lastName = lastName
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
 }
@@ -388,12 +391,12 @@ exports.facebookAuthSignup = async (
             1,
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
-            profile.name,
+            profile._json.email,
             profile._json.email,
             'idOnSn',
             profile._json.token_for_business,
-            profile.first_name,
-            profile.displayName
+            profile._json.name.split(' ')[0],
+            profile._json.name.split(' ')[1]
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
@@ -633,20 +636,18 @@ exports.addFacebookChannel = async (
     let longToken = accessToken
     let UserId = +req.query.state.split('|')[0]
     let isInsta = false
-    let fbProfile = await app.db.fbProfile().findOne({ UserId })
+    let fbProfile = await FbProfile.findOne({ UserId });
+    if (fbProfile) {
+        await FbProfile.updateOne({ UserId }, { $set: { accessToken: longToken } })
+    } else {
+        [profile.accessToken, profile.UserId] = [longToken, UserId]
+        await FbProfile.create(profile)
+    }
     let message = await app.account.getFacebookPages(
         UserId,
         accessToken,
         isInsta
     )
-    if (fbProfile) {
-        await app.db
-            .fbProfile()
-            .updateOne({ UserId }, { $set: { accessToken: longToken } })
-    } else {
-        ;[profile.accessToken, profile.UserId] = [longToken, UserId]
-        await app.db.fbProfile().insertOne(profile)
-    }
     return cb(null, { id: UserId, token: accessToken }, { message })
 }
 /*
@@ -674,8 +675,7 @@ exports.addTwitterChannel = async (
     var res = await tweet.get('account/verify_credentials', {
         include_email: true,
     })
-    var twitterProfile = await app.db
-        .twitterProfile()
+    var twitterProfile = await TwitterProfile
         .findOne({ $and: [{ UserId: user_id }, { twitter_id: res.id }] })
     if (twitterProfile) {
         cb(null, profile, {
@@ -690,7 +690,7 @@ exports.addTwitterChannel = async (
         profile.subscibers = res.followers_count
         profile.twitter_id = res.id
 
-        var res_ins = await app.db.twitterProfile().insertOne(profile)
+         await TwitterProfile.create(profile)
     }
     return cb(null, { id: user_id })
 }
