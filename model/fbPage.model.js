@@ -3,7 +3,7 @@ const db = mongoose.createConnection(process.env.MONGOURI)
 
 const fbPageSchema = mongoose.Schema(
     {
-        UserId: { type: Number, required: true, ref: 'sn_users' },
+        UserId: { type: Number, required: true, ref: 'sn_user' },
         id: { type: String },
         instagram_id: { type: String },
         instagram_username: { type: String },
