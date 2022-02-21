@@ -34,7 +34,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *     tags:
  *     - "campaign"
  *     summary: bep20 aprroval
- *     description: bep20 aprroval
+ *     description: Approve the smart contract BEP20 to interact with user wallet
  *     requestBody:
  *       required: true
  *       content:
@@ -49,6 +49,8 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -61,7 +63,7 @@ router.post('/bep20/approval', verifyAuth, bep20Approval)
  *     tags:
  *     - "campaign"
  *     summary: bep20 allow
- *     description: bep20 allow
+ *     description: Allow user wallet to interact the smart contract BEP20
  *     requestBody:
  *       required: true
  *       content:
@@ -80,6 +82,8 @@ router.post('/bep20/approval', verifyAuth, bep20Approval)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -91,7 +95,7 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *     tags:
  *     - "campaign"
  *     summary: erc20 aprroval
- *     description: erc20 aprroval
+ *     description: Approve the smart contract ERC20 to interact with user wallet
  *     requestBody:
  *       required: true
  *       content:
@@ -106,6 +110,8 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -117,7 +123,7 @@ router.post('/erc20/approval', verifyAuth, erc20Approval)
  *     tags:
  *     - "campaign"
  *     summary: erc20 allow
- *     description: erc20 allow
+ *     description: Allow user wallet to interact the smart contract erc20
  *     requestBody:
  *       content:
  *         application/json:
@@ -135,6 +141,8 @@ router.post('/erc20/approval', verifyAuth, erc20Approval)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -145,8 +153,8 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: transfer erc20.
- *     description: transfert crypto belongs to erc20 network <br> with access_token.
+ *     summary: Launch campaign.
+ *     description: Launch new performance compaign (based of views, likes, shares) <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -194,6 +202,8 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -204,8 +214,8 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: transfer erc20.
- *     description: transfert crypto belongs to erc20 network <br> with access_token.
+ *     summary: Launch campaign.
+ *     description:  Launch new  bounties compaign (based of followers number) <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -236,6 +246,8 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -247,7 +259,7 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  * /campaign/campaigns:
  *   get:
  *     tags:
- *     - "campaign"
+ *     - "campaign list"
  *     summary: get campaigns list
  *     description: Returns the list of campaigns <br> without access_token
  *     produces:
@@ -255,6 +267,8 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -265,9 +279,9 @@ router.get('/campaigns', verifyAuth, campaigns)
  * /campaign/details/{id}:
  *   get:
  *     tags:
- *     - "campaign"
+ *     - "campaign details"
  *     summary: get campaign details
- *     description: return to user campaign detalds <br> with access_token
+ *     description: return to user campaign details <br> with access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -299,7 +313,6 @@ router.get('/details/:id', campaignDetails)
  *       name: id
  *       type: string
  *       description: the campaign id.
- *
  *       required: true
  *     responses:
  *       "200":
@@ -384,7 +397,7 @@ router.post('/linkNotification', verifyAuth, linkNotifications)
  *     tags:
  *     - "campaign"
  *     summary: validate participation.
- *     description:  admin of campaign can accept  <br> with access_token.
+ *     description:  Campaign admin accept user participation  <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -420,7 +433,7 @@ router.post('/validate', verifyAuth, validateCampaign)
  *     tags:
  *     - "campaign"
  *     summary: get gains.
- *     description:  user get his gains  <br> with access_token.
+ *     description:  User recover his gains  <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -436,6 +449,8 @@ router.post('/validate', verifyAuth, validateCampaign)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "404":
  *          description: error:error message<br>"oracle not available"
  *       "500":
@@ -450,8 +465,8 @@ router.post('/gains', verifyAuth, gains)
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: create new campaign.
- *     description:  user create new campaign  <br> with access_token.
+ *     summary: create new campaign as draft.
+ *     description:  Admin create new campaign draft  <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -537,6 +552,8 @@ router.post('/gains', verifyAuth, gains)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "500":
  *          description: error:error message
  */
@@ -549,8 +566,8 @@ router.post('/save', verifyAuth, saveCampaign)
  *   get:
  *     tags:
  *     - "campaign"
- *     summary: get campaign pending link
- *     description: return to user the list of campaign promp ALl <br> without access_token
+ *     summary: get kits
+ *     description: Get campaign kits <br> without access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -561,6 +578,8 @@ router.post('/save', verifyAuth, saveCampaign)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: code,<br>error
  */
@@ -573,7 +592,7 @@ router.get('/:idCampaign/kits', verifyAuth, kits)
  *     tags:
  *     - "campaign"
  *     summary: add kits.
- *     description:  user create new campaign  <br> with access_token.
+ *     description:  Upload campaign kits  <br> with access_token.
  *     requestBody:
  *       content:
  *         multipart/form-data:
@@ -590,6 +609,8 @@ router.get('/:idCampaign/kits', verifyAuth, kits)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -601,9 +622,9 @@ router.post('/addKits', verifyAuth, upload, addKits)
  * /campaign/update/{idCampaign}:
  *   put:
  *     tags:
- *     - "campaign"
- *     summary: create new campaign.
- *     description:  user create new campaign  <br> with access_token.
+ *     - "Update campaign"
+ *     summary: Update campaign .
+ *     description: Admin can update campaign  <br> with access_token.
  *     parameters:
  *       - name: idCampaign
  *         description: the  campaign id.
@@ -699,6 +720,8 @@ router.post('/addKits', verifyAuth, upload, addKits)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -735,7 +758,7 @@ router.get('/prom/stats/:idProm', linkStats)
  *     tags:
  *     - "campaign"
  *     summary: Increase budget.
- *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     description: Increase campaign budget.
  *     parameters:
  *       - name: amount
  *         description: amount of campaign.
@@ -746,6 +769,8 @@ router.get('/prom/stats/:idProm', linkStats)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -769,6 +794,8 @@ router.post('/funding', verifyAuth, increaseBudget)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -795,6 +822,8 @@ router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
