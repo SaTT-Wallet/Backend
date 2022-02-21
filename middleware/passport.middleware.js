@@ -11,6 +11,7 @@ var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 var FbProfile =require('../model/fbProfile.model')
+var TwitterProfile =require('../model/twitterProfile.model')
 
 const { responseHandler } = require('../helpers/response-handler')
 
@@ -640,7 +641,7 @@ exports.addFacebookChannel = async (
         await FbProfile.updateOne({ UserId }, { $set: { accessToken: longToken } })
     } else {
         [profile.accessToken, profile.UserId] = [longToken, UserId]
-        await FbProfile.insertOne(profile)
+        await FbProfile.create(profile)
     }
     let message = await app.account.getFacebookPages(
         UserId,
@@ -674,8 +675,7 @@ exports.addTwitterChannel = async (
     var res = await tweet.get('account/verify_credentials', {
         include_email: true,
     })
-    var twitterProfile = await app.db
-        .twitterProfile()
+    var twitterProfile = await TwitterProfile
         .findOne({ $and: [{ UserId: user_id }, { twitter_id: res.id }] })
     if (twitterProfile) {
         cb(null, profile, {
@@ -690,7 +690,7 @@ exports.addTwitterChannel = async (
         profile.subscibers = res.followers_count
         profile.twitter_id = res.id
 
-        var res_ins = await app.db.twitterProfile().insertOne(profile)
+         await TwitterProfile.create(profile)
     }
     return cb(null, { id: user_id })
 }
