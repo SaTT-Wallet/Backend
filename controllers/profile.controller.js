@@ -327,37 +327,23 @@ exports.UserInterstes = async (req, res) => {
     }
 }
 
-exports.AddIntersts = async (req, res) => {
-    try {
-        let userInterests = req.body
-        userInterests.userId = req.user._id
-
-        let interests = await Interests.create(userInterests)
-        return makeResponseData(res, 201, 'interests added', interests)
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
 exports.UpdateIntersts = async (req, res) => {
     try {
         let id = req.user._id
         let userInterests = req.body.interests
+
         const interests = await Interests.findOneAndUpdate(
             { userId: id },
             { $set: { interests: userInterests } },
             {
                 new: true,
+                upsert: true,
             }
         )
         if (interests.nModified === 0) {
             return makeResponseError(res, 400, 'updated failed')
         }
-        return makeResponseData(res, 201, 'interests updated', interests)
+        return makeResponseData(res, 201, 'success', interests)
     } catch (err) {
         return makeResponseError(
             res,
