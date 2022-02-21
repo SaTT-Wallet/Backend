@@ -1,4 +1,4 @@
-;(async function () {
+(async function () {
     try {
         var fs = require('fs')
 
