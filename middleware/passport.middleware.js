@@ -10,6 +10,11 @@ ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
+var FbProfile =require('../model/fbProfile.model')
+var TwitterProfile =require('../model/twitterProfile.model')
+var GoogleProfile =require('../model/googleProfile.model')
+var LinkedinProfile =require('../model/linkedinProfile.model')
+
 const { responseHandler } = require('../helpers/response-handler')
 
 var requirement = require('../helpers/utils')
@@ -110,7 +115,7 @@ let createUser = (
     ;(userObject.username = username), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
-    if (lastName) userObject.firstName = lastName
+    if (lastName) userObject.lastName = lastName
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
 }
@@ -378,10 +383,7 @@ exports.facebookAuthSignup = async (
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({
-        $or: [
-            { idOnSn: profile._json.token_for_business },
-            { email: profile._json.email },
-        ],
+        $or:[{idOnSn: profile._json.token_for_business},{email:profile._json.email}]
     })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
@@ -391,12 +393,12 @@ exports.facebookAuthSignup = async (
             1,
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
-            profile.name,
+            profile._json.email,
             profile._json.email,
             'idOnSn',
             profile._json.token_for_business,
-            profile.first_name,
-            profile.displayName
+            profile._json.name.split(' ')[0],
+            profile._json.name.split(' ')[1]
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
@@ -417,7 +419,7 @@ exports.googleAuthSignup = async (
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({
-        $or: [{ idOnSn2: profile.id }, { email: profile._json.email }],
+        $or: [{ idOnSn2: profile.id }, { email: profile._json.email }]
     })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
@@ -534,7 +536,7 @@ exports.linkFacebookAccount = async (
         idOnSn: profile._json.token_for_business,
     })
     if (user) {
-        cb(null, profile, {
+       return cb(null, profile, {
             status: false,
             message: 'account exist',
         })
@@ -543,7 +545,7 @@ exports.linkFacebookAccount = async (
             { _id: user_id },
             { $set: { idOnSn: profile._json.token_for_business } }
         )
-        cb(null, profile, {
+        return cb(null, profile, {
             status: true,
             message: 'account_linked_with success',
         })
@@ -567,7 +569,7 @@ exports.linkGoogleAccount = async (
     let user_id = +state[0]
     let userExist = await User().findOne({ idOnSn2: profile.id })
     if (userExist) {
-        done(null, profile, {
+        return done(null, profile, {
             status: false,
             message: 'account exist',
         })
@@ -576,7 +578,7 @@ exports.linkGoogleAccount = async (
             { _id: user_id },
             { $set: { idOnSn2: profile.id } }
         )
-        done(null, profile, {
+       return done(null, profile, {
             status: true,
             message: 'account_linked_with success',
         })
@@ -607,13 +609,13 @@ exports.telegram_connect_function = async (req, profile, cb) => {
     let user_id = +req.params.idUser
     let user = await User().findOne({ idOnSn3: profile.id })
     if (user) {
-        cb(null, profile, { message: 'account exist' })
+        return cb(null, profile, { message: 'account exist' })
     } else {
         await User().updateOne(
             { _id: user_id },
             { $set: { idOnSn3: profile.id } }
         )
-        cb(null, profile, {
+        return cb(null, profile, {
             status: true,
             message: 'account_linked_with success',
         })
@@ -636,20 +638,18 @@ exports.addFacebookChannel = async (
     let longToken = accessToken
     let UserId = +req.query.state.split('|')[0]
     let isInsta = false
-    let fbProfile = await app.db.fbProfile().findOne({ UserId })
+    let fbProfile = await FbProfile.findOne({ UserId });
+    if (fbProfile) {
+        await FbProfile.updateOne({ UserId }, { $set: { accessToken: longToken } })
+    } else {
+        [profile.accessToken, profile.UserId] = [longToken, UserId]
+        await FbProfile.create(profile)
+    }
     let message = await app.account.getFacebookPages(
         UserId,
         accessToken,
         isInsta
     )
-    if (fbProfile) {
-        await app.db
-            .fbProfile()
-            .updateOne({ UserId }, { $set: { accessToken: longToken } })
-    } else {
-        ;[profile.accessToken, profile.UserId] = [longToken, UserId]
-        await app.db.fbProfile().insertOne(profile)
-    }
     return cb(null, { id: UserId, token: accessToken }, { message })
 }
 /*
@@ -677,14 +677,14 @@ exports.addTwitterChannel = async (
     var res = await tweet.get('account/verify_credentials', {
         include_email: true,
     })
-    var twitterProfile = await app.db
-        .twitterProfile()
+    var twitterProfile = await TwitterProfile
         .findOne({ $and: [{ UserId: user_id }, { twitter_id: res.id }] })
     if (twitterProfile) {
-        cb(null, profile, {
+        return cb(null, profile, {
             status: false,
             message: 'account exist',
         })
+        
     } else {
         profile.access_token_key = accessToken
         profile.access_token_secret = tokenSecret
@@ -693,7 +693,7 @@ exports.addTwitterChannel = async (
         profile.subscibers = res.followers_count
         profile.twitter_id = res.id
 
-        var res_ins = await app.db.twitterProfile().insertOne(profile)
+         await TwitterProfile.create(profile)
     }
     return cb(null, { id: user_id })
 }
@@ -711,20 +711,11 @@ exports.addlinkedinChannel = async (
     profile,
     done
 ) => {
-    userId = Number(req.query.state.split('|')[0])
-    linkedinId = profile.id
-    const linkedinData = {
-        url: 'https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',
-        method: 'GET',
-        headers: {
-            Authorization: 'Bearer ' + accessToken,
-            'X-Restli-Protocol-Version': '2.0.0',
-        },
-        json: true,
-    }
+    let userId = Number(req.query.state.split('|')[0])
     let redirect = req.query.state.split('|')[1]
+    let linkedinId = profile.id
+    const linkedinData = app.config.linkedinPages(accessToken)
     let linkedinPages = await rp(linkedinData)
-
     var linkedinProfile = { accessToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
@@ -751,10 +742,10 @@ exports.addlinkedinChannel = async (
                 redirect +
                 '?message=channel obligatoire&sn=linkd'
         )
-    await app.db
-        .linkedinProfile()
-        .updateOne({ userId }, { $set: linkedinProfile }, { upsert: true })
-    done(null, profile, {
+
+    await LinkedinProfile
+        .updateOne({ userId }, { $set: linkedinProfile },{ upsert: true })
+    return done(null, profile, {
         status: true,
         message: 'account_linked_with_success',
     })
@@ -780,17 +771,15 @@ exports.addyoutubeChannel = async (
         json: true,
     })
     if (res.pageInfo.totalResults == 0) {
-        cb(null, profile, {
+       return cb(null, profile, {
             message: 'channel obligatoire',
         })
     }
     var channelId = res.items[0].id
-    var channelGoogle = await app.db
-        .googleProfile()
-        .find({ channelId: channelId, UserId: user_id })
-        .toArray()
+    var channelGoogle = await GoogleProfile
+        .find({ channelId: channelId, UserId: user_id });
     if (channelGoogle.length > 0) {
-        cb(null, profile, {
+        return cb(null, profile, {
             message: 'account exist',
         })
     } else {
@@ -812,7 +801,7 @@ exports.addyoutubeChannel = async (
         user_google.channelImage = result.items[0].snippet.thumbnails
         user_google.channelStatistics = result.items[0].statistics
         user_google.channelId = channelId
-        await app.db.googleProfile().insertOne(user_google)
+        await GoogleProfile.create(user_google)
 
         return cb(null, { id: user_id })
     }

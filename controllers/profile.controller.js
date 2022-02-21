@@ -61,8 +61,25 @@ const storageUserLegal = new GridFsStorage({
     },
 })
 
+const storageProfilePic = new GridFsStorage({
+    url: process.env.MONGOURI,
+    options: { useNewUrlParser: true, useUnifiedTopology: true },
+    file: (req, file) => {
+        return new Promise((resolve, reject) => {
+            const filename = file.originalname
+            const fileInfo = {
+                filename: filename,
+                bucketName: 'user_file',
+            }
+            resolve(fileInfo)
+        })
+    },
+})
 //const uploadUserLegal =  multer({storage : storageUserLegal})
 
+module.exports.uploadImageProfile = multer({
+    storage: storageProfilePic,
+}).single('file')
 module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
@@ -70,7 +87,8 @@ module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
 exports.account = async (req, res) => {
     try {
         if (req.user) {
-            return makeResponseData(res, 200, 'success', req.user)
+            let { password, ...user } = req.user
+            return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 404, 'user not found')
         }
@@ -108,6 +126,36 @@ exports.profilePicture = async (req, response) => {
     }
 }
 
+module.exports.addProfilePicture = async (req, res) => {
+    try {
+        if (req.file) {
+            await gfsprofilePic.files.findOneAndDelete({
+                'user.$id': req.user._id,
+            })
+            await gfsprofilePic.files.updateOne(
+                { _id: req.file.id },
+                {
+                    $set: {
+                        user: {
+                            $ref: 'sn_user',
+                            $id: req.user._id,
+                            $db: 'atayen',
+                        },
+                    },
+                }
+            )
+            return makeResponseData(res, 201, 'Saved')
+        }
+        return makeResponseData(res, 404, 'Only images allowed')
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.updateProfile = async (req, res) => {
     try {
         const id = req.user._id
@@ -128,6 +176,7 @@ exports.updateProfile = async (req, res) => {
         if (updatedProfile.nModified === 0) {
             return makeResponseError(res, 400, 'update failed')
         }
+        delete updatedProfile.password
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
         return makeResponseError(

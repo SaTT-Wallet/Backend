@@ -172,6 +172,8 @@ exports.confirmCode = async (req, res) => {
             req.body.type,
         ]
         let user = await User.findOne({ email }, { secureCode: 1 })
+
+        console.log(user)
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
@@ -654,13 +656,8 @@ exports.socialdisconnect = async (req, res) => {
 exports.logout = async (req, res) => {
     try {
         let _id = req.user._id
-        await User.updateOne({_id},{$set:{fireBaseAccessToken:null}})
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            "success",
-            false
-        )
+        await User.updateOne({ _id }, { $set: { fireBaseAccessToken: null } })
+        return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
