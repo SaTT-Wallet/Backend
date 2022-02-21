@@ -4,7 +4,6 @@ var connection
 ;(connection = async function () {
     app = await require('../conf/config')(app)
     app = await require('../conf/const')(app)
-    app = await require('../db/db')(app)
     app = await require('../web3/provider')(app)
     app = await require('../manager/account')(app)
     app = await require('../manager/i18n')(app)
@@ -340,7 +339,7 @@ router.post('/passrecover', passRecover)
  *       "500":
  *          description: error=eror
  */
-router.post('/signup/mail', emailSignup)
+router.post('/signup/mail', emailSignup )
 
 /**
  * @swagger
