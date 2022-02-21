@@ -247,13 +247,13 @@ router.get('/UserIntersts', verifyAuth, UserInterstes)
  *
  *     responses:
  *       "201":
- *          description: interests added, {"code":"status code","message":"interests added","data":{"interests":[],"_id","userId"}}
+ *          description: success, {"code":"status code","message":"success","data":{"interests":[],"_id","userId"}}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "500":
  *          description: error:<br> Server error
  */
-router.post('/AddUserIntersts', verifyAuth, AddIntersts)
+router.post('/AddUserIntersts', verifyAuth, UpdateIntersts)
 
 /**
  * @swagger
@@ -277,7 +277,7 @@ router.post('/AddUserIntersts', verifyAuth, AddIntersts)
  *
  *     responses:
  *       "201":
- *          description: interests updated, {"code":"status code","message":"interests added","data":{"interests":[],"_id","userId"}}
+ *          description: success, {"code":"status code","message":"success","data":{"interests":[],"_id","userId"}}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "400":
