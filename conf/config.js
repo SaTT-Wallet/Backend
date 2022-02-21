@@ -1454,7 +1454,17 @@ module.exports = async function (app) {
                 },
             }
         }
-
+        config.linkedinPages = (accessToken) => {
+            return {
+                url: 'https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',
+                method: 'GET',
+                headers: {
+                    Authorization: 'Bearer ' + accessToken,
+                    'X-Restli-Protocol-Version': '2.0.0',
+                },
+                json: true,
+            }
+        }
         config.linkedinActivityUrl = (activityURN) =>
             `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`
         config.linkedinStatsUrl = (type, idPost, organization) =>

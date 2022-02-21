@@ -72,6 +72,8 @@ const {
     getNotifications,
     changeEmail,
     verifyLink,
+    addProfilePicture,
+    uploadImageProfile,
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -126,6 +128,35 @@ router.get('/picture', verifyAuth, profilePicture)
 
 /**
  * @swagger
+ * /profile/picture:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: add or update user profile picture.
+ *     description: save user picture.  <br> with access_token
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format : base64
+ *     responses:
+ *       "200":
+ *          description: success, <br> {"code":"status code","message":"saved"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired
+ *       "404":
+ *          description: error:<br> Only images allowed
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.post('/picture', verifyAuth, uploadImageProfile, addProfilePicture)
+/**
+ * @swagger
  * /profile/UpdateProfile:
  *   put:
  *     tags:
@@ -145,8 +176,6 @@ router.get('/picture', verifyAuth, profilePicture)
  *               city:
  *                 type: string
  *               country:
- *                 type: string
- *               email:
  *                 type: string
  *               firstName:
  *                 type: string
@@ -693,8 +722,8 @@ router.post(
  *   get:
  *     tags:
  *     - "profile"
- *     summary: update user onboarding status.
- *     description: update user when he enter the website first time.
+ *     summary: get userLegal file.
+ *     description: fetch user kyc file.
  *     parameters:
  *       - name: id
  *         description: the  legal id.
@@ -702,7 +731,7 @@ router.post(
  *         required: true
  *     responses:
  *       "200":
- *          description: Download file
+ *          description: Downloaded user kyc file from db
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
  *       "404":
@@ -788,7 +817,7 @@ router.get('/notifications', verifyAuth, getNotifications)
  *     tags:
  *     - "profile"
  *     summary: user request change email .
- *     description: allow user to take first step to change his email and it end an email to user for verification.
+ *     description: allow user to take first step to change his email and it end up with sending an email to user for verification.
  *     requestBody:
  *       content:
  *         application/json:
@@ -857,11 +886,7 @@ router.post('/SattSupport', support)
  */
 router.get('/connect/facebook/:idUser', (req, res, next) => {
     let state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('link_facebook_account', { state: state })(
-        req,
-        res,
-        next
-    )
+    passport.authenticate('link_facebook_account', { state })(req, res, next)
 })
 
 passport.use(
@@ -901,7 +926,7 @@ router.get(
  *     tags:
  *     - "profile"
  *     summary: link account with google.
- *     description: user asked for signin with google, system redirect him to signin google page <br> without access_token.
+ *     description: user asked for signin with google, system redirect him to signin google to page <br> without access_token.
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
