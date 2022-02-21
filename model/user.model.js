@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema(
         idOnSn3: { type: String },
         created: { type: Date, default: Date.now },
         email: { type: String },
-        username: { type: String, required: true },
+        username: { type: String },
         firstName: { type: String },
         lastName: { type: String },
         lastLogin: { type: Date, default: Date.now },
@@ -27,7 +27,7 @@ const userSchema = mongoose.Schema(
         picLink: { type: String },
         dateFirstAttempt: { type: Number },
         completed: { type: Boolean },
-        password: { type: String, required: true },
+        password: { type: String },
         secureCode: {
             code: { type: Number },
             expiring: { type: Number },
