@@ -5,7 +5,6 @@ const chaiAsPromised = require('chai-as-promised')
 const axios = require('axios')
 chai.use(chaiAsPromised)
 chai.use(sinonChai)
-const packagejson = require('../package.json')
 require('dotenv').config()
 
 let port = process.env.LISTEN_PORT
