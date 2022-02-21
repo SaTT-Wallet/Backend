@@ -10,6 +10,8 @@ ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
+var FbProfile =require('../model/fbProfile.model')
+
 const { responseHandler } = require('../helpers/response-handler')
 
 var requirement = require('../helpers/utils')
@@ -633,20 +635,18 @@ exports.addFacebookChannel = async (
     let longToken = accessToken
     let UserId = +req.query.state.split('|')[0]
     let isInsta = false
-    let fbProfile = await app.db.fbProfile().findOne({ UserId })
+    let fbProfile = await FbProfile.findOne({ UserId });
+    if (fbProfile) {
+        await FbProfile.updateOne({ UserId }, { $set: { accessToken: longToken } })
+    } else {
+        [profile.accessToken, profile.UserId] = [longToken, UserId]
+        await FbProfile.insertOne(profile)
+    }
     let message = await app.account.getFacebookPages(
         UserId,
         accessToken,
         isInsta
     )
-    if (fbProfile) {
-        await app.db
-            .fbProfile()
-            .updateOne({ UserId }, { $set: { accessToken: longToken } })
-    } else {
-        [profile.accessToken, profile.UserId] = [longToken, UserId]
-        await app.db.fbProfile().insertOne(profile)
-    }
     return cb(null, { id: UserId, token: accessToken }, { message })
 }
 /*
