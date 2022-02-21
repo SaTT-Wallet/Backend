@@ -567,7 +567,7 @@ exports.linkGoogleAccount = async (
 ) => {
     let state = req.query.state.split('|')
     let user_id = +state[0]
-    let userExist = await User().findOne({ idOnSn2: profile.id })
+    let userExist = await User.findOne({ idOnSn2: profile.id })
     if (userExist) {
         return done(null, profile, {
             status: false,
