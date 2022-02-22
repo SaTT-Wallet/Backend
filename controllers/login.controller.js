@@ -30,12 +30,10 @@ exports.changePassword = async (req, res) => {
                     'wrong password'
                 )
             } else {
-                await app.db
-                    .sn_user()
-                    .updateOne(
-                        { _id },
-                        { $set: { password: app.synfonyHash(newpass) } }
-                    )
+                await User.updateOne(
+                    { _id },
+                    { $set: { password: app.synfonyHash(newpass) } }
+                )
                 return responseHandler.makeResponseData(
                     res,
                     200,
