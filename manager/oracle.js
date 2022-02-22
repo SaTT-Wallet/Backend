@@ -10,8 +10,10 @@ module.exports = async function (app) {
 
     const {
         FbPage,
+        FbProfile,
         GoogleProfile,
         TwitterProfile,
+        IgMedia,
         LinkedinProfile,
     } = require('../model/index')
 
@@ -33,7 +35,7 @@ module.exports = async function (app) {
     oracleManager.facebookAbos = async function (pageName, idPost) {
         return new Promise(async (resolve, reject) => {
             try {
-                var page = await app.db.fbPage().findOne({ username: pageName })
+                var page = await FbPage.findOne({ username: pageName })
 
                 if (page) {
                     var token = page.token
@@ -96,10 +98,8 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var followers = 0
-                var campaign_link = await app.db
-                    .campaign_link()
-                    .findOne({ idPost })
-                var userWallet = await app.db.wallet().findOne({
+                var campaign_link = await CampaignLink.findOne({ idPost })
+                var userWallet = await Wallet.findOne({
                     'keystore.address': campaign_link.id_wallet
                         .toLowerCase()
                         .substring(2),
@@ -107,7 +107,7 @@ module.exports = async function (app) {
                 // let instagramUserName=await oracleManager.getInstagramUserName(idPost);
                 let instagramUserName = campaign_link.instagramUserName
 
-                var fbPage = await app.db.fbPage().findOne({
+                var fbPage = await FbPage.findOne({
                     $and: [
                         { UserId: userWallet.UserId },
                         { instagram_username: instagramUserName },
@@ -116,9 +116,9 @@ module.exports = async function (app) {
                 })
                 if (fbPage) {
                     var instagram_id = fbPage.instagram_id
-                    var fbProfile = await app.db
-                        .fbProfile()
-                        .findOne({ UserId: userWallet.UserId })
+                    var fbProfile = await FbProfile.findOne({
+                        UserId: userWallet.UserId,
+                    })
                     var token = fbProfile.accessToken
                     var res = await rp({
                         uri:
@@ -195,7 +195,7 @@ module.exports = async function (app) {
 
     oracleManager.facebook = async function (pageName, idPost) {
         return new Promise(async (resolve, reject) => {
-            var page = await app.db.fbPage().findOne({ username: pageName })
+            var page = await FbPage.findOne({ username: pageName })
             if (page) {
                 var token = page.token
                 var idPage = page.id
@@ -346,20 +346,18 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
-                let campaign_link = await app.db
-                    .campaign_link()
-                    .findOne({ idPost: idPost })
+                let campaign_link = await CampaignLink.findOne({
+                    idPost: idPost,
+                })
 
                 let instagramUserName = campaign_link.instagramUserName
-                var fbPage = await app.db
-                    .fbPage()
-                    .findOne({ instagram_username: instagramUserName })
+                var fbPage = await FbPage.findOne({
+                    instagram_username: instagramUserName,
+                })
 
                 if (fbPage && fbPage.instagram_id) {
                     var instagram_id = fbPage.instagram_id
-                    var fbProfile = await app.db
-                        .fbProfile()
-                        .findOne({ UserId: UserId })
+                    var fbProfile = await FbProfile.findOne({ UserId: UserId })
                     if (fbProfile) {
                         var accessToken = fbProfile.accessToken
                         var media =
@@ -375,7 +373,7 @@ module.exports = async function (app) {
                             if (data[i].shortcode == idPost) {
                                 perf.likes = data[i].like_count
                                 perf.media_url = data[i].media_url
-                                await app.db.ig_media().updateOne(
+                                await IgMedia.updateOne(
                                     { id: data[i].id },
                                     {
                                         $set: {
@@ -412,9 +410,9 @@ module.exports = async function (app) {
                 })
 
                 var tweet_res = await tweet.get('statuses/show', { id: idPost })
-                var twitterProfile = await app.db
-                    .twitterProfile()
-                    .findOne({ username: tweet_res.user.screen_name })
+                var twitterProfile = await TwitterProfile.findOne({
+                    username: tweet_res.user.screen_name,
+                })
 
                 if (!twitterProfile) {
                     var res = await tweet.get('statuses/show', {

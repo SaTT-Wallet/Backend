@@ -2,6 +2,7 @@ module.exports = async function (app) {
     var cron = require('node-cron')
     var fs = require('fs')
 
+    const { Event } = require('../model/index')
     var campaignKeystore = fs.readFileSync(
         app.config.campaignWalletPath,
         'utf8'
@@ -35,28 +36,8 @@ module.exports = async function (app) {
             contract: evt.address.toLowerCase(),
         }
 
-        app.db.event().insertOne(evt)
+        Event.create(evt)
     }
-    /*
-	eventWatcher.campaignApplied = function (error, evt){
-
-		var idCampaign = evt.returnValues.id;
-		var idProm = evt.returnValues.prom;
-
-		var evt = {
-			id : idCampaign,
-			prom : idProm,
-			type : "applied",
-			date :Math.floor(Date.now()/1000),
-			txhash:evt.transactionHash,
-			contract:evt.address.toLowerCase(),
-			owner:evt.address.toLowerCase()
-		}
-
-		app.db.event().insertOne(evt);
-
-	}
-*/
 
     app.campaign.contract.events.CampaignCreated(
         /*{fromBlock:9467559},*/ eventWatcher.campaignCreated

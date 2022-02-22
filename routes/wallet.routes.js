@@ -21,7 +21,6 @@ const {
     userBalance,
     gasPriceBep20,
     cryptoDetails,
-    prices,
     getMnemo,
     verifyMnemo,
     createNewWallet,
@@ -55,11 +54,13 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
  *       - application/json
  *     responses:
  *       "200":
- *          description: code,<br>message:"success"
+ *          description: code:200,<br>message:"success"
+ *       "401":
+ *          description: code:401,<br>error:"token required"
  *       "404":
- *          description: code,<br>error:"Wallet not found"
+ *          description: code:404,<br>error:"Wallet not found"
  *       "500":
- *          description: code,<br>error:"error"
+ *          description: code:500,<br>error
  */
 router.get('/mywallet', verifyAuth, mywallet)
 
@@ -166,7 +167,7 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  *     tags:
  *     - "wallets"
  *     summary: transfer erc20.
- *     description: transfert crypto belongs to erc20 network <br> with access_token.
+ *     description: transfer crypto belongs to erc20 network <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -202,7 +203,7 @@ router.post('/transferErc20', verifyAuth, transfertErc20)
  *     tags:
  *     - "wallets"
  *     summary: transfer bep20.
- *     description: transfert crypto belongs to bep20 network <br> with access_token.
+ *     description: transfer crypto belongs to bep20 network <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -304,8 +305,8 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: transfert BTC.
- *     description: transfert btc <br> with access_token.
+ *     summary: transfer BTC.
+ *     description: transfer btc <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -336,8 +337,8 @@ router.post('/transfertBtc', verifyAuth, transfertBtc)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: transfert BNB.
- *     description: transfert bnb <br> with access_token.
+ *     summary: transfer BNB.
+ *     description: transfer bnb <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -367,8 +368,8 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: transfert ETHER.
- *     description: transfert ETH <br> with access_token.
+ *     summary: transfer ETHER.
+ *     description: transfer ETH <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -464,7 +465,7 @@ router.post('/payementRequest', verifyAuth, payementRequest)
  *     tags:
  *     - "wallets"
  *     summary: swap satt erc20 to bep20 and the opposite.
- *     description: to swapp satt from bep20 to erc20 you need to use direction="bte", from erc20 to bep20 you need to use direction="etb".
+ *     description: to swap satt from bep20 to erc20 you need to use direction="bte", from erc20 to bep20 you need to use direction="etb".
  *     requestBody:
  *       content:
  *         application/json:
@@ -540,22 +541,6 @@ router.post('/exportETH', verifyAuth, exportEth)
 
 /**
  * @swagger
- * /wallet/prices:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get prices.
- *     description: get prices.
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.get('/prices', prices)
-
-/**
- * @swagger
  * /wallet/getMnemo:
  *   get:
  *     tags:
@@ -626,27 +611,26 @@ router.post('/create', verifyAuth, createNewWallet)
 
 /**
  * @swagger
- * /wallet/remove/token:
- *   post:
+ * /wallet/removeToken/{tokenAddress}:
+ *   delete:
  *     tags:
  *     - "wallets"
  *     summary: remove added token.
- *     description: add custom token add by user.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               tokenAddress:
- *                 type: string
+ *     description: remove custom token added by user.
+ *     parameters:
+ *       - in: path
+ *         name: tokenAddress
+ *         required: true
+ *         description: token address to remove.
  *     responses:
  *       "200":
- *          description: message:removeToken
+ *          description: code,<br>message:"token removed"
+ *       "401":
+ *          description: code,<br>error:"token not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
-router.post('/remove/token', verifyAuth, removeToken)
+router.delete('/removeToken/:tokenAddress', verifyAuth, removeToken)
 
 /**
  * @swagger

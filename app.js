@@ -1,4 +1,4 @@
-(async function () {
+;(async function () {
     try {
         var fs = require('fs')
 
@@ -6,6 +6,7 @@
         var app = express()
         var cors = require('cors')
         require('dotenv').config()
+        const package = require('./package.json')
 
         var bodyParser = require('body-parser')
         app.use(bodyParser.json({ limit: '4mb' }))
@@ -36,7 +37,7 @@
             openapi: '3.0.0',
             info: {
                 title: 'API for node-satt',
-                version: '2.0.1',
+                version: package.version,
                 description:
                     'Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager',
                 customCss: '.swagger-ui .topbar { display: none }',

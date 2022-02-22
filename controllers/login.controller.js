@@ -30,12 +30,10 @@ exports.changePassword = async (req, res) => {
                     'wrong password'
                 )
             } else {
-                await app.db
-                    .sn_user()
-                    .updateOne(
-                        { _id },
-                        { $set: { password: app.synfonyHash(newpass) } }
-                    )
+                await User.updateOne(
+                    { _id },
+                    { $set: { password: app.synfonyHash(newpass) } }
+                )
                 return responseHandler.makeResponseData(
                     res,
                     200,
@@ -173,7 +171,6 @@ exports.confirmCode = async (req, res) => {
         ]
         let user = await User.findOne({ email }, { secureCode: 1 })
 
-        console.log(user)
         if (!user) {
             return responseHandler.makeResponseError(
                 res,

@@ -28,8 +28,9 @@ let app
 const mongoose = require('mongoose')
 let gfsprofilePic
 let gfsUserLegal
+const { mongoConnection } = require('../conf/config1')
 
-const conn = mongoose.createConnection(process.env.MONGOURI)
+const conn = mongoose.createConnection(mongoConnection().mongoURI)
 
 conn.once('open', () => {
     gfsprofilePic = Grid(conn.db, mongoose.mongo)
@@ -47,7 +48,7 @@ const multer = require('multer')
 const { readHTMLFileProfile } = require('../helpers/utils')
 
 const storageUserLegal = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -62,7 +63,7 @@ const storageUserLegal = new GridFsStorage({
 })
 
 const storageProfilePic = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -87,7 +88,7 @@ module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
 exports.account = async (req, res) => {
     try {
         if (req.user) {
-            let { password, ...user } = req.user
+            let { password, ...user } = req.user.toObject()
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 404, 'user not found')
@@ -172,11 +173,11 @@ exports.updateProfile = async (req, res) => {
             { _id: id },
             { $set: profile },
             { new: true }
-        )
+        ).select('-password')
+
         if (updatedProfile.nModified === 0) {
             return makeResponseError(res, 400, 'update failed')
         }
-        delete updatedProfile.password
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
         return makeResponseError(
@@ -376,37 +377,23 @@ exports.UserInterstes = async (req, res) => {
     }
 }
 
-exports.AddIntersts = async (req, res) => {
-    try {
-        let userInterests = req.body
-        userInterests.userId = req.user._id
-
-        let interests = await Interests.create(userInterests)
-        return makeResponseData(res, 201, 'interests added', interests)
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
 exports.UpdateIntersts = async (req, res) => {
     try {
         let id = req.user._id
         let userInterests = req.body.interests
+
         const interests = await Interests.findOneAndUpdate(
             { userId: id },
             { $set: { interests: userInterests } },
             {
                 new: true,
+                upsert: true,
             }
         )
         if (interests.nModified === 0) {
             return makeResponseError(res, 400, 'updated failed')
         }
-        return makeResponseData(res, 201, 'interests updated', interests)
+        return makeResponseData(res, 201, 'success', interests)
     } catch (err) {
         return makeResponseError(
             res,
