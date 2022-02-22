@@ -1,6 +1,21 @@
+const CampaignLink = require('../model/campaignLink.model')
+
 module.exports = async function (app) {
     var fs = require('fs')
     var child = require('child_process')
+    const {
+        Notification,
+        Wallet,
+        CustomToken,
+        User,
+        PassWallet,
+        FbPage,
+        FbProfile,
+        Request,
+        GoogleProfile,
+        TwitterProfile,
+        LinkedinProfile,
+    } = require('../model/index')
 
     var ContractToken = {}
     ContractToken.isDeplyed = false
@@ -68,10 +83,8 @@ module.exports = async function (app) {
 
                 break
             case '3':
-                var campaign_link = await app.db
-                    .campaign_link()
-                    .findOne({ idPost })
-                var userWallet = await app.db.wallet().findOne({
+                var campaign_link = await CampaignLink.findOne({ idPost })
+                var userWallet = await Wallet.findOne({
                     'keystore.address': campaign_link.id_wallet
                         .toLowerCase()
                         .substring(2),
@@ -167,10 +180,7 @@ module.exports = async function (app) {
             app.config.campaignOwnerPass
         )
 
-        var requests = await app.db
-            .request()
-            .find({ new: true, isBounty: false })
-            .toArray()
+        var requests = await Request.find({ new: true, isBounty: false })
         for (var i = 0; i < requests.length; i++) {
             var request = requests[i]
             switch (request.typeSN) {
@@ -200,25 +210,21 @@ module.exports = async function (app) {
                     break
             }
 
-            var prevstat = await app.db
-                .request()
-                .find({
-                    new: false,
-                    typeSN: request.typeSN,
-                    idPost: request.idPost,
-                    idUser: request.idUser,
-                })
-                .sort({ date: -1 })
-                .toArray()
+            var prevstat = await Request.find({
+                new: false,
+                typeSN: request.typeSN,
+                idPost: request.idPost,
+                idUser: request.idUser,
+            }).sort({ date: -1 })
             if (
                 prevstat.length &&
                 (prevstat[0].likes >= res.likes ||
                     prevstat[0].shares >= res.shares ||
                     prevstat[0].views >= res.views)
             ) {
-                await app.db.request().deleteOne({ _id: request.id })
+                await Request.deleteOne({ _id: request.id })
             } else {
-                await app.db.request().updateOne(
+                await Request.updateOne(
                     { _id: request.id },
                     {
                         $set: {
@@ -252,10 +258,7 @@ module.exports = async function (app) {
                 app.config.campaignOwnerPass
             )
 
-            var requests = await app.db
-                .request()
-                .find({ new: true, isBounty: true })
-                .toArray()
+            var requests = await Request.find({ new: true, isBounty: true })
             for (var i = 0; i < requests.length; i++) {
                 var request = requests[i]
 
@@ -264,7 +267,7 @@ module.exports = async function (app) {
                     request.idPost,
                     request.idUser
                 )
-                await app.db.request().updateOne(
+                await Request.updateOne(
                     { _id: request.id },
                     {
                         $set: {
@@ -490,25 +493,25 @@ module.exports = async function (app) {
                 let userId
                 switch (typeSN) {
                     case '1' || '3':
-                        fbProfile = await app.db.fbProfile().findOne({ id: id })
+                        fbProfile = await FbProfile.findOne({ id: id })
                         userId = fbProfile.UserId
                         break
                     case '2':
-                        googleProfile = await app.db
-                            .googleProfile()
-                            .findOne({ google_id: id })
+                        googleProfile = await GoogleProfile.findOne({
+                            google_id: id,
+                        })
                         userId = googleProfile.UserId
                         break
                     case '4':
-                        var twitterProfile = await app.db
-                            .twitterProfile()
-                            .findOne({ twitter_id: id })
+                        var twitterProfile = await TwitterProfile.findOne({
+                            twitter_id: id,
+                        })
                         userId = twitterProfile.UserId
                         break
                     case '5':
-                        var linkedinProfile = await app.db
-                            .linkedinProfile()
-                            .findOne({ linkedinId: id })
+                        var linkedinProfile = await LinkedinProfile.findOne({
+                            linkedinId: id,
+                        })
                         userId = linkedinProfile.userId
                         break
                 }

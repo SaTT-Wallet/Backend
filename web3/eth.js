@@ -25,6 +25,15 @@ module.exports = async function (app) {
 
     var BN = require('bn.js')
 
+    const {
+        Notification,
+        Wallet,
+        CustomToken,
+        User,
+        PassWallet,
+        FbPage,
+    } = require('../model/index')
+
     var PrivateKey = bitcore.PrivateKey
     var seed = await bip39.mnemonicToSeed(app.config.masterSeed)
     var masterSeedEth = EthHdkey.fromMasterSeed(seed.toString('hex'))
@@ -76,7 +85,7 @@ module.exports = async function (app) {
     }
 
     cryptoManager.sendBtc = async function (id, pass, to, amount) {
-        var account = await app.db.wallet().findOne({ UserId: parseInt(id) })
+        var account = await Wallet.findOne({ UserId: parseInt(id) })
 
         var escpass = pass.replace(/'/g, "\\'")
 
@@ -166,20 +175,16 @@ module.exports = async function (app) {
 
     cryptoManager.getReceiveEthWallet = async function (userId) {
         return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
+            var account = await Wallet.findOne({ UserId: parseInt(userId) })
 
             if (!account) reject(false)
             else {
                 var myWallet = masterEth.deriveChild(account.num).getWallet()
                 var addrHd = '0x' + myWallet.getAddress().toString('hex')
-                await app.db
-                    .wallet()
-                    .updateOne(
-                        { UserId: parseInt(userId) },
-                        { $set: { EthHD: addrHd } }
-                    )
+                await Wallet.updateOne(
+                    { UserId: parseInt(userId) },
+                    { $set: { EthHD: addrHd } }
+                )
                 resolve(addrHd)
             }
         })
@@ -187,9 +192,7 @@ module.exports = async function (app) {
 
     cryptoManager.getReceiveBtcWallet = async function (userId) {
         return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
+            var account = await Wallet.findOne({ UserId: parseInt(userId) })
 
             if (!account) reject(false)
             else {
@@ -217,7 +220,7 @@ module.exports = async function (app) {
                     json: true,
                 })
 
-                await app.db.wallet().updateOne(
+                await Wallet.updateOne(
                     { UserId: parseInt(userId) },
                     {
                         $set: {
@@ -235,10 +238,7 @@ module.exports = async function (app) {
 
     cryptoManager.listEthPayers = async function () {
         return new Promise(async (resolve, reject) => {
-            var results = await app.db
-                .wallet()
-                .find({ EthHD: { $exists: true } })
-                .toArray()
+            var results = await Wallet.find({ EthHD: { $exists: true } })
             var res = []
             for (var i = 0; i < results.length; i++) {
                 var bal = await app.web3.eth.getBalance(results[i].EthHD)
@@ -256,10 +256,9 @@ module.exports = async function (app) {
 
     cryptoManager.listBtcPayers = async function () {
         return new Promise(async (resolve, reject) => {
-            var results = await app.db
-                .wallet()
-                .find({ BtcHDSegWitCompat: { $exists: true } })
-                .toArray()
+            var results = await Wallet.find({
+                BtcHDSegWitCompat: { $exists: true },
+            })
             var tempres = []
             var listbtc = []
 
@@ -302,9 +301,7 @@ module.exports = async function (app) {
 
     cryptoManager.receiveEthWallet = async function (userId) {
         return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
+            var account = await Wallet.findOne({ UserId: parseInt(userId) })
 
             var myWallet = masterEth.deriveChild(account.num).getWallet()
             var fromAddr = '0x' + myWallet.getAddress().toString('hex')
@@ -376,9 +373,7 @@ module.exports = async function (app) {
 
     cryptoManager.receiveBtcWallet = async function (userId) {
         return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
+            var account = await Wallet.findOne({ UserId: parseInt(userId) })
             var myWallet = masterBtc.deriveChild(account.num)
 
             var addr = new PrivateKey(myWallet.privateKey.toString('hex'))

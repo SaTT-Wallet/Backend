@@ -1,10 +1,16 @@
 const { number } = require('bitcoinjs-lib/src/script')
 const { ObjectId } = require('bson')
 
-var Campaigns = require('../model/campaigns.model')
-var CampaignLink = require('../model/campaignLink.model')
-var Wallet = require('../model/wallet.model')
-var User = require('../model/user.model')
+const {
+    Notification,
+    Wallet,
+    Campaigns,
+    CampaignLink,
+    User,
+    FbPage,
+    Band,
+    Event,
+} = require('../model/index')
 
 module.exports = async function (app) {
     var fs = require('fs')
@@ -65,13 +71,7 @@ module.exports = async function (app) {
     }
 
     campaignManager.getPromContract = async function (idProm) {
-        var proms = await app.db
-            .event()
-            .find(
-                { prom: idProm },
-                { projection: { contract: true, _id: false } }
-            )
-            .toArray()
+        var proms = await Event.find({ prom: idProm }, { contract: 1, _id: 0 })
         if (proms.length) {
             return campaignManager.getContract(proms[0].contract)
         } else {
@@ -141,20 +141,27 @@ module.exports = async function (app) {
     }
 
     campaignManager.getContractCampaign = async function (token) {
-      if( token.toLowerCase() == app.config.ctrs.token.address.mainnet.toLowerCase() ||
-          token.toLowerCase() == app.config.ctrs.token.address.tetherMainnet.toLowerCase() ||
-          token.toLowerCase() == app.config.ctrs.token.address.daiMainnet.toLowerCase())
-        {
+        if (
+            token.toLowerCase() ==
+                app.config.ctrs.token.address.mainnet.toLowerCase() ||
+            token.toLowerCase() ==
+                app.config.ctrs.token.address.tetherMainnet.toLowerCase() ||
+            token.toLowerCase() ==
+                app.config.ctrs.token.address.daiMainnet.toLowerCase()
+        ) {
             var ctr = app.web3.eth.Contract(
                 app.config.ctrs.campaign.abi,
                 app.config.ctrs.campaign.address.mainnet
             )
             ctr.getGasPrice = app.web3.eth.getGasPrice
-        } 
-      else if( token.toLowerCase() == app.config.ctrs.token.address.testnet.toLowerCase() ||
-               token.toLowerCase() == app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
-               token.toLowerCase() == app.config.ctrs.token.address.daiTesnet.toLowerCase())
-        {
+        } else if (
+            token.toLowerCase() ==
+                app.config.ctrs.token.address.testnet.toLowerCase() ||
+            token.toLowerCase() ==
+                app.config.ctrs.token.address.tetherTesnet.toLowerCase() ||
+            token.toLowerCase() ==
+                app.config.ctrs.token.address.daiTesnet.toLowerCase()
+        ) {
             var ctr = new app.web3.eth.Contract(
                 app.config.ctrs.campaign.abi,
                 app.config.ctrs.campaign.address.testnet
@@ -187,15 +194,6 @@ module.exports = async function (app) {
         return ctr
     }
     campaignManager.isCentral = function (idCampaign) {
-        /*
-			var campaigns = await app.db.campaign().find({id:idCampaign}).toArray();
-
-			if(!campaigns.length) {
-				return true;
-			}
-				else {
-			return campaigns[0].contract == "central";
-		}*/
         return false
     }
 
@@ -1224,10 +1222,9 @@ module.exports = async function (app) {
                     let userById = []
                     for (let i = 0; i < idproms.length; i++) {
                         let prom = await ctr.methods.proms(idproms[i]).call()
-                        let count = await app.db
-                            .ban()
-                            .find({ idProm: idproms[i] })
-                            .count()
+                        let count = await Band.find({
+                            idProm: idproms[i],
+                        }).count()
                         prom.id = idproms[i]
                         prom.pause = count
                         proms.push(prom)
@@ -1237,20 +1234,16 @@ module.exports = async function (app) {
                             )
                     }
 
-                    let wallets = await app.db
-                        .wallet()
-                        .find({ 'keystore.address': { $in: addresses } })
-                        .toArray()
+                    let wallets = await Wallet.find({
+                        'keystore.address': { $in: addresses },
+                    })
                     for (let i = 0; i < wallets.length; i++) {
                         idByAddress['0x' + wallets[i].keystore.address] =
                             'id#' + wallets[i].UserId
                         if (ids.indexOf(wallets[i].UserId) == -1)
                             ids.push(wallets[i].UserId)
                     }
-                    let users = await app.db
-                        .user()
-                        .find({ _id: { $in: ids } })
-                        .toArray()
+                    let users = await User.find({ _id: { $in: ids } })
                     for (let i = 0; i < users.length; i++) {
                         delete users[i].password
                         delete users[i].accessToken
@@ -1283,9 +1276,6 @@ module.exports = async function (app) {
                     let userById = []
 
                     for (let i = 0; i < links.length; i++) {
-                        // let prom = await ctr.methods.proms(idproms[i]).call();
-                        // let count = await app.db.ban().find({idProm:idproms[i]}).count();
-                        // prom.id =links[i];
                         if (addresses.indexOf(links[i].id_wallet) == -1)
                             addresses.push(
                                 links[i].id_wallet.slice(2).toLowerCase()
@@ -1302,17 +1292,13 @@ module.exports = async function (app) {
                         if (ids.indexOf(wallets[i].UserId) == -1)
                             ids.push(wallets[i].UserId)
                     }
-                    let users = await app.db
-                        .user()
-                        .find({ _id: { $in: ids } })
-                        .project({
-                            email: 1,
-                            _id: 1,
-                            picLink: 1,
-                            lastName: 1,
-                            firstName: 1,
-                        })
-                        .toArray()
+                    let users = await User.find({ _id: { $in: ids } }).project({
+                        email: 1,
+                        _id: 1,
+                        picLink: 1,
+                        lastName: 1,
+                        firstName: 1,
+                    })
 
                     for (let i = 0; i < users.length; i++) {
                         userById['id#' + users[i]._id] = users[i]
@@ -1331,58 +1317,6 @@ module.exports = async function (app) {
         })
     }
 
-    campaignManager.campaignsByOwner = async (owner) => {
-        var campaigns = []
-        campaigns = await app.db
-            .campaign()
-            .find({ contract: 'central', owner: owner })
-            .toArray()
-        var campaignsCrm = []
-        var campaignsCrmbyId = []
-        campaignsCrm = await app.db.campaignCrm().find().toArray()
-        for (var i = 0; i < campaignsCrm.length; i++) {
-            if (campaignsCrm[i].hash)
-                campaignsCrmbyId[campaignsCrm[i].hash] = campaignsCrm[i]
-        }
-        for (var i = 0; i < campaigns.length; i++) {
-            if (campaignsCrmbyId[campaigns[i].id]) {
-                campaigns[i].meta = campaignsCrmbyId[campaigns[i].id]
-            }
-
-            campaigns[i].funds = [campaigns[i].token, campaigns[i].amount]
-
-            var ratios = campaigns[i].ratios
-            var res = [
-                {
-                    typeSN: '1',
-                    likeRatio: ratios[0],
-                    shareRatio: ratios[1],
-                    viewRatio: ratios[2],
-                },
-                {
-                    typeSN: '2',
-                    likeRatio: ratios[3],
-                    shareRatio: ratios[4],
-                    viewRatio: ratios[5],
-                },
-                {
-                    typeSN: '3',
-                    likeRatio: ratios[6],
-                    shareRatio: ratios[7],
-                    viewRatio: ratios[8],
-                },
-                {
-                    typeSN: '4',
-                    likeRatio: ratios[9],
-                    shareRatio: ratios[10],
-                    viewRatio: ratios[11],
-                },
-            ]
-            campaigns[i].ratios = res
-        }
-        return campaigns
-    }
-
     campaignManager.getReachLimit = (campaignRatio, oracle) => {
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
         if (ratio) return ratio.reachLimit
@@ -1394,17 +1328,19 @@ module.exports = async function (app) {
                 delete obj.likes,
                 delete obj.shares,
                 delete obj.totalToEarn
-        await app.db
-            .campaign_link()
-            .findOne({ id_prom: obj.id_prom }, async (err, result) => {
+        await CampaignLink.findOne(
+            { id_prom: obj.id_prom },
+            async (err, result) => {
                 if (!result) {
-                    await app.db.campaign_link().insertOne(obj)
+                    await CampaignLink.create(obj)
                 } else {
-                    await app.db
-                        .campaign_link()
-                        .updateOne({ id_prom: obj.id_prom }, { $set: obj })
+                    await CampaignLink.updateOne(
+                        { id_prom: obj.id_prom },
+                        { $set: obj }
+                    )
                 }
-            })
+            }
+        )
     }
 
     campaignManager.campaignStats = async (idCampaign) => {
