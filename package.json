@@ -1,6 +1,6 @@
 {
     "name": "node-satt",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "author": "Atayen, Inc",
     "license": "ISC",
     "description": "Satt NodeJS backend",
