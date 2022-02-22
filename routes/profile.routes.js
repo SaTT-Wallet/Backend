@@ -28,11 +28,9 @@ passport.serializeUser(function (user, cb) {
 })
 
 passport.deserializeUser(async function (id, cb) {
-    var users = await app.db
-        .sn_user()
+    var user = await User
         .find({ _id: Long.fromNumber(id) })
-        .toArray()
-    cb(null, users[0])
+    cb(null, user)
 })
 try {
     router.use(
