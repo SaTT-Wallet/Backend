@@ -34,7 +34,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *     tags:
  *     - "campaign"
  *     summary: bep20 aprroval
- *     description: bep20 aprroval
+ *     description: Approve the smart contract BEP20 to interact with user wallet
  *     requestBody:
  *       required: true
  *       content:
@@ -48,26 +48,9 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,<br> message,<br> data:{token:tokenAddress,allowance:allowance,spender:campaignAddress}
- *          content:
- *             application/json:
- *               schema:
- *                 type: object
- *                 properties:
- *                   token:
- *                     type: string
- *                   allowance:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: string
- *                   spender:
- *                     type: string
- *                 example:
- *                   token: "0x123456...654654"
- *                   allowance:
- *                     amount: "0"
- *                   spender: "0x987654...3221"
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -80,7 +63,7 @@ router.post('/bep20/approval', verifyAuth, bep20Approval)
  *     tags:
  *     - "campaign"
  *     summary: bep20 allow
- *     description: bep20 allow
+ *     description: Allow user wallet to interact the smart contract BEP20
  *     requestBody:
  *       required: true
  *       content:
@@ -98,18 +81,9 @@ router.post('/bep20/approval', verifyAuth, bep20Approval)
  *                 type: string
  *     responses:
  *       "200":
- *          description: code,<br> message,<br> data:{transactionHash:transactionHash,address:address,campaignAddress:campaignAddress}
- *          content:
- *             application/json:
- *               schema:
- *                 type: object
- *                 properties:
- *                   transactionHash:
- *                     type: string
- *                   address:
- *                     type: string
- *                   spender:
- *                     type: string
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -121,7 +95,7 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *     tags:
  *     - "campaign"
  *     summary: erc20 aprroval
- *     description: erc20 aprroval
+ *     description: Approve the smart contract ERC20 to interact with user wallet
  *     requestBody:
  *       required: true
  *       content:
@@ -135,26 +109,9 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *                 type: string
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *             application/json:
- *               schema:
- *                 type: object
- *                 properties:
- *                   token:
- *                     type: string
- *                   allowance:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: string
- *                   spender:
- *                     type: string
- *                 example:
- *                   token: "0x123456...654654"
- *                   allowance:
- *                     amount: "0"
- *                   spender: "0x987654...3221"
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -166,7 +123,7 @@ router.post('/erc20/approval', verifyAuth, erc20Approval)
  *     tags:
  *     - "campaign"
  *     summary: erc20 allow
- *     description: erc20 allow
+ *     description: Allow user wallet to interact the smart contract erc20
  *     requestBody:
  *       content:
  *         application/json:
@@ -183,18 +140,9 @@ router.post('/erc20/approval', verifyAuth, erc20Approval)
  *                 type: string
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema:
- *                type: object
- *                properties:
- *                  name:
- *                    type: string
- *                  message:
- *                    type: string
- *                  expiredAt:
- *                    type: string
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:"error"
  */
@@ -205,8 +153,8 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: transfer erc20.
- *     description: transfert crypto belongs to erc20 network <br> with access_token.
+ *     summary: Launch campaign.
+ *     description: Launch new performance compaign (based of views, likes, shares) <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -253,31 +201,11 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *                         - type: integer
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema:      # Request body contents
- *                type: object
- *                properties:
- *                  transactionHash:
- *                    type: string
- *                  address:
- *                    type: string
- *                  to:
- *                    type: string
- *                  amount:
- *                    type: string
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
- *          description: ERROR
- *          content:
- *            application/json:
- *              schema:
- *                type: object
- *                properties:
- *                  error:
- *                    type: string
- *              example:
- *                error: error
+ *          description: error:"error"
  */
 router.post('/launch/performance', verifyAuth, launchCampaign)
 /**
@@ -286,8 +214,8 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: transfer erc20.
- *     description: transfert crypto belongs to erc20 network <br> with access_token.
+ *     summary: Launch campaign.
+ *     description:  Launch new  bounties compaign (based of followers number) <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -314,34 +242,14 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *                 type: array
  *                 items:
  *                  id:
- *                      type: string  
+ *                      type: string
  *     responses:
  *       "200":
- *          description: err:gas insuffisant,solde insuffisant,Wrong password <br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
- *          content:
- *            application/json:
- *              schema: # Request body contents
- *                type: object
- *                properties:
- *                  transactionHash:
- *                    type: string
- *                  address:
- *                    type: string
- *                  to:
- *                    type: string
- *                  amount:
- *                    type: string
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
- *          description: error:error message
- *          content:
- *            application/json:
- *              schema: # Request body contents
- *                type: object
- *                properties:
- *                  error:
- *                    type: string
- *              example:
- *                error: error
+ *          description: error:"error"
  */
 
 router.post('/launchBounty', verifyAuth, launchBounty)
@@ -351,29 +259,18 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  * /campaign/campaigns:
  *   get:
  *     tags:
- *     - "campaign"
+ *     - "campaign list"
  *     summary: get campaigns list
  *     description: Returns the list of campaigns <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema:
- *                type: array
- *                items:
- *                  type: object
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
- *          description: ERROR
- *          content:
- *            application/json:
- *              schema:
- *                type: object
- *                properties:
- *                  error:
- *                    type: string
+ *          description: error:"error"
  */
 router.get('/campaigns', verifyAuth, campaigns)
 
@@ -382,9 +279,9 @@ router.get('/campaigns', verifyAuth, campaigns)
  * /campaign/details/{id}:
  *   get:
  *     tags:
- *     - "campaign"
+ *     - "campaign details"
  *     summary: get campaign details
- *     description: return to user campaign detalds <br> with access_token
+ *     description: return to user campaign details <br> with access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -394,22 +291,11 @@ router.get('/campaigns', verifyAuth, campaigns)
  *         required: true
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema:      # Request body contents
- *                type: object
- *                $ref: '#/definitions/Campaign'
- *
+ *          description: code,<br>message:"success"
+ *       "404":
+ *          description: error:error message<br>"Campaign  not found"
  *       "500":
- *          description: ERROR
- *          content:
- *            application/json:
- *              schema:
- *                type: object
- *                properties:
- *                  error:
- *                    type: string
+ *          description: error:"error"
  */
 router.get('/details/:id', campaignDetails)
 
@@ -427,18 +313,12 @@ router.get('/details/:id', campaignDetails)
  *       name: id
  *       type: string
  *       description: the campaign id.
- *
  *       required: true
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema:      # Request body contents
- *                type: array
- *                items:
- *                  type: object
- *                  $ref: '#/definitions/Campaign'
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "500":
  *          description: error:"error"
  */
@@ -474,24 +354,9 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
  *                 type: string
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema: # Request body contents
- *                type: object
- *                properties:
- *                  idCampaign:
- *                    type: string
- *                  idPost:
- *                    type: string
- *                  idProm:
- *                    type: string
- *                  isUser:
- *                    type: string
- *                  transactionHash:
- *                    type: string
- *                  typeSN:
- *                    type: number
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "500":
  *          description: error:error message
  */
@@ -516,17 +381,11 @@ router.post('/apply', verifyAuth, apply)
  *                 type: string
  *               link:
  *                 type: string
-
  *     responses:
  *       "200":
- *          description: ok
- *          content:
- *            application/json:
- *              schema: # Response body contents
- *                type: object
- *                properties:
- *                  message:
- *                    type: string
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "500":
  *          description: error:error message
  */
@@ -538,7 +397,7 @@ router.post('/linkNotification', verifyAuth, linkNotifications)
  *     tags:
  *     - "campaign"
  *     summary: validate participation.
- *     description:  admin of campaign can accept  <br> with access_token.
+ *     description:  Campaign admin accept user participation  <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -559,7 +418,9 @@ router.post('/linkNotification', verifyAuth, linkNotifications)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "500":
  *          description: error:error message
  */
@@ -572,7 +433,7 @@ router.post('/validate', verifyAuth, validateCampaign)
  *     tags:
  *     - "campaign"
  *     summary: get gains.
- *     description:  user get his gains  <br> with access_token.
+ *     description:  User recover his gains  <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -587,7 +448,11 @@ router.post('/validate', verifyAuth, validateCampaign)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
+ *       "404":
+ *          description: error:error message<br>"oracle not available"
  *       "500":
  *          description: error:error message
  */
@@ -600,8 +465,8 @@ router.post('/gains', verifyAuth, gains)
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: create new campaign.
- *     description:  user create new campaign  <br> with access_token.
+ *     summary: create new campaign as draft.
+ *     description:  Admin create new campaign draft  <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
@@ -686,7 +551,9 @@ router.post('/gains', verifyAuth, gains)
  *
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
  *       "500":
  *          description: error:error message
  */
@@ -699,8 +566,8 @@ router.post('/save', verifyAuth, saveCampaign)
  *   get:
  *     tags:
  *     - "campaign"
- *     summary: get campaign pending link
- *     description: return to user the list of campaign promp ALl <br> without access_token
+ *     summary: get kits
+ *     description: Get campaign kits <br> without access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -710,7 +577,9 @@ router.post('/save', verifyAuth, saveCampaign)
  *         required: true
  *     responses:
  *       "200":
- *          description: code,<br>message,<br>data[{}]
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: code,<br>error
  */
@@ -723,7 +592,7 @@ router.get('/:idCampaign/kits', verifyAuth, kits)
  *     tags:
  *     - "campaign"
  *     summary: add kits.
- *     description:  user create new campaign  <br> with access_token.
+ *     description:  Upload campaign kits  <br> with access_token.
  *     requestBody:
  *       content:
  *         multipart/form-data:
@@ -739,7 +608,9 @@ router.get('/:idCampaign/kits', verifyAuth, kits)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -751,9 +622,9 @@ router.post('/addKits', verifyAuth, upload, addKits)
  * /campaign/update/{idCampaign}:
  *   put:
  *     tags:
- *     - "campaign"
- *     summary: create new campaign.
- *     description:  user create new campaign  <br> with access_token.
+ *     - "Update campaign"
+ *     summary: Update campaign .
+ *     description: Admin can update campaign  <br> with access_token.
  *     parameters:
  *       - name: idCampaign
  *         description: the  campaign id.
@@ -784,12 +655,12 @@ router.post('/addKits', verifyAuth, upload, addKits)
  *               countries:
  *                 type: array
  *                 items:
- *                   type: object 
+ *                   type: object
  *                   properties:
  *                     item_id:
  *                            type: integer
  *                     item_text:
- *                            type: string   
+ *                            type: string
  *               token:
  *                 type: object
  *                 properties:
@@ -846,10 +717,11 @@ router.post('/addKits', verifyAuth, upload, addKits)
  *                         - type: string
  *                         - type: integer
  *                         - type: string
-
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -872,7 +744,7 @@ router.put('/update/:idCampaign', verifyAuth, update)
  *         required: true
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
  *       "500":
  *          description: error:error message
  */
@@ -886,7 +758,7 @@ router.get('/prom/stats/:idProm', linkStats)
  *     tags:
  *     - "campaign"
  *     summary: Increase budget.
- *     description: parametres acceptées :body{campaign} , headers{headers}.
+ *     description: Increase campaign budget.
  *     parameters:
  *       - name: amount
  *         description: amount of campaign.
@@ -895,8 +767,12 @@ router.get('/prom/stats/:idProm', linkStats)
  *       - name: hash
  *         description: campaign id.
  *     responses:
- *        "200":
- *          description: data
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:error message
  */
 router.post('/funding', verifyAuth, increaseBudget)
 
@@ -916,8 +792,12 @@ router.post('/funding', verifyAuth, increaseBudget)
  *         in: path
  *         required: true
  *     responses:
- *        "200":
- *          description: data
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:error message
  */
 router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
 
@@ -941,7 +821,9 @@ router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
  *                 type: string
  *     responses:
  *       "200":
- *          description: err:gransaction has been reverted by the EVM<br> data:{"transactionHash":"hash","address":"your address","to":"reciever address","amount":"amount"}
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
  *          description: error:error message
  */
@@ -979,9 +861,11 @@ router.post('/remaining', verifyAuth, getFunds)
  *                 type: string
  *     responses:
  *       "200":
- *          description: data
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
  *       "500":
- *          description: error:"error"
+ *          description: error:error message
  */
 router.put('/reject/:idLink', verifyAuth, rejectLink)
 
