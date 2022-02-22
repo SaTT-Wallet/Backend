@@ -852,7 +852,6 @@ module.exports.verifyMnemo = async (req, res) => {
     }
 }
 
-
 exports.createNewWallet = async (req, res) => {
     try {
         var id = req.user._id
@@ -894,8 +893,7 @@ module.exports.removeToken = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             let id = req.user._id
-            const tokenAdress = req.body.tokenAddress
-
+            const tokenAdress = req.params.tokenAddress
             let token = await CustomToken.findOne({ tokenAdress })
             if (token) {
                 let splicedArray = token.sn_users.filter((item) => item !== id)
