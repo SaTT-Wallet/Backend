@@ -539,7 +539,6 @@ router.post('/exportBtc', verifyAuth, exportBtc)
  */
 router.post('/exportETH', verifyAuth, exportEth)
 
-
 /**
  * @swagger
  * /wallet/getMnemo:
@@ -612,27 +611,26 @@ router.post('/create', verifyAuth, createNewWallet)
 
 /**
  * @swagger
- * /wallet/remove/token:
- *   post:
+ * /wallet/removeToken/{tokenAddress}:
+ *   delete:
  *     tags:
  *     - "wallets"
  *     summary: remove added token.
  *     description: remove custom token added by user.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               tokenAddress:
- *                 type: string
+ *     parameters:
+ *       - in: path
+ *         name: tokenAddress
+ *         required: true
+ *         description: token address to remove.
  *     responses:
  *       "200":
- *          description: message:token removed
+ *          description: code,<br>message:"token removed"
+ *       "401":
+ *          description: code,<br>error:"token not found"
  *       "500":
- *          description: error:error message
+ *          description: code,<br>error:"error"
  */
-router.post('/remove/token', verifyAuth, removeToken)
+router.delete('/removeToken/:tokenAddress', verifyAuth, removeToken)
 
 /**
  * @swagger

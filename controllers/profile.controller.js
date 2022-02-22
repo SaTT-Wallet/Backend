@@ -88,7 +88,6 @@ exports.account = async (req, res) => {
     try {
         if (req.user) {
             let { password, ...user } = req.user.toObject()
-
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 404, 'user not found')
