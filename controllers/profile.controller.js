@@ -28,8 +28,9 @@ let app
 const mongoose = require('mongoose')
 let gfsprofilePic
 let gfsUserLegal
+const { mongoConnection } = require('../conf/config1')
 
-const conn = mongoose.createConnection(process.env.MONGOURI)
+const conn = mongoose.createConnection(mongoConnection().mongoURI)
 
 conn.once('open', () => {
     gfsprofilePic = Grid(conn.db, mongoose.mongo)
@@ -47,7 +48,7 @@ const multer = require('multer')
 const { readHTMLFileProfile } = require('../helpers/utils')
 
 const storageUserLegal = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -62,7 +63,7 @@ const storageUserLegal = new GridFsStorage({
 })
 
 const storageProfilePic = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
