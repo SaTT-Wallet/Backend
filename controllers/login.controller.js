@@ -171,7 +171,6 @@ exports.confirmCode = async (req, res) => {
         ]
         let user = await User.findOne({ email }, { secureCode: 1 })
 
-        console.log(user)
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
