@@ -1,4 +1,4 @@
-(async function () {
+;(async function () {
     try {
         var fs = require('fs')
 
@@ -6,6 +6,8 @@
         var app = express()
         var cors = require('cors')
         require('dotenv').config()
+
+        console.log(process.env.NODE_ENV)
 
         var bodyParser = require('body-parser')
         app.use(bodyParser.json({ limit: '4mb' }))

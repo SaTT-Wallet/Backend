@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
-const db = mongoose.createConnection(process.env.MONGOURI)
+const { mongoConnection } = require('../conf/config1')
+
+const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const eventSchema = mongoose.Schema(
     {
@@ -9,9 +11,9 @@ const eventSchema = mongoose.Schema(
         date: { type: Number },
         txhash: { type: String },
         contract: { type: String },
-        owner: { type: String }
+        owner: { type: String },
     },
-    { timestamps: true, strict: false,  collection: 'event'}
+    { timestamps: true, strict: false, collection: 'event' }
 )
 
 const Event = db.model('event', eventSchema)

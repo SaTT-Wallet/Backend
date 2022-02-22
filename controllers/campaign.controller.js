@@ -27,9 +27,10 @@ var User = require('../model/user.model')
 const { responseHandler } = require('../helpers/response-handler')
 
 const { v4: uuidv4 } = require('uuid')
+const { mongoConnection } = require('../conf/config1')
 
 const storage = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -50,7 +51,7 @@ let app
 })()
 
 const storageImage = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -65,7 +66,7 @@ const storageImage = new GridFsStorage({
 })
 
 const storageCampaignLogo = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -114,7 +115,7 @@ let initStat = () => {
 }
 
 var BN = require('bn.js')
-const conn = mongoose.createConnection(process.env.MONGOURI)
+const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfs
 let gfsKit
 let gfsLogo

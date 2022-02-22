@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
-const db = mongoose.createConnection(process.env.MONGOURI)
+const { mongoConnection } = require('../conf/config1')
+
+const db = mongoose.createConnection(mongoConnection().mongoURI)
 const userArchivedSchema = mongoose.Schema(
     {
         _id: { type: Number },

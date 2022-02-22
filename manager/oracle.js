@@ -1,5 +1,3 @@
-const CampaignLink = require('../model/campaignLink.model')
-
 module.exports = async function (app) {
     var request = require('request')
     var rp = require('request-promise')
