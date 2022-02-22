@@ -23,15 +23,14 @@ router.use(passport.initialize())
 
 var Long = require('mongodb').Long
 
+const { User } = require('../model/index')
+
 passport.serializeUser(function (user, cb) {
     cb(null, user)
 })
 
 passport.deserializeUser(async function (id, cb) {
-    var users = await app.db
-        .sn_user()
-        .find({ _id: Long.fromNumber(id) })
-        .toArray()
+    var users = await User.find({ _id: Long.fromNumber(id) })
     cb(null, users[0])
 })
 try {

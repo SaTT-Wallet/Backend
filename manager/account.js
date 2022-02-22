@@ -15,16 +15,15 @@ module.exports = async function (app) {
     const bad_login_limit = app.config.bad_login_limit
     const { createLogger, format, transports } = require('winston')
     const { responseHandler } = require('../helpers/response-handler')
-    var FbPage =require('../model/fbPage.model')
 
     const {
         Notification,
         Wallet,
         CustomToken,
         User,
+        PassWallet,
+        FbPage,
     } = require('../model/index')
-
-    var PassWallet = require('../model/passwallet.model')
 
     var accountManager = {}
 
@@ -110,11 +109,10 @@ module.exports = async function (app) {
     accountManager.recover = async function (userId, wordlist, oldpass, pass) {
         return new Promise(async (resolve, reject) => {
             try {
-                var account = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .sort({ _id: 1 })
-                    .toArray()
+                var account = await Wallets.find({
+                    UserId: parseInt(userId),
+                }).sort({ _id: 1 })
+
                 account = account[0]
                 app.web3.eth.accounts.wallet.decrypt(
                     [account.keystore],
@@ -196,7 +194,7 @@ module.exports = async function (app) {
             }
             var count = await accountManager.getCount()
 
-            var result = await Wallet.updateOne(
+            var result = await Wallets.updateOne(
                 { UserId: parseInt(userId) },
                 {
                     $set: {
@@ -213,11 +211,9 @@ module.exports = async function (app) {
     accountManager.printSeed = async function (userId, pass) {
         return new Promise(async (resolve, reject) => {
             try {
-                var account = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .sort({ _id: 1 })
-                    .toArray()
+                var account = await Wallets.find({
+                    UserId: parseInt(userId),
+                }).sort({ _id: 1 })
                 account = account[0]
 
                 app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -272,12 +268,10 @@ module.exports = async function (app) {
                         ek: ek,
                     }
 
-                    var result = await app.db
-                        .wallet()
-                        .updateOne(
-                            { UserId: parseInt(userId) },
-                            { $set: { btc: btcWallet } }
-                        )
+                    var result = await Wallets.updateOne(
+                        { UserId: parseInt(userId) },
+                        { $set: { btc: btcWallet } }
+                    )
                 }
 
                 if (account.mnemo) resolve(account.mnemo.split(' '))
@@ -295,11 +289,9 @@ module.exports = async function (app) {
     accountManager.recoverBtc = async function (userId, pass) {
         return new Promise(async (resolve, reject) => {
             try {
-                var account = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .sort({ _id: 1 })
-                    .toArray()
+                var account = await Wallets.find({
+                    UserId: parseInt(userId),
+                }).sort({ _id: 1 })
                 account = account[0]
 
                 app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -355,12 +347,10 @@ module.exports = async function (app) {
                         ek: ek,
                     }
 
-                    var result = await app.db
-                        .wallet()
-                        .updateOne(
-                            { UserId: parseInt(userId) },
-                            { $set: { btc: btcWallet } }
-                        )
+                    var result = await Wallets.updateOne(
+                        { UserId: parseInt(userId) },
+                        { $set: { btc: btcWallet } }
+                    )
                 }
 
                 if (address) resolve(address)
@@ -380,7 +370,7 @@ module.exports = async function (app) {
             let id = req.user._id
             let pass = req.body.pass
 
-            let account = await Wallet.findOne({ UserId: parseInt(id) })
+            let account = await Wallets.findOne({ UserId: parseInt(id) })
 
             app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -399,8 +389,7 @@ module.exports = async function (app) {
     accountManager.unlockBSC = async function (req, res) {
         let UserId = req.user._id
         let pass = req.body.pass
-        console.log(UserId)
-        let account = await Wallet.findOne({ UserId })
+        let account = await Wallets.findOne({ UserId })
         try {
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
             return { address: '0x' + account.keystore.address }
@@ -490,7 +479,7 @@ module.exports = async function (app) {
     accountManager.hasAccount = async (req, res) => {
         let userId = req.user._id
 
-        let account = await Wallet.findOne({ UserId: parseInt(userId) })
+        let account = await Wallets.findOne({ UserId: parseInt(userId) })
 
         return account && !account.unclaimed
     }
@@ -498,7 +487,7 @@ module.exports = async function (app) {
     accountManager.getAccount = async function (req, res) {
         let userId = req.user._id
 
-        let account = await Wallet.findOne({ UserId: parseInt(userId) })
+        let account = await Wallets.findOne({ UserId: parseInt(userId) })
 
         if (account) {
             var address = '0x' + account.keystore.address
@@ -554,82 +543,9 @@ module.exports = async function (app) {
         }
     }
 
-    accountManager.createAccount = async function (userId, pass) {
-        return new Promise(async (resolve, reject) => {
-            if (!pass) {
-                defaultpass = app.web3.utils.randomHex(6)
-            } else {
-                defaultpass = pass
-            }
-
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
-            if (account && account.unclaimed) {
-                var oldpass = await app.db
-                    .passwallet()
-                    .findOne({ UserId: parseInt(userId) })
-                var newAccount = app.web3.eth.accounts
-                    .decrypt(account.keystore, oldpass.value)
-                    .encrypt(defaultpass)
-                var update = { keystore: newAccount, unclaimed: false }
-                if (account.btc) {
-                    var escpassold = oldpass.value.replace(/'/g, "\\'")
-                    var escpass = defaultpass.replace(/'/g, "\\'")
-                    var ek = account.btc.ek
-                    var addr = account.btc.address
-                    var priv = child
-                        .execSync(
-                            app.config.bxCommand +
-                                " ek-to-ec '" +
-                                escpassold +
-                                "' " +
-                                ek,
-                            app.config.proc_opts
-                        )
-                        .toString()
-                        .replace('\n', '')
-                    var new_ek = child
-                        .execSync(
-                            app.config.bxCommand +
-                                " ec-to-ek '" +
-                                escpass +
-                                "' " +
-                                priv,
-                            app.config.proc_opts
-                        )
-                        .toString()
-                        .replace('\n', '')
-                    update.btc = { ek: new_ek }
-                }
-
-                var result = await app.db
-                    .wallet()
-                    .updateOne({ UserId: parseInt(userId) }, { $set: update })
-                resolve({ result: 'OK' })
-            } else {
-                account = app.web3.eth.accounts.create().encrypt(defaultpass)
-                var btcWallet = accountManager.genBtcWallet(defaultpass)
-                var count = await accountManager.getCount()
-                Wallet.create({
-                    UserId: parseInt(userId),
-                    keystore: account,
-                    num: count,
-                    btc: btcWallet,
-                })
-                resolve({
-                    address: '0x' + account.address,
-                    btcAddress: btcWallet.addressSegWitCompat,
-                })
-            }
-        })
-    }
-
     accountManager.createBtcAccount = async function (userId, pass) {
         return new Promise(async (resolve, reject) => {
-            var account = await app.db
-                .wallet()
-                .findOne({ UserId: parseInt(userId) })
+            var account = await Wallets.findOne({ UserId: parseInt(userId) })
 
             if (account && account.mnemo) {
                 reject({ error: 'Wrong wallet type' })
@@ -641,12 +557,10 @@ module.exports = async function (app) {
 
                 var btcWallet = await accountManager.genBtcWallet(pass)
 
-                var result = await app.db
-                    .wallet()
-                    .updateOne(
-                        { UserId: parseInt(userId) },
-                        { $set: { btc: btcWallet } }
-                    )
+                var result = await Wallets.updateOne(
+                    { UserId: parseInt(userId) },
+                    { $set: { btc: btcWallet } }
+                )
                 resolve({ result: 'OK' })
             } catch (e) {
                 reject({ error: 'Wrong password' })
@@ -657,9 +571,9 @@ module.exports = async function (app) {
     accountManager.changePass = async function (userId, oldPass, newPass) {
         return new Promise(async (resolve, reject) => {
             try {
-                var account = await app.db
-                    .wallet()
-                    .findOne({ UserId: parseInt(userId) })
+                var account = await Wallets.findOne({
+                    UserId: parseInt(userId),
+                })
                 var newAccount = app.web3.eth.accounts
                     .decrypt(account.keystore, oldPass)
                     .encrypt(newPass)
@@ -702,9 +616,10 @@ module.exports = async function (app) {
                 update['btc.ek'] = new_ek
             }
 
-            var result = await app.db
-                .wallet()
-                .updateOne({ UserId: parseInt(userId) }, { $set: update })
+            var result = await Wallet.updateOne(
+                { UserId: parseInt(userId) },
+                { $set: update }
+            )
             resolve({ changed: true })
         })
     }
@@ -765,13 +680,9 @@ module.exports = async function (app) {
 
     accountManager.getAddrByUid = async function (userId) {
         return new Promise(async (resolve, reject) => {
-            var count = await app.db
-                .wallet()
-                .count({ UserId: parseInt(userId) })
+            var count = await Wallet.count({ UserId: parseInt(userId) })
             if (count) {
-                var account = await app.db
-                    .wallet()
-                    .findOne({ UserId: parseInt(userId) })
+                var account = await Wallet.findOne({ UserId: parseInt(userId) })
                 resolve('0x' + account.keystore.address)
             } else {
                 var pass = app.web3.utils.randomHex(6)
@@ -796,10 +707,7 @@ module.exports = async function (app) {
     accountManager.create2FA = async function (userId) {
         return new Promise(async (resolve, reject) => {
             try {
-                var res = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .toArray()
+                var res = await Wallet.find({ UserId: parseInt(userId) })
                 if (res[0].G2FA) {
                     reject({ message: '2FA already set' })
                 }
@@ -807,12 +715,10 @@ module.exports = async function (app) {
                     length: 20,
                     name: 'satt.atayen.us',
                 })
-                await app.db
-                    .wallet()
-                    .updateOne(
-                        { UserId: parseInt(userId) },
-                        { $set: { G2FA: secret.base32 } }
-                    )
+                await Wallet.updateOne(
+                    { UserId: parseInt(userId) },
+                    { $set: { G2FA: secret.base32 } }
+                )
 
                 QRCode.toDataURL(secret.otpauth_url, function (err, data_url) {
                     resolve(data_url)
@@ -826,10 +732,7 @@ module.exports = async function (app) {
     accountManager.verify2FA = async function (userId, code) {
         return new Promise(async (resolve, reject) => {
             try {
-                var res = await app.db
-                    .wallet()
-                    .find({ UserId: parseInt(userId) })
-                    .toArray()
+                var res = await Wallet.find({ UserId: parseInt(userId) })
                 if (!res[0].G2FA) {
                     reject({ message: '2FA not set' })
                 }
@@ -847,9 +750,7 @@ module.exports = async function (app) {
     accountManager.getWalletBydIdUser = async function (userId) {
         return new Promise(async (resolve, reject) => {
             try {
-                var res = await app.db
-                    .wallet()
-                    .findOne({ UserId: parseInt(userId) })
+                var res = await Wallet.findOne({ UserId: parseInt(userId) })
                 var wallet = '0x' + res.keystore.address
                 resolve(wallet)
             } catch (e) {
@@ -1086,22 +987,6 @@ module.exports = async function (app) {
         }
     }
 
-    accountManager.handleId = async function () {
-        var Collection = await app.db.UsersId().findOne()
-
-        var id = Collection.UserId
-
-        var UpdateCollection = await app.db
-            .UsersId()
-            .replaceOne({ UserId: id }, { UserId: id + 1 })
-        let userId = UpdateCollection.ops[0].UserId
-        if (UpdateCollection.result.nModified) {
-            return userId
-        } else {
-            return 'error'
-        }
-    }
-
     accountManager.notificationManager = async (id, NotifType, label) => {
         let notification = {
             idNode: '0' + id,
@@ -1257,12 +1142,11 @@ module.exports = async function (app) {
                             var resMedia = await rp({ uri: media, json: true })
                             page.instagram_username = resMedia.username
                         }
-                        await FbPage
-                            .updateOne(
-                                { id: res.data[i].id, UserId },
-                                { $set: page },
-                                { upsert: true }
-                            )
+                        await FbPage.updateOne(
+                            { id: res.data[i].id, UserId },
+                            { $set: page },
+                            { upsert: true }
+                        )
                     }
                     if (!res.paging || !res.paging.next) {
                         break
