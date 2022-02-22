@@ -1419,6 +1419,17 @@ module.exports = async function (app) {
         ]
         config.persmissionsObjFb = { scope: ['public_profile', 'email'] }
 
+
+      
+        config.erc20TokenCampaigns=[
+            app.config.ctrs.token.address.testnet.toLowerCase(),
+            app.config.ctrs.token.address.tetherTesnet.toLowerCase(),
+            app.config.ctrs.token.address.daiTesnet.toLowerCase()]
+
+        config.bep20TokenCampaigns=[
+            app.config.ctrs.bep20.address.testnet.toLowerCase(),
+            app.config.ctrs.bep20.address.busdTesnet.toLowerCase()]
+
         config.paymentRequest = (payment) => {
             return {
                 account_details: {

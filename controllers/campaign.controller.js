@@ -49,45 +49,8 @@ let app
     app = await requirement.connection()
 })()
 
-const storageImage = new GridFsStorage({
-    url: process.env.MONGOURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_cover',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
 
-const storageCampaignLogo = new GridFsStorage({
-    url: process.env.MONGOURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_logo',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-module.exports.uploadImage = multer({
-    storage: storageImage,
-    inMemory: true,
-}).single('file')
 module.exports.upload = multer({ storage }).array('file')
-module.exports.uploadCampaignLogo = multer({
-    storage: storageCampaignLogo,
-    inMemory: true,
-}).single('file')
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -115,16 +78,10 @@ let initStat = () => {
 
 var BN = require('bn.js')
 const conn = mongoose.createConnection(process.env.MONGOURI)
-let gfs
 let gfsKit
-let gfsLogo
 
 conn.once('open', () => {
-    gfs = Grid(conn.db, mongoose.mongo)
-    gfsLogo = Grid(conn.db, mongoose.mongo)
     gfsKit = Grid(conn.db, mongoose.mongo)
-    gfs.collection('campaign_cover')
-    gfsLogo.collection('campaign_logo')
     gfsKit.collection('campaign_kit')
 })
 
@@ -138,7 +95,8 @@ module.exports.launchCampaign = async (req, res) => {
     var contract = req.body.contract
     let id = req.body.idCampaign
     try {
-        var cred = await app.account.unlock(req, res)
+        
+        var cred = await unlock(req, res)
         var ret = await app.campaign.createCampaignAll(
             dataUrl,
             startDate,
