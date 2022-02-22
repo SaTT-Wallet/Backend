@@ -44,7 +44,6 @@ var connection
 ;(connection = async function () {
     app = await require('../conf/config')(app)
     app = await require('../conf/const')(app)
-    app = await require('../db/db')(app)
     app = await requirement.connection()
     app = await require('../web3/provider')(app)
     app = await require('../manager/account')(app)
@@ -532,7 +531,7 @@ exports.linkFacebookAccount = async (
 ) => {
     let state = req.query.state.split('|')
     let user_id = +state[0]
-    let user = await User().findOne({
+    let user = await User.findOne({
         idOnSn: profile._json.token_for_business,
     })
     if (user) {
@@ -541,7 +540,7 @@ exports.linkFacebookAccount = async (
             message: 'account exist',
         })
     } else {
-        await User().updateOne(
+        await User.updateOne(
             { _id: user_id },
             { $set: { idOnSn: profile._json.token_for_business } }
         )
@@ -567,14 +566,14 @@ exports.linkGoogleAccount = async (
 ) => {
     let state = req.query.state.split('|')
     let user_id = +state[0]
-    let userExist = await User().findOne({ idOnSn2: profile.id })
+    let userExist = await User.findOne({ idOnSn2: profile.id })
     if (userExist) {
         return done(null, profile, {
             status: false,
             message: 'account exist',
         })
     } else {
-        await User().updateOne(
+        await User.updateOne(
             { _id: user_id },
             { $set: { idOnSn2: profile.id } }
         )
@@ -607,11 +606,11 @@ exports.connectTelegramAccount = async (req, res) => {
 }
 exports.telegram_connect_function = async (req, profile, cb) => {
     let user_id = +req.params.idUser
-    let user = await User().findOne({ idOnSn3: profile.id })
+    let user = await User.findOne({ idOnSn3: profile.id })
     if (user) {
         return cb(null, profile, { message: 'account exist' })
     } else {
-        await User().updateOne(
+        await User.updateOne(
             { _id: user_id },
             { $set: { idOnSn3: profile.id } }
         )
