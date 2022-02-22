@@ -8,8 +8,10 @@ const Notification = require('../model/notification.model')
 const FbPage = require('../model/fbPage.model')
 const Wallet = require('../model/wallet.model')
 const CustomToken = require('../model/customToken.model')
+const CampaignLink = require('../model/campaignLink.model')
 
 module.exports = {
+    CampaignLink,
     User,
     GoogleProfile,
     FbProfile,

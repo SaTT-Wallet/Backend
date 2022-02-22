@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
-const db = mongoose.createConnection(process.env.MONGOURI)
+const { mongoConnection } = require('../conf/config1')
 
+const db = mongoose.createConnection(mongoConnection().mongoURI)
 const requestSchema = mongoose.Schema(
     {
         id: { type: String },
