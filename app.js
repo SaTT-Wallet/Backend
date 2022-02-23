@@ -28,8 +28,18 @@
         )
 
         httpServer.listen(app.config.listenPort, function () {
-            console.log('io listening on *:' + app.config.listenPort)
+            console.log(
+                `******** ${package.name} ${package.version} Listening on port ${process.env.LISTEN_PORT} ********`
+            )
         })
+        let host
+        if (process.env.NODE_ENV == 'testnet') {
+            host = process.env.BASEURL
+        } else if (process.env.NODE_ENV == 'local') {
+            host = process.env.BASEURLLOCAL
+        } else {
+            host = process.env.BASEURL_MAINNET
+        }
 
         const swaggerJSDoc = require('swagger-jsdoc')
         const swaggerUi = require('swagger-ui-express')
@@ -42,7 +52,7 @@
                     'Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager',
                 customCss: '.swagger-ui .topbar { display: none }',
             },
-            host: 'https://api-preprod2.satt-token.com:3015/',
+            host: host,
             components: {
                 securitySchemes: {
                     bearerAuth: {
