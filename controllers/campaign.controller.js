@@ -56,6 +56,10 @@ const {
     createPerformanceCampaign,
     getAccount,
     lock,
+    unlockBsc,
+    bep20Allow,
+    lockBSC,
+    bep20Approve,
 } = require('../web3/campaigns')
 
 let calcSNStat = (objNw, link) => {
@@ -123,7 +127,7 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
-            lock(req, res, cred)
+            lock(cred)
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -1280,7 +1284,7 @@ exports.bep20Approval = async (req, res) => {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
         let account = await getAccount(req, res)
-        let allowance = await app.bep20.getApproval(
+        let allowance = await bep20Approve(
             tokenAddress,
             account.address,
             campaignAddress
@@ -1330,13 +1334,16 @@ exports.bep20Allow = async (req, res) => {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let bep20TOken = req.body.tokenAddress
-        let cred = await app.account.unlockBSC(req, res)
-        let ret = await app.bep20.approve(
+        var cred = await unlockBsc(req, res)
+        if (!cred) return
+        let ret = await bep20Allow(
             bep20TOken,
-            cred.address,
+            cred,
             campaignAddress,
-            amount
+            amount,
+            res
         )
+        if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1346,7 +1353,7 @@ exports.bep20Allow = async (req, res) => {
             false
         )
     } finally {
-        if (cred) app.account.lockBSC(cred.address)
+        if (cred) lockBSC(cred)
     }
 }
 
