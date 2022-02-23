@@ -1,12 +1,13 @@
 {
     "name": "node-satt",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "author": "Atayen, Inc",
     "license": "ISC",
     "description": "Satt NodeJS backend",
     "main": "app.js",
     "scripts": {
         "test": "mocha --reporter spec --timeout  2000000",
+        "supervisor": "NODE_ENV=local supervisor app.js",
         "prepare": "husky install",
         "newVersion": " node changepackage.js",
         "push": "git checkout developement && git pull && node changepackage.js develop  && git add package.json && git commit -m  NewVersionpackage && git push"
