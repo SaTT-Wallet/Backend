@@ -560,7 +560,6 @@ router.get(
                     '&sn=linkd'
             )
         } catch (err) {
-            app.account.sysLogError(err)
             res.end(
                 '{"error":"' + (err.message ? err.message : err.error) + '"}'
             )
@@ -616,7 +615,6 @@ router.get(
             }
             res.redirect(app.config.basedURl + redirect + '?message=' + message)
         } catch (err) {
-            app.account.sysLogError(err)
             res.end(
                 '{"error":"' + (err.message ? err.message : err.error) + '"}'
             )

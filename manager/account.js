@@ -1175,62 +1175,6 @@ module.exports = async function (app) {
         }
     }
 
-    /*logger object of application logs */
-    accountManager.sysLogger = createLogger({
-        format: format.combine(
-            format.timestamp({
-                format: 'YYYY-MM-DD HH:mm:ss',
-            }),
-            format.printf((info) => `${info.timestamp} ${info.message}`)
-        ),
-        transports: [
-            new transports.File({ filename: '/var/log/node-satt/app.log' }),
-        ],
-    })
-
-    /*logger object of application errors log */
-    accountManager.errorLogger = createLogger({
-        format: format.combine(
-            format.timestamp({
-                format: 'YYYY-MM-DD HH:mm:ss',
-            }),
-            format.printf((info) => `${info.timestamp} ${info.message}`)
-        ),
-        transports: [
-            new transports.File({
-                filename: '/var/log/node-satt/app-error.log',
-            }),
-        ],
-    })
-
-    /*global function to write into "app.log" all application's logs
-			log: dateTime origin FN_name log's_data
-		*/
-    accountManager.sysLog = (source, origin, data /*,level="medium"*/) => {
-        //if(app.config.testnet /*|| level=="highest"*/){
-        accountManager.sysLogger.log('info', ` ${origin} FN_${source} ${data}`)
-        //}
-    }
-
-    /*global function to write into "app-error.log" all application's logs error 
-	   		log: dateTime origin FN_name log's_data
-	   */
-    accountManager.sysLogError = (data) => {
-        //if(app.config.testnet /*|| level=="highest"*/){
-        let error = data.message ? data.message : data.error
-        accountManager.errorLogger.log('error', ` ${error}`)
-        //}
-    }
-
-    accountManager.log = (...arguments) => {
-        let logInfo = arguments
-            .map((element) => {
-                return JSON.stringify(element)
-            })
-            .join(' ')
-        accountManager.sysLogger.log('info', logInfo)
-    }
-
     accountManager.getPrices = () => {
         if (
             app.prices.status &&
