@@ -46,7 +46,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -83,7 +83,7 @@ describe('Wallet Management', () => {
 
             let result = balances.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -108,7 +108,7 @@ describe('Wallet Management', () => {
 
             let result = bep20Price.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -130,7 +130,7 @@ describe('Wallet Management', () => {
 
             let result = details.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -155,7 +155,7 @@ describe('Wallet Management', () => {
 
             let result = erc20Price.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -177,7 +177,7 @@ describe('Wallet Management', () => {
 
             let result = balance.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -199,7 +199,7 @@ describe('Wallet Management', () => {
 
             let result = prices.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -221,7 +221,7 @@ describe('Wallet Management', () => {
 
             let result = mnemo.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -247,7 +247,7 @@ describe('Wallet Management', () => {
 
             let result = transaction.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -290,7 +290,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -326,7 +326,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -359,7 +359,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -395,7 +395,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -429,7 +429,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -463,7 +463,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -497,7 +497,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 })

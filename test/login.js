@@ -11,7 +11,7 @@ let port = process.env.LISTEN_PORT
 
 const baseUrl = `https://localhost:${port}`
 
-describe(' LOgin Management', () => {
+describe('LOgin Management', () => {
     let usernameLogin = process.env.USERNAME_LOGIN
     let passwordLoging = process.env.PASSWORD_LOGIN
 
@@ -46,7 +46,7 @@ describe(' LOgin Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 

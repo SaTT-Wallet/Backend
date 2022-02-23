@@ -80,6 +80,7 @@ const storageProfilePic = new GridFsStorage({
 module.exports.uploadImageProfile = multer({
     storage: storageProfilePic,
 }).single('file')
+
 module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
@@ -245,6 +246,7 @@ exports.addUserLegalProfile = async (req, res) => {
             })
             return makeResponseData(res, 201, 'legal saved')
         }
+        return makeResponseError(res, 404, 'Only images allowed')
     } catch (err) {
         console.log(err)
         return makeResponseError(
@@ -260,29 +262,24 @@ exports.FindUserLegalProfile = async (req, res) => {
         const id = req.user._id
 
         const userLegal = req.params.id
-        gfsUserLegal.files.findOne(
-            { _id: app.ObjectId(userLegal) },
-            (err, file) => {
-                if (!file || file.length === 0) {
-                    return makeResponseError(res, 404, 'No file exists')
+        gfsUserLegal.files.findOne({ _id: userLegal }, (err, file) => {
+            if (!file || file.length === 0) {
+                return makeResponseError(res, 404, 'No file exists')
+            } else {
+                if (file.contentType) {
+                    contentType = file.contentType
                 } else {
-                    if (file.contentType) {
-                        contentType = file.contentType
-                    } else {
-                        contentType = file.mimeType
-                    }
-                    res.writeHead(200, {
-                        'Content-type': contentType,
-                        'Content-Length': file.length,
-                        'Content-Disposition': `attachment; filename=${file.filename}`,
-                    })
-                    const readstream = gfsUserLegal.createReadStream(
-                        file.filename
-                    )
-                    readstream.pipe(res)
+                    contentType = file.mimeType
                 }
+                res.writeHead(200, {
+                    'Content-type': contentType,
+                    'Content-Length': file.length,
+                    'Content-Disposition': `attachment; filename=${file.filename}`,
+                })
+                const readstream = gfsUserLegal.createReadStream(file.filename)
+                readstream.pipe(res)
             }
-        )
+        })
     } catch (err) {
         return makeResponseError(
             res,
@@ -499,13 +496,23 @@ module.exports.requestMoney = async (req, res) => {
 }
 
 exports.support = async (req, res) => {
+    const validateEmail = /^w+([.-]?w+)*@w+([.-]?w+)*(.w{2,3})+$/
+
     try {
-        readHTMLFileProfile(
-            __dirname + '/../public/emailtemplate/contact_support.html',
-            'contact_support',
-            req.body
-        )
-        return makeResponseData(res, 200, 'Email was sent')
+        if (validateEmail.test(req.body.email)) {
+            readHTMLFileProfile(
+                __dirname + '/../public/emailtemplate/contact_support.html',
+                'contact_support',
+                req.body
+            )
+            return makeResponseData(res, 200, 'Email was sent')
+        } else {
+            return makeResponseError(
+                res,
+                400,
+                'please provide a valid email address!'
+            )
+        }
     } catch (err) {
         return makeResponseError(
             res,
@@ -652,6 +659,7 @@ module.exports.changeEmail = async (req, res) => {
             return makeResponseData(res, 200, 'Email was sent to ' + email)
         }
     } catch (error) {
+        console.log(error)
         return makeResponseError(
             res,
             500,
@@ -677,7 +685,7 @@ module.exports.confrimChangeMail = async (req, res) => {
                 { _id: Long.fromNumber(id) },
                 { $set: { email: newEmail } }
             )
-            return makeResponseData(res, 200, 'email changed ')
+            return makeResponseData(res, 200, 'email changed')
         }
     } catch (err) {
         return makeResponseError(
