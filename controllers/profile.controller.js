@@ -17,7 +17,6 @@ const { responseHandler } = require('../helpers/response-handler')
 const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
 
-var ejs = require('ejs')
 const QRCode = require('qrcode')
 var connection
 let app
@@ -260,30 +259,25 @@ exports.FindUserLegalProfile = async (req, res) => {
     try {
         const id = req.user._id
 
-        const userLegal = req.params.id
-        gfsUserLegal.files.findOne(
-            { _id: app.ObjectId(userLegal) },
-            (err, file) => {
-                if (!file || file.length === 0) {
-                    return makeResponseError(res, 404, 'No file exists')
+        const _id = req.params.id
+        gfsUserLegal.files.findOne(_id, (err, file) => {
+            if (!file || file.length === 0) {
+                return makeResponseError(res, 404, 'No file exists')
+            } else {
+                if (file.contentType) {
+                    contentType = file.contentType
                 } else {
-                    if (file.contentType) {
-                        contentType = file.contentType
-                    } else {
-                        contentType = file.mimeType
-                    }
-                    res.writeHead(200, {
-                        'Content-type': contentType,
-                        'Content-Length': file.length,
-                        'Content-Disposition': `attachment; filename=${file.filename}`,
-                    })
-                    const readstream = gfsUserLegal.createReadStream(
-                        file.filename
-                    )
-                    readstream.pipe(res)
+                    contentType = file.mimeType
                 }
+                res.writeHead(200, {
+                    'Content-type': contentType,
+                    'Content-Length': file.length,
+                    'Content-Disposition': `attachment; filename=${file.filename}`,
+                })
+                const readstream = gfsUserLegal.createReadStream(file.filename)
+                readstream.pipe(res)
             }
-        )
+        })
     } catch (err) {
         return makeResponseError(
             res,
@@ -517,17 +511,16 @@ exports.support = async (req, res) => {
 }
 
 module.exports.notificationUpdate = async (req, res) => {
-    let id = req.params.id
+    let _id = req.params.id
 
-    if (id === '{id}' || !id) {
-        return makeResponseError(res, 406, 'id field is missing')
+    if (_id === '{_id}' || !_id) {
+        return makeResponseError(res, 406, '_id field is missing')
     }
 
     try {
-        const result = await Notification.updateOne(
-            { _id: mongoose.Types.ObjectId(id) },
-            { $set: { isSeen: true } }
-        )
+        const result = await Notification.updateOne(_id, {
+            $set: { isSeen: true },
+        })
         if (result.nModified === 0) {
             return makeResponseError(res, 400, 'updated failed')
         }

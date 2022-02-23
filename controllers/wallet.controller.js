@@ -1,11 +1,8 @@
-var Wallet = require('../model/wallet.model')
-var User = require('../model/user.model')
-var CustomToken = require('../model/customToken.model')
+const { User, Wallet, CustomToken } = require('../model/index')
 
 const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
-const jwt = require('jsonwebtoken')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -456,7 +453,7 @@ exports.addNewToken = async (req, res) => {
             } else {
                 let id = tokenFounded._id
                 await CustomToken.updateOne(
-                    { _id: app.ObjectId(id) },
+                    { _id: id },
                     { $push: { sn_users: req.user._id } }
                 )
             }
@@ -563,7 +560,6 @@ exports.transfertBNB = async (req, res) => {
                 { projection: { UserId: true } }
             )
             if (wallet) {
-                console.log('wallet', wallet)
                 await app.account.notificationManager(
                     wallet.UserId,
                     'receive_transfer_event',
@@ -677,7 +673,6 @@ exports.getQuote = async (req, res) => {
             )
         }
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -741,7 +736,6 @@ exports.payementRequest = async (req, res) => {
             )
         }
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,

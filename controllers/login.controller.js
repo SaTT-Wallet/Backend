@@ -1,10 +1,7 @@
 var requirement = require('../helpers/utils')
 const qrcode = require('qrcode')
 const speakeasy = require('speakeasy')
-var Captcha = require('../model/captcha.model')
-var User = require('../model/user.model')
-var UserArchived = require('../model/UserArchive.model')
-const jwt = require('jsonwebtoken')
+const { Captcha, UserArchived, User } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
 const { createUser } = require('../middleware/passport.middleware')
@@ -70,11 +67,11 @@ exports.captcha = async (req, res) => {
 
 exports.verifyCaptcha = async (req, res) => {
     try {
-        let id = app.ObjectId(req.body._id)
+        let _id = req.body._id
         let position = +req.body.position
         let captcha = await Captcha.findOne({
             $and: [
-                { _id: id },
+                _id,
                 { position: { $gte: position - 5, $lte: position + 5 } },
             ],
         })
