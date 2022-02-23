@@ -9,6 +9,55 @@ module.exports = async function (app) {
 
         // JSON RPC endpoints for ETH,BNB mainnet or testnet
 
+        if (process.env.NODE_ENV === 'local') {
+            config.mongoBase = process.env.MONGO_BASE_LOCAL
+
+            config.mongoUser = process.env.MONGO_USER_LOCAL
+            config.mongoPass = process.env.MONGO_PASS_LOCAL
+            config.mongoHost = process.env.MONGO_HOST_LOCAL
+            config.mongoPort = process.env.MONGO_PORT_LOCAL
+
+            config.mongoURI =
+                'mongodb://' +
+                config.mongoHost +
+                ':' +
+                config.mongoPort +
+                '/' +
+                config.mongoBase
+        }
+        if (process.env.NODE_ENV === 'testnet') {
+            config.mongoBase = process.env.MONGO_BASE_TESTNET
+
+            config.mongoUser = process.env.MONGO_USER_TESTNET
+            config.mongoPass = process.env.MONGO_PASS_TESTNET
+            config.mongoHost = process.env.MONGO_HOST_TESTNET
+            config.mongoPort = process.env.MONGO_PORT_TESTNET
+
+            config.mongoURI =
+                'mongodb://' +
+                config.mongoHost +
+                ':' +
+                config.mongoPort +
+                '/' +
+                config.mongoBase
+        }
+        if (process.env.NODE_ENV === 'mainnet') {
+            config.mongoBase = process.env.MONGO_BASE_MAINNET
+
+            config.mongoUser = process.env.MONGO_USER_MAINNET
+            config.mongoPass = process.env.MONGO_PASS_MAINNET
+            config.mongoHost = process.env.MONGO_HOST_MAINNET
+            config.mongoPort = process.env.MONGO_PORT_MAINNET
+
+            config.mongoURI =
+                'mongodb://' +
+                config.mongoHost +
+                ':' +
+                config.mongoPort +
+                '/' +
+                config.mongoBase
+        }
+
         config.web3Url = process.env.WEB3_URL
         config.web3UrlInf = process.env.WEB3_URL_INF
         config.web3UrlBep20 = process.env.WEB3_URL_BEP20

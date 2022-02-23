@@ -5,7 +5,6 @@ $(document).ready(() => {
 
     function onSubmit() {
         var url = input.value
-        console.log(url)
         var query
         if (url.indexOf('https://www.facebook.com/') != -1) {
             query = '/facebook?url=' + url

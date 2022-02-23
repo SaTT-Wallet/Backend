@@ -1,5 +1,16 @@
 var requirement = require('./utils')
 
+var Campaigns = require('../model/campaigns.model')
+var CampaignLink = require('../model/campaignLink.model')
+
+var LinkedinProfile = require('../model/linkedinProfile.model')
+
+var Wallet = require('../model/wallet.model')
+var Event = require('../model/event.model')
+var Ban = require('../model/ban.model')
+var Request = require('../model/request.model')
+var User = require('../model/user.model')
+var TwitterProfile = require('../model/twitterProfile.model')
 var connection
 let app
 ;(connection = async () => {
@@ -11,35 +22,31 @@ let app
 	*/
 module.exports.updateStat = async () => {
     let dateNow = new Date()
-    let campaigns = await app.db
-        .campaigns()
-        .find(
-            { hash: { $exists: true } },
-            {
-                fields: {
-                    logo: 0,
-                    resume: 0,
-                    description: 0,
-                    tags: 0,
-                    cover: 0,
-                    coverSrc: 0,
-                    countries: 0,
-                },
-            }
-        )
-        .toArray()
+    let campaigns = await Campaigns.find(
+        { hash: { $exists: true } },
+        {
+            fields: {
+                logo: 0,
+                resume: 0,
+                description: 0,
+                tags: 0,
+                cover: 0,
+                coverSrc: 0,
+                countries: 0,
+            },
+        }
+    )
+
     campaigns.forEach(async (campaign) => {
         campaign &&
-            (await app.db
-                .campaigns()
-                .updateOne(
-                    { _id: ObjectId(campaign._id) },
-                    { $set: { type: app.campaign.campaignStatus(campaign) } }
-                ))
+            (await Campaigns.updateOne(
+                { _id: ObjectId(campaign._id) },
+                { $set: { type: app.campaign.campaignStatus(campaign) } }
+            ))
     })
-    var Events = await app.db.campaign_link().find().toArray()
+    var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
-        let campaign = await app.db.campaigns().findOne(
+        let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
                 fields: {
@@ -65,21 +72,19 @@ module.exports.updateStat = async () => {
         let userWallet =
             event.status &&
             !campaign.isFinished &&
-            (await app.db.wallet().findOne(
+            (await Wallet.findOne(
                 {
                     'keystore.address': event.id_wallet
                         .toLowerCase()
                         .substring(2),
                 },
-                { projection: { UserId: true, _id: false } }
+                { UserId: 1, _id: 0 }
             ))
 
         let linkedinProfile =
             event.typeSN == '5' &&
             event.status &&
-            (await app.db
-                .linkedinProfile()
-                .findOne({ userId: userWallet.UserId }))
+            (await LinkedinProfile.findOne({ userId: userWallet.UserId }))
         let socialOracle =
             event.status &&
             !campaign.isFinished &&
@@ -97,7 +102,6 @@ module.exports.updateStat = async () => {
         let views = (socialOracle && socialOracle.views) || '0'
         event.views = views === 'old' ? event.views : views
         event.media_url = (socialOracle && socialOracle.media_url) || ''
-        // event.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:event.idPost},{$set:{likes:event.likes,shares:event.shares,views:event.views}});
         event.oracle = app.oracle.findBountyOracle(event.typeSN)
         if (campaign && socialOracle) {
             event.abosNumber = await app.oracleManager.answerAbos(
@@ -107,12 +111,10 @@ module.exports.updateStat = async () => {
                 linkedinProfile
             )
             event.oracle === 'twitter' &&
-                (await app.db
-                    .twitterProfile()
-                    .updateOne(
-                        { UserId: userWallet.UserId },
-                        { $set: { subscibers: event.abosNumber } }
-                    ))
+                (await TwitterProfile.updateOne(
+                    { UserId: userWallet.UserId },
+                    { $set: { subscibers: event.abosNumber } }
+                ))
         }
         if (event.abosNumber === 'indisponible') event.status = 'indisponible'
 
@@ -135,13 +137,6 @@ module.exports.updateStat = async () => {
     })
 }
 
-/*
-	@description: Script that loops & calculate users balances
-	@parameter:
-    condition : a condition when you should execute the script it should be ('daily','weekly','monthly')
-	{headers}
-	@Output saving users with updated balances with the according time frame
-	*/
 module.exports.BalanceUsersStats = async (condition) => {
     let today = new Date().toLocaleDateString('en-US')
     let [currentDate, result] = [Math.round(new Date().getTime() / 1000), {}]
@@ -153,35 +148,26 @@ module.exports.BalanceUsersStats = async (condition) => {
     var users_
 
     if (condition === 'daily') {
-        users_ = await app.db
-            .sn_user()
-            .find({
-                $and: [
-                    { userSatt: true },
-                    { 'daily.convertDate': { $nin: [today] } },
-                ],
-            })
-            .toArray()
+        users_ = await User.find({
+            $and: [
+                { userSatt: true },
+                { 'daily.convertDate': { $nin: [today] } },
+            ],
+        })
     } else if (condition === 'weekly') {
-        users_ = await app.db
-            .sn_user()
-            .find({
-                $and: [
-                    { userSatt: true },
-                    { 'weekly.convertDate': { $nin: [today] } },
-                ],
-            })
-            .toArray()
+        users_ = await User.find({
+            $and: [
+                { userSatt: true },
+                { 'weekly.convertDate': { $nin: [today] } },
+            ],
+        })
     } else if (condition === 'monthly') {
-        users_ = await app.db
-            .sn_user()
-            .find({
-                $and: [
-                    { userSatt: true },
-                    { 'monthly.convertDate': { $nin: [today] } },
-                ],
-            })
-            .toArray()
+        users_ = await User.find({
+            $and: [
+                { userSatt: true },
+                { 'monthly.convertDate': { $nin: [today] } },
+            ],
+        })
     }
 
     let [counter, usersCount] = [0, users_.length]
@@ -215,7 +201,7 @@ module.exports.BalanceUsersStats = async (condition) => {
             if (user[condition].length > 7) {
                 user[condition].pop()
             } //balances array should not exceed 7 elements
-            await app.db.sn_user().updateOne({ _id: id }, { $set: user })
+            await User.updateOne({ _id: id }, { $set: user })
             delete result.Balance
             delete id
             counter++
