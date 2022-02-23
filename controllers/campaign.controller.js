@@ -27,9 +27,10 @@ var User = require('../model/user.model')
 const { responseHandler } = require('../helpers/response-handler')
 
 const { v4: uuidv4 } = require('uuid')
+const { mongoConnection } = require('../conf/config1')
 
 const storage = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -50,7 +51,7 @@ let app
 })()
 
 const storageImage = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -65,7 +66,7 @@ const storageImage = new GridFsStorage({
 })
 
 const storageCampaignLogo = new GridFsStorage({
-    url: process.env.MONGOURI,
+    url: mongoConnection().mongoURI,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -114,7 +115,7 @@ let initStat = () => {
 }
 
 var BN = require('bn.js')
-const conn = mongoose.createConnection(process.env.MONGOURI)
+const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfs
 let gfsKit
 let gfsLogo
@@ -580,7 +581,7 @@ exports.apply = async (req, res) => {
             prom.isPayed = false
             prom.appliedDate = date
             prom.oracle = app.oracle.findBountyOracle(prom.typeSN)
-            var insert = await app.db.campaign_link().insertOne(prom)
+            var insert = await CampaignLink.create(prom)
 
             prom.abosNumber = await app.oracleManager.answerAbos(
                 prom.typeSN,
@@ -1417,9 +1418,9 @@ module.exports.linkStats = async (req, res) => {
     try {
         let totalToEarn
         const idProm = req.params.idProm
-        const info = await app.db.campaign_link().findOne({ id_prom: idProm })
+        const info = await CampaignLink.findOne({ id_prom: idProm })
         const payedAmount = info.payedAmount || '0'
-        const campaign = await app.db.campaigns().findOne(
+        const campaign = await Campaigns.findOne(
             { hash: info.id_campaign },
             {
                 fields: {
@@ -1517,19 +1518,18 @@ module.exports.increaseBudget = async (req, response) => {
             const ctr = await app.campaign.getCampaignContract(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
 
-            await app.db
-                .campaigns()
-                .findOne({ hash: idCampaign }, async (err, result) => {
+            await Campaigns.findOne(
+                { hash: idCampaign },
+                async (err, result) => {
                     let budget = new Big(result.cost)
                         .plus(new Big(amount))
                         .toFixed()
-                    await app.db
-                        .campaigns()
-                        .updateOne(
-                            { hash: idCampaign },
-                            { $set: { cost: budget, funds: fundsInfo.funds } }
-                        )
-                })
+                    await Campaigns.updateOne(
+                        { hash: idCampaign },
+                        { $set: { cost: budget, funds: fundsInfo.funds } }
+                    )
+                }
+            )
         }
     }
 }
@@ -1662,10 +1662,8 @@ module.exports.campaignStatistics = async (req, res) => {
             youtube: initStat(),
             linkedin: initStat(),
         }
-        var links = await app.db
-            .campaign_link()
-            .find({ id_campaign: hash })
-            .toArray()
+        var links = await CampaignLink.find({ id_campaign: hash })
+
         for (i = 0; i < links.length; i++) {
             let link = links[i]
             let oracle = link.oracle
@@ -1698,10 +1696,10 @@ module.exports.campaignInvested = async (req, res) => {
         let prices = app.account.getPrices()
         let sattPrice$ = prices.SATT.price
         let totalInvested = '0'
-        let userCampaigns = await app.db
-            .campaigns()
-            .find({ idNode: '0' + req.user._id, hash: { $exists: true } })
-            .toArray()
+        let userCampaigns = await Campaigns.find({
+            idNode: '0' + req.user._id,
+            hash: { $exists: true },
+        })
 
         userCampaigns.forEach((elem) => {
             totalInvested = new Big(totalInvested).plus(new Big(elem.cost))

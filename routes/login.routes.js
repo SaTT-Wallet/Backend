@@ -18,16 +18,14 @@ var FbStrategy = require('passport-facebook').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
 var Long = require('mongodb').Long
+const { User } = require('../model/index')
 
 passport.serializeUser(function (user, cb) {
     cb(null, user)
 })
 
 passport.deserializeUser(async function (id, cb) {
-    var users = await app.db
-        .sn_user()
-        .find({ _id: Long.fromNumber(id) })
-        .toArray()
+    var users = await User.find({ _id: Long.fromNumber(id) })
     cb(null, users[0])
 })
 try {
@@ -59,7 +57,7 @@ const {
     getQrCode,
     verifyQrCode,
     purgeAccount,
-    logout
+    logout,
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -339,7 +337,7 @@ router.post('/passrecover', passRecover)
  *       "500":
  *          description: error=eror
  */
-router.post('/signup/mail', emailSignup )
+router.post('/signup/mail', emailSignup)
 
 /**
  * @swagger
@@ -830,45 +828,44 @@ router.put('/disconnect/:social', verifyAuth, socialdisconnect)
  */
 router.get('/qrCode', verifyAuth, getQrCode)
 
-  /**
-  * @swagger
-  * /auth/verifyQrCode:
-  *   post:
-  *     tags:
-  *     - "auth"
-  *     summary: verify 2fa.
-  *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:      # Request body contents
-  *             type: object
-  *             properties:
-  *               code:
-  *                 type: string
-  *     responses:
-  *       "200":
-  *          description: code,message,data:{ verifiedCode:verified(true/false) }
-  *       "500":
-  *          description: error
-  */
-router.post('/verifyQrCode',verifyAuth,verifyQrCode);
+/**
+ * @swagger
+ * /auth/verifyQrCode:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: verify 2fa.
+ *     description: user enter his code to login , system check if code is valid or not <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               code:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,message,data:{ verifiedCode:verified(true/false) }
+ *       "500":
+ *          description: error
+ */
+router.post('/verifyQrCode', verifyAuth, verifyQrCode)
 
-  /**
-  * @swagger
-  * /auth/logout:
-  *   get:
-  *     tags:
-  *     - "auth"
-  *     summary: logout.
-  *     description: logout.
-  *     responses:
-  *       "200":
-  *          description: code,message
-  *       "500":
-  *          description: error
-  */
-   router.get('/logout',verifyAuth,logout);
-
+/**
+ * @swagger
+ * /auth/logout:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: logout.
+ *     description: logout.
+ *     responses:
+ *       "200":
+ *          description: code,message
+ *       "500":
+ *          description: error
+ */
+router.get('/logout', verifyAuth, logout)
 
 module.exports = router
