@@ -50,45 +50,13 @@ let app
     app = await requirement.connection()
 })()
 
-const storageImage = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_cover',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-const storageCampaignLogo = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_logo',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-module.exports.uploadImage = multer({
-    storage: storageImage,
-    inMemory: true,
-}).single('file')
 module.exports.upload = multer({ storage }).array('file')
-module.exports.uploadCampaignLogo = multer({
-    storage: storageCampaignLogo,
-    inMemory: true,
-}).single('file')
+const {
+    unlock,
+    createPerformanceCampaign,
+    getAccount,
+    lock,
+} = require('../web3/campaigns')
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -116,16 +84,10 @@ let initStat = () => {
 
 var BN = require('bn.js')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
-let gfs
 let gfsKit
-let gfsLogo
 
 conn.once('open', () => {
-    gfs = Grid(conn.db, mongoose.mongo)
-    gfsLogo = Grid(conn.db, mongoose.mongo)
     gfsKit = Grid(conn.db, mongoose.mongo)
-    gfs.collection('campaign_cover')
-    gfsLogo.collection('campaign_logo')
     gfsKit.collection('campaign_kit')
 })
 
@@ -137,29 +99,31 @@ module.exports.launchCampaign = async (req, res) => {
     var amount = req.body.amount
     var ratios = req.body.ratios
     var contract = req.body.contract
-    let id = req.body.idCampaign
+    let _id = req.body.idCampaign
     try {
-        var cred = await app.account.unlock(req, res)
-        var ret = await app.campaign.createCampaignAll(
+        var cred = await unlock(req, res)
+        if (!cred) return
+        var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
             endDate,
             ratios,
             tokenAddress,
             amount,
-            cred
+            cred,
+            res
         )
+        if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
     } finally {
-        cred && app.account.lock(cred.address)
         if (ret?.hash) {
+            lock(req, res, cred)
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -172,10 +136,7 @@ module.exports.launchCampaign = async (req, res) => {
                 walletId: cred.address,
                 type: 'inProgress',
             }
-            await Campaigns.updateOne(
-                { _id: app.ObjectId(id) },
-                { $set: campaign }
-            )
+            await Campaigns.updateOne({ _id }, { $set: campaign })
             let event = {
                 id: ret.hash,
                 type: 'modified',
@@ -1318,7 +1279,7 @@ exports.bep20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await app.account.getAccount(req, res)
+        let account = await getAccount(req, res)
         let allowance = await app.bep20.getApproval(
             tokenAddress,
             account.address,

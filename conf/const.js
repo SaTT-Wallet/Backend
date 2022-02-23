@@ -2044,7 +2044,6 @@ module.exports = async function (app) {
                     },
                 ],
             },
-
             bep20: {
                 address: {
                     mainnet: app.config.bep20Mainnet,

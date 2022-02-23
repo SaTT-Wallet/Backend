@@ -7,7 +7,6 @@
         var cors = require('cors')
         require('dotenv').config()
         const package = require('./package.json')
-
         var bodyParser = require('body-parser')
         app.use(bodyParser.json({ limit: '4mb' }))
         app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))

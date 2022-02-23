@@ -308,10 +308,6 @@ module.exports = async function (app) {
             // var ctr = await campaignManager.getContractToken(token)
             var gasPrice = await ctr.getGasPrice()
             var gas = 600000
-            console.log('gasPrice', gasPrice)
-            console.log('gas', gas)
-
-            //var gas = await ctr.methods.createPriceFundAll(dataUrl,startDate,endDate,ratios,token,amount).estimateGas({from:credentials.address,gasPrice: gasPrice});
             try {
                 var receipt = await ctr.methods
                     .createPriceFundAll(
