@@ -28,56 +28,29 @@ exports.unlock = async (req, res) => {
     }
 }
 
-exports.lock = async (req, res, credentials) => {
-    credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
-    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
-}
-
-exports.createPerformanceCampaign = async (
-    dataUrl,
-    startDate,
-    endDate,
-    ratios,
-    token,
-    amount,
-    credentials,
-    res
-) => {
+exports.unlockBsc = async (req, res) => {
     try {
-        var ctr = await getContractByToken(token, credentials)
-        var gasPrice = await ctr.getGasPrice()
-        var gas = 600000
-        var receipt = await ctr.methods
-            .createPriceFundAll(
-                dataUrl,
-                startDate,
-                endDate,
-                ratios,
-                token,
-                amount
-            )
-            .send({
-                from: credentials.address,
-                gas: gas,
-                gasPrice: gasPrice,
-            })
-
-        receipt.transactionHash &&
-            console.log(
-                'createCampaignAll',
-                credentials.address,
-                `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`
-            )
-        return {
-            hash: receipt.events.CampaignCreated.returnValues.id,
-            transactionHash: receipt.events.CampaignCreated.transactionHash,
-        }
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId })
+        let Web3BEP20 = await bep20Connexion()
+        Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return { address: '0x' + account.keystore.address, Web3BEP20 }
     } catch (err) {
         res.status(500).send({
             code: 500,
             error: err.message ? err.message : err.error,
         })
     }
+}
+
+exports.lock = async (credentials) => {
+    credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
+    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
+}
+
+exports.lockBSC = async (credentials) => {
+    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
 }
 
 exports.getAccount = async (req, res) => {
@@ -141,5 +114,101 @@ exports.getAccount = async (req, res) => {
         return result
     } else {
         return res.status(401).end('Account not found')
+    }
+}
+
+exports.createPerformanceCampaign = async (
+    dataUrl,
+    startDate,
+    endDate,
+    ratios,
+    token,
+    amount,
+    credentials,
+    res
+) => {
+    try {
+        var ctr = await getContractByToken(token, credentials)
+        var gasPrice = await ctr.getGasPrice()
+        var gas = 600000
+        var receipt = await ctr.methods
+            .createPriceFundAll(
+                dataUrl,
+                startDate,
+                endDate,
+                ratios,
+                token,
+                amount
+            )
+            .send({
+                from: credentials.address,
+                gas: gas,
+                gasPrice: gasPrice,
+            })
+
+        receipt.transactionHash &&
+            console.log(
+                'createCampaignAll',
+                credentials.address,
+                `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`
+            )
+        return {
+            hash: receipt.events.CampaignCreated.returnValues.id,
+            transactionHash: receipt.events.CampaignCreated.transactionHash,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
+exports.bep20Allow = async (token, credentials, spender, amount, res) => {
+    console.log('approve', token, credentials.address, spender, amount)
+    try {
+        var contract = new credentials.Web3BEP20.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        var gasPrice = await credentials.Web3BEP20.eth.getGasPrice()
+        var gas = await contract.methods
+            .approve(spender, amount)
+            .estimateGas({ from: credentials.address })
+        var receipt = await contract.methods
+            .approve(spender, amount)
+            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
+            .once('transactionHash', function (transactionHash) {
+                console.log('approve transactionHash', transactionHash)
+            })
+        console.log(
+            receipt.transactionHash,
+            'confirmed approval from',
+            credentials.address,
+            'to',
+            spender
+        )
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
+exports.bep20Approve = async (token, address, spender) => {
+    try {
+        let Web3BEP20 = await bep20Connexion()
+        var contract = new Web3BEP20.eth.Contract(Constants.token.abi, token)
+        var amount = await contract.methods.allowance(address, spender).call()
+        console.log('approval', address, 'for', spender, amount.toString())
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
     }
 }
