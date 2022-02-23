@@ -9,55 +9,6 @@ module.exports = async function (app) {
 
         // JSON RPC endpoints for ETH,BNB mainnet or testnet
 
-        if (process.env.NODE_ENV === 'local') {
-            config.mongoBase = process.env.MONGO_BASE_LOCAL
-
-            config.mongoUser = process.env.MONGO_USER_LOCAL
-            config.mongoPass = process.env.MONGO_PASS_LOCAL
-            config.mongoHost = process.env.MONGO_HOST_LOCAL
-            config.mongoPort = process.env.MONGO_PORT_LOCAL
-
-            config.mongoURI =
-                'mongodb://' +
-                config.mongoHost +
-                ':' +
-                config.mongoPort +
-                '/' +
-                config.mongoBase
-        }
-        if (process.env.NODE_ENV === 'testnet') {
-            config.mongoBase = process.env.MONGO_BASE_TESTNET
-
-            config.mongoUser = process.env.MONGO_USER_TESTNET
-            config.mongoPass = process.env.MONGO_PASS_TESTNET
-            config.mongoHost = process.env.MONGO_HOST_TESTNET
-            config.mongoPort = process.env.MONGO_PORT_TESTNET
-
-            config.mongoURI =
-                'mongodb://' +
-                config.mongoHost +
-                ':' +
-                config.mongoPort +
-                '/' +
-                config.mongoBase
-        }
-        if (process.env.NODE_ENV === 'mainnet') {
-            config.mongoBase = process.env.MONGO_BASE_MAINNET
-
-            config.mongoUser = process.env.MONGO_USER_MAINNET
-            config.mongoPass = process.env.MONGO_PASS_MAINNET
-            config.mongoHost = process.env.MONGO_HOST_MAINNET
-            config.mongoPort = process.env.MONGO_PORT_MAINNET
-
-            config.mongoURI =
-                'mongodb://' +
-                config.mongoHost +
-                ':' +
-                config.mongoPort +
-                '/' +
-                config.mongoBase
-        }
-
         config.web3Url = process.env.WEB3_URL
         config.web3UrlInf = process.env.WEB3_URL_INF
         config.web3UrlBep20 = process.env.WEB3_URL_BEP20
@@ -189,62 +140,6 @@ module.exports = async function (app) {
 
         config.campaignOwner = process.env.CAMPAIGN_OWNER
         config.campaignOwnerPass = process.env.CAMPAIGN_OWNER_PASS
-
-        // Mongo Database connection
-
-        config.mongoBase = process.env.MONGO_BASE
-
-        config.mongoUser = process.env.MONGO_USER
-        config.mongoPass = process.env.MONGO_PASS
-        config.mongoHost = process.env.MONGO_HOST
-        config.mongoPort = process.env.MONGO_PORT
-
-        config.mongoURI =
-            'mongodb://' +
-            config.mongoHost +
-            ':' +
-            config.mongoPort +
-            '/' +
-            config.mongoBase
-
-        // Mongo Database collection names
-
-        config.walletCollection = process.env.WALLETCOLLECTION
-        config.contractCollection = process.env.CONTRACTCOLLECTION
-        config.requestCollection = process.env.REQUESTCOLLECTION
-        config.eventCollection = process.env.EVENTCOLLECTION
-        config.campaignCollection = process.env.COMPAIGNCOLLECTION
-        config.rateCollection = process.env.RATECOLLECTION
-        config.txCollection = process.env.TXCOLLECTION
-        config.passWalletCollection = process.env.PASSWALLETCOLLECTION
-        config.oracleBanCollection = process.env.ORACLEBANCOLLECTION
-        config.applyCollection = process.env.APPLYCOLLECTION
-        config.sattBuyCollection = process.env.SATT_BUY_COLLECTION
-        config.bep20Collection = process.env.BEP20COLLECTION
-
-        config.accessTokenCollection = process.env.ACCESSTOKENCOLLECTION
-        config.campaignsCollection = process.env.CAMPAIGNSCOLLECTION
-        config.captchaCollection = process.env.CAPTCHACOLLECTION
-        config.referalCollection = process.env.REFERALCOLLECTION
-        config.interestCollection = process.env.INTERESTCOLLECTION
-        config.kitCollection = process.env.KITCOLLECTION
-        config.notifCollection = process.env.NOTIFCOLLECTION
-        config.linkStatCollection = process.env.LINKCOLLECTION
-        config.legalCollection = process.env.LEGALCOLLECTION
-        config.userIDCollection = process.env.USERIDCOLLECTION
-        config.contactCollection = process.env.CONTACTCOLLECTION
-        config.linkCollection = process.env.LINKCOLLECTION
-        config.userCollection = process.env.USERCOLLECTION
-        config.userNodeCollection = process.env.USERNODECOLLECTION
-        config.userArchiveCollection = process.env.USERARCHIVECOLLECTION
-        config.customTokenCollection = process.env.CUSTOMTOKENCOLLECTION
-        config.fbProfileCollection = process.env.FBPROFILECOLLECTION
-        config.fbPageCollection = process.env.FBPAGECOLLECTION
-        config.googleProfileCollection = process.env.GOOGLEPROFILECOLLECTION
-        config.twitterProfileCollection = process.env.TWITTERPROFILECOLLECTION
-        config.linkedinProfileCollection = process.env.LINKEDINPROFILECOLLECTION
-        config.paymentCollection = process.env.PAYMENTCOLLECTION
-        config.igMediaCollection = process.env.IGMEDIACOLLECTION
 
         // listen port
 
@@ -1468,16 +1363,14 @@ module.exports = async function (app) {
         ]
         config.persmissionsObjFb = { scope: ['public_profile', 'email'] }
 
+        // config.erc20TokenCampaigns=[
+        //     app.config.ctrs.token.address.testnet.toLowerCase(),
+        //     app.config.ctrs.token.address.tetherTesnet.toLowerCase(),
+        //     app.config.ctrs.token.address.daiTesnet.toLowerCase()]
 
-      
-        config.erc20TokenCampaigns=[
-            app.config.ctrs.token.address.testnet.toLowerCase(),
-            app.config.ctrs.token.address.tetherTesnet.toLowerCase(),
-            app.config.ctrs.token.address.daiTesnet.toLowerCase()]
-
-        config.bep20TokenCampaigns=[
-            app.config.ctrs.bep20.address.testnet.toLowerCase(),
-            app.config.ctrs.bep20.address.busdTesnet.toLowerCase()]
+        // config.bep20TokenCampaigns=[
+        //     app.config.ctrs.bep20.address.testnet.toLowerCase(),
+        //     app.config.ctrs.bep20.address.busdTesnet.toLowerCase()]
 
         config.paymentRequest = (payment) => {
             return {

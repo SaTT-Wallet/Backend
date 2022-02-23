@@ -1,7 +1,12 @@
 var Web3 = require('web3')
+const {
+    Constants,
+    erc20TokenCampaigns,
+    bep20TokenCampaigns,
+    web3UrlBep20,
+    web3Url,
+} = require('./conf/const2')
 
-app = await require('./conf/config')(app)
-app = await require('./conf/const')(app)
 const options = {
     timeout: 30000,
 
@@ -25,9 +30,7 @@ const options = {
 }
 exports.bep20Connexion = async () => {
     try {
-        return new Web3(
-            new Web3.providers.HttpProvider(app.config.web3UrlBep20, options)
-        )
+        return new Web3(new Web3.providers.HttpProvider(web3UrlBep20, options))
     } catch (err) {
         console.log(err.message ? err.message : err.error)
     }
@@ -35,32 +38,32 @@ exports.bep20Connexion = async () => {
 
 exports.erc20Connexion = async () => {
     try {
-        return  new Web3(
-            new Web3.providers.WebsocketProvider(app.config.web3Url, options)
+        return await new Web3(
+            new Web3.providers.WebsocketProvider(web3Url, options)
         )
     } catch (err) {
         console.log(err.message ? err.message : err.error)
     }
 }
 
-exports.getContractByToken = async (token) => {
+exports.getContractByToken = async (token, credentials) => {
     try {
-        let abiCampaign=app.config.ctrs.campaign.abi;
-        if( token.toLowerCase() in app.config.erc20TokenCampaigns){
-          var contract = erc20Connexion.eth.Contract(
-            abiCampaign,
-            app.config.ctrs.campaign.address.erc20
-          )
-          contract.getGasPrice = erc20Connexion.eth.getGasPrice
-        } 
-        else if( token.toLowerCase() in app.config.bep20TokenCampaigns){
-          var contract = new this.erc20Connexion.eth.Contract(
-            abiCampaign,
-            app.config.ctrs.campaign.address.bep20
-          )
-          contract.getGasPrice = erc20Connexion.eth.getGasPrice
+        let abiCampaign = Constants.campaign.abi
+
+        if (erc20TokenCampaigns.includes(token.toLowerCase())) {
+            var contract = credentials.Web3ETH.eth.Contract(
+                abiCampaign,
+                Constants.campaign.address.campaignErc20
+            )
+            contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
+        } else if (bep20TokenCampaigns.includes(token.toLowerCase())) {
+            var contract = new credentials.Web3BEP20.eth.Contract(
+                abiCampaign,
+                Constants.campaign.address.campaignBep20
+            )
+            contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
         }
-      return contract 
+        return contract
     } catch (err) {
         console.log(err.message ? err.message : err.error)
     }
