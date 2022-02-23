@@ -40,7 +40,7 @@ module.exports.updateStat = async () => {
     campaigns.forEach(async (campaign) => {
         campaign &&
             (await Campaigns.updateOne(
-                { _id: ObjectId(campaign._id) },
+                { _id: campaign._id },
                 { $set: { type: app.campaign.campaignStatus(campaign) } }
             ))
     })

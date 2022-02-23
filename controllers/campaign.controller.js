@@ -1,28 +1,23 @@
 var requirement = require('../helpers/utils')
 var readHTMLFileCampaign = requirement.readHTMLFileCampaign
-var ObjectID = require('mongodb').ObjectId
 
-var ObjectId = new ObjectID()
-var fs = require('fs')
 const multer = require('multer')
 const Big = require('big.js')
-var rp = require('request-promise')
 const etherInWei = new Big(1000000000000000000)
-const handlebars = require('handlebars')
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
 var mongoose = require('mongoose')
 
-var Campaigns = require('../model/campaigns.model')
-var CampaignLink = require('../model/campaignLink.model')
-
-var LinkedinProfile = require('../model/linkedinProfile.model')
-
-var Wallet = require('../model/wallet.model')
-var Event = require('../model/event.model')
-var Ban = require('../model/ban.model')
-var Request = require('../model/request.model')
-var User = require('../model/user.model')
+const {
+    Campaigns,
+    CampaignLink,
+    LinkedinProfile,
+    Wallet,
+    Event,
+    Ban,
+    Request,
+    User,
+} = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
 
@@ -155,7 +150,7 @@ module.exports.launchBounty = async (req, res) => {
     var endDate = req.body.endDate
     var tokenAddress = req.body.tokenAddress
     var amount = req.body.amount
-    let [id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
+    let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
     try {
         var cred = await app.account.unlock(req, res)
@@ -171,7 +166,6 @@ module.exports.launchBounty = async (req, res) => {
         )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -193,7 +187,7 @@ module.exports.launchBounty = async (req, res) => {
                 walletId: cred.address,
             }
             await Campaigns.updateOne(
-                { _id: app.ObjectId(id) },
+                _id,
                 { $set: campaign },
                 { $unset: { coverSrc: '', ratios: '' } }
             )
@@ -282,10 +276,10 @@ exports.campaigns = async (req, res) => {
 
 exports.campaignDetails = async (req, res) => {
     try {
-        var idCampaign = req.params.id
+        var _id = req.params.id
 
         var campaign = await Campaigns.findOne({
-            _id: app.ObjectId(idCampaign),
+            _id,
         })
 
         if (campaign) {
@@ -313,9 +307,10 @@ exports.campaignDetails = async (req, res) => {
 }
 
 exports.campaignPromp = async (req, res) => {
+    var _id = req.params.id
     try {
         const campaign = await Campaigns.findOne(
-            { _id: app.ObjectId(req.params.id) },
+            { _id },
             {
                 fields: {
                     logo: 0,
@@ -454,7 +449,6 @@ exports.campaignPromp = async (req, res) => {
         }
     } catch (err) {
         console.log('err', err)
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -571,7 +565,7 @@ exports.apply = async (req, res) => {
             ;(prom.likes = socialOracle.likes),
                 (prom.shares = socialOracle.shares || '0')
             await CampaignLink.updateOne(
-                { _id: app.ObjectId(insert.ops[0]._id) },
+                { _id: insert.ops[0]._id },
                 { $set: prom }
             )
             let event = {
@@ -596,11 +590,11 @@ exports.linkNotifications = async (req, res) => {
     app.i18n.configureTranslation(lang)
 
     try {
-        let campaign_id = req.body.idCampaign
+        let _id = req.body.idCampaign
         let link = req.body.link
         let idProm = req.body.idProm
         await Campaigns.findOne(
-            { _id: app.ObjectId(campaign_id) },
+            _id,
             {
                 fields: {
                     logo: 0,
@@ -652,24 +646,21 @@ exports.linkNotifications = async (req, res) => {
 }
 
 exports.validateCampaign = async (req, res) => {
-    let idCampaign = req.body.idCampaign
+    let _id = req.body.idCampaign
     let linkProm = req.body.link
     let idApply = req.body.idProm
     let idUser = '0' + req.user._id
 
     var id = req.user._id
-    const campaign = await Campaigns.findOne(
-        { _id: app.ObjectId(idCampaign) },
-        {
-            fields: {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-            },
-        }
-    )
+    const campaign = await Campaigns.findOne(_id, {
+        fields: {
+            logo: 0,
+            resume: 0,
+            description: 0,
+            tags: 0,
+            cover: 0,
+        },
+    })
     try {
         if (idUser === campaign.idNode) {
             const lang = 'en'
@@ -963,7 +954,6 @@ exports.gains = async (req, res) => {
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1037,7 +1027,7 @@ exports.kits = async (req, res) => {
     try {
         const idCampaign = req.params.idCampaign
         gfsKit.files
-            .find({ 'campaign.$id': app.ObjectId(idCampaign) })
+            .find({ 'campaign.$id': idCampaign })
             .toArray((err, files) => {
                 return responseHandler.makeResponseData(
                     res,
@@ -1072,7 +1062,7 @@ exports.addKits = async (req, res) => {
                         $set: {
                             campaign: {
                                 $ref: 'campaign',
-                                $id: app.ObjectId(idCampaign),
+                                $id: idCampaign,
                                 $db: 'atayen',
                             },
                         },
@@ -1085,7 +1075,7 @@ exports.addKits = async (req, res) => {
                 gfsKit.files.insertOne({
                     campaign: {
                         $ref: 'campaign',
-                        $id: app.ObjectId(idCampaign),
+                        $id: idCampaign,
                         $db: 'atayen',
                     },
                     link: link,
@@ -1107,7 +1097,7 @@ exports.update = async (req, res) => {
         let campaign = req.body
         campaign.updatedAt = Date.now()
         Campaigns.findOneAndUpdate(
-            { _id: app.ObjectId(req.params.idCampaign) },
+            { _id: req.params.idCampaign },
             { $set: campaign },
             { new: true },
             (err, updatedCampaign) => {
@@ -1120,7 +1110,6 @@ exports.update = async (req, res) => {
             }
         )
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1264,7 +1253,7 @@ exports.getFunds = async (req, res) => {
         cred && app.account.lock(cred.address)
         if (ret && ret.transactionHash) {
             await Campaigns.updateOne(
-                { _id: app.ObjectId(idCampaign) },
+                { _id: idCampaign },
                 {
                     $set: {
                         funds: ['', '0'],
@@ -1684,7 +1673,7 @@ exports.rejectLink = async (req, res) => {
     app.i18n.configureTranslation(lang)
     let idUser = '0' + req.user._id
     const campaign = await Campaigns.findOne(
-        { _id: app.ObjectId(idCampaign) },
+        { _id: idCampaign },
         {
             fields: {
                 logo: 0,
