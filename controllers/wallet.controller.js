@@ -10,6 +10,14 @@ var requirement = require('../helpers/utils')
 var connection
 const { responseHandler } = require('../helpers/response-handler')
 
+const {
+    unlock,
+    exportkeyBtc,
+    exportkey,
+    getAccount,
+    getPrices,
+    getListCryptoByUid,
+} = require('../web3/wallets')
 let app
 ;(connection = async () => {
     app = await requirement.connection()
@@ -17,11 +25,12 @@ let app
 
 exports.exportBtc = async (req, res) => {
     try {
-        console.log(req.user.hasWallet)
         if (req.user.hasWallet == true) {
-            var cred = await app.account.unlock(req, res)
+            var cred = await unlock(req, res)
+            if (!cred) return
 
-            let ret = await app.account.exportkeyBtc(req, res)
+            let ret = await exportkeyBtc(req, res)
+
             return responseHandler.makeResponseData(
                 res.attachment(),
                 200,
@@ -36,18 +45,16 @@ exports.exportBtc = async (req, res) => {
             )
         }
     } catch (err) {
-    } finally {
-        if (cred) app.account.lock(cred.address)
+        console.log(err)
     }
 }
 
 exports.exportEth = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            let id = req.user._id
-            var cred = await app.account.unlock(req, res)
-            console.log('creddddd', cred)
-            let ret = await app.account.exportkey(req, res)
+            var cred = await unlock(req, res)
+            let ret = await exportkey(req, res)
+
             return responseHandler.makeResponseData(
                 res.attachment(),
                 200,
@@ -62,20 +69,14 @@ exports.exportEth = async (req, res) => {
             )
         }
     } catch (err) {
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
-    } finally {
-        if (cred) app.account.lock(cred.address)
+        console.log(err)
     }
 }
 
 exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var ret = await app.account.getAccount(req, res)
+            var ret = await getAccount(req, res)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -96,9 +97,10 @@ exports.mywallet = async (req, res) => {
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            let id = req.user._id
-            let Crypto = app.account.getPrices()
-            const balance = await app.account.getListCryptoByUid(req, res)
+            console.log('start')
+            //let Crypto = getPrices()
+            const balance = await getListCryptoByUid(req, res)
+            console.log(balance)
 
             let listOfCrypto = [...new Set(balance.listOfCrypto)]
 
