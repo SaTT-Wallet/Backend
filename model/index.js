@@ -9,9 +9,11 @@ const FbPage = require('../model/fbPage.model')
 const Wallet = require('../model/wallet.model')
 const CustomToken = require('../model/customToken.model')
 const CampaignLink = require('../model/campaignLink.model')
+const Campaigns = require('../model/campaigns.model')
 
 module.exports = {
     CampaignLink,
+    Campaigns,
     User,
     GoogleProfile,
     FbProfile,
