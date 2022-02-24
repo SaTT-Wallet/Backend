@@ -1702,56 +1702,62 @@ app.post('/v2/profile/update', async function(req, response) {
 		   res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
 		}
 	})
-app.post('/wallet/add/token', async (req, res) =>{
-		try {
-			const token = req.headers["authorization"].split(" ")[1];
-			let auth = await app.crm.auth(token);
-			let customToken = {};
-			let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,+req.body.decimal,req.body.network]
-			
-			let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: [auth.id]} });
-			if(tokenExist){
-				res.send(JSON.stringify({error:"token already added"}));
-				return;
-			}
-			const Fetch_crypto_price = {
-				method: 'GET',
-				uri: xChangePricesUrl,
-				json: true,
-				gzip: true
-			  };
-			  let CryptoPrices = await rp(Fetch_crypto_price);
 
-			let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
-			if(!tokenFounded){
-				customToken = req.body;
-				customToken.sn_users = [auth.id]
+
+	app.post('/wallet/add/token', async (req, res) =>{
+        try {
+            const token = req.headers["authorization"].split(" ")[1];
+            let auth = await app.crm.auth(token);
+            let customToken = {};
+            let [tokenAdress,symbol,decimal,network] = [req.body.tokenAdress,req.body.symbol,+req.body.decimal,req.body.network]
+            
+            let tokenExist =  await app.db.customToken().findOne({tokenAdress,symbol,decimal,network,sn_users:{$in: [auth.id]} });
+            if(tokenExist){
+                res.send(JSON.stringify({error:"token already added"}));
+                return;
+            }
+            const Fetch_crypto_price = {
+                method: 'GET',
+                uri: xChangePricesUrl,
+                json: true,
+                gzip: true
+              };
+              let CryptoPrices = await rp(Fetch_crypto_price);
+
+            let tokenFounded = await app.db.customToken().findOne({tokenAdress,symbol,decimal,network});
+            if(!tokenFounded){
+                customToken.tokenAdress = tokenAdress;
+                customToken.symbol = symbol;
+                customToken.decimal = decimal;
+                customToken.network = network;
+                customToken.tokenName=req.body.tokenName
+                customToken.sn_users = [auth.id]
             if(CryptoPrices.hasOwnProperty(symbol)){
             const cryptoMetaData = {
-				method: 'GET',
-				uri: app.config.cmcUrl + symbol,
-				headers : {
-			     'X-CMC_PRO_API_KEY': app.config.cmcApiKey
-				},
-				json: true,
-				gzip: true
-			  };
-           let metaData = await rp(cryptoMetaData);			
-			customToken.picUrl = metaData.data[customToken.symbol].logo
-			 }
-			await app.db.customToken().insertOne(customToken)
-			res.end(JSON.stringify({message:"token added"}))
-				return;
-			} else {
-				let id = tokenFounded._id
-			//	tokenFounded.sn_users.push(auth.id)
-				await app.db.customToken().updateOne({_id:app.ObjectId(id)},{$push:{sn_users:auth.id}});
-			}
-			res.end(JSON.stringify({message:"token added"}))
-		}catch (err) {
-			res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
-		 }
-	})
+                method: 'GET',
+                uri: app.config.cmcUrl + symbol,
+                headers : {
+                 'X-CMC_PRO_API_KEY': app.config.cmcApiKey
+                },
+                json: true,
+                gzip: true
+              };
+           let metaData = await rp(cryptoMetaData);         
+            customToken.picUrl = metaData.data[customToken.symbol].logo
+             }
+            await app.db.customToken().insertOne(customToken)
+            res.end(JSON.stringify({message:"token added"}))
+                return;
+            } else {
+                let id = tokenFounded._id
+            //  tokenFounded.sn_users.push(auth.id)
+                await app.db.customToken().updateOne({_id:app.ObjectId(id)},{$push:{sn_users:auth.id}});
+            }
+            res.end(JSON.stringify({message:"token added"}))
+        }catch (err) {
+            res.end('{"error":"'+(err.message?err.message:err.error)+'"}');
+         }
+    })
 
 app.post('/wallet/remove/token', async (req, res) =>{
 		try {

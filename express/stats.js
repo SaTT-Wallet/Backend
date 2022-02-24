@@ -1319,43 +1319,52 @@ const Grid = require('gridfs-stream');
 		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
 		 }
 	  })
-
 	  app.get('/campaignsStatistics', async (req, res) => {
-		try{
-		
-			var totalAbos = 0;
-			let totalViews = 0; 
-			let totalPayed = 0;
-			let Crypto =  app.account.getPrices();
-			let SATT=Crypto["SATT"]
-			let nbPools=await app.db.campaigns().find({ hash: { $exists: true} }).count();
-			var links=await app.db.campaign_link().find().toArray();
-			for(i=0;i<links.length;i++){
-				let link=links[i];
-				  if(link.abosNumber && link.abosNumber !== "indisponible")
-					totalAbos+=+link.abosNumber;
-				  if(link.views)
-				  totalViews+=+link.views;
-				  if(link.payedAmount)
-				  totalPayed= new Big(totalPayed).plus(new Big(link.payedAmount)).toFixed();;
-
-			}		
-			let result={
-				marketCap:SATT.market_cap,
-				sattPrice:SATT.price,
-				percentChange:SATT.percent_change_24h,
-				nbPools:nbPools,
-				reach:totalAbos,
-				posts:links.length,
-				views:totalViews,
-				harvested:totalPayed
-				};
-		  res.send(JSON.stringify({result}));
-		} catch (err) {
-		  res.end(JSON.stringify({"error":err.message?err.message:err.error}));
-		 }
-	  })
-
+        try{
+        
+            var totalAbos = 0;
+            let totalViews = 0; 
+            let totalPayed = 0;
+            let tvl=0;
+            let Crypto =  app.account.getPrices();
+            let SATT=Crypto["SATT"]
+            let nbPools=await app.db.campaigns().find({ hash: { $exists: true} }).count();
+            let nbCampaigns=await app.db.campaigns().find({type:"apply"}).toArray();
+            var links=await app.db.campaign_link().find().toArray();
+            for(let i=0;i<links.length;i++){
+                let link=links[i];
+                let campaign=await app.db.campaigns().findOne({hash:link.id_campaign});
+                let tokenName=campaign.token.name;
+                 let decimal=await app.campaign.getDecimal(tokenName);
+                  if(link.abosNumber && link.abosNumber !== "indisponible")
+                    totalAbos+=+link.abosNumber;
+                  if(link.views)
+                  totalViews+=+link.views;
+                  if(link.payedAmount)
+                  totalPayed= new Big(totalPayed).plus(new Big(link.payedAmount).div(new Big(10).pow(decimal))).toFixed();
+            }
+            for(let i=0;i<nbCampaigns.length;i++){
+                let campaign=nbCampaigns[i];
+                let tokenName=campaign.token.name;
+                 let decimal=await app.campaign.getDecimal(tokenName);
+                tvl=new Big(tvl).plus(new Big(campaign.funds[1]).div(new Big(10).pow(decimal))).toFixed();
+            }       
+            let result={
+                marketCap:SATT.market_cap,
+                sattPrice:SATT.price,
+                percentChange:SATT.percent_change_24h,
+                nbPools:nbPools,
+                reach:totalAbos,
+                posts:links.length,
+                views:totalViews,
+                harvested:totalPayed,
+                tvl:tvl
+                };
+          res.send(JSON.stringify({result}));
+        } catch (err) {
+          res.end(JSON.stringify({"error":err.message?err.message:err.error}));
+         }
+      })
 
 return app;
 }
