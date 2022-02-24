@@ -741,7 +741,7 @@ router.get('/legalUserUpload/:id', verifyAuth, FindUserLegalProfile)
 /**
  * @swagger
  * /profile/notification/seen/{id}:
- *   post:
+ *   get:
  *     tags:
  *     - "profile"
  *     summary: update notification status if it's seen or not by user.

@@ -497,7 +497,7 @@ module.exports.requestMoney = async (req, res) => {
 }
 
 exports.support = async (req, res) => {
-    const validateEmail = /^w+([.-]?w+)*@w+([.-]?w+)*(.w{2,3})+$/
+    const validateEmail = /\S+@\S+\.\S+/
 
     try {
         if (validateEmail.test(req.body.email)) {

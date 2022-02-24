@@ -324,7 +324,7 @@ exports.campaignDetails = async (req, res) => {
         var idCampaign = req.params.id
 
         var campaign = await Campaigns.findOne({
-            _id: app.ObjectId(idCampaign),
+            _id: idCampaign,
         })
 
         if (campaign) {
@@ -339,7 +339,7 @@ exports.campaignDetails = async (req, res) => {
             return responseHandler.makeResponseError(
                 res,
                 404,
-                'Campaign  not found'
+                'Campaign not found'
             )
         }
     } catch (err) {
@@ -354,7 +354,7 @@ exports.campaignDetails = async (req, res) => {
 exports.campaignPromp = async (req, res) => {
     try {
         const campaign = await Campaigns.findOne(
-            { _id: app.ObjectId(req.params.id) },
+            { _id: req.params.id },
             {
                 fields: {
                     logo: 0,
@@ -1076,7 +1076,7 @@ exports.kits = async (req, res) => {
     try {
         const idCampaign = req.params.idCampaign
         gfsKit.files
-            .find({ 'campaign.$id': app.ObjectId(idCampaign) })
+            .find({ 'campaign.$id': idCampaign })
             .toArray((err, files) => {
                 return responseHandler.makeResponseData(
                     res,
@@ -1111,7 +1111,7 @@ exports.addKits = async (req, res) => {
                         $set: {
                             campaign: {
                                 $ref: 'campaign',
-                                $id: app.ObjectId(idCampaign),
+                                $id: idCampaign,
                                 $db: 'atayen',
                             },
                         },
@@ -1124,7 +1124,7 @@ exports.addKits = async (req, res) => {
                 gfsKit.files.insertOne({
                     campaign: {
                         $ref: 'campaign',
-                        $id: app.ObjectId(idCampaign),
+                        $id: idCampaign,
                         $db: 'atayen',
                     },
                     link: link,
@@ -1146,7 +1146,7 @@ exports.update = async (req, res) => {
         let campaign = req.body
         campaign.updatedAt = Date.now()
         Campaigns.findOneAndUpdate(
-            { _id: app.ObjectId(req.params.idCampaign) },
+            { _id: req.params.idCampaign },
             { $set: campaign },
             { new: true },
             (err, updatedCampaign) => {
@@ -1172,7 +1172,8 @@ module.exports.linkStats = async (req, res) => {
     try {
         let totalToEarn
         const idProm = req.params.idProm
-        const info = await Campaigns.findOne({ id_prom: idProm })
+
+        const info = await CampaignLink.findOne({ id_prom: idProm })
         const payedAmount = info.payedAmount || '0'
         const campaign = await Campaigns.findOne(
             { hash: info.id_campaign },
@@ -1241,8 +1242,9 @@ module.exports.linkStats = async (req, res) => {
         }
         if (new Big(info.totalToEarn).gt(new Big(campaign.funds[1])))
             info.totalToEarn = campaign.funds[1]
-        res.json({ prom: info })
+        return responseHandler.makeResponseData(res, 200, 'success', info)
     } catch (err) {
+        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1319,16 +1321,21 @@ exports.bep20Approval = async (req, res) => {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
         let account = await app.account.getAccount(req, res)
-        let allowance = await app.bep20.getApproval(
-            tokenAddress,
-            account.address,
-            campaignAddress
-        )
-        return responseHandler.makeResponseData(res, 200, 'success', {
-            token: tokenAddress,
-            allowance: allowance,
-            spender: campaignAddress,
-        })
+
+        if (account) {
+            let allowance = await app.bep20.getApproval(
+                tokenAddress,
+                account.address,
+                campaignAddress
+            )
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                token: tokenAddress,
+                allowance: allowance,
+                spender: campaignAddress,
+            })
+        } else {
+            responseHandler.makeResponseError(res, 404, 'Wallet not found')
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1365,11 +1372,17 @@ exports.erc20Approval = async (req, res) => {
 }
 
 exports.bep20Allow = async (req, res) => {
+    let cred
     try {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let bep20TOken = req.body.tokenAddress
-        let cred = await app.account.unlockBSC(req, res)
+        cred = await app.account.unlockBSC(req, res)
+        console.log('----------', cred)
+        console.log('----------', bep20TOken)
+        console.log('----------', campaignAddress)
+        console.log('----------', amount)
+        console.log('----------', cred.address)
         let ret = await app.bep20.approve(
             bep20TOken,
             cred.address,
@@ -1378,6 +1391,7 @@ exports.bep20Allow = async (req, res) => {
         )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log('-----errrr', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1414,84 +1428,84 @@ exports.erc20Allow = async (req, res) => {
     }
 }
 
-module.exports.linkStats = async (req, res) => {
-    try {
-        let totalToEarn
-        const idProm = req.params.idProm
-        const info = await CampaignLink.findOne({ id_prom: idProm })
-        const payedAmount = info.payedAmount || '0'
-        const campaign = await Campaigns.findOne(
-            { hash: info.id_campaign },
-            {
-                fields: {
-                    logo: 0,
-                    resume: 0,
-                    description: 0,
-                    tags: 0,
-                    cover: 0,
-                },
-            }
-        )
-        const ratio = campaign.ratios
-        const bounties = campaign.bounties
-        let abosNumber = info.abosNumber || 0
-        info.currency = campaign.token.name
-        if (ratio.length) {
-            let socialStats = {
-                likes: info.likes,
-                shares: info.shares,
-                views: info.views,
-            }
-            let reachLimit = app.campaign.getReachLimit(ratio, info.oracle)
-            if (reachLimit)
-                socialStats = app.oracleManager.limitStats(
-                    '',
-                    socialStats,
-                    '',
-                    abosNumber,
-                    reachLimit
-                )
-            ratio.forEach((elem) => {
-                if (elem.oracle === info.oracle) {
-                    let view = new Big(elem['view']).times(
-                        socialStats.views || '0'
-                    )
-                    let like = new Big(elem['like']).times(
-                        socialStats.likes || '0'
-                    )
-                    let share = new Big(elem['share']).times(
-                        socialStats.shares || '0'
-                    )
-                    totalToEarn = view.plus(like).plus(share).toFixed()
-                }
-            })
-            info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount))
-                ? new Big(totalToEarn).minus(new Big(payedAmount))
-                : totalToEarn
-        }
-        if (bounties.length) {
-            bounties.forEach((bounty) => {
-                if (bounty.oracle === info.oracle) {
-                    bounty.categories.forEach((category) => {
-                        if (
-                            +category.minFollowers <= +abosNumber &&
-                            +abosNumber <= +category.maxFollowers
-                        ) {
-                            info.totalToEarn = category.reward
-                        } else if (+abosNumber > +category.maxFollowers) {
-                            info.totalToEarn = category.reward
-                        }
-                    })
-                }
-            })
-        }
-        if (new Big(info.totalToEarn).gt(new Big(campaign.funds[1])))
-            info.totalToEarn = campaign.funds[1]
-        res.json({ prom: info })
-    } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
-    }
-}
+// module.exports.linkStats = async (req, res) => {
+//     try {
+//         let totalToEarn
+//         const idProm = req.params.idProm
+//         const info = await CampaignLink.findOne({ id_prom: idProm })
+//         const payedAmount = info.payedAmount || '0'
+//         const campaign = await Campaigns.findOne(
+//             { hash: info.id_campaign },
+//             {
+//                 fields: {
+//                     logo: 0,
+//                     resume: 0,
+//                     description: 0,
+//                     tags: 0,
+//                     cover: 0,
+//                 },
+//             }
+//         )
+//         const ratio = campaign.ratios
+//         const bounties = campaign.bounties
+//         let abosNumber = info.abosNumber || 0
+//         info.currency = campaign.token.name
+//         if (ratio.length) {
+//             let socialStats = {
+//                 likes: info.likes,
+//                 shares: info.shares,
+//                 views: info.views,
+//             }
+//             let reachLimit = app.campaign.getReachLimit(ratio, info.oracle)
+//             if (reachLimit)
+//                 socialStats = app.oracleManager.limitStats(
+//                     '',
+//                     socialStats,
+//                     '',
+//                     abosNumber,
+//                     reachLimit
+//                 )
+//             ratio.forEach((elem) => {
+//                 if (elem.oracle === info.oracle) {
+//                     let view = new Big(elem['view']).times(
+//                         socialStats.views || '0'
+//                     )
+//                     let like = new Big(elem['like']).times(
+//                         socialStats.likes || '0'
+//                     )
+//                     let share = new Big(elem['share']).times(
+//                         socialStats.shares || '0'
+//                     )
+//                     totalToEarn = view.plus(like).plus(share).toFixed()
+//                 }
+//             })
+//             info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount))
+//                 ? new Big(totalToEarn).minus(new Big(payedAmount))
+//                 : totalToEarn
+//         }
+//         if (bounties.length) {
+//             bounties.forEach((bounty) => {
+//                 if (bounty.oracle === info.oracle) {
+//                     bounty.categories.forEach((category) => {
+//                         if (
+//                             +category.minFollowers <= +abosNumber &&
+//                             +abosNumber <= +category.maxFollowers
+//                         ) {
+//                             info.totalToEarn = category.reward
+//                         } else if (+abosNumber > +category.maxFollowers) {
+//                             info.totalToEarn = category.reward
+//                         }
+//                     })
+//                 }
+//             })
+//         }
+//         if (new Big(info.totalToEarn).gt(new Big(campaign.funds[1])))
+//             info.totalToEarn = campaign.funds[1]
+//         res.json({ prom: info })
+//     } catch (err) {
+//         res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+//     }
+// }
 
 module.exports.increaseBudget = async (req, response) => {
     var pass = req.body.pass

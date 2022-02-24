@@ -26,7 +26,6 @@ describe('Profile Management', () => {
             headers: {
                 'content-type': 'application/json',
             },
-            rejectUnauthorized: false,
         }
         let result
         try {
