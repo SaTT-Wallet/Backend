@@ -9,28 +9,6 @@ const {
 const { Constants } = require('../conf/const2')
 
 // exports.unlock = async (req, res) => {
-//     try {
-//         let UserId = req.user._id
-//         let pass = req.body.pass
-//         let account = await Wallet.findOne({ UserId })
-
-//         let Web3ETH = await erc20Connexion()
-//         let Web3BEP20 = await bep20Connexion()
-//         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
-//         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
-//         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
-//     } catch (err) {
-//         res.status(500).send({
-//             code: 500,
-//             error: err.message ? err.message : err.error,
-//         })
-//     }
-// }
-
-// exports.lock = async (req, res, credentials) => {
-//     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
-//     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
-// }
 
 exports.createPerformanceCampaign = async (
     dataUrl,

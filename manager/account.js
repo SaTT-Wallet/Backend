@@ -734,93 +734,93 @@ module.exports = async function (app) {
         })
     }
 
-    accountManager.getBalanceByUid = async (req, res) => {
-        try {
-            var userId = req.user._id
-            let crypto = app.account.getPrices()
-            var [Total_balance, CryptoPrices] = [0, crypto]
-            var token_info = Object.assign({}, app.config.Tokens)
-            delete token_info['SATT']
-            delete token_info['BNB']
+    // accountManager.getBalanceByUid = async (req, res) => {
+    //     try {
+    //         var userId = req.user._id
+    //         let crypto = app.account.getPrices()
+    //         var [Total_balance, CryptoPrices] = [0, crypto]
+    //         var token_info = Object.assign({}, app.config.Tokens)
+    //         delete token_info['SATT']
+    //         delete token_info['BNB']
 
-            let ret = await accountManager.getAccount(req, res)
-            delete ret.btc
-            delete ret.version
+    //         let ret = await accountManager.getAccount(req, res)
+    //         delete ret.btc
+    //         delete ret.version
 
-            let userTokens = await CustomToken.find({
-                sn_users: { $in: [userId] },
-            })
+    //         let userTokens = await CustomToken.find({
+    //             sn_users: { $in: [userId] },
+    //         })
 
-            if (userTokens.length) {
-                for (let i = 0; i < userTokens.length; i++) {
-                    let symbol = userTokens[i].symbol
-                    if (token_info[symbol])
-                        symbol = `${symbol}_${userTokens[i].network}`
-                    token_info[symbol] = {
-                        dicimal: Number(userTokens[i].decimal),
-                        symbol: userTokens[i].symbol,
-                        network: userTokens[i].network,
-                        contract: userTokens[i].tokenAdress,
-                        name: userTokens[i].tokenName,
-                        picUrl: userTokens[i].picUrl,
-                        addedToken: true,
-                    }
-                }
-            }
+    //         if (userTokens.length) {
+    //             for (let i = 0; i < userTokens.length; i++) {
+    //                 let symbol = userTokens[i].symbol
+    //                 if (token_info[symbol])
+    //                     symbol = `${symbol}_${userTokens[i].network}`
+    //                 token_info[symbol] = {
+    //                     dicimal: Number(userTokens[i].decimal),
+    //                     symbol: userTokens[i].symbol,
+    //                     network: userTokens[i].network,
+    //                     contract: userTokens[i].tokenAdress,
+    //                     name: userTokens[i].tokenName,
+    //                     picUrl: userTokens[i].picUrl,
+    //                     addedToken: true,
+    //                 }
+    //             }
+    //         }
 
-            for (const T_name in token_info) {
-                var network = token_info[T_name].network
-                let networkToken = network == 'ERC20' ? app.erc20 : app.bep20
-                let balance = await networkToken.getBalance(
-                    token_info[T_name].contract,
-                    ret.address
-                )
-                let key = T_name.split('_')[0]
-                if (
-                    token_info[T_name].contract ==
-                        token_info['SATT_BEP20'].contract ||
-                    token_info[T_name].contract == token_info['WSATT'].contract
-                ) {
-                    key = 'SATT'
-                }
-                if (CryptoPrices.hasOwnProperty(key))
-                    Total_balance +=
-                        app.token.filterAmount(
-                            new Big(balance['amount'] * 1)
-                                .div(
-                                    (
-                                        10 ** +token_info[T_name].dicimal
-                                    ).toString()
-                                )
-                                .toNumber() + ''
-                        ) * CryptoPrices[key].price
-            }
+    //         for (const T_name in token_info) {
+    //             var network = token_info[T_name].network
+    //             let networkToken = network == 'ERC20' ? app.erc20 : app.bep20
+    //             let balance = await networkToken.getBalance(
+    //                 token_info[T_name].contract,
+    //                 ret.address
+    //             )
+    //             let key = T_name.split('_')[0]
+    //             if (
+    //                 token_info[T_name].contract ==
+    //                     token_info['SATT_BEP20'].contract ||
+    //                 token_info[T_name].contract == token_info['WSATT'].contract
+    //             ) {
+    //                 key = 'SATT'
+    //             }
+    //             if (CryptoPrices.hasOwnProperty(key))
+    //                 Total_balance +=
+    //                     app.token.filterAmount(
+    //                         new Big(balance['amount'] * 1)
+    //                             .div(
+    //                                 (
+    //                                     10 ** +token_info[T_name].dicimal
+    //                                 ).toString()
+    //                             )
+    //                             .toNumber() + ''
+    //                     ) * CryptoPrices[key].price
+    //         }
 
-            delete ret.address
-            for (const Amount in ret) {
-                let tokenSymbol = Amount.split('_')[0].toUpperCase()
-                tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
-                let decimal = tokenSymbol === 'BTC' ? 8 : 18
-                Total_balance +=
-                    app.token.filterAmount(
-                        new Big(ret[Amount] * 1)
-                            .div(new Big(10).pow(decimal))
-                            .toNumber() + ''
-                    ) * CryptoPrices[tokenSymbol].price
-            }
+    //         delete ret.address
+    //         for (const Amount in ret) {
+    //             let tokenSymbol = Amount.split('_')[0].toUpperCase()
+    //             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
+    //             let decimal = tokenSymbol === 'BTC' ? 8 : 18
+    //             Total_balance +=
+    //                 app.token.filterAmount(
+    //                     new Big(ret[Amount] * 1)
+    //                         .div(new Big(10).pow(decimal))
+    //                         .toNumber() + ''
+    //                 ) * CryptoPrices[tokenSymbol].price
+    //         }
 
-            Total_balance = Total_balance.toFixed(2)
+    //         Total_balance = Total_balance.toFixed(2)
 
-            return { Total_balance }
-        } catch (err) {
-            console.log(err)
-            //    return responseHandler.makeResponseError(
-            // 		 res,
-            // 		 500,
-            // 		 err.message ? err.message : err.error
-            // 		 )
-        }
-    }
+    //         return { Total_balance }
+    //     } catch (err) {
+    //         console.log(err)
+    //         //    return responseHandler.makeResponseError(
+    //         // 		 res,
+    //         // 		 500,
+    //         // 		 err.message ? err.message : err.error
+    //         // 		 )
+    //     }
+    // }
 
     accountManager.notificationManager = async (id, NotifType, label) => {
         let notification = {
@@ -1010,69 +1010,69 @@ module.exports = async function (app) {
         }
     }
 
-    // accountManager.getPrices = () => {
-    //     if (
-    //         app.prices.status &&
-    //         Date.now() - new Date(app.prices.status.timestamp).getTime() <
-    //             1200000
-    //     ) {
-    //         return app.prices.data
-    //     } else {
-    //         var r = child.execSync(
-    //             'curl "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY=' +
-    //                 app.config.cmcApiKey +
-    //                 '"'
-    //         )
-    //         var response = JSON.parse(r)
-    //         var r2 = child.execSync(
-    //             'curl "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY=' +
-    //                 app.config.cmcApiKey +
-    //                 '"'
-    //         )
-    //         var responseSattJet = JSON.parse(r2)
-    //         response.data.push(responseSattJet.data.SATT)
-    //         response.data.push(responseSattJet.data.JET)
+    accountManager.getPrices = () => {
+        if (
+            app.prices.status &&
+            Date.now() - new Date(app.prices.status.timestamp).getTime() <
+                1200000
+        ) {
+            return app.prices.data
+        } else {
+            var r = child.execSync(
+                'curl "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY=' +
+                    app.config.cmcApiKey +
+                    '"'
+            )
+            var response = JSON.parse(r)
+            var r2 = child.execSync(
+                'curl "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY=' +
+                    app.config.cmcApiKey +
+                    '"'
+            )
+            var responseSattJet = JSON.parse(r2)
+            response.data.push(responseSattJet.data.SATT)
+            response.data.push(responseSattJet.data.JET)
 
-    //         var priceMap = response.data.map((elem) => {
-    //             var obj = {}
-    //             obj = {
-    //                 symbol: elem.symbol,
-    //                 name: elem.name,
-    //                 price: elem.quote.USD.price,
-    //                 percent_change_24h: elem.quote.USD.percent_change_24h,
-    //                 market_cap: elem.quote.USD.market_cap,
-    //                 volume_24h: elem.quote.USD.volume_24h,
-    //                 circulating_supply: elem.circulating_supply,
-    //                 total_supply: elem.total_supply,
-    //                 max_supply: elem.max_supply,
-    //                 logo:
-    //                     'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-    //                     elem.id +
-    //                     '.png',
-    //             }
-    //             return obj
-    //         })
-    //         var finalMap = {}
-    //         for (var i = 0; i < priceMap.length; i++) {
-    //             finalMap[priceMap[i].symbol] = priceMap[i]
-    //             delete finalMap[priceMap[i].symbol].symbol
-    //         }
+            var priceMap = response.data.map((elem) => {
+                var obj = {}
+                obj = {
+                    symbol: elem.symbol,
+                    name: elem.name,
+                    price: elem.quote.USD.price,
+                    percent_change_24h: elem.quote.USD.percent_change_24h,
+                    market_cap: elem.quote.USD.market_cap,
+                    volume_24h: elem.quote.USD.volume_24h,
+                    circulating_supply: elem.circulating_supply,
+                    total_supply: elem.total_supply,
+                    max_supply: elem.max_supply,
+                    logo:
+                        'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                        elem.id +
+                        '.png',
+                }
+                return obj
+            })
+            var finalMap = {}
+            for (var i = 0; i < priceMap.length; i++) {
+                finalMap[priceMap[i].symbol] = priceMap[i]
+                delete finalMap[priceMap[i].symbol].symbol
+            }
 
-    //         for (var i = 0; i < app.config.token200.length; i++) {
-    //             var token = app.config.token200[i]
-    //             if (finalMap[token.symbol]) {
-    //                 finalMap[token.symbol].network = token.platform.network
-    //                 finalMap[token.symbol].tokenAddress =
-    //                     token.platform.token_address
-    //                 finalMap[token.symbol].decimals = token.platform.decimals
-    //             }
-    //         }
-    //     }
-    //     response.data = finalMap
-    //     app.prices = response
+            for (var i = 0; i < app.config.token200.length; i++) {
+                var token = app.config.token200[i]
+                if (finalMap[token.symbol]) {
+                    finalMap[token.symbol].network = token.platform.network
+                    finalMap[token.symbol].tokenAddress =
+                        token.platform.token_address
+                    finalMap[token.symbol].decimals = token.platform.decimals
+                }
+            }
+        }
+        response.data = finalMap
+        app.prices = response
 
-    //     return finalMap
-    // }
+        return finalMap
+    }
 
     app.account = accountManager
     return app
