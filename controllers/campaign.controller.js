@@ -151,6 +151,7 @@ module.exports.launchCampaign = async (req, res) => {
         )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err)
         app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
@@ -639,7 +640,7 @@ exports.linkNotifications = async (req, res) => {
         let link = req.body.link
         let idProm = req.body.idProm
         await Campaigns.findOne(
-            { _id: app.ObjectId(campaign_id) },
+            { _id: campaign_id },
             {
                 fields: {
                     logo: 0,
@@ -1378,11 +1379,6 @@ exports.bep20Allow = async (req, res) => {
         let amount = req.body.amount
         let bep20TOken = req.body.tokenAddress
         cred = await app.account.unlockBSC(req, res)
-        console.log('----------', cred)
-        console.log('----------', bep20TOken)
-        console.log('----------', campaignAddress)
-        console.log('----------', amount)
-        console.log('----------', cred.address)
         let ret = await app.bep20.approve(
             bep20TOken,
             cred.address,
@@ -1391,7 +1387,7 @@ exports.bep20Allow = async (req, res) => {
         )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log('-----errrr', err)
+        // console.log('-----errrr', err)
         return responseHandler.makeResponseError(
             res,
             500,
