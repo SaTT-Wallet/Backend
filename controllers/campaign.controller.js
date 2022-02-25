@@ -1,28 +1,23 @@
 var requirement = require('../helpers/utils')
 var readHTMLFileCampaign = requirement.readHTMLFileCampaign
-var ObjectID = require('mongodb').ObjectId
 
-var ObjectId = new ObjectID()
-var fs = require('fs')
 const multer = require('multer')
 const Big = require('big.js')
-var rp = require('request-promise')
 const etherInWei = new Big(1000000000000000000)
-const handlebars = require('handlebars')
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
 var mongoose = require('mongoose')
 
-var Campaigns = require('../model/campaigns.model')
-var CampaignLink = require('../model/campaignLink.model')
-
-var LinkedinProfile = require('../model/linkedinProfile.model')
-
-var Wallet = require('../model/wallet.model')
-var Event = require('../model/event.model')
-var Ban = require('../model/ban.model')
-var Request = require('../model/request.model')
-var User = require('../model/user.model')
+const {
+    Campaigns,
+    CampaignLink,
+    LinkedinProfile,
+    Wallet,
+    Event,
+    Ban,
+    Request,
+    User,
+} = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
 
@@ -50,45 +45,13 @@ let app
     app = await requirement.connection()
 })()
 
-const storageImage = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_cover',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-const storageCampaignLogo = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_logo',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-module.exports.uploadImage = multer({
-    storage: storageImage,
-    inMemory: true,
-}).single('file')
 module.exports.upload = multer({ storage }).array('file')
-module.exports.uploadCampaignLogo = multer({
-    storage: storageCampaignLogo,
-    inMemory: true,
-}).single('file')
+const {
+    unlock,
+    createPerformanceCampaign,
+    getAccount,
+    lock,
+} = require('../web3/campaigns')
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -116,16 +79,10 @@ let initStat = () => {
 
 var BN = require('bn.js')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
-let gfs
 let gfsKit
-let gfsLogo
 
 conn.once('open', () => {
-    gfs = Grid(conn.db, mongoose.mongo)
-    gfsLogo = Grid(conn.db, mongoose.mongo)
     gfsKit = Grid(conn.db, mongoose.mongo)
-    gfs.collection('campaign_cover')
-    gfsLogo.collection('campaign_logo')
     gfsKit.collection('campaign_kit')
 })
 
@@ -137,30 +94,31 @@ module.exports.launchCampaign = async (req, res) => {
     var amount = req.body.amount
     var ratios = req.body.ratios
     var contract = req.body.contract
-    let id = req.body.idCampaign
+    let _id = req.body.idCampaign
     try {
-        var cred = await app.account.unlock(req, res)
-        var ret = await app.campaign.createCampaignAll(
+        var cred = await unlock(req, res)
+        if (!cred) return
+        var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
             endDate,
             ratios,
             tokenAddress,
             amount,
-            cred
+            cred,
+            res
         )
+        if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err)
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
     } finally {
-        cred && app.account.lock(cred.address)
         if (ret?.hash) {
+            lock(req, res, cred)
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -173,10 +131,7 @@ module.exports.launchCampaign = async (req, res) => {
                 walletId: cred.address,
                 type: 'inProgress',
             }
-            await Campaigns.updateOne(
-                { _id: app.ObjectId(id) },
-                { $set: campaign }
-            )
+            await Campaigns.updateOne({ _id }, { $set: campaign })
             let event = {
                 id: ret.hash,
                 type: 'modified',
@@ -195,7 +150,7 @@ module.exports.launchBounty = async (req, res) => {
     var endDate = req.body.endDate
     var tokenAddress = req.body.tokenAddress
     var amount = req.body.amount
-    let [id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
+    let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
     try {
         var cred = await app.account.unlock(req, res)
@@ -211,7 +166,6 @@ module.exports.launchBounty = async (req, res) => {
         )
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -233,7 +187,7 @@ module.exports.launchBounty = async (req, res) => {
                 walletId: cred.address,
             }
             await Campaigns.updateOne(
-                { _id: app.ObjectId(id) },
+                _id,
                 { $set: campaign },
                 { $unset: { coverSrc: '', ratios: '' } }
             )
@@ -322,10 +276,10 @@ exports.campaigns = async (req, res) => {
 
 exports.campaignDetails = async (req, res) => {
     try {
-        var idCampaign = req.params.id
+        var _id = req.params.id
 
         var campaign = await Campaigns.findOne({
-            _id: idCampaign,
+            _id,
         })
 
         if (campaign) {
@@ -353,9 +307,10 @@ exports.campaignDetails = async (req, res) => {
 }
 
 exports.campaignPromp = async (req, res) => {
+    var _id = req.params.id
     try {
         const campaign = await Campaigns.findOne(
-            { _id: req.params.id },
+            { _id },
             {
                 fields: {
                     logo: 0,
@@ -494,7 +449,6 @@ exports.campaignPromp = async (req, res) => {
         }
     } catch (err) {
         console.log('err', err)
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -611,7 +565,7 @@ exports.apply = async (req, res) => {
             ;(prom.likes = socialOracle.likes),
                 (prom.shares = socialOracle.shares || '0')
             await CampaignLink.updateOne(
-                { _id: app.ObjectId(insert.ops[0]._id) },
+                { _id: insert.ops[0]._id },
                 { $set: prom }
             )
             let event = {
@@ -636,11 +590,11 @@ exports.linkNotifications = async (req, res) => {
     app.i18n.configureTranslation(lang)
 
     try {
-        let campaign_id = req.body.idCampaign
+        let _id = req.body.idCampaign
         let link = req.body.link
         let idProm = req.body.idProm
         await Campaigns.findOne(
-            { _id: campaign_id },
+            _id,
             {
                 fields: {
                     logo: 0,
@@ -692,24 +646,21 @@ exports.linkNotifications = async (req, res) => {
 }
 
 exports.validateCampaign = async (req, res) => {
-    let idCampaign = req.body.idCampaign
+    let _id = req.body.idCampaign
     let linkProm = req.body.link
     let idApply = req.body.idProm
     let idUser = '0' + req.user._id
 
     var id = req.user._id
-    const campaign = await Campaigns.findOne(
-        { _id: app.ObjectId(idCampaign) },
-        {
-            fields: {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-            },
-        }
-    )
+    const campaign = await Campaigns.findOne(_id, {
+        fields: {
+            logo: 0,
+            resume: 0,
+            description: 0,
+            tags: 0,
+            cover: 0,
+        },
+    })
     try {
         if (idUser === campaign.idNode) {
             const lang = 'en'
@@ -1003,7 +954,6 @@ exports.gains = async (req, res) => {
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1160,7 +1110,6 @@ exports.update = async (req, res) => {
             }
         )
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1306,7 +1255,7 @@ exports.getFunds = async (req, res) => {
         cred && app.account.lock(cred.address)
         if (ret && ret.transactionHash) {
             await Campaigns.updateOne(
-                { _id: app.ObjectId(idCampaign) },
+                { _id: idCampaign },
                 {
                     $set: {
                         funds: ['', '0'],
@@ -1321,22 +1270,17 @@ exports.bep20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await app.account.getAccount(req, res)
-
-        if (account) {
-            let allowance = await app.bep20.getApproval(
-                tokenAddress,
-                account.address,
-                campaignAddress
-            )
-            return responseHandler.makeResponseData(res, 200, 'success', {
-                token: tokenAddress,
-                allowance: allowance,
-                spender: campaignAddress,
-            })
-        } else {
-            responseHandler.makeResponseError(res, 404, 'Wallet not found')
-        }
+        let account = await getAccount(req, res)
+        let allowance = await app.bep20.getApproval(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1733,7 +1677,7 @@ exports.rejectLink = async (req, res) => {
     app.i18n.configureTranslation(lang)
     let idUser = '0' + req.user._id
     const campaign = await Campaigns.findOne(
-        { _id: app.ObjectId(idCampaign) },
+        { _id: idCampaign },
         {
             fields: {
                 logo: 0,

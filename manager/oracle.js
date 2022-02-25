@@ -631,7 +631,6 @@ module.exports = async function (app) {
                 })
                 resolve(res)
             } catch (err) {
-                app.account.sysLogError(err)
                 reject({ message: err.message })
             }
         })
@@ -662,7 +661,6 @@ module.exports = async function (app) {
                         ].content.contentEntities[0].entityLocaion
                 resolve(linkInfo)
             } catch (err) {
-                app.account.sysLogError(err)
                 reject({ message: err.message })
             }
         })

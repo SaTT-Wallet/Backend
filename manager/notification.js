@@ -38,7 +38,7 @@ module.exports = async (app) => {
             },
         }
         request(clientServerOptions, (error, response) => {
-            error && app.account.sysLogError(error)
+            error && console.log(error)
             return
         })
     }
