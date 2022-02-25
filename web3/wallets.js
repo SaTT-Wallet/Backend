@@ -513,3 +513,47 @@ exports.getBalanceByUid = async (req, res) => {
         // 		 )
     }
 }
+
+exports.transfer = async (token, to, amount, credentials) => {
+    try {
+        var contract = new app.web3.eth.Contract(
+            app.config.ctrs.token.abi,
+            token
+        )
+        var gasPrice = await app.web3.eth.getGasPrice()
+        var gas = 60000
+        //await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+
+        var tx = await app.web3.eth.getTransaction(receipt.transactionHash)
+        tx.txtype = token
+        tx.apiversion = 2
+        tx.date = Date.now()
+        tx.networkid = app.config.blockChain
+        tx.from = credentials.address
+        tx.to = to.toLowerCase()
+        tx.from_id = credentials.from_id
+        tx.value = amount
+        tx.gasPrice = gasPrice
+        app.db.txs().insertOne(tx)
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount,
+        }
+        console.log(
+            'erManager.transfer',
+            credentials.address,
+            `transfer confirmed transactionHash :${receipt.transactionHash} ${amount} to ${to}`
+        )
+    } catch (err) {
+        console.log(err)
+    }
+}
