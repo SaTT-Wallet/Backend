@@ -46,7 +46,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.data).to.be.an('object')
         } catch (error) {
-            console.log('---------error', error)
+            // console.log('---------error', error)
         }
     })
 
@@ -152,8 +152,7 @@ describe('Campaign Management', () => {
         }
         try {
             let account = await axios.post(
-                `${baseUrl}/campaign/bep20/approval
-                `,
+                `${baseUrl}/campaign/bep20/approval`,
                 { tokenAddress, campaignAddress },
                 options
             )
@@ -171,6 +170,228 @@ describe('Campaign Management', () => {
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'wallet not found'
+            })
+        }
+    })
+
+    it('Bep20 Allow', async () => {
+        let result
+        let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
+        let campaignAddress = '61f169ec724cc395ed336770'
+        let amount = ''
+        let pass = ''
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/bep20/allow`,
+                { tokenAddress, campaignAddress, amount, pass },
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.equal('success')
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error.response)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Wrong password'
+            })
+        }
+    })
+
+    // it('Erc20 Approval', async () => {
+    //     let result
+    //     let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
+    //     let campaignAddress = '0xa5F46d6F4F3b318EeFF1B37e39491e52233c5975'
+
+    //     let options = {
+    //         headers: {
+    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+    //             'content-type': 'application/json',
+    //         },
+    //     }
+    //     try {
+    //         let account = await axios.post(
+    //             `${baseUrl}/campaign/erc20/approval`,
+    //             { tokenAddress, campaignAddress },
+    //             options
+    //         )
+
+    //         result = account.data
+    //         // console.log(account.data)
+    //         result = account.data
+    //         expect(result.code).to.equal(200)
+    //         expect(result.message).to.equal('success')
+    //         expect(result).to.have.property('data')
+    //         console.log(res)
+    //     } catch (error) {
+    //         console.log(error)
+    //         error = error.response.data
+    //         expect(error.code).to.be.within(400, 404)
+    //         expect(error).to.have.property('error')
+    //         expect(error.error).to.satisfy((err) => {
+    //             return (
+    //                 err === 'token required' ||
+    //                 err === 'wallet not found' ||
+    //                 err === 'invalid token'
+    //             )
+    //         })
+    //     }
+    // })
+
+    // it('Erc20 Allow', async () => {
+    //     let result
+    //     let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
+    //     let campaignAddress = '61f169ec724cc395ed336770'
+    //     let amount = ''
+    //     let pass = ''
+
+    //     let options = {
+    //         headers: {
+    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+    //             'content-type': 'application/json',
+    //         },
+    //     }
+    //     try {
+    //         let account = await axios.post(
+    //             `${baseUrl}/campaign/erc20/allow`,
+    //             { tokenAddress, campaignAddress, amount, pass },
+    //             options
+    //         )
+
+    //         result = account.data
+    //         // console.log(account.data)
+    //         result = account.data
+    //         expect(result.code).to.equal(200)
+    //         expect(result.message).to.equal('success')
+    //         expect(result).to.have.property('data')
+    //     } catch (error) {
+    //         // console.log(error.response)
+    //         error = error.response.data
+    //         expect(error.code).to.be.within(400, 404)
+    //         expect(error).to.have.property('error')
+    //         expect(error.error).to.satisfy((err) => {
+    //             return err === 'token required' || err === 'wallet not found'
+    //         })
+    //     }
+    // })
+
+    it('Launch new performance compaign', async () => {
+        let result
+        let tokenAddress = 'test idProm'
+        let contract = 'test link'
+        let idCampaign = '61f406058eccba86089d26aa'
+        let dataUrl = 'test dataUrl'
+        let amount = 'test amount'
+        let pass = ''
+        let startDate = 'test startDate'
+        let endDate = 'test endDate'
+        let ratios = ['test bounties']
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/launch/performance`,
+                {
+                    tokenAddress,
+                    contract,
+                    idCampaign,
+                    dataUrl,
+                    amount,
+                    pass,
+                    startDate,
+                    endDate,
+                    ratios,
+                },
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                str.startsWith('success')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required'
+            })
+        }
+    })
+
+    it('Launch campaign', async () => {
+        let result
+        let tokenAddress = 'test idProm'
+        let contract = 'test link'
+        let idCampaign = '620e082b711cb119aebaf5a9'
+        let dataUrl = 'test dataUrl'
+        let amount = 'test amount'
+        let pass = ''
+        let startDate = 'test startDate'
+        let endDate = 'test endDate'
+        let bounties = ['test bounties']
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/launchBounty`,
+                {
+                    tokenAddress,
+                    contract,
+                    idCampaign,
+                    dataUrl,
+                    amount,
+                    pass,
+                    startDate,
+                    endDate,
+                    bounties,
+                },
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                str.startsWith('success')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required'
             })
         }
     })
@@ -210,6 +431,127 @@ describe('Campaign Management', () => {
         }
     })
 
+    it('Apply your link', async () => {
+        let result
+        let pass = ''
+        let idCampaign = '620e082b711cb119aebaf5a9'
+        let typeSN = 'test idProm'
+        let idPost = 'test link'
+        let title = 'test email'
+        let idUser = 'test idUser'
+        let hash = 'test hash'
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/apply`,
+                { pass, idCampaign, typeSN, idPost, idUser, title, hash },
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                str.startsWith('success')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Link already sent'
+            })
+        }
+    })
+
+    it('Get notification link', async () => {
+        let result
+        let idCampaign = '620e082b711cb119aebaf5a9'
+        let idProm = 'test idProm'
+        let link = 'test link'
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/linkNotification`,
+                { idCampaign, idProm, link },
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                str.startsWith('Email was sent to')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required'
+            })
+        }
+    })
+
+    // it('validate participation', async () => {
+    //     let result
+    //     let pass = ''
+    //     let idCampaign = '620e082b711cb119aebaf5a9'
+    //     let idProm = 'test idProm'
+    //     let link = 'test link'
+    //     let email = 'test email'
+    //     let idUser = 'test iduser'
+
+    //     let options = {
+    //         headers: {
+    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+    //             'content-type': 'application/json',
+    //         },
+    //     }
+    //     try {
+    //         let account = await axios.post(
+    //             `${baseUrl}/campaign/validate`,
+    //             { pass, idCampaign, idProm, link, email, idUser },
+    //             options
+    //         )
+
+    //         result = account.data
+    //         // console.log(account.data)
+    //         result = account.data
+    //         expect(result.code).to.equal(200)
+    //         expect(result.message).to.satisfy((str) => {
+    //             str.startsWith('success')
+    //         })
+    //         expect(result).to.have.property('data')
+    //     } catch (error) {
+    //         // console.log(error)
+    //         error = error.response.data
+    //         expect(error.code).to.be.within(400, 404)
+    //         expect(error).to.have.property('error')
+    //         expect(error.error).to.satisfy((err) => {
+    //             return err === 'token required' || err === 'unothorized'
+    //         })
+    //     }
+    // })
+
     it('Get Gains', async () => {
         let result
         let pass = 'test'
@@ -237,7 +579,7 @@ describe('Campaign Management', () => {
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -501,50 +843,50 @@ describe('Campaign Management', () => {
         }
     })
 
-    it('Reject link', async () => {
-        let result
-        let idLink =
-            '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
-        let idCampaign = 'string'
-        let title = 'string'
-        let email = 'string'
-        let link = 'string'
-        let idUser = 'string'
+    // it('Reject link', async () => {
+    //     let result
+    //     let idLink =
+    //         '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
+    //     let idCampaign = 'string'
+    //     let title = 'string'
+    //     let email = 'string'
+    //     let link = 'string'
+    //     let idUser = 'string'
 
-        let option = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let account = await axios.put(
-                `${baseUrl}/campaign/reject/${idLink}`,
-                {
-                    idCampaign,
-                    title,
-                    email,
-                    link,
-                    idUser,
-                },
-                option
-            )
+    //     let option = {
+    //         headers: {
+    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+    //             'content-type': 'application/json',
+    //         },
+    //     }
+    //     try {
+    //         let account = await axios.put(
+    //             `${baseUrl}/campaign/reject/${idLink}`,
+    //             {
+    //                 idCampaign,
+    //                 title,
+    //                 email,
+    //                 link,
+    //                 idUser,
+    //             },
+    //             option
+    //         )
 
-            result = account.data
+    //         result = account.data
 
-            // console.log( account)
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
-        } catch (error) {
-            // console.log(error)
-            error = error.response.data
-            expect(error.code).to.be.within(400, 404)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return err === 'token required' || err === 'unothorized'
-            })
-        }
-    })
+    //         // console.log( account)
+    //         result = account.data
+    //         expect(result.code).to.equal(200)
+    //         expect(result).to.have.property('data')
+    //         expect(result.message).to.equal('success')
+    //     } catch (error) {
+    //         // console.log(error)
+    //         error = error.response.data
+    //         expect(error.code).to.be.within(400, 404)
+    //         expect(error).to.have.property('error')
+    //         expect(error.error).to.satisfy((err) => {
+    //             return err === 'token required' || err === 'unothorized'
+    //         })
+    //     }
+    // })
 })
