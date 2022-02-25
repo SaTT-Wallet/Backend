@@ -4,6 +4,8 @@ const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 
+const { getContractByToken } = require('../blockchainConnexion')
+
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
 
@@ -17,6 +19,7 @@ const {
     getAccount,
     getPrices,
     getListCryptoByUid,
+    getBalanceByUid,
 } = require('../web3/wallets')
 let app
 ;(connection = async () => {
@@ -97,10 +100,8 @@ exports.mywallet = async (req, res) => {
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            console.log('start')
-            //let Crypto = getPrices()
+            console.log('has wallet')
             const balance = await getListCryptoByUid(req, res)
-            console.log(balance)
 
             let listOfCrypto = [...new Set(balance.listOfCrypto)]
 
@@ -127,24 +128,23 @@ exports.userBalance = async (req, res) => {
 }
 
 exports.gasPriceBep20 = async (req, res) => {
-    var gasPrice = await app.web3Bep20.eth.getGasPrice()
+    var ctr = await getContractByToken(token, credentials)
+    var gasPrice = await ctr.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
     })
 }
 
 exports.gasPriceErc20 = async (req, res) => {
-    let app = await requirement.connection()
-
-    var gasPrice = await app.web3.eth.getGasPrice()
-
+    var ctr = await getContractByToken(token, credentials)
+    var gasPrice = await ctr.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
     })
 }
 
 exports.cryptoDetails = async (req, res) => {
-    let prices = app.account.getPrices()
+    let prices = await getPrices()
 
     return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
@@ -152,7 +152,7 @@ exports.cryptoDetails = async (req, res) => {
 exports.totalBalances = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var Total_balance = await app.account.getBalanceByUid(req, res)
+            var Total_balance = await getBalanceByUid(req, res)
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 Total_balance: Total_balance.Total_balance,
@@ -165,11 +165,11 @@ exports.totalBalances = async (req, res) => {
             )
         }
     } catch (err) {
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     } finally {
         if (req.user._id && Total_balance) {
             let date = Math.round(new Date().getTime() / 1000)
@@ -193,7 +193,7 @@ exports.totalBalances = async (req, res) => {
                     user.daily.pop()
                 }
 
-                await user.daily.save()
+                await user.save()
             }
         }
     }
