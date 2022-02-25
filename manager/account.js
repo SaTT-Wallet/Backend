@@ -624,31 +624,6 @@ module.exports = async function (app) {
         })
     }
 
-    accountManager.exportkey = async function (req, res) {
-        let id = req.user._id
-        let pass = req.body.pass
-        let account = await Wallet.findOne({ UserId: parseInt(id) })
-
-        if (account) {
-            try {
-                app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
-                return account.keystore
-            } catch (e) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'Wrong password'
-                )
-            } finally {
-                app.web3.eth.accounts.wallet.remove(
-                    '0x' + account.keystore.address
-                )
-            }
-        } else {
-            responseHandler.makeResponseError(res, 404, 'Account not found')
-        }
-    }
-
     accountManager.exportkeyBtc = async function (req, res) {
         let id = req.user._id
         let pass = req.body.pass
@@ -759,233 +734,93 @@ module.exports = async function (app) {
         })
     }
 
-    accountManager.getBalanceByUid = async (req, res) => {
-        try {
-            var userId = req.user._id
-            let crypto = app.account.getPrices()
-            var [Total_balance, CryptoPrices] = [0, crypto]
-            var token_info = Object.assign({}, app.config.Tokens)
-            delete token_info['SATT']
-            delete token_info['BNB']
+    // accountManager.getBalanceByUid = async (req, res) => {
+    //     try {
+    //         var userId = req.user._id
+    //         let crypto = app.account.getPrices()
+    //         var [Total_balance, CryptoPrices] = [0, crypto]
+    //         var token_info = Object.assign({}, app.config.Tokens)
+    //         delete token_info['SATT']
+    //         delete token_info['BNB']
 
-            let ret = await accountManager.getAccount(req, res)
-            delete ret.btc
-            delete ret.version
+    //         let ret = await accountManager.getAccount(req, res)
+    //         delete ret.btc
+    //         delete ret.version
 
-            let userTokens = await CustomToken.find({
-                sn_users: { $in: [userId] },
-            })
+    //         let userTokens = await CustomToken.find({
+    //             sn_users: { $in: [userId] },
+    //         })
 
-            if (userTokens.length) {
-                for (let i = 0; i < userTokens.length; i++) {
-                    let symbol = userTokens[i].symbol
-                    if (token_info[symbol])
-                        symbol = `${symbol}_${userTokens[i].network}`
-                    token_info[symbol] = {
-                        dicimal: Number(userTokens[i].decimal),
-                        symbol: userTokens[i].symbol,
-                        network: userTokens[i].network,
-                        contract: userTokens[i].tokenAdress,
-                        name: userTokens[i].tokenName,
-                        picUrl: userTokens[i].picUrl,
-                        addedToken: true,
-                    }
-                }
-            }
+    //         if (userTokens.length) {
+    //             for (let i = 0; i < userTokens.length; i++) {
+    //                 let symbol = userTokens[i].symbol
+    //                 if (token_info[symbol])
+    //                     symbol = `${symbol}_${userTokens[i].network}`
+    //                 token_info[symbol] = {
+    //                     dicimal: Number(userTokens[i].decimal),
+    //                     symbol: userTokens[i].symbol,
+    //                     network: userTokens[i].network,
+    //                     contract: userTokens[i].tokenAdress,
+    //                     name: userTokens[i].tokenName,
+    //                     picUrl: userTokens[i].picUrl,
+    //                     addedToken: true,
+    //                 }
+    //             }
+    //         }
 
-            for (const T_name in token_info) {
-                var network = token_info[T_name].network
-                let networkToken = network == 'ERC20' ? app.erc20 : app.bep20
-                let balance = await networkToken.getBalance(
-                    token_info[T_name].contract,
-                    ret.address
-                )
-                let key = T_name.split('_')[0]
-                if (
-                    token_info[T_name].contract ==
-                        token_info['SATT_BEP20'].contract ||
-                    token_info[T_name].contract == token_info['WSATT'].contract
-                ) {
-                    key = 'SATT'
-                }
-                if (CryptoPrices.hasOwnProperty(key))
-                    Total_balance +=
-                        app.token.filterAmount(
-                            new Big(balance['amount'] * 1)
-                                .div(
-                                    (
-                                        10 ** +token_info[T_name].dicimal
-                                    ).toString()
-                                )
-                                .toNumber() + ''
-                        ) * CryptoPrices[key].price
-            }
+    //         for (const T_name in token_info) {
+    //             var network = token_info[T_name].network
+    //             let networkToken = network == 'ERC20' ? app.erc20 : app.bep20
+    //             let balance = await networkToken.getBalance(
+    //                 token_info[T_name].contract,
+    //                 ret.address
+    //             )
+    //             let key = T_name.split('_')[0]
+    //             if (
+    //                 token_info[T_name].contract ==
+    //                     token_info['SATT_BEP20'].contract ||
+    //                 token_info[T_name].contract == token_info['WSATT'].contract
+    //             ) {
+    //                 key = 'SATT'
+    //             }
+    //             if (CryptoPrices.hasOwnProperty(key))
+    //                 Total_balance +=
+    //                     app.token.filterAmount(
+    //                         new Big(balance['amount'] * 1)
+    //                             .div(
+    //                                 (
+    //                                     10 ** +token_info[T_name].dicimal
+    //                                 ).toString()
+    //                             )
+    //                             .toNumber() + ''
+    //                     ) * CryptoPrices[key].price
+    //         }
 
-            delete ret.address
-            for (const Amount in ret) {
-                let tokenSymbol = Amount.split('_')[0].toUpperCase()
-                tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
-                let decimal = tokenSymbol === 'BTC' ? 8 : 18
-                Total_balance +=
-                    app.token.filterAmount(
-                        new Big(ret[Amount] * 1)
-                            .div(new Big(10).pow(decimal))
-                            .toNumber() + ''
-                    ) * CryptoPrices[tokenSymbol].price
-            }
+    //         delete ret.address
+    //         for (const Amount in ret) {
+    //             let tokenSymbol = Amount.split('_')[0].toUpperCase()
+    //             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
+    //             let decimal = tokenSymbol === 'BTC' ? 8 : 18
+    //             Total_balance +=
+    //                 app.token.filterAmount(
+    //                     new Big(ret[Amount] * 1)
+    //                         .div(new Big(10).pow(decimal))
+    //                         .toNumber() + ''
+    //                 ) * CryptoPrices[tokenSymbol].price
+    //         }
 
-            Total_balance = Total_balance.toFixed(2)
+    //         Total_balance = Total_balance.toFixed(2)
 
-            return { Total_balance }
-        } catch (err) {
-            console.log(err)
-            //    return responseHandler.makeResponseError(
-            // 		 res,
-            // 		 500,
-            // 		 err.message ? err.message : err.error
-            // 		 )
-        }
-    }
-
-    accountManager.getListCryptoByUid = async (req, res) => {
-        let id = req.user._id
-        let crypto = app.account.getPrices()
-        try {
-            let listOfCrypto = []
-            var token_info = Object.assign({}, app.config.Tokens)
-            let sattContract = token_info['SATT'].contract
-            delete token_info['SATT']
-            delete token_info['BNB']
-            var CryptoPrices = crypto
-
-            var ret = await accountManager.getAccount(req, res)
-
-            delete ret.btc
-            delete ret.version
-
-            let userTokens = await CustomToken.find({
-                sn_users: { $in: [id] },
-            })
-            if (userTokens.length) {
-                for (let i = 0; i < userTokens.length; i++) {
-                    let symbol = userTokens[i].symbol
-                    if (token_info[symbol])
-                        symbol = `${symbol}_${userTokens[i].network}`
-                    token_info[symbol] = {
-                        dicimal: Number(userTokens[i].decimal),
-                        symbol: userTokens[i].symbol,
-                        network: userTokens[i].network,
-                        contract: userTokens[i].tokenAdress,
-                        name: userTokens[i].tokenName,
-                        picUrl: userTokens[i].picUrl,
-                        addedToken: true,
-                    }
-                }
-            }
-            for (let T_name in token_info) {
-                let network = token_info[T_name].network
-                let crypto = {}
-                crypto.picUrl = token_info[T_name].picUrl || false
-                crypto.symbol = token_info[T_name].symbol.split('_')[0]
-                crypto.name = token_info[T_name].name
-                crypto.AddedToken = token_info[T_name].addedToken
-                    ? token_info[T_name].contract
-                    : false
-                crypto.contract = token_info[T_name].contract
-                crypto.decimal = token_info[T_name].dicimal
-                crypto.network = network
-                crypto.undername = token_info[T_name].undername
-                crypto.undername2 = token_info[T_name].undername2
-                ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
-
-                let networkToken = network == 'ERC20' ? app.erc20 : app.bep20
-                let balance = await networkToken.getBalance(
-                    token_info[T_name].contract,
-                    ret.address
-                )
-
-                let key = T_name.split('_')[0]
-
-                if (
-                    token_info[T_name].contract ==
-                        token_info['SATT_BEP20'].contract ||
-                    token_info[T_name].contract == token_info['WSATT'].contract
-                ) {
-                    key = 'SATT'
-                }
-                if (key == 'WBNB') key = 'BNB'
-                if (CryptoPrices.hasOwnProperty(key)) {
-                    crypto.price = CryptoPrices[key].price
-                    crypto.variation = CryptoPrices[key].percent_change_24h
-                    crypto.total_balance =
-                        app.token.filterAmount(
-                            new Big(balance['amount'])
-                                .div(
-                                    (
-                                        10 ** +token_info[T_name].dicimal
-                                    ).toString()
-                                )
-                                .toNumber() + ''
-                        ) *
-                        CryptoPrices[key].price *
-                        1
-                }
-                crypto.quantity = app.token.filterAmount(
-                    new Big(balance['amount'] * 1)
-                        .div((10 ** +token_info[T_name].dicimal).toString())
-                        .toNumber()
-                )
-
-                listOfCrypto.push(crypto)
-            }
-            delete ret.address
-            for (const Amount in ret) {
-                let crypto = {}
-                let tokenSymbol = Amount.split('_')[0].toUpperCase()
-                let decimal = tokenSymbol === 'BTC' ? 8 : 18
-                tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
-                if (tokenSymbol == 'BTC') {
-                    crypto.name = 'Bitcoin'
-                    crypto.network = 'BTC'
-                }
-                if (tokenSymbol == 'ETH') {
-                    crypto.name = 'Ethereum'
-                    crypto.network = 'ERC20'
-                }
-                if (tokenSymbol == 'SATT') {
-                    crypto.name = 'SaTT'
-                    crypto.network = 'ERC20'
-                    crypto.contract = sattContract
-                } else if (tokenSymbol == 'BNB') {
-                    crypto.name = 'BNB'
-                    crypto.network = 'BEP20'
-                }
-                ;[crypto.symbol, crypto.undername, crypto.undername2] =
-                    Array(3).fill(tokenSymbol)
-                crypto.price = CryptoPrices[tokenSymbol].price
-                crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
-                crypto.total_balance =
-                    app.token.filterAmount(
-                        new Big(ret[Amount])
-                            .div(new Big(10).pow(decimal))
-                            .toNumber() + ''
-                    ) * CryptoPrices[tokenSymbol].price
-                crypto.quantity = new Big(ret[Amount])
-                    .div(new Big(10).pow(decimal))
-                    .toNumber()
-                    .toFixed(8)
-                listOfCrypto.push(crypto)
-            }
-            return { listOfCrypto }
-        } catch (err) {
-            console.log(err)
-            //        return responseHandler.makeResponseError(
-            //     res,
-            //     500,
-            //     err.message ? err.message : err.error
-            // )
-        }
-    }
+    //         return { Total_balance }
+    //     } catch (err) {
+    //         console.log(err)
+    //         //    return responseHandler.makeResponseError(
+    //         // 		 res,
+    //         // 		 500,
+    //         // 		 err.message ? err.message : err.error
+    //         // 		 )
+    //     }
+    // }
 
     accountManager.notificationManager = async (id, NotifType, label) => {
         let notification = {
@@ -1173,62 +1008,6 @@ module.exports = async function (app) {
         } catch (e) {
             reject({ message: e.message })
         }
-    }
-
-    /*logger object of application logs */
-    accountManager.sysLogger = createLogger({
-        format: format.combine(
-            format.timestamp({
-                format: 'YYYY-MM-DD HH:mm:ss',
-            }),
-            format.printf((info) => `${info.timestamp} ${info.message}`)
-        ),
-        transports: [
-            new transports.File({ filename: '/var/log/node-satt/app.log' }),
-        ],
-    })
-
-    /*logger object of application errors log */
-    accountManager.errorLogger = createLogger({
-        format: format.combine(
-            format.timestamp({
-                format: 'YYYY-MM-DD HH:mm:ss',
-            }),
-            format.printf((info) => `${info.timestamp} ${info.message}`)
-        ),
-        transports: [
-            new transports.File({
-                filename: '/var/log/node-satt/app-error.log',
-            }),
-        ],
-    })
-
-    /*global function to write into "app.log" all application's logs
-			log: dateTime origin FN_name log's_data
-		*/
-    accountManager.sysLog = (source, origin, data /*,level="medium"*/) => {
-        //if(app.config.testnet /*|| level=="highest"*/){
-        accountManager.sysLogger.log('info', ` ${origin} FN_${source} ${data}`)
-        //}
-    }
-
-    /*global function to write into "app-error.log" all application's logs error 
-	   		log: dateTime origin FN_name log's_data
-	   */
-    accountManager.sysLogError = (data) => {
-        //if(app.config.testnet /*|| level=="highest"*/){
-        let error = data.message ? data.message : data.error
-        accountManager.errorLogger.log('error', ` ${error}`)
-        //}
-    }
-
-    accountManager.log = (...arguments) => {
-        let logInfo = arguments
-            .map((element) => {
-                return JSON.stringify(element)
-            })
-            .join(' ')
-        accountManager.sysLogger.log('info', logInfo)
     }
 
     accountManager.getPrices = () => {
