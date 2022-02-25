@@ -2,19 +2,12 @@ var express = require('express')
 var app = express()
 
 const Big = require('big.js')
-const etherInWei = new Big(1000000000000000000)
 
-var rp = require('request-promise')
-const { randomUUID } = require('crypto')
-const { v5: uuidv5 } = require('uuid')
 var fs = require('fs')
 
 var nodemailer = require('nodemailer')
 const hasha = require('hasha')
 const jwt = require('jsonwebtoken')
-const mongoose = require('mongoose')
-
-const GridFsStorage = require('multer-gridfs-storage')
 
 const handlebars = require('handlebars')
 var ejs = require('ejs')
