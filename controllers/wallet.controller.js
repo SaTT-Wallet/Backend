@@ -4,7 +4,11 @@ const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 
-const { getContractByToken } = require('../blockchainConnexion')
+const {
+    getContractByToken,
+    erc20Connexion,
+    bep20Connexion,
+} = require('../blockchainConnexion')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -20,6 +24,7 @@ const {
     getPrices,
     getListCryptoByUid,
     getBalanceByUid,
+    getBalance,
 } = require('../web3/wallets')
 let app
 ;(connection = async () => {
@@ -209,8 +214,11 @@ exports.transfertErc20 = async (req, res) => {
             var decimal = req.body.decimal
             var cred = await app.account.unlock(req, res)
             cred.from_id = req.user._id
-            var result = await app.account.getAccount(req, res)
-            let balance = await app.erc20.getBalance(tokenERC20, result.address)
+            var result = await getAccount(req, res)
+
+            let Web3ETH = await erc20Connexion()
+
+            let balance = await getBalance(Web3ETH, tokenERC20, result.address)
             if (new Big(amount).gt(new Big(balance.amount))) {
                 return responseHandler.makeResponseError(
                     res,
