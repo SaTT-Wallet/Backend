@@ -1714,12 +1714,13 @@ module.exports.campaignInvested = async (req, res) => {
 }
 
 exports.rejectLink = async (req, res) => {
-    const lang = req.query.lang || 'en'
+    const lang = req.body.lang || 'en'
     const title = req.body.title || ''
     const idCampaign = req.body.idCampaign
     const idLink = req.params.idLink
     const email = req.body.email
     let link = req.body.link
+    let reason = req.body.reason
     app.i18n.configureTranslation(lang)
     let idUser = '0' + req.user._id
     const campaign = await Campaigns.findOne(
@@ -1737,7 +1738,7 @@ exports.rejectLink = async (req, res) => {
 
     try {
         if (idUser === campaign.idNode) {
-            let reason = []
+            //  let reason = []
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
                 { $set: { status: 'rejected', type: 'rejected' } },
