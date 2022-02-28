@@ -30,8 +30,7 @@ passport.serializeUser(function (user, cb) {
 })
 
 passport.deserializeUser(async function (id, cb) {
-    var user = await User
-        .find({ _id: Long.fromNumber(id) })
+    var user = await User.find({ _id: Long.fromNumber(id) })
     cb(null, user)
 })
 try {
@@ -561,7 +560,6 @@ router.get(
                     '&sn=linkd'
             )
         } catch (err) {
-            app.account.sysLogError(err)
             res.end(
                 '{"error":"' + (err.message ? err.message : err.error) + '"}'
             )
@@ -617,7 +615,6 @@ router.get(
             }
             res.redirect(app.config.basedURl + redirect + '?message=' + message)
         } catch (err) {
-            app.account.sysLogError(err)
             res.end(
                 '{"error":"' + (err.message ? err.message : err.error) + '"}'
             )
@@ -742,7 +739,7 @@ router.get('/legalUserUpload/:id', verifyAuth, FindUserLegalProfile)
 /**
  * @swagger
  * /profile/notification/seen/{id}:
- *   post:
+ *   get:
  *     tags:
  *     - "profile"
  *     summary: update notification status if it's seen or not by user.

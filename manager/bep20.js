@@ -99,7 +99,7 @@ module.exports = async function (app) {
                         gasPrice: gasPrice,
                     })
                     .once('transactionHash', (transactionHash) => {
-                        app.account.sysLog(
+                        console.log(
                             'transfer',
                             app.config.SattBep20Addr,
                             `transfer satt bep20 transactionHash :${transactionHash}`
@@ -131,7 +131,7 @@ module.exports = async function (app) {
                         gasPrice: gasPrice,
                     })
                     .once('transactionHash', (transactionHash) => {
-                        app.account.sysLog(
+                        console.log(
                             'transferNativeBNB',
                             credentials.address,
                             `transfer BNB transactionHash :${transactionHash}`
@@ -210,20 +210,17 @@ module.exports = async function (app) {
     }
 
     bep20Manager.getApproval = async function (token, addr, spender) {
-      try{
-           var contract = new app.web3Bep20.eth.Contract(
+        try {
+            var contract = new app.web3Bep20.eth.Contract(
                 app.config.ctrs.token.abi,
                 token
             )
             var amount = await contract.methods.allowance(addr, spender).call()
             app.account.log('approval', addr, 'for', spender, amount.toString())
             return { amount: amount.toString() }
+        } catch (err) {
+            return { amount: '0' }
         }
-           catch(err){
-            return { amount:'0'}
-
-           }
-        
     }
 
     bep20Manager.transferBEP = async (to, amount, credentials) => {
@@ -240,7 +237,7 @@ module.exports = async function (app) {
                         gasPrice: gasPrice,
                     })
                     .once('transactionHash', (transactionHash) => {
-                        app.account.sysLog(
+                        console.log(
                             'transferBEP',
                             credentials.address,
                             `transfer bep20 transactionHash :${transactionHash}`
@@ -280,7 +277,7 @@ module.exports = async function (app) {
                     to: to,
                     amount: amount,
                 })
-                app.account.sysLog(
+                console.log(
                     'transferBEP',
                     credentials.address,
                     `transfer confirmed transactionHash :${receipt.transactionHash} ${amount}`

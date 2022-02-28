@@ -1,12 +1,10 @@
 var passport = require('passport')
 var emailStrategy = require('passport-local').Strategy
-var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 var Twitter = require('twitter')
 var LocalStrategy = require('passport-local').Strategy
 var Long = require('mongodb').Long
 const crypto = require('crypto')
 const hasha = require('hasha')
-ObjectId = require('mongodb').ObjectID
 var rp = require('request-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
@@ -130,7 +128,7 @@ passport.use(
             var user = await User.findOne({ email: username.toLowerCase() })
             if (user) {
                 if (user.password == synfonyHash(password)) {
-                    app.account.sysLog(
+                    console.log(
                         'authentification',
                         req.addressIp,
                         `valid ${username}`
@@ -158,7 +156,7 @@ passport.use(
                     }
                 } else {
                     let validAuth = await app.account.isBlocked(user, false)
-                    app.account.sysLog(
+                    console.log(
                         'authentification',
                         req.addressIp,
                         `invalid ${username} ${password}`
@@ -177,7 +175,7 @@ passport.use(
                     })
                 }
             } else {
-                app.account.sysLog(
+                console.log(
                     'authentification',
                     req.addressIp,
                     `invalid ${username} ${password}`

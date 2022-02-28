@@ -9,9 +9,22 @@ const FbPage = require('../model/fbPage.model')
 const Wallet = require('../model/wallet.model')
 const CustomToken = require('../model/customToken.model')
 const CampaignLink = require('../model/campaignLink.model')
+var Ban = require('../model/ban.model')
+var Campaigns = require('../model/campaigns.model')
+var Event = require('../model/event.model')
+var Request = require('../model/request.model')
+var Captcha = require('../model/captcha.model')
+var UserArchived = require('../model/UserArchive.model')
 
 module.exports = {
+    UserArchived,
+    Campaigns,
+    Captcha,
+    Request,
+    Event,
+    Ban,
     CampaignLink,
+    Campaigns,
     User,
     GoogleProfile,
     FbProfile,
