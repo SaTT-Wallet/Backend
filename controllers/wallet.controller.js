@@ -10,6 +10,8 @@ const {
     bep20Connexion,
 } = require('../blockchainConnexion')
 
+const { configSendBox } = require('../conf/config1')
+
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
 
@@ -18,6 +20,7 @@ const { responseHandler } = require('../helpers/response-handler')
 const { Constants } = require('../conf/const2')
 const {
     unlock,
+    createSeed,
     exportkeyBtc,
     exportkey,
     getAccount,
@@ -28,7 +31,13 @@ const {
     transfer,
     unlockBsc,
     sendBep20,
+    sendBtc,
+    transferNativeBNB,
+    transferEther,
 } = require('../web3/wallets')
+
+const { payementRequest } = require('../conf/config1')
+
 let app
 ;(connection = async () => {
     app = await requirement.connection()
@@ -126,6 +135,7 @@ exports.userBalance = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err)
         // return responseHandler.makeResponseError(
         //     res,
         //     500,
@@ -135,16 +145,18 @@ exports.userBalance = async (req, res) => {
 }
 
 exports.gasPriceBep20 = async (req, res) => {
-    var ctr = await getContractByToken(token, credentials)
-    var gasPrice = await ctr.getGasPrice()
+    let Web3ETH = await erc20Connexion()
+
+    var gasPrice = await Web3ETH.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
     })
 }
 
 exports.gasPriceErc20 = async (req, res) => {
-    var ctr = await getContractByToken(token, credentials)
-    var gasPrice = await ctr.getGasPrice()
+    let Web3BEP20 = await erc20Connexion()
+
+    var gasPrice = await Web3BEP20.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
     })
@@ -356,15 +368,16 @@ exports.checkWalletToken = async (req, res) => {
                 'Wallet not found'
             )
         }
+        let Web3BEP20 = await bep20Connexion()
+        let Web3ETH = await erc20Connexion()
 
         let [tokenAdress, network] = [req.body.tokenAdress, req.body.network]
         let abi =
-            network === 'bep20'
-                ? app.config.ctrs.bep20.abi
-                : Constants.token.abi
-        let networkToken =
-            network === 'bep20' ? app.web3Bep20.eth : app.web3.eth
+            network === 'bep20' ? Constants.bep20.abi : Constants.token.abi
+        let networkToken = network === 'bep20' ? Web3BEP20.eth : Web3ETH.eth
+
         let code = await networkToken.getCode(tokenAdress)
+
         if (code === '0x') {
             return responseHandler.makeResponseError(
                 res,
@@ -387,6 +400,7 @@ exports.checkWalletToken = async (req, res) => {
             })
         }
     } catch (err) {
+        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -422,7 +436,7 @@ exports.addNewToken = async (req, res) => {
                 )
             }
 
-            let CryptoPrices = app.account.getPrices()
+            let CryptoPrices = await getPrices()
 
             let tokenFounded = await CustomToken.findOne({
                 tokenAdress,
@@ -488,8 +502,10 @@ exports.transfertBtc = async (req, res) => {
         if (req.user.hasWallet == true) {
             var pass = req.body.pass
             let id = req.user._id
-            var cred = await app.account.unlock(req, res)
-            var result = await app.account.getAccount(req, res)
+            var cred = await unlock(req, res)
+            var result = await getAccount(req, res)
+
+            console.log(result)
             if (new Big(req.body.val).gt(new Big(result.btc_balance))) {
                 return responseHandler.makeResponseError(
                     res,
@@ -497,12 +513,7 @@ exports.transfertBtc = async (req, res) => {
                     'not_enough_budget'
                 )
             }
-            var hash = await app.cryptoManager.sendBtc(
-                id,
-                pass,
-                req.body.to,
-                req.body.val
-            )
+            var hash = await sendBtc(id, pass, req.body.to, req.body.val)
 
             return responseHandler.makeResponseData(res, 200, 'success', hash)
         } else {
@@ -513,25 +524,25 @@ exports.transfertBtc = async (req, res) => {
             )
         }
     } catch (err) {
-        // return responseHandler.makeResponseError(
-        //     res,
-        //  500,
-        //     err.message ? err.message : err.error
-        //     )
+        console.log(err)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     } finally {
         if (cred) app.account.lock(cred.address)
     }
 }
 
 exports.transfertBNB = async (req, res) => {
-    var pass = req.body.pass
     try {
         if (req.user.hasWallet == true) {
-            var cred = await app.account.unlockBSC(req, res)
+            var cred = await unlockBsc(req, res)
             cred.from_id = req.user._id
             var to = req.body.to
             var amount = req.body.val
-            var result = await app.account.getAccount(req, res)
+            var result = await getAccount(req, res)
 
             if (new Big(amount).gt(new Big(result.bnb_balance))) {
                 return responseHandler.makeResponseError(
@@ -540,7 +551,7 @@ exports.transfertBNB = async (req, res) => {
                     'not_enough_budget'
                 )
             }
-            var ret = await app.bep20.transferNativeBNB(to, amount, cred)
+            var ret = await transferNativeBNB(to, amount, cred)
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -549,52 +560,53 @@ exports.transfertBNB = async (req, res) => {
     } catch (err) {
         console.log(err)
     } finally {
-        cred && app.account.lockBSC(cred.address)
-
-        if (ret.transactionHash && ret) {
-            await app.account.notificationManager(req, 'transfer_event', {
-                amount,
-                currency: 'BNB',
-                to,
-                transactionHash: ret.transactionHash,
-                network: 'BEP20',
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { projection: { UserId: true } }
-            )
-            if (wallet) {
-                await app.account.notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: 'BNB',
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                        network: 'BEP20',
-                    }
-                )
-            }
-        }
+        // cred && app.account.lockBSC(cred.address)
+        // if (ret.transactionHash && ret) {
+        //     await app.account.notificationManager(req, 'transfer_event', {
+        //         amount,
+        //         currency: 'BNB',
+        //         to,
+        //         transactionHash: ret.transactionHash,
+        //         network: 'BEP20',
+        //     })
+        //     const wallet = await Wallet.findOne(
+        //         { 'keystore.address': to.substring(2) },
+        //         { projection: { UserId: true } }
+        //     )
+        //     if (wallet) {
+        //         await app.account.notificationManager(
+        //             wallet.UserId,
+        //             'receive_transfer_event',
+        //             {
+        //                 amount,
+        //                 currency: 'BNB',
+        //                 from: cred.address,
+        //                 transactionHash: ret.transactionHash,
+        //                 network: 'BEP20',
+        //             }
+        //         )
+        //     }
+        // }
     }
 }
 
 exports.transfertEther = async (req, res) => {
-    var pass = req.body.pass
     var to = req.body.to
     var amount = req.body.val
     try {
         if (req.user.hasWallet == true) {
-            var result = await app.account.getAccount(req, res)
+            var result = await getAccount(req, res)
 
             if (new Big(amount).gt(new Big(result.ether_balance))) {
-                res.end(JSON.stringify({ message: 'not_enough_budget' }))
-                return
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    ' not_enough_budget'
+                )
             }
-            var cred = await app.account.unlock(req, res)
+            var cred = await unlock(req, res)
             cred.from_id = req.user._id
-            var ret = await app.cryptoManager.transfer(to, amount, cred)
+            var ret = await transferEther(to, amount, cred)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             responseHandler.makeResponseError(res, 404, ' Account not found')
@@ -602,34 +614,33 @@ exports.transfertEther = async (req, res) => {
     } catch (err) {
         console.log('err', err)
     } finally {
-        if (cred) app.account.lock(cred.address)
-
-        if (ret) {
-            await app.account.notificationManager(req, 'transfer_event', {
-                amount,
-                currency: 'ETH',
-                to,
-                transactionHash: 'ret.transactionHash',
-                network: 'ERC20',
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { UserId: true }
-            )
-            if (wallet) {
-                await app.account.notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: 'ETH',
-                        from: cred.address,
-                        transactionHash: 'ret.transactionHash',
-                        network: 'ERC20',
-                    }
-                )
-            }
-        }
+        // if (cred) lock(cred.address)
+        // if (ret) {
+        //     await app.account.notificationManager(req, 'transfer_event', {
+        //         amount,
+        //         currency: 'ETH',
+        //         to,
+        //         transactionHash: 'ret.transactionHash',
+        //         network: 'ERC20',
+        //     })
+        //     const wallet = await Wallet.findOne(
+        //         { 'keystore.address': to.substring(2) },
+        //         { UserId: true }
+        //     )
+        //     if (wallet) {
+        //         await app.account.notificationManager(
+        //             wallet.UserId,
+        //             'receive_transfer_event',
+        //             {
+        //                 amount,
+        //                 currency: 'ETH',
+        //                 from: cred.address,
+        //                 transactionHash: 'ret.transactionHash',
+        //                 network: 'ERC20',
+        //             }
+        //         )
+        //     }
+        // }
     }
 }
 
@@ -649,11 +660,11 @@ exports.getQuote = async (req, res) => {
                 requestQuote['payment_methods'] = ['credit_card']
                 requestQuote['wallet_id'] = 'satt'
                 const simplexQuote = {
-                    url: app.config.sandBoxUri + '/wallet/merchant/v2/quote',
+                    url: configSendBox + '/wallet/merchant/v2/quote',
                     method: 'POST',
                     body: requestQuote,
                     headers: {
-                        Authorization: `ApiKey ${app.config.sandBoxKey}`,
+                        Authorization: `ApiKey ${process.env.SEND_BOX}`,
                     },
                     json: true,
                 }
@@ -712,7 +723,7 @@ exports.payementRequest = async (req, res) => {
             request.uuid = payment_id
             request.currency = req.body.currency
             request.idWallet = req.body.idWallet
-            let payment = app.config.paymentRequest(request)
+            let payment = await payementRequest(request)
             const paymentRequest = {
                 url:
                     app.config.sandBoxUri +
@@ -860,7 +871,7 @@ exports.createNewWallet = async (req, res) => {
                 'Wallet already exist'
             )
         } else {
-            var ret = await app.account.createSeed(req, res)
+            var ret = await createSeed(req, res)
             await User.updateOne(
                 { _id: id },
                 {
