@@ -165,6 +165,8 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *                 type: string
  *               amount:
  *                 type: string
+ *               pass:
+ *                 type: string
  *               contract:
  *                 type: string
  *               dataUrl:
@@ -259,11 +261,15 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  * /campaign/campaigns:
  *   get:
  *     tags:
- *     - "campaign list"
+ *     - "campaign"
  *     summary: get campaigns list
  *     description: Returns the list of campaigns <br> without access_token
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - name: idWallet
+ *         description: idWallet
+ *         in: query
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
@@ -272,14 +278,14 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  *       "500":
  *          description: error:"error"
  */
-router.get('/campaigns', verifyAuth, campaigns)
+router.get('/campaigns', campaigns)
 
 /**
  * @swagger
  * /campaign/details/{id}:
  *   get:
  *     tags:
- *     - "campaign details"
+ *     - "campaign"
  *     summary: get campaign details
  *     description: return to user campaign details <br> with access_token
  *     produces:
@@ -622,7 +628,7 @@ router.post('/addKits', verifyAuth, upload, addKits)
  * /campaign/update/{idCampaign}:
  *   put:
  *     tags:
- *     - "Update campaign"
+ *     - "campaign"
  *     summary: Update campaign .
  *     description: Admin can update campaign  <br> with access_token.
  *     parameters:
