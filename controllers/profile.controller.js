@@ -1,6 +1,3 @@
-var connection
-
-var requirement = require('../helpers/utils')
 var rp = require('request-promise')
 const {
     User,
@@ -28,11 +25,6 @@ const {
 } = require('../manager/oracles')
 
 const QRCode = require('qrcode')
-var connection
-let app
-;(connection = async function () {
-    app = await requirement.connection()
-})()
 
 const mongoose = require('mongoose')
 let gfsprofilePic
@@ -258,7 +250,7 @@ exports.addUserLegalProfile = async (req, res) => {
         }
         return makeResponseError(res, 404, 'Only images allowed')
     } catch (err) {
-        console.log(err)
+        // console.log(err)
         return makeResponseError(
             res,
             500,
@@ -664,7 +656,7 @@ module.exports.changeEmail = async (req, res) => {
             return makeResponseData(res, 200, 'Email was sent to ' + email)
         }
     } catch (err) {
-        console.log('-----------error', err)
+        // console.log('error', err)
         return makeResponseError(
             res,
             500,
@@ -703,8 +695,7 @@ module.exports.confrimChangeMail = async (req, res) => {
 
 module.exports.verifyLink = async (req, response) => {
     try {
-        // req.user._id
-        var userId = 1
+        var userId = req.user._id
         var typeSN = req.params.typeSN
         var idUser = req.params.idUser
         var idPost = req.params.idPost
@@ -809,7 +800,7 @@ module.exports.verifyLink = async (req, response) => {
                 res ? 'true' : 'false'
             )
     } catch (err) {
-        console.log('-------err', err)
+        // console.log('err', err)
         return makeResponseError(
             response,
             500,
