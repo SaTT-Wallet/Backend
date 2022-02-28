@@ -15,7 +15,7 @@ var requirement = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
-
+const { Constants } = require('../conf/const2')
 const {
     unlock,
     exportkeyBtc,
@@ -25,6 +25,9 @@ const {
     getListCryptoByUid,
     getBalanceByUid,
     getBalance,
+    transfer,
+    unlockBsc,
+    sendBep20,
 } = require('../web3/wallets')
 let app
 ;(connection = async () => {
@@ -105,7 +108,6 @@ exports.mywallet = async (req, res) => {
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            console.log('has wallet')
             const balance = await getListCryptoByUid(req, res)
 
             let listOfCrypto = [...new Set(balance.listOfCrypto)]
@@ -210,23 +212,24 @@ exports.transfertErc20 = async (req, res) => {
             var tokenERC20 = req.body.token
             var to = req.body.to
             var amount = req.body.amount
-            var currency = req.body.symbole
-            var decimal = req.body.decimal
-            var cred = await app.account.unlock(req, res)
+            var cred = await unlock(req, res)
             cred.from_id = req.user._id
             var result = await getAccount(req, res)
+            let balance = await getBalance(
+                cred.Web3ETH,
+                tokenERC20,
+                result.address
+            )
 
-            let Web3ETH = await erc20Connexion()
-
-            let balance = await getBalance(Web3ETH, tokenERC20, result.address)
-            if (new Big(amount).gt(new Big(balance.amount))) {
+            if (new Big(amount).gt(new Big(balance))) {
                 return responseHandler.makeResponseError(
                     res,
                     401,
                     'not_enough_budget'
                 )
             }
-            var ret = await app.erc20.transfer(tokenERC20, to, amount, cred)
+
+            var ret = await transfer(tokenERC20, to, amount, cred)
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -237,66 +240,61 @@ exports.transfertErc20 = async (req, res) => {
             )
         }
     } catch (err) {
-        //    return responseHandler.makeResponseError(
-        //    			 res,
-        //     		 500,
-        //    			 err.message ? err.message : err.error
-        // 			 )
+        console.log(err)
     } finally {
-        cred && app.account.lock(cred.address)
-        if (ret && ret.transactionHash) {
-            await app.account.notificationManager(req, 'transfer_event', {
-                amount,
-                currency,
-                to,
-                transactionHash: ret.transactionHash,
-                network: 'ERC20',
-                decimal,
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { projection: { UserId: true } }
-            )
-            if (wallet) {
-                await app.account.notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency,
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                        network: 'ERC20',
-                        decimal,
-                    }
-                )
-            }
-        }
+        // cred && lock(cred.address)
+        // if (ret && ret.transactionHash) {
+        //     await app.account.notificationManager(req, 'transfer_event', {
+        //         amount,
+        //         currency,
+        //         to,
+        //         transactionHash: ret.transactionHash,
+        //         network: 'ERC20',
+        //         decimal,
+        //     })
+        //     const wallet = await Wallet.findOne(
+        //         { 'keystore.address': to.substring(2) },
+        //         { projection: { UserId: true } }
+        //     )
+        //     if (wallet) {
+        //         await app.account.notificationManager(
+        //             wallet.UserId,
+        //             'receive_transfer_event',
+        //             {
+        //                 amount,
+        //                 currency,
+        //                 from: cred.address,
+        //                 transactionHash: ret.transactionHash,
+        //                 network: 'ERC20',
+        //                 decimal,
+        //             }
+        //         )
+        //     }
+        // }
     }
 }
 
 exports.transfertBep20 = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var currency = req.body.symbole
             var to = req.body.to
             var amount = req.body.amount
-            var decimal = req.body.decimal
-            var pass = req.body.pass
-            var cred = await app.account.unlockBSC(req, res)
+            var cred = await unlockBsc(req, res)
+
             cred.from_id = req.user._id
             req.body.token = !req.body.token
                 ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
                 : req.body.token
 
-            var result = await app.account.getAccount(req, res)
+            var result = await getAccount(req, res)
 
-            let balance = await app.bep20.getBalance(
+            let balance = await getBalance(
+                cred.Web3BEP20,
                 req.body.token,
                 result.address
             )
 
-            if (new Big(amount).gt(new Big(balance.amount))) {
+            if (new Big(amount).gt(new Big(balance))) {
                 return responseHandler.makeResponseError(
                     res,
                     401,
@@ -304,12 +302,7 @@ exports.transfertBep20 = async (req, res) => {
                 )
             }
 
-            var ret = await app.bep20.sendBep20(
-                req.body.token,
-                to,
-                amount,
-                cred
-            )
+            var ret = await sendBep20(req.body.token, to, amount, cred)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -319,36 +312,37 @@ exports.transfertBep20 = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err)
     } finally {
-        cred && app.account.lockBSC(cred.address)
-        if (ret && ret.transactionHash) {
-            await app.account.notificationManager(req, 'transfer_event', {
-                amount,
-                network: 'BEP20',
-                to: req.body.to,
-                transactionHash: ret.transactionHash,
-                currency,
-                decimal,
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { projection: { UserId: true } }
-            )
-            if (wallet) {
-                await app.account.notificationManager(
-                    req,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        network: 'BEP20',
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                        currency,
-                        decimal,
-                    }
-                )
-            }
-        }
+        // cred && lockBSC(cred.address)
+        // if (ret && ret.transactionHash) {
+        //     await app.account.notificationManager(req, 'transfer_event', {
+        //         amount,
+        //         network: 'BEP20',
+        //         to: req.body.to,
+        //         transactionHash: ret.transactionHash,
+        //         currency,
+        //         decimal,
+        //     })
+        //     const wallet = await Wallet.findOne(
+        //         { 'keystore.address': to.substring(2) },
+        //         { projection: { UserId: true } }
+        //     )
+        //     if (wallet) {
+        //         await app.account.notificationManager(
+        //             req,
+        //             'receive_transfer_event',
+        //             {
+        //                 amount,
+        //                 network: 'BEP20',
+        //                 from: cred.address,
+        //                 transactionHash: ret.transactionHash,
+        //                 currency,
+        //                 decimal,
+        //             }
+        //         )
+        //     }
+        // }
     }
 }
 
@@ -367,7 +361,7 @@ exports.checkWalletToken = async (req, res) => {
         let abi =
             network === 'bep20'
                 ? app.config.ctrs.bep20.abi
-                : app.config.ctrs.token.abi
+                : Constants.token.abi
         let networkToken =
             network === 'bep20' ? app.web3Bep20.eth : app.web3.eth
         let code = await networkToken.getCode(tokenAdress)

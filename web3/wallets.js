@@ -1,6 +1,10 @@
 const { Wallet, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
-const { erc20Connexion, bep20Connexion } = require('../blockchainConnexion')
+const {
+    erc20Connexion,
+    bep20Connexion,
+    getContractByToken,
+} = require('../blockchainConnexion')
 
 var rp = require('request-promise')
 const Big = require('big.js')
@@ -14,9 +18,11 @@ exports.unlock = async (req, res) => {
         let account = await Wallet.findOne({ UserId })
 
         let Web3ETH = await erc20Connexion()
-        let Web3BEP20 = await bep20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
+
+        let Web3BEP20 = await bep20Connexion()
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
+
         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
     } catch (err) {
         res.status(500).send({
@@ -26,6 +32,21 @@ exports.unlock = async (req, res) => {
     }
 }
 
+exports.unlockBsc = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId })
+        let Web3BEP20 = await bep20Connexion()
+        Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return { address: '0x' + account.keystore.address, Web3BEP20 }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
 exports.lock = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
@@ -259,7 +280,37 @@ exports.getBalance = async (Web3, token, address) => {
 
         return amount.toString()
     } catch (err) {
+        console.log(err)
         return '0'
+    }
+}
+
+exports.sendBep20 = async (token, to, amount, credentials) => {
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            'BEP20'
+        )
+
+        var gasPrice = await contract.getGasPrice()
+        var gas = await contract.methods
+            .transfer(to, amount)
+            .estimateGas({ from: credentials.address })
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        console.log(err)
     }
 }
 
@@ -514,33 +565,39 @@ exports.getBalanceByUid = async (req, res) => {
     }
 }
 
-exports.transfer = async (token, to, amount, credentials) => {
-    try {
-        var contract = new app.web3.eth.Contract(
-            app.config.ctrs.token.abi,
+exports.getTokenContractByToken = async (token, credentials, network) => {
+    if (network === 'ERC20') {
+        var contract = new credentials.Web3ETH.eth.Contract(
+            Constants.token.abi,
             token
         )
-        var gasPrice = await app.web3.eth.getGasPrice()
-        var gas = 60000
-        //await contract.methods.transfer(to,amount).estimateGas({from:credentials.address})
+        contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
+    } else {
+        var contract = new credentials.Web3BEP20.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
+    }
 
+    return contract
+}
+
+exports.transfer = async (token, to, amount, credentials) => {
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            'ERC20'
+        )
+
+        var gasPrice = await contract.getGasPrice()
+        var gas = 60000
         var receipt = await contract.methods.transfer(to, amount).send({
             from: credentials.address,
             gas: gas,
             gasPrice: gasPrice,
         })
-
-        var tx = await app.web3.eth.getTransaction(receipt.transactionHash)
-        tx.txtype = token
-        tx.apiversion = 2
-        tx.date = Date.now()
-        tx.networkid = app.config.blockChain
-        tx.from = credentials.address
-        tx.to = to.toLowerCase()
-        tx.from_id = credentials.from_id
-        tx.value = amount
-        tx.gasPrice = gasPrice
-        app.db.txs().insertOne(tx)
 
         return {
             transactionHash: receipt.transactionHash,
@@ -548,11 +605,6 @@ exports.transfer = async (token, to, amount, credentials) => {
             to: to,
             amount,
         }
-        console.log(
-            'erManager.transfer',
-            credentials.address,
-            `transfer confirmed transactionHash :${receipt.transactionHash} ${amount} to ${to}`
-        )
     } catch (err) {
         console.log(err)
     }
