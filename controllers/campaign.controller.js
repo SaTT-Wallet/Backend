@@ -51,8 +51,18 @@ const {
     createPerformanceCampaign,
     getAccount,
     lock,
+    unlockBsc,
+    bep20Allow,
+    lockBSC,
+    bep20Approve,
+    lockERC20,
+    erc20Allow,
+    erc20Approve,
+    createBountiesCampaign,
+    sortOutPublic,
+    getUserIdByWallet,
 } = require('../web3/campaigns')
-
+const { getCampaignContractByHashCampaign } = require('../blockchainConnexion')
 let calcSNStat = (objNw, link) => {
     objNw.total++
     if (link.status !== 'rejected') {
@@ -118,7 +128,7 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
-            lock(req, res, cred)
+            lock(cred)
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -153,26 +163,29 @@ module.exports.launchBounty = async (req, res) => {
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
     try {
-        var cred = await app.account.unlock(req, res)
-
-        var ret = await app.campaign.createCampaignBounties(
+        var cred = await unlock(req, res)
+        if (!cred) return
+        var ret = await createBountiesCampaign(
             dataUrl,
             startDate,
             endDate,
             bounties,
             tokenAddress,
             amount,
-            cred
+            cred,
+            res
         )
+        if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
     } finally {
-        cred && app.account.lock(cred.address)
+        cred && lock(cred)
         if (ret && ret.hash) {
             let campaign = {
                 hash: ret.hash,
@@ -187,7 +200,7 @@ module.exports.launchBounty = async (req, res) => {
                 walletId: cred.address,
             }
             await Campaigns.updateOne(
-                _id,
+                { _id },
                 { $set: campaign },
                 { $unset: { coverSrc: '', ratios: '' } }
             )
@@ -207,9 +220,12 @@ exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
         if (req.query.idWallet) {
-            var idNode = '0' + req.user._id
+            let userId = await getUserIdByWallet(
+                req.query.idWallet.substring(2)
+            )
+            var idNode = '0' + userId
             strangerDraft = await Campaigns.distinct('_id', {
-                idNode: { $ne: '0' + req.user._id },
+                idNode: { $ne: idNode },
                 hash: { $exists: false },
             })
         }
@@ -217,10 +233,9 @@ exports.campaigns = async (req, res) => {
         let page = +req.query.page || 1
         let skip = limit * (page - 1)
         let id_wallet = req.query.idWallet
-        let query = app.campaign.sortOutPublic(req, idNode, strangerDraft)
+        let query = sortOutPublic(req, idNode, strangerDraft)
 
         let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
-
         let campaigns = await Campaigns.aggregate([
             {
                 $match: query,
@@ -257,7 +272,7 @@ exports.campaigns = async (req, res) => {
                 proms = await CampaignLink.find({
                     id_campaign: campaigns[i].hash,
                     id_wallet,
-                }).toArray()
+                })
                 if (proms.length) campaigns[i].proms = proms
             }
         }
@@ -278,9 +293,7 @@ exports.campaignDetails = async (req, res) => {
     try {
         var _id = req.params.id
 
-        var campaign = await Campaigns.findOne({
-            _id,
-        })
+        var campaign = await Campaigns.findOne({ _id })
 
         if (campaign) {
             campaign.remaining = campaign.funds[1]
@@ -309,6 +322,7 @@ exports.campaignDetails = async (req, res) => {
 exports.campaignPromp = async (req, res) => {
     var _id = req.params.id
     try {
+        var _id = req.params.id
         const campaign = await Campaigns.findOne(
             { _id },
             {
@@ -321,7 +335,7 @@ exports.campaignPromp = async (req, res) => {
                 },
             }
         )
-        let ctr = await app.campaign.getCampaignContract(campaign.hash)
+        let ctr = await getCampaignContractByHashCampaign(campaign.hash)
         if (!ctr) {
             return responseHandler.makeResponseData(res, 200, 'success', {})
         } else {
@@ -463,13 +477,14 @@ exports.apply = async (req, res) => {
     var idPost = req.body.idPost
     var idUser = req.body.idUser
     let title = req.body.title
-    let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-
-    let contract = await app.campaign.getCampaignContract(hash)
-
     var id = req.user._id
+    let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
+    let contract = await getCampaignContractByHashCampaign(hash)
     try {
-        let promExist = await CampaignLink.findOne({ idCampaign: hash, idPost })
+        let promExist = await CampaignLink.findOne({
+            id_campaign: hash,
+            idPost,
+        })
 
         if (promExist) {
             return responseHandler.makeResponseError(
@@ -479,14 +494,14 @@ exports.apply = async (req, res) => {
             )
         }
 
-        var cred = await app.account.unlock(req, res)
-
+        var cred = await unlock(req, res)
+        if (!cred) return
         if (typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne(
                 { userId: id },
                 { accessToken: 1, _id: 0 }
             )
-            var linkedinInfo = await app.oracle.getLinkedinLinkInfo(
+            var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString()
             )
@@ -1271,7 +1286,7 @@ exports.bep20Approval = async (req, res) => {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
         let account = await getAccount(req, res)
-        let allowance = await app.bep20.getApproval(
+        let allowance = await bep20Approve(
             tokenAddress,
             account.address,
             campaignAddress
@@ -1295,12 +1310,13 @@ exports.erc20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await app.account.getAccount(req, res)
-        let allowance = await app.erc20.getApproval(
+        let account = await getAccount(req, res)
+        let allowance = await erc20Approve(
             tokenAddress,
             account.address,
             campaignAddress
         )
+
         return responseHandler.makeResponseData(res, 200, 'success', {
             token: tokenAddress,
             allowance: allowance,
@@ -1317,18 +1333,20 @@ exports.erc20Approval = async (req, res) => {
 }
 
 exports.bep20Allow = async (req, res) => {
-    let cred
     try {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let bep20TOken = req.body.tokenAddress
-        cred = await app.account.unlockBSC(req, res)
-        let ret = await app.bep20.approve(
+        var cred = await unlockBsc(req, res)
+        if (!cred) return
+        let ret = await bep20Allow(
             bep20TOken,
-            cred.address,
+            cred,
             campaignAddress,
-            amount
+            amount,
+            res
         )
+        if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         // console.log('-----errrr', err)
@@ -1339,7 +1357,7 @@ exports.bep20Allow = async (req, res) => {
             false
         )
     } finally {
-        if (cred) app.account.lockBSC(cred.address)
+        if (cred) lockBSC(cred)
     }
 }
 
@@ -1348,13 +1366,17 @@ exports.erc20Allow = async (req, res) => {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let tokenAddress = req.body.tokenAddress
-        let cred = await app.account.unlock(req, res)
-        let ret = await app.erc20.approve(
+        var cred = await unlock(req, res)
+        if (!cred) return
+
+        let ret = await erc20Allow(
             tokenAddress,
-            cred.address,
+            cred,
             campaignAddress,
-            amount
+            amount,
+            res
         )
+        if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1364,7 +1386,7 @@ exports.erc20Allow = async (req, res) => {
             false
         )
     } finally {
-        if (cred) app.account.lock(cred.address)
+        if (cred) lockERC20(cred)
     }
 }
 

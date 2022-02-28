@@ -830,4 +830,5 @@ module.exports.verifyAuth = (req, res, next) => {
         next()
     })
 }
+
 module.exports.createUser = createUser
