@@ -1,6 +1,11 @@
 var express = require('express')
 var app = express()
 
+const path = require('path')
+const i18n = require('i18n')
+const cookieParser = require('cookie-parser')
+app.use(cookieParser())
+
 const Big = require('big.js')
 
 var fs = require('fs')
@@ -11,6 +16,8 @@ const jwt = require('jsonwebtoken')
 
 const handlebars = require('handlebars')
 var ejs = require('ejs')
+
+const { config } = require('../conf/config1')
 
 exports.connection = async () => {
     app = await require('../conf/config')(app)
@@ -322,4 +329,45 @@ const readHTMLFile = (path, callback) => {
             callback(null, html)
         }
     })
+}
+
+exports.synfonyHash = function (pass) {
+    var salted = pass + '{' + config.symfonySalt + '}'
+
+    var buff = hasha(salted, { encoding: 'buffer' })
+    var saltBuff = Buffer.from(salted)
+    var arr = []
+
+    for (var i = 1; i < 5000; i++) {
+        arr = [buff, saltBuff]
+        buff = hasha(Buffer.concat(arr), {
+            algorithm: 'sha512',
+            encoding: 'buffer',
+        })
+    }
+
+    const base64 = buff.toString('base64')
+    return base64
+}
+
+exports.configureTranslation = function (lang) {
+    try {
+        app.use(i18n.init)
+
+        i18n.configure({
+            locales: ['fr', 'en'],
+            directory: path.join(__dirname, '../public/locales'),
+            defaultLocale: lang,
+            queryParameter: 'lang',
+            cookiename: 'language',
+        })
+        handlebars.registerHelper('__', function () {
+            return i18n.__.apply(this, arguments)
+        })
+        handlebars.registerHelper('__n', function () {
+            return i18n.__n.apply(this, arguments)
+        })
+    } catch (error) {
+        console.log(error)
+    }
 }

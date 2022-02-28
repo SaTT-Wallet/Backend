@@ -1109,5 +1109,20 @@ let token200 = [
     },
 ]
 
+let config = {
+    symfonySalt: process.env.SYMPHONY_SATT,
+    linkedinActivityUrl: (activityURN) =>
+        `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
+}
+
+let oauth = {
+    google: {
+        googleClientId: process.env.GOOGLE_CLIENTID,
+        googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+}
+
 module.exports.Tokens = Tokens
 module.exports.token200 = token200
+module.exports.config = config
+module.exports.oauth = oauth
