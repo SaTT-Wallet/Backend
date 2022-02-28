@@ -261,7 +261,7 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  *     tags:
  *     - "campaign list"
  *     summary: get campaigns list
- *     description: Returns the list of campaigns <br> without access_token
+ *     description: Returns the list of campaigns <br> with access_token
  *     produces:
  *       - application/json
  *     responses:
