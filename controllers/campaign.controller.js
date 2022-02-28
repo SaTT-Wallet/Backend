@@ -1333,7 +1333,6 @@ exports.erc20Approval = async (req, res) => {
 }
 
 exports.bep20Allow = async (req, res) => {
-    let cred
     try {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
