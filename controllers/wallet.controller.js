@@ -456,7 +456,7 @@ exports.addNewToken = async (req, res) => {
             } else {
                 let id = tokenFounded._id
                 await CustomToken.updateOne(
-                    { _id: app.ObjectId(id) },
+                    { _id: id },
                     { $push: { sn_users: req.user._id } }
                 )
             }
