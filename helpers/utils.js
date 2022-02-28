@@ -371,3 +371,22 @@ exports.configureTranslation = function (lang) {
         console.log(error)
     }
 }
+
+exports.cloneUser = (user) => {
+    const {
+        daily,
+        weekly,
+        monthly,
+        failed_count,
+        account_locked,
+        created,
+        updated,
+        confirmation_token,
+        ...newUser
+    } = user
+    return newUser
+}
+
+//global function that generates user acessToken
+exports.generateAccessToken = (user) =>
+    jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '24h' })

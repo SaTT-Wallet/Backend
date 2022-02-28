@@ -1122,7 +1122,12 @@ let oauth = {
     },
 }
 
+let loginSettings = {
+    lockedPeriod: process.env.lockedPeriod,
+}
+
 module.exports.Tokens = Tokens
 module.exports.token200 = token200
 module.exports.config = config
 module.exports.oauth = oauth
+module.exports.loginSettings = loginSettings
