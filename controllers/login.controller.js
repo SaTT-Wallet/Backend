@@ -70,7 +70,7 @@ exports.captcha = async (req, res) => {
 
 exports.verifyCaptcha = async (req, res) => {
     try {
-        let id = app.ObjectId(req.body._id)
+        let id = req.body._id
         let position = +req.body.position
         let captcha = await Captcha.findOne({
             $and: [

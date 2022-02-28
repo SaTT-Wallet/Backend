@@ -261,29 +261,24 @@ exports.FindUserLegalProfile = async (req, res) => {
         const id = req.user._id
 
         const userLegal = req.params.id
-        gfsUserLegal.files.findOne(
-            { _id: app.ObjectId(userLegal) },
-            (err, file) => {
-                if (!file || file.length === 0) {
-                    return makeResponseError(res, 404, 'No file exists')
+        gfsUserLegal.files.findOne({ _id: userLegal }, (err, file) => {
+            if (!file || file.length === 0) {
+                return makeResponseError(res, 404, 'No file exists')
+            } else {
+                if (file.contentType) {
+                    contentType = file.contentType
                 } else {
-                    if (file.contentType) {
-                        contentType = file.contentType
-                    } else {
-                        contentType = file.mimeType
-                    }
-                    res.writeHead(200, {
-                        'Content-type': contentType,
-                        'Content-Length': file.length,
-                        'Content-Disposition': `attachment; filename=${file.filename}`,
-                    })
-                    const readstream = gfsUserLegal.createReadStream(
-                        file.filename
-                    )
-                    readstream.pipe(res)
+                    contentType = file.mimeType
                 }
+                res.writeHead(200, {
+                    'Content-type': contentType,
+                    'Content-Length': file.length,
+                    'Content-Disposition': `attachment; filename=${file.filename}`,
+                })
+                const readstream = gfsUserLegal.createReadStream(file.filename)
+                readstream.pipe(res)
             }
-        )
+        })
     } catch (err) {
         return makeResponseError(
             res,
@@ -525,7 +520,7 @@ module.exports.notificationUpdate = async (req, res) => {
 
     try {
         const result = await Notification.updateOne(
-            { _id: mongoose.Types.ObjectId(id) },
+            { _id: id },
             { $set: { isSeen: true } }
         )
         if (result.nModified === 0) {
