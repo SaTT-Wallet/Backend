@@ -676,9 +676,9 @@ router.post('/addKits', verifyAuth, upload, addKits)
  *                  id:
  *                      type: string
  *               endDate:
- *                 type: date
+ *                 type: number
  *               startDate:
- *                 type: date
+ *                 type: number
  *               remuneration:
  *                 type: string
  *               cost:

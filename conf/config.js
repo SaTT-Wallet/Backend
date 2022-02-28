@@ -5,7 +5,6 @@ module.exports = async function (app) {
         var config = {}
 
         //testnet mode
-        config.testnet = true
 
         // JSON RPC endpoints for ETH,BNB mainnet or testnet
 
@@ -219,7 +218,6 @@ module.exports = async function (app) {
         config.btcPassword = process.env.BTC_PASSWORD
 
         config.btcCmd = process.env.BTC_CMD
-        config.pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
         config.pathBtcSegwit = "m/84'/0'/0'/0/0"
         config.pathEth = "m/44'/60'/0'/0/0'"
 
@@ -366,6 +364,7 @@ module.exports = async function (app) {
         config.APIURLERC20 = process.env.API_URL_ERC20
 
         // simplex api
+        config.testnet = true
 
         config.sandBoxUri = config.testnet
             ? 'https://sandbox.test-simplexcc.com'
