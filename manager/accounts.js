@@ -44,24 +44,20 @@ exports.manageTime = () => {
     return year + '-' + month + '-' + ' ' + hour + ':' + minutes + ':' + seconds
 }
 
-exports.configureTranslation = function (lang) {
-    try {
-        app.use(i18n.init)
+exports.differenceBetweenDates = (authDate, dateNow) => {
+    return Math.ceil(Math.abs(dateNow * 1000 - authDate * 1000) / 60000)
+}
 
-        i18n.configure({
-            locales: ['fr', 'en'],
-            directory: path.join(__dirname, '../public/locales'),
-            defaultLocale: lang,
-            queryParameter: 'lang',
-            cookiename: 'language',
-        })
-        handlebars.registerHelper('__', function () {
-            return i18n.__.apply(this, arguments)
-        })
-        handlebars.registerHelper('__n', function () {
-            return i18n.__n.apply(this, arguments)
-        })
-    } catch (error) {
-        console.log(error)
+exports.updateAndGenerateCode = async (_id, type) => {
+    try {
+        const code = Math.floor(100000 + Math.random() * 900000)
+        let secureCode = {}
+        ;(secureCode.code = code),
+            (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+            (secureCode.type = type)
+        await User.updateOne({ _id }, { $set: { secureCode } })
+        return code
+    } catch (e) {
+        reject({ message: e.message })
     }
 }
