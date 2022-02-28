@@ -232,7 +232,7 @@ module.exports.launchBounty = async (req, res) => {
                 walletId: cred.address,
             }
             await Campaigns.updateOne(
-                { _id: app.ObjectId(id) },
+                { _id: id },
                 { $set: campaign },
                 { $unset: { coverSrc: '', ratios: '' } }
             )
@@ -324,7 +324,7 @@ exports.campaignDetails = async (req, res) => {
         var idCampaign = req.params.id
 
         var campaign = await Campaigns.findOne({
-            _id: app.ObjectId(idCampaign),
+            _id: idCampaign,
         })
 
         if (campaign) {
@@ -354,7 +354,7 @@ exports.campaignDetails = async (req, res) => {
 exports.campaignPromp = async (req, res) => {
     try {
         const campaign = await Campaigns.findOne(
-            { _id: app.ObjectId(req.params.id) },
+            { _id: req.params.id },
             {
                 fields: {
                     logo: 0,
@@ -610,7 +610,7 @@ exports.apply = async (req, res) => {
             ;(prom.likes = socialOracle.likes),
                 (prom.shares = socialOracle.shares || '0')
             await CampaignLink.updateOne(
-                { _id: app.ObjectId(insert.ops[0]._id) },
+                { _id: insert.ops[0]._id },
                 { $set: prom }
             )
             let event = {
@@ -639,7 +639,7 @@ exports.linkNotifications = async (req, res) => {
         let link = req.body.link
         let idProm = req.body.idProm
         await Campaigns.findOne(
-            { _id: app.ObjectId(campaign_id) },
+            { _id: campaign_id },
             {
                 fields: {
                     logo: 0,
@@ -698,7 +698,7 @@ exports.validateCampaign = async (req, res) => {
 
     var id = req.user._id
     const campaign = await Campaigns.findOne(
-        { _id: app.ObjectId(idCampaign) },
+        { _id: idCampaign },
         {
             fields: {
                 logo: 0,
@@ -1076,7 +1076,7 @@ exports.kits = async (req, res) => {
     try {
         const idCampaign = req.params.idCampaign
         gfsKit.files
-            .find({ 'campaign.$id': app.ObjectId(idCampaign) })
+            .find({ 'campaign.$id': idCampaign })
             .toArray((err, files) => {
                 return responseHandler.makeResponseData(
                     res,
