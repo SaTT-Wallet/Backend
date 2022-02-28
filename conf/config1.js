@@ -1112,7 +1112,7 @@ let token200 = [
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
     linkedinActivityUrl: (activityURN) =>
-        `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
+        `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST}${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
 }
 
 let oauth = {
