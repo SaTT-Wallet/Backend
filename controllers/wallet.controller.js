@@ -1,11 +1,10 @@
-var Wallet = require('../model/wallet.model')
-var User = require('../model/user.model')
-var CustomToken = require('../model/customToken.model')
+const { User, Wallet, CustomToken } = require('../model/index')
 
 const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
-const jwt = require('jsonwebtoken')
+
+const { getContractByToken } = require('../blockchainConnexion')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -13,6 +12,15 @@ var requirement = require('../helpers/utils')
 var connection
 const { responseHandler } = require('../helpers/response-handler')
 
+const {
+    unlock,
+    exportkeyBtc,
+    exportkey,
+    getAccount,
+    getPrices,
+    getListCryptoByUid,
+    getBalanceByUid,
+} = require('../web3/wallets')
 let app
 ;(connection = async () => {
     app = await requirement.connection()
@@ -20,11 +28,12 @@ let app
 
 exports.exportBtc = async (req, res) => {
     try {
-        console.log(req.user.hasWallet)
         if (req.user.hasWallet == true) {
-            var cred = await app.account.unlock(req, res)
+            var cred = await unlock(req, res)
+            if (!cred) return
 
-            let ret = await app.account.exportkeyBtc(req, res)
+            let ret = await exportkeyBtc(req, res)
+
             return responseHandler.makeResponseData(
                 res.attachment(),
                 200,
@@ -39,18 +48,16 @@ exports.exportBtc = async (req, res) => {
             )
         }
     } catch (err) {
-    } finally {
-        if (cred) app.account.lock(cred.address)
+        console.log(err)
     }
 }
 
 exports.exportEth = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            let id = req.user._id
-            var cred = await app.account.unlock(req, res)
-            console.log('creddddd', cred)
-            let ret = await app.account.exportkey(req, res)
+            var cred = await unlock(req, res)
+            let ret = await exportkey(req, res)
+
             return responseHandler.makeResponseData(
                 res.attachment(),
                 200,
@@ -65,20 +72,14 @@ exports.exportEth = async (req, res) => {
             )
         }
     } catch (err) {
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
-    } finally {
-        if (cred) app.account.lock(cred.address)
+        console.log(err)
     }
 }
 
 exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var ret = await app.account.getAccount(req, res)
+            var ret = await getAccount(req, res)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -99,9 +100,8 @@ exports.mywallet = async (req, res) => {
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            let id = req.user._id
-            let Crypto = app.account.getPrices()
-            const balance = await app.account.getListCryptoByUid(req, res)
+            console.log('has wallet')
+            const balance = await getListCryptoByUid(req, res)
 
             let listOfCrypto = [...new Set(balance.listOfCrypto)]
 
@@ -128,24 +128,23 @@ exports.userBalance = async (req, res) => {
 }
 
 exports.gasPriceBep20 = async (req, res) => {
-    var gasPrice = await app.web3Bep20.eth.getGasPrice()
+    var ctr = await getContractByToken(token, credentials)
+    var gasPrice = await ctr.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
     })
 }
 
 exports.gasPriceErc20 = async (req, res) => {
-    let app = await requirement.connection()
-
-    var gasPrice = await app.web3.eth.getGasPrice()
-
+    var ctr = await getContractByToken(token, credentials)
+    var gasPrice = await ctr.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
     })
 }
 
 exports.cryptoDetails = async (req, res) => {
-    let prices = app.account.getPrices()
+    let prices = await getPrices()
 
     return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
@@ -153,7 +152,7 @@ exports.cryptoDetails = async (req, res) => {
 exports.totalBalances = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var Total_balance = await app.account.getBalanceByUid(req, res)
+            var Total_balance = await getBalanceByUid(req, res)
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 Total_balance: Total_balance.Total_balance,
@@ -166,11 +165,11 @@ exports.totalBalances = async (req, res) => {
             )
         }
     } catch (err) {
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     } finally {
         if (req.user._id && Total_balance) {
             let date = Math.round(new Date().getTime() / 1000)
@@ -194,7 +193,7 @@ exports.totalBalances = async (req, res) => {
                     user.daily.pop()
                 }
 
-                await user.daily.save()
+                await user.save()
             }
         }
     }
@@ -456,7 +455,7 @@ exports.addNewToken = async (req, res) => {
             } else {
                 let id = tokenFounded._id
                 await CustomToken.updateOne(
-                    { _id: app.ObjectId(id) },
+                    { _id: id },
                     { $push: { sn_users: req.user._id } }
                 )
             }
@@ -563,7 +562,6 @@ exports.transfertBNB = async (req, res) => {
                 { projection: { UserId: true } }
             )
             if (wallet) {
-                console.log('wallet', wallet)
                 await app.account.notificationManager(
                     wallet.UserId,
                     'receive_transfer_event',
@@ -677,7 +675,6 @@ exports.getQuote = async (req, res) => {
             )
         }
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -741,7 +738,6 @@ exports.payementRequest = async (req, res) => {
             )
         }
     } catch (err) {
-        app.account.sysLogError(err)
         return responseHandler.makeResponseError(
             res,
             500,

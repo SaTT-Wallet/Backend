@@ -6,7 +6,6 @@ const {
     getContractByToken,
 } = require('../blockchainConnexion')
 
-const { sysLog } = require('../helpers/utils')
 const { Constants } = require('../conf/const2')
 
 exports.unlock = async (req, res) => {
