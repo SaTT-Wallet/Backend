@@ -1,24 +1,23 @@
 var express = require('express')
 var app = express()
 
-const Big = require('big.js')
-const etherInWei = new Big(1000000000000000000)
+const path = require('path')
+const i18n = require('i18n')
+const cookieParser = require('cookie-parser')
+app.use(cookieParser())
 
-var rp = require('request-promise')
-const { randomUUID } = require('crypto')
-const { v5: uuidv5 } = require('uuid')
+const Big = require('big.js')
+
 var fs = require('fs')
-const { createLogger, format, transports } = require('winston')
 
 var nodemailer = require('nodemailer')
 const hasha = require('hasha')
 const jwt = require('jsonwebtoken')
-const mongoose = require('mongoose')
-
-const GridFsStorage = require('multer-gridfs-storage')
 
 const handlebars = require('handlebars')
 var ejs = require('ejs')
+
+const { config } = require('../conf/config1')
 
 exports.connection = async () => {
     app = await require('../conf/config')(app)
@@ -320,43 +319,6 @@ exports.readHTMLFileCampaign = (
     })
 }
 
-const sysLogger = createLogger({
-    format: format.combine(
-        format.timestamp({
-            format: 'YYYY-MM-DD HH:mm:ss',
-        }),
-        format.printf((info) => `${info.timestamp} ${info.message}`)
-    ),
-    transports: [
-        new transports.File({ filename: '/var/log/node-satt/app.log' }),
-    ],
-})
-
-const errorLogger = createLogger({
-    format: format.combine(
-        format.timestamp({
-            format: 'YYYY-MM-DD HH:mm:ss',
-        }),
-        format.printf((info) => `${info.timestamp} ${info.message}`)
-    ),
-    transports: [
-        new transports.File({
-            filename: '/var/log/node-satt/app-error.log',
-        }),
-    ],
-})
-
-exports.sysLogError = (data) => {
-    let error = data.message ? data.message : data.error
-    errorLogger.log('error', ` ${error}`)
-}
-
-exports.sysLog = (source, origin, data /*,level="medium"*/) => {
-    //if(app.config.testnet /*|| level=="highest"*/){
-    sysLogger.log('info', ` ${origin} FN_${source} ${data}`)
-    //}
-}
-
 const readHTMLFile = (path, callback) => {
     fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
         if (err) {
@@ -367,4 +329,45 @@ const readHTMLFile = (path, callback) => {
             callback(null, html)
         }
     })
+}
+
+exports.synfonyHash = function (pass) {
+    var salted = pass + '{' + config.symfonySalt + '}'
+
+    var buff = hasha(salted, { encoding: 'buffer' })
+    var saltBuff = Buffer.from(salted)
+    var arr = []
+
+    for (var i = 1; i < 5000; i++) {
+        arr = [buff, saltBuff]
+        buff = hasha(Buffer.concat(arr), {
+            algorithm: 'sha512',
+            encoding: 'buffer',
+        })
+    }
+
+    const base64 = buff.toString('base64')
+    return base64
+}
+
+exports.configureTranslation = function (lang) {
+    try {
+        app.use(i18n.init)
+
+        i18n.configure({
+            locales: ['fr', 'en'],
+            directory: path.join(__dirname, '../public/locales'),
+            defaultLocale: lang,
+            queryParameter: 'lang',
+            cookiename: 'language',
+        })
+        handlebars.registerHelper('__', function () {
+            return i18n.__.apply(this, arguments)
+        })
+        handlebars.registerHelper('__n', function () {
+            return i18n.__n.apply(this, arguments)
+        })
+    } catch (error) {
+        console.log(error)
+    }
 }

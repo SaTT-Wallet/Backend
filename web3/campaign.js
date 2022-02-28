@@ -1,14 +1,9 @@
-const { number } = require('bitcoinjs-lib/src/script')
-const { ObjectId } = require('bson')
-
 const {
-    Notification,
     Wallet,
     Campaigns,
     CampaignLink,
     User,
     FbPage,
-    Band,
     Event,
 } = require('../model/index')
 
@@ -308,7 +303,7 @@ module.exports = async function (app) {
             // var ctr = await campaignManager.getContractToken(token)
             var gasPrice = await ctr.getGasPrice()
             var gas = 600000
-                       try {
+            try {
                 var receipt = await ctr.methods
                     .createPriceFundAll(
                         dataUrl,
@@ -329,7 +324,7 @@ module.exports = async function (app) {
                         receipt.events.CampaignCreated.transactionHash,
                 })
                 receipt.transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'createCampaignAll',
                         credentials.address,
                         `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`
@@ -384,7 +379,7 @@ module.exports = async function (app) {
                     transactionHash,
                 })
                 transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'createCampaignBounties',
                         credentials.address,
                         `${transactionHash} confirmed campaignBounty ${receipt.events.CampaignCreated.returnValues.id} launched`
@@ -445,7 +440,7 @@ module.exports = async function (app) {
                     amount: amount,
                 })
                 receipt.transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'fundCampaign',
                         credentials.address,
                         `${receipt.transactionHash} confirmed campaign ${idCampaign} funded`
@@ -529,7 +524,7 @@ module.exports = async function (app) {
                     idProm: prom,
                 })
                 receipt.events.CampaignApplied.transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'applyCampaign',
                         credentials.address,
                         `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${idProm} ${idCampaign}`
@@ -610,7 +605,7 @@ module.exports = async function (app) {
                     idProm: idProm,
                 })
                 receipt.transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'validateProm',
                         credentials.address,
                         `${receipt.transactionHash} confirmed validated prom ${idProm}`
@@ -642,7 +637,7 @@ module.exports = async function (app) {
                     proms: proms,
                 })
                 receipt.transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'validateProm',
                         credentials.address,
                         `${receipt.transactionHash} confirmed validated prom ${proms}`
@@ -852,7 +847,7 @@ module.exports = async function (app) {
                     idProm: idProm,
                 })
                 receipt.transactionHash &&
-                    app.account.sysLog(
+                    console.log(
                         'getGains',
                         credentials.address,
                         `${receipt.transactionHash} confirmed gains transfered for ${idProm}`
@@ -1343,7 +1338,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 const result = await Campaigns.findOne({
-                    _id: app.ObjectId(idCampaign),
+                    _id: idCampaign,
                 })
                 if (result.hash) {
                     const ctr = await app.campaign.getCampaignContract(
@@ -1375,8 +1370,7 @@ module.exports = async function (app) {
         const blockchainType = req.query.blockchainType || ''
 
         const dateJour = Math.round(new Date().getTime() / 1000)
-        if (req.query._id)
-            query['$and'].push({ _id: { $gt: app.ObjectId(req.query._id) } })
+        if (req.query._id) query['$and'].push({ _id: { $gt: req.query._id } })
         if (req.query.oracles == undefined) {
             oracles = ['twitter', 'facebook', 'youtube', 'instagram']
         } else if (typeof req.query.oracles === 'string') {
@@ -1442,8 +1436,7 @@ module.exports = async function (app) {
         const blockchainType = req.query.blockchainType || ''
 
         const dateJour = Math.round(new Date().getTime() / 1000)
-        if (req.query._id)
-            query['$and'].push({ _id: { $gt: app.ObjectId(req.query._id) } })
+        if (req.query._id) query['$and'].push({ _id: { $gt: req.query._id } })
         if (req.query.oracles == undefined) {
             oracles = ['twitter', 'facebook', 'youtube', 'instagram']
         } else if (typeof req.query.oracles === 'string') {
@@ -1515,8 +1508,7 @@ module.exports = async function (app) {
         const blockchainType = req.query.blockchainType || ''
 
         const dateJour = Math.round(new Date().getTime() / 1000)
-        if (req.query._id)
-            query['$and'].push({ _id: { $gt: app.ObjectId(req.query._id) } })
+        if (req.query._id) query['$and'].push({ _id: { $gt: req.query._id } })
 
         const remainingBudget = req.query.remainingBudget || []
 

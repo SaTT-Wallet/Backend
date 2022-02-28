@@ -24,11 +24,7 @@ module.exports = async function (app) {
                 address: addr,
                 spender: spender,
             })
-            app.account.sysLog(
-                'approve',
-                addr,
-                `confirmed approval to ${spender}`
-            )
+            console.log('approve', addr, `confirmed approval to ${spender}`)
         })
     }
 
@@ -95,7 +91,7 @@ module.exports = async function (app) {
                     to: to,
                     amount,
                 })
-                app.account.sysLog(
+                console.log(
                     'erManager.transfer',
                     credentials.address,
                     `transfer confirmed transactionHash :${receipt.transactionHash} ${amount} to ${to}`

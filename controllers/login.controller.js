@@ -1,10 +1,9 @@
 var requirement = require('../helpers/utils')
 const qrcode = require('qrcode')
 const speakeasy = require('speakeasy')
-var Captcha = require('../model/captcha.model')
-var User = require('../model/user.model')
-var UserArchived = require('../model/UserArchive.model')
-const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
+
+const { Captcha, UserArchived, User } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
 const { createUser } = require('../middleware/passport.middleware')
@@ -70,11 +69,19 @@ exports.captcha = async (req, res) => {
 
 exports.verifyCaptcha = async (req, res) => {
     try {
-        let id = app.ObjectId(req.body._id)
+        let _id = req.body._id
         let position = +req.body.position
+
+        if (!mongoose.Types.ObjectId.isValid(_id)) {
+            return responseHandler.makeResponseError(
+                res,
+                400,
+                'Please provide a valid id!'
+            )
+        }
         let captcha = await Captcha.findOne({
             $and: [
-                { _id: id },
+                _id,
                 { position: { $gte: position - 5, $lte: position + 5 } },
             ],
         })
@@ -104,13 +111,22 @@ exports.verifyCaptcha = async (req, res) => {
 }
 
 exports.codeRecover = async (req, res) => {
+    const validateEmail = /\S+@\S+\.\S+/
+
+    if (!validateEmail.test(req.body.mail.toLowerCase())) {
+        return responseHandler.makeResponseError(
+            res,
+            400,
+            'please provide a valid email address!'
+        )
+    }
     try {
         let dateNow = Math.floor(Date.now() / 1000)
         let lang = req.query.lang || 'en'
         app.i18n.configureTranslation(lang)
         let email = req.body.mail.toLowerCase()
-
         let user = await User.findOne({ email })
+
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
