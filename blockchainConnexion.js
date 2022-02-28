@@ -6,6 +6,7 @@ const {
     web3UrlBep20,
     web3Url,
 } = require('./conf/const2')
+const Campaigns = require('./model/campaigns.model')
 
 const options = {
     timeout: 30000,
@@ -49,9 +50,8 @@ exports.erc20Connexion = async () => {
 exports.getContractByToken = async (token, credentials) => {
     try {
         let abiCampaign = Constants.campaign.abi
-
         if (erc20TokenCampaigns.includes(token.toLowerCase())) {
-            var contract = credentials.Web3ETH.eth.Contract(
+            var contract = new credentials.Web3ETH.eth.Contract(
                 abiCampaign,
                 Constants.campaign.address.campaignErc20
             )
@@ -66,5 +66,21 @@ exports.getContractByToken = async (token, credentials) => {
         return contract
     } catch (err) {
         console.log(err.message ? err.message : err.error)
+    }
+}
+
+exports.getCampaignContractByHashCampaign = async (hash) => {
+    var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
+    if (campaign?.contract) {
+        let contract = campaign.contract
+        let abi = Constants.campaign.abi
+        let Web3 =
+            contract.toLowerCase() ===
+            Constants.campaign.address.campaignErc20.toLowerCase()
+                ? await this.erc20Connexion()
+                : await this.bep20Connexion()
+        let ctr = new Web3.eth.Contract(abi, contract)
+        ctr.getGasPrice = Web3.eth.getGasPrice
+        return ctr
     }
 }
