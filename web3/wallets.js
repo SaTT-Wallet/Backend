@@ -1,16 +1,20 @@
 const { Wallet, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
-const {
-    erc20Connexion,
-    bep20Connexion,
-    getContractByToken,
-} = require('../blockchainConnexion')
+const { erc20Connexion, bep20Connexion } = require('../blockchainConnexion')
 
 var rp = require('request-promise')
 const Big = require('big.js')
 
 const { Constants } = require('../conf/const2')
-const { Tokens, token200 } = require('../conf/config1')
+const {
+    Tokens,
+    token200,
+    networkSegWitCompat,
+    networkSegWit,
+    pathBtcSegwitCompat,
+    pathBtcSegwit,
+    pathEth,
+} = require('../conf/config1')
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -110,9 +114,9 @@ exports.getAccount = async (req, res) => {
         var address = '0x' + account.keystore.address
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
-        var ether_balance = Web3ETH.eth.getBalance(address)
+        var ether_balance = await Web3ETH.eth.getBalance(address)
 
-        var bnb_balance = Web3BEP20.eth.getBalance(address)
+        var bnb_balance = await Web3BEP20.eth.getBalance(address)
 
         contractSatt = new Web3ETH.eth.Contract(
             Constants.token.abi,
@@ -455,11 +459,7 @@ exports.getListCryptoByUid = async (req, res) => {
 
         return { listOfCrypto }
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+        console.log(err)
     }
 }
 
@@ -567,6 +567,10 @@ exports.getBalanceByUid = async (req, res) => {
 
 exports.getTokenContractByToken = async (token, credentials, network) => {
     if (network === 'ERC20') {
+        console.log('im here')
+
+        console.log('ojoa', credentials)
+
         var contract = new credentials.Web3ETH.eth.Contract(
             Constants.token.abi,
             token
@@ -607,5 +611,218 @@ exports.transfer = async (token, to, amount, credentials) => {
         }
     } catch (err) {
         console.log(err)
+    }
+}
+
+exports.sendBtc = async function (id, pass, to, amount) {
+    var account = await Wallet.findOne({ UserId: parseInt(id) })
+
+    var escpass = pass.replace(/'/g, "\\'")
+
+    var priv = bip38.decrypt(account.btc.ek, escpass)
+
+    var wif = wif.encode(0x80, priv.privateKey, priv.compressed)
+
+    var addr = account.btc.addressSegWitCompat
+
+    var utxo = JSON.parse(
+        child.execSync(
+            app.config.btcCmd + ' listunspent 1 1000000 \'["' + addr + '"]\''
+        )
+    )
+
+    if (!utxo.length) {
+        return { error: 'insufficient funds ' }
+    }
+
+    var max = 0.0
+    for (var i = 0; i < utxo.length; i++) {
+        max += parseFloat(utxo[i].amount)
+    }
+    max = Math.floor(parseFloat(max) * 100000000)
+
+    var body = await rp({ uri: app.config.BtcFees, json: true })
+    var feeRate = 150 // parseInt(body.fastestFee);
+
+    var maxFee = 20000
+
+    const keyPair = bitcoinjs.ECPair.fromWIF(wif)
+    const txb = new bitcoinjs.TransactionBuilder()
+
+    var input_sum = 0
+    var fee = (45 + utxo.length * 93) * feeRate
+    for (var i = 0; i < utxo.length; i++) {
+        txb.addInput(utxo[i].txid, parseInt(utxo[i].vout))
+        input_sum += Math.round(parseFloat(utxo[i].amount) * 100000000)
+    }
+    var change = input_sum - parseInt(amount) - (fee + 34 * feeRate)
+    txb.addOutput(to, parseInt(amount))
+
+    if (change > fee) {
+        txb.addOutput(addr, parseInt(change))
+        fee += 34 * feeRate
+    }
+
+    if (parseInt(amount) + parseInt(fee) > max) {
+        return {
+            error: 'insufficient funds, fee requirement : ' + fee + ' satoshis',
+        }
+    }
+
+    const p2wpkh = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
+    const p2sh = bitcoinjs.payments.p2sh({ redeem: p2wpkh })
+
+    for (var i = 0; i < utxo.length; i++) {
+        txb.sign(
+            i,
+            keyPair,
+            p2sh.redeem.output,
+            null,
+            Math.round(parseFloat(utxo[i].amount) * 100000000)
+        )
+    }
+    var tx = txb.build()
+
+    var signed = tx.toHex()
+    var hash = tx.getId()
+
+    var rec = child.execSync(
+        app.config.btcCmd + ' sendrawtransaction "' + signed + '"'
+    )
+    //var rec = await rp({uri:app.config.btcElectrumUrl+"tx/",method: 'POST',body:{tx:signed},json: true});
+    return hash
+}
+
+exports.transferNativeBNB = async (to, amount, credentials) => {
+    var gasPrice = await credentials.Web3BEP20.eth.getGasPrice()
+
+    var gas = 21000
+
+    try {
+        var receipt = await credentials.Web3BEP20.eth
+            .sendTransaction({
+                from: credentials.address,
+                value: amount,
+                gas: gas,
+                to: to,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', (transactionHash) => {
+                console.log(
+                    'transferNativeBNB',
+                    credentials.address,
+                    `transfer BNB transactionHash :${transactionHash}`
+                )
+            })
+        return {
+            transactionHash: receipt.transactionHash,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.transferEther = async (to, amount, credentials) => {
+    if (!credentials.Web3ETH.utils.isAddress(to))
+        return { error: 'Invalid address' }
+    try {
+        var gasPrice = await credentials.Web3ETH.eth.getGasPrice()
+        var gas = 21000
+
+        var receipt = await credentials.Web3ETH.eth
+            .sendTransaction({
+                from: credentials.address,
+                value: amount,
+                gas: gas,
+                to: to,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', function (hash) {})
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+exports.createSeed = async (req, res) => {
+    var UserId = req.user._id
+    var pass = req.body.pass
+
+    var escpass = pass.replace(/'/g, "\\'")
+
+    const mnemonic = bip39.generateMnemonic(256)
+    const seed = bip39.mnemonicToSeedSync(mnemonic, pass)
+    const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+    const rootBtcBc1 = bip32.fromSeed(seed, networkSegWit)
+    const rootEth = bip32.fromSeed(seed)
+    const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+    const childBtcBc1 = rootBtcBc1.derivePath(pathBtcSegwit)
+    const childEth = rootEth.derivePath(pathEth)
+
+    const address = bitcoinjs.payments.p2sh({
+        redeem: bitcoinjs.payments.p2wpkh({
+            pubkey: childBtc.publicKey,
+            network: networkSegWitCompat,
+        }),
+        network: networkSegWitCompat,
+    }).address
+
+    const addressbc1 = bitcoinjs.payments.p2wpkh({
+        pubkey: childBtcBc1.publicKey,
+        network: networkSegWit,
+    }).address
+
+    var addressBuffer = ethUtil.privateToAddress(childEth.privateKey)
+    var checksumAddress = ethUtil.toChecksumAddress(
+        '0x' + addressBuffer.toString('hex')
+    )
+    // var addressEth = ethUtil.addHexPrefix(checksumAddress);
+    var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'))
+    var pubBtc = childBtc.publicKey.toString('hex')
+
+    var account = app.web3.eth.accounts
+        .privateKeyToAccount(privkey)
+        .encrypt(pass)
+    if (!app.config.testnet) {
+        child.execSync(
+            app.config.btcCmd + ' importpubkey ' + pubBtc + " 'default' false"
+        )
+
+        const client = new bitcoinCore({
+            host: app.config.btcHost,
+            username: app.config.btcUser,
+            password: app.config.btcPassword,
+        })
+        await new Client().importPubKey('default', false)
+    }
+
+    var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
+    var btcWallet = {
+        publicKey: pubBtc,
+        addressSegWitCompat: address,
+        addressSegWit: addressbc1,
+        publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
+        ek: ek,
+    }
+    var count = await accountManager.getCount()
+
+    Wallet.create({
+        UserId: parseInt(UserId),
+        keystore: account,
+        num: count,
+        btc: btcWallet,
+        mnemo: mnemonic,
+    })
+    return {
+        address: '0x' + account.address,
+        btcAddress: btcWallet.addressSegWitCompat,
     }
 }
