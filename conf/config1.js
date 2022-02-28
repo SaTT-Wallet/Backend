@@ -56,3 +56,7 @@ exports.mongoConnection = () => {
     }
     return connexion
 }
+
+exports.linkedinActivityUrl = (activityURN) => {
+    return `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`
+}
