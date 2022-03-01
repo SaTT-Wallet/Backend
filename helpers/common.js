@@ -11,6 +11,10 @@ var Ban = require('../model/ban.model')
 var Request = require('../model/request.model')
 var User = require('../model/user.model')
 var TwitterProfile = require('../model/twitterProfile.model')
+
+const { getPrices } = require('../manager/accounts.js')
+const { getBalanceByUid } = require('../web3/wallets')
+
 var connection
 let app
 ;(connection = async () => {
@@ -143,7 +147,7 @@ module.exports.BalanceUsersStats = async (condition) => {
 
     ;[result.Date, result.convertDate] = [currentDate, today]
 
-    let Crypto = app.account.getPrices()
+    let Crypto = await getPrices()
 
     var users_
 
@@ -183,7 +187,7 @@ module.exports.BalanceUsersStats = async (condition) => {
         } //adding time frame field in users depending on condition if it doesn't exist.
 
         try {
-            balance = await app.account.getBalanceByUid(id, Crypto)
+            balance = await getBalanceByUid(id, Crypto)
         } catch (err) {
             console.error(err)
         }

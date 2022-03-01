@@ -20,6 +20,9 @@ const {
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
+const { notificationManager } = require('../manager/accounts')
+const { configureTranslation } = require('../helpers/utils')
+const { getPrices, unlock } = require('../web3/wallets')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection } = require('../conf/config1')
@@ -1257,7 +1260,7 @@ module.exports.increaseBudget = async (req, response) => {
 exports.getFunds = async (req, res) => {
     var hash = req.body.hash
     try {
-        var cred = await app.account.unlock(req, res)
+        var cred = await unlock(req, res)
         var ret = await app.campaign.getRemainingFunds(hash, cred)
         return responseHandler.makeResponseData(res, 200, 'Token added', ret)
     } catch (err) {
@@ -1669,7 +1672,7 @@ module.exports.campaignStatistics = async (req, res) => {
 
 module.exports.campaignInvested = async (req, res) => {
     try {
-        let prices = app.account.getPrices()
+        let prices = getPrices()
         let sattPrice$ = prices.SATT.price
         let totalInvested = '0'
         let userCampaigns = await Campaigns.find({
@@ -1696,8 +1699,9 @@ exports.rejectLink = async (req, res) => {
     const idLink = req.params.idLink
     const email = req.body.email
     let link = req.body.link
-    app.i18n.configureTranslation(lang)
+    configureTranslation(lang)
     let idUser = '0' + req.user._id
+
     const campaign = await Campaigns.findOne(
         { _id: idCampaign },
         {
@@ -1720,17 +1724,13 @@ exports.rejectLink = async (req, res) => {
                 { returnOriginal: false }
             )
             let id = req.user._id
-            await app.account.notificationManager(
-                id,
-                'cmp_candidate_reject_link',
-                {
-                    cmp_name: title,
-                    action: 'link_rejected',
-                    cmp_link: link,
-                    cmp_hash: idCampaign,
-                    promHash: idLink,
-                }
-            )
+            await notificationManager(id, 'cmp_candidate_reject_link', {
+                cmp_name: title,
+                action: 'link_rejected',
+                cmp_link: link,
+                cmp_hash: idCampaign,
+                promHash: idLink,
+            })
 
             readHTMLFileCampaign(
                 __dirname + '/../public/emailtemplate/rejected_link.html',
