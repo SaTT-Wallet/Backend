@@ -34,6 +34,7 @@ const {
     sendBtc,
     transferNativeBNB,
     transferEther,
+    FilterTransactionsByHash,
 } = require('../web3/wallets')
 
 const { payementRequest } = require('../conf/config1')
@@ -872,6 +873,25 @@ exports.createNewWallet = async (req, res) => {
             )
         } else {
             var ret = await createSeed(req, res)
+
+            console.log('ret', ret)
+
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        }
+    } catch (err) {
+        console.log(err)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } finally {
+        if (ret) {
+            await Wallet.create({
+                wallet: ret.address,
+                idUser: id,
+            })
+
             await User.updateOne(
                 { _id: id },
                 {
@@ -880,20 +900,6 @@ exports.createNewWallet = async (req, res) => {
                     },
                 }
             )
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    } finally {
-        if (ret?.address) {
-            await Wallet.create({
-                wallet: ret.address,
-                idUser: id,
-            })
         }
     }
 }
@@ -946,14 +952,14 @@ module.exports.getTransactionHistory = async (req, res) => {
         //ETH Network
         const requestOptions_ETH_transactions = {
             method: 'GET',
-            uri: app.config.etherscanApiUrl_ + address + '&action=txlist',
+            uri: process.env.ETHERSCAN_APIURL_ + address + '&action=txlist',
             json: true,
             gzip: true,
         }
 
         const requestOptions_ERC20_transactions = {
             method: 'GET',
-            uri: app.config.etherscanApiUrl_ + address + '&action=tokentx',
+            uri: process.env.ETHERSCAN_APIURL_ + address + '&action=tokentx',
             json: true,
             gzip: true,
         }
@@ -968,21 +974,21 @@ module.exports.getTransactionHistory = async (req, res) => {
         //BNB Network
         const requestOptions_BNB_transactions = {
             method: 'GET',
-            uri: app.config.bscscanApi + address + '&action=txlist',
+            uri: process.env.BSCSCAN_API + address + '&action=txlist',
             json: true,
             gzip: true,
         }
 
         const requestOptions_BEP20_transactions = {
             method: 'GET',
-            uri: app.config.bscscanApi + address + '&action=tokentx',
+            uri: process.env.BSCSCAN_API + address + '&action=tokentx',
             json: true,
             gzip: true,
         }
 
         var BNB_transactions = await rp(requestOptions_BNB_transactions)
         var BEP20_transactions = await rp(requestOptions_BEP20_transactions)
-        var all_BNB_transactions = app.cryptoManager.FilterTransactionsByHash(
+        var all_BNB_transactions = FilterTransactionsByHash(
             BNB_transactions,
             BEP20_transactions,
             'BEP20'
@@ -994,6 +1000,7 @@ module.exports.getTransactionHistory = async (req, res) => {
             All_Transactions,
         })
     } catch (err) {
+        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,

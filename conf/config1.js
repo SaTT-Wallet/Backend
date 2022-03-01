@@ -1145,9 +1145,11 @@ let token200 = [
     },
 ]
 
+let booltestnet = true
+
 let configSendBox = {}
 
-configSendBox = true
+configSendBox = booltestnet
     ? 'https://sandbox.test-simplexcc.com'
     : 'https://backend-wallet-api.simplexcc.com'
 
@@ -1191,3 +1193,5 @@ module.exports.networkSegWitCompat = networkSegWitCompat
 module.exports.networkSegWit = networkSegWit
 
 module.exports.configSendBox = configSendBox
+module.exports.booltestnet = booltestnet
+module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
