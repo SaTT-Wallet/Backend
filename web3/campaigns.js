@@ -7,6 +7,8 @@ const {
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const2')
+const { config } = require('../conf/config1')
+const rp = require('request-promise')
 
 exports.unlock = async (req, res) => {
     try {
@@ -403,4 +405,73 @@ exports.getUserIdByWallet = async (wallet) => {
     console.log(wallet)
     let user = await Wallet.findOne({ 'keystore.address': wallet })
     return user.UserId
+}
+
+exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
+    try {
+        let linkInfo = {}
+        const linkedinData = {
+            url: config.linkedinActivityUrl(activityURN),
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + accessToken,
+            },
+            json: true,
+        }
+        let postData = await rp(linkedinData)
+        let urn = `urn:li:activity:${activityURN}`
+        linkInfo.idUser =
+            postData.results[urn]['domainEntity~'].owner ??
+            postData.results[urn]['domainEntity~'].author
+        linkInfo.idPost = postData.results[urn]['domainEntity']
+        if (postData.results[urn]['domainEntity~'].content)
+            linkInfo.mediaUrl =
+                postData.results[urn][
+                    'domainEntity~'
+                ].content.contentEntities[0].entityLocaion
+        return linkInfo
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.applyCampaign = async (
+    idCampaign,
+    typeSN,
+    idPost,
+    idUser,
+    credentials,
+    token
+) => {
+    try {
+        console.log('token', token)
+        let web3 = await getContractByToken(token.addr, credentials)
+        var gas = 400000
+        var gasPrice = await web3.getGasPrice()
+        console.log('gas=======', gasPrice)
+        var receipt = await web3.methods
+            .applyCampaign(idCampaign, typeSN, idPost, idUser)
+            .send({
+                from: credentials.address,
+                gas: gas,
+                gasPrice: gasPrice,
+            })
+        let prom = receipt.events.CampaignApplied.returnValues.prom
+        receipt.events.CampaignApplied.transactionHash &&
+            console.log(
+                'applyCampaign',
+                credentials.address,
+                `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${prom} ${idCampaign}`
+            )
+        return {
+            transactionHash: receipt.events.CampaignApplied.transactionHash,
+            idCampaign: idCampaign,
+            typeSN: typeSN,
+            idPost: idPost,
+            idUser: idUser,
+            idProm: prom,
+        }
+    } catch (err) {
+        console.log(err.message)
+    }
 }
