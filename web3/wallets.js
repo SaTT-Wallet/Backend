@@ -20,6 +20,7 @@ const {
     pathBtcSegwit,
     pathEth,
     booltestnet,
+    prices,
 } = require('../conf/config1')
 exports.unlock = async (req, res) => {
     try {
@@ -176,72 +177,94 @@ exports.getAccount = async (req, res) => {
 }
 
 exports.getPrices = async () => {
-    var options = {
-        method: 'GET',
-        uri:
-            'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY=' +
-            process.env.CMCAPIKEY,
+    try {
+        console.log('prices', typeof prices)
+        if (
+            prices.status &&
+            Date.now() - new Date(prices.status.timestamp).getTime() < 1200000
+        ) {
+            console.log('here')
+            return prices.data
+        } else {
+            console.log('in else')
+            var options = {
+                method: 'GET',
+                uri:
+                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY=' +
+                    process.env.CMCAPIKEY,
 
-        json: true,
-    }
+                json: true,
+            }
 
-    var options2 = {
-        method: 'GET',
-        uri:
-            'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY=' +
-            process.env.CMCAPIKEY,
+            var options2 = {
+                method: 'GET',
+                uri:
+                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY=' +
+                    process.env.CMCAPIKEY,
 
-        json: true,
-    }
+                json: true,
+            }
 
-    var result = await rp(options)
-    var response = result
+            var result = await rp(options)
+            var response = result
+            // console.log("response", response);
 
-    var result2 = await rp(options2)
-    var responseSattJet = result2
+            var result2 = await rp(options2)
+            var responseSattJet = result2
 
-    response.data.push(responseSattJet.data.SATT)
-    response.data.push(responseSattJet.data.JET)
+            //  console.log("responseSattJet", responseSattJet);
 
-    var priceMap = response.data.map((elem) => {
-        var obj = {}
-        obj = {
-            symbol: elem.symbol,
-            name: elem.name,
-            price: elem.quote.USD.price,
-            percent_change_24h: elem.quote.USD.percent_change_24h,
-            market_cap: elem.quote.USD.market_cap,
-            volume_24h: elem.quote.USD.volume_24h,
-            circulating_supply: elem.circulating_supply,
-            total_supply: elem.total_supply,
-            max_supply: elem.max_supply,
-            logo:
-                'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-                elem.id +
-                '.png',
+            response.data.push(responseSattJet.data.SATT)
+            response.data.push(responseSattJet.data.JET)
+
+            var priceMap = response.data.map((elem) => {
+                var obj = {}
+                obj = {
+                    symbol: elem.symbol,
+                    name: elem.name,
+                    price: elem.quote.USD.price,
+                    percent_change_24h: elem.quote.USD.percent_change_24h,
+                    market_cap: elem.quote.USD.market_cap,
+                    volume_24h: elem.quote.USD.volume_24h,
+                    circulating_supply: elem.circulating_supply,
+                    total_supply: elem.total_supply,
+                    max_supply: elem.max_supply,
+                    logo:
+                        'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                        elem.id +
+                        '.png',
+                }
+
+                // console.log("obj", obj);
+
+                return obj
+            })
+            var finalMap = {}
+            for (var i = 0; i < priceMap.length; i++) {
+                finalMap[priceMap[i].symbol] = priceMap[i]
+                delete finalMap[priceMap[i].symbol].symbol
+            }
+
+            for (var i = 0; i < token200.length; i++) {
+                var token = token200[i]
+
+                if (finalMap[token.symbol]) {
+                    finalMap[token.symbol].network = token.platform.network
+                    finalMap[token.symbol].tokenAddress =
+                        token.platform.token_address
+                    finalMap[token.symbol].decimals = token.platform.decimals
+                }
+            }
+
+            console.log('response', response)
+
+            response.data = finalMap
+            // console.log("finalMap", finalMap);
+            //  prices = response
+
+            return finalMap
         }
-
-        return obj
-    })
-    var finalMap = {}
-    for (var i = 0; i < priceMap.length; i++) {
-        finalMap[priceMap[i].symbol] = priceMap[i]
-        delete finalMap[priceMap[i].symbol].symbol
-    }
-
-    for (var i = 0; i < token200.length; i++) {
-        var token = token200[i]
-
-        if (finalMap[token.symbol]) {
-            finalMap[token.symbol].network = token.platform.network
-            finalMap[token.symbol].tokenAddress = token.platform.token_address
-            finalMap[token.symbol].decimals = token.platform.decimals
-        }
-    }
-
-    response.data = finalMap
-
-    return finalMap
+    } catch (err) {}
 }
 
 exports.filterAmount = function (input, nbre = 10) {
