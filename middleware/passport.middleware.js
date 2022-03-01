@@ -324,7 +324,7 @@ passport.use(
                 code,
                 user
             )
-            app.account.log('Email was sent to ' + user.email)
+            //   app.account.log('Email was sent to ' + user.email)
             return done(null, {
                 id: createdUser._id,
                 token,
@@ -827,6 +827,7 @@ module.exports.verifyAuth = (req, res, next) => {
         if (err) return res.json(err)
         newUser = await User.findOne({ _id: user._id })
         req.user = newUser
+        console.log(err)
         next()
     })
 }
