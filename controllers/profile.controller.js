@@ -15,7 +15,11 @@ const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
 
 const { notificationManager, manageTime } = require('../manager/accounts.js')
-const { synfonyHash, configureTranslation } = require('../helpers/utils')
+const {
+    synfonyHash,
+    configureTranslation,
+    readHTMLFileProfile,
+} = require('../helpers/utils')
 const {
     verifyYoutube,
     verifyFacebook,
@@ -45,8 +49,6 @@ const GridFsStorage = require('multer-gridfs-storage')
 var Long = require('mongodb').Long
 
 const multer = require('multer')
-
-const { readHTMLFileProfile } = require('../helpers/utils')
 
 const storageUserLegal = new GridFsStorage({
     url: mongoConnection().mongoURI,

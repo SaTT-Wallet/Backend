@@ -50,10 +50,6 @@ exports.lock = async (credentials) => {
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
 }
 
-exports.lockBSC = async (credentials) => {
-    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
-}
-
 exports.lockERC20 = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
 }
