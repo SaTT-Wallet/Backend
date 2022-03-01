@@ -475,3 +475,22 @@ exports.applyCampaign = async (
         console.log(err.message)
     }
 }
+
+exports.getRemainingFunds = async function (token, hash, credentials) {
+    try {
+        var gas = 200000
+        var ctr = await getContractByToken(token.addr, credentials)
+        var gasPrice = await ctr.getGasPrice()
+        var receipt = await ctr.methods.getRemainingFunds(hash).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            hash: hash,
+        }
+    } catch (err) {
+        // console.log('', err)
+    }
+}

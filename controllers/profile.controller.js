@@ -250,7 +250,7 @@ exports.addUserLegalProfile = async (req, res) => {
         }
         return makeResponseError(res, 404, 'Only images allowed')
     } catch (err) {
-        // console.log(err)
+        console.log(err)
         return makeResponseError(
             res,
             500,
