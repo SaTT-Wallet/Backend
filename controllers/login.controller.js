@@ -106,7 +106,7 @@ exports.verifyCaptcha = async (req, res) => {
 exports.codeRecover = async (req, res) => {
     try {
         let dateNow = Math.floor(Date.now() / 1000)
-        let lang = req.query.lang || 'en'
+        let lang = req.body.lang || 'en'
         app.i18n.configureTranslation(lang)
         let email = req.body.mail.toLowerCase()
 
@@ -285,7 +285,7 @@ exports.resendConfirmationToken = async (req, res) => {
                 user._id,
                 'validation'
             )
-            let lang = req.query.lang || 'en'
+            let lang = req.body.lang || 'en'
             app.i18n.configureTranslation(lang)
             readHTMLFileLogin(
                 __dirname +
