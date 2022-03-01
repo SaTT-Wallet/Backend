@@ -851,7 +851,10 @@ module.exports.verifyMnemo = async (req, res) => {
 exports.createNewWallet = async (req, res) => {
     try {
         var id = req.user._id
-        if (req.user.hasWallet) {
+        let user = await User.findOne({ _id: id }, { password: 1 })
+        if (user.password === synfonyHash(req.body.pass)) {
+            return responseHandler.makeResponseError(res, 401, 'same password')
+        } else if (req.user.hasWallet) {
             return responseHandler.makeResponseError(
                 res,
                 401,

@@ -94,6 +94,7 @@ const {
     getInstagramUserName,
     findBountyOracle,
     answerAbos,
+    getPromApplyStats,
 } = require('../manager/oracles')
 const { notificationManager } = require('../manager/accounts')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
@@ -487,7 +488,6 @@ exports.apply = async (req, res) => {
     let title = req.body.title
     var id = req.user._id
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-    // let contract = await getCampaignContractByHashCampaign(hash);
     let campaignDetails = await Campaigns.findOne({ hash })
     try {
         let promExist = await CampaignLink.findOne({
@@ -539,6 +539,7 @@ exports.apply = async (req, res) => {
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost)
+            console.log('prom,,,,,,,', prom.instagramUserName)
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
@@ -559,15 +560,16 @@ exports.apply = async (req, res) => {
             prom.isPayed = false
             prom.appliedDate = date
             prom.oracle = findBountyOracle(prom.typeSN)
+            console.log('1111', prom)
             var insert = await CampaignLink.create(prom)
-
+            console.log('before')
             prom.abosNumber = await answerAbos(
                 prom.typeSN,
                 prom.idPost,
                 idUser,
                 linkedinProfile
             )
-
+            console.log('after', prom.abosNumber)
             let userWallet = await Wallet.findOne(
                 {
                     'keystore.address': prom.id_wallet
@@ -577,12 +579,13 @@ exports.apply = async (req, res) => {
                 { UserId: 1, _id: 0 }
             )
             let userId = prom.oracle === 'instagram' ? userWallet.UserId : null
-            let socialOracle = await app.campaign.getPromApplyStats(
+            let socialOracle = await getPromApplyStats(
                 prom.oracle,
                 prom,
                 userId,
                 linkedinProfile
             )
+            console.log('social', socialOracle)
             if (socialOracle.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
             ;(prom.likes = socialOracle.likes),

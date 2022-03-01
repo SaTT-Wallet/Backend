@@ -1,4 +1,4 @@
-const { linkedinActivityUrl, config, auth } = require('../conf/config1')
+const { linkedinActivityUrl, config, oauth } = require('../conf/config1')
 var rp = require('request-promise')
 const {
     FbPage,
@@ -7,8 +7,12 @@ const {
     GoogleProfile,
     TwitterProfile,
     Wallet,
+    IgMedia,
     LinkedinProfile,
 } = require('../model/index')
+var Twitter2 = require('twitter-v2')
+
+var Twitter = require('twitter')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -21,9 +25,7 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
             },
             json: true,
         }
-        console.log('data', linkedinData)
         let postData = await rp(linkedinData)
-        console.log(postData)
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??
@@ -43,7 +45,6 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
 exports.verifyFacebook = async function (userId, pageName, idPost) {
     return new Promise(async (resolve, reject) => {
         try {
-            // console.log('verifyFacebook works...')
             var page = await FbPage.findOne({
                 $and: [{ UserId: userId }, { username: pageName }],
             })
@@ -109,7 +110,6 @@ exports.verifyYoutube = async function (userId, idPost) {
 exports.verifyInsta = async function (userId, idPost) {
     return new Promise(async (resolve, reject) => {
         try {
-            // console.log('verifyInsta works')
             var media =
                 'http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
                 idPost
@@ -135,7 +135,6 @@ exports.verifyInsta = async function (userId, idPost) {
 exports.verifyTwitter = async function (userId, idPost) {
     return new Promise(async (resolve, reject) => {
         try {
-            // console.log('verifyTwitter works')
             var twitterProfile = await TwitterProfile.findOne({
                 UserId: userId,
             }).select('access_token_key access_token_secret id')
@@ -164,7 +163,6 @@ exports.verifyTwitter = async function (userId, idPost) {
 exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // console.log('verifyLinkedin works')
             const linkedinData = {
                 url: config.linkedinActivityUrl(idPost),
                 method: 'GET',
@@ -262,7 +260,7 @@ exports.facebookAbos = async function (pageName) {
             var res = await rp({
                 uri:
                     'https://graph.facebook.com/' +
-                    app.config.fbGraphVersion +
+                    oauth.facebook.fbGraphVersion +
                     '/' +
                     pageName +
                     '?access_token=' +
@@ -286,7 +284,7 @@ exports.youtubeAbos = async function (idPost) {
             uri: 'https://www.googleapis.com/youtube/v3/videos',
             qs: {
                 id: idPost,
-                key: auth.google.gdataApiKey,
+                key: oauth.google.gdataApiKey,
                 part: 'snippet',
             },
             json: true,
@@ -297,7 +295,7 @@ exports.youtubeAbos = async function (idPost) {
                 uri: 'https://www.googleapis.com/youtube/v3/channels',
                 qs: {
                     id: channelId,
-                    key: auth.google.gdataApiKey,
+                    key: oauth.google.gdataApiKey,
                     part: 'statistics',
                 },
                 json: true,
@@ -321,7 +319,6 @@ exports.instagramAbos = async (idPost) => {
                 .substring(2),
         })
         let instagramUserName = campaign_link.instagramUserName
-
         var fbPage = await FbPage.findOne({
             $and: [
                 { UserId: userWallet.UserId },
@@ -338,7 +335,7 @@ exports.instagramAbos = async (idPost) => {
             var res = await rp({
                 uri:
                     'https://graph.facebook.com/' +
-                    app.config.fbGraphVersion +
+                    oauth.facebook.fbGraphVersion +
                     '/' +
                     instagram_id +
                     '?access_token=' +
@@ -357,14 +354,14 @@ exports.instagramAbos = async (idPost) => {
 
 exports.twitterAbos = async function (pageName, idPost) {
     try {
-        tweet.get('statuses/show', { id: idPost }).then(
-            (tweet_res) => {
-                return tweet_res.user.followers_count
-            },
-            (err) => {
-                return null
-            }
-        )
+        var tweet = new Twitter({
+            consumer_key: oauth.twitter.consumer_key_alt,
+            consumer_secret: oauth.twitter.consumer_secret_alt,
+            access_token_key: oauth.twitter.access_token_key,
+            access_token_secret: oauth.twitter.access_token_secret,
+        })
+        var twitterDetails = await tweet.get('statuses/show', { id: idPost })
+        return twitterDetails.user.followers_count
     } catch (err) {
         console.log(err.message)
     }
@@ -395,14 +392,16 @@ exports.getPromApplyStats = async (
 ) => {
     try {
         let socialOracle = {}
-        if (oracles == 'facebook' || oracles == 'twitter')
-            socialOracle = await app.oracle[oracles](link.idUser, link.idPost)
+        if (oracles == 'facebook')
+            socialOracle = await this.facebook(link.idUser, link.idPost)
+        else if (oracles == 'twitter')
+            socialOracle = await this.twitter(link.idUser, link.idPost)
         else if (oracles == 'youtube')
-            socialOracle = await app.oracle.youtube(link.idPost)
+            socialOracle = await this.youtube(link.idPost)
         else if (oracles == 'instagram')
-            socialOracle = await app.oracle.instagram(id, link.idPost)
+            socialOracle = await this.instagram(id, link)
         else
-            socialOracle = await app.oracle.linkedin(
+            socialOracle = await this.linkedin(
                 link.idUser,
                 link.idPost,
                 link.typeURL,
@@ -415,34 +414,240 @@ exports.getPromApplyStats = async (
     }
 }
 
-exports.youtube = async function (idPost) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (-1 != idPost.indexOf('&')) {
-                idPost = idPost.split('&')[0]
-            }
-            var perf = { shares: 0, likes: 0, views: 0 }
-            var body = await rp({
-                uri: 'https://www.googleapis.com/youtube/v3/videos',
-                qs: {
-                    id: idPost,
-                    key: app.config.gdataApiKey,
-                    part: 'statistics',
-                },
+exports.facebook = async (pageName, idPost) => {
+    try {
+        var page = await FbPage.findOne({ username: pageName })
+        if (page) {
+            var token = page.token
+            var idPage = page.id
+
+            var res2 = await rp({
+                uri:
+                    'https://graph.facebook.com/' +
+                    oauth.facebook.fbGraphVersion +
+                    '/' +
+                    idPage +
+                    '_' +
+                    idPost +
+                    '?fields=shares,full_picture&access_token=' +
+                    token,
+                json: true,
             })
-            var res = JSON.parse(body)
-            if (res.items && res.items[0]) {
-                perf = {
-                    shares: 0 /*res.items[0].statistics.commentCount*/,
-                    likes: res.items[0].statistics.likeCount,
-                    views: res.items[0].statistics.viewCount,
-                    date: Math.floor(Date.now() / 1000),
-                }
+            var res3 = await rp({
+                uri:
+                    'https://graph.facebook.com/' +
+                    oauth.facebook.fbGraphVersion +
+                    '/' +
+                    idPage +
+                    '_' +
+                    idPost +
+                    '/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token=' +
+                    token,
+                json: true,
+            })
+
+            var shares = 0
+            if (res2.shares) {
+                shares = res2.shares.count
+            }
+            var likes = res3.data[0].values[0].value.like
+            var views = res3.data[1].values[0].value
+            var perf = {
+                shares: shares,
+                likes: likes,
+                views: views,
+                date: Math.floor(Date.now() / 1000),
+                media_url: res2.full_picture,
             }
 
-            resolve(perf)
-        } catch (err) {
-            reject({ message: err.message })
+            return perf
+        } else {
+            return { shares: 0, likes: 0, views: 0 }
         }
-    })
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.youtube = async (idPost) => {
+    try {
+        if (idPost.indexOf('&') !== -1) {
+            idPost = idPost.split('&')[0]
+        }
+        var perf = { shares: 0, likes: 0, views: 0 }
+        var body = await rp({
+            uri: 'https://www.googleapis.com/youtube/v3/videos',
+            qs: {
+                id: idPost,
+                key: oauth.google.gdataApiKey,
+                part: 'statistics',
+            },
+        })
+        var res = JSON.parse(body)
+        if (res.items && res.items[0]) {
+            perf = {
+                shares: 0 /*res.items[0].statistics.commentCount*/,
+                likes: res.items[0].statistics.likeCount,
+                views: res.items[0].statistics.viewCount,
+                date: Math.floor(Date.now() / 1000),
+            }
+        }
+
+        return perf
+    } catch (err) {
+        rconsole.log(err.message)
+    }
+}
+exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
+    try {
+        var perf = { shares: 0, likes: 0, views: 0 }
+        let url = config.linkedinStatsUrl(type, idPost, organization)
+        const linkedinData = {
+            url: url,
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + linkedinProfile.accessToken,
+            },
+            json: true,
+        }
+        var body = await rp(linkedinData)
+        if (body.elements.length) {
+            perf.views = body.elements[0]?.totalShareStatistics.impressionCount
+            perf.likes = body.elements[0]?.totalShareStatistics.likeCount
+            perf.shares = body.elements[0]?.totalShareStatistics.shareCount
+        }
+        if (type !== 'share') {
+            const linkedinVideoData = {
+                url: config.linkedinUgcPostStats(idPost),
+                method: 'GET',
+                headers: {
+                    Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                },
+                json: true,
+            }
+            var bodyVideo = await rp(linkedinVideoData)
+            perf.views = bodyVideo.elements[0].value
+        }
+        return perf
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.instagram = async (UserId, link) => {
+    try {
+        let idPost = link.idPost
+        var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
+        let instagramUserName = link.instagramUserName
+        var fbPage = await FbPage.findOne({
+            instagram_username: instagramUserName,
+        })
+        if (fbPage && fbPage.instagram_id) {
+            var instagram_id = fbPage.instagram_id
+            var fbProfile = await FbProfile.findOne({ UserId: UserId })
+            if (fbProfile) {
+                var accessToken = fbProfile.accessToken
+                var media =
+                    'https://graph.facebook.com/' +
+                    oauth.facebook.fbGraphVersion +
+                    '/' +
+                    instagram_id +
+                    '/media?fields=like_count,shortcode,media_url&limit=50&access_token=' +
+                    accessToken
+                var resMedia = await rp({ uri: media, json: true })
+                var data = resMedia.data
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].shortcode == idPost) {
+                        perf.likes = data[i].like_count
+                        perf.media_url = data[i].media_url
+                        break
+                    }
+                }
+                return perf
+            } else {
+                return 'indisponible'
+            }
+        }
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.twitter = async (userName, idPost) => {
+    try {
+        var tweet = new Twitter({
+            consumer_key: oauth.twitter.consumer_key_alt,
+            consumer_secret: oauth.twitter.consumer_secret_alt,
+            access_token_key: oauth.access_token_key,
+            access_token_secret: oauth.access_token_secret,
+        })
+
+        var tweet_res = await tweet.get('statuses/show', { id: idPost })
+        var twitterProfile = await TwitterProfile.findOne({
+            username: tweet_res.user.screen_name,
+        })
+
+        if (!twitterProfile) {
+            var res = await tweet.get('statuses/show', {
+                id: idPost,
+                expansions: 'attachments.media_keys',
+                'media.fields':
+                    'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
+            })
+            var perf = {
+                shares: res.retweet_count,
+                likes: res.favorite_count,
+                views: 0,
+                date: Math.floor(Date.now() / 1000),
+                media_url: res.includes?.media[0]?.url,
+            }
+            return perf
+        }
+
+        var tweet = new Twitter2({
+            consumer_key: oauth.twitter.consumer_key,
+            consumer_secret: oauth.twitter.consumer_secret,
+            access_token_key: twitterProfile.access_token_key,
+            access_token_secret: twitterProfile.access_token_secret,
+        })
+
+        var res = await tweet.get('tweets', {
+            ids: idPost,
+            'tweet.fields': 'public_metrics,non_public_metrics',
+            expansions: 'attachments.media_keys',
+            'media.fields':
+                'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
+        })
+
+        if (res.errors) {
+            res = await tweet.get('tweets', {
+                ids: idPost,
+                'tweet.fields': 'public_metrics',
+                expansions: 'attachments.media_keys',
+                'media.fields':
+                    'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
+            })
+
+            var perf = {
+                shares: res.data[0].public_metrics.retweet_count,
+                likes: res.data[0].public_metrics.like_count,
+                date: Math.floor(Date.now() / 1000),
+                media_url: res.includes?.media[0]?.url,
+                views: 'old',
+            }
+            return perf
+        }
+
+        var perf = {
+            shares: res.data[0].public_metrics.retweet_count,
+            likes: res.data[0].public_metrics.like_count,
+            views: res.data[0].non_public_metrics.impression_count,
+            date: Math.floor(Date.now() / 1000),
+            media_url: res.includes?.media[0]?.url,
+        }
+
+        return perf
+    } catch (err) {
+        return 'indisponible'
+    }
 }

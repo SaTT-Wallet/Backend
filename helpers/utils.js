@@ -17,14 +17,12 @@ const jwt = require('jsonwebtoken')
 const handlebars = require('handlebars')
 var ejs = require('ejs')
 
-const { config } = require('../conf/config1')
-
 exports.connection = async () => {
     app = await require('../conf/config')(app)
     app = await require('../conf/const')(app)
     app = await require('../manager/i18n')(app)
     app = await require('../web3/oracle')(app)
-    app = await require('../manager/notification')(app)
+    // app = await require('../manager/notification')(app)
 
     app = await require('../web3/provider')(app)
     app = await require('../manager/bep20')(app)
