@@ -22,7 +22,8 @@ const {
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
-const { getPrices, unlock } = require('../web3/wallets')
+const { getPrices } = require('../web3/wallets')
+const { getRemainingFunds } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection } = require('../conf/config1')
@@ -67,7 +68,12 @@ const {
     getLinkedinLinkInfo,
     applyCampaign,
 } = require('../web3/campaigns')
-const { getCampaignContractByHashCampaign } = require('../blockchainConnexion')
+
+const {
+    getCampaignContractByHashCampaign,
+    getContractByToken,
+} = require('../blockchainConnexion')
+
 let calcSNStat = (objNw, link) => {
     objNw.total++
     if (link.status !== 'rejected') {
@@ -98,7 +104,6 @@ const {
     findBountyOracle,
     answerAbos,
 } = require('../manager/oracles')
-const { notificationManager } = require('../manager/accounts')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
 
@@ -1268,6 +1273,7 @@ exports.getFunds = async (req, res) => {
         var cred = await unlock(req, res)
         let campaignDetails = await Campaigns.findOne({ hash })
         var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
+
         return responseHandler.makeResponseData(res, 200, 'Token added', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
