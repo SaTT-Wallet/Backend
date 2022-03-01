@@ -64,6 +64,8 @@ const {
     createBountiesCampaign,
     sortOutPublic,
     getUserIdByWallet,
+    getLinkedinLinkInfo,
+    applyCampaign,
 } = require('../web3/campaigns')
 const { getCampaignContractByHashCampaign } = require('../blockchainConnexion')
 let calcSNStat = (objNw, link) => {
@@ -91,6 +93,12 @@ let initStat = () => {
 }
 
 var BN = require('bn.js')
+const {
+    getInstagramUserName,
+    findBountyOracle,
+    answerAbos,
+} = require('../manager/oracles')
+const { notificationManager } = require('../manager/accounts')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
 
@@ -482,7 +490,8 @@ exports.apply = async (req, res) => {
     let title = req.body.title
     var id = req.user._id
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-    let contract = await getCampaignContractByHashCampaign(hash)
+    // let contract = await getCampaignContractByHashCampaign(hash);
+    let campaignDetails = await Campaigns.findOne({ hash })
     try {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
@@ -512,12 +521,13 @@ exports.apply = async (req, res) => {
             idUser = linkedinInfo.idUser
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
-        var ret = await app.campaign.applyCampaign(
+        var ret = await applyCampaign(
             hash,
             typeSN,
             idPost,
             idUser,
-            cred
+            cred,
+            campaignDetails.token
         )
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -528,13 +538,11 @@ exports.apply = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        cred && app.account.lock(cred.address)
+        cred && lock(cred)
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
-                prom.instagramUserName = await app.oracle.getInstagramUserName(
-                    idPost
-                )
-            await app.account.notificationManager(id, 'apply_campaign', {
+                prom.instagramUserName = await getInstagramUserName(idPost)
+            await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
@@ -553,10 +561,10 @@ exports.apply = async (req, res) => {
             prom.id_campaign = hash
             prom.isPayed = false
             prom.appliedDate = date
-            prom.oracle = app.oracle.findBountyOracle(prom.typeSN)
+            prom.oracle = findBountyOracle(prom.typeSN)
             var insert = await CampaignLink.create(prom)
 
-            prom.abosNumber = await app.oracleManager.answerAbos(
+            prom.abosNumber = await answerAbos(
                 prom.typeSN,
                 prom.idPost,
                 idUser,
@@ -582,18 +590,15 @@ exports.apply = async (req, res) => {
             prom.views = socialOracle.views
             ;(prom.likes = socialOracle.likes),
                 (prom.shares = socialOracle.shares || '0')
-            await CampaignLink.updateOne(
-                { _id: insert.ops[0]._id },
-                { $set: prom }
-            )
+            await CampaignLink.updateOne({ _id: insert._id }, { $set: prom })
             let event = {
                 id: hash,
                 prom: ret.idProm,
                 type: 'applied',
                 date: date,
                 txhash: ret.transactionHash,
-                contract: contract._address.toLowerCase(),
-                owner: contract._address.toLowerCase(),
+                contract: campaignDetails.contract.toLowerCase(),
+                owner: campaignDetails.contract.toLowerCase(),
             }
 
             await Event.create(event)
@@ -1261,7 +1266,8 @@ exports.getFunds = async (req, res) => {
     var hash = req.body.hash
     try {
         var cred = await unlock(req, res)
-        var ret = await app.campaign.getRemainingFunds(hash, cred)
+        let campaignDetails = await Campaigns.findOne({ hash })
+        var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
         return responseHandler.makeResponseData(res, 200, 'Token added', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
