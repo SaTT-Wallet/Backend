@@ -263,7 +263,7 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  *     tags:
  *     - "campaign"
  *     summary: get campaigns list
- *     description: Returns the list of campaigns <br> without access_token
+ *     description: Returns the list of campaigns <br> with access_token
  *     produces:
  *       - application/json
  *     parameters:
@@ -682,9 +682,9 @@ router.post('/addKits', verifyAuth, upload, addKits)
  *                  id:
  *                      type: string
  *               endDate:
- *                 type: date
+ *                 type: number
  *               startDate:
- *                 type: date
+ *                 type: number
  *               remuneration:
  *                 type: string
  *               cost:

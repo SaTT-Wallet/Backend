@@ -327,6 +327,8 @@ router.post('/passrecover', passRecover)
  *                 type: string
  *               password:
  *                 type: string
+ *               lang:
+ *                 type: string
  *               newsLetter:
  *                 type: boolean
  *     responses:

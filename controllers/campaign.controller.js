@@ -20,6 +20,9 @@ const {
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
+//const { notificationManager } = require('../manager/accounts')
+const { configureTranslation } = require('../helpers/utils')
+const { getPrices } = require('../web3/wallets')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection } = require('../conf/config1')
@@ -63,8 +66,14 @@ const {
     getUserIdByWallet,
     getLinkedinLinkInfo,
     applyCampaign,
+    getRemainingFunds,
 } = require('../web3/campaigns')
-const { getCampaignContractByHashCampaign } = require('../blockchainConnexion')
+
+const {
+    getCampaignContractByHashCampaign,
+    getContractByToken,
+} = require('../blockchainConnexion')
+
 let calcSNStat = (objNw, link) => {
     objNw.total++
     if (link.status !== 'rejected') {
@@ -96,7 +105,6 @@ const {
     answerAbos,
     getPromApplyStats,
 } = require('../manager/oracles')
-const { notificationManager } = require('../manager/accounts')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
 
@@ -610,7 +618,7 @@ exports.linkNotifications = async (req, res) => {
     var id = req.user._id
 
     const lang = req.query.lang || 'en'
-    app.i18n.configureTranslation(lang)
+    configureTranslation(lang)
 
     try {
         let _id = req.body.idCampaign
@@ -629,15 +637,11 @@ exports.linkNotifications = async (req, res) => {
             },
             async (err, element) => {
                 let owner = Number(element.idNode.substring(1))
-                await app.account.notificationManager(
-                    id,
-                    'cmp_candidate_insert_link',
-                    {
-                        cmp_name: element.title,
-                        cmp_hash: campaign_id,
-                        linkHash: idProm,
-                    }
-                )
+                await notificationManager(id, 'cmp_candidate_insert_link', {
+                    cmp_name: element.title,
+                    cmp_hash: campaign_id,
+                    linkHash: idProm,
+                })
 
                 await User.findOne({ _id: owner }, (err, result) => {
                     readHTMLFileCampaign(
@@ -687,7 +691,7 @@ exports.validateCampaign = async (req, res) => {
     try {
         if (idUser === campaign.idNode) {
             const lang = 'en'
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
 
             var cred = await app.account.unlock(req, res)
 
@@ -757,18 +761,14 @@ exports.validateCampaign = async (req, res) => {
                 { $set: socialOracle }
             )
 
-            await app.account.notificationManager(
-                id,
-                'cmp_candidate_accept_link',
-                {
-                    cmp_name: campaign.title,
-                    action: 'link_accepted',
-                    cmp_link: linkProm,
-                    cmp_hash: idCampaign,
-                    hash: ret.transactionHash,
-                    promHash: idApply,
-                }
-            )
+            await notificationManager(id, 'cmp_candidate_accept_link', {
+                cmp_name: campaign.title,
+                action: 'link_accepted',
+                cmp_link: linkProm,
+                cmp_hash: idCampaign,
+                hash: ret.transactionHash,
+                promHash: idApply,
+            })
             readHTMLFileCampaign(
                 __dirname +
                     '/../public/emailtemplate/email_validated_link.html',
@@ -1265,9 +1265,10 @@ module.exports.increaseBudget = async (req, response) => {
 exports.getFunds = async (req, res) => {
     var hash = req.body.hash
     try {
-        var cred = await app.account.unlock(req, res)
+        var cred = await unlock(req, res)
         let campaignDetails = await Campaigns.findOne({ hash })
         var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
+
         return responseHandler.makeResponseData(res, 200, 'Token added', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1678,7 +1679,7 @@ module.exports.campaignStatistics = async (req, res) => {
 
 module.exports.campaignInvested = async (req, res) => {
     try {
-        let prices = app.account.getPrices()
+        let prices = getPrices()
         let sattPrice$ = prices.SATT.price
         let totalInvested = '0'
         let userCampaigns = await Campaigns.find({
@@ -1705,8 +1706,9 @@ exports.rejectLink = async (req, res) => {
     const idLink = req.params.idLink
     const email = req.body.email
     let link = req.body.link
-    app.i18n.configureTranslation(lang)
+    configureTranslation(lang)
     let idUser = '0' + req.user._id
+
     const campaign = await Campaigns.findOne(
         { _id: idCampaign },
         {
@@ -1729,17 +1731,13 @@ exports.rejectLink = async (req, res) => {
                 { returnOriginal: false }
             )
             let id = req.user._id
-            await app.account.notificationManager(
-                id,
-                'cmp_candidate_reject_link',
-                {
-                    cmp_name: title,
-                    action: 'link_rejected',
-                    cmp_link: link,
-                    cmp_hash: idCampaign,
-                    promHash: idLink,
-                }
-            )
+            await notificationManager(id, 'cmp_candidate_reject_link', {
+                cmp_name: title,
+                action: 'link_rejected',
+                cmp_link: link,
+                cmp_hash: idCampaign,
+                promHash: idLink,
+            })
 
             readHTMLFileCampaign(
                 __dirname + '/../public/emailtemplate/rejected_link.html',
