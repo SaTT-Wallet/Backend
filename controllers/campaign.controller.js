@@ -20,9 +20,9 @@ const {
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
-const { notificationManager } = require('../manager/accounts')
+//const { notificationManager } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
-const { getPrices, unlock } = require('../web3/wallets')
+//const { getPrices, unlock } = require('../web3/wallets')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection } = require('../conf/config1')
