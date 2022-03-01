@@ -49,6 +49,8 @@ exports.erc20Connexion = async () => {
 
 exports.getContractByToken = async (token, credentials) => {
     try {
+        console.log('token from contract', token)
+
         let abiCampaign = Constants.campaign.abi
         if (erc20TokenCampaigns.includes(token.toLowerCase())) {
             var contract = new credentials.Web3ETH.eth.Contract(
