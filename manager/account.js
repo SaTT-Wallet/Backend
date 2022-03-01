@@ -487,7 +487,7 @@ module.exports = async function (app) {
     accountManager.getAccount = async function (req, res) {
         let userId = req.user._id
 
-        let account = await Wallets.findOne({ UserId: parseInt(userId) })
+        let account = await Wallet.findOne({ UserId: parseInt(userId) })
 
         if (account) {
             var address = '0x' + account.keystore.address
