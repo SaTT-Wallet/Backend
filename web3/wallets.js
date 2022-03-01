@@ -20,7 +20,6 @@ const {
     pathBtcSegwit,
     pathEth,
     booltestnet,
-    prices,
 } = require('../conf/config1')
 exports.unlock = async (req, res) => {
     try {
@@ -178,15 +177,8 @@ exports.getAccount = async (req, res) => {
 
 exports.getPrices = async () => {
     try {
-        console.log('prices', typeof prices)
-        if (
-            prices.status &&
-            Date.now() - new Date(prices.status.timestamp).getTime() < 1200000
-        ) {
-            console.log('here')
-            return prices.data
-        } else {
-            console.log('in else')
+        var prices = null
+        if (!prices) {
             var options = {
                 method: 'GET',
                 uri:
@@ -207,12 +199,9 @@ exports.getPrices = async () => {
 
             var result = await rp(options)
             var response = result
-            // console.log("response", response);
 
             var result2 = await rp(options2)
             var responseSattJet = result2
-
-            //  console.log("responseSattJet", responseSattJet);
 
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
@@ -256,13 +245,15 @@ exports.getPrices = async () => {
                 }
             }
 
-            console.log('response', response)
-
             response.data = finalMap
-            // console.log("finalMap", finalMap);
-            //  prices = response
+            prices = response
 
             return finalMap
+        } else if (
+            prices.status &&
+            Date.now() - new Date(prices.status.timestamp).getTime() < 1200000
+        ) {
+            return prices.data
         }
     } catch (err) {}
 }
