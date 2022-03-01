@@ -452,9 +452,9 @@ exports.addNewToken = async (req, res) => {
                 if (CryptoPrices.hasOwnProperty(symbol)) {
                     const cryptoMetaData = {
                         method: 'GET',
-                        uri: app.config.cmcUrl + symbol,
+                        uri: process.env.CMR_URL + symbol,
                         headers: {
-                            'X-CMC_PRO_API_KEY': app.config.cmcApiKey,
+                            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
                         },
                         json: true,
                         gzip: true,
@@ -532,7 +532,7 @@ exports.transfertBtc = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        if (cred) app.account.lock(cred.address)
+        if (cred) await lock(cred.address)
     }
 }
 
@@ -672,7 +672,6 @@ exports.getQuote = async (req, res) => {
                 var quote = await rp(simplexQuote)
                 delete quote.supported_digital_currencies
                 delete quote.supported_fiat_currencies
-                app.account.log('Quote from simplex', quote)
 
                 return responseHandler.makeResponseData(
                     res,
@@ -705,7 +704,7 @@ exports.payementRequest = async (req, res) => {
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
             if (ip) ip = ip.split(':')[3]
             let payment_id = randomUUID()
-            const uiad = app.config.uiad
+            const uiad = process.env.UIAD
             let user_agent = req.headers['user-agent']
             const http_accept_language = req.headers['accept-language']
             let user = await User.findOne(
@@ -720,19 +719,18 @@ exports.payementRequest = async (req, res) => {
                 (request.user_agent = user_agent)
             request.language = http_accept_language
             request.quote_id = req.body.quote_id
-            request.order_id = uuidv5(app.config.orderSecret, uiad)
+            request.order_id = uuidv5(process.env.ORDER_SECERET, uiad)
             request.uuid = payment_id
             request.currency = req.body.currency
             request.idWallet = req.body.idWallet
             let payment = await payementRequest(request)
             const paymentRequest = {
                 url:
-                    app.config.sandBoxUri +
-                    '/wallet/merchant/v2/payments/partner/data',
+                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
                 method: 'POST',
                 body: payment,
                 headers: {
-                    Authorization: `ApiKey ${app.config.sandBoxKey}`,
+                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
                 },
                 json: true,
             }
@@ -757,9 +755,6 @@ exports.payementRequest = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
-    } finally {
-        paymentSubmitted &&
-            app.account.log(`requestedPayment by ${req.user._id}`)
     }
 }
 
@@ -776,33 +771,28 @@ exports.bridge = async (req, res) => {
         var ret
         if (Direction == 'ETB') {
             network = 'ERC20'
-            var cred = await app.account.unlock(req.user._id, pass)
+            var cred = await unlock(req.user._id, pass)
 
-            ret = await app.erc20.transfer(
-                sattContract,
-                app.config.bridge,
-                amount,
-                cred
-            )
+            ret = await transfer(sattContract, app.config.bridge, amount, cred)
         } else if (Direction == 'BTE') {
             network = 'BEP20'
-            var cred = await app.account.unlockBSC(req.user._id, pass)
+            var cred = awaitunlockBSC(req.user._id, pass)
             ret = await app.bep20.transferBEP(app.config.bridge, amount, cred)
         }
         res.end(JSON.stringify(ret))
     } catch (err) {
         res.end(JSON.stringify(err))
     } finally {
-        if (cred) app.account.lock(cred.address)
-        if (ret.transactionHash) {
-            await app.account.notificationManager(req, 'convert_event', {
-                amount,
-                Direction,
-                transactionHash: ret.transactionHash,
-                currency: 'SATT',
-                network,
-            })
-        }
+        // if (cred) app.account.lock(cred.address)
+        // if (ret.transactionHash) {
+        //     await app.account.notificationManager(req, 'convert_event', {
+        //         amount,
+        //         Direction,
+        //         transactionHash: ret.transactionHash,
+        //         currency: 'SATT',
+        //         network,
+        //     })
+        // }
     }
 }
 
@@ -966,7 +956,7 @@ module.exports.getTransactionHistory = async (req, res) => {
 
         var Eth_transactions = await rp(requestOptions_ETH_transactions)
         var ERC20_transactions = await rp(requestOptions_ERC20_transactions)
-        var all_Eth_transactions = app.cryptoManager.FilterTransactionsByHash(
+        var all_Eth_transactions = FilterTransactionsByHash(
             Eth_transactions,
             ERC20_transactions,
             'ERC20'
