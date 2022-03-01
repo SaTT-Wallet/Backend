@@ -666,6 +666,8 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *                   type: string
  *               wallet:
  *                   type: string
+ *               lang:
+ *                   type: string
  *     responses:
  *       "200":
  *          description: Email was sent, {"code":"status code","message":"Email was sent"}
