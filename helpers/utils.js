@@ -1,5 +1,6 @@
 var express = require('express')
 var app = express()
+//const { config } = require('../conf/config1')
 
 const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
@@ -332,7 +333,7 @@ const readHTMLFile = (path, callback) => {
 }
 
 exports.synfonyHash = function (pass) {
-    var salted = pass + '{' + config.symfonySalt + '}'
+    var salted = pass + '{' + app.config.symfonySalt + '}'
 
     var buff = hasha(salted, { encoding: 'buffer' })
     var saltBuff = Buffer.from(salted)
