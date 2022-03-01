@@ -451,14 +451,17 @@ module.exports.checkOnBoarding = async (req, res) => {
 module.exports.requestMoney = async (req, res) => {
     try {
         let lang = req.body.lang || 'en'
+        var message = req.body.message
         app.i18n.configureTranslation(lang)
         const id = req.user._id
         let code = await QRCode.toDataURL(req.body.wallet)
 
         await app.account.notificationManager(id, 'send_demande_satt_event', {
-            name: req.body.to,
+            name: req.body.name,
             price: req.body.price,
-            currency: req.body.currency,
+            cryptoCurrency: req.body.cryptoCurrency,
+            message: req.body.message,
+            wallet: req.body.wallet,
         })
 
         var result = await User.findOne({ email: req.body.to })
@@ -469,7 +472,9 @@ module.exports.requestMoney = async (req, res) => {
                 {
                     name: req.body.name,
                     price: req.body.price,
-                    currency: req.body.currency,
+                    cryptoCurrency: req.body.cryptoCurrency,
+                    message: req.body.message,
+                    wallet: req.body.wallet,
                 }
             )
         } else {
