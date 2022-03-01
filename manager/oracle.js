@@ -2,9 +2,15 @@ module.exports = async function (app) {
     var request = require('request')
     var rp = require('request-promise')
     var fs = require('fs')
-    var Twitter = require('twitter')
-
     var Twitter2 = require('twitter-v2')
+
+    var Twitter = require('twitter')
+    var tweet = new Twitter({
+        consumer_key: app.config.twitter.consumer_key_alt,
+        consumer_secret: app.config.twitter.consumer_secret_alt,
+        access_token_key: app.config.twitter.access_token_key,
+        access_token_secret: app.config.twitter.access_token_secret,
+    })
     var jsdomlib = require('jsdom')
     var jsdom = jsdomlib.JSDOM
 
@@ -16,13 +22,6 @@ module.exports = async function (app) {
         IgMedia,
         LinkedinProfile,
     } = require('../model/index')
-
-    var tweet = new Twitter({
-        consumer_key: app.config.twitter.consumer_key_alt,
-        consumer_secret: app.config.twitter.consumer_secret_alt,
-        access_token_key: app.config.twitter.access_token_key,
-        access_token_secret: app.config.twitter.access_token_secret,
-    })
 
     var oracleManager = {}
 
