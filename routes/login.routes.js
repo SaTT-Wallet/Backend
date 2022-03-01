@@ -233,6 +233,8 @@ router.post('/signin/mail', emailConnection)
  *             properties:
  *               mail:
  *                 type: string
+ *               lang:
+ *                 type: string
  *     responses:
  *       "200":
  *          description: code,<br>message="Email was sent to email"
@@ -326,6 +328,8 @@ router.post('/passrecover', passRecover)
  *               username:
  *                 type: string
  *               password:
+ *                 type: string
+ *               lang:
  *                 type: string
  *               newsLetter:
  *                 type: boolean
@@ -607,6 +611,8 @@ passport.use(
  *             type: object
  *             properties:
  *               email:
+ *                 type: string
+ *               lang:
  *                 type: string
  *     responses:
  *       "200":
