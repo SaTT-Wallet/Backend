@@ -1,4 +1,3 @@
-var requirement = require('../helpers/utils')
 const qrcode = require('qrcode')
 const speakeasy = require('speakeasy')
 const mongoose = require('mongoose')
@@ -9,11 +8,20 @@ const { responseHandler } = require('../helpers/response-handler')
 const { createUser } = require('../middleware/passport.middleware')
 const { readHTMLFileLogin } = require('../helpers/utils')
 
-var connection
-let app
-;(connection = async function () {
-    app = await requirement.connection()
-})()
+const {
+    synfonyHash,
+    configureTranslation,
+    cloneUser,
+    generateAccessToken,
+} = require('../helpers/utils')
+
+const {
+    differenceBetweenDates,
+    manageTime,
+    updateAndGenerateCode,
+} = require('../manager/accounts.js')
+
+const { loginSettings } = require('../conf/config1')
 
 exports.changePassword = async (req, res) => {
     try {
@@ -22,7 +30,7 @@ exports.changePassword = async (req, res) => {
         var _id = req.user._id
         var user = await User.findOne({ _id })
         if (user) {
-            if (user.password != app.synfonyHash(oldpass)) {
+            if (user.password != synfonyHash(oldpass)) {
                 return responseHandler.makeResponseError(
                     res,
                     401,
@@ -31,7 +39,7 @@ exports.changePassword = async (req, res) => {
             } else {
                 await User.updateOne(
                     { _id },
-                    { $set: { password: app.synfonyHash(newpass) } }
+                    { $set: { password: synfonyHash(newpass) } }
                 )
                 return responseHandler.makeResponseData(
                     res,
@@ -117,13 +125,13 @@ exports.codeRecover = async (req, res) => {
         return responseHandler.makeResponseError(
             res,
             400,
-            'please provide a valid email address!'
+            'please enter a valid email address!'
         )
     }
     try {
         let dateNow = Math.floor(Date.now() / 1000)
         let lang = req.query.lang || 'en'
-        app.i18n.configureTranslation(lang)
+        configureTranslation(lang)
         let email = req.body.mail.toLowerCase()
         let user = await User.findOne({ email })
 
@@ -137,8 +145,8 @@ exports.codeRecover = async (req, res) => {
         }
         if (
             user.account_locked &&
-            app.account.differenceBetweenDates(user.date_locked, dateNow) <
-                app.config.lockedPeriod
+            differenceBetweenDates(user.date_locked, dateNow) <
+                loginSettings.lockedPeriod
         ) {
             return responseHandler.makeResponseError(
                 res,
@@ -148,12 +156,13 @@ exports.codeRecover = async (req, res) => {
             )
         }
 
-        let requestDate = app.account.manageTime()
+        let requestDate = manageTime()
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
         if (ip) ip = ip.split(':')[3]
 
-        let code = await app.account.updateAndGenerateCode(user._id, 'reset')
+        let code = await updateAndGenerateCode(user._id, 'reset')
+
         readHTMLFileLogin(
             __dirname + '/../public/emails/reset_password_code.html',
             'codeRecover',
@@ -211,8 +220,8 @@ exports.confirmCode = async (req, res) => {
         else if (user.secureCode.type == 'validation' && type == 'validation') {
             let authMethod = { message: 'code is matched' }
             let date = Math.floor(Date.now() / 1000) + 86400
-            let userAuth = app.cloneUser(user)
-            let token = app.generateAccessToken(userAuth)
+            let userAuth = cloneUser(user)
+            let token = generateAccessToken(userAuth)
             ;(authMethod.token = token),
                 (authMethod.expires_in = date),
                 (authMethod.idUser = user._id)
@@ -266,7 +275,7 @@ exports.passRecover = async (req, res) => {
         else {
             await User.updateOne(
                 { _id: user._id },
-                { $set: { password: app.synfonyHash(newpass), enabled: 1 } }
+                { $set: { password: synfonyHash(newpass), enabled: 1 } }
             )
             return responseHandler.makeResponseData(
                 res,
@@ -297,12 +306,10 @@ exports.resendConfirmationToken = async (req, res) => {
                 false
             )
         } else {
-            let code = await app.account.updateAndGenerateCode(
-                user._id,
-                'validation'
-            )
+            let code = await updateAndGenerateCode(user._id, 'validation')
             let lang = req.query.lang || 'en'
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
+
             readHTMLFileLogin(
                 __dirname +
                     '/../public/emailtemplate/email_validated_code.html',
@@ -415,7 +422,7 @@ exports.purgeAccount = async (req, res) => {
     try {
         let password = req.body.password
         let reason = req.body.reason
-        if (req.user.password === app.synfonyHash(password)) {
+        if (req.user.password === synfonyHash(password)) {
             if (reason) req.user.reason = reason
             await UserArchived.create(req.user)
             await User.deleteOne({ _id: req.user._id })
@@ -449,10 +456,21 @@ exports.authApple = async (req, res) => {
         let id_apple = req.body.id_apple
         let idSn = req.body.idSN
         let name = req.body.name
+
+        const validateEmail = /\S+@\S+\.\S+/
+
+        if (!validateEmail.test(email.toLowerCase())) {
+            return responseHandler.makeResponseError(
+                res,
+                400,
+                'please enter a valid email address!'
+            )
+        }
+
         let user = await User.findOne({ $or: [{ email }, { id_apple }] })
         if (user) {
-            let userAuth = app.cloneUser(user)
-            let token = app.generateAccessToken(userAuth)
+            let userAuth = cloneUser(user)
+            let token = generateAccessToken(userAuth)
             if (user.idSn === idSn) {
                 let param = {
                     access_token: token,
@@ -490,7 +508,7 @@ exports.authApple = async (req, res) => {
             createdUser.id_apple = id_apple
             let user = await User.create(createdUser)
             createdUser._id = user._id
-            let token = app.generateAccessToken(createdUser)
+            let token = generateAccessToken(createdUser)
             let param = {
                 access_token: token,
                 expires_in: date,
@@ -537,7 +555,7 @@ exports.socialSignUp = async (req, res) => {
             let date = Math.floor(Date.now() / 1000) + 86400
             let user = User.create(snUser)
             snUser._id = user._id
-            let token = app.generateAccessToken(snUser)
+            let token = generateAccessToken(snUser)
             let param = {
                 access_token: token,
                 expires_in: date,
@@ -569,8 +587,8 @@ exports.socialSignin = async (req, res) => {
         let user = await User.findOne({ [socialField]: req.body.id })
         if (user) {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let userAuth = app.cloneUser(user)
-            let token = app.generateAccessToken(userAuth)
+            let userAuth = cloneUser(user)
+            let token = generateAccessToken(userAuth)
             let param = {
                 access_token: token,
                 expires_in: date,

@@ -59,6 +59,42 @@ exports.mongoConnection = () => {
     return connexion
 }
 
+exports.payementRequest = async (payment) => {
+    return {
+        account_details: {
+            app_provider_id: 'satt',
+            app_version_id: '1.3.1',
+            app_end_user_id: payment._id,
+            app_install_date: payment.installDate,
+            email: payment.email,
+            phone: '',
+            signup_login: {
+                ip: payment.addressIp,
+                location: '',
+                uaid: process.env.PAYEMENT_REQUEST_UAID,
+                accept_language: payment.language,
+                http_accept_language: payment.language,
+                user_agent: payment.user_agent,
+                cookie_session_id: process.env.COOKIE_SESSION_ID,
+                timestamp: payment.installDate,
+            },
+        },
+        transaction_details: {
+            payment_details: {
+                quote_id: payment.quote_id,
+                payment_id: payment.uuid,
+                order_id: payment.order_id,
+                destination_wallet: {
+                    currency: payment.currency || 'ETH',
+                    address: payment.idWallet,
+                    tag: '',
+                },
+                original_http_ref_url: process.env.BASED_URL,
+            },
+        },
+    }
+}
+
 let sattContract, sattBEP20CONTRACT, daiContract, busdContract, usdtContract
 
 if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
@@ -1109,6 +1145,7 @@ let token200 = [
     },
 ]
 
+let booltestnet = true
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
     linkedinActivityUrl: (activityURN) =>
@@ -1140,7 +1177,56 @@ let oauth = {
     },
 }
 
-module.exports.Tokens = Tokens
+let loginSettings = {
+    lockedPeriod: process.env.lockedPeriod,
+}
+
+let configSendBox = {}
+
+configSendBox = booltestnet
+    ? 'https://sandbox.test-simplexcc.com'
+    : 'https://backend-wallet-api.simplexcc.com'
+
+let networkSegWitCompat = {
+    baseNetwork: 'bitcoin',
+    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    bech32: 'bc',
+    bip32: {
+        public: 0x049d7cb2,
+        private: 0x049d7878,
+    },
+    pubKeyHash: 0x00,
+    scriptHash: 0x05,
+    wif: 0x80,
+}
+
+let networkSegWit = {
+    baseNetwork: 'bitcoin',
+    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    bech32: 'bc',
+    bip32: {
+        public: 0x04b24746,
+        private: 0x04b2430c,
+    },
+    pubKeyHash: 0x00,
+    scriptHash: 0x05,
+    wif: 0x80,
+}
+let pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
+
+let pathBtcSegwit = "m/84'/0'/0'/0/0"
+let pathEth = "m/44'/60'/0'/0/0'"
+module.exports.pathBtcSegwit = pathBtcSegwit
+
+module.exports.pathEth = pathEth
+
+module.exports.networkSegWitCompat = networkSegWitCompat
+module.exports.networkSegWit = networkSegWit
+
 module.exports.token200 = token200
 module.exports.config = config
 module.exports.oauth = oauth
+module.exports.loginSettings = loginSettings
+module.exports.configSendBox = configSendBox
+module.exports.booltestnet = booltestnet
+module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
