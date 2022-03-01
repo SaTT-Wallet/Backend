@@ -24,6 +24,7 @@ module.exports = {
     Event,
     Ban,
     CampaignLink,
+    Campaigns,
     User,
     GoogleProfile,
     FbProfile,

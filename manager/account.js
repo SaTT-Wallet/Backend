@@ -370,7 +370,7 @@ module.exports = async function (app) {
             let id = req.user._id
             let pass = req.body.pass
 
-            let account = await Wallets.findOne({ UserId: parseInt(id) })
+            let account = await Wallet.findOne({ UserId: parseInt(id) })
 
             app.web3.eth.accounts.wallet.decrypt([account.keystore], pass)
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -389,7 +389,7 @@ module.exports = async function (app) {
     accountManager.unlockBSC = async function (req, res) {
         let UserId = req.user._id
         let pass = req.body.pass
-        let account = await Wallets.findOne({ UserId })
+        let account = await Wallet.findOne({ UserId })
         try {
             app.web3Bep20.eth.accounts.wallet.decrypt([account.keystore], pass)
             return { address: '0x' + account.keystore.address }
@@ -479,7 +479,7 @@ module.exports = async function (app) {
     accountManager.hasAccount = async (req, res) => {
         let userId = req.user._id
 
-        let account = await Wallets.findOne({ UserId: parseInt(userId) })
+        let account = await Wallet.findOne({ UserId: parseInt(userId) })
 
         return account && !account.unclaimed
     }
@@ -539,7 +539,7 @@ module.exports = async function (app) {
 
             return result
         } else {
-            return res.status(401).end('Account not found')
+            return account
         }
     }
 

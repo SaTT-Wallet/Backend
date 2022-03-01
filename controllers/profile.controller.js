@@ -1,6 +1,3 @@
-var connection
-
-var requirement = require('../helpers/utils')
 var rp = require('request-promise')
 const {
     User,
@@ -17,17 +14,22 @@ const { responseHandler } = require('../helpers/response-handler')
 const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
 
+const { notificationManager, manageTime } = require('../manager/accounts.js')
+const { synfonyHash, configureTranslation } = require('../helpers/utils')
+const {
+    verifyYoutube,
+    verifyFacebook,
+    verifyInsta,
+    verifyTwitter,
+    verifyLinkedin,
+} = require('../manager/oracles')
+
 const QRCode = require('qrcode')
-var connection
-let app
-;(connection = async function () {
-    app = await requirement.connection()
-})()
 
 const mongoose = require('mongoose')
 let gfsprofilePic
 let gfsUserLegal
-const { mongoConnection } = require('../conf/config1')
+const { mongoConnection, oauth } = require('../conf/config1')
 
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 
@@ -80,6 +82,7 @@ const storageProfilePic = new GridFsStorage({
 module.exports.uploadImageProfile = multer({
     storage: storageProfilePic,
 }).single('file')
+
 module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
@@ -240,13 +243,14 @@ exports.addUserLegalProfile = async (req, res) => {
                 }
             )
 
-            await app.account.notificationManager(id, 'save_legal_file_event', {
+            await notificationManager(id, 'save_legal_file_event', {
                 type,
             })
             return makeResponseData(res, 201, 'legal saved')
         }
+        return makeResponseError(res, 404, 'Only images allowed')
     } catch (err) {
-        console.log(err)
+        // console.log(err)
         return makeResponseError(
             res,
             500,
@@ -450,11 +454,11 @@ module.exports.checkOnBoarding = async (req, res) => {
 module.exports.requestMoney = async (req, res) => {
     try {
         let lang = /*req.query.lang ??*/ 'en'
-        app.i18n.configureTranslation(lang)
+        configureTranslation(lang)
         const id = req.user._id
         let code = await QRCode.toDataURL(req.body.wallet)
 
-        await app.account.notificationManager(id, 'send_demande_satt_event', {
+        await notificationManager(id, 'send_demande_satt_event', {
             name: req.body.to,
             price: req.body.price,
             currency: req.body.currency,
@@ -462,15 +466,11 @@ module.exports.requestMoney = async (req, res) => {
 
         var result = await User.findOne({ email: req.body.to })
         if (result) {
-            await app.account.notificationManager(
-                result._id,
-                'demande_satt_event',
-                {
-                    name: req.body.name,
-                    price: req.body.price,
-                    currency: req.body.currency,
-                }
-            )
+            await notificationManager(result._id, 'demande_satt_event', {
+                name: req.body.name,
+                price: req.body.price,
+                currency: req.body.currency,
+            })
         } else {
             return makeResponseError(res, 404, 'user not found')
         }
@@ -494,13 +494,23 @@ module.exports.requestMoney = async (req, res) => {
 }
 
 exports.support = async (req, res) => {
+    const validateEmail = /\S+@\S+\.\S+/
+
     try {
-        readHTMLFileProfile(
-            __dirname + '/../public/emailtemplate/contact_support.html',
-            'contact_support',
-            req.body
-        )
-        return makeResponseData(res, 200, 'Email was sent')
+        if (validateEmail.test(req.body.email)) {
+            readHTMLFileProfile(
+                __dirname + '/../public/emailtemplate/contact_support.html',
+                'contact_support',
+                req.body
+            )
+            return makeResponseData(res, 200, 'Email was sent')
+        } else {
+            return makeResponseError(
+                res,
+                400,
+                'please provide a valid email address!'
+            )
+        }
     } catch (err) {
         return makeResponseError(
             res,
@@ -606,7 +616,7 @@ module.exports.changeEmail = async (req, res) => {
     var user = req.user
 
     try {
-        if (user.password != app.synfonyHash(pass)) {
+        if (user.password != synfonyHash(pass)) {
             return makeResponseError(res, 406, 'wrong password')
         }
         var existUser = await User.findOne({ email })
@@ -624,13 +634,13 @@ module.exports.changeEmail = async (req, res) => {
                 { $set: { newEmail } }
             )
 
-            let requestDate = app.account.manageTime()
+            let requestDate = manageTime()
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
             if (ip) ip = ip.split(':')[3]
 
             const lang = req.query.lang || 'en'
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
 
             // let subject = (lang == "en") ? "Satt wallet change email" : "";
 
@@ -645,7 +655,8 @@ module.exports.changeEmail = async (req, res) => {
             )
             return makeResponseData(res, 200, 'Email was sent to ' + email)
         }
-    } catch (error) {
+    } catch (err) {
+        // console.log('error', err)
         return makeResponseError(
             res,
             500,
@@ -671,7 +682,7 @@ module.exports.confrimChangeMail = async (req, res) => {
                 { _id: Long.fromNumber(id) },
                 { $set: { email: newEmail } }
             )
-            return makeResponseData(res, 200, 'email changed ')
+            return makeResponseData(res, 200, 'email changed')
         }
     } catch (err) {
         return makeResponseError(
@@ -702,11 +713,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 if (fbProfile) {
                     linked = true
-                    res = await app.oracle.verifyFacebook(
-                        userId,
-                        idUser,
-                        idPost
-                    )
+                    res = await verifyFacebook(userId, idUser, idPost)
 
                     if (res && res.deactivate === true) {
                         deactivate = true
@@ -723,20 +730,21 @@ module.exports.verifyLink = async (req, response) => {
                         method: 'POST',
                         uri: 'https://oauth2.googleapis.com/token',
                         body: {
-                            client_id: app.config.googleClientId,
-                            client_secret: app.config.googleClientSecret,
+                            client_id: oauth.google.googleClientId,
+                            client_secret: oauth.google.googleClientSecret,
                             refresh_token: googleProfile.refreshToken,
                             grant_type: 'refresh_token',
                         },
                         json: true,
                     }
+
                     var result = await rp(options)
                     await GoogleProfile.updateOne(
                         { UserId: userId },
                         { $set: { accessToken: result.access_token } }
                     )
                     linked = true
-                    res = await app.oracle.verifyYoutube(userId, idPost)
+                    res = await verifyYoutube(userId, idPost)
                     if (res && res.deactivate === true) deactivate = true
                 }
 
@@ -750,7 +758,7 @@ module.exports.verifyLink = async (req, response) => {
                 })
                 if (page) {
                     linked = true
-                    res = await app.oracle.verifyInsta(userId, idPost)
+                    res = await verifyInsta(userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 
@@ -761,7 +769,7 @@ module.exports.verifyLink = async (req, response) => {
                 })
                 if (twitterProfile) {
                     linked = true
-                    res = await app.oracle.verifyTwitter(userId, idPost)
+                    res = await verifyTwitter(userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 
@@ -770,10 +778,7 @@ module.exports.verifyLink = async (req, response) => {
                 var linkedinProfile = await LinkedinProfile.findOne({ userId })
                 if (linkedinProfile && linkedinProfile.pages.length > 0) {
                     linked = true
-                    res = await app.oracle.verifyLinkedin(
-                        linkedinProfile,
-                        idPost
-                    )
+                    res = await verifyLinkedin(linkedinProfile, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 
@@ -795,6 +800,7 @@ module.exports.verifyLink = async (req, response) => {
                 res ? 'true' : 'false'
             )
     } catch (err) {
+        // console.log('err', err)
         return makeResponseError(
             response,
             500,

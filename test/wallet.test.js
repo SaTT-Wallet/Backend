@@ -11,6 +11,8 @@ let port = process.env.LISTEN_PORT
 
 const baseUrl = `https://localhost:${port}`
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+
 describe('Wallet Management', () => {
     let usernameLogin = process.env.USERNAME_LOGIN
     let passwordLoging = process.env.PASSWORD_LOGIN
@@ -46,7 +48,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -83,7 +85,7 @@ describe('Wallet Management', () => {
 
             let result = balances.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -108,7 +110,7 @@ describe('Wallet Management', () => {
 
             let result = bep20Price.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -130,7 +132,7 @@ describe('Wallet Management', () => {
 
             let result = details.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -155,7 +157,7 @@ describe('Wallet Management', () => {
 
             let result = erc20Price.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -177,7 +179,7 @@ describe('Wallet Management', () => {
 
             let result = balance.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -199,7 +201,7 @@ describe('Wallet Management', () => {
 
             let result = prices.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -221,7 +223,7 @@ describe('Wallet Management', () => {
 
             let result = mnemo.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -247,7 +249,7 @@ describe('Wallet Management', () => {
 
             let result = transaction.data
 
-            console.log(result)
+            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
@@ -290,7 +292,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -326,7 +328,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -359,11 +361,11 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
-    it('Check wallet', async () => {
+    it('Add new token', async () => {
         let url = `${baseUrl}/wallet/addNewToken`
 
         let options = {
@@ -395,7 +397,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -429,7 +431,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -463,7 +465,7 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -497,7 +499,279 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            console.log(accessToken)
+            // console.log(accessToken)
         } catch (error) {}
+    })
+
+    it('Get quote', async () => {
+        let url = `${baseUrl}/wallet/getQuote`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let result
+        let digital_currency = ''
+        let fiat_currency = ''
+        let requested_amount = ''
+        let requested_currency = ''
+
+        try {
+            let account = await axios.post(
+                url,
+                {
+                    digital_currency,
+                    fiat_currency,
+                    requested_amount,
+                    requested_currency,
+                },
+                options
+            )
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' ||
+                    err === 'Please enter amount of 50 USD or more' ||
+                    err === 'Wallet not found'
+                )
+            })
+        }
+    })
+
+    it('Payment request in simplix', async () => {
+        let url = `${baseUrl}/wallet/payementRequest`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let result
+        let currency = ''
+        let quote_id = ''
+        let idWallet = ''
+
+        try {
+            let account = await axios.post(
+                url,
+                {
+                    currency,
+                    quote_id,
+                    idWallet,
+                },
+                options
+            )
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Wallet not found'
+            })
+        }
+    })
+
+    it('Export BTC', async () => {
+        let url = `${baseUrl}/wallet/exportBtc`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let result
+        let pass = ''
+
+        try {
+            let account = await axios.post(
+                url,
+                {
+                    pass,
+                },
+                options
+            )
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Wallet not found'
+            })
+        }
+    })
+
+    it('Export ETH', async () => {
+        let url = `${baseUrl}/wallet/exportETH`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let result
+        let pass = ''
+
+        try {
+            let account = await axios.post(
+                url,
+                {
+                    pass,
+                },
+                options
+            )
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Account not found'
+            })
+        }
+    })
+
+    it('Verify Mnemo', async () => {
+        let url = `${baseUrl}/wallet/verifyMnemo`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let result
+        let mnemo = ''
+
+        try {
+            let account = await axios.post(
+                url,
+                {
+                    mnemo,
+                },
+                options
+            )
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Wallet not found'
+            })
+        }
+    })
+
+    it('Create wallet', async () => {
+        let url = `${baseUrl}/wallet/create`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let result
+        let mnemo = ''
+
+        try {
+            let account = await axios.post(
+                url,
+                {
+                    mnemo,
+                },
+                options
+            )
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' || err === 'Wallet already exist'
+                )
+            })
+        }
+    })
+
+    it('Remove added token', async () => {
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+
+        let tokenAddress = '621355c854f2292f9959cedc'
+        let url = `${baseUrl}/wallet/removeToken/${tokenAddress}`
+        let result
+
+        try {
+            let account = await axios.delete(url, options)
+            result = account.data
+            // console.log(result);
+            expect(result.code).to.equal(201)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('token removed')
+        } catch (error) {
+            // console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' ||
+                    err === 'Token not found' ||
+                    err === 'Wallet not found'
+                )
+            })
+        }
     })
 })

@@ -95,7 +95,7 @@ module.exports = async function (app) {
         config.appSecret = process.env.APP_SECRET
         config.fbGraphVersion = process.env.FB_GRAPH_VERSION
 
-        // Google oauth app options
+        // Google oauth options
 
         config.googleClientId = process.env.GOOGLE_CLIENTID
         config.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
