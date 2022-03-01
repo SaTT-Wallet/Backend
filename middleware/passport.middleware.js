@@ -91,6 +91,7 @@ const handleSocialMediaSignin = async (query, cb) => {
 let createUser = (
     enabled,
     idSn,
+    lang,
     newsLetter,
     picLink = false,
     username,
@@ -112,6 +113,7 @@ let createUser = (
     ;(userObject.username = username), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
+    if (lang) userObject.lang = lang
     if (lastName) userObject.lastName = lastName
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
@@ -391,6 +393,8 @@ exports.facebookAuthSignup = async (
         let createdUser = createUser(
             1,
             1,
+            req.body.lang,
+
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile._json.email,
@@ -427,6 +431,7 @@ exports.googleAuthSignup = async (
         let createdUser = createUser(
             1,
             2,
+            req.body.lang,
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile.displayName,
@@ -476,6 +481,8 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         let createdUser = createUser(
             1,
             5,
+            req.body.lang,
+
             req.body.newsLetter,
             profile.photo_url,
             profile.email,

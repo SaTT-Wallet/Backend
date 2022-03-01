@@ -159,7 +159,7 @@ module.exports.updateStat = async () => {
     })
 }
 
-module.exports.BalanceUsersStats = async (condition) => {
+exports.BalanceUsersStats = async (condition) => {
     let today = new Date().toLocaleDateString('en-US')
     let [currentDate, result] = [Math.round(new Date().getTime() / 1000), {}]
 
@@ -205,7 +205,7 @@ module.exports.BalanceUsersStats = async (condition) => {
         } //adding time frame field in users depending on condition if it doesn't exist.
 
         try {
-            balance = await getBalanceByUid(id, Crypto)
+            balance = await getBalanceByUid(req, res)
         } catch (err) {
             console.error(err)
         }
