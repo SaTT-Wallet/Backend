@@ -658,11 +658,13 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *             properties:
  *               to:
  *                 type: string
- *               price :
+ *               name :
  *                   type: string
- *               currency:
+ *               price:
  *                   type: string
- *               name:
+ *               cryptoCurrency:
+ *                   type: string
+ *               message:
  *                   type: string
  *               wallet:
  *                   type: string
