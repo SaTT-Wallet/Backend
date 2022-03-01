@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
+const { synfonyHash } = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
