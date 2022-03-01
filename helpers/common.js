@@ -159,74 +159,74 @@ module.exports.updateStat = async () => {
     })
 }
 
-exports.BalanceUsersStats = async (condition) => {
-    let today = new Date().toLocaleDateString('en-US')
-    let [currentDate, result] = [Math.round(new Date().getTime() / 1000), {}]
+// exports.BalanceUsersStats = async (req, res, condition) => {
+//     let today = new Date().toLocaleDateString('en-US')
+//     let [currentDate, result] = [Math.round(new Date().getTime() / 1000), {}]
 
-    ;[result.Date, result.convertDate] = [currentDate, today]
+//     ;[result.Date, result.convertDate] = [currentDate, today]
 
-    let Crypto = await getPrices()
+//     let Crypto = await getPrices()
 
-    var users_
+//     var users_
 
-    if (condition === 'daily') {
-        users_ = await User.find({
-            $and: [
-                { userSatt: true },
-                { 'daily.convertDate': { $nin: [today] } },
-            ],
-        })
-    } else if (condition === 'weekly') {
-        users_ = await User.find({
-            $and: [
-                { userSatt: true },
-                { 'weekly.convertDate': { $nin: [today] } },
-            ],
-        })
-    } else if (condition === 'monthly') {
-        users_ = await User.find({
-            $and: [
-                { userSatt: true },
-                { 'monthly.convertDate': { $nin: [today] } },
-            ],
-        })
-    }
+//     if (condition === 'daily') {
+//         users_ = await User.find({
+//             $and: [
+//                 { userSatt: true },
+//                 { 'daily.convertDate': { $nin: [today] } },
+//             ],
+//         })
+//     } else if (condition === 'weekly') {
+//         users_ = await User.find({
+//             $and: [
+//                 { userSatt: true },
+//                 { 'weekly.convertDate': { $nin: [today] } },
+//             ],
+//         })
+//     } else if (condition === 'monthly') {
+//         users_ = await User.find({
+//             $and: [
+//                 { userSatt: true },
+//                 { 'monthly.convertDate': { $nin: [today] } },
+//             ],
+//         })
+//     }
 
-    let [counter, usersCount] = [0, users_.length]
-    while (counter < usersCount) {
-        let balance
+//     let [counter, usersCount] = [0, users_.length]
+//     while (counter < usersCount) {
+//         let balance
 
-        var user = users_[counter]
-        let id = user._id //storing user id in a variable
-        delete user._id
+//         var user = users_[counter]
+//         let id = user._id //storing user id in a variable
+//         delete user._id
 
-        if (!user[condition]) {
-            user[condition] = []
-        } //adding time frame field in users depending on condition if it doesn't exist.
+//         if (!user[condition]) {
+//             user[condition] = []
+//         } //adding time frame field in users depending on condition if it doesn't exist.
 
-        try {
-            balance = await getBalanceByUid(req, res)
-        } catch (err) {
-            console.error(err)
-        }
+//         try {
+//             balance = await getBalanceByUid(req, res)
+//         } catch (err) {
+//             console.error(err)
+//         }
 
-        result.Balance = balance['Total_balance']
+//         result.Balance = balance['Total_balance']
 
-        if (
-            !result.Balance ||
-            isNaN(parseInt(result.Balance)) ||
-            result.Balance === null
-        ) {
-            counter++
-        } else {
-            user[condition].unshift(result)
-            if (user[condition].length > 7) {
-                user[condition].pop()
-            } //balances array should not exceed 7 elements
-            await User.updateOne({ _id: id }, { $set: user })
-            delete result.Balance
-            delete id
-            counter++
-        }
-    }
-}
+//         if (
+//             !result.Balance ||
+//             isNaN(parseInt(result.Balance)) ||
+//             result.Balance === null
+//         ) {
+//             counter++
+//         } else {
+//             user[condition].unshift(result)
+//             if (user[condition].length > 7) {
+//                 user[condition].pop()
+//             } //balances array should not exceed 7 elements
+//             await User.updateOne({ _id: id }, { $set: user })
+//             delete result.Balance
+//             delete id
+//             counter++
+//         }
+//     }
+// }
