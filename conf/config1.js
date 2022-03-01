@@ -1111,14 +1111,16 @@ let token200 = [
 
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
+
     linkedinActivityUrl: (activityURN) =>
-        `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST} ${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
+        `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST}${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
 }
 
 let oauth = {
     google: {
         googleClientId: process.env.GOOGLE_CLIENTID,
         googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        gdataApiKey: process.env.GDA_TAP_API_KEY,
     },
 }
 
