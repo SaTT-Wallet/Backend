@@ -20,6 +20,7 @@ const { responseHandler } = require('../helpers/response-handler')
 const { Constants } = require('../conf/const2')
 const {
     unlock,
+    lock,
     createSeed,
     exportkeyBtc,
     exportkey,
@@ -30,6 +31,7 @@ const {
     getBalance,
     transfer,
     unlockBsc,
+    lockBSC,
     sendBep20,
     sendBtc,
     transferNativeBNB,
@@ -227,6 +229,7 @@ exports.transfertErc20 = async (req, res) => {
             var tokenERC20 = req.body.token
             var to = req.body.to
             var amount = req.body.amount
+            var tokenName = req.body.symbole
             var cred = await unlock(req, res)
             cred.from_id = req.user._id
             var result = await getAccount(req, res)
@@ -257,31 +260,30 @@ exports.transfertErc20 = async (req, res) => {
     } catch (err) {
         console.log(err)
     } finally {
-        cred && lock(cred.address)
+        cred && lock(cred)
         if (ret && ret.transactionHash) {
-            await notificationManager(req, 'transfer_event', {
+            await notificationManager(req.user._id, 'transfer_event', {
                 amount,
-                currency,
+                token: tokenName,
+                from: cred.address,
                 to,
                 transactionHash: ret.transactionHash,
                 network: 'ERC20',
-                decimal,
             })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { projection: { UserId: true } }
-            )
+            const wallet = await Wallet.findOne({
+                'keystore.address': to.substring(2),
+            }).select('UserId')
+
             if (wallet) {
                 await notificationManager(
                     wallet.UserId,
                     'receive_transfer_event',
                     {
                         amount,
-                        currency,
+                        token: tokenName,
                         from: cred.address,
                         transactionHash: ret.transactionHash,
                         network: 'ERC20',
-                        decimal,
                     }
                 )
             }
@@ -295,7 +297,6 @@ exports.transfertBep20 = async (req, res) => {
             var to = req.body.to
             var amount = req.body.amount
             var cred = await unlockBsc(req, res)
-
             cred.from_id = req.user._id
             req.body.token = !req.body.token
                 ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
@@ -327,31 +328,33 @@ exports.transfertBep20 = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
+        // console.log(err)
     } finally {
-        cred && lockBSC(cred.address)
+        cred && lockBSC(cred)
         if (ret && ret.transactionHash) {
-            await notificationManager(req, 'transfer_event', {
+            await notificationManager(req.user._id, 'transfer_event', {
                 amount,
                 network: 'BEP20',
                 to: req.body.to,
                 transactionHash: ret.transactionHash,
-                currency,
-                decimal,
             })
             const wallet = await Wallet.findOne(
                 { 'keystore.address': to.substring(2) },
                 { projection: { UserId: true } }
             )
             if (wallet) {
-                await notificationManager(req, 'receive_transfer_event', {
-                    amount,
-                    network: 'BEP20',
-                    from: cred.address,
-                    transactionHash: ret.transactionHash,
-                    currency,
-                    decimal,
-                })
+                await notificationManager(
+                    req.user._id,
+                    'receive_transfer_event',
+                    {
+                        amount,
+                        network: 'BEP20',
+                        from: cred.address,
+                        transactionHash: ret.transactionHash,
+                        currency,
+                        decimal,
+                    }
+                )
             }
         }
     }
@@ -399,7 +402,7 @@ exports.checkWalletToken = async (req, res) => {
             })
         }
     } catch (err) {
-        console.log(err)
+        // console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -561,7 +564,7 @@ exports.transfertBNB = async (req, res) => {
     } finally {
         cred && app.account.lockBSC(cred.address)
         if (ret.transactionHash && ret) {
-            await notificationManager(req, 'transfer_event', {
+            await notificationManager(req.user._id, 'transfer_event', {
                 amount,
                 currency: 'BNB',
                 to,
@@ -615,7 +618,7 @@ exports.transfertEther = async (req, res) => {
     } finally {
         if (cred) lock(cred.address)
         if (ret) {
-            await notificationManager(req, 'transfer_event', {
+            await notificationManager(req.user._id, 'transfer_event', {
                 amount,
                 currency: 'ETH',
                 to,
@@ -783,7 +786,7 @@ exports.bridge = async (req, res) => {
     } finally {
         if (cred) app.account.lock(cred.address)
         if (ret.transactionHash) {
-            await notificationManager(req, 'convert_event', {
+            await notificationManager(req.user._id, 'convert_event', {
                 amount,
                 Direction,
                 transactionHash: ret.transactionHash,
