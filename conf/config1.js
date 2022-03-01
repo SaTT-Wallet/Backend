@@ -1145,6 +1145,7 @@ let token200 = [
     },
 ]
 
+let booltestnet = true
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
 
@@ -1166,7 +1167,7 @@ let loginSettings = {
 
 let configSendBox = {}
 
-configSendBox = true
+configSendBox = booltestnet
     ? 'https://sandbox.test-simplexcc.com'
     : 'https://backend-wallet-api.simplexcc.com'
 
@@ -1199,7 +1200,6 @@ let pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
 
 let pathBtcSegwit = "m/84'/0'/0'/0/0"
 let pathEth = "m/44'/60'/0'/0/0'"
-
 module.exports.pathBtcSegwit = pathBtcSegwit
 
 module.exports.pathEth = pathEth
@@ -1212,3 +1212,5 @@ module.exports.config = config
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
 module.exports.configSendBox = configSendBox
+module.exports.booltestnet = booltestnet
+module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat

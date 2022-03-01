@@ -20,10 +20,9 @@ const {
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
-const { notificationManager } = require('../manager/accounts')
+//const { notificationManager } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
-const { getRemainingFunds } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection } = require('../conf/config1')
@@ -67,6 +66,7 @@ const {
     getUserIdByWallet,
     getLinkedinLinkInfo,
     applyCampaign,
+    getRemainingFunds,
 } = require('../web3/campaigns')
 
 const {
@@ -615,7 +615,7 @@ exports.linkNotifications = async (req, res) => {
     var id = req.user._id
 
     const lang = req.query.lang || 'en'
-    app.i18n.configureTranslation(lang)
+    configureTranslation(lang)
 
     try {
         let _id = req.body.idCampaign
@@ -634,15 +634,11 @@ exports.linkNotifications = async (req, res) => {
             },
             async (err, element) => {
                 let owner = Number(element.idNode.substring(1))
-                await app.account.notificationManager(
-                    id,
-                    'cmp_candidate_insert_link',
-                    {
-                        cmp_name: element.title,
-                        cmp_hash: campaign_id,
-                        linkHash: idProm,
-                    }
-                )
+                await notificationManager(id, 'cmp_candidate_insert_link', {
+                    cmp_name: element.title,
+                    cmp_hash: campaign_id,
+                    linkHash: idProm,
+                })
 
                 await User.findOne({ _id: owner }, (err, result) => {
                     readHTMLFileCampaign(
@@ -692,7 +688,7 @@ exports.validateCampaign = async (req, res) => {
     try {
         if (idUser === campaign.idNode) {
             const lang = 'en'
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
 
             var cred = await app.account.unlock(req, res)
 
@@ -762,18 +758,14 @@ exports.validateCampaign = async (req, res) => {
                 { $set: socialOracle }
             )
 
-            await app.account.notificationManager(
-                id,
-                'cmp_candidate_accept_link',
-                {
-                    cmp_name: campaign.title,
-                    action: 'link_accepted',
-                    cmp_link: linkProm,
-                    cmp_hash: idCampaign,
-                    hash: ret.transactionHash,
-                    promHash: idApply,
-                }
-            )
+            await notificationManager(id, 'cmp_candidate_accept_link', {
+                cmp_name: campaign.title,
+                action: 'link_accepted',
+                cmp_link: linkProm,
+                cmp_hash: idCampaign,
+                hash: ret.transactionHash,
+                promHash: idApply,
+            })
             readHTMLFileCampaign(
                 __dirname +
                     '/../public/emailtemplate/email_validated_link.html',
