@@ -1146,6 +1146,24 @@ let token200 = [
 ]
 
 let booltestnet = true
+let config = {
+    symfonySalt: process.env.SYMPHONY_SATT,
+
+    linkedinActivityUrl: (activityURN) =>
+        `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST}${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
+}
+
+let oauth = {
+    google: {
+        googleClientId: process.env.GOOGLE_CLIENTID,
+        googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        gdataApiKey: process.env.GDA_TAP_API_KEY,
+    },
+}
+
+let loginSettings = {
+    lockedPeriod: process.env.lockedPeriod,
+}
 
 let configSendBox = {}
 
@@ -1186,11 +1204,13 @@ module.exports.pathBtcSegwit = pathBtcSegwit
 
 module.exports.pathEth = pathEth
 
-module.exports.Tokens = Tokens
-module.exports.token200 = token200
 module.exports.networkSegWitCompat = networkSegWitCompat
 module.exports.networkSegWit = networkSegWit
 
+module.exports.token200 = token200
+module.exports.config = config
+module.exports.oauth = oauth
+module.exports.loginSettings = loginSettings
 module.exports.configSendBox = configSendBox
 module.exports.booltestnet = booltestnet
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
