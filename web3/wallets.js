@@ -5,6 +5,11 @@ const { erc20Connexion, bep20Connexion } = require('../blockchainConnexion')
 var rp = require('request-promise')
 const Big = require('big.js')
 
+var bip32 = require('bip32')
+var bip38 = require('bip38')
+var bip39 = require('bip39')
+var bitcoinjs = require('bitcoinjs-lib')
+var ethUtil = require('ethereumjs-util')
 const { Constants } = require('../conf/const2')
 const {
     Tokens,
@@ -14,6 +19,7 @@ const {
     pathBtcSegwitCompat,
     pathBtcSegwit,
     pathEth,
+    booltestnet,
 } = require('../conf/config1')
 exports.unlock = async (req, res) => {
     try {
@@ -567,10 +573,6 @@ exports.getBalanceByUid = async (req, res) => {
 
 exports.getTokenContractByToken = async (token, credentials, network) => {
     if (network === 'ERC20') {
-        console.log('im here')
-
-        console.log('ojoa', credentials)
-
         var contract = new credentials.Web3ETH.eth.Contract(
             Constants.token.abi,
             token
@@ -707,13 +709,7 @@ exports.transferNativeBNB = async (to, amount, credentials) => {
                 to: to,
                 gasPrice: gasPrice,
             })
-            .once('transactionHash', (transactionHash) => {
-                console.log(
-                    'transferNativeBNB',
-                    credentials.address,
-                    `transfer BNB transactionHash :${transactionHash}`
-                )
-            })
+            .once('transactionHash', (transactionHash) => {})
         return {
             transactionHash: receipt.transactionHash,
             to: to,
@@ -752,77 +748,120 @@ exports.transferEther = async (to, amount, credentials) => {
     }
 }
 
+exports.getCount = async function () {
+    try {
+        var count = await Wallet.countDocuments()
+        return count + 1
+    } catch (err) {
+        console.log(err)
+    }
+}
+
 exports.createSeed = async (req, res) => {
-    var UserId = req.user._id
-    var pass = req.body.pass
+    try {
+        var UserId = req.user._id
+        var pass = req.body.pass
 
-    var escpass = pass.replace(/'/g, "\\'")
+        var escpass = pass.replace(/'/g, "\\'")
 
-    const mnemonic = bip39.generateMnemonic(256)
-    const seed = bip39.mnemonicToSeedSync(mnemonic, pass)
-    const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
-    const rootBtcBc1 = bip32.fromSeed(seed, networkSegWit)
-    const rootEth = bip32.fromSeed(seed)
-    const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
-    const childBtcBc1 = rootBtcBc1.derivePath(pathBtcSegwit)
-    const childEth = rootEth.derivePath(pathEth)
+        const mnemonic = bip39.generateMnemonic(256)
+        const seed = bip39.mnemonicToSeedSync(mnemonic, pass)
+        const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+        const rootBtcBc1 = bip32.fromSeed(seed, networkSegWit)
+        const rootEth = bip32.fromSeed(seed)
+        const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+        const childBtcBc1 = rootBtcBc1.derivePath(pathBtcSegwit)
+        const childEth = rootEth.derivePath(pathEth)
 
-    const address = bitcoinjs.payments.p2sh({
-        redeem: bitcoinjs.payments.p2wpkh({
-            pubkey: childBtc.publicKey,
+        const address = bitcoinjs.payments.p2sh({
+            redeem: bitcoinjs.payments.p2wpkh({
+                pubkey: childBtc.publicKey,
+                network: networkSegWitCompat,
+            }),
             network: networkSegWitCompat,
-        }),
-        network: networkSegWitCompat,
-    }).address
+        }).address
 
-    const addressbc1 = bitcoinjs.payments.p2wpkh({
-        pubkey: childBtcBc1.publicKey,
-        network: networkSegWit,
-    }).address
+        const addressbc1 = bitcoinjs.payments.p2wpkh({
+            pubkey: childBtcBc1.publicKey,
+            network: networkSegWit,
+        }).address
 
-    var addressBuffer = ethUtil.privateToAddress(childEth.privateKey)
-    var checksumAddress = ethUtil.toChecksumAddress(
-        '0x' + addressBuffer.toString('hex')
-    )
-    // var addressEth = ethUtil.addHexPrefix(checksumAddress);
-    var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'))
-    var pubBtc = childBtc.publicKey.toString('hex')
-
-    var account = app.web3.eth.accounts
-        .privateKeyToAccount(privkey)
-        .encrypt(pass)
-    if (!app.config.testnet) {
-        child.execSync(
-            app.config.btcCmd + ' importpubkey ' + pubBtc + " 'default' false"
+        var addressBuffer = ethUtil.privateToAddress(childEth.privateKey)
+        var checksumAddress = ethUtil.toChecksumAddress(
+            '0x' + addressBuffer.toString('hex')
         )
+        // var addressEth = ethUtil.addHexPrefix(checksumAddress);
+        var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'))
 
-        const client = new bitcoinCore({
-            host: app.config.btcHost,
-            username: app.config.btcUser,
-            password: app.config.btcPassword,
+        var pubBtc = childBtc.publicKey.toString('hex')
+
+        let Web3ETH = await erc20Connexion()
+
+        var account = Web3ETH.eth.accounts
+            .privateKeyToAccount(privkey)
+            .encrypt(pass)
+
+        if (!booltestnet) {
+            child.execSync(
+                process.env.BTC_CMD +
+                    ' importpubkey ' +
+                    pubBtc +
+                    " 'default' false"
+            )
+
+            const client = new bitcoinCore({
+                host: process.env.BTC_HOST,
+                username: process.env.BTC_USER,
+                password: process.env.BTC_PASSWORD,
+            })
+
+            await new Client().importPubKey('default', false)
+        }
+
+        var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
+        var btcWallet = {
+            publicKey: pubBtc,
+            addressSegWitCompat: address,
+            addressSegWit: addressbc1,
+            publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
+            ek: ek,
+        }
+        var count = await this.getCount()
+
+        await Wallet.create({
+            UserId: parseInt(UserId),
+            keystore: account,
+            num: count,
+            btc: btcWallet,
+            mnemo: mnemonic,
         })
-        await new Client().importPubKey('default', false)
-    }
 
-    var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
-    var btcWallet = {
-        publicKey: pubBtc,
-        addressSegWitCompat: address,
-        addressSegWit: addressbc1,
-        publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
-        ek: ek,
+        return {
+            address: '0x' + account.address,
+            btcAddress: btcWallet.addressSegWitCompat,
+        }
+    } catch (error) {
+        console.log(error)
     }
-    var count = await accountManager.getCount()
+}
 
-    Wallet.create({
-        UserId: parseInt(UserId),
-        keystore: account,
-        num: count,
-        btc: btcWallet,
-        mnemo: mnemonic,
+exports.FilterTransactionsByHash = (
+    All_Transactions,
+    Erc20_OR_BEP20_Transactions,
+    Network
+) => {
+    var transaction_content = All_Transactions.result
+    var erc20_or_bep20_transaction_content = Erc20_OR_BEP20_Transactions.result
+
+    transaction_content.map((elem) => {
+        for (var i = 0; i < erc20_or_bep20_transaction_content.length; i++) {
+            if (erc20_or_bep20_transaction_content[i].hash == elem.hash) {
+                erc20_or_bep20_transaction_content[i].network = Network
+            }
+        }
+        if (!elem.network) {
+            elem.network = Network
+        }
     })
-    return {
-        address: '0x' + account.address,
-        btcAddress: btcWallet.addressSegWitCompat,
-    }
+    return transaction_content.concat(erc20_or_bep20_transaction_content)
 }
