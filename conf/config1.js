@@ -1182,7 +1182,7 @@ let pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
 
 let pathBtcSegwit = "m/84'/0'/0'/0/0"
 let pathEth = "m/44'/60'/0'/0/0'"
-
+let prices = null
 module.exports.pathBtcSegwit = pathBtcSegwit
 
 module.exports.pathEth = pathEth
@@ -1195,3 +1195,4 @@ module.exports.networkSegWit = networkSegWit
 module.exports.configSendBox = configSendBox
 module.exports.booltestnet = booltestnet
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
+module.exports.prices = prices
