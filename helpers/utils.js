@@ -17,8 +17,6 @@ const jwt = require('jsonwebtoken')
 const handlebars = require('handlebars')
 var ejs = require('ejs')
 
-const { config } = require('../conf/config1')
-
 exports.connection = async () => {
     app = await require('../conf/config')(app)
     app = await require('../conf/const')(app)
