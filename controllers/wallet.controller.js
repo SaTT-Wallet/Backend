@@ -562,7 +562,7 @@ exports.transfertBNB = async (req, res) => {
     } catch (err) {
         console.log(err)
     } finally {
-        cred && app.account.lockBSC(cred.address)
+        cred && lockBSC(cred)
         if (ret.transactionHash && ret) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
@@ -784,7 +784,7 @@ exports.bridge = async (req, res) => {
     } catch (err) {
         res.end(JSON.stringify(err))
     } finally {
-        if (cred) app.account.lock(cred.address)
+        if (cred) lock(cred)
         if (ret.transactionHash) {
             await notificationManager(req.user._id, 'convert_event', {
                 amount,
