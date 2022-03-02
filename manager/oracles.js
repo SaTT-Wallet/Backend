@@ -13,6 +13,7 @@ const {
 var Twitter2 = require('twitter-v2')
 
 var Twitter = require('twitter')
+const { getContractByToken } = require('../blockchainConnexion')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -650,4 +651,108 @@ exports.twitter = async (userName, idPost) => {
     } catch (err) {
         return 'indisponible'
     }
+}
+
+exports.answerBounty = async function (opts) {
+    try {
+        let contract = opts.ctr
+
+        var gasPrice = await contract.getGasPrice()
+
+        var receipt = await contract.methods
+            .answerBounty(opts.campaignContract, opts.idProm, opts.nbAbos)
+            .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+            .once('transactionHash', function (hash) {
+                console.log('oracle answerBounty transactionHash', hash)
+            })
+        return { result: 'OK', hash: receipt.hash }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.answerOne = async (
+    typeSN,
+    idPost,
+    idUser,
+    type = null,
+    linkedinProfile = null
+) => {
+    switch (typeSN) {
+        case '1':
+            var res = await this.facebook(idUser, idPost)
+
+            break
+        case '2':
+            var res = await this.youtube(idPost)
+
+            break
+        case '3':
+            var campaign_link = await CampaignLink.findOne({ idPost })
+            var userWallet = await Wallet.findOne({
+                'keystore.address': campaign_link.id_wallet
+                    .toLowerCase()
+                    .substring(2),
+            })
+            var res = await this.instagram(userWallet.UserId, idPost)
+
+            break
+        case '4':
+            var res = await this.twitter(idUser, idPost)
+
+            break
+        case '5':
+            var res = await this.linkedin(idUser, idPost, type, linkedinProfile)
+
+            break
+        default:
+            var res = { likes: 0, shares: 0, views: 0, date: Date.now() }
+            break
+    }
+
+    return res
+}
+
+exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
+    if (!limit) {
+        var limits = ratios[4]
+        limit = limits[parseInt(typeSN) - 1]
+    }
+    if (limit > 0) {
+        limit = parseFloat(limit)
+        var max = Math.ceil((limit * parseFloat(abos)) / 100)
+        if (+stats.views > max) {
+            stats.views = max
+        }
+        if (+stats.likes > max) {
+            stats.likes = max
+        }
+        if (+stats.shares > max) {
+            stats.shares = max
+        }
+    }
+
+    return stats
+}
+
+exports.answerCall = async (opts) => {
+    let contract = opts.ctr
+
+    var gasPrice = await contract.getGasPrice()
+
+    var headerSent = false
+
+    var receipt = await contract.methods
+        .answer(
+            opts.campaignContract,
+            opts.idRequest,
+            opts.likes,
+            opts.shares,
+            opts.views
+        )
+        .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+        .once('transactionHash', function (hash) {
+            console.log('oracle answerCall transactionHash', hash)
+        })
+    resolve({ result: 'OK', hash: receipt.hash })
 }

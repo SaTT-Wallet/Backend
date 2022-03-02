@@ -4,6 +4,8 @@ const {
     erc20Connexion,
     bep20Connexion,
     getContractByToken,
+    getPromContract,
+    getContractCampaigns,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const2')
@@ -489,4 +491,82 @@ exports.getRemainingFunds = async function (token, hash, credentials) {
     } catch (err) {
         // console.log('', err)
     }
+}
+
+exports.getGains = async function (idProm, credentials) {
+    try {
+        var ctr = await getPromContract(idProm)
+        var gas = 200000
+        var gasPrice = await ctr.getGasPrice()
+        var receipt = await ctr.methods.getGains(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.updateBounty = async (idProm, credentials) => {
+    try {
+        var gas = 200000
+        var ctr = await getPromContract(idProm)
+        var gasPrice = await ctr.getGasPrice()
+
+        var receipt = await ctr.methods.updateBounty(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+            events: receipt.events,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.updatePromStats = async (idProm, credentials) => {
+    try {
+        var gas = 200000
+        var ctr = await getPromContract(idProm)
+        var gasPrice = await ctr.getGasPrice()
+
+        var receipt = await ctr.methods.updatePromStats(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+            events: receipt.events,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.getTransactionAmount = async (transactionHash, network) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let data = await network.getTransactionReceipt(transactionHash)
+            let hex =
+                network == app.web3.eth
+                    ? await app.web3.utils.hexToNumberString(data.logs[0].data)
+                    : await app.web3Bep20.utils.hexToNumberString(
+                          data.logs[0].data
+                      )
+            resolve(hex)
+        } catch (e) {
+            reject({ message: e.message })
+        }
+    })
 }
