@@ -422,6 +422,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var ctr = await campaignManager.getContractToken(token)
+                console.log('----------getContractToken', ctr)
                 var gasPrice = await ctr.getGasPrice()
                 var gas = 200000
 
@@ -1309,6 +1310,7 @@ module.exports = async function (app) {
     }
 
     campaignManager.getReachLimit = (campaignRatio, oracle) => {
+        console.log('----getReachLimit')
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
         if (ratio) return ratio.reachLimit
         return

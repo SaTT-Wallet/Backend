@@ -13,29 +13,20 @@ var TwitterProfile = require('../model/twitterProfile.model')
 var GoogleProfile = require('../model/googleProfile.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
 
+var requirement = require('../helpers/utils')
+
 const { responseHandler } = require('../helpers/response-handler')
 
-var requirement = require('../helpers/utils')
-var readHTMLFileLogin = requirement.readHTMLFileLogin
+const {
+    readHTMLFileLogin,
+    configureTranslation,
+    cloneUser,
+    generateAccessToken,
+    synfonyHash,
+} = require('../helpers/utils')
 
-var synfonyHash = function (pass) {
-    var salted = pass + '{' + app.config.symfonySalt + '}'
+const { updateAndGenerateCode } = require('../manager/accounts.js')
 
-    var buff = hasha(salted, { encoding: 'buffer' })
-    var saltBuff = Buffer.from(salted)
-    var arr = []
-
-    for (var i = 1; i < 5000; i++) {
-        arr = [buff, saltBuff]
-        buff = hasha(Buffer.concat(arr), {
-            algorithm: 'sha512',
-            encoding: 'buffer',
-        })
-    }
-
-    const base64 = buff.toString('base64')
-    return base64
-}
 var express = require('express')
 var app = express()
 var connection
@@ -80,8 +71,8 @@ const handleSocialMediaSignin = async (query, cb) => {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
-        let userAuth = app.cloneUser(user)
-        let token = app.generateAccessToken(userAuth)
+        let userAuth = cloneUser(user)
+        let token = generateAccessToken(userAuth)
         return cb(null, { id: user._id, token, expires_in: date })
     } else {
         return cb('Register First')
@@ -137,8 +128,8 @@ passport.use(
                     )
                     let validAuth = await app.account.isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
-                        let userAuth = app.cloneUser(user.toObject())
-                        let token = app.generateAccessToken(userAuth)
+                        let userAuth = cloneUser(user.toObject())
+                        let token = generateAccessToken(userAuth)
                         await User.updateOne(
                             { _id: Long.fromNumber(user._id) },
                             { $set: { failed_count: 0 } }
@@ -310,13 +301,14 @@ passport.use(
             )
             let user = await new User(createdUser).save()
             createdUser._id = user._id
-            let token = app.generateAccessToken(createdUser)
+            let token = generateAccessToken(createdUser)
             const lang = req.query.lang || 'en'
-            const code = await app.account.updateAndGenerateCode(
+            const code = await updateAndGenerateCode(
                 createdUser._id,
                 'validation'
             )
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
+
             readHTMLFileLogin(
                 __dirname +
                     '/../public/emailtemplate/email_validated_code.html',
@@ -406,7 +398,7 @@ exports.facebookAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = app.generateAccessToken(createdUser)
+        let token = generateAccessToken(createdUser)
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -443,7 +435,7 @@ exports.googleAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = app.generateAccessToken(createdUser)
+        let token = generateAccessToken(createdUser)
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -494,7 +486,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = app.generateAccessToken(createdUser)
+        let token = generateAccessToken(createdUser)
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
