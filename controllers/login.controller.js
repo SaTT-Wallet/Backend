@@ -8,7 +8,13 @@ const jwt = require('jsonwebtoken')
 
 const { responseHandler } = require('../helpers/response-handler')
 const { createUser } = require('../middleware/passport.middleware')
-const { readHTMLFileLogin } = require('../helpers/utils')
+const {
+    synfonyHash,
+    readHTMLFileLogin,
+    configureTranslation,
+    cloneUser,
+    generateAccessToken,
+} = require('../helpers/utils')
 
 var connection
 let app
