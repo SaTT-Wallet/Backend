@@ -6,7 +6,8 @@ const {
     web3UrlBep20,
     web3Url,
 } = require('./conf/const2')
-const Campaigns = require('./model/campaigns.model')
+
+const { Campaigns, Event } = require('./model/index')
 
 const options = {
     timeout: 30000,
@@ -73,16 +74,22 @@ exports.getContractByToken = async (token, credentials) => {
 
 exports.getCampaignContractByHashCampaign = async (hash) => {
     var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
-    if (campaign?.contract) {
-        let contract = campaign.contract
-        let abi = Constants.campaign.abi
-        let Web3 =
-            contract.toLowerCase() ===
-            Constants.campaign.address.campaignErc20.toLowerCase()
-                ? await this.erc20Connexion()
-                : await this.bep20Connexion()
-        let ctr = new Web3.eth.Contract(abi, contract)
-        ctr.getGasPrice = Web3.eth.getGasPrice
-        return ctr
-    }
+    if (campaign?.contract) return this.getContractCampaigns(campaign.contract)
+}
+
+exports.getPromContract = async (idProm) => {
+    var prom = await Event.findOne({ prom: idProm }, { contract: 1, _id: 0 })
+    return this.getContractCampaigns(prom.contract)
+}
+
+exports.getContractCampaigns = async (contract) => {
+    let abi = Constants.campaign.abi
+    let Web3 =
+        contract.toLowerCase() ===
+        Constants.campaign.address.campaignErc20.toLowerCase()
+            ? await this.erc20Connexion()
+            : await this.bep20Connexion()
+    let ctr = new Web3.eth.Contract(abi, contract)
+    ctr.getGasPrice = Web3.eth.getGasPrice
+    return ctr
 }
