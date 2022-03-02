@@ -356,7 +356,7 @@ exports.saveFirebaseAccessToken = async (req, res) => {
 
 exports.updateLastStep = async (req, res) => {
     try {
-        let id = req.user._id
+        let _id = req.user._id
         let profile = req.body
         let password = Math.random().toString(36).slice(-8)
         let user = await User.findOne({ email: profile.email })
@@ -366,9 +366,9 @@ exports.updateLastStep = async (req, res) => {
                 401,
                 'email already exists'
             )
-        } else if (user && user._id === id) {
+        } else if (user && user._id === _id) {
             await User.updateOne(
-                { _id: id },
+                { _id },
                 {
                     $set: {
                         email: profile.email,
@@ -388,7 +388,7 @@ exports.updateLastStep = async (req, res) => {
             )
         } else {
             await User.updateOne(
-                { _id: id },
+                { _id },
                 {
                     $set: {
                         email: profile.email,
