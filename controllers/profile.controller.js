@@ -15,7 +15,11 @@ const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
 
 const { notificationManager, manageTime } = require('../manager/accounts.js')
-const { synfonyHash, configureTranslation } = require('../helpers/utils')
+const {
+    synfonyHash,
+    configureTranslation,
+    readHTMLFileProfile,
+} = require('../helpers/utils')
 const {
     verifyYoutube,
     verifyFacebook,
@@ -45,8 +49,6 @@ const GridFsStorage = require('multer-gridfs-storage')
 var Long = require('mongodb').Long
 
 const multer = require('multer')
-
-const { readHTMLFileProfile } = require('../helpers/utils')
 
 const storageUserLegal = new GridFsStorage({
     url: mongoConnection().mongoURI,
@@ -250,7 +252,7 @@ exports.addUserLegalProfile = async (req, res) => {
         }
         return makeResponseError(res, 404, 'Only images allowed')
     } catch (err) {
-        // console.log(err)
+        console.log(err)
         return makeResponseError(
             res,
             500,
@@ -461,15 +463,20 @@ module.exports.requestMoney = async (req, res) => {
         await notificationManager(id, 'send_demande_satt_event', {
             name: req.body.to,
             price: req.body.price,
-            currency: req.body.currency,
+            cryptoCurrency: req.body.currency,
+            message: req.body.message,
+            wallet: req.body.wallet,
         })
 
         var result = await User.findOne({ email: req.body.to })
+
         if (result) {
             await notificationManager(result._id, 'demande_satt_event', {
                 name: req.body.name,
                 price: req.body.price,
-                currency: req.body.currency,
+                cryptoCurrency: req.body.currency,
+                message: req.body.message,
+                wallet: req.body.wallet,
             })
         } else {
             return makeResponseError(res, 404, 'user not found')

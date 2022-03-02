@@ -7,33 +7,39 @@ var rp = require('request-promise')
 const { token200 } = require('../conf/config1')
 
 exports.notificationManager = async (id, NotifType, label) => {
-    let notification = {
-        idNode: '0' + id,
-        type: NotifType,
-        status: 'done',
-        label,
-        isSeen: false,
-        isSend: false,
-        attachedEls: {
-            id: id,
-        },
-        created: new Date(),
-    }
-
-    await Notification.create(notification)
-
-    let user = await User.findOne({ _id: +id }).select('fireBaseAccessToken ')
-
-    if (user.fireBaseAccessToken) {
-        let data = {
-            message: {
-                token: user.fireBaseAccessToken,
-                data: {
-                    obj: JSON.stringify(notification),
-                },
+    try {
+        let notification = {
+            idNode: '0' + id,
+            type: NotifType,
+            status: 'done',
+            label,
+            isSeen: false,
+            isSend: false,
+            attachedEls: {
+                id: id,
             },
+            created: new Date(),
         }
-        await sendNotification(data)
+
+        await Notification.create(notification)
+
+        let user = await User.findOne({ _id: +id }).select(
+            'fireBaseAccessToken '
+        )
+
+        if (user.fireBaseAccessToken) {
+            let data = {
+                message: {
+                    token: user.fireBaseAccessToken,
+                    data: {
+                        obj: JSON.stringify(notification),
+                    },
+                },
+            }
+            await sendNotification(data)
+        }
+    } catch (error) {
+        console.log('--------errrrr', error)
     }
 }
 

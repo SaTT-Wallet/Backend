@@ -16,6 +16,7 @@ const campaignLinkSchema = mongoose.Schema(
         appliedDate: { type: Number },
         oracle: { type: String },
         abosNumber: { type: Number, default: 0 },
+        instagramUserName: { type: String },
         likes: { type: Number, default: 0 },
         shares: { type: Number, default: 0 },
         views: { type: Number, default: 0 },
