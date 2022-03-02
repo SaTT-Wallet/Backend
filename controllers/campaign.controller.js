@@ -24,6 +24,7 @@ const { notificationManager } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
 const { limitStats } = require('../web3/oracles')
+const { fundCampaign } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection } = require('../conf/config1')
@@ -69,6 +70,9 @@ const {
     applyCampaign,
     getRemainingFunds,
     getReachLimit,
+    filterLinks,
+    influencersLinks,
+    getPromContract,
 } = require('../web3/campaigns')
 
 const {
@@ -107,7 +111,7 @@ const {
     answerAbos,
     getPromApplyStats,
 } = require('../manager/oracles')
-const { notificationManager } = require('../manager/accounts')
+
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
 
@@ -798,8 +802,8 @@ exports.gains = async (req, res) => {
             )
         }
 
-        var cred2 = await app.account.unlock(req, res)
-        var ctr = await app.campaign.getPromContract(idProm)
+        var cred2 = await unlock(req, res)
+        var ctr = await getPromContract(idProm)
 
         var gasPrice = await ctr.getGasPrice()
         let prom = await ctr.methods.proms(idProm).call()
@@ -966,13 +970,14 @@ exports.gains = async (req, res) => {
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        // console.log('errrrrrr', err)
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
     } finally {
-        if (cred2) app.account.lock(cred2.address)
+        if (cred2) lock(cred2)
         if (ret && ret.transactionHash) {
             console.log('start here')
             let campaign = await Campaigns.findOne(
@@ -1216,29 +1221,35 @@ module.exports.linkStats = async (req, res) => {
 }
 
 module.exports.increaseBudget = async (req, res) => {
-    // var pass = req.body.pass
+    var pass = req.body.pass
     var hash = req.body.hash
     var token = req.body.ERC20token
     var amount = req.body.amount
+
     try {
         var cred = await unlock(req, res)
-        console.log('--------cred', cred)
-        var ret = await app.campaign.fundCampaign(hash, token, amount, cred)
+        var ret = await fundCampaign(hash, token, amount, cred)
 
+        if (!ret) {
+            return responseHandler.makeResponseError(
+                res,
+                400,
+                'transaction failed'
+            )
+        }
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err)
+        // console.log('error...', err)
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
     } finally {
-        cred && app.account.lock(cred.address)
+        cred && lock(cred)
         if (ret.transactionHash) {
-            const ctr = await app.campaign.getCampaignContract(hash)
+            const ctr = await getCampaignContractByHashCampaign(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
-
             await Campaigns.findOne({ hash: hash }, async (err, result) => {
                 let budget = new Big(result.cost)
                     .plus(new Big(amount))
@@ -1259,6 +1270,14 @@ exports.getFunds = async (req, res) => {
         let campaignDetails = await Campaigns.findOne({ hash })
         var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
 
+        if (!ret) {
+            return responseHandler.makeResponseError(
+                res,
+                400,
+                'operation failed'
+            )
+        }
+
         return responseHandler.makeResponseData(res, 200, 'Token added', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1267,7 +1286,7 @@ exports.getFunds = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        cred && app.account.lock(cred.address)
+        cred && lock(cred)
         if (ret && ret.transactionHash) {
             await Campaigns.updateOne(
                 { _id: idCampaign },
@@ -1524,7 +1543,7 @@ exports.getLinks = async (req, res) => {
         //    console.log(verifWallet, 'verifWallet');
         //     if(verifWallet){
 
-        let query = app.campaign.filterLinks(req, id_wallet)
+        let query = filterLinks(req, id_wallet)
         var count = await CampaignLink.find(
             { id_wallet },
             { type: { $exists: 0 } }
@@ -1596,6 +1615,7 @@ exports.getLinks = async (req, res) => {
             )
 
             if (campaign) {
+                console.log('enter')
                 let cmp = {}
                 const funds = campaign.funds ? campaign.funds[1] : campaign.cost
                 ;(cmp._id = campaign._id),
@@ -1610,7 +1630,7 @@ exports.getLinks = async (req, res) => {
         }
         allProms =
             req.query.campaign && req.query.state
-                ? await app.campaign.influencersLinks(arrayOfLinks)
+                ? await influencersLinks(arrayOfLinks)
                 : arrayOfLinks
 
         var Links = { Links: allProms, count }

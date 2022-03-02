@@ -1,9 +1,10 @@
-const { Wallet } = require('../model/index')
+const { Wallet, Campaigns, Event } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
     bep20Connexion,
     getContractByToken,
+    getContract,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const2')
@@ -500,7 +501,6 @@ exports.getReachLimit = (campaignRatio, oracle) => {
 exports.fundCampaign = async function (idCampaign, token, amount, credentials) {
     try {
         var ctr = await getContractByToken(token, credentials)
-        // var ctr = await campaignManager.getContractToken(token)
         var gasPrice = await ctr.getGasPrice()
         var gas = 200000
 
@@ -511,7 +511,6 @@ exports.fundCampaign = async function (idCampaign, token, amount, credentials) {
                 gas: gas,
                 gasPrice: gasPrice,
             })
-
         receipt.transactionHash &&
             console.log(
                 'fundCampaign',
@@ -526,5 +525,99 @@ exports.fundCampaign = async function (idCampaign, token, amount, credentials) {
         }
     } catch (err) {
         console.log(err)
+    }
+}
+
+exports.filterLinks = (req, id_wallet) => {
+    const status = req.query.status
+    let oracles = req.query.oracles
+    oracles = typeof oracles === 'string' ? [oracles] : oracles
+    var query = { id_wallet: id_wallet }
+    if (req.query.campaign && req.query.state === 'part') {
+        query = { id_wallet: id_wallet, id_campaign: req.query.campaign }
+    } else if (req.query.campaign && req.query.state === 'owner')
+        query = { id_campaign: req.query.campaign }
+    else if (!req.query.campaign && !req.query.state)
+        query = { id_wallet: id_wallet }
+
+    if (oracles) query.oracle = { $in: oracles }
+
+    if (status == 'false') {
+        query.status = false
+        query.type = 'waiting_for_validation'
+    } else {
+        if (status == 'rejected') query.status = 'rejected'
+        if (status == 'true') query.status = true
+        query.type = {
+            $in: [
+                'indisponible',
+                'waiting_for_validation',
+                'harvest',
+                'already_recovered',
+                'not_enough_budget',
+                'no_gains',
+                'rejected',
+                'none',
+            ],
+        }
+    }
+
+    return query
+}
+
+exports.influencersLinks = async (links) => {
+    try {
+        // let idproms = await ctr.methods.getProms(idCampaign).call();
+        let proms = links
+
+        if (links.length) {
+            let addresses = []
+            let ids = []
+            let idByAddress = []
+            let userById = []
+
+            for (let i = 0; i < links.length; i++) {
+                if (addresses.indexOf(links[i].id_wallet) == -1)
+                    addresses.push(links[i].id_wallet.slice(2).toLowerCase())
+            }
+
+            let wallets = await Wallet.find({
+                'keystore.address': { $in: addresses },
+            })
+
+            for (let i = 0; i < wallets.length; i++) {
+                idByAddress['0x' + wallets[i].keystore.address] =
+                    'id#' + wallets[i].UserId
+                if (ids.indexOf(wallets[i].UserId) == -1)
+                    ids.push(wallets[i].UserId)
+            }
+            let users = await User.find({ _id: { $in: ids } }).project({
+                email: 1,
+                _id: 1,
+                picLink: 1,
+                lastName: 1,
+                firstName: 1,
+            })
+
+            for (let i = 0; i < users.length; i++) {
+                userById['id#' + users[i]._id] = users[i]
+            }
+            for (let i = 0; i < proms.length; i++) {
+                proms[i].meta =
+                    userById[idByAddress[proms[i].id_wallet.toLowerCase()]]
+            }
+        }
+        return proms
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.getPromContract = async function (idProm) {
+    var proms = await Event.find({ prom: idProm }, { contract: 1, _id: 0 })
+    if (proms.length) {
+        return await getContract(proms[0].contract)
+    } else {
+        return false
     }
 }

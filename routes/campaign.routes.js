@@ -763,13 +763,20 @@ router.get('/prom/stats/:idProm', linkStats)
  *     - "campaign"
  *     summary: Increase budget.
  *     description: Increase campaign budget.
- *     parameters:
- *       - name: amount
- *         description: amount of campaign.
- *       - name: ERC20token
- *         description: ERC20token.
- *       - name: hash
- *         description: campaign id.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: string
+ *               ERC20token:
+ *                 type: string
+ *               hash:
+ *                 type: string
+ *               pass:
+ *                 type: string
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
