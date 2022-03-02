@@ -1,24 +1,17 @@
 const { Token } = require('graphql')
 const { environment } = require('./settings')
 
-console.log(environment.testnet)
-
 exports.mongoConnection = () => {
     let connexion = {}
     if (process.env.NODE_ENV === 'local') {
-        connexion.mongoBase = process.env.MONGO_BASE_LOCAL
-        connexion.mongoUser = process.env.MONGO_USER_LOCAL
-        connexion.mongoPass = process.env.MONGO_PASS_LOCAL
-        connexion.mongoHost = process.env.MONGO_HOST_LOCAL
-        connexion.mongoPort = process.env.MONGO_PORT_LOCAL
+        connexion.mongoBase = environment.local.MONGO_BASE
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            connexion.mongoBase
+        connexion.mongoUser = environment.local.MONGO_USER
+        connexion.mongoPass = environment.local.MONGO_PASS
+        connexion.mongoHost = environment.local.MONGO_HOST
+        connexion.mongoPort = environment.local.MONGO_PORT
+
+        connexion.mongoURI = environment.local.MONGOURI
     }
     if (process.env.NODE_ENV === 'testnet') {
         connexion.mongoBase = environment.testnet.MONGO_BASE
@@ -31,14 +24,14 @@ exports.mongoConnection = () => {
         connexion.mongoURI = environment.testnet.MONGOURI
     }
     if (process.env.NODE_ENV === 'mainnet') {
-        connexion.mongoBase = environment.testnet.MONGO_BASE
+        connexion.mongoBase = environment.mainnet.MONGO_BASE
 
-        connexion.mongoUser = environment.testnet.MONGO_USER
-        connexion.mongoPass = environment.testnet.MONGO_PASS
-        connexion.mongoHost = environment.testnet.MONGO_HOST
-        connexion.mongoPort = environment.testnet.MONGO_PORT
+        connexion.mongoUser = environment.mainnet.MONGO_USER
+        connexion.mongoPass = environment.mainnet.MONGO_PASS
+        connexion.mongoHost = environment.mainnet.MONGO_HOST
+        connexion.mongoPort = environment.mainnet.MONGO_PORT
 
-        connexion.mongoURI = environment.testnet.MONGOURI
+        connexion.mongoURI = environment.mainnet.MONGOURI
     }
     return connexion
 }
