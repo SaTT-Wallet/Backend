@@ -1,4 +1,7 @@
 const { Token } = require('graphql')
+const { environment } = require('./settings')
+
+console.log(environment.testnet)
 
 exports.mongoConnection = () => {
     let connexion = {}
@@ -18,43 +21,24 @@ exports.mongoConnection = () => {
             connexion.mongoBase
     }
     if (process.env.NODE_ENV === 'testnet') {
-        connexion.mongoBase = process.env.MONGO_BASE_TESTNET
+        connexion.mongoBase = environment.testnet.MONGO_BASE
 
-        connexion.mongoUser = process.env.MONGO_USER_TESTNET
-        connexion.mongoPass = process.env.MONGO_PASS_TESTNET
-        connexion.mongoHost = process.env.MONGO_HOST_TESTNET
-        connexion.mongoPort = process.env.MONGO_PORT_TESTNET
+        connexion.mongoUser = environment.testnet.MONGO_USER
+        connexion.mongoPass = environment.testnet.MONGO_PASS
+        connexion.mongoHost = environment.testnet.MONGO_HOST
+        connexion.mongoPort = environment.testnet.MONGO_PORT
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoUser +
-            ':' +
-            connexion.mongoPass +
-            '@' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            config.mongoBase
+        connexion.mongoURI = environment.testnet.MONGOURI
     }
     if (process.env.NODE_ENV === 'mainnet') {
-        connexion.mongoBase = process.env.MONGO_BASE_MAINNET
-        connexion.mongoUser = process.env.MONGO_USER_MAINNET
-        connexion.mongoPass = process.env.MONGO_PASS_MAINNET
-        connexion.mongoHost = process.env.MONGO_HOST_MAINNET
-        connexion.mongoPort = process.env.MONGO_PORT_MAINNET
+        connexion.mongoBase = environment.testnet.MONGO_BASE
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoUser +
-            ':' +
-            connexion.mongoPass +
-            '@' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            config.mongoBase
+        connexion.mongoUser = environment.testnet.MONGO_USER
+        connexion.mongoPass = environment.testnet.MONGO_PASS
+        connexion.mongoHost = environment.testnet.MONGO_HOST
+        connexion.mongoPort = environment.testnet.MONGO_PORT
+
+        connexion.mongoURI = environment.testnet.MONGOURI
     }
     return connexion
 }
