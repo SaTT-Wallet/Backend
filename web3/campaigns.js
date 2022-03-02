@@ -4,6 +4,7 @@ const {
     erc20Connexion,
     bep20Connexion,
     getContractByToken,
+    getPromContract,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const2')
@@ -488,5 +489,30 @@ exports.getRemainingFunds = async function (token, hash, credentials) {
         }
     } catch (err) {
         // console.log('', err)
+    }
+}
+
+exports.validateProm = async function (idProm, credentials) {
+    try {
+        var gas = 100000
+        let ctr = await getPromContract(idProm)
+        var gasPrice = await ctr.getGasPrice()
+        var receipt = await ctr.methods.validateProm(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        receipt.transactionHash &&
+            console.log(
+                'validateProm',
+                credentials.address,
+                `${receipt.transactionHash} confirmed validated prom ${idProm}`
+            )
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+        }
+    } catch (err) {
+        console.log(err.message)
     }
 }
