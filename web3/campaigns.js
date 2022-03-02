@@ -5,6 +5,7 @@ const {
     bep20Connexion,
     getContractByToken,
     getContract,
+    getPromContract,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const2')
@@ -619,5 +620,30 @@ exports.getPromContract = async function (idProm) {
         return await getContract(proms[0].contract)
     } else {
         return false
+    }
+}
+exports.validateProm = async function (idProm, credentials) {
+    try {
+        var gas = 100000
+        // console.log("proms",credentials);
+        let ctr = await getPromContract(idProm, credentials)
+        var gasPrice = await ctr.getGasPrice()
+        var receipt = await ctr.methods.validateProm(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        receipt.transactionHash &&
+            console.log(
+                'validateProm',
+                credentials.address,
+                `${receipt.transactionHash} confirmed validated prom ${idProm}`
+            )
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+        }
+    } catch (err) {
+        console.log(err.message)
     }
 }

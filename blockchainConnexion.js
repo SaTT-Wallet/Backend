@@ -6,8 +6,7 @@ const {
     web3UrlBep20,
     web3Url,
 } = require('./conf/const2')
-const Campaigns = require('./model/campaigns.model')
-
+const { Campaigns, Event } = require('./model/index')
 const options = {
     timeout: 30000,
 
@@ -71,19 +70,51 @@ exports.getContractByToken = async (token, credentials) => {
     }
 }
 
-exports.getCampaignContractByHashCampaign = async (hash) => {
-    var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
-    if (campaign?.contract) {
-        let contract = campaign.contract
+exports.getCampaignContractByHashCampaign = async (
+    hash,
+    credentials = false
+) => {
+    try {
+        var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
+        if (campaign?.contract)
+            return this.getContractCampaigns(campaign.contract, credentials)
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.getPromContract = async (idProm, credentials = false) => {
+    try {
+        var prom = await Event.findOne(
+            { prom: idProm },
+            { contract: 1, _id: 0 }
+        )
+        return this.getContractCampaigns(prom.contract, credentials)
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.getContractCampaigns = async (contract, credentials = false) => {
+    try {
         let abi = Constants.campaign.abi
+        let Web3ETH = credentials?.Web3ETH
+            ? credentials?.Web3ETH
+            : await this.erc20Connexion()
+        let Web3BEP20 = credentials?.Web3BEP20
+            ? credentials.Web3BEP20
+            : await this.bep20Connexion()
+
         let Web3 =
             contract.toLowerCase() ===
             Constants.campaign.address.campaignErc20.toLowerCase()
-                ? await this.erc20Connexion()
-                : await this.bep20Connexion()
+                ? Web3ETH
+                : Web3BEP20
         let ctr = new Web3.eth.Contract(abi, contract)
-        ctr.getGasPrice = Web3.eth.getGasPrice
+        ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
+    } catch (err) {
+        console.log(err.message)
     }
 }
 
