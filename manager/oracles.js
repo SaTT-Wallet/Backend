@@ -13,6 +13,7 @@ const {
 var Twitter2 = require('twitter-v2')
 
 var Twitter = require('twitter')
+const { default: Big } = require('big.js')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -650,4 +651,153 @@ exports.twitter = async (userName, idPost) => {
     } catch (err) {
         return 'indisponible'
     }
+}
+
+exports.getReachLimit = (campaignRatio, oracle) => {
+    let ratio = campaignRatio.find((item) => item.oracle == oracle)
+    if (ratio) return ratio.reachLimit
+}
+
+exports.getTotalToEarn = (socialStats, ratio) => {
+    try {
+        let statistics = { ...socialStats }
+        let reachLimit = this.getReachLimit(ratio, statistics.oracle)
+        if (reachLimit)
+            statistics = this.limitStats(
+                '',
+                statistics,
+                '',
+                statistics.abosNumber,
+                reachLimit
+            )
+        let totalToEarn = '0'
+        let payedAmount = statistics.payedAmount || '0'
+        ratio.forEach((num) => {
+            if (
+                num.oracle === statistics.oracle ||
+                num.typeSN === statistics.typeSN
+            ) {
+                let view = statistics.views
+                    ? new Big(num['view']).times(statistics.views)
+                    : '0'
+                let like = statistics.likes
+                    ? new Big(num['like']).times(statistics.likes)
+                    : '0'
+                let share = statistics.shares
+                    ? new Big(num['share']).times(statistics.shares.toString())
+                    : '0'
+                let total = new Big(view)
+                    .plus(new Big(like))
+                    .plus(new Big(share))
+                    .toFixed()
+                totalToEarn = new Big(total).gt(new Big(payedAmount))
+                    ? total
+                    : payedAmount
+            }
+        })
+        return totalToEarn
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+exports.getReward = (result, bounties) => {
+    try {
+        let payedAmount = result.payedAmount || '0'
+        let totalToEarn = '0'
+
+        // console.log(bounties[0].oracle);
+        bounties.forEach((bounty) => {
+            if (
+                bounty.oracle === result.oracle ||
+                bounty.oracle == app.oracle.findBountyOracle(result.typeSN)
+            ) {
+                bounty = bounty.toObject()
+                bounty.categories.forEach((category) => {
+                    if (
+                        +category.minFollowers <= +result.abosNumber &&
+                        +result.abosNumber <= +category.maxFollowers
+                    ) {
+                        let total = category.reward
+                        totalToEarn = new Big(total).gt(new Big(payedAmount))
+                            ? total
+                            : payedAmount
+                    } else if (+result.abosNumber > +category.maxFollowers) {
+                        let total = category.reward
+                        totalToEarn = new Big(total).gt(new Big(payedAmount))
+                            ? total
+                            : payedAmount
+                    }
+                })
+            }
+        })
+        return totalToEarn
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+exports.getButtonStatus = (link) => {
+    try {
+        var type = ''
+        var totalToEarn = '0'
+        link.payedAmount = link.payedAmount || '0'
+        if (link.totalToEarn) totalToEarn = link.totalToEarn
+        if (link.reward)
+            totalToEarn =
+                link.isPayed === false ? link.reward : link.payedAmount
+        if (link.status === 'indisponible') type = 'indisponible'
+        else if (link.status === 'rejected') type = 'rejected'
+        else if (link.status === false && !link.campaign.isFinished)
+            type = 'waiting_for_validation'
+        else if (
+            link.isPayed === true ||
+            (link.payedAmount !== '0' &&
+                new Big(totalToEarn).lte(new Big(link.payedAmount)))
+        )
+            type = 'already_recovered'
+        else if (totalToEarn === '0' && link.payedAmount === '0')
+            type = 'no_gains'
+        else if (
+            (totalToEarn === '0' &&
+                link.campaign.funds[1] === '0' &&
+                link.payedAmount === '0') ||
+            link.campaign.isFinished
+        )
+            type = 'not_enough_budget'
+        else if (
+            (new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
+                link.campaign?.ratios?.length) ||
+            (link.isPayed === false &&
+                new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
+                link.campaign.bounties?.length)
+        )
+            type = 'harvest'
+        else type = 'none'
+        return type
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
+    if (!limit) {
+        var limits = ratios[4]
+        limit = limits[parseInt(typeSN) - 1]
+    }
+    if (limit > 0) {
+        limit = parseFloat(limit)
+        var max = Math.ceil((limit * parseFloat(abos)) / 100)
+        if (+stats.views > max) {
+            stats.views = max
+        }
+        if (+stats.likes > max) {
+            stats.likes = max
+        }
+        if (+stats.shares > max) {
+            stats.shares = max
+        }
+    }
+
+    return stats
 }

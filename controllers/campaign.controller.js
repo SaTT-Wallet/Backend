@@ -105,6 +105,10 @@ const {
     findBountyOracle,
     answerAbos,
     getPromApplyStats,
+    getReachLimit,
+    getTotalToEarn,
+    getReward,
+    getButtonStatus,
 } = require('../manager/oracles')
 const { notificationManager } = require('../manager/accounts')
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
@@ -710,7 +714,7 @@ exports.validateCampaign = async (req, res) => {
         )
     } finally {
         if (cred) {
-            app.account.lock(cred.address)
+            lock(cred)
         }
         if (ret && ret.transactionHash) {
             let link = await CampaignLink.findOne({ id_prom: idApply })
@@ -729,17 +733,17 @@ exports.validateCampaign = async (req, res) => {
                 link.oracle == 'linkedin' &&
                 (await LinkedinProfile.findOne({ userId: id }))
             let userId = link.oracle === 'instagram' ? id : null
-            let socialOracle = await app.campaign.getPromApplyStats(
+            let socialOracle = await getPromApplyStats(
                 link.oracle,
                 link,
                 userId,
                 linkedinProfile
             )
+            console.log(socialOracle)
             socialOracle.abosNumber =
                 campaign.bounties.length ||
-                (campaign.ratios &&
-                    app.campaign.getReachLimit(campaign.ratios, link.oracle))
-                    ? await app.oracleManager.answerAbos(
+                (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
+                    ? await answerAbos(
                           link.typeSN,
                           link.idPost,
                           link.idUser,
@@ -754,10 +758,10 @@ exports.validateCampaign = async (req, res) => {
             link.shares = socialOracle.shares
             link.campaign = campaign
             link.totalToEarn = campaign.ratios.length
-                ? app.campaign.getTotalToEarn(link, campaign.ratios)
-                : app.campaign.getReward(link, campaign.bounties)
+                ? getTotalToEarn(link, campaign.ratios)
+                : getReward(link, campaign.bounties)
             socialOracle.totalToEarn = link.totalToEarn
-            socialOracle.type = app.campaign.getButtonStatus(link)
+            socialOracle.type = getButtonStatus(link)
             await CampaignLink.updateOne(
                 { id_prom: idApply },
                 { $set: socialOracle }
@@ -767,7 +771,7 @@ exports.validateCampaign = async (req, res) => {
                 cmp_name: campaign.title,
                 action: 'link_accepted',
                 cmp_link: linkProm,
-                cmp_hash: idCampaign,
+                cmp_hash: _id,
                 hash: ret.transactionHash,
                 promHash: idApply,
             })
@@ -777,7 +781,7 @@ exports.validateCampaign = async (req, res) => {
                 'campaignValidation',
                 campaign.title,
                 email,
-                idCampaign
+                _id
             )
         }
     }

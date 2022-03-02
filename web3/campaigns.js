@@ -495,7 +495,8 @@ exports.getRemainingFunds = async function (token, hash, credentials) {
 exports.validateProm = async function (idProm, credentials) {
     try {
         var gas = 100000
-        let ctr = await getPromContract(idProm)
+        // console.log("proms",credentials);
+        let ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.validateProm(idProm).send({
             from: credentials.address,
