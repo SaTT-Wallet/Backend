@@ -67,6 +67,7 @@ const {
     getLinkedinLinkInfo,
     applyCampaign,
     getRemainingFunds,
+    validateProm,
 } = require('../web3/campaigns')
 
 const {
@@ -676,15 +677,18 @@ exports.validateCampaign = async (req, res) => {
     let idApply = req.body.idProm
     let idUser = '0' + req.user._id
 
-    const campaign = await Campaigns.findOne(_id, {
-        fields: {
-            logo: 0,
-            resume: 0,
-            description: 0,
-            tags: 0,
-            cover: 0,
-        },
-    })
+    const campaign = await Campaigns.findOne(
+        { _id },
+        {
+            fields: {
+                logo: 0,
+                resume: 0,
+                description: 0,
+                tags: 0,
+                cover: 0,
+            },
+        }
+    )
     try {
         if (idUser === campaign.idNode) {
             const lang = 'en'
@@ -692,7 +696,7 @@ exports.validateCampaign = async (req, res) => {
 
             var cred = await unlock(req, res)
 
-            var ret = await app.campaign.validateProm(idApply, cred)
+            var ret = await validateProm(idApply, cred)
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -1225,7 +1229,7 @@ module.exports.linkStats = async (req, res) => {
 }
 
 module.exports.increaseBudget = async (req, response) => {
-    //var pass = req.body.pass
+    var pass = req.body.pass
     var hash = req.body.hash
     var token = req.body.ERC20token
     var amount = req.body.amount
