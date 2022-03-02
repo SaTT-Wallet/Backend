@@ -50,10 +50,6 @@ exports.lock = async (credentials) => {
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
 }
 
-exports.lockBSC = async (credentials) => {
-    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
-}
-
 exports.lockERC20 = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
 }
@@ -473,5 +469,24 @@ exports.applyCampaign = async (
         }
     } catch (err) {
         console.log(err.message)
+    }
+}
+
+exports.getRemainingFunds = async function (token, hash, credentials) {
+    try {
+        var gas = 200000
+        var ctr = await getContractByToken(token.addr, credentials)
+        var gasPrice = await ctr.getGasPrice()
+        var receipt = await ctr.methods.getRemainingFunds(hash).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            hash: hash,
+        }
+    } catch (err) {
+        // console.log('', err)
     }
 }
