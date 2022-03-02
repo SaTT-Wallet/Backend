@@ -490,3 +490,41 @@ exports.getRemainingFunds = async function (token, hash, credentials) {
         // console.log('', err)
     }
 }
+
+exports.getReachLimit = (campaignRatio, oracle) => {
+    let ratio = campaignRatio.find((item) => item.oracle == oracle)
+    if (ratio) return ratio.reachLimit
+    return
+}
+
+exports.fundCampaign = async function (idCampaign, token, amount, credentials) {
+    try {
+        var ctr = await getContractByToken(token, credentials)
+        // var ctr = await campaignManager.getContractToken(token)
+        var gasPrice = await ctr.getGasPrice()
+        var gas = 200000
+
+        var receipt = await ctr.methods
+            .fundCampaign(idCampaign, token, amount)
+            .send({
+                from: credentials.address,
+                gas: gas,
+                gasPrice: gasPrice,
+            })
+
+        receipt.transactionHash &&
+            console.log(
+                'fundCampaign',
+                credentials.address,
+                `${receipt.transactionHash} confirmed campaign ${idCampaign} funded`
+            )
+        return {
+            transactionHash: receipt.transactionHash,
+            idCampaign: idCampaign,
+            token: token,
+            amount: amount,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}

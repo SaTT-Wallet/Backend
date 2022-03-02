@@ -149,6 +149,7 @@ module.exports = async function (app) {
     }
 
     ContractToken.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
+        console.log('-----limitStats')
         if (!limit) {
             var limits = ratios[4]
             limit = limits[parseInt(typeSN) - 1]
