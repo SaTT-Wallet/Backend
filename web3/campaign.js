@@ -859,11 +859,17 @@ module.exports = async function (app) {
         })
     }
 
-    campaignManager.getRemainingFunds = async function (hash, credentials) {
+    campaignManager.getRemainingFunds = async function (
+        token,
+        hash,
+        credentials
+    ) {
         return new Promise(async (resolve, reject) => {
             try {
                 var gas = 200000
-                var ctr = await campaignManager.getCampaignContract(hash)
+                // var ctr = await campaignManager.getCampaignContract(hash,)
+                let ctr = await getContractByToken(token.addr, credentials)
+
                 var gasPrice = await ctr.getGasPrice()
                 var receipt = await ctr.methods.getRemainingFunds(hash).send({
                     from: credentials.address,
