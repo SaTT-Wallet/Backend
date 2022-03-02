@@ -1148,9 +1148,12 @@ let token200 = [
 let booltestnet = true
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
-
     linkedinActivityUrl: (activityURN) =>
         `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST}${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
+    linkedinStatsUrl: (type, idPost, organization) =>
+        `${process.env.LINKEDIN_START_URL_FIRST}${type}${process.env.LINKEDIN_START_URL_SECOND}${type}:${idPost}${process.env.LINKEDIN_START_URL_THIRD}${organization}`,
+    linkedinUgcPostStats: (idPost) =>
+        `${process.env.LINKEDIN_UGC_POST_FIRST}${idPost}${process.env.LINKEDIN_UGC_POST_SECOND}`,
 }
 
 let oauth = {
@@ -1158,6 +1161,19 @@ let oauth = {
         googleClientId: process.env.GOOGLE_CLIENTID,
         googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
         gdataApiKey: process.env.GDA_TAP_API_KEY,
+    },
+    twitter: {
+        consumer_key_alt: process.env.TWITTER_CONSUMER_KEY_ALT,
+        consumer_secret_alt: process.env.TWILTTER_CONSUMER_SECRET_ALT,
+        consumer_key: process.env.TWITTER_CONSUMER_KEY,
+        consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+        access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+        access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+    },
+    facebook: {
+        appId: process.env.APPID,
+        appSecret: process.env.APP_SECRET,
+        fbGraphVersion: process.env.FB_GRAPH_VERSION,
     },
 }
 
