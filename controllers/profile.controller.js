@@ -17,7 +17,7 @@ const { responseHandler } = require('../helpers/response-handler')
 const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
 
-var ejs = require('ejs')
+//var ejs = require('ejs')
 const QRCode = require('qrcode')
 var connection
 let app
