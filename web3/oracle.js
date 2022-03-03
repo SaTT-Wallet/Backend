@@ -48,7 +48,6 @@ module.exports = async function (app) {
         var request = await Request.findOne({ id: idRequest })
         if (!request) {
             var answer = {
-                _id: idRequest,
                 id: idRequest,
                 date: Date.now(),
                 typeSN: typeSN,

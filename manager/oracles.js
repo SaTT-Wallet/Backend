@@ -11,10 +11,16 @@ const {
     LinkedinProfile,
 } = require('../model/index')
 var Twitter2 = require('twitter-v2')
+var fs = require('fs')
 
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
-const { getContractByToken } = require('../blockchainConnexion')
+const {
+    getContractByToken,
+    getOracleContractByCampaignContract,
+    erc20Connexion,
+    bep20Connexion,
+} = require('../blockchainConnexion')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -874,10 +880,24 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
 
 exports.answerCall = async (opts) => {
     try {
-        let contract = opts.ctr
-
+        let contract = await getOracleContractByCampaignContract(
+            opts.campaignContract,
+            opts.credentials
+        )
+        var campaignKeystore = fs.readFileSync(
+            process.env.CAMPAIGN_WALLET_PATH,
+            'utf8'
+        )
+        campaignWallet = JSON.parse(campaignKeystore)
+        opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
         var gasPrice = await contract.getGasPrice()
-
         var receipt = await contract.methods
             .answer(
                 opts.campaignContract,
