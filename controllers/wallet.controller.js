@@ -44,11 +44,6 @@ const { notificationManager } = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config1')
 
-let app
-;(connection = async () => {
-    app = await requirement.connection()
-})()
-
 exports.exportBtc = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {

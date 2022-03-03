@@ -42,12 +42,6 @@ const storage = new GridFsStorage({
     },
 })
 
-var connection
-let app
-;(connection = async () => {
-    app = await requirement.connection()
-})()
-
 module.exports.upload = multer({ storage }).array('file')
 const {
     unlock,
