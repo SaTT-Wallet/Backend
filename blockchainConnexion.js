@@ -117,3 +117,17 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         console.log(err.message)
     }
 }
+
+exports.getContract = async (address) => {
+    if (address) {
+        let abi = Constants.campaign.abi
+        let Web3 =
+            address.toLowerCase() ===
+            Constants.campaign.address.campaignErc20.toLowerCase()
+                ? await this.erc20Connexion()
+                : await this.bep20Connexion()
+        let ctr = new Web3.eth.Contract(abi, address)
+        ctr.getGasPrice = Web3.eth.getGasPrice
+        return ctr
+    }
+}
