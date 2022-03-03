@@ -14,6 +14,7 @@ var Twitter2 = require('twitter-v2')
 
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
+const { getContractByToken } = require('../blockchainConnexion')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -44,158 +45,143 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
 }
 
 exports.verifyFacebook = async function (userId, pageName, idPost) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            var page = await FbPage.findOne({
-                $and: [{ UserId: userId }, { username: pageName }],
+    try {
+        var page = await FbPage.findOne({
+            $and: [{ UserId: userId }, { username: pageName }],
+        })
+        if (page) {
+            var token = page.token
+            var idPage = page.id
+            var res = await rp({
+                uri:
+                    'https://graph.facebook.com/' +
+                    app.config.fbGraphVersion +
+                    '/' +
+                    idPage +
+                    '_' +
+                    idPost +
+                    '?access_token=' +
+                    token,
+                json: true,
             })
-            if (page) {
-                var token = page.token
-                var idPage = page.id
-                var res = await rp({
-                    uri:
-                        'https://graph.facebook.com/' +
-                        app.config.fbGraphVersion +
-                        '/' +
-                        idPage +
-                        '_' +
-                        idPost +
-                        '?access_token=' +
-                        token,
-                    json: true,
-                })
-                if (res) resolve(true)
-            } else {
-                resolve(false)
-            }
-        } catch (err) {
-            resolve('lien_invalid')
-            reject({ message: err.message })
+            if (res) return true
+        } else {
+            return false
         }
-    })
+    } catch (err) {
+        console.log(err.message)
+        return 'lien_invalid'
+    }
 }
 
 exports.verifyYoutube = async function (userId, idPost) {
-    return new Promise(async (resolve, reject) => {
-        try {
+    try {
+        var googleProfile = await GoogleProfile.findOne({
+            UserId: userId,
+        })
+
+        var res = await rp({
+            uri: 'https://www.googleapis.com/youtube/v3/videos',
+            qs: {
+                id: idPost,
+                access_token: googleProfile.accessToken,
+                part: 'snippet',
+            },
+            json: true,
+        })
+
+        if (res.items) {
+            var channelId = res.items[0]?.snippet.channelId
             var googleProfile = await GoogleProfile.findOne({
                 UserId: userId,
+                channelId: channelId,
             })
-
-            var res = await rp({
-                uri: 'https://www.googleapis.com/youtube/v3/videos',
-                qs: {
-                    id: idPost,
-                    access_token: googleProfile.accessToken,
-                    part: 'snippet',
-                },
-                json: true,
-            })
-
-            if (res.items) {
-                var channelId = res.items[0]?.snippet.channelId
-                var googleProfile = await GoogleProfile.findOne({
-                    UserId: userId,
-                    channelId: channelId,
-                })
-                resolve(googleProfile)
-            } else {
-                resolve(false)
-            }
-        } catch (err) {
-            reject({ message: err.message })
+            return googleProfile
+        } else {
+            return false
         }
-    })
+    } catch (err) {
+        console.log(err.message)
+    }
 }
 
 exports.verifyInsta = async function (userId, idPost) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            var media =
-                'http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
-                idPost
+    try {
+        var media =
+            'http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
+            idPost
 
-            var resMedia = await rp({ uri: media, json: true })
-            var page = await FbPage.findOne({
-                $and: [
-                    { UserId: userId },
-                    { instagram_username: resMedia.author_name },
-                ],
-            })
+        var resMedia = await rp({ uri: media, json: true })
+        var page = await FbPage.findOne({
+            $and: [
+                { UserId: userId },
+                { instagram_username: resMedia.author_name },
+            ],
+        })
 
-            if (page && !page.deactivate) resolve(true)
-            else if (page && page.deactivate === true) resolve('deactivate')
-            else resolve(false)
-        } catch (err) {
-            resolve('lien_invalid')
-            reject({ message: err.message })
-        }
-    })
+        if (page && !page.deactivate) return true
+        else if (page && page.deactivate === true) return 'deactivate'
+        else return false
+    } catch (err) {
+        console.log(err.message)
+        return 'lien_invalid'
+    }
 }
 
 exports.verifyTwitter = async function (userId, idPost) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            var twitterProfile = await TwitterProfile.findOne({
-                UserId: userId,
-            }).select('access_token_key access_token_secret id')
+    try {
+        var twitterProfile = await TwitterProfile.findOne({
+            UserId: userId,
+        }).select('access_token_key access_token_secret id')
 
-            if (twitterProfile.deactivate === true) resolve('deactivate')
-            else {
-                var tweet = new Twitter2({
-                    consumer_key: app.config.twitter.consumer_key,
-                    consumer_secret: app.config.twitter.consumer_secret,
-                    access_token_key: twitterProfile.access_token_key,
-                    access_token_secret: twitterProfile.access_token_secret,
-                })
-                var res = await tweet.get('tweets', {
-                    ids: idPost,
-                    'tweet.fields': 'author_id',
-                })
-                resolve(res.data[0].author_id == twitterProfile.id)
-            }
-        } catch (err) {
-            resolve('lien_invalid')
-            reject({ message: err.message })
+        if (twitterProfile.deactivate === true) return 'deactivate'
+        else {
+            var tweet = new Twitter2({
+                consumer_key: app.config.twitter.consumer_key,
+                consumer_secret: app.config.twitter.consumer_secret,
+                access_token_key: twitterProfile.access_token_key,
+                access_token_secret: twitterProfile.access_token_secret,
+            })
+            var res = await tweet.get('tweets', {
+                ids: idPost,
+                'tweet.fields': 'author_id',
+            })
+            return res.data[0].author_id == twitterProfile.id
         }
-    })
+    } catch (err) {
+        console.log(err.message)
+        return 'lien_invalid'
+    }
 }
 
 exports.verifyLinkedin = async (linkedinProfile, idPost) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const linkedinData = {
-                url: config.linkedinActivityUrl(idPost),
-                method: 'GET',
-                headers: {
-                    Authorization: 'Bearer ' + linkedinProfile.accessToken,
-                },
-                json: true,
-            }
-            let res = false
-            let urn = `urn:li:activity:${idPost}`
-            let postData = await rp(linkedinData)
-            if (!Object.keys(postData.results).length) {
-                resolve(res)
-                return
-            }
-            let owner =
-                postData.results[urn]['domainEntity~'].owner ??
-                postData.results[urn]['domainEntity~'].author
-            linkedinProfile.pages.forEach((element) => {
-                if (element.organization === owner && !element.deactivate)
-                    res = true
-                if (
-                    element.organization === owner &&
-                    element.deactivate === true
-                )
-                    resolve('deactivate')
-            })
-            resolve(res)
-        } catch (err) {
-            reject({ message: err.message })
+    try {
+        const linkedinData = {
+            url: config.linkedinActivityUrl(idPost),
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + linkedinProfile.accessToken,
+            },
+            json: true,
         }
-    })
+        let res = false
+        let urn = `urn:li:activity:${idPost}`
+        let postData = await rp(linkedinData)
+        if (!Object.keys(postData.results).length) return res
+
+        let owner =
+            postData.results[urn]['domainEntity~'].owner ??
+            postData.results[urn]['domainEntity~'].author
+        linkedinProfile.pages.forEach((element) => {
+            if (element.organization === owner && !element.deactivate)
+                res = true
+            if (element.organization === owner && element.deactivate === true)
+                return 'deactivate'
+        })
+        return res
+    } catch (err) {
+        console.log(err.message)
+    }
 }
 
 exports.getInstagramUserName = async (shortcode) => {
@@ -211,45 +197,53 @@ exports.getInstagramUserName = async (shortcode) => {
 }
 
 exports.findBountyOracle = (typeSN) => {
-    return typeSN == '1'
-        ? 'facebook'
-        : typeSN == '2'
-        ? 'youtube'
-        : typeSN == '3'
-        ? 'instagram'
-        : typeSN == '4'
-        ? 'twitter'
-        : 'linkedin'
+    try {
+        return typeSN == '1'
+            ? 'facebook'
+            : typeSN == '2'
+            ? 'youtube'
+            : typeSN == '3'
+            ? 'instagram'
+            : typeSN == '4'
+            ? 'twitter'
+            : 'linkedin'
+    } catch (err) {
+        console.log(err.message)
+    }
 }
 
 exports.answerAbos = async (typeSN, idPost, idUser, linkedinProfile = null) => {
-    switch (typeSN) {
-        case '1':
-            var res = await this.facebookAbos(idUser)
+    try {
+        switch (typeSN) {
+            case '1':
+                var res = await this.facebookAbos(idUser)
 
-            break
-        case '2':
-            var res = await this.youtubeAbos(idPost)
+                break
+            case '2':
+                var res = await this.youtubeAbos(idPost)
 
-            break
-        case '3':
-            var res = await this.instagramAbos(idPost)
+                break
+            case '3':
+                var res = await this.instagramAbos(idPost)
 
-            break
-        case '4':
-            var res = await this.twitterAbos(idUser, idPost)
+                break
+            case '4':
+                var res = await this.twitterAbos(idUser, idPost)
 
-            break
-        case '5':
-            var res = await this.linkedinAbos(linkedinProfile, idUser)
+                break
+            case '5':
+                var res = await this.linkedinAbos(linkedinProfile, idUser)
 
-            break
-        default:
-            var res = 0
-            break
+                break
+            default:
+                var res = 0
+                break
+        }
+
+        return res
+    } catch (error) {
+        console.log(error.message)
     }
-
-    return res
 }
 
 exports.facebookAbos = async function (pageName) {
@@ -654,10 +648,13 @@ exports.twitter = async (userName, idPost) => {
         return 'indisponible'
     }
 }
-
 exports.getReachLimit = (campaignRatio, oracle) => {
-    let ratio = campaignRatio.find((item) => item.oracle == oracle)
-    if (ratio) return ratio.reachLimit
+    try {
+        let ratio = campaignRatio.find((item) => item.oracle == oracle)
+        if (ratio) return ratio.reachLimit
+    } catch (error) {
+        console.log(error.message)
+    }
 }
 
 exports.getTotalToEarn = (socialStats, ratio) => {
@@ -780,24 +777,121 @@ exports.getButtonStatus = (link) => {
     }
 }
 
-exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
-    if (!limit) {
-        var limits = ratios[4]
-        limit = limits[parseInt(typeSN) - 1]
-    }
-    if (limit > 0) {
-        limit = parseFloat(limit)
-        var max = Math.ceil((limit * parseFloat(abos)) / 100)
-        if (+stats.views > max) {
-            stats.views = max
-        }
-        if (+stats.likes > max) {
-            stats.likes = max
-        }
-        if (+stats.shares > max) {
-            stats.shares = max
-        }
-    }
+exports.answerBounty = async function (opts) {
+    try {
+        let contract = opts.ctr
 
-    return stats
+        var gasPrice = await contract.getGasPrice()
+
+        var receipt = await contract.methods
+            .answerBounty(opts.campaignContract, opts.idProm, opts.nbAbos)
+            .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+            .once('transactionHash', function (hash) {
+                console.log('oracle answerBounty transactionHash', hash)
+            })
+        return { result: 'OK', hash: receipt.hash }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.answerOne = async (
+    typeSN,
+    idPost,
+    idUser,
+    type = null,
+    linkedinProfile = null
+) => {
+    try {
+        switch (typeSN) {
+            case '1':
+                var res = await this.facebook(idUser, idPost)
+
+                break
+            case '2':
+                var res = await this.youtube(idPost)
+
+                break
+            case '3':
+                var campaign_link = await CampaignLink.findOne({ idPost })
+                var userWallet = await Wallet.findOne({
+                    'keystore.address': campaign_link.id_wallet
+                        .toLowerCase()
+                        .substring(2),
+                })
+                var res = await this.instagram(userWallet.UserId, idPost)
+
+                break
+            case '4':
+                var res = await this.twitter(idUser, idPost)
+
+                break
+            case '5':
+                var res = await this.linkedin(
+                    idUser,
+                    idPost,
+                    type,
+                    linkedinProfile
+                )
+
+                break
+            default:
+                var res = { likes: 0, shares: 0, views: 0, date: Date.now() }
+                break
+        }
+
+        return res
+    } catch (error) {
+        console.log(error.message)
+    }
+}
+
+exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
+    try {
+        if (!limit) {
+            var limits = ratios[4]
+            limit = limits[parseInt(typeSN) - 1]
+        }
+        if (limit > 0) {
+            limit = parseFloat(limit)
+            var max = Math.ceil((limit * parseFloat(abos)) / 100)
+            if (+stats.views > max) {
+                stats.views = max
+            }
+            if (+stats.likes > max) {
+                stats.likes = max
+            }
+            if (+stats.shares > max) {
+                stats.shares = max
+            }
+        }
+
+        return stats
+    } catch (error) {
+        console.log(error.message)
+    }
+}
+
+exports.answerCall = async (opts) => {
+    try {
+        let contract = opts.ctr
+
+        var gasPrice = await contract.getGasPrice()
+
+        var receipt = await contract.methods
+            .answer(
+                opts.campaignContract,
+                opts.idRequest,
+                opts.likes,
+                opts.shares,
+                opts.views
+            )
+            .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+            .once('transactionHash', function (hash) {
+                console.log('oracle answerCall transactionHash', hash)
+            })
+        return { result: 'OK', hash: receipt.hash }
+    } catch (error) {
+        console.log(error.message)
+    }
 }

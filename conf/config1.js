@@ -1,60 +1,37 @@
 const { Token } = require('graphql')
+const { environment } = require('./settings')
 
 exports.mongoConnection = () => {
     let connexion = {}
     if (process.env.NODE_ENV === 'local') {
-        connexion.mongoBase = process.env.MONGO_BASE_LOCAL
-        connexion.mongoUser = process.env.MONGO_USER_LOCAL
-        connexion.mongoPass = process.env.MONGO_PASS_LOCAL
-        connexion.mongoHost = process.env.MONGO_HOST_LOCAL
-        connexion.mongoPort = process.env.MONGO_PORT_LOCAL
+        connexion.mongoBase = environment.local.MONGO_BASE
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            connexion.mongoBase
+        connexion.mongoUser = environment.local.MONGO_USER
+        connexion.mongoPass = environment.local.MONGO_PASS
+        connexion.mongoHost = environment.local.MONGO_HOST
+        connexion.mongoPort = environment.local.MONGO_PORT
+
+        connexion.mongoURI = environment.local.MONGOURI
     }
     if (process.env.NODE_ENV === 'testnet') {
-        connexion.mongoBase = process.env.MONGO_BASE_TESTNET
+        connexion.mongoBase = environment.testnet.MONGO_BASE
 
-        connexion.mongoUser = process.env.MONGO_USER_TESTNET
-        connexion.mongoPass = process.env.MONGO_PASS_TESTNET
-        connexion.mongoHost = process.env.MONGO_HOST_TESTNET
-        connexion.mongoPort = process.env.MONGO_PORT_TESTNET
+        connexion.mongoUser = environment.testnet.MONGO_USER
+        connexion.mongoPass = environment.testnet.MONGO_PASS
+        connexion.mongoHost = environment.testnet.MONGO_HOST
+        connexion.mongoPort = environment.testnet.MONGO_PORT
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoUser +
-            ':' +
-            connexion.mongoPass +
-            '@' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            config.mongoBase
+        connexion.mongoURI = environment.testnet.MONGOURI
     }
     if (process.env.NODE_ENV === 'mainnet') {
-        connexion.mongoBase = process.env.MONGO_BASE_MAINNET
-        connexion.mongoUser = process.env.MONGO_USER_MAINNET
-        connexion.mongoPass = process.env.MONGO_PASS_MAINNET
-        connexion.mongoHost = process.env.MONGO_HOST_MAINNET
-        connexion.mongoPort = process.env.MONGO_PORT_MAINNET
+        connexion.mongoBase = environment.mainnet.MONGO_BASE
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoUser +
-            ':' +
-            connexion.mongoPass +
-            '@' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            config.mongoBase
+        connexion.mongoUser = environment.mainnet.MONGO_USER
+        connexion.mongoPass = environment.mainnet.MONGO_PASS
+        connexion.mongoHost = environment.mainnet.MONGO_HOST
+        connexion.mongoPort = environment.mainnet.MONGO_PORT
+
+        connexion.mongoURI = environment.mainnet.MONGOURI
     }
     return connexion
 }

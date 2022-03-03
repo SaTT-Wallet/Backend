@@ -4,8 +4,8 @@ const {
     erc20Connexion,
     bep20Connexion,
     getContractByToken,
-    getContract,
     getPromContract,
+    getContractCampaigns,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const2')
@@ -180,17 +180,7 @@ exports.createBountiesCampaign = async (
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
     var gas = 600000
-    console.log('gasPrice', gasPrice)
-    // var gas = await ctr.methods
-    //     .createPriceFundBounty(
-    //         dataUrl,
-    //         startDate,
-    //         endDate,
-    //         bounties,
-    //         token,
-    //         amount
-    //     )
-    //     .estimateGas({ from: credentials.address, gasPrice: gasPrice })
+
     try {
         var receipt = await ctr.methods
             .createPriceFundBounty(
@@ -442,11 +432,9 @@ exports.applyCampaign = async (
     token
 ) => {
     try {
-        console.log('token', token)
         let web3 = await getContractByToken(token.addr, credentials)
         var gas = 400000
         var gasPrice = await web3.getGasPrice()
-        console.log('gas=======', gasPrice)
         var receipt = await web3.methods
             .applyCampaign(idCampaign, typeSN, idPost, idUser)
             .send({
@@ -474,7 +462,7 @@ exports.applyCampaign = async (
     }
 }
 
-exports.getRemainingFunds = async function (token, hash, credentials) {
+exports.getRemainingFunds = async (token, hash, credentials) => {
     try {
         var gas = 200000
         var ctr = await getContractByToken(token.addr, credentials)
@@ -489,17 +477,17 @@ exports.getRemainingFunds = async function (token, hash, credentials) {
             hash: hash,
         }
     } catch (err) {
-        // console.log('', err)
+        console.log(err.message)
     }
 }
 
-exports.getReachLimit = (campaignRatio, oracle) => {
+exports.getReachLimit = async (campaignRatio, oracle) => {
     let ratio = campaignRatio.find((item) => item.oracle == oracle)
     if (ratio) return ratio.reachLimit
     return
 }
 
-exports.fundCampaign = async function (idCampaign, token, amount, credentials) {
+exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     try {
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
@@ -523,6 +511,25 @@ exports.fundCampaign = async function (idCampaign, token, amount, credentials) {
             idCampaign: idCampaign,
             token: token,
             amount: amount,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.getGains = async (idProm, credentials) => {
+    try {
+        var ctr = await getPromContract(idProm)
+        var gas = 200000
+        var gasPrice = await ctr.getGasPrice()
+        var receipt = await ctr.methods.getGains(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
         }
     } catch (err) {
         console.log(err)
@@ -614,18 +621,30 @@ exports.influencersLinks = async (links) => {
     }
 }
 
-exports.getPromContract = async function (idProm) {
-    var proms = await Event.find({ prom: idProm }, { contract: 1, _id: 0 })
-    if (proms.length) {
-        return await getContract(proms[0].contract)
-    } else {
-        return false
+exports.updateBounty = async (idProm, credentials) => {
+    try {
+        var gas = 200000
+        var ctr = await getPromContract(idProm)
+        var gasPrice = await ctr.getGasPrice()
+
+        var receipt = await ctr.methods.updateBounty(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+            events: receipt.events,
+        }
+    } catch (err) {
+        console.log(err)
     }
 }
-exports.validateProm = async function (idProm, credentials) {
+
+exports.validateProm = async (idProm, credentials) => {
     try {
         var gas = 100000
-        // console.log("proms",credentials);
         let ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.validateProm(idProm).send({
@@ -645,5 +664,39 @@ exports.validateProm = async function (idProm, credentials) {
         }
     } catch (err) {
         console.log(err.message)
+    }
+}
+
+exports.updatePromStats = async (idProm, credentials) => {
+    try {
+        var gas = 200000
+        var ctr = await getPromContract(idProm, credentials)
+        var gasPrice = await ctr.getGasPrice()
+
+        var receipt = await ctr.methods.updatePromStats(idProm).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            idProm: idProm,
+            events: receipt.events,
+        }
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+exports.getTransactionAmount = async (transactionHash, network) => {
+    try {
+        let data = await network.getTransactionReceipt(transactionHash)
+        let hex =
+            network == app.web3.eth
+                ? await app.web3.utils.hexToNumberString(data.logs[0].data)
+                : await app.web3Bep20.utils.hexToNumberString(data.logs[0].data)
+        return hex
+    } catch (e) {
+        console.log(e.message)
     }
 }
