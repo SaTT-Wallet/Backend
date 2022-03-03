@@ -771,7 +771,7 @@ router.get('/prom/stats/:idProm', linkStats)
  *             properties:
  *               amount:
  *                 type: string
- *               ERC20token:
+ *               tokenAddress:
  *                 type: string
  *               hash:
  *                 type: string
