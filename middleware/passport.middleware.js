@@ -834,7 +834,8 @@ module.exports.verifyAuth = (req, res, next) => {
     }
     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
         if (err) return res.json(err)
-        newUser = await User.findOne({ _id: user._id })
+        let _id = user?._id ? user?._id : user?._doc._id
+        newUser = await User.findOne({ _id })
         req.user = newUser
         next()
     })
