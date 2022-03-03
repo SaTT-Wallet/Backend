@@ -1,17 +1,24 @@
 const { Token } = require('graphql')
 const { environment } = require('./settings')
 
+console.log('environment', environment.testnet)
+
 exports.mongoConnection = () => {
     let connexion = {}
     if (process.env.NODE_ENV === 'local') {
-        connexion.mongoBase = environment.local.MONGO_BASE
+        connexion.mongoBase = process.env.MONGO_BASE_LOCAL
+        connexion.mongoUser = process.env.MONGO_USER_LOCAL
+        connexion.mongoPass = process.env.MONGO_PASS_LOCAL
+        connexion.mongoHost = process.env.MONGO_HOST_LOCAL
+        connexion.mongoPort = process.env.MONGO_PORT_LOCAL
 
-        connexion.mongoUser = environment.local.MONGO_USER
-        connexion.mongoPass = environment.local.MONGO_PASS
-        connexion.mongoHost = environment.local.MONGO_HOST
-        connexion.mongoPort = environment.local.MONGO_PORT
-
-        connexion.mongoURI = environment.local.MONGOURI
+        connexion.mongoURI =
+            'mongodb://' +
+            connexion.mongoHost +
+            ':' +
+            connexion.mongoPort +
+            '/' +
+            connexion.mongoBase
     }
     if (process.env.NODE_ENV === 'testnet') {
         connexion.mongoBase = environment.testnet.MONGO_BASE
