@@ -514,11 +514,12 @@ exports.socialSignUp = async (req, res) => {
             req.body.givenName,
             req.body.familyName
         )
-        let socialField = req.body.idSn === '1' ? 'idOnSn' : 'idOnSn2'
+        let socialField = req.body.idSn === 1 ? 'idOnSn' : 'idOnSn2'
         snUser[socialField] = req.body.id
         let user = await User.findOne({ [socialField]: req.body.id })
 
-        console.log('user', user)
+        console.log(req.body)
+
         if (user) {
             return responseHandler.makeResponseError(
                 res,
