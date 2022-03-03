@@ -38,7 +38,7 @@ exports.connection = async () => {
     app.transporter = nodemailer.createTransport(app.config.mailerOptions)
 
     app.synfonyHash = function (pass) {
-        var salted = pass + '{' + app.config.symfonySalt + '}'
+        var salted = pass + '{' + process.env.SYMPHONY_SATT + '}'
 
         var buff = hasha(salted, { encoding: 'buffer' })
         var saltBuff = Buffer.from(salted)
@@ -107,16 +107,16 @@ exports.readHTMLFileProfile = (
             var replacements = {
                 ip,
                 requestDate,
-                satt_url: app.config.basedURl,
+                satt_url: process.env.BASED_URL,
                 back_url: app.config.baseURl,
-                satt_faq: app.config.Satt_faq,
+                satt_faq: process.env.SATT_FAQ,
                 code,
-                imgUrl: app.config.baseEmailImgURl,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
             }
             var htmlToSend = template(replacements)
 
             var mailOptions = {
-                from: app.config.mailSender,
+                from: process.env.MAIL_SENDER,
                 //to: user.email,
                 to: newEmail.email,
                 subject: 'Satt wallet change email',
@@ -148,9 +148,9 @@ exports.readHTMLFileProfile = (
         if (event === 'notification') {
             var mailContent = {
                 SaTT: {
-                    faq: app.config.Satt_faq,
-                    imageUrl: app.config.baseEmailImgURl,
-                    Url: app.config.basedURl,
+                    faq: process.env.SATT_FAQ,
+                    imageUrl: process.env.BASE_EMAIL_IMG_URL,
+                    Url: process.env.BASED_URL,
                 },
                 notification: {
                     name: body.name,
@@ -164,7 +164,7 @@ exports.readHTMLFileProfile = (
             var htmlToSend = template(mailContent)
 
             var mailOptions = {
-                from: app.config.mailSender,
+                from: process.env.MAIL_SENDER,
                 to: body.to,
                 subject: 'Payment request',
                 html: htmlToSend,
@@ -201,9 +201,9 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
                 ip,
                 code,
                 requestDate,
-                satt_url: app.config.basedURl,
-                imgUrl: app.config.baseEmailImgURl,
-                satt_faq: app.config.Satt_faq,
+                satt_url: process.env.BASED_URL,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                satt_faq: process.env.SATT_FAQ,
             }
             var htmlToSend = template(replacements)
             var mailOptions = {
@@ -216,14 +216,14 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
 
         if (event === 'emailValidation') {
             var replacements = {
-                satt_faq: app.config.Satt_faq,
-                satt_url: app.config.basedURl,
+                satt_faq: process.env.SATT_FAQ,
+                satt_url: process.env.BASED_URL,
                 code,
-                imgUrl: app.config.baseEmailImgURl,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
             }
             var htmlToSend = template(replacements)
             var mailOptions = {
-                from: app.config.mailSender,
+                from: process.env.MAIL_SENDER,
                 to: user.email.toLowerCase(),
                 subject: 'Satt wallet activation',
                 html: htmlToSend,
@@ -255,16 +255,16 @@ exports.readHTMLFileCampaign = (
             var emailContent = {
                 reject_reason: reason,
                 cmp_link:
-                    app.config.basedURl + '/myWallet/campaign/' + idCampaign,
-                satt_faq: app.config.Satt_faq,
-                satt_url: app.config.basedURl,
+                    process.env.BASED_URL + '/myWallet/campaign/' + idCampaign,
+                satt_faq: process.env.SATT_FAQ,
+                satt_url: process.env.BASED_URL,
                 cmp_title: title,
-                imgUrl: app.config.baseEmailImgURl,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
             }
             var htmlToSend = template(emailContent)
 
             var mailOptions = {
-                from: app.config.mailSender,
+                from: process.env.MAIL_SENDER,
                 to: email,
                 subject: 'Your link has been rejected in a campaign',
                 html: htmlToSend,
@@ -274,16 +274,16 @@ exports.readHTMLFileCampaign = (
         if (event === 'campaignValidation') {
             var emailContent = {
                 cmp_link:
-                    app.config.basedURl + '/myWallet/campaign/' + idCampaign,
-                satt_faq: app.config.Satt_faq,
-                satt_url: app.config.basedURl,
+                    process.env.BASED_URL + '/myWallet/campaign/' + idCampaign,
+                satt_faq: process.env.SATT_FAQ,
+                satt_url: process.env.BASED_URL,
                 cmp_title: title,
-                imgUrl: app.config.baseEmailImgURl,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
             }
             var htmlToSend = template(emailContent)
 
             var mailOptions = {
-                from: app.config.mailSender,
+                from: process.env.MAIL_SENDER,
                 to: email,
                 subject: 'Your link has been accepted in a campaign',
                 html: htmlToSend,
@@ -294,13 +294,13 @@ exports.readHTMLFileCampaign = (
             let emailContent = {
                 cmp_name: title,
                 cmp_link: link,
-                cmp_imgUrl: app.config.baseEmailImgURl,
-                cmp_satt_faq: app.config.Satt_faq,
+                cmp_imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                cmp_satt_faq: process.env.SATT_FAQ,
             }
             let htmlToSend = template(emailContent)
 
             var mailOptions = {
-                from: app.config.mailSender,
+                from: process.env.MAIL_SENDER,
                 to: email,
                 subject: 'New link was added To your campaign',
                 html: htmlToSend,
