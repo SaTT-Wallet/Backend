@@ -330,7 +330,7 @@ const readHTMLFile = (path, callback) => {
 }
 
 exports.synfonyHash = function (pass) {
-    var salted = pass + '{' + config.symfonySalt + '}'
+    var salted = pass + '{' + process.env.SYMPHONY_SATT + '}'
 
     var buff = hasha(salted, { encoding: 'buffer' })
     var saltBuff = Buffer.from(salted)

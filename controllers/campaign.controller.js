@@ -22,7 +22,6 @@ const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
-const { limitStats } = require('../web3/oracles')
 const { fundCampaign } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
@@ -80,7 +79,6 @@ const {
 const {
     getCampaignContractByHashCampaign,
     getContractByToken,
-    getPromContract,
     getContractCampaigns,
 } = require('../blockchainConnexion')
 
@@ -393,7 +391,7 @@ exports.campaignPromp = async (req, res) => {
                     id_campaign: campaign.hash,
                 })
 
-            const allProms = await app.campaign.influencersLinks(allLinks)
+            const allProms = await influencersLinks(allLinks)
 
             for (let i = 0; i < allProms.length; i++) {
                 allProms[i].isAccepted = allProms[i].status
@@ -457,8 +455,7 @@ exports.campaignPromp = async (req, res) => {
                     bounties.forEach((bounty) => {
                         if (
                             bounty.oracle === allProms[i].oracle ||
-                            bounty.oracle ==
-                                app.oracle.findBountyOracle(result.typeSN)
+                            bounty.oracle == findBountyOracle(result.typeSN)
                         ) {
                             bounty = bounty.toObject()
 
@@ -1297,7 +1294,7 @@ exports.getFunds = async (req, res) => {
         cred && lock(cred)
         if (ret && ret.transactionHash) {
             await Campaigns.updateOne(
-                { _id: idCampaign },
+                { _id: campaignDetails._id },
                 {
                     $set: {
                         funds: ['', '0'],
