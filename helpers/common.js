@@ -15,12 +15,6 @@ var TwitterProfile = require('../model/twitterProfile.model')
 // /const { getPrices } = require('../manager/accounts.js')
 //const { getBalanceByUid } = require('../web3/wallets')
 
-var connection
-let app
-;(connection = async () => {
-    app = await requirement.connection()
-})()
-
 const {
     unlock,
     createSeed,
@@ -42,122 +36,122 @@ const {
 /*
 	@description: Script that change campaign and links statistics
 	*/
-module.exports.updateStat = async () => {
-    let dateNow = new Date()
-    let campaigns = await Campaigns.find(
-        { hash: { $exists: true } },
-        {
-            fields: {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-                coverSrc: 0,
-                countries: 0,
-            },
-        }
-    )
+// module.exports.updateStat = async () => {
+//     let dateNow = new Date()
+//     let campaigns = await Campaigns.find(
+//         { hash: { $exists: true } },
+//         {
+//             fields: {
+//                 logo: 0,
+//                 resume: 0,
+//                 description: 0,
+//                 tags: 0,
+//                 cover: 0,
+//                 coverSrc: 0,
+//                 countries: 0,
+//             },
+//         }
+//     )
 
-    campaigns.forEach(async (campaign) => {
-        campaign &&
-            (await Campaigns.updateOne(
-                { _id: campaign._id },
-                { $set: { type: app.campaign.campaignStatus(campaign) } }
-            ))
-    })
-    var Events = await CampaignLink.find()
-    Events.forEach(async (event) => {
-        let campaign = await Campaigns.findOne(
-            { hash: event.id_campaign },
-            {
-                fields: {
-                    logo: 0,
-                    resume: 0,
-                    description: 0,
-                    tags: 0,
-                    cover: 0,
-                    coverSrc: 0,
-                    countries: 0,
-                },
-            }
-        )
-        var endDate = Date.parse(campaign.endDate)
-            ? new Date(Date.parse(campaign.endDate))
-            : new Date(+campaign.endDate * 1000)
-        campaign.isFinished = endDate < dateNow || campaign.funds[1] === '0'
-        if (campaign && campaign.funds)
-            campaign.remaining = campaign.funds[1] || campaign.cost
+//     campaigns.forEach(async (campaign) => {
+//         campaign &&
+//             (await Campaigns.updateOne(
+//                 { _id: campaign._id },
+//                 { $set: { type: app.campaign.campaignStatus(campaign) } }
+//             ))
+//     })
+//     var Events = await CampaignLink.find()
+//     Events.forEach(async (event) => {
+//         let campaign = await Campaigns.findOne(
+//             { hash: event.id_campaign },
+//             {
+//                 fields: {
+//                     logo: 0,
+//                     resume: 0,
+//                     description: 0,
+//                     tags: 0,
+//                     cover: 0,
+//                     coverSrc: 0,
+//                     countries: 0,
+//                 },
+//             }
+//         )
+//         var endDate = Date.parse(campaign.endDate)
+//             ? new Date(Date.parse(campaign.endDate))
+//             : new Date(+campaign.endDate * 1000)
+//         campaign.isFinished = endDate < dateNow || campaign.funds[1] === '0'
+//         if (campaign && campaign.funds)
+//             campaign.remaining = campaign.funds[1] || campaign.cost
 
-        if (!event.status || event.status == 'rejected') return
-        event.campaign = campaign
-        let userWallet =
-            event.status &&
-            !campaign.isFinished &&
-            (await Wallet.findOne(
-                {
-                    'keystore.address': event.id_wallet
-                        .toLowerCase()
-                        .substring(2),
-                },
-                { UserId: 1, _id: 0 }
-            ))
+//         if (!event.status || event.status == 'rejected') return
+//         event.campaign = campaign
+//         let userWallet =
+//             event.status &&
+//             !campaign.isFinished &&
+//             (await Wallet.findOne(
+//                 {
+//                     'keystore.address': event.id_wallet
+//                         .toLowerCase()
+//                         .substring(2),
+//                 },
+//                 { UserId: 1, _id: 0 }
+//             ))
 
-        let linkedinProfile =
-            event.typeSN == '5' &&
-            event.status &&
-            (await LinkedinProfile.findOne({ userId: userWallet.UserId }))
-        let socialOracle =
-            event.status &&
-            !campaign.isFinished &&
-            (await app.campaign.getPromApplyStats(
-                app.oracle.findBountyOracle(event.typeSN),
-                event,
-                userWallet.UserId,
-                linkedinProfile
-            ))
+//         let linkedinProfile =
+//             event.typeSN == '5' &&
+//             event.status &&
+//             (await LinkedinProfile.findOne({ userId: userWallet.UserId }))
+//         let socialOracle =
+//             event.status &&
+//             !campaign.isFinished &&
+//             (await app.campaign.getPromApplyStats(
+//                 app.oracle.findBountyOracle(event.typeSN),
+//                 event,
+//                 userWallet.UserId,
+//                 linkedinProfile
+//             ))
 
-        if (socialOracle === 'indisponible') event.status = 'indisponible'
+//         if (socialOracle === 'indisponible') event.status = 'indisponible'
 
-        event.shares = (socialOracle && socialOracle.shares) || '0'
-        event.likes = (socialOracle && socialOracle.likes) || '0'
-        let views = (socialOracle && socialOracle.views) || '0'
-        event.views = views === 'old' ? event.views : views
-        event.media_url = (socialOracle && socialOracle.media_url) || ''
-        event.oracle = app.oracle.findBountyOracle(event.typeSN)
-        if (campaign && socialOracle) {
-            event.abosNumber = await app.oracleManager.answerAbos(
-                event.typeSN,
-                event.idPost,
-                event.idUser,
-                linkedinProfile
-            )
-            event.oracle === 'twitter' &&
-                (await TwitterProfile.updateOne(
-                    { UserId: userWallet.UserId },
-                    { $set: { subscibers: event.abosNumber } }
-                ))
-        }
-        if (event.abosNumber === 'indisponible') event.status = 'indisponible'
+//         event.shares = (socialOracle && socialOracle.shares) || '0'
+//         event.likes = (socialOracle && socialOracle.likes) || '0'
+//         let views = (socialOracle && socialOracle.views) || '0'
+//         event.views = views === 'old' ? event.views : views
+//         event.media_url = (socialOracle && socialOracle.media_url) || ''
+//         event.oracle = app.oracle.findBountyOracle(event.typeSN)
+//         if (campaign && socialOracle) {
+//             event.abosNumber = await app.oracleManager.answerAbos(
+//                 event.typeSN,
+//                 event.idPost,
+//                 event.idUser,
+//                 linkedinProfile
+//             )
+//             event.oracle === 'twitter' &&
+//                 (await TwitterProfile.updateOne(
+//                     { UserId: userWallet.UserId },
+//                     { $set: { subscibers: event.abosNumber } }
+//                 ))
+//         }
+//         if (event.abosNumber === 'indisponible') event.status = 'indisponible'
 
-        if (campaign.ratios.length && socialOracle) {
-            event.totalToEarn = app.campaign.getTotalToEarn(
-                event,
-                campaign.ratios
-            )
-        }
+//         if (campaign.ratios.length && socialOracle) {
+//             event.totalToEarn = app.campaign.getTotalToEarn(
+//                 event,
+//                 campaign.ratios
+//             )
+//         }
 
-        if (campaign.bounties.length && socialOracle) {
-            event.totalToEarn = app.campaign.getReward(event, campaign.bounties)
-        }
-        if (campaign.isFinished) event.totalToEarn = 0
+//         if (campaign.bounties.length && socialOracle) {
+//             event.totalToEarn = app.campaign.getReward(event, campaign.bounties)
+//         }
+//         if (campaign.isFinished) event.totalToEarn = 0
 
-        if (campaign) event.type = app.campaign.getButtonStatus(event)
-        delete event.campaign
-        delete event.payedAmount
-        await app.campaign.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
-    })
-}
+//         if (campaign) event.type = app.campaign.getButtonStatus(event)
+//         delete event.campaign
+//         delete event.payedAmount
+//         await app.campaign.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
+//     })
+// }
 
 // exports.BalanceUsersStats = async (req, res, condition) => {
 //     let today = new Date().toLocaleDateString('en-US')

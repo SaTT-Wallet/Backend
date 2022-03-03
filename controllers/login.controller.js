@@ -15,13 +15,6 @@ const {
 } = require('../helpers/utils')
 
 const {
-    synfonyHash,
-    configureTranslation,
-    cloneUser,
-    generateAccessToken,
-} = require('../helpers/utils')
-
-const {
     differenceBetweenDates,
     manageTime,
     updateAndGenerateCode,
