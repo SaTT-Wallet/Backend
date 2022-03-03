@@ -6,7 +6,13 @@ const { Captcha, UserArchived, User } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
 const { createUser } = require('../middleware/passport.middleware')
-const { readHTMLFileLogin } = require('../helpers/utils')
+const {
+    synfonyHash,
+    readHTMLFileLogin,
+    configureTranslation,
+    cloneUser,
+    generateAccessToken,
+} = require('../helpers/utils')
 
 const {
     synfonyHash,
@@ -77,7 +83,7 @@ exports.captcha = async (req, res) => {
 
 exports.verifyCaptcha = async (req, res) => {
     try {
-        let _id = req.body._id
+        let id = req.body._id
         let position = +req.body.position
 
         if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -130,8 +136,8 @@ exports.codeRecover = async (req, res) => {
     }
     try {
         let dateNow = Math.floor(Date.now() / 1000)
-        let lang = req.query.lang || 'en'
-        configureTranslation(lang)
+        let lang = req.body.lang || 'en'
+        app.i18n.configureTranslation(lang)
         let email = req.body.mail.toLowerCase()
         let user = await User.findOne({ email })
 
@@ -306,10 +312,12 @@ exports.resendConfirmationToken = async (req, res) => {
                 false
             )
         } else {
-            let code = await updateAndGenerateCode(user._id, 'validation')
-            let lang = req.query.lang || 'en'
-            configureTranslation(lang)
-
+            let code = await app.account.updateAndGenerateCode(
+                user._id,
+                'validation'
+            )
+            let lang = req.body.lang || 'en'
+            app.i18n.configureTranslation(lang)
             readHTMLFileLogin(
                 __dirname +
                     '/../public/emailtemplate/email_validated_code.html',
@@ -531,7 +539,8 @@ exports.socialSignUp = async (req, res) => {
     try {
         let snUser = createUser(
             0,
-            req.body.idSn,
+            +req.body.idSn,
+            req.body.lang,
             true,
             req.body.photo,
             req.body.name,
@@ -541,9 +550,12 @@ exports.socialSignUp = async (req, res) => {
             req.body.givenName,
             req.body.familyName
         )
-        let socialField = req.body.idSn === '1' ? 'idOnSn' : 'idOnSn2'
+        let socialField = req.body.idSn === 1 ? 'idOnSn' : 'idOnSn2'
         snUser[socialField] = req.body.id
         let user = await User.findOne({ [socialField]: req.body.id })
+
+        console.log(req.body)
+
         if (user) {
             return responseHandler.makeResponseError(
                 res,
@@ -565,6 +577,7 @@ exports.socialSignUp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
+        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -576,14 +589,14 @@ exports.socialSignUp = async (req, res) => {
 
 exports.socialSignin = async (req, res) => {
     try {
-        if (req.body.idSn !== '1' && req.body.idSn !== '2')
+        if (req.body.idSn !== 1 && req.body.idSn !== 2)
             return responseHandler.makeResponseError(
                 res,
                 401,
                 'invalid idSn',
                 false
             )
-        let socialField = req.body.idSn === '1' ? 'idOnSn' : 'idOnSn2'
+        let socialField = req.body.idSn === 1 ? 'idOnSn' : 'idOnSn2'
         let user = await User.findOne({ [socialField]: req.body.id })
         if (user) {
             let date = Math.floor(Date.now() / 1000) + 86400

@@ -1,5 +1,6 @@
 var express = require('express')
 var app = express()
+//const { config } = require('../conf/config1')
 
 const path = require('path')
 const i18n = require('i18n')
@@ -16,80 +17,18 @@ const jwt = require('jsonwebtoken')
 
 const handlebars = require('handlebars')
 var ejs = require('ejs')
-
-exports.connection = async () => {
-    app = await require('../conf/config')(app)
-    app = await require('../conf/const')(app)
-    app = await require('../manager/i18n')(app)
-    app = await require('../web3/oracle')(app)
-    // app = await require('../manager/notification')(app)
-
-    app = await require('../web3/provider')(app)
-    app = await require('../manager/bep20')(app)
-
-    app = await require('../web3/campaign')(app)
-    app = await require('../web3/satt')(app)
-    app = await require('../web3/eth')(app)
-    app = await require('../web3/erc20')(app)
-
-    app = await require('../manager/account')(app)
-    app = await require('../web3/initcontracts')(app)
-
-    app.transporter = nodemailer.createTransport(app.config.mailerOptions)
-
-    app.synfonyHash = function (pass) {
-        var salted = pass + '{' + process.env.SYMPHONY_SATT + '}'
-
-        var buff = hasha(salted, { encoding: 'buffer' })
-        var saltBuff = Buffer.from(salted)
-        var arr = []
-
-        for (var i = 1; i < 5000; i++) {
-            arr = [buff, saltBuff]
-            buff = hasha(Buffer.concat(arr), {
-                algorithm: 'sha512',
-                encoding: 'buffer',
-            })
-        }
-
-        const base64 = buff.toString('base64')
-        return base64
-    }
-
-    app.cloneUser = (user) => {
-        const {
-            daily,
-            weekly,
-            monthly,
-            failed_count,
-            account_locked,
-            created,
-            updated,
-            confirmation_token,
-            ...newUser
-        } = user
-        return newUser
-    }
-    //global function that generates user acessToken
-    app.generateAccessToken = (user) =>
-        jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '24h' })
-
-    app.mongoURI = app.config.mongoURI
-
-    app.readHTMLFile = (path, callback) => {
-        fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
-            if (err) {
-                console.log(err)
-                throw err
-                callback(err)
-            } else {
-                callback(null, html)
-            }
-        })
-    }
-
-    return app
-}
+var transporter = nodemailer.createTransport({
+    host: process.env.MAILER_HOST,
+    port: process.env.MAILER_PORT,
+    secure: false,
+    auth: {
+        user: process.env.MAILER_USER,
+        pass: process.env.MAILER_PASS,
+    },
+    tls: {
+        rejectUnauthorized: false,
+    },
+})
 
 exports.readHTMLFileProfile = (
     path,
@@ -108,7 +47,7 @@ exports.readHTMLFileProfile = (
                 ip,
                 requestDate,
                 satt_url: process.env.BASED_URL,
-                back_url: app.config.baseURl,
+                back_url: process.env.BASEURL,
                 satt_faq: process.env.SATT_FAQ,
                 code,
                 imgUrl: process.env.BASE_EMAIL_IMG_URL,
@@ -127,7 +66,7 @@ exports.readHTMLFileProfile = (
         if (event === 'contact_support') {
             let mailContent = {
                 SaTT: {
-                    Url: app.config.baseUrl + 'FAQ',
+                    Url: process.env.BASEURL + 'FAQ',
                 },
                 letter: {
                     from: body.name + ' (' + body.email + ')',
@@ -138,8 +77,8 @@ exports.readHTMLFileProfile = (
             let htmlToSend = ejs.render(html, mailContent)
 
             var mailOptions = {
-                from: app.config.notificationMail,
-                to: app.config.contactMail,
+                from: process.env.NOTIFICATION_MAIL,
+                to: process.env.CONTACT_MAIL,
                 subject: 'Customer service',
                 html: htmlToSend,
             }
@@ -181,7 +120,7 @@ exports.readHTMLFileProfile = (
             }
         }
 
-        await app.transporter.sendMail(mailOptions, (error, info) => {
+        await transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.log(error)
             } else {
@@ -207,7 +146,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             }
             var htmlToSend = template(replacements)
             var mailOptions = {
-                from: app.config.resetpassword_Email,
+                from: process.env.RESET_PASSWORD_EMAIL,
                 to: user.email,
                 subject: 'Satt wallet password recover',
                 html: htmlToSend,
@@ -229,7 +168,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
                 html: htmlToSend,
             }
         }
-        await app.transporter.sendMail(mailOptions, (error, info) => {
+        transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.log(error.message)
             } else {
@@ -307,7 +246,7 @@ exports.readHTMLFileCampaign = (
             }
         }
 
-        await app.transporter.sendMail(mailOptions, (error, info) => {
+        transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.log(error.message)
             } else {

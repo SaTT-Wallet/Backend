@@ -868,6 +868,10 @@ router.post('/remaining', verifyAuth, getFunds)
  *                 type: string
  *               link:
  *                 type: string
+ *               reason:
+ *                 type: string
+ *               lang:
+ *                 type: string
  *               idUser:
  *                 type: string
  *     responses:
