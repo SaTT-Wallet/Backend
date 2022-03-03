@@ -738,6 +738,8 @@ router.post('/apple', authApple)
  *                 type: string
  *               familyName:
  *                 type: string
+ *               newsLetter:
+ *                 type: boolean
  *     responses:
  *       "200":
  *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
