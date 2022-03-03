@@ -731,7 +731,7 @@ router.post('/apple', authApple)
  *               lang:
  *                 type: string
  *               idSn:
- *                 type: string
+ *                 type: number
  *               id:
  *                 type: string
  *               photo:
@@ -767,7 +767,7 @@ router.post('/socialSignup', socialSignUp)
  *             type: object
  *             properties:
  *               idSn:
- *                 type: string
+ *                 type: number
  *               id:
  *                 type: string
  *     responses:
