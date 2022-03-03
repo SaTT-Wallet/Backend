@@ -22,7 +22,6 @@ const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
-const { limitStats } = require('../web3/oracles')
 const { fundCampaign } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
@@ -71,7 +70,6 @@ const {
     validateProm,
     filterLinks,
     influencersLinks,
-    getPromContract,
     getGains,
     updateBounty,
     updatePromStats,
@@ -79,9 +77,7 @@ const {
 
 const {
     getCampaignContractByHashCampaign,
-    getContractByToken,
     getPromContract,
-    getContractCampaigns,
 } = require('../blockchainConnexion')
 
 let calcSNStat = (objNw, link) => {
@@ -121,6 +117,7 @@ const {
     answerBounty,
     answerOne,
     limitStats,
+    answerCall,
 } = require('../manager/oracles')
 
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
@@ -806,8 +803,8 @@ exports.gains = async (req, res) => {
         { indexed: false, name: 'idUser', type: 'string' },
     ]
     try {
-        var cred2 = await unlock(req, res)
-        var ctr = await getPromContract(idProm)
+        var credentials = await unlock(req, res)
+        var ctr = await getPromContract(idProm, credentials)
 
         var gasPrice = await ctr.getGasPrice()
         let prom = await ctr.methods.proms(idProm).call()
@@ -822,7 +819,7 @@ exports.gains = async (req, res) => {
         var link = await CampaignLink.findOne({ id_prom: idProm })
         if (req.body.bounty) {
             if (prom.funds.amount > 0 && prom.isPayed) {
-                var ret = await getGains(idProm, cred2)
+                var ret = await getGains(idProm, credentials)
                 return responseHandler.makeResponseData(
                     res,
                     200,
@@ -839,7 +836,7 @@ exports.gains = async (req, res) => {
             )
             let maxBountieFollowers =
                 bountie.categories[bountie.categories.length - 1].maxFollowers
-            var evts = await updateBounty(idProm, cred2)
+            var evts = await updateBounty(idProm, credentials)
             stats = await answerAbos(
                 prom.typeSN,
                 prom.idPost,
@@ -869,13 +866,13 @@ exports.gains = async (req, res) => {
                 await answerBounty({
                     ctr,
                     gasPrice: gasPrice,
-                    from: app.config.campaignOwner,
+                    from: process.env.CAMPAIGN_OWNER,
                     campaignContract: ctr.options.address,
                     idProm: idProm,
                     nbAbos: stats,
                 })
             } finally {
-                var ret = await getGains(idProm, cred2)
+                var ret = await getGains(idProm, credentials)
                 return responseHandler.makeResponseData(
                     res,
                     200,
@@ -927,20 +924,10 @@ exports.gains = async (req, res) => {
                 stats.shares != prevstat[0].shares ||
                 stats.views != prevstat[0].views
             ) {
-                var evts = await updatePromStats(idProm, cred2)
+                var evts = await updatePromStats(idProm, credentials)
                 var evt = evts.events[0]
                 var idRequest = evt.raw.topics[1]
-                var log = app.web3.eth.abi.decodeLog(
-                    abi,
-                    evt.raw.data,
-                    evt.raw.topics.shift()
-                )
-                if (
-                    log.typeSN == prom.typeSN &&
-                    log.idPost == prom.idPost &&
-                    log.idUser == prom.idUser
-                )
-                    requests = [{ id: idRequest }]
+                requests = [{ id: idRequest }]
             }
         }
         if (requests && requests.length) {
@@ -963,9 +950,9 @@ exports.gains = async (req, res) => {
             )
 
             await answerCall({
-                ctr,
+                credentials,
                 gasPrice: gasPrice,
-                from: app.config.campaignOwner,
+                from: process.env.CAMPAIGN_OWNER,
                 campaignContract: ctr.options.address,
                 idRequest: requests[0].id,
                 likes: stats.likes,
@@ -974,7 +961,7 @@ exports.gains = async (req, res) => {
             })
         }
 
-        var ret = await getGains(idProm, cred2)
+        var ret = await getGains(idProm, credentials)
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
@@ -985,9 +972,8 @@ exports.gains = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        if (cred2) lock(cred2.address)
-        // if (ret && ret.transactionHash) {
-        //     console.log('start here')
+        if (credentials) lock(credentials)
+        // if ( ret?.transactionHash) {
         //     let campaign = await Campaigns.findOne(
         //         { hash: hash },
         //         { token: 1, _id: 0 }
