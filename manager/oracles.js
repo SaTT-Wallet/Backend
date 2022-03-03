@@ -401,13 +401,15 @@ exports.getPromApplyStats = async (
             socialOracle = await this.youtube(link.idPost)
         else if (oracles == 'instagram')
             socialOracle = await this.instagram(id, link)
-        else
+        else {
             socialOracle = await this.linkedin(
                 link.idUser,
                 link.idPost,
                 link.typeURL,
                 linkedinProfile
             )
+        }
+
         delete socialOracle.date
         return socialOracle
     } catch (err) {
@@ -660,31 +662,30 @@ exports.getReachLimit = (campaignRatio, oracle) => {
 
 exports.getTotalToEarn = (socialStats, ratio) => {
     try {
-        let statistics = { ...socialStats }
-        let reachLimit = this.getReachLimit(ratio, statistics.oracle)
+        let reachLimit = this.getReachLimit(ratio, socialStats.oracle)
         if (reachLimit)
-            statistics = this.limitStats(
+            socialStats = this.limitStats(
                 '',
-                statistics,
+                socialStats,
                 '',
-                statistics.abosNumber,
+                socialStats.abosNumber,
                 reachLimit
             )
         let totalToEarn = '0'
-        let payedAmount = statistics.payedAmount || '0'
+        let payedAmount = socialStats.payedAmount || '0'
         ratio.forEach((num) => {
             if (
-                num.oracle === statistics.oracle ||
-                num.typeSN === statistics.typeSN
+                num.oracle === socialStats.oracle ||
+                num.typeSN === socialStats.typeSN
             ) {
-                let view = statistics.views
-                    ? new Big(num['view']).times(statistics.views)
+                let view = socialStats.views
+                    ? new Big(num['view']).times(socialStats.views)
                     : '0'
-                let like = statistics.likes
-                    ? new Big(num['like']).times(statistics.likes)
+                let like = socialStats.likes
+                    ? new Big(num['like']).times(socialStats.likes)
                     : '0'
-                let share = statistics.shares
-                    ? new Big(num['share']).times(statistics.shares.toString())
+                let share = socialStats.shares
+                    ? new Big(num['share']).times(socialStats.shares.toString())
                     : '0'
                 let total = new Big(view)
                     .plus(new Big(like))
@@ -706,7 +707,6 @@ exports.getReward = (result, bounties) => {
         let payedAmount = result.payedAmount || '0'
         let totalToEarn = '0'
 
-        // console.log(bounties[0].oracle);
         bounties.forEach((bounty) => {
             if (
                 bounty.oracle === result.oracle ||
