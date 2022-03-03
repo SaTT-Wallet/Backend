@@ -540,7 +540,6 @@ exports.apply = async (req, res) => {
             cred,
             campaignDetails.token
         )
-
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -684,13 +683,11 @@ exports.validateCampaign = async (req, res) => {
     const campaign = await Campaigns.findOne(
         { _id },
         {
-            fields: {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-            },
+            logo: 0,
+            resume: 0,
+            description: 0,
+            tags: 0,
+            cover: 0,
         }
     )
     try {
@@ -733,6 +730,7 @@ exports.validateCampaign = async (req, res) => {
                 link.oracle == 'linkedin' &&
                 (await LinkedinProfile.findOne({ userId: id }))
             let userId = link.oracle === 'instagram' ? id : null
+
             let socialOracle = await getPromApplyStats(
                 link.oracle,
                 link,

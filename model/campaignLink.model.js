@@ -13,6 +13,7 @@ const campaignLinkSchema = mongoose.Schema(
         idPost: { type: String },
         id_campaign: { type: String },
         isPayed: { type: Boolean },
+        typeURL: { type: String },
         appliedDate: { type: Number },
         oracle: { type: String },
         abosNumber: { type: Number, default: 0 },
