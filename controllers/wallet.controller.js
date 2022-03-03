@@ -14,6 +14,7 @@ const { configSendBox } = require('../conf/config1')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
+const { synfonyHash } = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
