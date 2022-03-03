@@ -503,7 +503,8 @@ exports.socialSignUp = async (req, res) => {
     try {
         let snUser = createUser(
             0,
-            req.body.idSn,
+            +req.body.idSn,
+            req.body.lang,
             true,
             req.body.photo,
             req.body.name,
@@ -516,6 +517,8 @@ exports.socialSignUp = async (req, res) => {
         let socialField = req.body.idSn === '1' ? 'idOnSn' : 'idOnSn2'
         snUser[socialField] = req.body.id
         let user = await User.findOne({ [socialField]: req.body.id })
+
+        console.log('user', user)
         if (user) {
             return responseHandler.makeResponseError(
                 res,
@@ -537,6 +540,7 @@ exports.socialSignUp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
+        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
