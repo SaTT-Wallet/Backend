@@ -728,6 +728,8 @@ router.post('/apple', authApple)
  *             properties:
  *               name:
  *                 type: string
+ *               lang:
+ *                 type: string
  *               idSn:
  *                 type: string
  *               id:
