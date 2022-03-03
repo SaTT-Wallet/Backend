@@ -1,128 +1,99 @@
-;(async function () {
-    try {
-        var fs = require('fs')
+var fs = require('fs')
 
-        var express = require('express')
-        var app = express()
-        var cors = require('cors')
-        require('dotenv').config()
-        const package = require('./package.json')
-        var bodyParser = require('body-parser')
-        app.use(bodyParser.json({ limit: '4mb' }))
-        app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))
-        app.use(cors())
+var express = require('express')
+var cors = require('cors')
+require('dotenv').config()
+let logger = require('morgan')
+let cookieParser = require('cookie-parser')
+let path = require('path')
 
-        app.use('/assets', express.static('public'))
-        app.set('view engine', 'ejs')
-        app = await require('./conf/config')(app)
-        app = await require('./conf/const')(app)
-        var https = require('https')
+const package = require('./package.json')
+var bodyParser = require('body-parser')
 
-        var httpServer = https.createServer(
-            {
-                key: fs.readFileSync(app.config.SSLKeyFile, 'utf8'),
-                cert: fs.readFileSync(app.config.SSLCertFile, 'utf8'),
+let corsOptions = {
+    origin: 'https://localhost', // Compliant
+}
+
+let app = express()
+app.disable('x-powered-by')
+app.use(cors(corsOptions))
+app.use(logger('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+app.use(express.static(path.join(__dirname, 'public')))
+
+app.use('/assets', express.static('public'))
+app.set('view engine', 'ejs')
+
+app.use(bodyParser.json({ limit: '4mb' }))
+app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))
+app.use(cors())
+
+let host
+if (process.env.NODE_ENV == 'testnet') {
+    host = process.env.BASEURL
+} else if (process.env.NODE_ENV == 'local') {
+    host = process.env.BASEURLLOCAL
+} else {
+    host = process.env.BASEURL_MAINNET
+}
+
+const swaggerJSDoc = require('swagger-jsdoc')
+const swaggerUi = require('swagger-ui-express')
+const swaggerDefinition = {
+    openapi: '3.0.0',
+    info: {
+        title: 'API for node-satt',
+        version: package.version,
+        description:
+            'Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager',
+        customCss: '.swagger-ui .topbar { display: none }',
+    },
+    host: host,
+    components: {
+        securitySchemes: {
+            bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
             },
-            app
-        )
+        },
+    },
+    security: [
+        {
+            bearerAuth: [],
+        },
+    ],
+}
+var cssOptions = {
+    customCss: `
+    .topbar-wrapper img {content:url(/assets/SaTT.png); width:50px; height:auto;}`,
+    customSiteTitle: 'SaTT',
+    customfavIcon: '/assets/SaTT-noire.png',
+}
+const options = {
+    swaggerDefinition,
+    apis: ['./routes/*.js'],
+}
+const swaggerSpec = swaggerJSDoc(options)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
 
-        httpServer.listen(app.config.listenPort, function () {
-            console.log(
-                `******** ${package.name} ${package.version} Listening on port ${process.env.LISTEN_PORT} ********`
-            )
-        })
-        let host
-        if (process.env.NODE_ENV == 'testnet') {
-            host = process.env.BASEURL
-        } else if (process.env.NODE_ENV == 'local') {
-            host = process.env.BASEURLLOCAL
-        } else {
-            host = process.env.BASEURL_MAINNET
-        }
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    next(createError(404))
+})
 
-        const swaggerJSDoc = require('swagger-jsdoc')
-        const swaggerUi = require('swagger-ui-express')
-        const swaggerDefinition = {
-            openapi: '3.0.0',
-            info: {
-                title: 'API for node-satt',
-                version: package.version,
-                description:
-                    'Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager',
-                customCss: '.swagger-ui .topbar { display: none }',
-            },
-            host: host,
-            components: {
-                securitySchemes: {
-                    bearerAuth: {
-                        type: 'http',
-                        scheme: 'bearer',
-                        bearerFormat: 'JWT',
-                    },
-                },
-            },
-            security: [
-                {
-                    bearerAuth: [],
-                },
-            ],
-        }
-        var cssOptions = {
-            customCss: `
-			.topbar-wrapper img {content:url(/assets/SaTT.png); width:50px; height:auto;}`,
-            customSiteTitle: 'SaTT',
-            customfavIcon: '/assets/SaTT-noire.png',
-        }
-        const options = {
-            swaggerDefinition,
-            apis: ['./routes/*.js'],
-        }
-        const swaggerSpec = swaggerJSDoc(options)
-        app.use(
-            '/docs',
-            swaggerUi.serve,
-            swaggerUi.setup(swaggerSpec, cssOptions)
-        )
+// error handler
 
-        // app = await require("./db/db")(app);
+app.use(function (err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message
+    res.locals.error = req.app.get('env') === 'development' ? err : {}
 
-        app = await require('./manager/oracle')(app)
-        app = await require('./web3/provider')(app)
-        // app = await require('./manager/notification')(app)
-        app = await require('./manager/account')(app)
-        app = await require('./manager/i18n')(app)
+    // render the error page
+    res.status(err.status || 500)
+    res.render('error')
+})
 
-        const loginroutes = require('./routes/login.routes')
-        const walletroutes = require('./routes/wallet.routes')
-        const profileroutes = require('./routes/profile.routes')
-        const campaignroutes = require('./routes/campaign.routes')
-
-        app.use('/auth', loginroutes)
-        app.use('/wallet', walletroutes)
-        app.use('/profile', profileroutes)
-        app.use('/campaign', campaignroutes)
-
-        app = await require('./web3/oracle')(app)
-        app = await require('./web3/campaign')(app)
-        app = await require('./web3/graph')(app)
-        app = await require('./web3/satt')(app)
-        app = await require('./web3/eth')(app)
-        app = await require('./web3/erc20')(app)
-        app = await require('./manager/bep20')(app)
-
-        app.use(function (req, res, next) {
-            res.header('content-type', 'application/json')
-            res.header('Access-Control-Allow-Origin', '*')
-            res.header(
-                'Access-Control-Allow-Headers',
-                'Origin, X-Requested-With, Content-Type, Accept'
-            )
-
-            next()
-        })
-        app = await require('./web3/initcontracts')(app)
-    } catch (e) {
-        console.log(e.stack)
-    } finally {
-    }
-})()
+module.exports = app
