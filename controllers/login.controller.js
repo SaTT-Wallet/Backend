@@ -552,14 +552,14 @@ exports.socialSignUp = async (req, res) => {
 
 exports.socialSignin = async (req, res) => {
     try {
-        if (req.body.idSn !== '1' && req.body.idSn !== '2')
+        if (req.body.idSn !== 1 && req.body.idSn !== 2)
             return responseHandler.makeResponseError(
                 res,
                 401,
                 'invalid idSn',
                 false
             )
-        let socialField = req.body.idSn === '1' ? 'idOnSn' : 'idOnSn2'
+        let socialField = req.body.idSn === 1 ? 'idOnSn' : 'idOnSn2'
         let user = await User.findOne({ [socialField]: req.body.id })
         if (user) {
             let date = Math.floor(Date.now() / 1000) + 86400
