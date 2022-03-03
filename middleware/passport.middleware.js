@@ -13,6 +13,8 @@ var TwitterProfile = require('../model/twitterProfile.model')
 var GoogleProfile = require('../model/googleProfile.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
 
+const { responseHandler } = require('../helpers/response-handler')
+
 var requirement = require('../helpers/utils')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -106,6 +108,8 @@ let createUser = (
     if (firstName) userObject.firstName = firstName
     if (lang) userObject.lang = lang
     if (lastName) userObject.lastName = lastName
+    if (lang) userObject.lang = lang
+
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
 }
@@ -289,6 +293,7 @@ passport.use(
             var createdUser = createUser(
                 0,
                 0,
+                req.body.lang,
                 req.body.newsLetter,
                 '',
                 username.toLowerCase(),
@@ -386,7 +391,6 @@ exports.facebookAuthSignup = async (
             1,
             1,
             req.body.lang,
-
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile._json.email,
@@ -474,7 +478,6 @@ exports.signup_telegram_function = async (req, profile, cb) => {
             1,
             5,
             req.body.lang,
-
             req.body.newsLetter,
             profile.photo_url,
             profile.email,
@@ -824,7 +827,8 @@ module.exports.verifyAuth = (req, res, next) => {
     }
     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
         if (err) return res.json(err)
-        newUser = await User.findOne({ _id: user._id })
+        let _id = user?._id ? user?._id : user?._doc._id
+        newUser = await User.findOne({ _id })
         req.user = newUser
         console.log(err)
         next()

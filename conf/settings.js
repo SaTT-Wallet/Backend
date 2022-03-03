@@ -38,17 +38,7 @@ let environment = {
         MONGO_PASS: process.env.MONGO_PASS_MAINNET,
         MONGO_HOST: process.env.MONGO_HOST_MAINNET,
         MONGO_PORT: process.env.MONGO_PORT_MAINNET,
-        MONGOURI:
-            'mongodb://' +
-            process.env.MONGO_USER_TESTNET +
-            ':' +
-            process.env.MONGO_PASS_TESTNET +
-            '@' +
-            process.env.MONGO_HOST_TESTNET +
-            ':' +
-            process.env.MONGO_PORT_TESTNET +
-            '/' +
-            process.env.MONGO_BASE_TESTNET,
+        MONGOURI: process.env.MONGOURI_MAINNET,
     },
 }
 

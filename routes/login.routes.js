@@ -233,6 +233,8 @@ router.post('/signin/mail', emailConnection)
  *             properties:
  *               mail:
  *                 type: string
+ *               lang:
+ *                 type: string
  *     responses:
  *       "200":
  *          description: code,<br>message="Email was sent to email"
@@ -610,6 +612,8 @@ passport.use(
  *             properties:
  *               email:
  *                 type: string
+ *               lang:
+ *                 type: string
  *     responses:
  *       "200":
  *          description: code,message:"Email sent"
@@ -724,8 +728,10 @@ router.post('/apple', authApple)
  *             properties:
  *               name:
  *                 type: string
- *               idSn:
+ *               lang:
  *                 type: string
+ *               idSn:
+ *                 type: number
  *               id:
  *                 type: string
  *               photo:
@@ -734,6 +740,8 @@ router.post('/apple', authApple)
  *                 type: string
  *               familyName:
  *                 type: string
+ *               newsLetter:
+ *                 type: boolean
  *     responses:
  *       "200":
  *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
@@ -759,7 +767,7 @@ router.post('/socialSignup', socialSignUp)
  *             type: object
  *             properties:
  *               idSn:
- *                 type: string
+ *                 type: number
  *               id:
  *                 type: string
  *     responses:
