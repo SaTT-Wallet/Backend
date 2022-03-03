@@ -59,7 +59,6 @@ module.exports = async function (app) {
 
     campaignManager.getCampaignContract = async function (hash) {
         var campaign = await Campaigns.findOne({ hash: hash }, { contract: 1 })
-
         if (campaign && campaign.contract) {
             return campaignManager.getContract(campaign.contract)
         } else return false
@@ -111,7 +110,7 @@ module.exports = async function (app) {
             token.toLowerCase() ==
                 app.config.ctrs.token.address.daiTesnet.toLowerCase()
         ) {
-            var ctr = app.web3.Contract(
+            var ctr = new app.web3.eth.Contract(
                 app.config.ctrs.token.abi,
                 app.config.testnet
                     ? app.config.ctrs.token.address.testnet
@@ -422,6 +421,7 @@ module.exports = async function (app) {
         return new Promise(async (resolve, reject) => {
             try {
                 var ctr = await campaignManager.getContractToken(token)
+                console.log('----------getContractToken', ctr.methods)
                 var gasPrice = await ctr.getGasPrice()
                 var gas = 200000
 
@@ -1261,6 +1261,7 @@ module.exports = async function (app) {
     }
 
     campaignManager.influencersLinks = async (links) => {
+        console.log('------influencersLinks')
         return new Promise(async (resolve, reject) => {
             try {
                 // let idproms = await ctr.methods.getProms(idCampaign).call();
@@ -1315,6 +1316,7 @@ module.exports = async function (app) {
     }
 
     campaignManager.getReachLimit = (campaignRatio, oracle) => {
+        console.log('----getReachLimit')
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
         if (ratio) return ratio.reachLimit
         return
@@ -1622,6 +1624,7 @@ module.exports = async function (app) {
     }
 
     campaignManager.filterLinks = (req, id_wallet) => {
+        console.log('------filterLinks')
         const status = req.query.status
         let oracles = req.query.oracles
         oracles = typeof oracles === 'string' ? [oracles] : oracles
