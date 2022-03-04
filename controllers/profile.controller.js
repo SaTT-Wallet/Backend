@@ -462,7 +462,7 @@ module.exports.requestMoney = async (req, res) => {
         const id = req.user._id
         let code = await QRCode.toDataURL(req.body.wallet)
 
-        await app.account.notificationManager(id, 'send_demande_satt_event', {
+        await notificationManager(id, 'send_demande_satt_event', {
             name: req.body.name,
             price: req.body.price,
             cryptoCurrency: req.body.cryptoCurrency,
