@@ -136,11 +136,6 @@ passport.use(
                     }
                 } else {
                     let validAuth = await isBlocked(user, false)
-                    console.log(
-                        'authentification',
-                        req.addressIp,
-                        `invalid ${username} ${password}`
-                    )
                     if (validAuth.res) {
                         return done(null, false, {
                             error: true,
