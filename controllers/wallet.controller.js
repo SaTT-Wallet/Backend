@@ -3,6 +3,7 @@ const { User, Wallet, CustomToken } = require('../model/index')
 const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
+const cron = require('node-cron')
 
 const {
     getContractByToken,
@@ -43,7 +44,18 @@ const {
 const { notificationManager } = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config1')
+const { BalanceUsersStats } = require('../helpers/common')
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
+    BalanceUsersStats('daily')
+)
 
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
+    BalanceUsersStats('monthly')
+)
+
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
+    BalanceUsersStats('weekly')
+)
 exports.exportBtc = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
