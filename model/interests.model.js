@@ -1,8 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
-
 const interestsSchema = mongoose.Schema(
     {
         interests: [{ type: String }],
@@ -11,5 +7,5 @@ const interestsSchema = mongoose.Schema(
     { collection: 'interests' }
 )
 
-const Interests = db.model('interests', interestsSchema)
+const Interests = mongoose.model('interests', interestsSchema)
 module.exports = Interests

@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const campaignsSchema = mongoose.Schema(
     {
@@ -64,6 +61,6 @@ const campaignsSchema = mongoose.Schema(
     { timestamps: true, collection: 'campaigns' }
 )
 
-const Campaigns = db.model('campaigns', campaignsSchema)
+const Campaigns = mongoose.model('campaigns', campaignsSchema)
 
 module.exports = Campaigns
