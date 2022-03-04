@@ -130,7 +130,7 @@ exports.codeRecover = async (req, res) => {
     try {
         let dateNow = Math.floor(Date.now() / 1000)
         let lang = req.body.lang || 'en'
-        app.i18n.configureTranslation(lang)
+        configureTranslation(lang)
         let email = req.body.mail.toLowerCase()
         let user = await User.findOne({ email })
 
