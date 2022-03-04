@@ -7,6 +7,7 @@ const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
 var mongoose = require('mongoose')
+const cron = require('node-cron')
 
 const {
     Campaigns,
@@ -75,6 +76,8 @@ const {
     getContractCampaigns,
     getPromContract,
 } = require('../blockchainConnexion')
+
+cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -1706,7 +1709,6 @@ exports.rejectLink = async (req, res) => {
     let link = req.body.link
     configureTranslation(lang)
     let reason = req.body.reason
-    app.i18n.configureTranslation(lang)
     let idUser = '0' + req.user._id
 
     const campaign = await Campaigns.findOne(
@@ -1766,8 +1768,13 @@ exports.rejectLink = async (req, res) => {
 
 module.exports.updateStatistics = async (req, res) => {
     try {
-        updateStat()
+        await updateStat()
+        return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
-        console.log(err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
