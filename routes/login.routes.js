@@ -77,13 +77,15 @@ const {
 
 function authSignInErrorHandler(err, req, res, next) {
     let message = err.message ? err.message : err
-    res.redirect(app.config.basedURl + '/auth/login?message=' + message)
+    res.redirect(process.env.BASED_URL + '/auth/login?message=' + message)
 }
 
 function authErrorHandler(err, req, res, next) {
     console.log(err)
     let message = err.message ? err.message : err
-    res.redirect(app.config.basedURl + '/auth/registration?message=' + message)
+    res.redirect(
+        process.env.BASED_URL + '/auth/registration?message=' + message
+    )
 }
 
 /**
@@ -384,7 +386,7 @@ router.get(
                 scope: 'user',
             }
             response.redirect(
-                app.config.basedURl +
+                process.env.BASED_URL +
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
@@ -432,7 +434,7 @@ router.get(
                 scope: 'user',
             }
             response.redirect(
-                app.config.basedURl +
+                process.env.BASED_URL +
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
