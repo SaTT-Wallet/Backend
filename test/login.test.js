@@ -219,6 +219,7 @@ describe('LOgin Management', () => {
         let url = `${baseUrl}/auth/passlost`
 
         let mail = 'sss'
+        let lang = 'en'
 
         let options = {
             headers: {
@@ -234,6 +235,7 @@ describe('LOgin Management', () => {
                 url,
                 {
                     mail,
+                    lang,
                 },
                 options
             )
@@ -250,7 +252,7 @@ describe('LOgin Management', () => {
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
-                    err === 'please provide a valid email address!' ||
+                    err === 'please enter a valid email address!' ||
                     err === 'account not exists'
                 )
             })
@@ -422,7 +424,7 @@ describe('LOgin Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Email sent')
         } catch (error) {
-            // console.log(error)
+            console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -520,10 +522,10 @@ describe('LOgin Management', () => {
     it('Auth for apple', async () => {
         let url = `${baseUrl}/auth/apple`
 
-        let id_apple = ''
+        let id_apple = '123456'
         let mail = 'youssef@atayen.us'
-        let idSN = ''
-        let name = ''
+        let idSN = '123456'
+        let name = 'youssef2'
 
         let options = {
             headers: {
@@ -564,7 +566,7 @@ describe('LOgin Management', () => {
         }
     })
 
-    it('Register with social for apple ', async () => {
+    it('Register with social for apple', async () => {
         let url = `${baseUrl}/auth/socialSignup`
 
         let name = ''

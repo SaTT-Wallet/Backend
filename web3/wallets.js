@@ -21,12 +21,12 @@ const {
     pathEth,
     booltestnet,
 } = require('../conf/config1')
+
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
         let account = await Wallet.findOne({ UserId })
-
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
 
@@ -35,6 +35,7 @@ exports.unlock = async (req, res) => {
 
         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
     } catch (err) {
+        // console.log('errrr', err)
         res.status(500).send({
             code: 500,
             error: err.message ? err.message : err.error,
@@ -414,9 +415,9 @@ exports.getListCryptoByUid = async (req, res) => {
             let key = T_name.split('_')[0]
 
             if (
-                token_info[T_name].contract ==
-                    token_info['SATT_BEP20'].contract ||
-                token_info[T_name].contract == token_info['WSATT'].contract
+                token_info[T_name]?.contract ==
+                    token_info['SATT_BEP20']?.contract ||
+                token_info[T_name]?.contract == token_info['WSATT']?.contract
             ) {
                 key = 'SATT'
             }

@@ -46,6 +46,7 @@ describe('Profile Management', () => {
             expect(result.data).to.be.an('object')
         } catch (error) {
             // console.log('---------error', error)
+            expect(error).to.be.null
         }
     })
 
