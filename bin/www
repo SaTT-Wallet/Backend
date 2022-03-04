@@ -4,6 +4,9 @@
  * Module dependencies.
  */
 
+
+ console.log("wrass omek d5alt ");
+
 const ip = require("ip");
 exports.ip = ip.address()
 
