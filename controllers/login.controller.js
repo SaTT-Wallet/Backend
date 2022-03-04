@@ -305,12 +305,9 @@ exports.resendConfirmationToken = async (req, res) => {
                 false
             )
         } else {
-            let code = await app.account.updateAndGenerateCode(
-                user._id,
-                'validation'
-            )
+            let code = await updateAndGenerateCode(user._id, 'validation')
             let lang = req.body.lang || 'en'
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
             readHTMLFileLogin(
                 __dirname +
                     '/../public/emailtemplate/email_validated_code.html',

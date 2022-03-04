@@ -28,19 +28,6 @@ const {
     getTransactionHistory,
 } = require('../controllers/wallet.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
-const { BalanceUsersStats } = require('../helpers/common')
-
-// cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
-//     BalanceUsersStats('daily')
-// )
-
-// cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
-//     BalanceUsersStats('monthly')
-// )
-
-// cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
-//     BalanceUsersStats('weekly')
-// )
 
 /**
  * @swagger
