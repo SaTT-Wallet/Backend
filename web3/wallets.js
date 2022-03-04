@@ -307,10 +307,8 @@ exports.getBalance = async (Web3, token, address) => {
     try {
         let contract = new Web3.eth.Contract(Constants.token.abi, token)
         amount = await contract.methods.balanceOf(address).call()
-
         return amount.toString()
     } catch (err) {
-        console.log(err)
         return '0'
     }
 }
@@ -393,10 +391,8 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.undername = token_info[T_name].undername
             crypto.undername2 = token_info[T_name].undername2
             ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
-
             let Web3ETH = await erc20Connexion()
             let Web3BEP20 = await bep20Connexion()
-
             let balance = {}
             if (network == 'ERC20') {
                 balance.amount = await this.getBalance(
@@ -439,7 +435,6 @@ exports.getListCryptoByUid = async (req, res) => {
                     .div((10 ** +token_info[T_name].dicimal).toString())
                     .toNumber()
             )
-
             listOfCrypto.push(crypto)
         }
 

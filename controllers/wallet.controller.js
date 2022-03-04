@@ -3,6 +3,7 @@ const { User, Wallet, CustomToken } = require('../model/index')
 const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
+const cron = require('node-cron')
 
 const {
     getContractByToken,
@@ -43,7 +44,18 @@ const {
 const { notificationManager } = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config1')
+const { BalanceUsersStats } = require('../helpers/common')
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
+    BalanceUsersStats('daily')
+)
 
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
+    BalanceUsersStats('monthly')
+)
+
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
+    BalanceUsersStats('weekly')
+)
 exports.exportBtc = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
@@ -755,43 +767,43 @@ exports.payementRequest = async (req, res) => {
     }
 }
 
-exports.bridge = async (req, res) => {
-    let Direction = req.body.direction
-    let pass = req.body.password
-    let amount = req.body.amount
-    var sattContract = app.config.ctrs.token.address.mainnet
-    if (app.config.testnet) {
-        sattContract = app.config.ctrs.token.address.testnet
-    }
-    try {
-        var network
-        var ret
-        if (Direction == 'ETB') {
-            network = 'ERC20'
-            var cred = await unlock(req.user._id, pass)
+// exports.bridge = async (req, res) => {
+//     let Direction = req.body.direction
+//     let pass = req.body.password
+//     let amount = req.body.amount
+//     var sattContract = app.config.ctrs.token.address.mainnet
+//     if (app.config.testnet) {
+//         sattContract = app.config.ctrs.token.address.testnet
+//     }
+//     try {
+//         var network
+//         var ret
+//         if (Direction == 'ETB') {
+//             network = 'ERC20'
+//             var cred = await unlock(req.user._id, pass)
 
-            ret = await transfer(sattContract, app.config.bridge, amount, cred)
-        } else if (Direction == 'BTE') {
-            network = 'BEP20'
-            var cred = awaitunlockBSC(req.user._id, pass)
-            ret = await app.bep20.transferBEP(app.config.bridge, amount, cred)
-        }
-        res.end(JSON.stringify(ret))
-    } catch (err) {
-        res.end(JSON.stringify(err))
-    } finally {
-        if (cred) lock(cred)
-        if (ret.transactionHash) {
-            await notificationManager(req.user._id, 'convert_event', {
-                amount,
-                Direction,
-                transactionHash: ret.transactionHash,
-                currency: 'SATT',
-                network,
-            })
-        }
-    }
-}
+//             ret = await transfer(sattContract, app.config.bridge, amount, cred)
+//         } else if (Direction == 'BTE') {
+//             network = 'BEP20'
+//             var cred = awaitunlockBSC(req.user._id, pass)
+//             ret = await app.bep20.transferBEP(app.config.bridge, amount, cred)
+//         }
+//         res.end(JSON.stringify(ret))
+//     } catch (err) {
+//         res.end(JSON.stringify(err))
+//     } finally {
+//         if (cred) lock(cred)
+//         if (ret.transactionHash) {
+//             await notificationManager(req.user._id, 'convert_event', {
+//                 amount,
+//                 Direction,
+//                 transactionHash: ret.transactionHash,
+//                 currency: 'SATT',
+//                 network,
+//             })
+//         }
+//     }
+// }
 
 module.exports.getMnemo = async (req, res) => {
     try {
