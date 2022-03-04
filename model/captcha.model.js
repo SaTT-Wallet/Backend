@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 const captchaSchema = mongoose.Schema(
     {
         originalImage: { type: String },
@@ -10,5 +8,5 @@ const captchaSchema = mongoose.Schema(
     },
     { collection: 'captcha' }
 )
-const Captcha = db.model('captcha', captchaSchema)
+const Captcha = mongoose.model('captcha', captchaSchema)
 module.exports = Captcha

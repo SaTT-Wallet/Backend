@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
+const { db } = require('../app')
 
 const banSchema = mongoose.Schema(
     {
@@ -16,5 +14,5 @@ const banSchema = mongoose.Schema(
     }
 )
 
-const Ban = db.model('oracleban', banSchema)
+const Ban = mongoose.model('oracleban', banSchema)
 module.exports = Ban

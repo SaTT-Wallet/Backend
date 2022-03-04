@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 const requestSchema = mongoose.Schema(
     {
         id: { type: String },
@@ -21,5 +19,5 @@ const requestSchema = mongoose.Schema(
     }
 )
 
-const Request = db.model('request', requestSchema)
+const Request = mongoose.model('request', requestSchema)
 module.exports = Request

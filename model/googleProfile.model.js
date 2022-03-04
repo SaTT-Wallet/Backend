@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const googleProfileSchema = mongoose.Schema(
     {
@@ -40,5 +37,5 @@ const googleProfileSchema = mongoose.Schema(
     }
 )
 
-const GoogleProfile = db.model('google_profile', googleProfileSchema)
+const GoogleProfile = mongoose.model('google_profile', googleProfileSchema)
 module.exports = GoogleProfile

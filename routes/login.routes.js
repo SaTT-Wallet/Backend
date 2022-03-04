@@ -20,6 +20,8 @@ var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 var Long = require('mongodb').Long
 const { User } = require('../model/index')
 
+//const { User } = require('../model/user.model')
+
 passport.serializeUser(function (user, cb) {
     cb(null, user)
 })
