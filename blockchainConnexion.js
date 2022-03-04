@@ -133,33 +133,6 @@ exports.getContract = async (address) => {
     }
 }
 
-// exports.answerCall = async function (opts) {
-//     return new Promise(async (resolve, reject) => {
-//         var ctr;
-//     if(opts.campaignContract == app.config.ctrs.campaign.address.mainnet || opts.campaignContract == app.config.ctrs.campaign.address.testnet ) {
-//         ctr = ContractToken.contract;
-//     }
-//     else {
-//         ctr = ContractToken.contractBep20;
-//     }
-
-//     console.log("opts",opts);
-
-//     app.web3.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-//     app.web3Bep20.eth.accounts.wallet.decrypt([app.campaignWallet], app.config.campaignOwnerPass);
-
-//         var headerSent = false;
-//         var gasPrice = await ctr.getGasPrice();
-
-//         //var gas = await ContractToken.contract.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).estimateGas({from: opts.from,value:0});
-
-//         var receipt = await  ctr.methods.answer(opts.campaignContract,opts.idRequest,opts.likes,opts.shares,opts.views).send({from: opts.from,gas:500000,gasPrice: gasPrice}).once('transactionHash', function(hash){console.log("oracle answerCall transactionHash",hash)});
-//         resolve({result : "OK",hash:receipt.hash});
-
-//     });
-
-// }
-
 exports.getOracleContractByCampaignContract = async (
     campaignContract,
     credentials = false
