@@ -102,10 +102,8 @@ exports.isBlocked = async (user, auth = false) => {
         } else if (
             !user.account_locked &&
             failed_count >= process.env.bad_login_limit &&
-            accountManager.differenceBetweenDates(
-                user.dateFirstAttempt,
-                dateNow
-            ) < process.env.failInterval
+            this.differenceBetweenDates(user.dateFirstAttempt, dateNow) <
+                process.env.failInterval
         ) {
             logBlock.account_locked = true
             logBlock.failed_count = 0
