@@ -61,7 +61,7 @@ exports.verifyFacebook = async function (userId, pageName, idPost) {
             var res = await rp({
                 uri:
                     'https://graph.facebook.com/' +
-                    app.config.fbGraphVersion +
+                    process.env.FB_GRAPH_VERSION +
                     '/' +
                     idPage +
                     '_' +
@@ -143,8 +143,8 @@ exports.verifyTwitter = async function (userId, idPost) {
         if (twitterProfile.deactivate === true) return 'deactivate'
         else {
             var tweet = new Twitter2({
-                consumer_key: app.config.twitter.consumer_key,
-                consumer_secret: app.config.twitter.consumer_secret,
+                consumer_key: process.env.TWITTER_CONSUMER_KEY,
+                consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
                 access_token_key: twitterProfile.access_token_key,
                 access_token_secret: twitterProfile.access_token_secret,
             })
@@ -713,7 +713,7 @@ exports.getReward = (result, bounties) => {
         bounties.forEach((bounty) => {
             if (
                 bounty.oracle === result.oracle ||
-                bounty.oracle == app.oracle.findBountyOracle(result.typeSN)
+                bounty.oracle == this.findBountyOracle(result.typeSN)
             ) {
                 bounty = bounty.toObject()
                 bounty.categories.forEach((category) => {
@@ -913,5 +913,64 @@ exports.answerCall = async (opts) => {
         return { result: 'OK', hash: receipt.hash }
     } catch (error) {
         console.log(error.message)
+    }
+}
+
+exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
+    try {
+        let message = 'account_linked_with_success'
+        var instagram_id = false
+        var accountsUrl =
+            'https://graph.facebook.com/' +
+            process.env.FB_GRAPH_VERSION +
+            '/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token=' +
+            accessToken
+
+        var res = await rp({ uri: accountsUrl, json: true })
+
+        while (true) {
+            for (var i = 0; i < res.data.length; i++) {
+                let page = {
+                    UserId: UserId,
+                    username: res.data[i].username,
+                    token: res.data[i].access_token,
+                    picture: res.data[i].picture.data.url,
+                    name: res.data[i].name,
+                    subscribers: res.data[i].fan_count,
+                }
+
+                if (res.data[i].instagram_business_account) {
+                    if (!isInsta) {
+                        message += '_instagram_facebook'
+                        isInsta = true
+                    }
+                    instagram_id = res.data[i].instagram_business_account.id
+                    page.instagram_id = instagram_id
+                    var media =
+                        'https://graph.facebook.com/' +
+                        process.env.FB_GRAPH_VERSION +
+                        '/' +
+                        instagram_id +
+                        '?fields=username&access_token=' +
+                        accessToken
+                    var resMedia = await rp({ uri: media, json: true })
+                    page.instagram_username = resMedia.username
+                }
+                await FbPage.updateOne(
+                    { id: res.data[i].id, UserId },
+                    { $set: page },
+                    { upsert: true }
+                )
+            }
+            if (!res.paging || !res.paging.next) {
+                break
+            }
+            res = await rp({ uri: res.paging.next, json: true })
+        }
+
+        if (!isInsta && res.data.length > 0) message += '_facebook'
+        resolve(message)
+    } catch (e) {
+        log({ message: e.message })
     }
 }
