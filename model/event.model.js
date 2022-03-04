@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const eventSchema = mongoose.Schema(
     {
@@ -16,5 +13,5 @@ const eventSchema = mongoose.Schema(
     { timestamps: true, strict: false, collection: 'event' }
 )
 
-const Event = db.model('event', eventSchema)
+const Event = mongoose.model('event', eventSchema)
 module.exports = Event

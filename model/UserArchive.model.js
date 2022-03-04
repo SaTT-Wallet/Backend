@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 const userArchivedSchema = mongoose.Schema(
     {
         _id: { type: Number },
@@ -79,5 +77,5 @@ const userArchivedSchema = mongoose.Schema(
     },
     { timestamps: true, strict: false, collection: 'sn_user_archived' }
 )
-const UserArchived = db.model('sn_user_archived', userArchivedSchema)
+const UserArchived = mongoose.model('sn_user_archived', userArchivedSchema)
 module.exports = UserArchived

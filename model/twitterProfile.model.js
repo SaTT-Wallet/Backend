@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const twitterProfileSchema = mongoose.Schema(
     {
@@ -170,5 +167,5 @@ const twitterProfileSchema = mongoose.Schema(
     }
 )
 
-const TwitterProfile = db.model('twitter_profile', twitterProfileSchema)
+const TwitterProfile = mongoose.model('twitter_profile', twitterProfileSchema)
 module.exports = TwitterProfile

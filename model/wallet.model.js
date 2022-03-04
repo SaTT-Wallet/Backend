@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 const walletSchema = mongoose.Schema(
     {
         UserId: { type: Number },
@@ -41,6 +39,6 @@ const walletSchema = mongoose.Schema(
     }
 )
 
-const Wallet = db.model('wallet', walletSchema)
+const Wallet = mongoose.model('wallet', walletSchema)
 
 module.exports = Wallet

@@ -1,4 +1,5 @@
 var fs = require('fs')
+const mongoose = require('mongoose')
 
 var express = require('express')
 var cors = require('cors')
@@ -9,6 +10,29 @@ let path = require('path')
 
 const package = require('./package.json')
 var bodyParser = require('body-parser')
+
+const { mongoConnection } = require('./conf/config1')
+
+const loginroutes = require('./routes/login.routes')
+const walletroutes = require('./routes/wallet.routes')
+const profileroutes = require('./routes/profile.routes')
+const campaignroutes = require('./routes/campaign.routes')
+
+/// db.url is different depending on NODE_ENV
+let connect
+try {
+    connect = require('mongoose').connect(mongoConnection().mongoURI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
+    })
+    console.log('******connection establed to MongoServer*******')
+} catch (error) {
+    console.log('there is no connection')
+    console.log(error)
+}
+module.exports.connect = connect
 
 let corsOptions = {
     origin: 'https://localhost', // Compliant
@@ -29,7 +53,10 @@ app.set('view engine', 'ejs')
 app.use(bodyParser.json({ limit: '4mb' }))
 app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))
 app.use(cors())
-
+app.use('/auth', loginroutes)
+app.use('/wallet', walletroutes)
+app.use('/profile', profileroutes)
+app.use('/campaign', campaignroutes)
 let host
 if (process.env.NODE_ENV == 'testnet') {
     host = process.env.BASEURL
