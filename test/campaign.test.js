@@ -39,7 +39,7 @@ describe('Campaign Management', () => {
                 options
             )
             result = obj.data
-            // accessToken = result.data.access_token
+            accessToken = result.data.access_token
 
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
@@ -211,82 +211,82 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('Erc20 Approval', async () => {
-    //     let result
-    //     let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
-    //     let campaignAddress = '0xa5F46d6F4F3b318EeFF1B37e39491e52233c5975'
+    it('Erc20 Approval', async () => {
+        let result
+        let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
+        let campaignAddress = '0xa5F46d6F4F3b318EeFF1B37e39491e52233c5975'
 
-    //     let options = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.post(
-    //             `${baseUrl}/campaign/erc20/approval`,
-    //             { tokenAddress, campaignAddress },
-    //             options
-    //         )
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/erc20/approval`,
+                { tokenAddress, campaignAddress },
+                options
+            )
 
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result.message).to.equal('success')
-    //         expect(result).to.have.property('data')
-    //         console.log(res)
-    //     } catch (error) {
-    //         console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return (
-    //                 err === 'token required' ||
-    //                 err === 'wallet not found' ||
-    //                 err === 'invalid token'
-    //             )
-    //         })
-    //     }
-    // })
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.equal('success')
+            expect(result).to.have.property('data')
+            console.log(res)
+        } catch (error) {
+            console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' ||
+                    err === 'wallet not found' ||
+                    err === 'invalid token'
+                )
+            })
+        }
+    })
 
-    // it('Erc20 Allow', async () => {
-    //     let result
-    //     let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
-    //     let campaignAddress = '61f169ec724cc395ed336770'
-    //     let amount = ''
-    //     let pass = ''
+    it('Erc20 Allow', async () => {
+        let result
+        let tokenAddress = '0x448BEE2d93Be708b54eE6353A7CC35C4933F1156'
+        let campaignAddress = '61f169ec724cc395ed336770'
+        let amount = ''
+        let pass = ''
 
-    //     let options = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.post(
-    //             `${baseUrl}/campaign/erc20/allow`,
-    //             { tokenAddress, campaignAddress, amount, pass },
-    //             options
-    //         )
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/erc20/allow`,
+                { tokenAddress, campaignAddress, amount, pass },
+                options
+            )
 
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result.message).to.equal('success')
-    //         expect(result).to.have.property('data')
-    //     } catch (error) {
-    //         // console.log(error.response)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'wallet not found'
-    //         })
-    //     }
-    // })
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.equal('success')
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error.response)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'wallet not found'
+            })
+        }
+    })
 
     it('Launch new performance compaign', async () => {
         let result
@@ -511,46 +511,46 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('validate participation', async () => {
-    //     let result
-    //     let pass = ''
-    //     let idCampaign = '620e082b711cb119aebaf5a9'
-    //     let idProm = 'test idProm'
-    //     let link = 'test link'
-    //     let email = 'test email'
-    //     let idUser = 'test iduser'
+    it('validate participation', async () => {
+        let result
+        let pass = ''
+        let idCampaign = '620e082b711cb119aebaf5a9'
+        let idProm = 'test idProm'
+        let link = 'test link'
+        let email = 'test email'
+        let idUser = 'test iduser'
 
-    //     let options = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.post(
-    //             `${baseUrl}/campaign/validate`,
-    //             { pass, idCampaign, idProm, link, email, idUser },
-    //             options
-    //         )
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/validate`,
+                { pass, idCampaign, idProm, link, email, idUser },
+                options
+            )
 
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result.message).to.satisfy((str) => {
-    //             str.startsWith('success')
-    //         })
-    //         expect(result).to.have.property('data')
-    //     } catch (error) {
-    //         // console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'unothorized'
-    //         })
-    //     }
-    // })
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                str.startsWith('success')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'unothorized'
+            })
+        }
+    })
 
     it('Get Gains', async () => {
         let result

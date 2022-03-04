@@ -66,7 +66,7 @@ exports.exportBtc = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
+        console.log('errrrr', err)
     }
 }
 
@@ -612,7 +612,7 @@ exports.transfertEther = async (req, res) => {
     } catch (err) {
         console.log('err', err)
     } finally {
-        if (cred) lock(cred.address)
+        if (cred) lock(cred)
         if (ret) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
