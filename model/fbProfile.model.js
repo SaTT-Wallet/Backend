@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const fbProfileSchema = mongoose.Schema(
     {
@@ -43,5 +40,5 @@ const fbProfileSchema = mongoose.Schema(
     }
 )
 
-const FbProfile = db.model('fb_profile', fbProfileSchema)
+const FbProfile = mongoose.model('fb_profile', fbProfileSchema)
 module.exports = FbProfile

@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const customTokenSchema = mongoose.Schema(
     {
@@ -17,6 +14,6 @@ const customTokenSchema = mongoose.Schema(
     }
 )
 
-const CustomToken = db.model('custom_token', customTokenSchema)
+const CustomToken = mongoose.model('custom_token', customTokenSchema)
 
 module.exports = CustomToken

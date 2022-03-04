@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 const igMediaSchema = mongoose.Schema({
     shortcode: { type: String },
     like_count: { type: Number },
