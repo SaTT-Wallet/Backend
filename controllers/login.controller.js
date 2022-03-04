@@ -76,7 +76,7 @@ exports.captcha = async (req, res) => {
 
 exports.verifyCaptcha = async (req, res) => {
     try {
-        let id = req.body._id
+        let _id = req.body._id
         let position = +req.body.position
 
         if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -88,7 +88,7 @@ exports.verifyCaptcha = async (req, res) => {
         }
         let captcha = await Captcha.findOne({
             $and: [
-                _id,
+                { _id },
                 { position: { $gte: position - 5, $lte: position + 5 } },
             ],
         })
@@ -108,6 +108,7 @@ exports.verifyCaptcha = async (req, res) => {
             )
         }
     } catch (err) {
+        // console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -130,7 +131,7 @@ exports.codeRecover = async (req, res) => {
     try {
         let dateNow = Math.floor(Date.now() / 1000)
         let lang = req.body.lang || 'en'
-        app.i18n.configureTranslation(lang)
+        configureTranslation(lang)
         let email = req.body.mail.toLowerCase()
         let user = await User.findOne({ email })
 
@@ -305,12 +306,9 @@ exports.resendConfirmationToken = async (req, res) => {
                 false
             )
         } else {
-            let code = await app.account.updateAndGenerateCode(
-                user._id,
-                'validation'
-            )
+            let code = await updateAndGenerateCode(user._id, 'validation')
             let lang = req.body.lang || 'en'
-            app.i18n.configureTranslation(lang)
+            configureTranslation(lang)
             readHTMLFileLogin(
                 __dirname +
                     '/../public/emailtemplate/email_validated_code.html',
@@ -328,6 +326,7 @@ exports.resendConfirmationToken = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log('errr', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -547,7 +546,7 @@ exports.socialSignUp = async (req, res) => {
         snUser[socialField] = req.body.id
         let user = await User.findOne({ [socialField]: req.body.id })
 
-        console.log(req.body)
+        // console.log(req.body)
 
         if (user) {
             return responseHandler.makeResponseError(
@@ -570,7 +569,7 @@ exports.socialSignUp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
-        console.log('err', err)
+        // console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
