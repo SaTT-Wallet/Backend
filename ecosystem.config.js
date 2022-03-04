@@ -4,7 +4,7 @@ module.exports = {
     apps: [
         {
             name: packagejson.name,
-            script: './app.js',
+            script: './bin/www',
             env: {
                 NODE_ENV: 'local',
             },
