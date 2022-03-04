@@ -24,6 +24,7 @@ const {
     validateCampaign,
     bep20Allow,
     erc20Allow,
+    updateStatistics,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -884,4 +885,5 @@ router.post('/remaining', verifyAuth, getFunds)
  */
 router.put('/reject/:idLink', verifyAuth, rejectLink)
 
+router.post('/updateStat', updateStatistics)
 module.exports = router
