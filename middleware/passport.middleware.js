@@ -130,11 +130,6 @@ passport.use(
             var user = await User.findOne({ email: username.toLowerCase() })
             if (user) {
                 if (user.password == synfonyHash(password)) {
-                    console.log(
-                        'authentification',
-                        req.addressIp,
-                        `valid ${username}`
-                    )
                     let validAuth = await app.account.isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
                         let userAuth = app.cloneUser(user.toObject())
@@ -177,11 +172,6 @@ passport.use(
                     })
                 }
             } else {
-                console.log(
-                    'authentification',
-                    req.addressIp,
-                    `invalid ${username} ${password}`
-                )
                 return done(null, false, {
                     error: true,
                     message: 'invalid_credentials',

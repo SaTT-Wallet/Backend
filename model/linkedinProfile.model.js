@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const linkedinProfileSchema = mongoose.Schema(
     {
@@ -28,5 +25,8 @@ const linkedinProfileSchema = mongoose.Schema(
     }
 )
 
-const LinkedinProfile = db.model('linkedin_profile', linkedinProfileSchema)
+const LinkedinProfile = mongoose.model(
+    'linkedin_profile',
+    linkedinProfileSchema
+)
 module.exports = LinkedinProfile

@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 const campaignLinkSchema = mongoose.Schema(
     {
         id_prom: { type: String },
@@ -28,5 +26,5 @@ const campaignLinkSchema = mongoose.Schema(
     }
 )
 
-const CampaignLink = db.model('campaign_link', campaignLinkSchema)
+const CampaignLink = mongoose.model('campaign_link', campaignLinkSchema)
 module.exports = CampaignLink

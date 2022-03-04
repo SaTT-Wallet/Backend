@@ -1,8 +1,6 @@
 const { Token } = require('graphql')
 const { environment } = require('./settings')
 
-console.log('environment', environment.testnet)
-
 exports.mongoConnection = () => {
     let connexion = {}
     if (process.env.NODE_ENV === 'local') {

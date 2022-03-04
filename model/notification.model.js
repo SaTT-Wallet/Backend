@@ -1,7 +1,4 @@
 const mongoose = require('mongoose')
-const { mongoConnection } = require('../conf/config1')
-
-const db = mongoose.createConnection(mongoConnection().mongoURI)
 
 const notificationSchema = mongoose.Schema(
     {
@@ -23,5 +20,5 @@ const notificationSchema = mongoose.Schema(
     { timestamps: true, collection: 'notification' }
 )
 
-const Notification = db.model('notification', notificationSchema)
+const Notification = mongoose.model('notification', notificationSchema)
 module.exports = Notification
