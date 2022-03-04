@@ -700,3 +700,28 @@ exports.getTransactionAmount = async (transactionHash, network) => {
         console.log(e.message)
     }
 }
+
+exports.campaignStatus = (campaign) => {
+    try {
+        let type = ''
+        let dateNow = new Date()
+        campaign.startDate = Date.parse(campaign.startDate)
+            ? new Date(Date.parse(campaign.startDate))
+            : new Date(+campaign.startDate * 1000)
+        campaign.endDate = Date.parse(campaign.endDate)
+            ? new Date(Date.parse(campaign.endDate))
+            : new Date(+campaign.endDate * 1000)
+        let isFinished =
+            dateNow > campaign.endDate ||
+            (campaign.funds && campaign.funds[1] == '0')
+        if (!campaign.hash) type = 'draft'
+        else if (isFinished && campaign.hash) type = 'finished'
+        else if (campaign.hash && dateNow < campaign.startDate)
+            type = 'inProgress'
+        else if (!isFinished && campaign.hash) type = 'apply'
+        else type = 'none'
+        return type
+    } catch (err) {
+        console.error(err)
+    }
+}

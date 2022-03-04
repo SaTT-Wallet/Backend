@@ -25,7 +25,7 @@ const {
     synfonyHash,
 } = require('../helpers/utils')
 
-const { updateAndGenerateCode } = require('../manager/accounts.js')
+const { updateAndGenerateCode, isBlocked } = require('../manager/accounts.js')
 
 var express = require('express')
 var app = express()
@@ -118,7 +118,7 @@ passport.use(
                         req.addressIp,
                         `valid ${username}`
                     )
-                    let validAuth = await app.account.isBlocked(user, true)
+                    let validAuth = await isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
                         let userAuth = cloneUser(user.toObject())
                         let token = generateAccessToken(userAuth)
@@ -140,7 +140,7 @@ passport.use(
                         })
                     }
                 } else {
-                    let validAuth = await app.account.isBlocked(user, false)
+                    let validAuth = await isBlocked(user, false)
                     console.log(
                         'authentification',
                         req.addressIp,
@@ -311,7 +311,6 @@ passport.use(
                 code,
                 user
             )
-            //   app.account.log('Email was sent to ' + user.email)
             return done(null, {
                 id: createdUser._id,
                 token,
@@ -449,7 +448,7 @@ exports.telegramSignup = async (req, res) => {
             scope: 'user',
         }
         res.redirect(
-            app.config.basedURl + '/auth/login?token=' + JSON.stringify(param)
+            process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
     } catch (e) {
         console.log(e)
@@ -500,7 +499,7 @@ exports.telegramConnection = (req, res) => {
             scope: 'user',
         }
         res.redirect(
-            app.config.basedURl + '/auth/login?token=' + JSON.stringify(param)
+            process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
     } catch (e) {
         console.log(e)
@@ -589,7 +588,7 @@ exports.connectTelegramAccount = async (req, res) => {
             url = '/social-registration/monetize-telegram'
         }
         res.redirect(
-            app.config.basedURl + url + '?message=' + req.authInfo.message
+            process.env.BASED_URL + url + '?message=' + req.authInfo.message
         )
     } catch (e) {
         console.log(e)
@@ -638,11 +637,7 @@ exports.addFacebookChannel = async (
         ;[profile.accessToken, profile.UserId] = [longToken, UserId]
         await FbProfile.create(profile)
     }
-    let message = await app.account.getFacebookPages(
-        UserId,
-        accessToken,
-        isInsta
-    )
+    let message = await getFacebookPages(UserId, accessToken, isInsta)
     return cb(null, { id: UserId, token: accessToken }, { message })
 }
 /*
@@ -662,8 +657,8 @@ exports.addTwitterChannel = async (
     let user_id = +req.session.state.split('|')[0]
 
     var tweet = new Twitter({
-        consumer_key: app.config.twitter.consumer_key,
-        consumer_secret: app.config.twitter.consumer_secret,
+        consumer_key: process.env.TWITTER_CONSUMER_KEY,
+        consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
         access_token_key: accessToken,
         access_token_secret: tokenSecret,
     })
@@ -707,7 +702,7 @@ exports.addlinkedinChannel = async (
     let userId = Number(req.query.state.split('|')[0])
     let redirect = req.query.state.split('|')[1]
     let linkedinId = profile.id
-    const linkedinData = app.config.linkedinPages(accessToken)
+    const linkedinData = config.linkedinPages(accessToken)
     let linkedinPages = await rp(linkedinData)
     var linkedinProfile = { accessToken, userId, linkedinId }
     linkedinProfile.pages = []
@@ -715,7 +710,7 @@ exports.addlinkedinChannel = async (
         for (let i = 0; i < linkedinPages.elements.length; i++) {
             elem = linkedinPages.elements[i]
             if (elem.state !== 'REVOKED') {
-                elem.subscribers = await app.oracle.linkedinAbos(
+                elem.subscribers = await linkedinAbos(
                     linkedinProfile,
                     elem.organization
                 )
@@ -731,7 +726,7 @@ exports.addlinkedinChannel = async (
     }
     if (!linkedinProfile.pages.length)
         return res.redirect(
-            app.config.basedURl +
+            process.env.BASED_URL +
                 redirect +
                 '?message=channel obligatoire&sn=linkd'
         )
@@ -785,7 +780,7 @@ exports.addyoutubeChannel = async (
             uri: 'https://www.googleapis.com/youtube/v3/channels',
             qs: {
                 id: channelId,
-                key: app.config.gdataApiKey,
+                key: process.env.GDA_TAP_API_KEY,
                 part: 'statistics,snippet',
             },
             json: true,

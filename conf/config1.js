@@ -1131,6 +1131,17 @@ let config = {
         `${process.env.LINKEDIN_START_URL_FIRST}${type}${process.env.LINKEDIN_START_URL_SECOND}${type}:${idPost}${process.env.LINKEDIN_START_URL_THIRD}${organization}`,
     linkedinUgcPostStats: (idPost) =>
         `${process.env.LINKEDIN_UGC_POST_FIRST}${idPost}${process.env.LINKEDIN_UGC_POST_SECOND}`,
+    linkedinPages: (accessToken) => {
+        return {
+            url: 'https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + accessToken,
+                'X-Restli-Protocol-Version': '2.0.0',
+            },
+            json: true,
+        }
+    },
 }
 
 let oauth = {
@@ -1193,6 +1204,7 @@ let pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
 
 let pathBtcSegwit = "m/84'/0'/0'/0/0"
 let pathEth = "m/44'/60'/0'/0/0'"
+
 module.exports.pathBtcSegwit = pathBtcSegwit
 
 module.exports.pathEth = pathEth

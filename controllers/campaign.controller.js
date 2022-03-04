@@ -115,6 +115,7 @@ const {
     limitStats,
     answerCall,
 } = require('../manager/oracles')
+const { updateStat } = require('../helpers/common')
 
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -1760,5 +1761,13 @@ exports.rejectLink = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
+    }
+}
+
+module.exports.updateStatistics = async (req, res) => {
+    try {
+        updateStat()
+    } catch (err) {
+        console.log(err.message)
     }
 }
