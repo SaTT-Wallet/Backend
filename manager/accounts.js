@@ -79,10 +79,8 @@ exports.isBlocked = async (user, auth = false) => {
     if (auth) {
         if (user.account_locked) {
             if (
-                accountManager.differenceBetweenDates(
-                    user.date_locked,
-                    dateNow
-                ) < process.env.lockedPeriod
+                this.differenceBetweenDates(user.date_locked, dateNow) <
+                process.env.lockedPeriod
             ) {
                 logBlock.date_locked = dateNow
                 logBlock.failed_count = 0
@@ -103,7 +101,7 @@ exports.isBlocked = async (user, auth = false) => {
             res = true
         } else if (
             !user.account_locked &&
-            failed_count >= bad_login_limit &&
+            failed_count >= process.env.bad_login_limit &&
             accountManager.differenceBetweenDates(
                 user.dateFirstAttempt,
                 dateNow
@@ -113,7 +111,8 @@ exports.isBlocked = async (user, auth = false) => {
             logBlock.failed_count = 0
             logBlock.date_locked = dateNow
             res = true
-        } else if (failed_count >= bad_login_limit) logBlock.failed_count = 1
+        } else if (failed_count >= process.env.bad_login_limit)
+            logBlock.failed_count = 1
     }
     if (Object.keys(logBlock).length)
         await User.updateOne({ _id: user._id }, { $set: logBlock })
