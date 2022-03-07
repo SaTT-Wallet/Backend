@@ -622,7 +622,11 @@ module.exports.getQrCode = async (req, res) => {
         })
         await User.updateOne({ _id: id }, { $set: { secret: secret.ascii } })
         qrcode.toDataURL(secret.otpauth_url, (err, data) => {
-            return responseHandler.makeResponseData(res, 200, 'success', data)
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                qrCode: data,
+                secret: secret.base32,
+                googleAuthName: `SaTT_Token ${req.params.id}`,
+            })
         })
     } catch (err) {
         return responseHandler.makeResponseError(
