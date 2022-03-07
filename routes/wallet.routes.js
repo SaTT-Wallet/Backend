@@ -7,7 +7,6 @@ const {
     exportBtc,
     // bridge,
     payementRequest,
-    getQuote,
     transfertEther,
     transfertBNB,
     transfertBtc,
@@ -380,98 +379,6 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *          description: code,<br>error:"error"
  */
 router.post('/transfertEther', verifyAuth, transfertEther)
-
-/**
- * @swagger
- * /wallet/getQuote:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: get quote.
- *     description: initial step to interact with the wallet api of simplex to asking for prices details.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               digital_currency:
- *                 type: string!
- *               fiat_currency:
- *                 type: string
- *               requested_amount:
- *                 type: number
- *               requested_currency:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "404":
- *          description: code,<br>error:"Wallet not found"
- *       "403":
- *          description: code,<br>error:"Please enter amount of 50 USD or more"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/getQuote', verifyAuth, getQuote)
-
-/**
- * @swagger
- * /wallet/payementRequest:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary:  payement request in simplex.
- *     description: simplex process the payement and send the payment_id.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               currency:
- *                 type: string
- *               quote_id:
- *                 type: string
- *               idWallet:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "404":
- *          description: code,<br>error:"Wallet not found"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/payementRequest', verifyAuth, payementRequest)
-
-// /**
-//  * @swagger
-//  * /wallet/bridge:
-//  *   post:
-//  *     tags:
-//  *     - "wallets"
-//  *     summary: swap satt erc20 to bep20 and the opposite.
-//  *     description: to swap satt from bep20 to erc20 you need to use direction="bte", from erc20 to bep20 you need to use direction="etb".
-//  *     requestBody:
-//  *       content:
-//  *         application/json:
-//  *           schema:      # Request body contents
-//  *             type: object
-//  *             properties:
-//  *               direction:
-//  *                 type: string
-//  *               password:
-//  *                 type: string
-//  *               amount:
-//  *                 type: string
-//  *     responses:
-//  *       "200":
-//  *          description: transactionHash:transactionHash,address:address,to:to,amount:amount
-//  *       "500":
-//  *          description: error:error message
-//  */
-// router.post('/bridge', verifyAuth, bridge)
 
 /**
  * @swagger
