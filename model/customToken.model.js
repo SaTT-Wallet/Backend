@@ -6,6 +6,7 @@ const customTokenSchema = mongoose.Schema(
         decimal: { type: Number },
         symbol: { type: String },
         network: { type: String },
+        picUrl: { type: String },
         tokenName: { type: String },
         sn_users: [{ type: Number, required: true, ref: 'sn_user' }],
     },
