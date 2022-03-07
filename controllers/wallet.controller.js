@@ -11,7 +11,7 @@ const {
     bep20Connexion,
 } = require('../blockchainConnexion')
 
-const { configSendBox } = require('../conf/config1')
+const { configSendBox } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -19,7 +19,7 @@ const { synfonyHash } = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
-const { Constants } = require('../conf/const2')
+const { Constants } = require('../conf/const')
 const {
     unlock,
     lock,
@@ -43,7 +43,7 @@ const {
 
 const { notificationManager } = require('../manager/accounts')
 
-const { payementRequest } = require('../conf/config1')
+const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
@@ -149,11 +149,6 @@ exports.userBalance = async (req, res) => {
         }
     } catch (err) {
         console.log(err)
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
     }
 }
 
@@ -239,7 +234,6 @@ exports.transfertErc20 = async (req, res) => {
             var amount = req.body.amount
             var tokenName = req.body.symbole
             var cred = await unlock(req, res)
-            cred.from_id = req.user._id
             var result = await getAccount(req, res)
             let balance = await getBalance(
                 cred.Web3ETH,
@@ -305,7 +299,6 @@ exports.transfertBep20 = async (req, res) => {
             var to = req.body.to
             var amount = req.body.amount
             var cred = await unlockBsc(req, res)
-            cred.from_id = req.user._id
             req.body.token = !req.body.token
                 ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
                 : req.body.token
@@ -336,7 +329,7 @@ exports.transfertBep20 = async (req, res) => {
             )
         }
     } catch (err) {
-        // console.log(err)
+        console.log(err)
     } finally {
         cred && lockBSC(cred)
         if (ret && ret.transactionHash) {
@@ -410,7 +403,6 @@ exports.checkWalletToken = async (req, res) => {
             })
         }
     } catch (err) {
-        // console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -534,7 +526,6 @@ exports.transfertBtc = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -549,7 +540,6 @@ exports.transfertBNB = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             var cred = await unlockBsc(req, res)
-            cred.from_id = req.user._id
             var to = req.body.to
             var amount = req.body.val
             var result = await getAccount(req, res)
@@ -615,7 +605,6 @@ exports.transfertEther = async (req, res) => {
                 )
             }
             var cred = await unlock(req, res)
-            cred.from_id = req.user._id
             var ret = await transferEther(to, amount, cred)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -876,12 +865,9 @@ exports.createNewWallet = async (req, res) => {
         } else {
             var ret = await createSeed(req, res)
 
-            console.log('ret', ret)
-
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,

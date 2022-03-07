@@ -11,7 +11,7 @@ let path = require('path')
 const package = require('./package.json')
 var bodyParser = require('body-parser')
 
-const { mongoConnection } = require('./conf/config1')
+const { mongoConnection } = require('./conf/config')
 
 const loginroutes = require('./routes/login.routes')
 const walletroutes = require('./routes/wallet.routes')
