@@ -95,7 +95,7 @@ exports.exportkeyBtc = async (req, res) => {
         return responseHandler.makeResponseError(res, 404, 'Account not found')
     }
 }
-exports.exportkey = async function (req, res) {
+exports.exportkey = async (req, res) => {
     let id = req.user._id
     let pass = req.body.pass
     let account = await Wallet.findOne({ UserId: parseInt(id) })
