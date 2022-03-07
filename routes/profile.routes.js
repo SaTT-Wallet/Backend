@@ -1,13 +1,5 @@
 var express = require('express')
 var app = express()
-var connection
-;(connection = async function () {
-    app = await require('../conf/config')(app)
-    app = await require('../conf/const')(app)
-    app = await require('../web3/provider')(app)
-    app = await require('../manager/account')(app)
-    app = await require('../manager/i18n')(app)
-})()
 
 const passport = require('passport')
 var FbStrategy = require('passport-facebook').Strategy
@@ -83,6 +75,12 @@ const {
     linkGoogleAccount,
     linkFacebookAccount,
 } = require('../middleware/passport.middleware')
+const {
+    facebookCredentials,
+    twitterCredentials,
+    linkedinCredentials,
+    googleCredentials,
+} = require('../conf/config')
 
 /**
  * @swagger
@@ -426,7 +424,7 @@ router.get('/addChannel/facebook/:idUser', (req, res, next) => {
 passport.use(
     'facebook_strategy_add_channel',
     new FbStrategy(
-        app.config.facebookCredentials('profile/callback/addChannel/facebook'),
+        facebookCredentials('profile/callback/addChannel/facebook'),
         async (req, accessToken, refreshToken, profile, cb) => {
             addFacebookChannel(req, accessToken, refreshToken, profile, cb)
         }
@@ -437,7 +435,7 @@ router.get(
     '/callback/addChannel/facebook',
     passport.authenticate('facebook_strategy_add_channel', {
         failureRedirect:
-            app.config.basedURl +
+            process.env.BASED_URL +
             '/home/settings/social-networks?message=access-denied',
     }),
     async (req, response) => {
@@ -445,7 +443,7 @@ router.get(
             redirect = req.query.state.split('|')[1]
             let message = req.authInfo.message
             response.redirect(
-                app.config.basedURl +
+                process.env.BASED_URL +
                     redirect +
                     '?message=' +
                     message +
@@ -483,7 +481,7 @@ router.get('/addChannel/twitter/:idUser', (req, res, next) => {
 passport.use(
     'twitter_strategy_add_channel',
     new TwitterStrategy(
-        app.config.twitterCredentials('profile/callback/addChannel/twitter'),
+        twitterCredentials('profile/callback/addChannel/twitter'),
         async (req, accessToken, tokenSecret, profile, cb) => {
             addTwitterChannel(req, accessToken, tokenSecret, profile, cb)
         }
@@ -494,7 +492,7 @@ router.get(
     '/callback/addChannel/twitter',
     passport.authenticate('twitter_strategy_add_channel', {
         failureRedirect:
-            app.config.basedURl +
+            process.env.BASED_URL +
             '/home/settings/social-networks?message=access-denied',
     }),
     async function (req, response) {
@@ -506,7 +504,7 @@ router.get(
                 message = 'account_linked_with_success'
             }
             response.redirect(
-                app.config.basedURl + redirect + '?message=' + message
+                process.env.BASED_URL + redirect + '?message=' + message
             )
         } catch (e) {
             console.log(e)
@@ -538,7 +536,7 @@ router.get('/addChannel/linkedin/:idUser', (req, res, next) => {
 passport.use(
     'linkedin_strategy_add_channel',
     new LinkedInStrategy(
-        app.config.linkedinCredentials('profile/callback/addChannel/linkedin'),
+        linkedinCredentials('profile/callback/addChannel/linkedin'),
         async (req, accessToken, refreshToken, profile, done) => {
             addlinkedinChannel(req, accessToken, refreshToken, profile, done)
         }
@@ -553,7 +551,7 @@ router.get(
             let redirect = req.query.state.split('|')[1]
             let message = req.authInfo.message
             res.redirect(
-                app.config.basedURl +
+                process.env.BASED_URL +
                     redirect +
                     '?message=' +
                     message +
@@ -595,7 +593,7 @@ router.get('/addChannel/youtube/:idUser', (req, res, next) => {
 passport.use(
     'youtube_strategy_add_channel',
     new GoogleStrategy(
-        app.config.googleCredentials('profile/callback/addChannel/youtube'),
+        googleCredentials('profile/callback/addChannel/youtube'),
         async (req, accessToken, refreshToken, profile, cb) => {
             addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
         }
@@ -613,7 +611,9 @@ router.get(
             } else {
                 message = 'account_linked_with_success'
             }
-            res.redirect(app.config.basedURl + redirect + '?message=' + message)
+            res.redirect(
+                process.env.BASED_URL + redirect + '?message=' + message
+            )
         } catch (err) {
             res.end(
                 '{"error":"' + (err.message ? err.message : err.error) + '"}'
@@ -891,7 +891,7 @@ router.get('/connect/facebook/:idUser', (req, res, next) => {
 passport.use(
     'link_facebook_account',
     new FbStrategy(
-        app.config.facebookCredentials('profile/callback/link/facebook'),
+        facebookCredentials('profile/callback/link/facebook'),
         async (req, accessToken, refreshToken, profile, cb) => {
             linkFacebookAccount(req, accessToken, refreshToken, profile, cb)
         }
@@ -902,7 +902,7 @@ router.get(
     '/callback/link/facebook',
     passport.authenticate('link_facebook_account', {
         failureRedirect:
-            app.config.basedURl +
+            process.env.BASED_URL +
             '/home/settings/social-networks?message=access-denied',
     }),
     async (req, response) => {
@@ -910,7 +910,7 @@ router.get(
             let state = req.query.state.split('|')
             let url = state[1]
             response.redirect(
-                app.config.basedURl + url + '?message=' + req.authInfo.message
+                process.env.BASED_URL + url + '?message=' + req.authInfo.message
             )
         } catch (e) {
             console.log(e)
@@ -941,7 +941,7 @@ router.get('/connect/google/:idUser', (req, res, next) => {
 passport.use(
     'link_google_account',
     new GoogleStrategy(
-        app.config.googleCredentials('profile/callback/link/google'),
+        googleCredentials('profile/callback/link/google'),
         async (req, accessToken, refreshToken, profile, done) => {
             linkGoogleAccount(req, accessToken, refreshToken, profile, done)
         }
@@ -952,7 +952,7 @@ router.get(
     '/callback/link/google',
     passport.authenticate('link_google_account', {
         failureRedirect:
-            app.config.basedURl +
+            process.env.BASED_URL +
             '/home/settings/social-networks?message=access-denied',
     }),
     async (req, res) => {
@@ -960,7 +960,7 @@ router.get(
             let state = req.query.state.split('|')
             let url = state[1]
             let message = req.authInfo.message
-            res.redirect(app.config.basedURl + url + '?message=' + message)
+            res.redirect(process.env.BASED_URL + url + '?message=' + message)
         } catch (e) {
             console.log(e)
         }
@@ -989,7 +989,7 @@ passport.use(
     'link_telegram_account',
     new TelegramStrategy(
         {
-            botToken: app.config.telegramBotToken,
+            botToken: process.env.TELEGRAM_BOT_TOKEN,
             passReqToCallback: true,
         },
         async (req, profile, cb) => {

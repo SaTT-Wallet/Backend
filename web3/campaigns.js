@@ -8,8 +8,8 @@ const {
     getContractCampaigns,
 } = require('../blockchainConnexion')
 
-const { Constants } = require('../conf/const2')
-const { config } = require('../conf/config1')
+const { Constants } = require('../conf/const')
+const { config } = require('../conf/config')
 const rp = require('request-promise')
 
 exports.unlock = async (req, res) => {
@@ -94,7 +94,7 @@ exports.getAccount = async (req, res) => {
             try {
                 var utxo = JSON.parse(
                     child.execSync(
-                        app.config.btcCmd +
+                        process.env.BTC_CMD +
                             ' listunspent 1 1000000 \'["' +
                             account.btc.addressSegWitCompat +
                             '"]\''
@@ -216,7 +216,6 @@ exports.createBountiesCampaign = async (
 }
 
 exports.bep20Allow = async (token, credentials, spender, amount, res) => {
-    console.log('approve', token, credentials.address, spender, amount)
     try {
         var contract = new credentials.Web3BEP20.eth.Contract(
             Constants.token.abi,
@@ -232,13 +231,7 @@ exports.bep20Allow = async (token, credentials, spender, amount, res) => {
             .once('transactionHash', function (transactionHash) {
                 console.log('approve transactionHash', transactionHash)
             })
-        console.log(
-            receipt.transactionHash,
-            'confirmed approval from',
-            credentials.address,
-            'to',
-            spender
-        )
+
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
@@ -257,7 +250,6 @@ exports.bep20Approve = async (token, address, spender) => {
         let Web3BEP20 = await bep20Connexion()
         var contract = new Web3BEP20.eth.Contract(Constants.token.abi, token)
         var amount = await contract.methods.allowance(address, spender).call()
-        console.log('approval', address, 'for', spender, amount.toString())
         return { amount: amount.toString() }
     } catch (err) {
         return { amount: '0' }
@@ -280,11 +272,7 @@ exports.erc20Allow = async (token, credentials, spender, amount, res) => {
             .once('transactionHash', (transactionHash) => {
                 console.log('approve transactionHash', transactionHash)
             })
-        console.log(
-            'approve',
-            credentials.address,
-            `confirmed approval to ${spender}`
-        )
+
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
@@ -390,7 +378,6 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
 }
 
 exports.getUserIdByWallet = async (wallet) => {
-    console.log(wallet)
     let user = await Wallet.findOne({ 'keystore.address': wallet })
     return user.UserId
 }

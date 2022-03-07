@@ -61,13 +61,11 @@ describe('Campaign Management', () => {
             })
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -123,13 +121,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('updated')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -158,13 +154,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -195,13 +189,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -324,7 +316,6 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
@@ -332,7 +323,6 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
