@@ -11,7 +11,7 @@ const {
     bep20Connexion,
 } = require('../blockchainConnexion')
 
-const { configSendBox } = require('../conf/config1')
+const { configSendBox } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -19,7 +19,7 @@ const { synfonyHash } = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
-const { Constants } = require('../conf/const2')
+const { Constants } = require('../conf/const')
 const {
     unlock,
     lock,
@@ -43,7 +43,7 @@ const {
 
 const { notificationManager } = require('../manager/accounts')
 
-const { payementRequest } = require('../conf/config1')
+const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')

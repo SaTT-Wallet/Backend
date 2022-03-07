@@ -26,7 +26,7 @@ const { getPrices } = require('../web3/wallets')
 const { fundCampaign } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
-const { mongoConnection } = require('../conf/config1')
+const { mongoConnection } = require('../conf/config')
 
 const storage = new GridFsStorage({
     url: mongoConnection().mongoURI,

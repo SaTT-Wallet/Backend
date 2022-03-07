@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 autoIncrement = require('mongoose-auto-increment')
-const { mongoConnection } = require('../conf/config1')
+const { mongoConnection } = require('../conf/config')
 
 const db = mongoose.createConnection(mongoConnection().mongoURI)
 autoIncrement.initialize(db)
