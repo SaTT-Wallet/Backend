@@ -2997,5 +2997,17 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		}
 	});
 
+
+	app.get('/coverByCampaign/:id', async(req,res)=>{
+		let campaign=await app.db.campaigns().findOne({_id:ObjectId(req.params.id)});
+		var img = Buffer.from(campaign.cover, 'base64');
+	
+	   res.writeHead(200, {
+		 'Content-Type': 'image/png',
+		 'Content-Length': img.length
+	   });
+		 res.end(img); 
+		});
+
 	return app;
 }
