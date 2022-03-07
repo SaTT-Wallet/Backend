@@ -1200,20 +1200,13 @@ module.exports.linkStats = async (req, res) => {
 module.exports.increaseBudget = async (req, res) => {
     var pass = req.body.pass
     var hash = req.body.hash
-    var token = req.body.ERC20token
+    var token = req.body.tokenAddress
     var amount = req.body.amount
-
     try {
         var cred = await unlock(req, res)
+
         var ret = await fundCampaign(hash, token, amount, cred)
 
-        if (!ret) {
-            return responseHandler.makeResponseError(
-                res,
-                400,
-                'transaction failed'
-            )
-        }
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1223,7 +1216,7 @@ module.exports.increaseBudget = async (req, res) => {
         )
     } finally {
         cred && lock(cred)
-        if (ret.transactionHash) {
+        if (ret?.transactionHash) {
             const ctr = await getCampaignContractByHashCampaign(hash)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
             await Campaigns.findOne({ hash: hash }, async (err, result) => {
@@ -1245,14 +1238,6 @@ exports.getFunds = async (req, res) => {
         var cred = await unlock(req, res)
         let campaignDetails = await Campaigns.findOne({ hash })
         var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
-
-        if (!ret) {
-            return responseHandler.makeResponseError(
-                res,
-                400,
-                'operation failed'
-            )
-        }
 
         return responseHandler.makeResponseData(res, 200, 'Token added', ret)
     } catch (err) {

@@ -47,7 +47,7 @@ describe('LOgin Management', () => {
 
             expect(result.result).to.be.an('object')
         } catch (error) {
-            console.log(error)
+            // console.log(error)
         }
     })
 
@@ -424,7 +424,7 @@ describe('LOgin Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Email sent')
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -569,12 +569,12 @@ describe('LOgin Management', () => {
     it('Register with social for apple', async () => {
         let url = `${baseUrl}/auth/socialSignup`
 
-        let name = ''
-        let idSn = 'youssef@atayen.us'
-        let id = ''
-        let photo = ''
-        let givenName = ''
-        let familyName = ''
+        let name = 'ssss'
+        let idSn = '0'
+        let id = '123456'
+        let photo = 'sss'
+        let givenName = 'ss'
+        let familyName = 'sss'
 
         let options = {
             headers: {
@@ -604,7 +604,7 @@ describe('LOgin Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
+            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
