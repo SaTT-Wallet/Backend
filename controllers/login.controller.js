@@ -544,8 +544,6 @@ exports.socialSignUp = async (req, res) => {
         snUser[socialField] = req.body.id
         let user = await User.findOne({ [socialField]: req.body.id })
 
-        console.log(req.body)
-
         if (user) {
             return responseHandler.makeResponseError(
                 res,
@@ -567,7 +565,6 @@ exports.socialSignUp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -625,7 +622,11 @@ module.exports.getQrCode = async (req, res) => {
         })
         await User.updateOne({ _id: id }, { $set: { secret: secret.ascii } })
         qrcode.toDataURL(secret.otpauth_url, (err, data) => {
-            return responseHandler.makeResponseData(res, 200, 'success', data)
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                qrCode: data,
+                secret: secret.base32,
+                googleAuthName: `SaTT_Token ${req.params.id}`,
+            })
         })
     } catch (err) {
         return responseHandler.makeResponseError(
