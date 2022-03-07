@@ -149,11 +149,6 @@ exports.userBalance = async (req, res) => {
         }
     } catch (err) {
         console.log(err)
-        // return responseHandler.makeResponseError(
-        //     res,
-        //     500,
-        //     err.message ? err.message : err.error
-        // )
     }
 }
 
@@ -334,7 +329,7 @@ exports.transfertBep20 = async (req, res) => {
             )
         }
     } catch (err) {
-        // console.log(err)
+        console.log(err)
     } finally {
         cred && lockBSC(cred)
         if (ret && ret.transactionHash) {
@@ -408,7 +403,6 @@ exports.checkWalletToken = async (req, res) => {
             })
         }
     } catch (err) {
-        // console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -532,7 +526,6 @@ exports.transfertBtc = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -875,7 +868,6 @@ exports.createNewWallet = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,

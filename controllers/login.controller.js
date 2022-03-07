@@ -544,8 +544,6 @@ exports.socialSignUp = async (req, res) => {
         snUser[socialField] = req.body.id
         let user = await User.findOne({ [socialField]: req.body.id })
 
-        console.log(req.body)
-
         if (user) {
             return responseHandler.makeResponseError(
                 res,
@@ -567,7 +565,6 @@ exports.socialSignUp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,

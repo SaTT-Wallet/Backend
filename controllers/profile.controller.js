@@ -220,9 +220,6 @@ exports.addUserLegalProfile = async (req, res) => {
         const idNode = '0' + id
         let type = req.body.type
 
-        // console.log('body', req.body)
-        // console.log('---------', req.file)
-
         if (type && req.file) {
             await gfsUserLegal.files.deleteMany({
                 $and: [{ idNode }, { type }],
@@ -253,7 +250,6 @@ exports.addUserLegalProfile = async (req, res) => {
         }
         return makeResponseError(res, 404, 'Only images allowed')
     } catch (err) {
-        console.log(err)
         return makeResponseError(
             res,
             500,
@@ -665,7 +661,6 @@ module.exports.changeEmail = async (req, res) => {
             return makeResponseData(res, 200, 'Email was sent to ' + email)
         }
     } catch (err) {
-        // console.log('error', err)
         return makeResponseError(
             res,
             500,
@@ -809,7 +804,6 @@ module.exports.verifyLink = async (req, response) => {
                 res ? 'true' : 'false'
             )
     } catch (err) {
-        // console.log('err', err)
         return makeResponseError(
             response,
             500,
