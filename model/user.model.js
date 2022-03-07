@@ -3,7 +3,12 @@ const mongoose = require('mongoose')
 autoIncrement = require('mongoose-auto-increment')
 const { mongoConnection } = require('../conf/config')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI)
+const db = mongoose.createConnection(mongoConnection().mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+})
 autoIncrement.initialize(db)
 const userSchema = mongoose.Schema(
     {
