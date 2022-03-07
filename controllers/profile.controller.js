@@ -34,7 +34,7 @@ const QRCode = require('qrcode')
 const mongoose = require('mongoose')
 let gfsprofilePic
 let gfsUserLegal
-const { mongoConnection, oauth } = require('../conf/config1')
+const { mongoConnection, oauth } = require('../conf/config')
 
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 

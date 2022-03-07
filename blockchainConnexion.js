@@ -5,7 +5,7 @@ const {
     bep20TokenCampaigns,
     web3UrlBep20,
     web3Url,
-} = require('./conf/const2')
+} = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const options = {
     timeout: 30000,

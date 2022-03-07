@@ -1,13 +1,5 @@
 var express = require('express')
 var app = express()
-var connection
-;(connection = async function () {
-    app = await require('../conf/config')(app)
-    app = await require('../conf/const')(app)
-    app = await require('../web3/provider')(app)
-    app = await require('../manager/account')(app)
-    app = await require('../manager/i18n')(app)
-})()
 
 const passport = require('passport')
 let router = express.Router()
@@ -74,6 +66,11 @@ const {
     signin_telegram_function,
     verifyAuth,
 } = require('../middleware/passport.middleware')
+const {
+    persmissionsObjFb,
+    facebookCredentials,
+    googleCredentials,
+} = require('../conf/config')
 
 function authSignInErrorHandler(err, req, res, next) {
     let message = err.message ? err.message : err
@@ -360,15 +357,16 @@ router.post('/signup/mail', emailSignup)
  *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/signup/facebook', async (req, res, next) => {
-    passport.authenticate(
-        'auth_signup_facebookStrategy',
-        app.config.persmissionsObjFb
-    )(req, res, next)
+    passport.authenticate('auth_signup_facebookStrategy', persmissionsObjFb)(
+        req,
+        res,
+        next
+    )
 })
 passport.use(
     'auth_signup_facebookStrategy',
     new FbStrategy(
-        app.config.facebookCredentials('auth/callback/facebook/signup'),
+        facebookCredentials('auth/callback/facebook/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
             facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
@@ -416,7 +414,7 @@ router.get('/signin/facebook', async (req, res, next) => {
 passport.use(
     'facebook_strategy_connection',
     new FbStrategy(
-        app.config.facebookCredentials('auth/callback/facebook/connection'),
+        facebookCredentials('auth/callback/facebook/connection'),
         async function (req, accessToken, refreshToken, profile, cb) {
             facebookAuthSignin(req, accessToken, refreshToken, profile, cb)
         }
@@ -466,7 +464,7 @@ router.get('/signup/google', async (req, res, next) => {
 passport.use(
     'auth_signup_googleStrategy',
     new GoogleStrategy(
-        app.config.googleCredentials('auth/callback/google/signup'),
+        googleCredentials('auth/callback/google/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
             googleAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
@@ -485,7 +483,7 @@ router.get(
             scope: 'user',
         }
         response.redirect(
-            app.config.basedURl + '/auth/login?token=' + JSON.stringify(param)
+            process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
     },
     authSignInErrorHandler
@@ -512,7 +510,7 @@ router.get('/signin/google', async (req, res, next) => {
 passport.use(
     'google_strategy_connection',
     new GoogleStrategy(
-        app.config.googleCredentials('auth/callback/google/connection'),
+        googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
             googleAuthSignin(req, accessToken, refreshToken, profile, cb)
         }
@@ -532,7 +530,7 @@ router.get(
             scope: 'user',
         }
         response.redirect(
-            app.config.basedURl + '/auth/login?token=' + JSON.stringify(param)
+            process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
     },
     authSignInErrorHandler
@@ -560,7 +558,7 @@ passport.use(
     'auth_signup_telegramStrategy',
     new TelegramStrategy(
         {
-            botToken: app.config.telegramBotToken,
+            botToken: process.env.TELEGRAM_BOT_TOKEN,
             passReqToCallback: true,
         },
         async function (req, profile, cb) {
@@ -591,7 +589,7 @@ passport.use(
     'telegramStrategyConnection',
     new TelegramStrategy(
         {
-            botToken: app.config.telegramBotToken,
+            botToken: process.env.TELEGRAM_BOT_TOKEN,
             passReqToCallback: true,
         },
         async function (req, profile, cb) {

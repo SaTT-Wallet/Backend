@@ -1,4 +1,4 @@
-const { linkedinActivityUrl, config, oauth } = require('../conf/config1')
+const { linkedinActivityUrl, config, oauth } = require('../conf/config')
 var rp = require('request-promise')
 const {
     FbPage,
