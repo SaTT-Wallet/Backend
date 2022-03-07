@@ -385,7 +385,7 @@ exports.getListCryptoByUid = async (req, res) => {
                 ? token_info[T_name].contract
                 : false
             crypto.contract = token_info[T_name].contract
-            crypto.decimal = token_info[T_name].dicimal
+            crypto.decimal = +token_info[T_name].dicimal
             crypto.network = network
             crypto.undername = token_info[T_name].undername
             crypto.undername2 = token_info[T_name].undername2
