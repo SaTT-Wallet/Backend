@@ -561,7 +561,7 @@ exports.transfertBNB = async (req, res) => {
         console.log(err)
     } finally {
         cred && lockBSC(cred)
-        if (ret.transactionHash && ret) {
+        if (ret?.transactionHash && ret) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
                 currency: 'BNB',
