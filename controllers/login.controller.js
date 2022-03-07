@@ -20,7 +20,7 @@ const {
     updateAndGenerateCode,
 } = require('../manager/accounts.js')
 
-const { loginSettings } = require('../conf/config1')
+const { loginSettings } = require('../conf/config')
 
 exports.changePassword = async (req, res) => {
     try {

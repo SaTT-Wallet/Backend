@@ -10,7 +10,7 @@ var bip38 = require('bip38')
 var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
-const { Constants } = require('../conf/const2')
+const { Constants } = require('../conf/const')
 const {
     Tokens,
     token200,
@@ -20,7 +20,7 @@ const {
     pathBtcSegwit,
     pathEth,
     booltestnet,
-} = require('../conf/config1')
+} = require('../conf/config')
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -154,7 +154,7 @@ exports.getAccount = async (req, res) => {
             try {
                 var utxo = JSON.parse(
                     child.execSync(
-                        app.config.btcCmd +
+                        process.env.BTC_CMD +
                             ' listunspent 1 1000000 \'["' +
                             account.btc.addressSegWitCompat +
                             '"]\''
@@ -643,7 +643,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
 
     var utxo = JSON.parse(
         child.execSync(
-            app.config.btcCmd + ' listunspent 1 1000000 \'["' + addr + '"]\''
+            process.env.BTC_CMD + ' listunspent 1 1000000 \'["' + addr + '"]\''
         )
     )
 
@@ -657,7 +657,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
     }
     max = Math.floor(parseFloat(max) * 100000000)
 
-    var body = await rp({ uri: app.config.BtcFees, json: true })
+    var body = await rp({ uri: process.env.BTS_FEES, json: true })
     var feeRate = 150 // parseInt(body.fastestFee);
 
     var maxFee = 20000
@@ -703,9 +703,8 @@ exports.sendBtc = async function (id, pass, to, amount) {
     var hash = tx.getId()
 
     var rec = child.execSync(
-        app.config.btcCmd + ' sendrawtransaction "' + signed + '"'
+        process.env.BTC_CMD + ' sendrawtransaction "' + signed + '"'
     )
-    //var rec = await rp({uri:app.config.btcElectrumUrl+"tx/",method: 'POST',body:{tx:signed},json: true});
     return hash
 }
 

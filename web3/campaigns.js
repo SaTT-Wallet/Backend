@@ -8,8 +8,8 @@ const {
     getContractCampaigns,
 } = require('../blockchainConnexion')
 
-const { Constants } = require('../conf/const2')
-const { config } = require('../conf/config1')
+const { Constants } = require('../conf/const')
+const { config } = require('../conf/config')
 const rp = require('request-promise')
 
 exports.unlock = async (req, res) => {
@@ -94,7 +94,7 @@ exports.getAccount = async (req, res) => {
             try {
                 var utxo = JSON.parse(
                     child.execSync(
-                        app.config.btcCmd +
+                        process.env.BTC_CMD +
                             ' listunspent 1 1000000 \'["' +
                             account.btc.addressSegWitCompat +
                             '"]\''
