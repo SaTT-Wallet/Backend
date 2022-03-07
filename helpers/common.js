@@ -7,7 +7,6 @@ var LinkedinProfile = require('../model/linkedinProfile.model')
 
 var Wallet = require('../model/wallet.model')
 var Event = require('../model/event.model')
-var Ban = require('../model/ban.model')
 var Request = require('../model/request.model')
 var User = require('../model/user.model')
 var TwitterProfile = require('../model/twitterProfile.model')

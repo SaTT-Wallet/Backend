@@ -26,7 +26,7 @@ const { getPrices } = require('../web3/wallets')
 const { fundCampaign } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
-const { mongoConnection } = require('../conf/config1')
+const { mongoConnection } = require('../conf/config')
 
 const storage = new GridFsStorage({
     url: mongoConnection().mongoURI,
@@ -210,7 +210,6 @@ module.exports.launchBounty = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -417,8 +416,6 @@ exports.campaignPromp = async (req, res) => {
                             result.abosNumber,
                             reachLimit
                         )
-
-                    console.log('ratio', ratio)
                     ratio.forEach((num) => {
                         if (
                             num.oracle === result.oracle ||
@@ -488,7 +485,6 @@ exports.campaignPromp = async (req, res) => {
             })
         }
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -555,7 +551,6 @@ exports.apply = async (req, res) => {
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost)
-            console.log('prom,,,,,,,', prom.instagramUserName)
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
@@ -576,16 +571,13 @@ exports.apply = async (req, res) => {
             prom.isPayed = false
             prom.appliedDate = date
             prom.oracle = findBountyOracle(prom.typeSN)
-            console.log('1111', prom)
             var insert = await CampaignLink.create(prom)
-            console.log('before')
             prom.abosNumber = await answerAbos(
                 prom.typeSN,
                 prom.idPost,
                 idUser,
                 linkedinProfile
             )
-            console.log('after', prom.abosNumber)
             let userWallet = await Wallet.findOne(
                 {
                     'keystore.address': prom.id_wallet
@@ -601,7 +593,6 @@ exports.apply = async (req, res) => {
                 userId,
                 linkedinProfile
             )
-            console.log('social', socialOracle)
             if (socialOracle.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
             ;(prom.likes = socialOracle.likes),
@@ -740,7 +731,6 @@ exports.validateCampaign = async (req, res) => {
                 userId,
                 linkedinProfile
             )
-            console.log(socialOracle)
             socialOracle.abosNumber =
                 campaign.bounties.length ||
                 (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
@@ -805,8 +795,6 @@ exports.gains = async (req, res) => {
 
         var gasPrice = await ctr.getGasPrice()
         let prom = await ctr.methods.proms(idProm).call()
-
-        console.log('gasPrice', gasPrice)
         var linkedinData =
             prom.typeSN == '5' &&
             (await LinkedinProfile.findOne(
@@ -962,7 +950,6 @@ exports.gains = async (req, res) => {
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        // console.log('errrrrrr', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1202,7 +1189,6 @@ module.exports.linkStats = async (req, res) => {
             info.totalToEarn = campaign.funds[1]
         return responseHandler.makeResponseData(res, 200, 'success', info)
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1230,7 +1216,6 @@ module.exports.increaseBudget = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        // console.log('error...', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1359,7 +1344,6 @@ exports.bep20Allow = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        // console.log('-----errrr', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1529,11 +1513,6 @@ exports.getLinks = async (req, res) => {
         let arrayOfLinks = []
         let allProms = []
 
-        //    let verifWallet= await Wallet.findOne({'keystore.address':id_wallet })
-
-        //    console.log(verifWallet, 'verifWallet');
-        //     if(verifWallet){
-
         let query = filterLinks(req, id_wallet)
         var count = await CampaignLink.find(
             { id_wallet },
@@ -1606,7 +1585,6 @@ exports.getLinks = async (req, res) => {
             )
 
             if (campaign) {
-                console.log('enter')
                 let cmp = {}
                 const funds = campaign.funds ? campaign.funds[1] : campaign.cost
                 ;(cmp._id = campaign._id),
@@ -1757,7 +1735,6 @@ exports.rejectLink = async (req, res) => {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,

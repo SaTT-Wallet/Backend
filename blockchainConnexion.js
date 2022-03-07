@@ -5,7 +5,7 @@ const {
     bep20TokenCampaigns,
     web3UrlBep20,
     web3Url,
-} = require('./conf/const2')
+} = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const options = {
     timeout: 30000,
@@ -48,8 +48,6 @@ exports.erc20Connexion = async () => {
 
 exports.getContractByToken = async (token, credentials) => {
     try {
-        console.log('token from contract', token)
-
         let abiCampaign = Constants.campaign.abi
         if (erc20TokenCampaigns.includes(token.toLowerCase())) {
             var contract = new credentials.Web3ETH.eth.Contract(
@@ -140,8 +138,6 @@ exports.getOracleContractByCampaignContract = async (
     try {
         let abi = Constants.oracle.abi
         if (credentials.Web3ETH && credentials.Web3BEP20) {
-            console.log('ok')
-
             var Web3ETH = credentials?.Web3ETH
             var Web3BEP20 = credentials.Web3BEP20
         } else {

@@ -4,7 +4,7 @@ const { sendNotification } = require('./notification')
 
 var rp = require('request-promise')
 
-const { token200 } = require('../conf/config1')
+const { token200 } = require('../conf/config')
 
 exports.notificationManager = async (id, NotifType, label) => {
     try {
