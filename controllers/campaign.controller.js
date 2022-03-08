@@ -365,6 +365,7 @@ exports.campaignPromp = async (req, res) => {
             }
         )
         let ctr = await getCampaignContractByHashCampaign(campaign.hash)
+
         if (!ctr) {
             return responseHandler.makeResponseData(res, 200, 'success', {})
         } else {
