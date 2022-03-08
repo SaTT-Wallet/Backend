@@ -36,7 +36,11 @@ let gfsprofilePic
 let gfsUserLegal
 const { mongoConnection, oauth } = require('../conf/config')
 
-const conn = mongoose.createConnection(mongoConnection().mongoURI)
+const connect = mongoose.connect(mongoConnection().mongoURI, {
+    useNewUrlParser: true,
+})
+
+const conn = mongoose.connection
 
 conn.once('open', () => {
     gfsprofilePic = Grid(conn.db, mongoose.mongo)
@@ -52,8 +56,7 @@ var Long = require('mongodb').Long
 const multer = require('multer')
 
 const storageUserLegal = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
+    db: connect,
     file: (req, file) => {
         return new Promise((resolve, reject) => {
             const filename = file.originalname
@@ -61,13 +64,14 @@ const storageUserLegal = new GridFsStorage({
                 filename: filename,
                 bucketName: 'user_legal',
             }
+
             resolve(fileInfo)
         })
     },
 })
 
 const storageProfilePic = new GridFsStorage({
-    url: mongoConnection().mongoURI,
+    db: connect,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
