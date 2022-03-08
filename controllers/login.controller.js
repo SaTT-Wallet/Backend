@@ -360,7 +360,7 @@ exports.updateLastStep = async (req, res) => {
         let profile = req.body
         let password = Math.random().toString(36).slice(-8)
         let user = await User.findOne({ email: profile.email })
-        if (user && user._id !== id) {
+        if (user && user._id !== _id) {
             return responseHandler.makeResponseError(
                 res,
                 401,

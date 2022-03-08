@@ -76,6 +76,7 @@ const storageProfilePic = new GridFsStorage({
                 filename: filename,
                 bucketName: 'user_file',
             }
+
             resolve(fileInfo)
         })
     },
