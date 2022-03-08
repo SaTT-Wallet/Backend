@@ -28,6 +28,7 @@ var configTarget = {
     mongoBase:""
 }
 
+
 var urlSource = "mongodb://" + configSource.mongoUser + ":" + configSource.mongoPass + "@" + configSource.mongoHost + ":" + configSource.mongoPort;
 var urlTarget = "mongodb://" + configTarget.mongoUser + ":" + configTarget.mongoPass + "@" + configTarget.mongoHost + ":" + configTarget.mongoPort;
 
