@@ -1148,6 +1148,28 @@ let config = {
             json: true,
         }
     },
+    bridgeKeystore: {
+        version: 3,
+        id: '4dc797da-5601-4a6f-bc49-a5c2f2236467',
+        address: '359b39b916bb4df416dbea5a2de266dfa9b3bcbf',
+        crypto: {
+            ciphertext:
+                '2dba72cd6b838d3a2f28b8f3f41a456be5242de1970aeda4fa61a68a042e6352',
+            cipherparams: {
+                iv: 'e443f8ad2b0c58e55ef38d1c8e999cd8',
+            },
+            cipher: 'aes-128-ctr',
+            kdf: 'scrypt',
+            kdfparams: {
+                dklen: 32,
+                salt: 'a6b7ffa902f4e1b061401d5667f34de81693c59d38295a07a7da96a51897abf2',
+                n: 8192,
+                r: 8,
+                p: 1,
+            },
+            mac: 'a2597a2ab7ce0b365a8ccb9a87caebd32b9d03636dad3b50532b77683135a1c5',
+        },
+    },
 }
 
 let oauth = {
