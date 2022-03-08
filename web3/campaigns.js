@@ -1,4 +1,4 @@
-const { Wallet, Campaigns, Event } = require('../model/index')
+const { Wallet, Campaigns, Event, User } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
@@ -586,7 +586,7 @@ exports.influencersLinks = async (links) => {
                 if (ids.indexOf(wallets[i].UserId) == -1)
                     ids.push(wallets[i].UserId)
             }
-            let users = await User.find({ _id: { $in: ids } }).project({
+            let users = await User.find({ _id: { $in: ids } }).select({
                 email: 1,
                 _id: 1,
                 picLink: 1,
