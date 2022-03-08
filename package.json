@@ -7,7 +7,7 @@
     "main": "app.js",
     "scripts": {
         "test": "mocha --reporter spec --timeout  2000000",
-        "supervisor": "NODE_ENV=testnet supervisor ./bin/www",
+        "supervisor": "NODE_ENV=local supervisor ./bin/www",
         "prepare": "husky install",
         "newVersion": " node changepackage.js",
         "push": "git checkout developement && git pull && node changepackage.js develop  && git add package.json && git commit -m  NewVersionpackage && git push"
