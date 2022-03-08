@@ -38,6 +38,7 @@ let corsOptions = {
     origin: 'https://localhost', // Compliant
 }
 
+console.log('envir', process.env.NODE_ENV)
 let app = express()
 app.disable('x-powered-by')
 app.use(cors(corsOptions))
@@ -120,7 +121,8 @@ app.use(function (err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500)
-    res.render('error')
+    console.log('err', err)
+    //  res.render('error')
 })
 
 module.exports = app
