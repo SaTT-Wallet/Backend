@@ -85,7 +85,6 @@ const storageProfilePic = new GridFsStorage({
         })
     },
 })
-//const uploadUserLegal =  multer({storage : storageUserLegal})
 
 module.exports.uploadImageProfile = multer({
     storage: storageProfilePic,
