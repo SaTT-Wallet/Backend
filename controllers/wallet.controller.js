@@ -4,6 +4,7 @@ const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
+var fs = require('fs')
 
 const {
     getContractByToken,
@@ -39,6 +40,7 @@ const {
     transferNativeBNB,
     transferEther,
     FilterTransactionsByHash,
+    getTokenContractByToken,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -756,43 +758,76 @@ exports.payementRequest = async (req, res) => {
     }
 }
 
-// exports.bridge = async (req, res) => {
-//     let Direction = req.body.direction
-//     let pass = req.body.password
-//     let amount = req.body.amount
-//     var sattContract = app.config.ctrs.token.address.mainnet
-//     if (app.config.testnet) {
-//         sattContract = app.config.ctrs.token.address.testnet
-//     }
-//     try {
-//         var network
-//         var ret
-//         if (Direction == 'ETB') {
-//             network = 'ERC20'
-//             var cred = await unlock(req.user._id, pass)
+exports.bridge = async (req, res) => {
+    let Direction = 'req.body.direction'
+    let amount = req.body.amount
+    let sattContractErc20 = Constants.token.satt
+    let sattContractBep20 = Constants.bep20.address.sattBep20
+    try {
+        network = 'ERC20'
+        var cred = await unlock(req, res)
+        if (!cred) return
+        var transfertErc20 = await transfer(
+            sattContractErc20,
+            process.env.SATT_RESERVE,
+            amount,
+            cred
+        )
+        if (transfertErc20?.transactionHash) {
+            let Web3BEP20 = await bep20Connexion()
+            var campaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_WALLET_PATH,
+                'utf8'
+            )
 
-//             ret = await transfer(sattContract, app.config.bridge, amount, cred)
-//         } else if (Direction == 'BTE') {
-//             network = 'BEP20'
-//             var cred = awaitunlockBSC(req.user._id, pass)
-//             ret = await app.bep20.transferBEP(app.config.bridge, amount, cred)
-//         }
-//         res.end(JSON.stringify(ret))
-//     } catch (err) {
-//         res.end(JSON.stringify(err))
-//     } finally {
-//         if (cred) lock(cred)
-//         if (ret.transactionHash) {
-//             await notificationManager(req.user._id, 'convert_event', {
-//                 amount,
-//                 Direction,
-//                 transactionHash: ret.transactionHash,
-//                 currency: 'SATT',
-//                 network,
-//             })
-//         }
-//     }
-// }
+            campaignWallet = JSON.parse(campaignKeystore)
+            console.log('0')
+            Web3BEP20.eth.accounts.wallet.decrypt(
+                [campaignWallet],
+                process.env.SATT_RESERVE_PASS
+            )
+            var credentials = {
+                Web3BEP20: Web3BEP20,
+                address: process.env.SATT_RESERVE,
+            }
+            let ctr = await getTokenContractByToken(
+                sattContractBep20,
+                credentials,
+                'BEP20'
+            )
+            var gasPrice = await Web3BEP20.eth.getGasPrice()
+            var gas = 80000
+            let funds = await ctr.methods.mint(amount).send({
+                from: process.env.SATT_RESERVE,
+                gas: gas,
+                gasPrice: gasPrice,
+            })
+            if (funds) {
+                var transfertBep20 = await sendBep20(
+                    sattContractBep20,
+                    cred.address,
+                    amount,
+                    credentials
+                )
+                if (transfertBep20?.transactionHash)
+                    res.end(JSON.stringify({ transfertErc20, transfertBep20 }))
+            }
+        }
+    } catch (err) {
+        res.end(JSON.stringify(err))
+    } finally {
+        // if (cred) lock(cred)
+        if (transfertBep20?.transactionHash) {
+            await notificationManager(req.user._id, 'convert_event', {
+                amount,
+                Direction,
+                transactionHash: transfertBep20.transactionHash,
+                currency: 'SATT',
+                network,
+            })
+        }
+    }
+}
 
 module.exports.getMnemo = async (req, res) => {
     try {

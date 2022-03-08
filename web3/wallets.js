@@ -594,9 +594,10 @@ exports.getTokenContractByToken = async (token, credentials, network) => {
         contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
     } else {
         var contract = new credentials.Web3BEP20.eth.Contract(
-            Constants.token.abi,
+            Constants.bep20.abi,
             token
         )
+
         contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
     }
 
@@ -618,7 +619,6 @@ exports.transfer = async (token, to, amount, credentials) => {
             gas: gas,
             gasPrice: gasPrice,
         })
-
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
