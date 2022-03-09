@@ -46,7 +46,13 @@ module.exports = async function (app) {
     .catch(console.log);
   var db2 = await mongoClient
     .connect(
-      "mongodb://"+ app.config.mongoHost + ":" + app.config.mongoPort + "/" + app.config.mongoBaseCrm, {useNewUrlParser: true,useUnifiedTopology: true}
+      'mongodb://' +
+        app.config.mongoHost +
+        ':' +
+        app.config.mongoPort +
+        '/' +
+        app.config.mongoBaseCrm,
+      { useNewUrlParser: true, useUnifiedTopology: true }
     )
     .catch(console.log);
 
