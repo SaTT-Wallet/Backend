@@ -229,8 +229,6 @@ exports.getPrices = async () => {
                         '.png',
                 }
 
-                // console.log("obj", obj);
-
                 return obj
             })
             var finalMap = {}
