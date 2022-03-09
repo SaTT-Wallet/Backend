@@ -507,7 +507,13 @@ module.exports = async function (app) {
         }
       }
       resolve(res);
-    });
+    });'email',
+    'read_insights',
+    'read_audience_network_insights',
+    'pages_show_list',
+    'instagram_basic',
+    'instagram_manage_insights',
+    'pages_read_engagemen
   };
 
   accountManager.createAccount = async function (userId, pass) {
@@ -1317,9 +1323,14 @@ module.exports = async function (app) {
           accessToken;
 
         var res = await rp({ uri: accountsUrl, json: true });
+        let pages =await app.db.fbPage().find({UserId}).toArray();
         if (res.data.length === 0) {
           message = 'required_page';
-        } else {
+        }
+        else if(app.account.isDefferent(res.data,pages)){
+        	message="page already exists"
+       }
+      else {
           while (true) {
             for (var i = 0; i < res.data.length; i++) {
               let page = {
@@ -1371,6 +1382,30 @@ module.exports = async function (app) {
       }
     });
   };
+
+
+  accountManager.isDefferent = async (data,pages) =>{
+  			try{
+    				let isNew=false;
+    				let i=0;
+    				while(!isNew && (i<data.length)){
+    					let items=data[i];
+    					let object=pages.find(item => item.id == items.id)
+  					if(!object){
+    						isNew=true;
+    						return true;
+    					}
+    					else
+					i++;
+    				}
+    				if(!isNew) 
+    					return false;
+  				}
+    			catch (e) {
+  				return {message:e.message};
+    				}
+  		
+       }
   accountManager.updateAndGenerateCode = async (_id, type) => {
     return new Promise(async (resolve, reject) => {
       try {

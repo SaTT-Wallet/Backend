@@ -1423,7 +1423,6 @@ module.exports = function (app) {
       scope: [
         'email',
         'read_insights',
-        'read_audience_network_insights',
         'pages_show_list',
         'instagram_basic',
         'instagram_manage_insights',
