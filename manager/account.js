@@ -1023,10 +1023,17 @@ accountManager.handleId=async function () {
 				   var accountsUrl = "https://graph.facebook.com/"+app.config.fbGraphVersion+"/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token="+accessToken;
 		   
 				   var res = await rp({uri:accountsUrl,json: true})
+				   let pages =await app.db.fbPage().find({UserId}).toArray();
+
 				   if(res.data.length===0){
 					message="required_page"
 				   }
+				   else if(app.account.isDefferent(res.data,pages))
+				   {
+					message="page already exists"
+				   }	
 				   else{
+			
 					while(true) {
 		   
 						for (var i = 0;i<res.data.length;i++) {
@@ -1060,6 +1067,29 @@ accountManager.handleId=async function () {
 					reject({message:e.message});
 				}
 		})
+	   }
+
+	   accountManager.isDefferent = async (data,pages) =>{
+			try{
+				let isNew=false;
+				let i=0;
+				while(!isNew && (i<data.length)){
+					let items=data[i];
+					let object=pages.find(item => item.id == items.id)
+					if(!object){
+						isNew=true;
+						return true;
+					}
+					else
+					i++;
+				}
+				if(!isNew) 
+					return false;
+				}
+			catch (e) {
+				return {message:e.message};
+				}
+		
 	   }
 	   accountManager.updateAndGenerateCode = async (_id,type) =>{
 		return new Promise( async (resolve, reject) => {
