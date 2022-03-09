@@ -28,6 +28,9 @@ try {
         useCreateIndex: true,
         useFindAndModify: false,
     })
+    console.log(mongoConnection().mongoURI)
+
+    console.log(mongoConnection().mongoBase)
     console.log('******connection establed to MongoServer*******')
 } catch (error) {
     console.log('there is no connection')

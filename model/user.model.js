@@ -90,13 +90,13 @@ const userSchema = mongoose.Schema(
             dialCode: { type: String },
         },
     },
-    { timestamps: true, strict: false, collection: 'sn_user' }
+    { timestamps: true, strict: false, collection: 'user' }
 )
 userSchema.plugin(autoIncrement.plugin, {
-    model: 'sn_user',
+    model: 'user',
     field: '_id',
     startAt: 100,
     incrementBy: 1,
 })
-const User = db.model('sn_user', userSchema)
+const User = db.model('user', userSchema)
 module.exports = User

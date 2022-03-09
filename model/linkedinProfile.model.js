@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const linkedinProfileSchema = mongoose.Schema(
     {
         accessToken: { type: String },
-        userId: { type: Number, required: true, ref: 'sn_user' },
+        userId: { type: Number, required: true, ref: 'user' },
         linkedinId: { type: String },
         pages: [
             {
