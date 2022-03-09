@@ -507,13 +507,7 @@ module.exports = async function (app) {
         }
       }
       resolve(res);
-    });'email',
-    'read_insights',
-    'read_audience_network_insights',
-    'pages_show_list',
-    'instagram_basic',
-    'instagram_manage_insights',
-    'pages_read_engagemen
+    })
   };
 
   accountManager.createAccount = async function (userId, pass) {
