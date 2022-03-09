@@ -16,12 +16,10 @@ module.exports = async function (app) {
   app.db = {};
 
   app.db.query = function (query) {
-    console.log('query:', query);
     return new Promise(async (resolve, reject) => {
       myconn.query(query, function (error, results, fields) {
         if (error) {
-          console.log('error:', error);
-          //   reject(error);
+          reject(error);
         } else {
           resolve(results);
         }
@@ -44,6 +42,10 @@ module.exports = async function (app) {
   var db = await mongoClient
     .connect(
       'mongodb://' +
+        app.config.mongoUser +
+        ':' +
+        app.config.mongoPass +
+        '@' +
         app.config.mongoHost +
         ':' +
         app.config.mongoPort +
@@ -55,6 +57,10 @@ module.exports = async function (app) {
   var db2 = await mongoClient
     .connect(
       'mongodb://' +
+        app.config.mongoUser +
+        ':' +
+        app.config.mongoPass +
+        '@' +
         app.config.mongoHost +
         ':' +
         app.config.mongoPort +

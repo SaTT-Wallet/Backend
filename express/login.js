@@ -182,17 +182,17 @@ module.exports = function (app) {
 
       if (users.length) {
         var user = users[0];
-        // var res = await app.db.query(
-        //   `Select id,password from user where id=${user._id} `
-        // );
-        // if (res.length && !user.password) {
-        //   await app.db
-        //     .sn_user()
-        //     .updateOne(
-        //       { _id: Long.fromNumber(user._id) },
-        //       { $set: { password: res[0].password } }
-        //     );
-        // }
+        var res = await app.db.query(
+          `Select id,password from user where id=${user._id} `
+        );
+        if (res.length && !user.password) {
+          await app.db
+            .sn_user()
+            .updateOne(
+              { _id: Long.fromNumber(user._id) },
+              { $set: { password: res[0].password } }
+            );
+        }
         if (user.password == synfonyHash(password)) {
           app.account.sysLog('authentification', req.addressIp, `valid ${username}`);
           let validAuth = await app.account.isBlocked(user, true);
@@ -2321,7 +2321,6 @@ module.exports = function (app) {
 
   app.post('/auth/social/signin', async (req, res) => {
     try {
-      console.log('sssss', req.body);
       var user = null;
       if (req.body.idSn === '1') {
         //snUser.idOnSn = req.body.id;
