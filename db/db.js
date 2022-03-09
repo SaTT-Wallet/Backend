@@ -57,10 +57,6 @@ module.exports = async function (app) {
   var db2 = await mongoClient
     .connect(
       'mongodb://' +
-        app.config.mongoUser +
-        ':' +
-        app.config.mongoPass +
-        '@' +
         app.config.mongoHost +
         ':' +
         app.config.mongoPort +
