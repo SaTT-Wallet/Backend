@@ -291,8 +291,8 @@ module.exports = function (app) {
             scopedId: profile.id,
             idOnSn: profile._json.token_for_business,
             email: profile._json.email,
-            username: profile.name,
-            firstName: profile.first_name,
+            firstName: profile._json.name.split(' ')[0],
+            lastName: profile._json.name.split(' ')[1],
             lastName: profile.displayName,
             created: mongodate,
             onBoarding: false,
@@ -652,36 +652,33 @@ module.exports = function (app) {
         var users = await app.db.sn_user().find({ idOnSn2: profile.id }).toArray();
         if (users.length) {
           var user = users[0];
-          // if (user.idSn != 2) {
-          //   return cb('account_already_used') //(null, false, {message: 'account_already_used'});
-          // }
-          // if(!user.enabled){
-          //   return cb('account not verified')
-          // }
-          if (user.account_locked) {
+
+          let validAuth = await app.account.isBlocked(user, true);
+          if (!validAuth.res && validAuth.auth == true) {
+            var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
+            if (oldToken) {
+              var update = await app.db
+                .accessToken()
+                .updateOne(
+                  { user_id: user._id },
+                  { $set: { token: token, expires_at: date } }
+                );
+            } else {
+              var insert = await app.db.accessToken().insertOne({
+                client_id: 1,
+                user_id: user._id,
+                token: token,
+                expires_at: date,
+                scope: 'user',
+              });
+            }
+            req.session.user = user._id;
+            //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
+            return cb(null, { id: user._id, token: token, expires_in: date });
+          } else {
             let message = `account_locked:${user.date_locked}`;
             return cb({ error: true, message, blockedDate: user.date_locked });
           }
-          var oldToken = await app.db.accessToken().findOne({ user_id: user._id });
-          if (oldToken) {
-            var update = await app.db
-              .accessToken()
-              .updateOne(
-                { user_id: user._id },
-                { $set: { token: token, expires_at: date } }
-              );
-          } else {
-            var insert = await app.db.accessToken().insertOne({
-              client_id: 1,
-              user_id: user._id,
-              token: token,
-              expires_at: date,
-              scope: 'user',
-            });
-          }
-          req.session.user = user._id;
-          //var res_ins = await app.db.insert("INSERT INTO OAAccessToken SET ?", {client_id: 1, user_id: user._id, token: token, expires_at: date, scope: "user"});
-          return cb(null, { id: user._id, token: token, expires_in: date });
         } else {
           return cb('Register First'); //(null, false, {message: 'account_invalide'});
         }
