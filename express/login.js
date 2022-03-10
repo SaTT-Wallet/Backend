@@ -293,7 +293,6 @@ module.exports = function (app) {
             email: profile._json.email,
             firstName: profile._json.name.split(' ')[0],
             lastName: profile._json.name.split(' ')[1],
-            lastName: profile.displayName,
             created: mongodate,
             onBoarding: false,
             account_locked: false,
