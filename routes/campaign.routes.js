@@ -25,6 +25,7 @@ const {
     bep20Allow,
     erc20Allow,
     updateStatistics,
+    coverByCampaign,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -884,6 +885,29 @@ router.post('/remaining', verifyAuth, getFunds)
  *          description: error:error message
  */
 router.put('/reject/:idLink', verifyAuth, rejectLink)
+
+/**
+ * @swagger
+ * /campaign/coverByCampaign/{id}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: campaign cover
+ *     description: get campaign cover
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: the id of campaign.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: code,image
+ *       "500":
+ *          description: error:error message
+ */
+router.get('/coverByCampaign/:id', coverByCampaign)
 
 router.post('/updateStat', updateStatistics)
 module.exports = router
