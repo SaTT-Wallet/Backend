@@ -2869,7 +2869,7 @@ module.exports = function (app) {
       .toArray();
     userId.forEach(
       async (user) =>
-        await app.sn_user().updateOne({ _id: user.UserId }, { $set: { hasWallet: true } })
+        await app.db.sn_user().updateOne({ _id: user.UserId }, { $set: { hasWallet: true } })
     );
     res.json({ message: 'done' });
   });
