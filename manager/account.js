@@ -1301,6 +1301,24 @@ module.exports = async function (app) {
     return year + '-' + month + '-' + date + ' ' + hour + ':' + minutes + ':' + seconds;
   };
 
+
+  accountManager.updateAndGenerateCode = async (_id, type) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const code = Math.floor(100000 + Math.random() * 900000);
+        let secureCode = {};
+        (secureCode.code = code),
+          (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+          (secureCode.type = type);
+        await app.db.sn_user().updateOne({ _id }, { $set: { secureCode } });
+        resolve(code);
+      } catch (e) {
+        reject({ message: e.message });
+      }
+    });
+  };
+
+
   accountManager.getFacebookPages = (UserId, accessToken, isInsta = false) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -1316,9 +1334,8 @@ module.exports = async function (app) {
         let pages = await app.db.fbPage().find({ UserId }).toArray();
         if (res.data.length === 0) {
           message = 'required_page';
-        } else if (app.account.isDefferent(res.data, pages)) {
-          message = 'page already exists';
-        } else {
+        } else if (app.account.isDefferent(res.data, pages)) 
+        {
           while (true) {
             for (var i = 0; i < res.data.length; i++) {
               let page = {
@@ -1364,6 +1381,9 @@ module.exports = async function (app) {
 
           if (!isInsta && res.data.length > 0) message += '_facebook';
         }
+        else{
+          message = 'page already exists';
+        } 
         resolve(message);
       } catch (e) {
         reject({ message: e.message });
@@ -1371,39 +1391,26 @@ module.exports = async function (app) {
     });
   };
 
-  accountManager.isDefferent = async (data, pages) => {
+  accountManager.isDefferent = (data, pages) => {
     try {
       let isNew = false;
       let i = 0;
       while (!isNew && i < data.length) {
         let items = data[i];
-        let object = pages.find((item) => item.id == items.id);
-        if (!object) {
+        let object = pages.find((item) => item.id == items.id) || false;
+        if (!object)
+        {
           isNew = true;
           return true;
-        } else i++;
+        }
+        else
+          i++;
       }
-      if (!isNew) return false;
+       return isNew;
     } catch (e) {
       return { message: e.message };
     }
   };
-  accountManager.updateAndGenerateCode = async (_id, type) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const code = Math.floor(100000 + Math.random() * 900000);
-        let secureCode = {};
-        (secureCode.code = code),
-          (secureCode.expiring = Date.now() + 3600 * 20 * 5),
-          (secureCode.type = type);
-        await app.db.sn_user().updateOne({ _id }, { $set: { secureCode } });
-        resolve(code);
-      } catch (e) {
-        reject({ message: e.message });
-      }
-    });
-  };
-
   /*logger object of application logs */
   accountManager.sysLogger = createLogger({
     format: format.combine(
