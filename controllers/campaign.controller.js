@@ -1625,3 +1625,22 @@ module.exports.updateStatistics = async (req, res) => {
         )
     }
 }
+
+module.exports.coverByCampaign = async (req, res) => {
+    try {
+        let _id = req.params.id
+        let campaign = await Campaigns.findOne({ _id })
+        let image = Buffer.from(campaign.cover, 'base64')
+        res.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': image.length,
+        })
+        res.end(image)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
