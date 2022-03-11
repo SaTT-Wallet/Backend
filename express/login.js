@@ -2403,8 +2403,17 @@ module.exports = function (app) {
     }
   });
   app.get(
-    '/callback/link/linkedin',
+    '/callback/link/linkedin',(req,res,next)=>{
+      let redirect = req.query.state.split('|')[1];
+      if(!req.query.error)
+      next();
+      else
+      res.redirect(
+        app.config.basedURl + redirect + '?message=access-denied&sn=linkd'
+      );
+    },
     passport.authenticate('linkedin_link'),
+
     async (req, res) => {
       try {
         let { accessToken, userId, linkedinId } = req.query;
