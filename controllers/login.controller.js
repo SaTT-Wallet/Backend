@@ -108,7 +108,6 @@ exports.verifyCaptcha = async (req, res) => {
             )
         }
     } catch (err) {
-        // console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -322,7 +321,6 @@ exports.resendConfirmationToken = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log('errr', err)
         return responseHandler.makeResponseError(
             res,
             500,

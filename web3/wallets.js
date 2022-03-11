@@ -34,7 +34,6 @@ exports.unlock = async (req, res) => {
 
         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
     } catch (err) {
-        // console.log('errrr', err)
         res.status(500).send({
             code: 500,
             error: err.message ? err.message : err.error,
@@ -335,7 +334,6 @@ exports.sendBep20 = async (token, to, amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -477,7 +475,6 @@ exports.getListCryptoByUid = async (req, res) => {
 
         return { listOfCrypto }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -574,12 +571,7 @@ exports.getBalanceByUid = async (req, res) => {
 
         return { Total_balance }
     } catch (err) {
-        console.log(err)
-        //    return responseHandler.makeResponseError(
-        // 		 res,
-        // 		 500,
-        // 		 err.message ? err.message : err.error
-        // 		 )
+       
     }
 }
 
@@ -624,7 +616,6 @@ exports.transfer = async (token, to, amount, credentials) => {
             amount,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -727,7 +718,6 @@ exports.transferNativeBNB = async (to, amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -755,7 +745,6 @@ exports.transferEther = async (to, amount, credentials) => {
             amount: amount,
         }
     } catch (e) {
-        console.log(e)
     }
 }
 
@@ -764,7 +753,6 @@ exports.getCount = async function () {
         var count = await Wallet.countDocuments()
         return count + 1
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -852,7 +840,6 @@ exports.createSeed = async (req, res) => {
             btcAddress: btcWallet.addressSegWitCompat,
         }
     } catch (error) {
-        console.log(error)
     }
 }
 

@@ -1,4 +1,6 @@
 var Web3 = require('web3')
+
+const { responseHandler } = require('../helpers/response-handler')
 const {
     Constants,
     erc20TokenCampaigns,
@@ -32,8 +34,12 @@ exports.bep20Connexion = async () => {
     try {
         return new Web3(new Web3.providers.HttpProvider(web3UrlBep20, options))
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )   
+     }
 }
 
 exports.erc20Connexion = async () => {
@@ -42,8 +48,11 @@ exports.erc20Connexion = async () => {
             new Web3.providers.WebsocketProvider(web3Url, options)
         )
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.getContractByToken = async (token, credentials) => {
@@ -64,8 +73,11 @@ exports.getContractByToken = async (token, credentials) => {
         }
         return contract
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.getCampaignContractByHashCampaign = async (
@@ -77,7 +89,11 @@ exports.getCampaignContractByHashCampaign = async (
         if (campaign?.contract)
             return this.getContractCampaigns(campaign.contract, credentials)
     } catch (err) {
-        console.log(err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -90,8 +106,11 @@ exports.getPromContract = async (idProm, credentials = false) => {
 
         return this.getContractCampaigns(prom.contract, credentials)
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.getContractCampaigns = async (contract, credentials = false) => {
@@ -113,8 +132,11 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.getContract = async (address) => {
@@ -160,6 +182,10 @@ exports.getOracleContractByCampaignContract = async (
         ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
     } catch (err) {
-        console.log(err.message)
+         return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }

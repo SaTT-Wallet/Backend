@@ -80,8 +80,11 @@ exports.exportBtc = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log('errrrr', err)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.exportEth = async (req, res) => {
@@ -104,8 +107,11 @@ exports.exportEth = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.mywallet = async (req, res) => {
@@ -150,8 +156,11 @@ exports.userBalance = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    }
 }
 
 exports.gasPriceBep20 = async (req, res) => {
@@ -266,8 +275,11 @@ exports.transfertErc20 = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
-    } finally {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    } finally {
         cred && lock(cred)
         if (ret && ret.transactionHash) {
             await notificationManager(req.user._id, 'transfer_event', {
@@ -335,8 +347,11 @@ exports.transfertBep20 = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
-    } finally {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    } finally {
         cred && lockBSC(cred)
         if (ret && ret.transactionHash) {
             await notificationManager(req.user._id, 'transfer_event', {
@@ -512,8 +527,6 @@ exports.transfertBtc = async (req, res) => {
             let id = req.user._id
             var cred = await unlock(req, res)
             var result = await getAccount(req, res)
-
-            console.log(result)
             if (new Big(req.body.val).gt(new Big(result.btc_balance))) {
                 return responseHandler.makeResponseError(
                     res,
@@ -564,8 +577,11 @@ exports.transfertBNB = async (req, res) => {
             responseHandler.makeResponseError(res, 404, ' Account not found')
         }
     } catch (err) {
-        console.log(err)
-    } finally {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    } finally {
         cred && lockBSC(cred)
         if (ret?.transactionHash && ret) {
             await notificationManager(req.user._id, 'transfer_event', {
@@ -617,8 +633,11 @@ exports.transfertEther = async (req, res) => {
             responseHandler.makeResponseError(res, 404, ' Account not found')
         }
     } catch (err) {
-        console.log('err', err)
-    } finally {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )    } finally {
         if (cred) lock(cred)
         if (ret) {
             await notificationManager(req.user._id, 'transfer_event', {
@@ -843,7 +862,6 @@ module.exports.getTransactionHistory = async (req, res) => {
             All_Transactions,
         })
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,

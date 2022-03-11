@@ -1,5 +1,7 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
 var rp = require('request-promise')
+const { responseHandler } = require('../helpers/response-handler')
+
 const {
     FbPage,
     FbProfile,
@@ -7,7 +9,6 @@ const {
     GoogleProfile,
     TwitterProfile,
     Wallet,
-    IgMedia,
     LinkedinProfile,
 } = require('../model/index')
 var Twitter2 = require('twitter-v2')
@@ -46,8 +47,11 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
                 ].content.contentEntities[0].entityLocaion
         return linkInfo
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )       }
 }
 
 exports.verifyFacebook = async function (userId, pageName, idPost) {
@@ -75,7 +79,6 @@ exports.verifyFacebook = async function (userId, pageName, idPost) {
             return false
         }
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }
@@ -129,7 +132,6 @@ exports.verifyInsta = async function (userId, idPost) {
         else if (page && page.deactivate === true) return 'deactivate'
         else return false
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }
@@ -155,7 +157,6 @@ exports.verifyTwitter = async function (userId, idPost) {
             return res.data[0].author_id == twitterProfile.id
         }
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }
@@ -186,8 +187,11 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
         })
         return res
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.getInstagramUserName = async (shortcode) => {
@@ -197,9 +201,12 @@ exports.getInstagramUserName = async (shortcode) => {
             shortcode
         var resMedia = await rp({ uri: media, json: true })
         return resMedia.author_name
-    } catch {
-        console.log(err.message)
-    }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.findBountyOracle = (typeSN) => {
@@ -214,8 +221,11 @@ exports.findBountyOracle = (typeSN) => {
             ? 'twitter'
             : 'linkedin'
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.answerAbos = async (typeSN, idPost, idUser, linkedinProfile = null) => {
@@ -247,9 +257,12 @@ exports.answerAbos = async (typeSN, idPost, idUser, linkedinProfile = null) => {
         }
 
         return res
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.facebookAbos = async function (pageName) {
@@ -275,8 +288,11 @@ exports.facebookAbos = async function (pageName) {
             return null
         }
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.youtubeAbos = async function (idPost) {
@@ -306,8 +322,11 @@ exports.youtubeAbos = async function (idPost) {
             return null
         }
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.instagramAbos = async (idPost) => {
@@ -364,8 +383,11 @@ exports.twitterAbos = async function (pageName, idPost) {
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
         return twitterDetails.user.followers_count
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.linkedinAbos = async (linkedinProfile, organization) => {
@@ -381,8 +403,11 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
         let postData = await rp(linkedinData)
         return postData.firstDegreeSize
     } catch (err) {
-        console.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.getPromApplyStats = async (
@@ -498,8 +523,11 @@ exports.youtube = async (idPost) => {
 
         return perf
     } catch (err) {
-        rconsole.log(err.message)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
@@ -658,9 +686,12 @@ exports.getReachLimit = (campaignRatio, oracle) => {
     try {
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
         if (ratio) return ratio.reachLimit
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.getTotalToEarn = (socialStats, ratio) => {
@@ -797,8 +828,11 @@ exports.answerBounty = async function (opts) {
             })
         return { result: 'OK', hash: receipt.hash }
     } catch (err) {
-        console.log(err)
-    }
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )     }
 }
 
 exports.answerOne = async (

@@ -407,7 +407,6 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
                 ].content.contentEntities[0].entityLocaion
         return linkInfo
     } catch (err) {
-        console.log(err.message)
     }
 }
 
@@ -446,7 +445,6 @@ exports.applyCampaign = async (
             idProm: prom,
         }
     } catch (err) {
-        console.log(err.message)
     }
 }
 
@@ -465,7 +463,6 @@ exports.getRemainingFunds = async (token, hash, credentials) => {
             hash: hash,
         }
     } catch (err) {
-        console.log(err.message)
     }
 }
 
@@ -501,7 +498,6 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -520,7 +516,6 @@ exports.getGains = async (idProm, credentials) => {
             idProm: idProm,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -605,7 +600,6 @@ exports.influencersLinks = async (links) => {
         }
         return proms
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -626,7 +620,6 @@ exports.updateBounty = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -651,7 +644,6 @@ exports.validateProm = async (idProm, credentials) => {
             idProm: idProm,
         }
     } catch (err) {
-        console.log(err.message)
     }
 }
 
@@ -672,7 +664,6 @@ exports.updatePromStats = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log(err)
     }
 }
 
@@ -685,7 +676,6 @@ exports.getTransactionAmount = async (transactionHash, network) => {
                 : await app.web3Bep20.utils.hexToNumberString(data.logs[0].data)
         return hex
     } catch (e) {
-        console.log(e.message)
     }
 }
 

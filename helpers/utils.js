@@ -6,7 +6,7 @@ const path = require('path')
 const i18n = require('i18n')
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
-
+const { responseHandler } = require('../helpers/response-handler')
 const Big = require('big.js')
 
 var fs = require('fs')
@@ -121,9 +121,12 @@ exports.readHTMLFileProfile = (
         }
 
         await transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error)
-            } else {
+            if (err) {
+                return responseHandler.makeResponseError(
+                    res,
+                    500,
+                    err.message ? err.message : err.error
+                )            } else {
                 res.end(JSON.stringify(info.response))
                 res.end(JSON.stringify({ message: 'Email sent' }))
             }
@@ -169,11 +172,12 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             }
         }
         transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error.message)
-            } else {
-                console.log(info.response)
-            }
+            if (err) {
+ return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )             } 
         })
     })
 }
@@ -247,9 +251,12 @@ exports.readHTMLFileCampaign = (
         }
 
         transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error.message)
-            } else {
+            if (err) {
+                return responseHandler.makeResponseError(
+                    res,
+                    500,
+                    err.message ? err.message : err.error
+                )               } else {
                 console.log(info.response)
             }
         })

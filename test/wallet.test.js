@@ -47,9 +47,7 @@ describe('Wallet Management', () => {
             expect(result).to.have.property('data')
             expect(result.data).to.be.an('object')
 
-            // console.log(accessToken)
         } catch (error) {
-            console.log('---------error', error)
             expect(error).to.be.null
         }
     })
@@ -72,7 +70,6 @@ describe('Wallet Management', () => {
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -87,14 +84,12 @@ describe('Wallet Management', () => {
 
             let result = balances.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -114,14 +109,12 @@ describe('Wallet Management', () => {
 
             let result = bep20Price.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -136,14 +129,12 @@ describe('Wallet Management', () => {
 
             let result = details.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -163,14 +154,12 @@ describe('Wallet Management', () => {
 
             let result = erc20Price.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -185,14 +174,12 @@ describe('Wallet Management', () => {
 
             let result = balance.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -207,14 +194,12 @@ describe('Wallet Management', () => {
 
             let result = prices.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -229,14 +214,12 @@ describe('Wallet Management', () => {
 
             let result = mnemo.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -257,14 +240,12 @@ describe('Wallet Management', () => {
 
             let result = transaction.data
 
-            // console.log(result)
 
             expect(result.code).to.equal(200)
             expect(result.status).to.equal(true)
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('success')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -297,7 +278,6 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -332,8 +312,6 @@ describe('Wallet Management', () => {
             expect(result.result).to.be.an('object')
 
             accessToken = result.result.token
-
-            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -365,12 +343,10 @@ describe('Wallet Management', () => {
                 options
             )
             result = account.data
-            // console.log('result', result)
             expect(result.code).to.equal(201)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -384,47 +360,7 @@ describe('Wallet Management', () => {
         }
     })
 
-    // it('Payment request in simplix', async () => {
-    //     let url = `${baseUrl}/wallet/payementRequest`
-
-    //     let options = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-
-    //     let result
-    //     let currency = ''
-    //     let quote_id = ''
-    //     let idWallet = ''
-
-    //     try {
-    //         let account = await axios.post(
-    //             url,
-    //             {
-    //                 currency,
-    //                 quote_id,
-    //                 idWallet,
-    //             },
-    //             options
-    //         )
-    //         result = account.data
-    //         // console.log(result);
-    //         expect(result.code).to.equal(201)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         // console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 406)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'Wallet not found'
-    //         })
-    //     }
-    // })
-
+ 
     it('Export BTC', async () => {
         let url = `${baseUrl}/wallet/exportBtc`
 
@@ -447,12 +383,8 @@ describe('Wallet Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
-            // expect(result.code).to.equal(201)
-            // expect(result).to.have.property('data')
-            // expect(result.message).to.equal('success')
+           
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -484,12 +416,10 @@ describe('Wallet Management', () => {
                 options
             )
             result = account.data
-            // console.log(result);
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -521,12 +451,10 @@ describe('Wallet Management', () => {
                 options
             )
             result = account.data
-            // console.log(result);
             expect(result.code).to.equal(201)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -555,12 +483,10 @@ describe('Wallet Management', () => {
         try {
             let account = await axios.delete(url, options)
             result = account.data
-            // console.log(result);
             expect(result.code).to.equal(201)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('token removed')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -606,7 +532,6 @@ describe('Wallet Management', () => {
 
             accessToken = result.result.token
 
-            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -641,8 +566,6 @@ describe('Wallet Management', () => {
             expect(result.result).to.be.an('object')
 
             accessToken = result.result.token
-
-            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -675,8 +598,6 @@ describe('Wallet Management', () => {
             expect(result.result).to.be.an('object')
 
             accessToken = result.result.token
-
-            // console.log(accessToken)
         } catch (error) {}
     })
 
@@ -700,12 +621,10 @@ describe('Wallet Management', () => {
                 options
             )
             let result = obj.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
 
-            // console.log(accessToken)
         } catch (error) {
             console.log(error)
             error = error.response.data
@@ -737,14 +656,11 @@ describe('Wallet Management', () => {
                 options
             )
             let result = obj.data
-            // console.log('result', result)
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
 
-            // console.log(accessToken)
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -776,12 +692,10 @@ describe('Wallet Management', () => {
                 options
             )
             result = account.data
-            // console.log(result);
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')

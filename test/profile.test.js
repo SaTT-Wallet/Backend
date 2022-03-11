@@ -45,7 +45,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.data).to.be.an('object')
         } catch (error) {
-            // console.log('---------error', error)
             expect(error).to.be.null
         }
     })
@@ -61,13 +60,11 @@ describe('Profile Management', () => {
             })
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -87,11 +84,9 @@ describe('Profile Management', () => {
                 },
             })
 
-            // console.log( account)
             result = account
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -119,7 +114,6 @@ describe('Profile Management', () => {
             expect(result.message).to.equal('Saved')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -157,7 +151,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('profile updated')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -181,13 +174,11 @@ describe('Profile Management', () => {
                 },
             })
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -207,7 +198,6 @@ describe('Profile Management', () => {
                 },
             })
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
@@ -248,7 +238,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -284,7 +273,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -313,7 +301,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -342,7 +329,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -371,7 +357,6 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -391,7 +376,6 @@ describe('Profile Management', () => {
                 },
             })
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
@@ -416,13 +400,11 @@ describe('Profile Management', () => {
                 },
             })
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(201)
             expect(result.message).to.equal('onBoarding updated')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -469,7 +451,6 @@ describe('Profile Management', () => {
                 str.startsWith('Email was sent')
             })
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -508,7 +489,6 @@ describe('Profile Management', () => {
                 str.startsWith('legal saved')
             })
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -534,11 +514,9 @@ describe('Profile Management', () => {
                 }
             )
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -564,7 +542,6 @@ describe('Profile Management', () => {
                 }
             )
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
@@ -572,7 +549,6 @@ describe('Profile Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -599,14 +575,12 @@ describe('Profile Management', () => {
                 }
             )
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
                 return str.startsWith('Notification clicked')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -628,14 +602,12 @@ describe('Profile Management', () => {
                 },
             })
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
                 return str.startsWith('success')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -679,7 +651,6 @@ describe('Profile Management', () => {
                 return str.startsWith('Email was sent')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')

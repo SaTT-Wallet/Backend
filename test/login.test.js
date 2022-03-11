@@ -47,7 +47,6 @@ describe('LOgin Management', () => {
 
             expect(result.result).to.be.an('object')
         } catch (error) {
-            // console.log(error)
         }
     })
 
@@ -67,7 +66,6 @@ describe('LOgin Management', () => {
             expect(result).to.have.property('result')
             expect(result.msg).to.equal('user logout')
         } catch (error) {
-            //console.log(error);
         }
     })
 
@@ -81,12 +79,10 @@ describe('LOgin Management', () => {
             })
 
             let result = auth.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             expect(error).to.be.null
         }
     })
@@ -120,7 +116,6 @@ describe('LOgin Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -164,7 +159,6 @@ describe('LOgin Management', () => {
                 str.startsWith('account deleted')
             })
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -205,7 +199,6 @@ describe('LOgin Management', () => {
                 str.startsWith('changed')
             })
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -246,7 +239,6 @@ describe('LOgin Management', () => {
                 str.startsWith('Email was sent')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -292,7 +284,6 @@ describe('LOgin Management', () => {
                 str.startsWith('code is matched')
             })
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -339,7 +330,6 @@ describe('LOgin Management', () => {
                 str.startsWith('successfully')
             })
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -380,13 +370,11 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.satisfy((str) => {
                 str.startsWith('Email was sent')
             })
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -419,12 +407,10 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Email sent')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -457,12 +443,10 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
         }
@@ -497,7 +481,6 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.satisfy((msg) => {
@@ -507,7 +490,6 @@ describe('LOgin Management', () => {
                 )
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -548,12 +530,10 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Email sent')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -599,12 +579,10 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -639,12 +617,10 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -688,14 +664,12 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.satisfy((str) => {
                 str.startsWith('deconnect successfully from')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -726,12 +700,10 @@ describe('LOgin Management', () => {
         try {
             let account = await axios.get(url, options)
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -764,12 +736,10 @@ describe('LOgin Management', () => {
                 options
             )
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -794,12 +764,10 @@ describe('LOgin Management', () => {
         try {
             let account = await axios.get(url, options)
             result = account.data
-            // console.log(result)
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
