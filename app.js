@@ -1,5 +1,6 @@
 var fs = require('fs')
 const mongoose = require('mongoose')
+let createError = require('http-errors')
 
 var express = require('express')
 var cors = require('cors')
@@ -27,6 +28,9 @@ try {
         useCreateIndex: true,
         useFindAndModify: false,
     })
+    console.log(mongoConnection().mongoURI)
+
+    console.log(mongoConnection().mongoBase)
     console.log('******connection establed to MongoServer*******')
 } catch (error) {
     console.log('there is no connection')
@@ -120,7 +124,7 @@ app.use(function (err, req, res, next) {
 
     // render the error page
     res.status(err.status || 500)
-    res.render('error')
+    console.log('err', err)
 })
 
 module.exports = app

@@ -4,6 +4,7 @@ const rp = require('request-promise')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
+var fs = require('fs')
 
 const {
     getContractByToken,
@@ -39,6 +40,7 @@ const {
     transferNativeBNB,
     transferEther,
     FilterTransactionsByHash,
+    getTokenContractByToken,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -78,7 +80,7 @@ exports.exportBtc = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
+        console.log('errrrr', err)
     }
 }
 
@@ -234,6 +236,10 @@ exports.transfertErc20 = async (req, res) => {
             var amount = req.body.amount
             var tokenName = req.body.symbole
             var cred = await unlock(req, res)
+
+            if (!cred) {
+                return
+            }
             var result = await getAccount(req, res)
             let balance = await getBalance(
                 cred.Web3ETH,
@@ -561,7 +567,7 @@ exports.transfertBNB = async (req, res) => {
         console.log(err)
     } finally {
         cred && lockBSC(cred)
-        if (ret.transactionHash && ret) {
+        if (ret?.transactionHash && ret) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
                 currency: 'BNB',
@@ -613,7 +619,7 @@ exports.transfertEther = async (req, res) => {
     } catch (err) {
         console.log('err', err)
     } finally {
-        if (cred) lock(cred.address)
+        if (cred) lock(cred)
         if (ret) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
@@ -639,6 +645,190 @@ exports.transfertEther = async (req, res) => {
                     }
                 )
             }
+        }
+    }
+}
+
+exports.getQuote = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            if (req.body.requested_amount < 50) {
+                responseHandler.makeResponseError(
+                    res,
+                    403,
+                    'Please enter amount of 50 USD or more'
+                )
+            } else {
+                let requestQuote = req.body
+                requestQuote['end_user_id'] = String(req.user._id)
+                requestQuote['client_ip'] = req.addressIp
+                requestQuote['payment_methods'] = ['credit_card']
+                requestQuote['wallet_id'] = 'satt'
+                const simplexQuote = {
+                    url: configSendBox + '/wallet/merchant/v2/quote',
+                    method: 'POST',
+                    body: requestQuote,
+                    headers: {
+                        Authorization: `ApiKey ${process.env.SEND_BOX}`,
+                    },
+                    json: true,
+                }
+                var quote = await rp(simplexQuote)
+                delete quote.supported_digital_currencies
+                delete quote.supported_fiat_currencies
+
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    quote
+                )
+            }
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } finally {
+    }
+}
+
+exports.payementRequest = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            let ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+            if (ip) ip = ip.split(':')[3]
+            let payment_id = randomUUID()
+            const uiad = process.env.UIAD
+            let user_agent = req.headers['user-agent']
+            const http_accept_language = req.headers['accept-language']
+            let user = await User.findOne(
+                { _id: req.user._id },
+                { email: true, phone: true, created: 1 }
+            )
+            let request = {}
+            ;(request._id = req.user._id.toString()),
+                (request.installDate = user.created)
+            ;(request.email = user.email),
+                (request.addressIp = ip),
+                (request.user_agent = user_agent)
+            request.language = http_accept_language
+            request.quote_id = req.body.quote_id
+            request.order_id = uuidv5(process.env.ORDER_SECERET, uiad)
+            request.uuid = payment_id
+            request.currency = req.body.currency
+            request.idWallet = req.body.idWallet
+            let payment = await payementRequest(request)
+            const paymentRequest = {
+                url:
+                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
+                method: 'POST',
+                body: payment,
+                headers: {
+                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
+                },
+                json: true,
+            }
+            var paymentSubmitted = await rp(paymentRequest)
+            paymentSubmitted.payment_id = payment_id
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                paymentSubmitted
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                404,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.bridge = async (req, res) => {
+    let Direction = 'req.body.direction'
+    let amount = req.body.amount
+    let sattContractErc20 = Constants.token.satt
+    let sattContractBep20 = Constants.bep20.address.sattBep20
+    try {
+        network = 'ERC20'
+        var cred = await unlock(req, res)
+        if (!cred) return
+        var transfertErc20 = await transfer(
+            sattContractErc20,
+            process.env.SATT_RESERVE,
+            amount,
+            cred
+        )
+        if (transfertErc20?.transactionHash) {
+            let Web3BEP20 = await bep20Connexion()
+            var campaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_WALLET_PATH,
+                'utf8'
+            )
+
+            campaignWallet = JSON.parse(campaignKeystore)
+            console.log('0')
+            Web3BEP20.eth.accounts.wallet.decrypt(
+                [campaignWallet],
+                process.env.SATT_RESERVE_PASS
+            )
+            var credentials = {
+                Web3BEP20: Web3BEP20,
+                address: process.env.SATT_RESERVE,
+            }
+            let ctr = await getTokenContractByToken(
+                sattContractBep20,
+                credentials,
+                'BEP20'
+            )
+            var gasPrice = await Web3BEP20.eth.getGasPrice()
+            var gas = 80000
+            let funds = await ctr.methods.mint(amount).send({
+                from: process.env.SATT_RESERVE,
+                gas: gas,
+                gasPrice: gasPrice,
+            })
+            if (funds) {
+                var transfertBep20 = await sendBep20(
+                    sattContractBep20,
+                    cred.address,
+                    amount,
+                    credentials
+                )
+                if (transfertBep20?.transactionHash)
+                    res.end(JSON.stringify({ transfertErc20, transfertBep20 }))
+            }
+        }
+    } catch (err) {
+        res.end(JSON.stringify(err))
+    } finally {
+        // if (cred) lock(cred)
+        if (transfertBep20?.transactionHash) {
+            await notificationManager(req.user._id, 'convert_event', {
+                amount,
+                Direction,
+                transactionHash: transfertBep20.transactionHash,
+                currency: 'SATT',
+                network,
+            })
         }
     }
 }

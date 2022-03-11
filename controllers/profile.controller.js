@@ -36,7 +36,11 @@ let gfsprofilePic
 let gfsUserLegal
 const { mongoConnection, oauth } = require('../conf/config')
 
-const conn = mongoose.createConnection(mongoConnection().mongoURI)
+const connect = mongoose.connect(mongoConnection().mongoURI, {
+    useNewUrlParser: true,
+})
+
+const conn = mongoose.connection
 
 conn.once('open', () => {
     gfsprofilePic = Grid(conn.db, mongoose.mongo)
@@ -52,8 +56,7 @@ var Long = require('mongodb').Long
 const multer = require('multer')
 
 const storageUserLegal = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
+    db: connect,
     file: (req, file) => {
         return new Promise((resolve, reject) => {
             const filename = file.originalname
@@ -61,13 +64,14 @@ const storageUserLegal = new GridFsStorage({
                 filename: filename,
                 bucketName: 'user_legal',
             }
+
             resolve(fileInfo)
         })
     },
 })
 
 const storageProfilePic = new GridFsStorage({
-    url: mongoConnection().mongoURI,
+    db: connect,
     options: { useNewUrlParser: true, useUnifiedTopology: true },
     file: (req, file) => {
         return new Promise((resolve, reject) => {
@@ -76,11 +80,11 @@ const storageProfilePic = new GridFsStorage({
                 filename: filename,
                 bucketName: 'user_file',
             }
+
             resolve(fileInfo)
         })
     },
 })
-//const uploadUserLegal =  multer({storage : storageUserLegal})
 
 module.exports.uploadImageProfile = multer({
     storage: storageProfilePic,
@@ -143,9 +147,9 @@ module.exports.addProfilePicture = async (req, res) => {
                 {
                     $set: {
                         user: {
-                            $ref: 'sn_user',
+                            $ref: 'user',
                             $id: req.user._id,
-                            $db: 'atayen',
+                            $db: 'nodesatt',
                         },
                     },
                 }
@@ -230,9 +234,9 @@ exports.addUserLegalProfile = async (req, res) => {
                     $set: {
                         idNode,
                         DataUser: {
-                            $ref: 'sn_user',
+                            $ref: 'user',
                             $id: Long.fromNumber(id),
-                            $db: 'atayen',
+                            $db: 'nodesatt',
                         },
                         validate: false,
                         type,

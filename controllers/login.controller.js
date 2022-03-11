@@ -76,7 +76,7 @@ exports.captcha = async (req, res) => {
 
 exports.verifyCaptcha = async (req, res) => {
     try {
-        let id = req.body._id
+        let _id = req.body._id
         let position = +req.body.position
 
         if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -88,7 +88,7 @@ exports.verifyCaptcha = async (req, res) => {
         }
         let captcha = await Captcha.findOne({
             $and: [
-                _id,
+                { _id },
                 { position: { $gte: position - 5, $lte: position + 5 } },
             ],
         })
@@ -108,6 +108,7 @@ exports.verifyCaptcha = async (req, res) => {
             )
         }
     } catch (err) {
+        // console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -188,11 +189,7 @@ exports.codeRecover = async (req, res) => {
 
 exports.confirmCode = async (req, res) => {
     try {
-        let [email, code, type] = [
-            req.body.email.toLowerCase(),
-            req.body.code,
-            req.body.type,
-        ]
+        let [email, code] = [req.body.email.toLowerCase(), req.body.code]
         let user = await User.findOne({ email }, { secureCode: 1 })
 
         if (!user) {
@@ -216,7 +213,7 @@ exports.confirmCode = async (req, res) => {
                 'code expired',
                 false
             )
-        else if (user.secureCode.type == 'validation' && type == 'validation') {
+        else if (user.secureCode.code == req.body.code) {
             let authMethod = { message: 'code is matched' }
             let date = Math.floor(Date.now() / 1000) + 86400
             let userAuth = cloneUser(user)
@@ -325,6 +322,7 @@ exports.resendConfirmationToken = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log('errr', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -358,7 +356,7 @@ exports.updateLastStep = async (req, res) => {
         let profile = req.body
         let password = Math.random().toString(36).slice(-8)
         let user = await User.findOne({ email: profile.email })
-        if (user && user._id !== id) {
+        if (user && user._id !== _id) {
             return responseHandler.makeResponseError(
                 res,
                 401,
