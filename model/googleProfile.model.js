@@ -4,7 +4,7 @@ const googleProfileSchema = mongoose.Schema(
     {
         refreshToken: { type: String },
         accessToken: { type: String },
-        UserId: { type: Number, required: true, ref: 'sn_user' },
+        UserId: { type: Number, required: true, ref: 'user' },
         google_id: { type: String },
         channelTitle: { type: String },
         channelImage: {

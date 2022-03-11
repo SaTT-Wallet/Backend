@@ -8,7 +8,7 @@ const customTokenSchema = mongoose.Schema(
         network: { type: String },
         picUrl: { type: String },
         tokenName: { type: String },
-        sn_users: [{ type: Number, required: true, ref: 'sn_user' }],
+        sn_users: [{ type: Number, required: true, ref: 'user' }],
     },
     {
         collection: 'custom_token',

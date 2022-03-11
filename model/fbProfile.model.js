@@ -33,7 +33,7 @@ const fbProfileSchema = mongoose.Schema(
             token_for_business: { type: String },
         },
         accessToken: { type: String },
-        UserId: { type: Number, required: true, ref: 'sn_user' },
+        UserId: { type: Number, required: true, ref: 'user' },
     },
     {
         collection: 'fb_profile',

@@ -1,5 +1,5 @@
 {
-    "name": "node-satt",
+    "name": "satt",
     "version": "2.0.2",
     "author": "Atayen, Inc",
     "license": "ISC",
@@ -7,7 +7,8 @@
     "main": "app.js",
     "scripts": {
         "test": "mocha --reporter spec --timeout  2000000",
-        "supervisor": "NODE_ENV=local supervisor ./bin/www",
+        "supervisor": "NODE_ENV=testnet supervisor ./bin/www",
+        "supervisor2": "NODE_ENV=local nodemon ./bin/www",
         "prepare": "husky install",
         "newVersion": " node changepackage.js",
         "push": "git checkout developement && git pull && node changepackage.js develop  && git add package.json && git commit -m  NewVersionpackage && git push"
@@ -117,6 +118,8 @@
         "xmlhttprequest-ssl": ">=1.6.2"
     },
     "devDependencies": {
+        "eslint": "^8.10.0",
+        "eslint-plugin-react": "^7.29.3",
         "husky": "^7.0.4",
         "lint-staged": "^12.3.3",
         "nodemon": "^2.0.15",
@@ -124,5 +127,17 @@
     },
     "lint-staged": {
         "*.{js,css,md}": "prettier --write"
-    }
+    },
+    "directories": {
+        "test": "test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@bitbucket.org/satt-wallet/node-satt.git"
+    },
+    "keywords": [],
+    "bugs": {
+        "url": "https://bitbucket.org/satt-wallet/node-satt/issues"
+    },
+    "homepage": "https://bitbucket.org/satt-wallet/node-satt#readme"
 }

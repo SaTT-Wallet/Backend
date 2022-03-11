@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const walletUserSchema = mongoose.Schema({
-    idUser: { type: Number, required: true, ref: 'sn_users' },
+    idUser: { type: Number, required: true, ref: 'user' },
     wallet: { type: String },
 })
 
