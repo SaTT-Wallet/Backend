@@ -147,9 +147,9 @@ module.exports.addProfilePicture = async (req, res) => {
                 {
                     $set: {
                         user: {
-                            $ref: 'sn_user',
+                            $ref: 'user',
                             $id: req.user._id,
-                            $db: 'atayen',
+                            $db: 'nodesatt',
                         },
                     },
                 }
@@ -234,9 +234,9 @@ exports.addUserLegalProfile = async (req, res) => {
                     $set: {
                         idNode,
                         DataUser: {
-                            $ref: 'sn_user',
+                            $ref: 'user',
                             $id: Long.fromNumber(id),
-                            $db: 'atayen',
+                            $db: 'nodesatt',
                         },
                         validate: false,
                         type,

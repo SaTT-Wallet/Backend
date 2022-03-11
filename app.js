@@ -28,6 +28,9 @@ try {
         useCreateIndex: true,
         useFindAndModify: false,
     })
+    console.log(mongoConnection().mongoURI)
+
+    console.log(mongoConnection().mongoBase)
     console.log('******connection establed to MongoServer*******')
 } catch (error) {
     console.log('there is no connection')
@@ -39,7 +42,6 @@ let corsOptions = {
     origin: 'https://localhost', // Compliant
 }
 
-console.log('envir', process.env.NODE_ENV)
 let app = express()
 app.disable('x-powered-by')
 app.use(cors(corsOptions))
@@ -123,7 +125,6 @@ app.use(function (err, req, res, next) {
     // render the error page
     res.status(err.status || 500)
     console.log('err', err)
-    //  res.render('error')
 })
 
 module.exports = app
