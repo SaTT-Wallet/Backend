@@ -20,7 +20,6 @@ This projetct is build in `JavaScript` for `NodeJS` and these main `npm` modules
 -   [Mongodb](https://github.com/mongodb/node-mongodb-native)
 -   [Web3.js](https://web3js.readthedocs.io/en/v1.3.0/)
 -   [Passport.js](http://www.passportjs.org/)
--   [bn.js](https://github.com/indutny/bn.js/)
 
 <!-- GETTING STARTED -->
 
