@@ -1622,7 +1622,7 @@ module.exports = function (app) {
     '/callback/googleChannel',
     passport.authenticate('google_strategy_add_channel', {
       failureRedirect:
-        app.config.basedURl + '/home/settings/social-networks?message=access-denied',
+        app.config.basedURl + '/home/settings/social-networks?message=access-denied&sn=google',
     }),
     async function (req, response) {
       try {
@@ -1632,7 +1632,7 @@ module.exports = function (app) {
         } else {
           message = 'account_linked_with_success';
         }
-        response.redirect(app.config.basedURl + redirect + '?message=' + message);
+        response.redirect(app.config.basedURl + redirect + '?message=' + message + '&sn=google');
       } catch (e) {
         console.log(e);
       }
@@ -1643,7 +1643,7 @@ module.exports = function (app) {
     '/callback/facebookChannel',
     passport.authenticate('facebook_strategy_add_channel', {
       failureRedirect:
-        app.config.basedURl + '/home/settings/social-networks?message=access-denied',
+        app.config.basedURl + '/home/settings/social-networks?message=access-denied&sn=fb',
     }),
     async (req, response) => {
       try {
@@ -1671,8 +1671,7 @@ module.exports = function (app) {
         let info = req.session.state.split(' ');
         campaign_id = info[1];
         response.redirect(
-          app.config.basedURl + '/part/' + campaign_id + '?message=' + message
-        );
+          app.config.basedURl + '/part/' + campaign_id + '?message=' + message);
       } catch (e) {
         console.log(e);
       }
@@ -1682,7 +1681,7 @@ module.exports = function (app) {
     '/callback/add/twitter',
     passport.authenticate('add_twitter_link', {
       failureRedirect:
-        app.config.basedURl + ' /home/settings/social-networks?message=access-denied',
+        app.config.basedURl + '/home/settings/social-networks?message=access-denied&sn=twitter',
     }),
     async function (req, response) {
       try {
@@ -1692,7 +1691,7 @@ module.exports = function (app) {
         } else {
           message = 'account_linked_with_success';
         }
-        response.redirect(app.config.basedURl + redirect + '?message=' + message);
+        response.redirect(app.config.basedURl + redirect + '?message=' + message+ '&sn=twitter');
       } catch (e) {
         console.log(e);
       }
