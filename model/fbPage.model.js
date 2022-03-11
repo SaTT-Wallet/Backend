@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const fbPageSchema = mongoose.Schema(
     {
-        UserId: { type: Number, required: true, ref: 'sn_user' },
+        UserId: { type: Number, required: true, ref: 'user' },
         id: { type: String },
         instagram_id: { type: String },
         instagram_username: { type: String },
