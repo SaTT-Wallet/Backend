@@ -236,6 +236,10 @@ exports.transfertErc20 = async (req, res) => {
             var amount = req.body.amount
             var tokenName = req.body.symbole
             var cred = await unlock(req, res)
+
+            if (!cred) {
+                return
+            }
             var result = await getAccount(req, res)
             let balance = await getBalance(
                 cred.Web3ETH,
