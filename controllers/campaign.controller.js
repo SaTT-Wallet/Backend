@@ -658,8 +658,7 @@ exports.linkNotifications = async (req, res) => {
             return responseHandler.makeResponseData(
                 res,
                 200,
-                'Email was sent to',
-                result.email
+                'Email was sent to ' + result.email
             )
         })
     } catch (err) {
@@ -677,6 +676,13 @@ exports.validateCampaign = async (req, res) => {
     let idApply = req.body.idProm
     let idUser = '0' + req.user._id
 
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+        return responseHandler.makeResponseError(
+            res,
+            400,
+            'Please enter a valid id!'
+        )
+    }
     const campaign = await Campaigns.findOne(
         { _id },
         {
@@ -688,7 +694,7 @@ exports.validateCampaign = async (req, res) => {
         }
     )
     try {
-        if (idUser === campaign.idNode) {
+        if (idUser === campaign?.idNode) {
             const lang = 'en'
             configureTranslation(lang)
 
@@ -1124,75 +1130,84 @@ module.exports.linkStats = async (req, res) => {
         const idProm = req.params.idProm
 
         const info = await CampaignLink.findOne({ id_prom: idProm })
-        const payedAmount = info.payedAmount || '0'
-        const campaign = await Campaigns.findOne(
-            { hash: info.id_campaign },
-            {
-                fields: {
-                    logo: 0,
-                    resume: 0,
-                    description: 0,
-                    tags: 0,
-                    cover: 0,
-                },
-            }
-        )
-        const ratio = campaign.ratios
-        const bounties = campaign.bounties
-        let abosNumber = info.abosNumber || 0
-        info.currency = campaign.token.name
-        if (ratio.length) {
-            let socialStats = {
-                likes: info.likes,
-                shares: info.shares,
-                views: info.views,
-            }
-            let reachLimit = getReachLimit(ratio, info.oracle)
-            if (reachLimit)
-                socialStats = limitStats(
-                    '',
-                    socialStats,
-                    '',
-                    abosNumber,
-                    reachLimit
+        if (info) {
+            const payedAmount = info.payedAmount || '0'
+            const campaign = (
+                await Campaigns.findOne(
+                    { hash: info.id_campaign },
+                    {
+                        fields: {
+                            logo: 0,
+                            resume: 0,
+                            description: 0,
+                            tags: 0,
+                            cover: 0,
+                        },
+                    }
                 )
-            ratio.forEach((elem) => {
-                if (elem.oracle === info.oracle) {
-                    let view = new Big(elem['view']).times(
-                        socialStats.views || '0'
-                    )
-                    let like = new Big(elem['like']).times(
-                        socialStats.likes || '0'
-                    )
-                    let share = new Big(elem['share']).times(
-                        socialStats.shares || '0'
-                    )
-                    totalToEarn = view.plus(like).plus(share).toFixed()
+            )?.toObject()
+            const ratio = campaign.ratios
+            const bounties = campaign.bounties
+            let abosNumber = info.abosNumber || 0
+            info.currency = campaign.token.name
+            if (ratio.length) {
+                let socialStats = {
+                    likes: info.likes,
+                    shares: info.shares,
+                    views: info.views,
                 }
-            })
-            info.totalToEarn = new Big(totalToEarn).gte(new Big(payedAmount))
-                ? new Big(totalToEarn).minus(new Big(payedAmount))
-                : totalToEarn
+                let reachLimit = getReachLimit(ratio, info.oracle)
+                if (reachLimit)
+                    socialStats = limitStats(
+                        '',
+                        socialStats,
+                        '',
+                        abosNumber,
+                        reachLimit
+                    )
+                ratio.forEach((elem) => {
+                    if (elem.oracle === info.oracle) {
+                        let view = new Big(elem['view']).times(
+                            socialStats.views || '0'
+                        )
+                        let like = new Big(elem['like']).times(
+                            socialStats.likes || '0'
+                        )
+                        let share = new Big(elem['share']).times(
+                            socialStats.shares || '0'
+                        )
+                        totalToEarn = view.plus(like).plus(share).toFixed()
+                    }
+                })
+                info.totalToEarn = new Big(totalToEarn).gte(
+                    new Big(payedAmount)
+                )
+                    ? new Big(totalToEarn).minus(new Big(payedAmount))
+                    : totalToEarn
+            }
+
+            if (bounties.length) {
+                bounties.forEach((bounty) => {
+                    if (bounty.oracle === info.oracle) {
+                        bounty.categories.forEach((category) => {
+                            if (
+                                +category.minFollowers <= +abosNumber &&
+                                +abosNumber <= +category.maxFollowers
+                            ) {
+                                info.totalToEarn = category.reward
+                            } else if (+abosNumber > +category.maxFollowers) {
+                                info.totalToEarn = category.reward
+                            }
+                        })
+                    }
+                })
+            }
+            if (new Big(info.totalToEarn).gt(new Big(campaign.funds[1])))
+                info.totalToEarn = campaign.funds[1]
+            return responseHandler.makeResponseData(res, 200, 'success', info)
+        } else {
+            return responseHandler.makeResponseError(res, 404, 'link not found')
         }
-        if (bounties.length) {
-            bounties.forEach((bounty) => {
-                if (bounty.oracle === info.oracle) {
-                    bounty.categories.forEach((category) => {
-                        if (
-                            +category.minFollowers <= +abosNumber &&
-                            +abosNumber <= +category.maxFollowers
-                        ) {
-                            info.totalToEarn = category.reward
-                        } else if (+abosNumber > +category.maxFollowers) {
-                            info.totalToEarn = category.reward
-                        }
-                    })
-                }
-            })
-        }
-        if (new Big(info.totalToEarn).gt(new Big(campaign.funds[1])))
-            info.totalToEarn = campaign.funds[1]
-        return responseHandler.makeResponseData(res, 200, 'success', info)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1573,7 +1588,7 @@ exports.rejectLink = async (req, res) => {
     )
 
     try {
-        if (idUser === campaign.idNode) {
+        if (idUser === campaign?.idNode) {
             //  let reason = []
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
