@@ -4,7 +4,7 @@ const { sendNotification } = require('./notification')
 
 var rp = require('request-promise')
 
-const { token200 } = require('../conf/config')
+const { token200, Tokens } = require('../conf/config')
 
 exports.notificationManager = async (id, NotifType, label) => {
     try {
@@ -116,4 +116,15 @@ exports.isBlocked = async (user, auth = false) => {
         await User.updateOne({ _id: user._id }, { $set: logBlock })
 
     return { res, blockedDate: dateNow, auth }
+}
+
+exports.getDecimal = (symbol) => {
+    try {
+        let token_info = Tokens
+        for (const T_name in token_info)
+            if (token_info[T_name].symbol === symbol)
+                return +token_info[T_name].dicimal
+    } catch (err) {
+        console.log({ message: err.message })
+    }
 }
