@@ -46,7 +46,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.data).to.be.an('object')
         } catch (error) {
-            // console.log('---------error', error)
+            // console.log('error', error)
         }
     })
 
@@ -187,7 +187,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('updated')
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -574,7 +574,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -669,7 +669,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -709,7 +709,7 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            console.log(error.response.data)
+            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -860,7 +860,7 @@ describe('Campaign Management', () => {
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            console.log(error.response.data)
+            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -984,7 +984,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Token added')
         } catch (error) {
-            console.log(error.response.data)
+            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
