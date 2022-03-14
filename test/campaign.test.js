@@ -114,139 +114,60 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('Get link stats', async () => {
-    //     let result
-    //     let id =
-    //         '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
-
-    //     try {
-    //         let account = await axios.get(
-    //             `${baseUrl}/campaign/prom/stats/${id}`,
-    //             {
-    //                 headers: {
-    //                     Authorization: `Bearer ${
-    //                         accessToken ? accessToken : ''
-    //                     }`,
-    //                     'content-type': 'application/json',
-    //                 },
-    //             }
-    //         )
-
-    //         result = account.data
-
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         console.log(error.response.data)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 500)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required'
-    //         })
-    //     }
-    // })
-
-    it('Increase budget', async () => {
-        let result
-        let hash = ''
-        let token = ''
-        let amount = ''
-
-        let option = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let account = await axios.post(
-                `${baseUrl}/campaign/funding`,
-                {
-                    hash,
-                    token,
-                    amount,
-                },
-                option
-            )
-
-            result = account.data
-
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
-        } catch (error) {
-            error = error.response.data
-            expect(error.code).to.be.within(400, 500)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return err === 'token required' || err === 'No password given.'
-            })
-        }
-    })
-
-    // it('Get campaign list', async () => {
-    //     let result
-    //     try {
-    //         let account = await axios.get(`${baseUrl}/campaign/campaigns`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //                 'content-type': 'application/json',
-    //             },
-    //         })
-
-    //         result = account.data
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required'
-    //         })
-    //     }
-    // })
-
-    // it('Get campaign details', async () => {
-    //     let result
-    //     let id = '620e082b711cb119aebaf5a9'
-    //     try {
-    //         let account = await axios.get(`${baseUrl}/campaign/details/${id}`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //                 'content-type': 'application/json',
-    //             },
-    //         })
-
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         console.log(error.response)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'Campaign not found'
-    //         })
-    //     }
-    // })
-
     it('Update campaign', async () => {
         let result
         let id = '61f169ec724cc395ed336770'
-        let title = 'updated title'
+        let campaign = {
+            title: 'string',
+            resume: 'string',
+            brand: 'string',
+            description: 'string',
+            reference: 'string',
+            cover: 'string',
+            coverSrc: 'string',
+            logo: 'string',
+            countries: [
+                {
+                    item_id: 0,
+                    item_text: 'string',
+                },
+            ],
+            token: {
+                name: 'string',
+                type: 'string',
+                addr: 'string',
+            },
+            tags: ['string'],
+            endDate: 0,
+            startDate: 0,
+            remuneration: 'string',
+            cost: 'string',
+            cost_usd: 'string',
+            ratios: [
+                'string',
+                'string',
+                'string',
+                0,
+                'string',
+                'string',
+                'string',
+                0,
+                'string',
+                'string',
+                'string',
+                0,
+                'string',
+                'string',
+                'string',
+                0,
+                'string',
+                'string',
+                'string',
+                0,
+            ],
+            bounties: ['string', 'string', 0, 'string'],
+        }
+
         let options = {
             headers: {
                 Authorization: `Bearer ${accessToken ? accessToken : ''}`,
@@ -255,8 +176,8 @@ describe('Campaign Management', () => {
         }
         try {
             let account = await axios.put(
-                `${baseUrl}/campaign/update/:${id}`,
-                { title },
+                `${baseUrl}/campaign/update/${id}`,
+                { campaign },
                 options
             )
 
@@ -266,6 +187,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('updated')
         } catch (error) {
+            console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -543,7 +465,7 @@ describe('Campaign Management', () => {
 
     it('Get campaign pending link', async () => {
         let result
-        let id = '61f500058eccba86089d26aa'
+        let id = '61f169ec724cc395ed336770'
 
         try {
             let account = await axios.get(
@@ -608,7 +530,7 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
+            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -622,174 +544,14 @@ describe('Campaign Management', () => {
         }
     })
 
-    it('Get notification link', async () => {
-        let result
-        let idCampaign = '620e082b711cb119aebaf5a9'
-        let idProm = 'test idProm'
-        let link = 'test link'
-
-        let options = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let account = await axios.post(
-                `${baseUrl}/campaign/linkNotification`,
-                { idCampaign, idProm, link },
-                options
-            )
-
-            result = account.data
-            // console.log(account.data)
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result.message).to.satisfy((str) => {
-                str.startsWith('Email was sent to')
-            })
-            expect(result).to.have.property('data')
-        } catch (error) {
-            console.log(error.response.data)
-            error = error.response.data
-            expect(error.code).to.be.within(400, 500)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return (
-                    err === 'token required' ||
-                    err === 'Key derivation failed - possibly wrong password'
-                )
-            })
-        }
-    })
-
-    it('validate participation', async () => {
-        let result
-        let pass = ''
-        let idCampaign = '620e082b711cb119aebaf5a9'
-        let idProm = 'test idProm'
-        let link = 'test link'
-        let email = 'test email'
-        let idUser = 'test iduser'
-
-        let options = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let account = await axios.post(
-                `${baseUrl}/campaign/validate`,
-                { pass, idCampaign, idProm, link, email, idUser },
-                options
-            )
-
-            result = account.data
-            // console.log(account.data)
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result.message).to.satisfy((str) => {
-                str.startsWith('success')
-            })
-            expect(result).to.have.property('data')
-        } catch (error) {
-            console.log(error.response.data)
-            error = error.response.data
-            expect(error.code).to.be.within(400, 500)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return (
-                    err === 'token required' ||
-                    err === 'unothorized' ||
-                    err === 'Key derivation failed - possibly wrong password'
-                )
-            })
-        }
-    })
-
-    it('Get Gains', async () => {
-        let result
-        let pass = 'test'
-        let resume = 'test resume'
-        let brand = 'test brand'
-        let description = 'test des'
-
-        let options = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let account = await axios.post(
-                `${baseUrl}/campaign/gains`,
-                { pass, resume, brand, description },
-                options
-            )
-
-            result = account.data
-            // console.log(account.data)
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result.message).to.equal('success')
-            expect(result).to.have.property('data')
-        } catch (error) {
-            // console.log(error)
-            error = error.response.data
-            expect(error.code).to.be.within(400, 500)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return (
-                    err === 'token required' ||
-                    err === 'Key derivation failed - possibly wrong password'
-                )
-            })
-        }
-    })
-
-    // it('Create new campaign as draft', async () => {
-    //     let result
-    //     let pass = 'test'
-    //     let idProm = 'test idProm'
-    //     let hash = 'test hash'
-
-    //     let options = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.post(
-    //             `${baseUrl}/campaign/save
-    //             `,
-    //             { pass, idProm, hash },
-    //             options
-    //         )
-
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result.message).to.equal('success')
-    //         expect(result).to.have.property('data')
-    //     } catch (error) {
-    //         console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 500)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required'
-    //         })
-    //     }
-    // })
-
     it('Increase budget', async () => {
         let result
-        let hash = ''
-        let token = ''
-        let amount = ''
+        let campaign = {
+            amount: '50',
+            tokenAddress: '0x6fAc729f346A46fC0093126f237b4A520c40eb89',
+            hash: '61f169ec724cc395ed336770',
+            pass: 'Haythem12@',
+        }
 
         let option = {
             headers: {
@@ -800,11 +562,7 @@ describe('Campaign Management', () => {
         try {
             let account = await axios.post(
                 `${baseUrl}/campaign/funding`,
-                {
-                    hash,
-                    token,
-                    amount,
-                },
+                campaign,
                 option
             )
 
@@ -816,7 +574,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
+            console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -861,10 +619,349 @@ describe('Campaign Management', () => {
         }
     })
 
+    it('Get campaign details', async () => {
+        let result
+        let id = '620e082b711cb119aebaf5a9'
+        try {
+            let account = await axios.get(`${baseUrl}/campaign/details/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                    'content-type': 'application/json',
+                },
+            })
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error.response)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'Campaign not found'
+            })
+        }
+    })
+
+    it('Get campaign list', async () => {
+        let result
+        let idWallet = '0x71dfcee7ab5d4cd66b010a36c70527cac3727561'
+        try {
+            let account = await axios.get(
+                `${baseUrl}/campaign/campaigns?idWallet=${idWallet}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${
+                            accessToken ? accessToken : ''
+                        }`,
+                        'content-type': 'application/json',
+                    },
+                }
+            )
+
+            result = account.data
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 404)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required'
+            })
+        }
+    })
+
+    it('Get notification link', async () => {
+        let result
+        let campaign = {
+            idCampaign: '61f169ec724cc395ed336770',
+            idProm: '123456',
+            link: 'https://www.youtube.com/watch?v=ZhDNtEe0kGM',
+        }
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/linkNotification`,
+                campaign,
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                return str.startsWith('Email was sent')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 500)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' ||
+                    err === 'Key derivation failed - possibly wrong password'
+                )
+            })
+        }
+    })
+
+    it('Get link stats', async () => {
+        let result
+        let id =
+            '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
+
+        try {
+            let account = await axios.get(
+                `${baseUrl}/campaign/prom/stats/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${
+                            accessToken ? accessToken : ''
+                        }`,
+                        'content-type': 'application/json',
+                    },
+                }
+            )
+
+            result = account.data
+
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 500)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err == 'link not found'
+            })
+        }
+    })
+
+    it('validate participation', async () => {
+        let result
+        let campaign = {
+            pass: 'Haythem12@',
+            idCampaign: '61b1e29be560f6509c2961b7',
+            idProm: '0xfc84a8bbfbb9db244912be8483e787acdf4f4791bf9933fcb15917ade4995eb8',
+            link: 'https://scontent-cdt1-1.cdninstagram.com/v/t51.29350-15/',
+            email: 'haythem@atayen.us',
+            idUser: '2',
+        }
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/validate`,
+                campaign,
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.satisfy((str) => {
+                str.startsWith('success')
+            })
+            expect(result).to.have.property('data')
+        } catch (error) {
+            // console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 500)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' ||
+                    err === 'unothorized' ||
+                    err === 'Key derivation failed - possibly wrong password'
+                )
+            })
+        }
+    })
+
+    it('Create new campaign as draft', async () => {
+        let result
+        let campaign = {
+            title: 'string',
+            resume: 'string',
+            brand: 'string',
+            description: 'string',
+            reference: 'string',
+            countries: [{ item_id: 0, item_text: 'string' }],
+            token: { name: 'string', type: 'string', addr: 'string' },
+            tags: ['string'],
+            endDate: 0,
+            startDate: 0,
+            remuneration: 'string',
+            cost: 'string',
+            cost_usd: 'string',
+            ratios: [
+                {
+                    like: 'string',
+                    view: 'string',
+                    share: 'string',
+                    reachLimit: 'string',
+                    oracle: 'string',
+                },
+            ],
+            bounties: [
+                {
+                    oracle: 'string',
+                    categorie: [
+                        { minFollowers: 0, maxFollowers: 0, reward: 'string' },
+                    ],
+                },
+            ],
+        }
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.post(
+                `${baseUrl}/campaign/save`,
+                campaign,
+                options
+            )
+
+            result = account.data
+            // console.log(account.data)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result.message).to.equal('success')
+            expect(result).to.have.property('data')
+        } catch (error) {
+            console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 500)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required'
+            })
+        }
+    })
+
+    it('Reject link', async () => {
+        let result
+        let idLink =
+            '0xfc84a8bbfbb9db244912be8483e787acdf4f4791bf9933fcb15917ade4995eb8'
+        let campaign = {
+            idCampaign: '61b1e29be560f6509c2961b7',
+            title: 'string',
+            email: 'haythem@atayen.us',
+            link: 'https://scontent-cdt1-1.cdninstagram.com/v/t51.29350-15',
+            reason: 'string',
+            lang: 'en',
+            idUser: '2',
+        }
+
+        let option = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let account = await axios.put(
+                `${baseUrl}/campaign/reject/${idLink}`,
+                campaign,
+                option
+            )
+
+            result = account.data
+
+            // console.log( account)
+            result = account.data
+            expect(result.code).to.equal(200)
+            expect(result).to.have.property('data')
+            expect(result.message).to.equal('success')
+        } catch (error) {
+            // console.log(error.response.data)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 500)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === 'unothorized'
+            })
+        }
+    })
+
+    // it('Get Gains', async () => {
+    //     let result
+    //     let campaign = {
+    //         pass: 'Haythem12@',
+    //         idProm: '0xd691a632995eaceab4d8b9f6308ca8ecd232da1a68b9a481242ccdc5bbd2027d',
+    //         hash: '0xb2f57b9d234312f4805370bf882d523ed8fcf9c4fc700640317ba30adcf1b7b0',
+    //     }
+
+    //     let options = {
+    //         headers: {
+    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+    //             'content-type': 'application/json',
+    //         },
+    //     }
+    //     try {
+    //         let account = await axios.post(
+    //             `${baseUrl}/campaign/gains`,
+    //             campaign,
+    //             options
+    //         )
+
+    //         result = account.data
+    //         // console.log(account.data)
+    //         result = account.data
+    //         expect(result.code).to.equal(200)
+    //         expect(result.message).to.equal('success')
+    //         expect(result).to.have.property('data')
+    //     } catch (error) {
+    //         // console.log(error)
+    //         error = error.response.data
+    //         expect(error.code).to.be.within(400, 500)
+    //         expect(error).to.have.property('error')
+    //         expect(error.error).to.satisfy((err) => {
+    //             return (
+    //                 err === 'token required' ||
+    //                 err === 'Key derivation failed - possibly wrong password'
+    //             )
+    //         })
+    //     }
+    // })
+
     it('get remaining funds in a campaign', async () => {
         let result
-        let hash = ''
-        let pass = ''
+        let campaign = {
+            hash: '0xb2f57b9d234312f4805370bf882d523ed8fcf9c4fc700640317ba30adcf1b7b0',
+            pass: 'Haythem12@',
+        }
 
         let option = {
             headers: {
@@ -875,10 +972,7 @@ describe('Campaign Management', () => {
         try {
             let account = await axios.post(
                 `${baseUrl}/campaign/remaining`,
-                {
-                    hash,
-                    pass,
-                },
+                campaign,
                 option
             )
 
@@ -890,60 +984,16 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Token added')
         } catch (error) {
-            // console.log(error)
+            console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
-                return err === 'token required'
+                return (
+                    err === 'token required' ||
+                    err == 'Key derivation failed - possibly wrong password'
+                )
             })
         }
     })
-
-    // it('Reject link', async () => {
-    //     let result
-    //     let idLink =
-    //         '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
-    //     let idCampaign = 'string'
-    //     let title = 'string'
-    //     let email = 'string'
-    //     let link = 'string'
-    //     let idUser = 'string'
-
-    //     let option = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.put(
-    //             `${baseUrl}/campaign/reject/${idLink}`,
-    //             {
-    //                 idCampaign,
-    //                 title,
-    //                 email,
-    //                 link,
-    //                 idUser,
-    //             },
-    //             option
-    //         )
-
-    //         result = account.data
-
-    //         // console.log( account)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         // console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 500)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'unothorized'
-    //         })
-    //     }
-    // })
 })
