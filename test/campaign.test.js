@@ -46,7 +46,6 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.data).to.be.an('object')
         } catch (error) {
-            // console.log('---------error', error)
         }
     })
 
@@ -98,13 +97,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Kit uploaded')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -114,41 +111,7 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('Get link stats', async () => {
-    //     let result
-    //     let id =
-    //         '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
 
-    //     try {
-    //         let account = await axios.get(
-    //             `${baseUrl}/campaign/prom/stats/${id}`,
-    //             {
-    //                 headers: {
-    //                     Authorization: `Bearer ${
-    //                         accessToken ? accessToken : ''
-    //                     }`,
-    //                     'content-type': 'application/json',
-    //                 },
-    //             }
-    //         )
-
-    //         result = account.data
-
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         console.log(error.response.data)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 500)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required'
-    //         })
-    //     }
-    // })
 
     it('Increase budget', async () => {
         let result
@@ -189,59 +152,7 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('Get campaign list', async () => {
-    //     let result
-    //     try {
-    //         let account = await axios.get(`${baseUrl}/campaign/campaigns`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //                 'content-type': 'application/json',
-    //             },
-    //         })
-
-    //         result = account.data
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required'
-    //         })
-    //     }
-    // })
-
-    // it('Get campaign details', async () => {
-    //     let result
-    //     let id = '620e082b711cb119aebaf5a9'
-    //     try {
-    //         let account = await axios.get(`${baseUrl}/campaign/details/${id}`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //                 'content-type': 'application/json',
-    //             },
-    //         })
-
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         console.log(error.response)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 404)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'Campaign not found'
-    //         })
-    //     }
-    // })
+    
 
     it('Update campaign', async () => {
         let result
@@ -335,7 +246,6 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
         } catch (error) {
             error = error.response.data
-            // console.log('errrr', error)
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
@@ -367,13 +277,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
@@ -408,13 +316,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -471,7 +377,6 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -520,7 +425,6 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
@@ -528,7 +432,6 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -559,14 +462,12 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
 
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -600,7 +501,6 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
@@ -608,7 +508,6 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error.response)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -642,7 +541,6 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
@@ -650,7 +548,6 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -686,7 +583,6 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.satisfy((str) => {
@@ -694,7 +590,6 @@ describe('Campaign Management', () => {
             })
             expect(result).to.have.property('data')
         } catch (error) {
-            console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -729,13 +624,11 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result.message).to.equal('success')
             expect(result).to.have.property('data')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -748,42 +641,7 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('Create new campaign as draft', async () => {
-    //     let result
-    //     let pass = 'test'
-    //     let idProm = 'test idProm'
-    //     let hash = 'test hash'
 
-    //     let options = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.post(
-    //             `${baseUrl}/campaign/save
-    //             `,
-    //             { pass, idProm, hash },
-    //             options
-    //         )
-
-    //         result = account.data
-    //         // console.log(account.data)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result.message).to.equal('success')
-    //         expect(result).to.have.property('data')
-    //     } catch (error) {
-    //         console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 500)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required'
-    //         })
-    //     }
-    // })
 
     it('Increase budget', async () => {
         let result
@@ -810,13 +668,11 @@ describe('Campaign Management', () => {
 
             result = account.data
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -844,14 +700,12 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-            // console.log(account.data)
 
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -884,13 +738,11 @@ describe('Campaign Management', () => {
 
             result = account.data
 
-            // console.log( account)
             result = account.data
             expect(result.code).to.equal(200)
             expect(result).to.have.property('data')
             expect(result.message).to.equal('Token added')
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -900,50 +752,4 @@ describe('Campaign Management', () => {
         }
     })
 
-    // it('Reject link', async () => {
-    //     let result
-    //     let idLink =
-    //         '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
-    //     let idCampaign = 'string'
-    //     let title = 'string'
-    //     let email = 'string'
-    //     let link = 'string'
-    //     let idUser = 'string'
-
-    //     let option = {
-    //         headers: {
-    //             Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-    //             'content-type': 'application/json',
-    //         },
-    //     }
-    //     try {
-    //         let account = await axios.put(
-    //             `${baseUrl}/campaign/reject/${idLink}`,
-    //             {
-    //                 idCampaign,
-    //                 title,
-    //                 email,
-    //                 link,
-    //                 idUser,
-    //             },
-    //             option
-    //         )
-
-    //         result = account.data
-
-    //         // console.log( account)
-    //         result = account.data
-    //         expect(result.code).to.equal(200)
-    //         expect(result).to.have.property('data')
-    //         expect(result.message).to.equal('success')
-    //     } catch (error) {
-    //         // console.log(error)
-    //         error = error.response.data
-    //         expect(error.code).to.be.within(400, 500)
-    //         expect(error).to.have.property('error')
-    //         expect(error.error).to.satisfy((err) => {
-    //             return err === 'token required' || err === 'unothorized'
-    //         })
-    //     }
-    // })
 })

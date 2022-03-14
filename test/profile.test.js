@@ -700,7 +700,6 @@ describe('Profile Management', () => {
                 return str.startsWith('Email was sent')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -740,7 +739,6 @@ describe('Profile Management', () => {
                 return str.startsWith('email changed')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -780,7 +778,6 @@ describe('Profile Management', () => {
                 return str.startsWith('success')
             })
         } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')

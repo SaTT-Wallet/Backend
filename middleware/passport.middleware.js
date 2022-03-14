@@ -465,13 +465,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
-/*
- *end signup with telegram strategy
- */
 
-/* 
-begin signin with telegram strategy
-*/
 exports.signin_telegram_function = async (req, profile, cb) => {
     await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
 }
@@ -490,13 +484,7 @@ exports.telegramConnection = (req, res) => {
         console.log(e)
     }
 }
-/*
- *end signin with telegram strategy
- */
 
-/*
- * begin connect account with facebook strategy
- */
 exports.linkFacebookAccount = async (
     req,
     accessToken,
@@ -784,9 +772,8 @@ exports.addyoutubeChannel = async (
         return cb(null, { id: user_id })
     }
 }
-/*
- * end add linkedin channel strategy
- */
+
+
 module.exports.verifyAuth = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1]
@@ -798,7 +785,6 @@ module.exports.verifyAuth = (req, res, next) => {
         let _id = user?._id ? user?._id : user?._doc._id
         newUser = await User.findOne({ _id })
         req.user = newUser
-        console.log(err)
         next()
     })
 }

@@ -39,7 +39,7 @@ exports.notificationManager = async (id, NotifType, label) => {
             await sendNotification(data)
         }
     } catch (error) {
-        console.log('--------errrrr', error)
+        console.log( error)
     }
 }
 

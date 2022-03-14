@@ -626,7 +626,6 @@ describe('Wallet Management', () => {
             expect(result).to.have.property('data')
 
         } catch (error) {
-            console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
