@@ -152,7 +152,7 @@ passport.use(
             } else {
                 return done(null, false, {
                     error: true,
-                    message: 'invalid_credentials',
+                    message: 'user not found',
                 })
             }
         }
@@ -390,9 +390,7 @@ exports.googleAuthSignup = async (
     cb
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({
-        $or: [{ idOnSn2: profile.id }, { email: profile._json.email }],
-    })
+    var user = await User.findOne({ idOnSn2: profile.id })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
     } else {
