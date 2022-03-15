@@ -20,7 +20,7 @@ const {
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
-const { notificationManager } = require('../manager/accounts')
+const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
 const { fundCampaign, getTransactionAmount } = require('../web3/campaigns')
@@ -786,16 +786,9 @@ exports.validateCampaign = async (req, res) => {
 }
 exports.gains = async (req, res) => {
     var idProm = req.body.idProm
-    var idCampaign = req.body.idCampaign
     var hash = req.body.hash
     var stats
     var requests = false
-    var abi = [
-        { indexed: true, name: 'idRequest', type: 'bytes32' },
-        { indexed: false, name: 'typeSN', type: 'uint8' },
-        { indexed: false, name: 'idPost', type: 'string' },
-        { indexed: false, name: 'idUser', type: 'string' },
-    ]
     try {
         var credentials = await unlock(req, res)
         var ctr = await getPromContract(idProm, credentials)
@@ -963,7 +956,6 @@ exports.gains = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        // im hereeeeeee
         if (credentials) lock(credentials)
         if (ret?.transactionHash) {
             let campaign = await Campaigns.findOne(
@@ -1253,11 +1245,21 @@ module.exports.increaseBudget = async (req, res) => {
 exports.getFunds = async (req, res) => {
     var hash = req.body.hash
     try {
-        var cred = await unlock(req, res)
-        let campaignDetails = await Campaigns.findOne({ hash })
-        var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
+        let _id = req.user._id
+        var campaignDetails = await Campaigns.findOne({ hash })
+        if (campaignDetails.idNode !== '0' + _id) {
+            return responseHandler.makeResponseError(res, 404, 'unauthorized')
+        } else {
+            var cred = await unlock(req, res)
+            var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
 
-        return responseHandler.makeResponseData(res, 200, 'Token added', ret)
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'budget retrieved',
+                ret
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1649,6 +1651,65 @@ module.exports.coverByCampaign = async (req, res) => {
             'Content-Length': image.length,
         })
         res.end(image)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.campaignsStatistics = async (req, res) => {
+    try {
+        let totalAbos = 0
+        let totalViews = 0
+        let totalPayed = 0
+        let tvl = 0
+        let Crypto = await getPrices()
+        let SATT = Crypto['SATT']
+        let nbPools = await Campaigns.find({
+            hash: { $exists: true },
+        }).countDocuments()
+        let nbCampaigns = await Campaigns.find({ type: 'apply' })
+        let links = await CampaignLink.find()
+        for (let i = 0; i < links.length; i++) {
+            link = links[i]
+            let campaign = await Campaigns.findOne({ hash: link.id_campaign })
+            let tokenName = campaign.token.name
+            let decimal = getDecimal(tokenName)
+
+            if (link.abosNumber && link.abosNumber !== 'indisponible')
+                totalAbos += +link.abosNumber
+            if (link.views) totalViews += +link.views
+            if (link.payedAmount)
+                totalPayed = new Big(totalPayed)
+                    .plus(
+                        new Big(link.payedAmount).div(new Big(10).pow(decimal))
+                    )
+                    .toFixed()
+        }
+        for (let i = 0; i < nbCampaigns.length; i++) {
+            let campaign = nbCampaigns[i]
+            let tokenName = campaign.token.name
+            let decimal = getDecimal(tokenName)
+            tvl = new Big(tvl)
+                .plus(new Big(campaign.funds[1]).div(new Big(10).pow(decimal)))
+                .toFixed()
+        }
+
+        let result = {
+            marketCap: SATT.market_cap,
+            sattPrice: SATT.price,
+            percentChange: SATT.percent_change_24h,
+            nbPools: nbPools,
+            reach: totalAbos,
+            posts: links.length,
+            views: totalViews,
+            harvested: totalPayed,
+            tvl: tvl,
+        }
+        return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
