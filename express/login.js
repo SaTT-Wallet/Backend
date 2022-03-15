@@ -590,7 +590,7 @@ module.exports = function (app) {
         var token = crypto.randomFillSync(buff).toString('hex');
         var users = await app.db
           .sn_user()
-          .find({ $or: [{ idOnSn2: profile.id }, { email: profile._json.email }] })
+          .find({ idOnSn2: profile.id })
           .toArray();
         if (users.length) {
           return cb('account_already_used&idSn=' + users[0].idSn);
