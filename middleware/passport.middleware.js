@@ -152,7 +152,7 @@ passport.use(
             } else {
                 return done(null, false, {
                     error: true,
-                    message: 'invalid_credentials',
+                    message: 'user not found',
                 })
             }
         }
