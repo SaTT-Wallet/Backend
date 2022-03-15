@@ -1802,12 +1802,16 @@ app.post('/wallet/remove/token', async (req, res) =>{
 	  })
 	app.post('/GetQuote', async (req, res) => {
 		try {
-		    const token = req.headers["authorization"].split(" ")[1];
-			var auth = await app.crm.auth(token);
-			let requestQuote = req.body;
-			requestQuote["end_user_id"]= String(auth.id);
-			requestQuote["client_ip"]= req.addressIp;
-			requestQuote.requested_amount = +req.body.requested_amount
+			const token = req.headers["authorization"]?.split(" ")[1];
+            if(token){
+                let auth=await app.crm.auth(token)
+                user_id=auth.id;
+            }else
+                user_id=Math.floor(1000 + Math.random() * 9000);
+            let requestQuote = req.body;
+            requestQuote["end_user_id"]=String(user_id)  
+            requestQuote["client_ip"]= req.addressIp;
+            requestQuote.requested_amount = +req.body.requested_amount
             requestQuote["payment_methods"]= ["credit_card"];
             requestQuote["wallet_id"]= "satt";
 			const simplexQuote ={
