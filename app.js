@@ -38,13 +38,9 @@ try {
 }
 module.exports.connect = connect
 
-let corsOptions = {
-    origin: 'https://localhost', // Compliant
-}
-
 let app = express()
 app.disable('x-powered-by')
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
