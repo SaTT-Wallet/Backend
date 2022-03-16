@@ -107,7 +107,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-    res.status(err.status || 404)
+    res.status(res.status || 404)
 })
 
 // error handler
