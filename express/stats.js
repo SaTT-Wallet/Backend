@@ -1334,7 +1334,9 @@ const Grid = require('gridfs-stream');
             for(let i=0;i<links.length;i++){
                 let link=links[i];
                 let campaign=await app.db.campaigns().findOne({hash:link.id_campaign});
-                let tokenName=campaign.token.name;
+
+				if(campaign){
+					  let tokenName=campaign.token.name;
                  let decimal=await app.campaign.getDecimal(tokenName);
                   if(link.abosNumber && link.abosNumber !== "indisponible")
                     totalAbos+=+link.abosNumber;
@@ -1342,6 +1344,8 @@ const Grid = require('gridfs-stream');
                   totalViews+=+link.views;
                   if(link.payedAmount)
                   totalPayed= new Big(totalPayed).plus(new Big(link.payedAmount).div(new Big(10).pow(decimal))).toFixed();
+				}
+              
             }
             for(let i=0;i<nbCampaigns.length;i++){
                 let campaign=nbCampaigns[i];
