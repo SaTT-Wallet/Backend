@@ -56,7 +56,6 @@ app.set('view engine', 'ejs')
 
 app.use(bodyParser.json({ limit: '4mb' }))
 app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))
-app.use(cors())
 app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)
