@@ -415,18 +415,26 @@ exports.getListCryptoByUid = async (req, res) => {
                 key = 'SATT'
             }
             if (key == 'WBNB') key = 'BNB'
-            if (CryptoPrices.hasOwnProperty(key)) {
-                crypto.price = CryptoPrices[key].price
-                crypto.variation = CryptoPrices[key].percent_change_24h
-                crypto.total_balance =
-                    this.filterAmount(
-                        new Big(balance['amount'])
-                            .div((10 ** +token_info[T_name].dicimal).toString())
-                            .toNumber() + ''
-                    ) *
-                    CryptoPrices[key].price *
-                    1
+
+            if (CryptoPrices) {
+                if (CryptoPrices.hasOwnProperty(key)) {
+                    crypto.price = CryptoPrices[key].price
+                    crypto.variation = CryptoPrices[key].percent_change_24h
+                    crypto.total_balance =
+                        this.filterAmount(
+                            new Big(balance['amount'])
+                                .div(
+                                    (
+                                        10 ** +token_info[T_name].dicimal
+                                    ).toString()
+                                )
+                                .toNumber() + ''
+                        ) *
+                        CryptoPrices[key].price *
+                        1
+                }
             }
+
             crypto.quantity = this.filterAmount(
                 new Big(balance['amount'] * 1)
                     .div((10 ** +token_info[T_name].dicimal).toString())
