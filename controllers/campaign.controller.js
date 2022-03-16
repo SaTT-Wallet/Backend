@@ -250,7 +250,6 @@ module.exports.launchBounty = async (req, res) => {
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
-        console.log(req.query.idWallet)
         if (req.query.idWallet) {
             let userId = await getUserIdByWallet(
                 req.query.idWallet.substring(2)
@@ -313,7 +312,6 @@ exports.campaigns = async (req, res) => {
             data: campaigns,
         })
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
