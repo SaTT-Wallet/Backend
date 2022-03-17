@@ -119,6 +119,7 @@ const {
     answerCall,
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
+const sharp = require('sharp')
 
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit

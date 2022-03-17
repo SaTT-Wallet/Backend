@@ -902,6 +902,12 @@ router.put('/reject/:idLink', verifyAuth, rejectLink)
  *         description: the id of campaign.
  *         in: path
  *         required: true
+ *       - name: width
+ *         description: width
+ *         in: query
+ *       - name: heigth
+ *         description: heigth
+ *         in: query
  *     responses:
  *       "200":
  *          description: code,image
