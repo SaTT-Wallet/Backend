@@ -1634,11 +1634,26 @@ module.exports.coverByCampaign = async (req, res) => {
         let _id = req.params.id
         let campaign = await Campaigns.findOne({ _id })
         let image = Buffer.from(campaign.cover, 'base64')
-        res.writeHead(200, {
-            'Content-Type': 'image/png',
-            'Content-Length': image.length,
-        })
-        res.end(image)
+        if (req.query.width && req.query.heigth)
+            sharp(image)
+                .resize(+req.query.heigth, +req.query.width)
+                .toBuffer()
+                .then((resizedImageBuffer) => {
+                    res.writeHead(200, {
+                        'Content-Type': 'image/png',
+                        'Content-Length': resizedImageBuffer.length,
+                    })
+                    res.end(resizedImageBuffer)
+                })
+        else {
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+
+                'Content-Length': image.length,
+            })
+
+            res.end(image)
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
