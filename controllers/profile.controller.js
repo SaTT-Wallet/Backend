@@ -267,7 +267,7 @@ exports.FindUserLegalProfile = async (req, res) => {
         const id = req.user._id
 
         const _id = req.params.id
-        gfsUserLegal.files.findOne(_id, (err, file) => {
+        gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
             if (!file || file.length === 0) {
                 return makeResponseError(res, 404, 'No file exists')
             } else {
