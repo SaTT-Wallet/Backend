@@ -3003,8 +3003,9 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		let _id = req.params.id
         let campaign = await app.db.campaigns().findOne({ _id:ObjectId(_id) })
         let image = Buffer.from(campaign.cover, 'base64')
+		if(req.query.width && req.query.heigth)
         sharp(image)
-        .resize(144, 144)
+        .resize(+req.query.heigth,+req.query.width)
         .toBuffer()
         .then(resizedImageBuffer => {
             res.writeHead(200, {
@@ -3013,6 +3014,17 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
             })
             res.end(resizedImageBuffer)
         })
+		else{
+			res.writeHead(200, {
+
+				'Content-Type': 'image/png',
+	   
+				'Content-Length': image.length
+	   
+			  });
+	   
+				res.end(image); 
+		}
 		});
 
 	return app;
