@@ -26,7 +26,7 @@ const { getPrices } = require('../web3/wallets')
 const { fundCampaign, getTransactionAmount } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
-const { mongoConnection } = require('../conf/config')
+const { mongoConnection, basicAtt } = require('../conf/config')
 
 const storage = new GridFsStorage({
     url: mongoConnection().mongoURI,
@@ -1656,41 +1656,61 @@ module.exports.campaignsStatistics = async (req, res) => {
         let tvl = 0
         let Crypto = await getPrices()
         let SATT = Crypto['SATT']
-        let nbPools = await Campaigns.find({
-            hash: { $exists: true },
-        }).countDocuments()
-        let nbCampaigns = await Campaigns.find({ type: 'apply' })
-        let links = await CampaignLink.find()
-        for (let i = 0; i < links.length; i++) {
-            link = links[i]
-            let campaign = await Campaigns.findOne({ hash: link.id_campaign })
-            let tokenName = campaign.token.name
-            let decimal = getDecimal(tokenName)
+        let campaignProms = Campaigns.aggregate([
+            {
+                $project: basicAtt,
+            },
+            {
+                $match: {
+                    hash: { $exists: true },
+                },
+            },
+        ])
 
-            if (link.abosNumber && link.abosNumber !== 'indisponible')
-                totalAbos += +link.abosNumber
-            if (link.views) totalViews += +link.views
-            if (link.payedAmount)
+        let linkProms = CampaignLink.aggregate([
+            {
+                $match: {
+                    id_campaign: { $exists: true },
+                },
+            },
+        ])
+        let data = await Promise.all([campaignProms, linkProms])
+        let pools = data[0]
+        let links = data[1]
+        let j = 0
+        let i = 0
+        while (j < links.length) {
+            let campaign = pools.find((e) => e.hash === links[j].id_campaign)
+            if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
+                totalAbos += +links[j].abosNumber
+            if (links[j].views) totalViews += +links[j].views
+            if (links[j].payedAmount)
                 totalPayed = new Big(totalPayed)
                     .plus(
-                        new Big(link.payedAmount).div(new Big(10).pow(decimal))
+                        new Big(links[j].payedAmount).div(
+                            new Big(10).pow(getDecimal(campaign?.token.name))
+                        )
                     )
                     .toFixed()
+            j++
         }
-        for (let i = 0; i < nbCampaigns.length; i++) {
-            let campaign = nbCampaigns[i]
-            let tokenName = campaign.token.name
-            let decimal = getDecimal(tokenName)
-            tvl = new Big(tvl)
-                .plus(new Big(campaign.funds[1]).div(new Big(10).pow(decimal)))
-                .toFixed()
+        while (i < pools.length) {
+            if (pools[i].type === 'apply') {
+                tvl = new Big(tvl)
+                    .plus(
+                        new Big(pools[i].funds[1]).div(
+                            new Big(10).pow(getDecimal(pools[i]?.token.name))
+                        )
+                    )
+                    .toFixed()
+            }
+            i++
         }
-
         let result = {
             marketCap: SATT.market_cap,
             sattPrice: SATT.price,
             percentChange: SATT.percent_change_24h,
-            nbPools: nbPools,
+            nbPools: pools.length,
             reach: totalAbos,
             posts: links.length,
             views: totalViews,
