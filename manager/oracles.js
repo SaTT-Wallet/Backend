@@ -969,7 +969,7 @@ exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
         }
 
         if (!isInsta && res.data.length > 0) message += '_facebook'
-        console.log(message)
+        return message
     } catch (e) {
         console.log({ message: e.message })
     }
