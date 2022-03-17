@@ -170,6 +170,8 @@ exports.updateProfile = async (req, res) => {
     try {
         const id = req.user._id
         let profile = req.body
+
+        console.log(profile)
         if (profile.email) {
             const user = await User.findOne({
                 $and: [{ email: profile.email }, { _id: { $nin: [id] } }],
@@ -187,6 +189,8 @@ exports.updateProfile = async (req, res) => {
         if (updatedProfile.nModified === 0) {
             return makeResponseError(res, 400, 'update failed')
         }
+
+        console.log('updatedProfile', updatedProfile)
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
         return makeResponseError(
