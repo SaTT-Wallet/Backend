@@ -55,7 +55,7 @@ issue you're fixing. Therefore, an example would be `Closes #56` would close iss
 
 ## Rewards
 
-:moneybag: Each profitable contribution will be rewarded :moneybag:. It would be ideal if you create a Wallet and fill in the issue template with your Wallet adress or send it to us at [dev@atayen.us](dev@atayen.us).
+:moneybag: Each profitable contribution will be rewarded :moneybag:. It would be ideal if you create a Wallet and fill in the issue template with your Wallet address or send it to us at [dev@atayen.us](dev@atayen.us).
 
 Rewards will be decently conveyed concurring to the issue name prioritizing **security issue**. For each issue name we'll relegate focuses concurring the issue complexity (critical/high/medium/low) and the number of code lines included by each contributor except for security issue name the number of code lines will not be taken into account: The more **serious the vulnerability** identified is the more you will be **compensated**.
 
