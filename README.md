@@ -111,7 +111,7 @@ See the [open issues](https://github.com/Atayen/node-satt/issues) for a list of 
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**. :v::tada:
 
-Valuable contributions will be :moneybag: **rewarded** :moneybag:. We are able to offer an important and well studied amount converted in our cryptocrruency SaTT according to the complexity of the issue. Rewards are released within one week of the pull request being merged. All rewards are at editorial discretion.
+Valuable contributions will be :moneybag: **rewarded** :moneybag:. We are able to offer an important and well studied amount converted in our cryptocurrency SaTT according to the complexity of the issue. Rewards are released within one week of the pull request being merged. All rewards are at editorial discretion.
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information on what we're looking for and how to get started.
 
