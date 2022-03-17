@@ -1106,20 +1106,19 @@ campaignManager.getTransactionAmount = async (transactionHash, network) =>{
 	})
 }
 
-campaignManager.getDecimal = async function (symbol) {
-    return new Promise(async (resolve, reject) => {
+campaignManager.getDecimal = function (symbol) {
         try {
             let token_info=app.config.Tokens;
             for(const T_name in token_info){
                 if (token_info[T_name].symbol === symbol)
-                resolve(token_info[T_name].dicimal);                
+                return +token_info[T_name].dicimal;                
             };
         }
         catch (err)
         {
             reject(err);
         }
-    })
+    
 }
 
 	app.campaign = campaignManager;

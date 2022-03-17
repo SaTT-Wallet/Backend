@@ -1328,42 +1328,80 @@ const Grid = require('gridfs-stream');
             let tvl=0;
             let Crypto =  app.account.getPrices();
             let SATT=Crypto["SATT"]
-            let nbPools=await app.db.campaigns().find({ hash: { $exists: true} }).count();
-            let nbCampaigns=await app.db.campaigns().find({type:"apply"}).toArray();
-            var links=await app.db.campaign_link().find().toArray();
-            for(let i=0;i<links.length;i++){
-                let link=links[i];
-                let campaign=await app.db.campaigns().findOne({hash:link.id_campaign});
-
+			let campaignProms = app.db.campaigns().aggregate([
+				{
+					$project: {
+						logo: 0,
+						resume: 0,
+						description: 0,
+						countries: 0,
+						tags: 0,
+						cover: 0,
+						coverSrc: 0,
+						coverMobile: 0,
+						coverSrcMobile: 0,
+					},
+				},
+				{
+					$match: {
+						hash: { $exists: true },
+					},
+				},
+			]).toArray()
+			let linkProms = app.db.campaign_link().aggregate([
+				{
+					$match: {
+						id_campaign: { $exists: true }
+					}
+				},
+			]).toArray()
+			let data = await Promise.all([campaignProms, linkProms])
+			let pools = data[0]
+			let links = data[1]
+			let j = 0
+			let i = 0
+			while (j < links.length) {
+				let campaign = pools.find((e) => e.hash === links[j].id_campaign)
 				if(campaign){
-					  let tokenName=campaign.token.name;
-                 let decimal=await app.campaign.getDecimal(tokenName);
-                  if(link.abosNumber && link.abosNumber !== "indisponible")
-                    totalAbos+=+link.abosNumber;
-                  if(link.views)
-                  totalViews+=+link.views;
-                  if(link.payedAmount)
-                  totalPayed= new Big(totalPayed).plus(new Big(link.payedAmount).div(new Big(10).pow(decimal))).toFixed();
+					if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
+						totalAbos += +links[j].abosNumber
+					if (links[j].views) totalViews += +links[j].views
+					if (links[j].payedAmount)
+						totalPayed = new Big(totalPayed)
+							.plus(
+								new Big(links[j].payedAmount).div(
+									new Big(10).pow(app.campaign.getDecimal(campaign?.token.name))
+								)
+							)
+							.toFixed()
+				
 				}
-              
-            }
-            for(let i=0;i<nbCampaigns.length;i++){
-                let campaign=nbCampaigns[i];
-                let tokenName=campaign.token.name;
-                 let decimal=await app.campaign.getDecimal(tokenName);
-                tvl=new Big(tvl).plus(new Big(campaign.funds[1]).div(new Big(10).pow(decimal))).toFixed();
-            }       
-            let result={
-                marketCap:SATT.market_cap,
-                sattPrice:SATT.price,
-                percentChange:SATT.percent_change_24h,
-                nbPools:nbPools,
-                reach:totalAbos,
-                posts:links.length,
-                views:totalViews,
-                harvested:totalPayed,
-                tvl:tvl
-                };
+				j++
+			}
+			while (i < pools.length) {
+				if (pools[i].type === 'apply') {
+					tvl = new Big(tvl)
+						.plus(
+							new Big(pools[i].funds[1]).div(
+								new Big(10).pow(app.campaign.getDecimal(pools[i]?.token.name))
+							)
+						)
+						.toFixed()
+				}
+				i++
+			}
+          
+			let result = {
+				marketCap: SATT.market_cap,
+				sattPrice: SATT.price,
+				percentChange: SATT.percent_change_24h,
+				nbPools: pools.length,
+				reach: totalAbos,
+				posts: links.length,
+				views: totalViews,
+				harvested: totalPayed,
+				tvl: tvl
+			}
           res.send(JSON.stringify({result}));
         } catch (err) {
           res.end(JSON.stringify({"error":err.message?err.message:err.error}));
