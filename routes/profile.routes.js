@@ -153,7 +153,7 @@ router.post('/picture', verifyAuth, uploadImageProfile, addProfilePicture)
 /**
  * @swagger
  * /profile/UpdateProfile:
- *   put:
+ *   post:
  *     tags:
  *     - "profile"
  *     summary: update profile infos.
@@ -208,7 +208,7 @@ router.post('/picture', verifyAuth, uploadImageProfile, addProfilePicture)
  *       "500":
  *          description: error:<br> server error
  */
-router.put('/UpdateProfile', verifyAuth, updateProfile)
+router.post('/UpdateProfile', verifyAuth, updateProfile)
 /**
  * @swagger
  * /profile/UserLegal:
