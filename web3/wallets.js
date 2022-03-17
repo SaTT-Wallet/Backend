@@ -201,13 +201,9 @@ exports.getPrices = async () => {
 
                 json: true,
             }
-
-            var result = await rp(options)
-            var response = result
-
-            var result2 = await rp(options2)
-            var responseSattJet = result2
-
+            let result = await Promise.all([rp(options), rp(options2)])
+            var response = result[0]
+            var responseSattJet = result[1]
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
 
