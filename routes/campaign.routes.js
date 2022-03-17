@@ -592,7 +592,7 @@ router.post('/save', verifyAuth, saveCampaign)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/:idCampaign/kits', verifyAuth, kits)
+router.get('/:idCampaign/kits', kits)
 
 /**
  * @swagger

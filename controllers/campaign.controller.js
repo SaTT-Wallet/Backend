@@ -266,6 +266,8 @@ exports.campaigns = async (req, res) => {
         let id_wallet = req.query.idWallet
         let query = sortOutPublic(req, idNode, strangerDraft)
 
+        let count = await Campaigns.countDocuments()
+
         let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
         let campaigns = await Campaigns.aggregate([
             {
@@ -309,7 +311,8 @@ exports.campaigns = async (req, res) => {
         }
 
         return responseHandler.makeResponseData(res, 200, 'success', {
-            data: campaigns,
+            campaigns,
+            count,
         })
     } catch (err) {
         return responseHandler.makeResponseError(
