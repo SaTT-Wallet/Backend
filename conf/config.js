@@ -1127,7 +1127,17 @@ let token200 = [
         },
     },
 ]
-
+let basicAtt = {
+    logo: 0,
+    resume: 0,
+    description: 0,
+    countries: 0,
+    tags: 0,
+    cover: 0,
+    coverSrc: 0,
+    coverMobile: 0,
+    coverSrcMobile: 0,
+}
 let booltestnet = true
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
@@ -1282,7 +1292,7 @@ exports.linkedinCredentials = (callback) => {
         passReqToCallback: true,
     }
 }
-
+module.exports.basicAtt = basicAtt
 module.exports.persmissionsObjFb = persmissionsObjFb
 module.exports.pathBtcSegwit = pathBtcSegwit
 
