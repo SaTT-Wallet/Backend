@@ -40,7 +40,11 @@ module.exports.connect = connect
 
 let app = express()
 app.disable('x-powered-by')
-app.use(cors())
+app.use(
+    cors({
+        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+    })
+)
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
