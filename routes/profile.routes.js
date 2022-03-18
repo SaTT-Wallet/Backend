@@ -873,7 +873,7 @@ router.post('/SattSupport', support)
 
 /**
  * @swagger
- * /profile/connect/facebook:
+ * /profile/connect/facebook/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -920,7 +920,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/connect/google:
+ * /profile/connect/google/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
