@@ -627,6 +627,7 @@ exports.transfertEther = async (req, res) => {
             var result = await getAccount(req, res)
 
             if (new Big(amount).gt(new Big(result.ether_balance))) {
+                console.log('no money')
                 return responseHandler.makeResponseError(
                     res,
                     401,
@@ -634,7 +635,9 @@ exports.transfertEther = async (req, res) => {
                 )
             }
             var cred = await unlock(req, res)
+
             var ret = await transferEther(to, amount, cred)
+
             if (!ret) {
                 return responseHandler.makeResponseError(
                     res,
