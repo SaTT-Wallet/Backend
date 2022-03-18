@@ -567,11 +567,8 @@ exports.linkGoogleAccount = async (
  */
 exports.connectTelegramAccount = async (req, res) => {
     try {
-        if (req.params.redirect == 'security') {
-            url = '/home/settings/security'
-        } else {
-            url = '/social-registration/monetize-telegram'
-        }
+        url = '/home/settings/security'
+
         res.redirect(
             process.env.BASED_URL + url + '?message=' + req.authInfo.message
         )
