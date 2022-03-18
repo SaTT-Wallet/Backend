@@ -396,7 +396,7 @@ router.get('/socialAccounts', verifyAuth, socialAccounts)
 
 /**
  * @swagger
- * /profile/addChannel/facebook:
+ * /profile/addChannel/facebook/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -457,7 +457,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/addChannel/twitter:
+ * /profile/addChannel/twitter/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -514,7 +514,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/addChannel/linkedin:
+ * /profile/addChannel/linkedin/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -567,7 +567,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/addChannel/youtube:
+ * /profile/addChannel/youtube/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
