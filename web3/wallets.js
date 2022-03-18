@@ -615,12 +615,14 @@ exports.transfer = async (token, to, amount, credentials) => {
         )
 
         var gasPrice = await contract.getGasPrice()
-        var gas = 60000
+        var gas = 600000
+
         var receipt = await contract.methods.transfer(to, amount).send({
             from: credentials.address,
             gas: gas,
             gasPrice: gasPrice,
         })
+
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
@@ -628,7 +630,7 @@ exports.transfer = async (token, to, amount, credentials) => {
             amount,
         }
     } catch (err) {
-        console.log(err)
+        return err.message
     }
 }
 

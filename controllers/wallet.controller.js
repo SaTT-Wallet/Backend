@@ -241,6 +241,7 @@ exports.transfertErc20 = async (req, res) => {
                 return
             }
             var result = await getAccount(req, res)
+
             let balance = await getBalance(
                 cred.Web3ETH,
                 tokenERC20,
@@ -257,6 +258,13 @@ exports.transfertErc20 = async (req, res) => {
 
             var ret = await transfer(tokenERC20, to, amount, cred)
 
+            if (!ret.transactionHash) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    ' insufficient funds for gas'
+                )
+            }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
