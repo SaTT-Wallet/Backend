@@ -262,7 +262,7 @@ exports.transfertErc20 = async (req, res) => {
                 return responseHandler.makeResponseError(
                     res,
                     402,
-                    ' insufficient funds for gas'
+                    'insufficient funds for gas'
                 )
             }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -339,7 +339,7 @@ exports.transfertBep20 = async (req, res) => {
                 return responseHandler.makeResponseError(
                     res,
                     402,
-                    ' insufficient funds for gas'
+                    'insufficient funds for gas'
                 )
             }
 
@@ -375,7 +375,6 @@ exports.transfertBep20 = async (req, res) => {
                         network: 'BEP20',
                         from: cred.address,
                         transactionHash: ret.transactionHash,
-                        currency,
                         decimal,
                     }
                 )
@@ -579,7 +578,7 @@ exports.transfertBNB = async (req, res) => {
                 return responseHandler.makeResponseError(
                     res,
                     402,
-                    ' insufficient funds for gas'
+                    'insufficient funds for gas'
                 )
             }
 
@@ -631,7 +630,7 @@ exports.transfertEther = async (req, res) => {
                 return responseHandler.makeResponseError(
                     res,
                     401,
-                    ' not_enough_budget'
+                    'not_enough_budget'
                 )
             }
             var cred = await unlock(req, res)
@@ -640,7 +639,7 @@ exports.transfertEther = async (req, res) => {
                 return responseHandler.makeResponseError(
                     res,
                     402,
-                    ' insufficient funds for gas'
+                    'insufficient funds for gas'
                 )
             }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
