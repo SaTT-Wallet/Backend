@@ -2998,7 +2998,6 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		}
 	});
 
-
 	app.get('/coverByCampaign/:id', async(req,res)=>{
 		let _id = req.params.id
         let campaign = await app.db.campaigns().findOne({ _id:ObjectId(_id) })
@@ -3019,7 +3018,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 
 				'Content-Type': 'image/png',
 	   
-				'Content-Length': image.length
+			'Content-Length': image.length
 	   
 			  });
 	   
