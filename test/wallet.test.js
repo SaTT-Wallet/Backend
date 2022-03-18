@@ -661,43 +661,6 @@ describe('Wallet Management', () => {
         }
     })
 
-    it('TransferEther', async () => {
-        let url = `${baseUrl}/wallet/transfertEther`
-
-        let options = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let obj = await axios.post(
-                url,
-                {
-                    pass: 'Haythem12@',
-                    to: '0x7b1251ac88dc25f7a9405471dccd066d8df607ea',
-                    val: '50',
-                },
-                options
-            )
-            let result = obj.data
-            // console.log('result', result)
-            expect(result.code).to.equal(200)
-            expect(result.message).to.equal('success')
-            expect(result).to.have.property('data')
-
-            // console.log(accessToken)
-        } catch (error) {
-            // console.log(error)
-            error = error.response.data
-            expect(error.code).to.be.within(400, 406)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return err === 'token required' || err === ' Account not found'
-            })
-        }
-    })
-
     it('Export ETH', async () => {
         let url = `${baseUrl}/wallet/exportETH`
 
@@ -767,5 +730,42 @@ describe('Wallet Management', () => {
 
             // console.log(accessToken)
         } catch (error) {}
+    })
+
+    it('TransferEther', async () => {
+        let url = `${baseUrl}/wallet/transfertEther`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let obj = await axios.post(
+                url,
+                {
+                    pass: 'Haythem12@',
+                    to: '0x7b1251ac88dc25f7a9405471dccd066d8df607ea',
+                    val: '50',
+                },
+                options
+            )
+            let result = obj.data
+            // console.log('result', result)
+            expect(result.code).to.equal(200)
+            expect(result.message).to.equal('success')
+            expect(result).to.have.property('data')
+
+            // console.log(accessToken)
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return err === 'token required' || err === ' Account not found'
+            })
+        }
     })
 })

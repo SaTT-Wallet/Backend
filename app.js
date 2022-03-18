@@ -38,13 +38,13 @@ try {
 }
 module.exports.connect = connect
 
-let corsOptions = {
-    origin: 'https://localhost', // Compliant
-}
-
 let app = express()
 app.disable('x-powered-by')
-app.use(cors(corsOptions))
+app.use(
+    cors({
+        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+    })
+)
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
@@ -56,7 +56,6 @@ app.set('view engine', 'ejs')
 
 app.use(bodyParser.json({ limit: '4mb' }))
 app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))
-app.use(cors())
 app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)
@@ -112,7 +111,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-    next(createError(404))
+    res.status(res.status || 404)
 })
 
 // error handler
@@ -120,7 +119,7 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message
-    res.locals.error = req.app.get('env') === 'development' ? err : {}
+    res.locals.error = req.app.get('env') === 'testnet' ? err : {}
 
     // render the error page
     res.status(err.status || 500)

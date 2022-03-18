@@ -140,7 +140,7 @@ exports.walletConnection = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(res, 401, {
                 error: true,
-                message: 'invalid_credentials',
+                message: 'user not found',
             })
         }
     } catch (err) {

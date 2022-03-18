@@ -488,7 +488,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error)
+            // console.log(error.response.data)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
