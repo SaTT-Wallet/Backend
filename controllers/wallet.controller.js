@@ -258,7 +258,7 @@ exports.transfertErc20 = async (req, res) => {
 
             var ret = await transfer(tokenERC20, to, amount, cred)
 
-            if (!ret.transactionHash) {
+            if (!ret) {
                 return responseHandler.makeResponseError(
                     res,
                     402,
@@ -335,7 +335,7 @@ exports.transfertBep20 = async (req, res) => {
 
             var ret = await sendBep20(req.body.token, to, amount, cred)
 
-            if (ret.transactionHash) {
+            if (!ret) {
                 return responseHandler.makeResponseError(
                     res,
                     402,
@@ -574,7 +574,7 @@ exports.transfertBNB = async (req, res) => {
                 )
             }
             var ret = await transferNativeBNB(to, amount, cred)
-            if (!ret.transactionHash) {
+            if (!ret) {
                 return responseHandler.makeResponseError(
                     res,
                     402,
@@ -635,7 +635,7 @@ exports.transfertEther = async (req, res) => {
             }
             var cred = await unlock(req, res)
             var ret = await transferEther(to, amount, cred)
-            if (!ret.transactionHash) {
+            if (!ret) {
                 return responseHandler.makeResponseError(
                     res,
                     402,
