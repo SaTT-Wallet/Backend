@@ -433,11 +433,14 @@ passport.use(
 
 router.get(
     '/callback/addChannel/facebook',
-    passport.authenticate('facebook_strategy_add_channel', {
-        failureRedirect:
-            process.env.BASED_URL +
-            '/home/settings/social-networks?message=access-denied',
-    }),
+    (req, res, next) => {
+        passport.authenticate('facebook_strategy_add_channel', {
+            failureRedirect:
+                process.env.BASED_URL +
+                req.query.state.split('|')[1] +
+                '?message=access-denied',
+        })(req, res, next)
+    },
     async (req, response) => {
         try {
             redirect = req.query.state.split('|')[1]

@@ -127,6 +127,10 @@ let gfsKit
 conn.once('open', () => {
     gfsKit = Grid(conn.db, mongoose.mongo)
     gfsKit.collection('campaign_kit')
+
+    gfsKit = new mongoose.mongo.GridFSBucket(conn.db, {
+        bucketName: 'yourBucketName',
+    })
 })
 
 module.exports.launchCampaign = async (req, res) => {
