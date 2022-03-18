@@ -969,7 +969,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/connect/telegram:
+ * /profile/connect/telegram/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -980,7 +980,7 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get(
-    '/connect/telegram',
+    '/connect/telegram/:idUser',
     passport.authenticate('link_telegram_account'),
     connectTelegramAccount
 )
