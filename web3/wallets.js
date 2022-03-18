@@ -201,13 +201,9 @@ exports.getPrices = async () => {
 
                 json: true,
             }
-
-            var result = await rp(options)
-            var response = result
-
-            var result2 = await rp(options2)
-            var responseSattJet = result2
-
+            let result = await Promise.all([rp(options), rp(options2)])
+            var response = result[0]
+            var responseSattJet = result[1]
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
 
@@ -415,18 +411,26 @@ exports.getListCryptoByUid = async (req, res) => {
                 key = 'SATT'
             }
             if (key == 'WBNB') key = 'BNB'
-            if (CryptoPrices.hasOwnProperty(key)) {
-                crypto.price = CryptoPrices[key].price
-                crypto.variation = CryptoPrices[key].percent_change_24h
-                crypto.total_balance =
-                    this.filterAmount(
-                        new Big(balance['amount'])
-                            .div((10 ** +token_info[T_name].dicimal).toString())
-                            .toNumber() + ''
-                    ) *
-                    CryptoPrices[key].price *
-                    1
+
+            if (CryptoPrices) {
+                if (CryptoPrices.hasOwnProperty(key)) {
+                    crypto.price = CryptoPrices[key].price
+                    crypto.variation = CryptoPrices[key].percent_change_24h
+                    crypto.total_balance =
+                        this.filterAmount(
+                            new Big(balance['amount'])
+                                .div(
+                                    (
+                                        10 ** +token_info[T_name].dicimal
+                                    ).toString()
+                                )
+                                .toNumber() + ''
+                        ) *
+                        CryptoPrices[key].price *
+                        1
+                }
             }
+
             crypto.quantity = this.filterAmount(
                 new Big(balance['amount'] * 1)
                     .div((10 ** +token_info[T_name].dicimal).toString())

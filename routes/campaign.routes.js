@@ -593,7 +593,7 @@ router.post('/save', verifyAuth, saveCampaign)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/:idCampaign/kits', verifyAuth, kits)
+router.get('/:idCampaign/kits', kits)
 
 /**
  * @swagger
@@ -903,6 +903,12 @@ router.put('/reject/:idLink', verifyAuth, rejectLink)
  *         description: the id of campaign.
  *         in: path
  *         required: true
+ *       - name: width
+ *         description: width
+ *         in: query
+ *       - name: heigth
+ *         description: heigth
+ *         in: query
  *     responses:
  *       "200":
  *          description: code,image
