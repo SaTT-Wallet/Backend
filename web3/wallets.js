@@ -34,11 +34,11 @@ exports.unlock = async (req, res) => {
 
         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
     } catch (err) {
-        // console.log('errrr', err)
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
+        console.log(err)
+        // res.status(500).send({
+        //     code: 500,
+        //     error: err.message ? err.message : err.error,
+        // })
     }
 }
 
@@ -112,7 +112,7 @@ exports.exportkey = async (req, res) => {
             this.lockERC20(cred)
         }
     } else {
-        res.status(404).send('Account not found')
+        return 'Account not found'
     }
 }
 
