@@ -334,6 +334,15 @@ exports.transfertBep20 = async (req, res) => {
             }
 
             var ret = await sendBep20(req.body.token, to, amount, cred)
+
+            if (ret.transactionHash) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    ' insufficient funds for gas'
+                )
+            }
+
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -566,6 +575,13 @@ exports.transfertBNB = async (req, res) => {
                 )
             }
             var ret = await transferNativeBNB(to, amount, cred)
+            if (!ret.transactionHash) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    ' insufficient funds for gas'
+                )
+            }
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -620,6 +636,13 @@ exports.transfertEther = async (req, res) => {
             }
             var cred = await unlock(req, res)
             var ret = await transferEther(to, amount, cred)
+            if (!ret.transactionHash) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    ' insufficient funds for gas'
+                )
+            }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             responseHandler.makeResponseError(res, 404, ' Account not found')
