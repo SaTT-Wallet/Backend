@@ -31,7 +31,7 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
-const { getFacebookPages } = require('../manager/oracles')
+const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
 
 try {
