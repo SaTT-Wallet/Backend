@@ -549,13 +549,19 @@ exports.getBalanceByUid = async (req, res) => {
             ) {
                 key = 'SATT'
             }
-            if (CryptoPrices.hasOwnProperty(key)) {
-                Total_balance +=
-                    this.filterAmount(
-                        new Big(balance['amount'] * 1)
-                            .div((10 ** +token_info[T_name].dicimal).toString())
-                            .toNumber() + ''
-                    ) * CryptoPrices[key].price
+            if (CryptoPrices) {
+                if (CryptoPrices.hasOwnProperty(key)) {
+                    Total_balance +=
+                        this.filterAmount(
+                            new Big(balance['amount'] * 1)
+                                .div(
+                                    (
+                                        10 ** +token_info[T_name].dicimal
+                                    ).toString()
+                                )
+                                .toNumber() + ''
+                        ) * CryptoPrices[key].price
+                }
             }
         }
 
