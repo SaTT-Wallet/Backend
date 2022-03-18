@@ -375,7 +375,6 @@ exports.transfertBep20 = async (req, res) => {
                         network: 'BEP20',
                         from: cred.address,
                         transactionHash: ret.transactionHash,
-                        decimal,
                     }
                 )
             }
