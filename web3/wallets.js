@@ -748,6 +748,7 @@ exports.transferEther = async (to, amount, credentials) => {
         return { error: 'Invalid address' }
     try {
         var gasPrice = await credentials.Web3ETH.eth.getGasPrice()
+
         var gas = 21000
 
         var receipt = await credentials.Web3ETH.eth
