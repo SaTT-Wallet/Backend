@@ -1746,3 +1746,29 @@ module.exports.campaignsStatistics = async (req, res) => {
         )
     }
 }
+
+module.exports.deleteDraft = async (req, res) => {
+    try {
+        let _id = req.params.id
+        let idUser = req.user._id
+        console.log(idUser)
+        let campaign = await Campaigns.findOne({ _id })
+        if (campaign.idNode !== '0' + idUser || campaign.type !== 'draft') {
+            return responseHandler.makeResponseError(res, 401, 'unauthorized')
+        } else {
+            await Campaigns.deleteOne({ _id })
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'deleted successfully',
+                false
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
