@@ -54,6 +54,7 @@ const GridFsStorage = require('multer-gridfs-storage')
 var Long = require('mongodb').Long
 
 const multer = require('multer')
+const { ObjectId } = require('mongodb')
 
 const storageUserLegal = new GridFsStorage({
     db: connect,

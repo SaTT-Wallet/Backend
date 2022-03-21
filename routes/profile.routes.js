@@ -396,7 +396,7 @@ router.get('/socialAccounts', verifyAuth, socialAccounts)
 
 /**
  * @swagger
- * /profile/addChannel/facebook:
+ * /profile/addChannel/facebook/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -433,11 +433,14 @@ passport.use(
 
 router.get(
     '/callback/addChannel/facebook',
-    passport.authenticate('facebook_strategy_add_channel', {
-        failureRedirect:
-            process.env.BASED_URL +
-            '/home/settings/social-networks?message=access-denied',
-    }),
+    (req, res, next) => {
+        passport.authenticate('facebook_strategy_add_channel', {
+            failureRedirect:
+                process.env.BASED_URL +
+                req.query.state.split('|')[1] +
+                '?message=access-denied',
+        })(req, res, next)
+    },
     async (req, response) => {
         try {
             redirect = req.query.state.split('|')[1]
@@ -457,7 +460,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/addChannel/twitter:
+ * /profile/addChannel/twitter/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -514,7 +517,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/addChannel/linkedin:
+ * /profile/addChannel/linkedin/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -567,7 +570,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/addChannel/youtube:
+ * /profile/addChannel/youtube/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -873,7 +876,7 @@ router.post('/SattSupport', support)
 
 /**
  * @swagger
- * /profile/connect/facebook:
+ * /profile/connect/facebook/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -920,7 +923,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/connect/google:
+ * /profile/connect/google/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -969,7 +972,7 @@ router.get(
 
 /**
  * @swagger
- * /profile/connect/telegram:
+ * /profile/connect/telegram/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
@@ -980,7 +983,7 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get(
-    '/connect/telegram',
+    '/connect/telegram/:idUser',
     passport.authenticate('link_telegram_account'),
     connectTelegramAccount
 )
