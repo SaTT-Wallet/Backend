@@ -34,11 +34,11 @@ exports.unlock = async (req, res) => {
 
         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
     } catch (err) {
-        // console.log('errrr', err)
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
+        console.log(err)
+        // res.status(500).send({
+        //     code: 500,
+        //     error: err.message ? err.message : err.error,
+        // })
     }
 }
 
@@ -112,7 +112,7 @@ exports.exportkey = async (req, res) => {
             this.lockERC20(cred)
         }
     } else {
-        res.status(404).send('Account not found')
+        return 'Account not found'
     }
 }
 
@@ -549,13 +549,19 @@ exports.getBalanceByUid = async (req, res) => {
             ) {
                 key = 'SATT'
             }
-            if (CryptoPrices.hasOwnProperty(key)) {
-                Total_balance +=
-                    this.filterAmount(
-                        new Big(balance['amount'] * 1)
-                            .div((10 ** +token_info[T_name].dicimal).toString())
-                            .toNumber() + ''
-                    ) * CryptoPrices[key].price
+            if (CryptoPrices) {
+                if (CryptoPrices.hasOwnProperty(key)) {
+                    Total_balance +=
+                        this.filterAmount(
+                            new Big(balance['amount'] * 1)
+                                .div(
+                                    (
+                                        10 ** +token_info[T_name].dicimal
+                                    ).toString()
+                                )
+                                .toNumber() + ''
+                        ) * CryptoPrices[key].price
+                }
             }
         }
 
@@ -615,12 +621,14 @@ exports.transfer = async (token, to, amount, credentials) => {
         )
 
         var gasPrice = await contract.getGasPrice()
-        var gas = 60000
+        var gas = 600000
+
         var receipt = await contract.methods.transfer(to, amount).send({
             from: credentials.address,
             gas: gas,
             gasPrice: gasPrice,
         })
+
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
@@ -628,7 +636,7 @@ exports.transfer = async (token, to, amount, credentials) => {
             amount,
         }
     } catch (err) {
-        console.log(err)
+        return err.message
     }
 }
 
@@ -740,6 +748,7 @@ exports.transferEther = async (to, amount, credentials) => {
         return { error: 'Invalid address' }
     try {
         var gasPrice = await credentials.Web3ETH.eth.getGasPrice()
+
         var gas = 21000
 
         var receipt = await credentials.Web3ETH.eth

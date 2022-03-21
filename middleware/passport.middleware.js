@@ -31,7 +31,8 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
-const { getFacebookPages } = require('../manager/oracles')
+const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
+const { config } = require('../conf/config')
 
 try {
     app.use(
@@ -566,11 +567,8 @@ exports.linkGoogleAccount = async (
  */
 exports.connectTelegramAccount = async (req, res) => {
     try {
-        if (req.params.redirect == 'security') {
-            url = '/home/settings/security'
-        } else {
-            url = '/social-registration/monetize-telegram'
-        }
+        url = '/home/settings/security'
+
         res.redirect(
             process.env.BASED_URL + url + '?message=' + req.authInfo.message
         )
