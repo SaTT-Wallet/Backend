@@ -27,6 +27,7 @@ const {
     updateStatistics,
     coverByCampaign,
     campaignsStatistics,
+    deleteDraft,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -935,5 +936,29 @@ router.get('/coverByCampaign/:id', coverByCampaign)
  */
 router.get('/statistics', campaignsStatistics)
 
+/**
+ * @swagger
+ * /campaign/deleteDraft/{id}:
+ *   delete:
+ *     tags:
+ *     - "campaign"
+ *     summary: remove campaign.
+ *     description: allow user to delete all his campaign draft.
+ *     parameters:
+ *       - name: id
+ *         description: the id of campaign.
+ *         in: path
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No campaign found
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
 router.post('/updateStat', updateStatistics)
 module.exports = router
