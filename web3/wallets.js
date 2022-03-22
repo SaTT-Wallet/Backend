@@ -34,11 +34,10 @@ exports.unlock = async (req, res) => {
 
         return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
     } catch (err) {
-        console.log(err)
-        // res.status(500).send({
-        //     code: 500,
-        //     error: err.message ? err.message : err.error,
-        // })
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
     }
 }
 
