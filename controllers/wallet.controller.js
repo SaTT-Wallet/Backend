@@ -829,7 +829,6 @@ exports.bridge = async (req, res) => {
             )
 
             campaignWallet = JSON.parse(campaignKeystore)
-            console.log('0')
             Web3BEP20.eth.accounts.wallet.decrypt(
                 [campaignWallet],
                 process.env.SATT_RESERVE_PASS
@@ -864,7 +863,7 @@ exports.bridge = async (req, res) => {
     } catch (err) {
         res.end(JSON.stringify(err))
     } finally {
-        // if (cred) lock(cred)
+        if (cred) lock(cred)
         if (transfertBep20?.transactionHash) {
             await notificationManager(req.user._id, 'convert_event', {
                 amount,
