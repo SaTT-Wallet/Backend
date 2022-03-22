@@ -25,6 +25,9 @@ const {
     bep20Allow,
     erc20Allow,
     updateStatistics,
+    coverByCampaign,
+    campaignsStatistics,
+    deleteDraft,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -321,6 +324,10 @@ router.get('/details/:id', campaignDetails)
  *       type: string
  *       description: the campaign id.
  *       required: true
+ *     - in: query
+ *       name: influencer
+ *       type: string
+ *       description: the influencer wallet_id.
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
@@ -590,7 +597,7 @@ router.post('/save', verifyAuth, saveCampaign)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/:idCampaign/kits', verifyAuth, kits)
+router.get('/:idCampaign/kits', kits)
 
 /**
  * @swagger
@@ -885,5 +892,76 @@ router.post('/remaining', verifyAuth, getFunds)
  */
 router.put('/reject/:idLink', verifyAuth, rejectLink)
 
+/**
+ * @swagger
+ * /campaign/coverByCampaign/{id}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: campaign cover
+ *     description: get campaign cover
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: the id of campaign.
+ *         in: path
+ *         required: true
+ *       - name: width
+ *         description: width
+ *         in: query
+ *       - name: heigth
+ *         description: heigth
+ *         in: query
+ *     responses:
+ *       "200":
+ *          description: code,image
+ *       "500":
+ *          description: error:error message
+ */
+router.get('/coverByCampaign/:id', coverByCampaign)
+
+/**
+ * @swagger
+ * /campaign/statistics:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: campaigns statistics
+ *     description: get campaign statistics
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,result{SaTTmarketCap,sattPrice,SaTTPercentChange,nbPools,reach,posts,views,harvested,tvl}
+ *       "500":
+ *          description: error:error message
+ */
+router.get('/statistics', campaignsStatistics)
+
+/**
+ * @swagger
+ * /campaign/deleteDraft/{id}:
+ *   delete:
+ *     tags:
+ *     - "campaign"
+ *     summary: remove campaign.
+ *     description: allow user to delete all his campaign draft.
+ *     parameters:
+ *       - name: id
+ *         description: the id of campaign.
+ *         in: path
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No campaign found
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
 router.post('/updateStat', updateStatistics)
 module.exports = router
