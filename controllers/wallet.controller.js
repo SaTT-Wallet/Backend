@@ -795,7 +795,6 @@ exports.payementRequest = async (req, res) => {
 }
 
 exports.bridge = async (req, res) => {
-    let Direction = 'req.body.direction'
     let amount = req.body.amount
     let sattContractErc20 = Constants.token.satt
     let sattContractBep20 = Constants.bep20.address.sattBep20
@@ -803,6 +802,19 @@ exports.bridge = async (req, res) => {
         network = 'ERC20'
         var cred = await unlock(req, res)
         if (!cred) return
+
+        let balance = await getBalance(
+            cred.Web3ETH,
+            sattContractErc20,
+            cred.address
+        )
+        if (new Big(amount).gt(new Big(balance))) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'not_enough_budget'
+            )
+        }
         var transfertErc20 = await transfer(
             sattContractErc20,
             process.env.SATT_RESERVE,
