@@ -49,7 +49,7 @@ describe('Wallet Management', () => {
 
             // console.log(accessToken)
         } catch (error) {
-            console.log('---------error', error)
+            // console.log('error', error)
             expect(error).to.be.null
         }
     })
@@ -176,7 +176,7 @@ describe('Wallet Management', () => {
 
     it('Total Balnace', async () => {
         try {
-            let balance = await axios.get(`${baseUrl}/wallet/totalBalnace`, {
+            let balance = await axios.get(`${baseUrl}/wallet/totalBalance`, {
                 headers: {
                     Authorization: `Bearer ${accessToken ? accessToken : ''}`,
                     'content-type': 'application/json',
@@ -184,28 +184,6 @@ describe('Wallet Management', () => {
             })
 
             let result = balance.data
-
-            // console.log(result)
-
-            expect(result.code).to.equal(200)
-            expect(result.status).to.equal(true)
-            expect(result).to.have.property('result')
-            expect(result.msg).to.equal('success')
-        } catch (error) {
-            //console.log(error);
-        }
-    })
-
-    it('Prices', async () => {
-        try {
-            let prices = await axios.get(`${baseUrl}/wallet/prices`, {
-                headers: {
-                    Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                    'content-type': 'application/json',
-                },
-            })
-
-            let result = prices.data
 
             // console.log(result)
 
@@ -646,43 +624,14 @@ describe('Wallet Management', () => {
         } catch (error) {}
     })
 
-    it('TransferBTC', async () => {
-        let url = `${baseUrl}/wallet/transferBtc`
-
-        let options = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let obj = await axios.post(
-                url,
-                {
-                    pass: 'Haythem12@',
-                    to: '0x13bf3d184152732c6faf60c38c1dff770d3f987e',
-                    val: '500',
-                },
-                options
-            )
-            let result = obj.data
-
-            expect(result.code).to.equal(200)
-            expect(result.status).to.equal(true)
-            expect(result.msg).to.equal('success')
-            expect(result).to.have.property('result')
-
-            expect(result.result).to.be.an('object')
-
-            accessToken = result.result.token
-
-            // console.log(accessToken)
-        } catch (error) {}
-    })
-
     it('TransferBNB', async () => {
         let url = `${baseUrl}/wallet/transfertBNB`
 
+        let transferbnb = {
+            pass: 'Haythem12@',
+            to: '0x7b1251ac88dc25f7a9405471dccd066d8df607ea',
+            val: '1',
+        }
         let options = {
             headers: {
                 Authorization: `Bearer ${accessToken ? accessToken : ''}`,
@@ -690,15 +639,7 @@ describe('Wallet Management', () => {
             },
         }
         try {
-            let obj = await axios.post(
-                url,
-                {
-                    pass: 'Haythem12@',
-                    to: '0x13bf3d184152732c6faf60c38c1dff770d3f9812s',
-                    val: '500',
-                },
-                options
-            )
+            let obj = await axios.post(url, transferbnb, options)
             let result = obj.data
             // console.log(result)
             expect(result.code).to.equal(200)
@@ -708,43 +649,6 @@ describe('Wallet Management', () => {
             // console.log(accessToken)
         } catch (error) {
             console.log(error)
-            error = error.response.data
-            expect(error.code).to.be.within(400, 406)
-            expect(error).to.have.property('error')
-            expect(error.error).to.satisfy((err) => {
-                return err === 'token required' || err === ' Account not found'
-            })
-        }
-    })
-
-    it('TransferEther', async () => {
-        let url = `${baseUrl}/wallet/transfertEther`
-
-        let options = {
-            headers: {
-                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
-                'content-type': 'application/json',
-            },
-        }
-        try {
-            let obj = await axios.post(
-                url,
-                {
-                    pass: 'Haythem12@',
-                    to: '0x7b1251ac88dc25f7a9405471dccd066d8df607ea',
-                    val: '50',
-                },
-                options
-            )
-            let result = obj.data
-            // console.log('result', result)
-            expect(result.code).to.equal(200)
-            expect(result.message).to.equal('success')
-            expect(result).to.have.property('data')
-
-            // console.log(accessToken)
-        } catch (error) {
-            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 406)
             expect(error).to.have.property('error')
@@ -787,6 +691,78 @@ describe('Wallet Management', () => {
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'Account not found'
+            })
+        }
+    })
+
+    it('TransferBTC', async () => {
+        let url = `${baseUrl}/wallet/transferBtc`
+
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let obj = await axios.post(
+                url,
+                {
+                    pass: 'Haythem12@',
+                    to: '0x13bf3d184152732c6faf60c38c1dff770d3f987e',
+                    val: '500',
+                },
+                options
+            )
+            let result = obj.data
+
+            expect(result.code).to.equal(200)
+            expect(result.status).to.equal(true)
+            expect(result.msg).to.equal('success')
+            expect(result).to.have.property('result')
+
+            expect(result.result).to.be.an('object')
+
+            accessToken = result.result.token
+
+            // console.log(accessToken)
+        } catch (error) {}
+    })
+
+    it('TransferEther', async () => {
+        let url = `${baseUrl}/wallet/transfertEther`
+
+        let transfereth = {
+            pass: 'Haythem12@',
+            to: '0x7b1251ac88dc25f7a9405471dccd066d8df607ea',
+            val: '0.1',
+        }
+        let options = {
+            headers: {
+                Authorization: `Bearer ${accessToken ? accessToken : ''}`,
+                'content-type': 'application/json',
+            },
+        }
+        try {
+            let obj = await axios.post(url, transfereth, options)
+            let result = obj.data
+            // console.log('result', result)
+            expect(result.code).to.equal(200)
+            expect(result.message).to.equal('success')
+            expect(result).to.have.property('data')
+
+            // console.log(accessToken)
+        } catch (error) {
+            // console.log(error)
+            error = error.response.data
+            expect(error.code).to.be.within(400, 406)
+            expect(error).to.have.property('error')
+            expect(error.error).to.satisfy((err) => {
+                return (
+                    err === 'token required' ||
+                    err === ' Account not found' ||
+                    err === 'insufficient funds for gas'
+                )
             })
         }
     })

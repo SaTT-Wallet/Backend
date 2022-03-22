@@ -35,6 +35,7 @@ try {
     console.log(e)
 }
 const {
+    walletConnection,
     changePassword,
     socialdisconnect,
     captcha,
@@ -217,6 +218,34 @@ router.post('/changePassword', verifyAuth, changePassword)
  *          description: error=eror
  */
 router.post('/signin/mail', emailConnection)
+
+/**
+ * @swagger
+ * /auth/walletconnect:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: signin using WalletConnect.
+ *     description: Check if wallet address is exist and return access token <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user "}
+ *       "401":
+ *          description: code,<br>error
+ *       "500":
+ *          description: error=eror
+ */
+router.post('/walletconnect', walletConnection)
 
 /**
  * @swagger
