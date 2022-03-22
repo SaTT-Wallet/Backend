@@ -414,7 +414,7 @@ exports.socialAccounts = async (req, res) => {
         let channelsGoogle = await GoogleProfile.find({ UserId })
         let channelsTwitter = await TwitterProfile.find({ UserId })
         let channelsFacebook = await FbProfile.find({ UserId })
-        let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
+        let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
