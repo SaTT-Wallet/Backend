@@ -2,7 +2,7 @@ const qrcode = require('qrcode')
 const speakeasy = require('speakeasy')
 const mongoose = require('mongoose')
 
-const { Captcha, UserArchived, User } = require('../model/index')
+const { Captcha, UserArchived, User, Wallet } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
 const { createUser } = require('../middleware/passport.middleware')
@@ -109,6 +109,41 @@ exports.verifyCaptcha = async (req, res) => {
         }
     } catch (err) {
         // console.log('err', err)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
+exports.walletConnection = async (req, res) => {
+    const address = req.body.address
+    try {
+        var date = Math.floor(Date.now() / 1000) + 86400
+        var user = await Wallet.findOne({
+            'keystore.address': address,
+        }).select('UserId')
+        if (user) {
+            let userAuth = cloneUser(user.toObject())
+            let token = generateAccessToken(userAuth)
+
+            var param = {
+                access_token: token,
+                expires_in: date,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+
+            return responseHandler.makeResponseData(res, 200, 'success', param)
+        } else {
+            return responseHandler.makeResponseError(res, 401, {
+                error: true,
+                message: 'user not found',
+            })
+        }
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
