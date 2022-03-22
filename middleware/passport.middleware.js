@@ -31,6 +31,8 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
+const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
+const { config } = require('../conf/config')
 
 try {
     app.use(
@@ -152,7 +154,7 @@ passport.use(
             } else {
                 return done(null, false, {
                     error: true,
-                    message: 'invalid_credentials',
+                    message: 'user not found',
                 })
             }
         }
@@ -390,9 +392,7 @@ exports.googleAuthSignup = async (
     cb
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({
-        $or: [{ idOnSn2: profile.id }, { email: profile._json.email }],
-    })
+    var user = await User.findOne({ idOnSn2: profile.id })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
     } else {
@@ -567,11 +567,8 @@ exports.linkGoogleAccount = async (
  */
 exports.connectTelegramAccount = async (req, res) => {
     try {
-        if (req.params.redirect == 'security') {
-            url = '/home/settings/security'
-        } else {
-            url = '/social-registration/monetize-telegram'
-        }
+        url = '/home/settings/security'
+
         res.redirect(
             process.env.BASED_URL + url + '?message=' + req.authInfo.message
         )
@@ -798,7 +795,6 @@ module.exports.verifyAuth = (req, res, next) => {
         let _id = user?._id ? user?._id : user?._doc._id
         newUser = await User.findOne({ _id })
         req.user = newUser
-        console.log(err)
         next()
     })
 }

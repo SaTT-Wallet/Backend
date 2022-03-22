@@ -236,7 +236,12 @@ exports.transfertErc20 = async (req, res) => {
             var amount = req.body.amount
             var tokenName = req.body.symbole
             var cred = await unlock(req, res)
+
+            if (!cred) {
+                return
+            }
             var result = await getAccount(req, res)
+
             let balance = await getBalance(
                 cred.Web3ETH,
                 tokenERC20,
@@ -253,6 +258,13 @@ exports.transfertErc20 = async (req, res) => {
 
             var ret = await transfer(tokenERC20, to, amount, cred)
 
+            if (!ret) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    'insufficient funds for gas'
+                )
+            }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -322,6 +334,15 @@ exports.transfertBep20 = async (req, res) => {
             }
 
             var ret = await sendBep20(req.body.token, to, amount, cred)
+
+            if (!ret) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    'insufficient funds for gas'
+                )
+            }
+
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -354,8 +375,6 @@ exports.transfertBep20 = async (req, res) => {
                         network: 'BEP20',
                         from: cred.address,
                         transactionHash: ret.transactionHash,
-                        currency,
-                        decimal,
                     }
                 )
             }
@@ -554,6 +573,13 @@ exports.transfertBNB = async (req, res) => {
                 )
             }
             var ret = await transferNativeBNB(to, amount, cred)
+            if (!ret) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    'insufficient funds for gas'
+                )
+            }
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -600,14 +626,24 @@ exports.transfertEther = async (req, res) => {
             var result = await getAccount(req, res)
 
             if (new Big(amount).gt(new Big(result.ether_balance))) {
+                console.log('no money')
                 return responseHandler.makeResponseError(
                     res,
                     401,
-                    ' not_enough_budget'
+                    'not_enough_budget'
                 )
             }
             var cred = await unlock(req, res)
+
             var ret = await transferEther(to, amount, cred)
+
+            if (!ret) {
+                return responseHandler.makeResponseError(
+                    res,
+                    402,
+                    'insufficient funds for gas'
+                )
+            }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             responseHandler.makeResponseError(res, 404, ' Account not found')
@@ -759,7 +795,6 @@ exports.payementRequest = async (req, res) => {
 }
 
 exports.bridge = async (req, res) => {
-    let Direction = 'req.body.direction'
     let amount = req.body.amount
     let sattContractErc20 = Constants.token.satt
     let sattContractBep20 = Constants.bep20.address.sattBep20
@@ -767,6 +802,19 @@ exports.bridge = async (req, res) => {
         network = 'ERC20'
         var cred = await unlock(req, res)
         if (!cred) return
+
+        let balance = await getBalance(
+            cred.Web3ETH,
+            sattContractErc20,
+            cred.address
+        )
+        if (new Big(amount).gt(new Big(balance))) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'not_enough_budget'
+            )
+        }
         var transfertErc20 = await transfer(
             sattContractErc20,
             process.env.SATT_RESERVE,

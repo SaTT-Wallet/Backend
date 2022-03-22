@@ -143,7 +143,7 @@ let Tokens = {
         name: process.env.TOKEN_USDT_NAME,
         symbol: process.env.TOKEN_USDT_SYMBOL,
         undername: process.env.TOKEN_USDT_UNDERNAME,
-        undername2: process.env.TOKEN_SATT_BEP20_NETWORK,
+        undername2: process.env.TOKEN_USDT_UNDERNAME2,
         contract: usdtContract,
         dicimal: process.env.TOKEN_USDT_DICIMAL,
         network: process.env.TOKEN_USDT_NETWORK,
@@ -160,8 +160,8 @@ let Tokens = {
     MKR: {
         name: process.env.TOKEN_MKR_NAME,
         symbol: process.env.TOKEN_MKR_SYMBOL,
-        undername: process.env.TOKEN_MKR_SYMBOL,
-        undername2: process.env.TOKEN_MKR_UNDERNAME,
+        undername: process.env.TOKEN_MKR_UNDERNAME,
+        undername2: process.env.TOKEN_MKR_UNDERNAME2,
         contract: process.env.TOKEN_MKR_CONTRACT,
         dicimal: process.env.TOKEN_MKR_DICIMAL,
         network: process.env.TOKEN_MKR_NETWORK,
@@ -1127,7 +1127,17 @@ let token200 = [
         },
     },
 ]
-
+let basicAtt = {
+    logo: 0,
+    resume: 0,
+    description: 0,
+    countries: 0,
+    tags: 0,
+    cover: 0,
+    coverSrc: 0,
+    coverMobile: 0,
+    coverSrcMobile: 0,
+}
 let booltestnet = true
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
@@ -1282,7 +1292,7 @@ exports.linkedinCredentials = (callback) => {
         passReqToCallback: true,
     }
 }
-
+module.exports.basicAtt = basicAtt
 module.exports.persmissionsObjFb = persmissionsObjFb
 module.exports.pathBtcSegwit = pathBtcSegwit
 

@@ -54,6 +54,7 @@ const GridFsStorage = require('multer-gridfs-storage')
 var Long = require('mongodb').Long
 
 const multer = require('multer')
+const { ObjectId } = require('mongodb')
 
 const storageUserLegal = new GridFsStorage({
     db: connect,
@@ -170,6 +171,7 @@ exports.updateProfile = async (req, res) => {
     try {
         const id = req.user._id
         let profile = req.body
+
         if (profile.email) {
             const user = await User.findOne({
                 $and: [{ email: profile.email }, { _id: { $nin: [id] } }],
@@ -187,6 +189,8 @@ exports.updateProfile = async (req, res) => {
         if (updatedProfile.nModified === 0) {
             return makeResponseError(res, 400, 'update failed')
         }
+
+        console.log('updatedProfile', updatedProfile)
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
         return makeResponseError(
@@ -267,7 +271,7 @@ exports.FindUserLegalProfile = async (req, res) => {
         const id = req.user._id
 
         const _id = req.params.id
-        gfsUserLegal.files.findOne(_id, (err, file) => {
+        gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
             if (!file || file.length === 0) {
                 return makeResponseError(res, 404, 'No file exists')
             } else {
@@ -411,7 +415,7 @@ exports.socialAccounts = async (req, res) => {
         let channelsGoogle = await GoogleProfile.find({ UserId })
         let channelsTwitter = await TwitterProfile.find({ UserId })
         let channelsFacebook = await FbProfile.find({ UserId })
-        let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
+        let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook

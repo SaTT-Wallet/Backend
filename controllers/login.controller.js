@@ -419,8 +419,9 @@ exports.purgeAccount = async (req, res) => {
         let password = req.body.password
         let reason = req.body.reason
         if (req.user.password === synfonyHash(password)) {
-            if (reason) req.user.reason = reason
-            await UserArchived.create(req.user)
+            let user = req.user.toObject()
+            if (reason) user.reason = reason
+            await UserArchived.create(user)
             await User.deleteOne({ _id: req.user._id })
             return responseHandler.makeResponseData(
                 res,
