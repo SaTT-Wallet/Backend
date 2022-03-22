@@ -1255,7 +1255,8 @@ exports.getFunds = async (req, res) => {
     try {
         let _id = req.user._id
         var campaignDetails = await Campaigns.findOne({ hash })
-        if (campaignDetails.idNode !== '0' + _id) {
+
+        if (campaignDetails?.idNode !== '0' + _id) {
             return responseHandler.makeResponseError(res, 404, 'unauthorized')
         } else {
             var cred = await unlock(req, res)

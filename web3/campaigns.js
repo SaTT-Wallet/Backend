@@ -379,7 +379,7 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
 
 exports.getUserIdByWallet = async (wallet) => {
     let user = await Wallet.findOne({ 'keystore.address': wallet })
-
+    console.log('user', user)
     return user.UserId
 }
 
