@@ -420,10 +420,10 @@ exports.socialAccounts = async (req, res) => {
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
         if (
-            !channelsGoogle.length &&
-            !channelsLinkedin.length &&
-            !channelsTwitter.length &&
-            !channelsFacebook.length
+            !channelsGoogle?.length &&
+            !channelsLinkedin?.length &&
+            !channelsTwitter?.length &&
+            !channelsFacebook?.length
         ) {
             return makeResponseError(res, 404, 'No channel found')
         }
