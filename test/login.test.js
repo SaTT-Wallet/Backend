@@ -568,13 +568,16 @@ describe('LOgin Management', () => {
 
     it('Register with social for apple', async () => {
         let url = `${baseUrl}/auth/socialSignup`
-
-        let name = 'ssss'
-        let idSn = '0'
-        let id = '123456'
-        let photo = 'sss'
-        let givenName = 'ss'
-        let familyName = 'sss'
+        let user = {
+            name: 'string',
+            lang: 'string',
+            idSn: 0,
+            id: 'string',
+            photo: 'string',
+            givenName: 'string',
+            familyName: 'string',
+            newsLetter: true,
+        }
 
         let options = {
             headers: {
@@ -586,18 +589,7 @@ describe('LOgin Management', () => {
         let result
 
         try {
-            let account = await axios.post(
-                url,
-                {
-                    name,
-                    idSn,
-                    id,
-                    photo,
-                    givenName,
-                    familyName,
-                },
-                options
-            )
+            let account = await axios.post(url, user, options)
             result = account.data
             // console.log(result)
             expect(result.code).to.equal(200)

@@ -533,35 +533,36 @@ router.post('/gains', verifyAuth, gains)
  *               ratios:
  *                 type: array
  *                 items:
- *                     oneOf:
- *                         - type: string
- *                         - type: string
- *                         - type: string
- *                         - type: integer
- *                         - type: string
- *                         - type: string
- *                         - type: string
- *                         - type: integer
- *                         - type: string
- *                         - type: string
- *                         - type: string
- *                         - type: integer
- *                         - type: string
- *                         - type: string
- *                         - type: string
- *                         - type: integer
- *                         - type: string
- *                         - type: string
- *                         - type: string
- *                         - type: integer
+ *                   type: object
+ *                   properties:
+ *                     like:
+ *                            type: string
+ *                     view:
+ *                            type: string
+ *                     share:
+ *                            type: string
+ *                     reachLimit:
+ *                            type: string
+ *                     oracle:
+ *                            type: string
  *               bounties:
  *                 type: array
  *                 items:
- *                     oneOf:
- *                         - type: string
- *                         - type: string
- *                         - type: integer
- *                         - type: string
+ *                   type: object
+ *                   properties:
+ *                     oracle:
+ *                            type: string
+ *                     categorie:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           minFollowers:
+ *                                  type: integer
+ *                           maxFollowers:
+ *                                  type: integer
+ *                           reward:
+ *                                  type: string
  *
  *     responses:
  *       "200":
