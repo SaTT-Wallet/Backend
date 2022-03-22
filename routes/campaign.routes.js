@@ -324,6 +324,10 @@ router.get('/details/:id', campaignDetails)
  *       type: string
  *       description: the campaign id.
  *       required: true
+ *     - in: query
+ *       name: influencer
+ *       type: string
+ *       description: the influencer wallet_id.
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
