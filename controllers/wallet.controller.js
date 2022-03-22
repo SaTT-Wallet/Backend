@@ -795,7 +795,6 @@ exports.payementRequest = async (req, res) => {
 }
 
 exports.bridge = async (req, res) => {
-    let Direction = 'req.body.direction'
     let amount = req.body.amount
     let sattContractErc20 = Constants.token.satt
     let sattContractBep20 = Constants.bep20.address.sattBep20
