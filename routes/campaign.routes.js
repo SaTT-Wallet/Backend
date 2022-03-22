@@ -28,6 +28,7 @@ const {
     coverByCampaign,
     campaignsStatistics,
     deleteDraft,
+    statLinkCampaign,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -848,6 +849,31 @@ router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
  */
 
 router.post('/remaining', verifyAuth, getFunds)
+
+/**
+ * @swagger
+ * /campaign/statLinkCampaign/{hash}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: get campaign statistics
+ *     description: return  the campaign statistics
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: hash
+ *         description: the campaign hash.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success",<br>data:{stat:{facebook,twitter,instagram,youtube,linkedin},creatorParticipate,reachTotal}
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:error message
+ */
+router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaign)
 
 /**
  * @swagger
