@@ -20,13 +20,13 @@ const {
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
-const { notificationManager } = require('../manager/accounts')
+const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
 const { fundCampaign, getTransactionAmount } = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
-const { mongoConnection } = require('../conf/config')
+const { mongoConnection, basicAtt } = require('../conf/config')
 
 const storage = new GridFsStorage({
     url: mongoConnection().mongoURI,
@@ -119,6 +119,7 @@ const {
     answerCall,
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
+const sharp = require('sharp')
 
 const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -126,6 +127,10 @@ let gfsKit
 conn.once('open', () => {
     gfsKit = Grid(conn.db, mongoose.mongo)
     gfsKit.collection('campaign_kit')
+
+    // gfsKit = new mongoose.mongo.GridFSBucket(conn.db, {
+    //     bucketName: 'yourBucketName',
+    // })
 })
 
 module.exports.launchCampaign = async (req, res) => {
@@ -267,6 +272,8 @@ exports.campaigns = async (req, res) => {
         let id_wallet = req.query.idWallet
         let query = sortOutPublic(req, idNode, strangerDraft)
 
+        let count = await Campaigns.countDocuments()
+
         let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
         let campaigns = await Campaigns.aggregate([
             {
@@ -310,7 +317,8 @@ exports.campaigns = async (req, res) => {
         }
 
         return responseHandler.makeResponseData(res, 200, 'success', {
-            data: campaigns,
+            campaigns,
+            count,
         })
     } catch (err) {
         console.log('err', err)
@@ -782,16 +790,9 @@ exports.validateCampaign = async (req, res) => {
 }
 exports.gains = async (req, res) => {
     var idProm = req.body.idProm
-    var idCampaign = req.body.idCampaign
     var hash = req.body.hash
     var stats
     var requests = false
-    var abi = [
-        { indexed: true, name: 'idRequest', type: 'bytes32' },
-        { indexed: false, name: 'typeSN', type: 'uint8' },
-        { indexed: false, name: 'idPost', type: 'string' },
-        { indexed: false, name: 'idUser', type: 'string' },
-    ]
     try {
         var credentials = await unlock(req, res)
         var ctr = await getPromContract(idProm, credentials)
@@ -1240,11 +1241,21 @@ module.exports.increaseBudget = async (req, res) => {
 exports.getFunds = async (req, res) => {
     var hash = req.body.hash
     try {
-        var cred = await unlock(req, res)
-        let campaignDetails = await Campaigns.findOne({ hash })
-        var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
+        let _id = req.user._id
+        var campaignDetails = await Campaigns.findOne({ hash })
+        if (campaignDetails.idNode !== '0' + _id) {
+            return responseHandler.makeResponseError(res, 404, 'unauthorized')
+        } else {
+            var cred = await unlock(req, res)
+            var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
 
-        return responseHandler.makeResponseData(res, 200, 'Token added', ret)
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'budget retrieved',
+                ret
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1617,6 +1628,145 @@ module.exports.updateStatistics = async (req, res) => {
     try {
         await updateStat()
         return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.coverByCampaign = async (req, res) => {
+    try {
+        let _id = req.params.id
+        let campaign = await Campaigns.findOne({ _id })
+        let image = Buffer.from(campaign.cover, 'base64')
+        if (req.query.width && req.query.heigth)
+            sharp(image)
+                .resize(+req.query.heigth, +req.query.width)
+                .toBuffer()
+                .then((resizedImageBuffer) => {
+                    res.writeHead(200, {
+                        'Content-Type': 'image/png',
+                        'Content-Length': resizedImageBuffer.length,
+                    })
+                    res.end(resizedImageBuffer)
+                })
+        else {
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+
+                'Content-Length': image.length,
+            })
+
+            res.end(image)
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.campaignsStatistics = async (req, res) => {
+    try {
+        let totalAbos = 0
+        let totalViews = 0
+        let totalPayed = 0
+        let tvl = 0
+        let Crypto = await getPrices()
+        let SATT = Crypto['SATT']
+        let campaignProms = Campaigns.aggregate([
+            {
+                $project: basicAtt,
+            },
+            {
+                $match: {
+                    hash: { $exists: true },
+                },
+            },
+        ])
+
+        let linkProms = CampaignLink.aggregate([
+            {
+                $match: {
+                    id_campaign: { $exists: true },
+                },
+            },
+        ])
+        let data = await Promise.all([campaignProms, linkProms])
+        let pools = data[0]
+        let links = data[1]
+        let j = 0
+        let i = 0
+        while (j < links.length) {
+            let campaign = pools.find((e) => e.hash === links[j].id_campaign)
+            if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
+                totalAbos += +links[j].abosNumber
+            if (links[j].views) totalViews += +links[j].views
+            if (links[j].payedAmount)
+                totalPayed = new Big(totalPayed)
+                    .plus(
+                        new Big(links[j].payedAmount).div(
+                            new Big(10).pow(getDecimal(campaign?.token.name))
+                        )
+                    )
+                    .toFixed()
+            j++
+        }
+        while (i < pools.length) {
+            if (pools[i].type === 'apply') {
+                tvl = new Big(tvl)
+                    .plus(
+                        new Big(pools[i].funds[1]).div(
+                            new Big(10).pow(getDecimal(pools[i]?.token.name))
+                        )
+                    )
+                    .toFixed()
+            }
+            i++
+        }
+        let result = {
+            marketCap: SATT.market_cap,
+            sattPrice: SATT.price,
+            percentChange: SATT.percent_change_24h,
+            nbPools: pools.length,
+            reach: totalAbos,
+            posts: links.length,
+            views: totalViews,
+            harvested: totalPayed,
+            tvl: tvl,
+        }
+        return responseHandler.makeResponseData(res, 200, 'success', result)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.deleteDraft = async (req, res) => {
+    try {
+        let _id = req.params.id
+        let idUser = req.user._id
+        console.log(idUser)
+        let campaign = await Campaigns.findOne({ _id })
+        if (campaign.idNode !== '0' + idUser || campaign.type !== 'draft') {
+            return responseHandler.makeResponseError(res, 401, 'unauthorized')
+        } else {
+            await Campaigns.deleteOne({ _id })
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'deleted successfully',
+                false
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
