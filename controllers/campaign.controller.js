@@ -1791,3 +1791,60 @@ module.exports.deleteDraft = async (req, res) => {
         )
     }
 }
+module.exports.initStat = () => {
+    return {
+        total: 0,
+        views: 0,
+        likes: 0,
+        shares: 0,
+        accepted: 0,
+        pending: 0,
+        rejected: 0,
+    }
+}
+module.exports.statLinkCampaign = async (req, res) => {
+    try {
+        let id_campaign = req.params.hash
+        let arrayOfUser = []
+        let arrayOfnbAbos = []
+        let nbTotalUser = 0
+        let totalAbos = 0
+        let result = {
+            facebook: initStat(),
+            twitter: initStat(),
+            instagram: initStat(),
+            youtube: initStat(),
+            linkedin: initStat(),
+        }
+        let links = await CampaignLink.find({ id_campaign })
+        let i = 0
+        while (i < links.length) {
+            let link = links[i]
+            let oracle = link.oracle
+            result[oracle] = calcSNStat(result[oracle], link)
+            if (arrayOfUser.indexOf(link.id_wallet) === -1) {
+                nbTotalUser++
+                arrayOfUser.push(link.id_wallet)
+            }
+            if (
+                arrayOfnbAbos.indexOf(link.id_wallet + '|' + link.typeSN) === -1
+            ) {
+                if (link.abosNumber) totalAbos += +link.abosNumber
+                arrayOfUser.push(link.id_wallet + '|' + link.typeSN)
+            }
+            i++
+        }
+
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            stat: result,
+            creatorParticipate: nbTotalUser,
+            reachTotal: totalAbos,
+        })
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
