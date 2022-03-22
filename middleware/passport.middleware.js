@@ -795,7 +795,6 @@ module.exports.verifyAuth = (req, res, next) => {
         let _id = user?._id ? user?._id : user?._doc._id
         newUser = await User.findOne({ _id })
         req.user = newUser
-        console.log(err)
         next()
     })
 }
