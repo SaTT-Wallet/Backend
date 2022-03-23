@@ -34,7 +34,6 @@ try {
     console.log('******connection establed to MongoServer*******')
 } catch (error) {
     console.log('there is no connection')
-    console.log(error)
 }
 module.exports.connect = connect
 
