@@ -1,4 +1,5 @@
 const packagejson = require('../package.json')
+
 let environment = {
     local: {
         MONGO_BASE: process.env.MONGO_BASE_LOCAL,
@@ -26,11 +27,21 @@ let environment = {
             ':' +
             process.env.MONGO_PASS_TESTNET +
             '@' +
-            process.env.MONGO_HOST_TESTNET +
+            process.env.MONGO_HOST_1_TESTNET +
+            ':' +
+            process.env.MONGO_PORT_TESTNET +
+            ',' +
+            process.env.MONGO_HOST_2_TESTNET +
+            ':' +
+            process.env.MONGO_PORT_TESTNET +
+            ',' +
+            process.env.MONGO_HOST_3_TESTNET +
             ':' +
             process.env.MONGO_PORT_TESTNET +
             '/' +
-            process.env.MONGO_BASE_TESTNET,
+            process.env.MONGO_BASE_TESTNET +
+            '?replicaSet=' +
+            process.env.MONGO_RUPLICASET_TESTNET,
     },
     mainnet: {
         MONGO_BASE: process.env.MONGO_BASE_MAINNET,
