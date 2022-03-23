@@ -347,7 +347,6 @@ exports.getListCryptoByUid = async (req, res) => {
         var ret = await this.getAccount(req, res)
         delete ret.btc
         delete ret.version
-
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
         })
@@ -437,7 +436,6 @@ exports.getListCryptoByUid = async (req, res) => {
             )
             listOfCrypto.push(crypto)
         }
-
         delete ret.address
         for (const Amount in ret) {
             let crypto = {}
@@ -477,7 +475,6 @@ exports.getListCryptoByUid = async (req, res) => {
                 .toFixed(8)
             listOfCrypto.push(crypto)
         }
-
         return { listOfCrypto }
     } catch (err) {
         console.log(err)
