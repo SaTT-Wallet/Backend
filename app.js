@@ -53,8 +53,14 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/assets', express.static('public'))
 app.set('view engine', 'ejs')
 
-app.use(bodyParser.json({ limit: '50mb' }))
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
+app.use(bodyParser.json({ limit: '50mb', parameterLimit: 50000 }))
+app.use(
+    bodyParser.urlencoded({
+        limit: '50mb',
+        extended: true,
+        parameterLimit: 50000,
+    })
+)
 app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)
