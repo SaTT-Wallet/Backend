@@ -1100,18 +1100,17 @@ exports.update = async (req, res) => {
     try {
         let campaign = req.body
         campaign.updatedAt = Date.now()
-        Campaigns.findOneAndUpdate(
+        let updatedCampaign = await Campaigns.findOneAndUpdate(
             { _id: req.params.idCampaign },
             { $set: campaign },
-            { new: true },
-            (err, updatedCampaign) => {
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'updated',
-                    updatedCampaign
-                )
-            }
+            { new: true }
+        )
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'updated',
+            updatedCampaign
         )
     } catch (err) {
         return responseHandler.makeResponseError(
