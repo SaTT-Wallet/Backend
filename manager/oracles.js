@@ -75,7 +75,6 @@ exports.verifyFacebook = async function (userId, pageName, idPost) {
             return false
         }
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }
@@ -129,7 +128,6 @@ exports.verifyInsta = async function (userId, idPost) {
         else if (page && page.deactivate === true) return 'deactivate'
         else return false
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }

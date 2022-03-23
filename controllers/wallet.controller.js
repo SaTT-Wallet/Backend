@@ -1068,7 +1068,6 @@ module.exports.getTransactionHistory = async (req, res) => {
             All_Transactions,
         })
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
