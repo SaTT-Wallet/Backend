@@ -707,7 +707,6 @@ exports.validateCampaign = async (req, res) => {
             var cred = await unlock(req, res)
 
             var ret = await validateProm(idApply, cred)
-
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
