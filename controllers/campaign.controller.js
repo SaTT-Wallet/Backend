@@ -255,7 +255,6 @@ module.exports.launchBounty = async (req, res) => {
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
-        console.log(req.query.idWallet)
         if (req.query.idWallet) {
             let userId = await getUserIdByWallet(
                 req.query.idWallet.substring(2)
@@ -321,7 +320,6 @@ exports.campaigns = async (req, res) => {
             count,
         })
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1770,7 +1768,6 @@ module.exports.deleteDraft = async (req, res) => {
     try {
         let _id = req.params.id
         let idUser = req.user._id
-        console.log(idUser)
         let campaign = await Campaigns.findOne({ _id })
         if (campaign.idNode !== '0' + idUser || campaign.type !== 'draft') {
             return responseHandler.makeResponseError(res, 401, 'unauthorized')
