@@ -436,6 +436,15 @@ exports.applyCampaign = async (
                 credentials.address,
                 `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${prom} ${idCampaign}`
             )
+
+        console.log({
+            transactionHash: receipt.events.CampaignApplied.transactionHash,
+            idCampaign: idCampaign,
+            typeSN: typeSN,
+            idPost: idPost,
+            idUser: idUser,
+            idProm: prom,
+        })
         return {
             transactionHash: receipt.events.CampaignApplied.transactionHash,
             idCampaign: idCampaign,
