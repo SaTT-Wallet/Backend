@@ -79,7 +79,6 @@ function authSignInErrorHandler(err, req, res, next) {
 }
 
 function authErrorHandler(err, req, res, next) {
-    console.log(err)
     let message = err.message ? err.message : err
     res.redirect(
         process.env.BASED_URL + '/auth/registration?message=' + message

@@ -3,6 +3,8 @@ const mongoose = require('mongoose')
 let createError = require('http-errors')
 
 var express = require('express')
+let app = express()
+
 var cors = require('cors')
 require('dotenv').config()
 let logger = require('morgan')
@@ -11,7 +13,10 @@ let path = require('path')
 
 const package = require('./package.json')
 var bodyParser = require('body-parser')
-
+app.use(express.json({ limit: '50mb' }))
+app.use(
+    express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
+)
 const { mongoConnection } = require('./conf/config')
 
 const loginroutes = require('./routes/login.routes')
@@ -34,11 +39,9 @@ try {
     console.log('******connection establed to MongoServer*******')
 } catch (error) {
     console.log('there is no connection')
-    console.log(error)
 }
 module.exports.connect = connect
 
-let app = express()
 app.disable('x-powered-by')
 app.use(
     cors({
@@ -54,8 +57,6 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/assets', express.static('public'))
 app.set('view engine', 'ejs')
 
-app.use(bodyParser.json({ limit: '4mb' }))
-app.use(bodyParser.urlencoded({ limit: '4mb', extended: true }))
 app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)

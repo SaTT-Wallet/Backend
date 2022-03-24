@@ -528,7 +528,6 @@ exports.transfertBtc = async (req, res) => {
             var cred = await unlock(req, res)
             var result = await getAccount(req, res)
 
-            console.log(result)
             if (new Big(req.body.val).gt(new Big(result.btc_balance))) {
                 return responseHandler.makeResponseError(
                     res,
@@ -626,7 +625,6 @@ exports.transfertEther = async (req, res) => {
             var result = await getAccount(req, res)
 
             if (new Big(amount).gt(new Big(result.ether_balance))) {
-                console.log('no money')
                 return responseHandler.makeResponseError(
                     res,
                     401,
@@ -1070,7 +1068,6 @@ module.exports.getTransactionHistory = async (req, res) => {
             All_Transactions,
         })
     } catch (err) {
-        console.log(err)
         return responseHandler.makeResponseError(
             res,
             500,
