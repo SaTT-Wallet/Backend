@@ -255,7 +255,6 @@ module.exports.launchBounty = async (req, res) => {
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
-        console.log(req.query.idWallet)
         if (req.query.idWallet) {
             let userId = await getUserIdByWallet(
                 req.query.idWallet.substring(2)
@@ -321,7 +320,6 @@ exports.campaigns = async (req, res) => {
             count,
         })
     } catch (err) {
-        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -709,7 +707,6 @@ exports.validateCampaign = async (req, res) => {
             var cred = await unlock(req, res)
 
             var ret = await validateProm(idApply, cred)
-
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
@@ -1103,18 +1100,17 @@ exports.update = async (req, res) => {
     try {
         let campaign = req.body
         campaign.updatedAt = Date.now()
-        Campaigns.findOneAndUpdate(
+        let updatedCampaign = await Campaigns.findOneAndUpdate(
             { _id: req.params.idCampaign },
             { $set: campaign },
-            { new: true },
-            (err, updatedCampaign) => {
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'updated',
-                    updatedCampaign
-                )
-            }
+            { new: true }
+        )
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'updated',
+            updatedCampaign
         )
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1770,7 +1766,6 @@ module.exports.deleteDraft = async (req, res) => {
     try {
         let _id = req.params.id
         let idUser = req.user._id
-        console.log(idUser)
         let campaign = await Campaigns.findOne({ _id })
         if (campaign.idNode !== '0' + idUser || campaign.type !== 'draft') {
             return responseHandler.makeResponseError(res, 401, 'unauthorized')

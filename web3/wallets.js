@@ -1,6 +1,7 @@
 const { Wallet, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
 const { erc20Connexion, bep20Connexion } = require('../blockchainConnexion')
+var cache = require('memory-cache')
 
 var rp = require('request-promise')
 const Big = require('big.js')
@@ -181,8 +182,12 @@ exports.getAccount = async (req, res) => {
 
 exports.getPrices = async () => {
     try {
-        var prices = null
-        if (!prices) {
+        if (
+            cache.get('prices') &&
+            Date.now() - new Date(cache.get('prices')?.date).getTime() < 1200000
+        ) {
+            return cache.get('prices').data
+        } else {
             var options = {
                 method: 'GET',
                 uri:
@@ -242,18 +247,13 @@ exports.getPrices = async () => {
                     finalMap[token.symbol].decimals = token.platform.decimals
                 }
             }
-
-            response.data = finalMap
-            prices = response
-
+            prices = { data: finalMap, date: Date.now() }
+            cache.put('prices', prices)
             return finalMap
-        } else if (
-            prices.status &&
-            Date.now() - new Date(prices.status.timestamp).getTime() < 1200000
-        ) {
-            return prices.data
         }
-    } catch (err) {}
+    } catch (err) {
+        console.log(err)
+    }
 }
 
 exports.filterAmount = function (input, nbre = 10) {
@@ -347,7 +347,6 @@ exports.getListCryptoByUid = async (req, res) => {
         var ret = await this.getAccount(req, res)
         delete ret.btc
         delete ret.version
-
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
         })
@@ -437,7 +436,6 @@ exports.getListCryptoByUid = async (req, res) => {
             )
             listOfCrypto.push(crypto)
         }
-
         delete ret.address
         for (const Amount in ret) {
             let crypto = {}
@@ -477,7 +475,6 @@ exports.getListCryptoByUid = async (req, res) => {
                 .toFixed(8)
             listOfCrypto.push(crypto)
         }
-
         return { listOfCrypto }
     } catch (err) {
         console.log(err)

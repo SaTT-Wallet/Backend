@@ -296,6 +296,43 @@ exports.FindUserLegalProfile = async (req, res) => {
         )
     }
 }
+exports.deleteTwitterChannels = async (req, res) => {
+    try {
+        const UserId = req.user._id
+        const result = await TwitterProfile.deleteMany({ UserId })
+        if (result.deletedCount === 0) {
+            return makeResponseError(res, 404, 'No channel found')
+        } else {
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.deleteTwitterChannel = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let _id = req.params.id
+        let twitterProfile = await TwitterProfile.findOne({ _id })
+        if (twitterProfile?.UserId !== UserId)
+            return makeResponseError(res, 401, 'unauthorized')
+        else {
+            await TwitterProfile.deleteOne({ UserId })
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 
 exports.deleteGoogleChannels = async (req, res) => {
     try {
@@ -304,6 +341,26 @@ exports.deleteGoogleChannels = async (req, res) => {
         if (result.deletedCount === 0) {
             return makeResponseError(res, 404, 'No channel found')
         } else {
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.deleteGoogleChannel = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let _id = req.params.id
+        let googleProfile = await GoogleProfile.findOne({ _id })
+        if (googleProfile?.UserId !== UserId)
+            return makeResponseError(res, 401, 'unauthorized')
+        else {
+            await GoogleProfile.deleteOne({ _id })
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
@@ -333,6 +390,25 @@ exports.deleteFacebookChannels = async (req, res) => {
     }
 }
 
+exports.deleteFacebookChannel = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let _id = req.params.id
+        let facebookProfile = await FbPage.findOne({ _id })
+        if (facebookProfile?.UserId !== UserId)
+            return makeResponseError(res, 401, 'unauthorized')
+        else {
+            await FbPage.deleteOne({ _id })
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.deleteLinkedinChannels = async (req, res) => {
     try {
         const userId = req.user._id
@@ -354,6 +430,31 @@ exports.deleteLinkedinChannels = async (req, res) => {
     }
 }
 
+exports.deleteLinkedinChannel = async (req, res) => {
+    try {
+        let userId = req.user._id
+        let organization = req.params.organization
+        let linkedinProfile = await LinkedinProfile.aggregate([
+            { $unwind: { path: '$pages' } },
+            { $match: { 'pages.organization': organization } },
+        ])
+        if (linkedinProfile[0]?.userId !== userId)
+            return makeResponseError(res, 401, 'unauthorized')
+        else {
+            await LinkedinProfile.updateOne(
+                { userId },
+                { $pull: { pages: { organization } } }
+            )
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.UserInterstes = async (req, res) => {
     try {
         const userId = req.user._id
@@ -413,7 +514,7 @@ exports.socialAccounts = async (req, res) => {
         let networks = {}
         let channelsGoogle = await GoogleProfile.find({ UserId })
         let channelsTwitter = await TwitterProfile.find({ UserId })
-        let channelsFacebook = await FbProfile.find({ UserId })
+        let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
@@ -466,7 +567,7 @@ module.exports.requestMoney = async (req, res) => {
         let code = await QRCode.toDataURL(req.body.wallet)
 
         await notificationManager(id, 'send_demande_satt_event', {
-            name: req.body.name,
+            name: req.body.to,
             price: req.body.price,
             cryptoCurrency: req.body.cryptoCurrency,
             message: message,
@@ -813,6 +914,34 @@ module.exports.verifyLink = async (req, response) => {
     } catch (err) {
         return makeResponseError(
             response,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.ShareByActivity = async (req, res) => {
+    try {
+        let userId = req.user._id
+        let activityURN = req.params.activity
+        let linkedinProfile = await LinkedinProfile.findOne({ userId })
+
+        let linkedinData = {
+            url: process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN,
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + linkedinProfile.accessToken,
+            },
+            json: true,
+        }
+        let postData = await rp(linkedinData)
+        let urn = `urn:li:activity:${activityURN}`
+        console.log(postData)
+        let sharedId = postData.results[urn]['domainEntity']
+        return makeResponseData(res, 200, 'success', sharedId)
+    } catch (err) {
+        return makeResponseError(
+            res,
             500,
             err.message ? err.message : err.error
         )

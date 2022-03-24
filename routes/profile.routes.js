@@ -63,6 +63,12 @@ const {
     verifyLink,
     addProfilePicture,
     uploadImageProfile,
+    deleteGoogleChannel,
+    deleteFacebookChannel,
+    deleteLinkedinChannel,
+    deleteTwitterChannels,
+    deleteTwitterChannel,
+    ShareByActivity,
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -313,6 +319,50 @@ router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
 
 /**
  * @swagger
+ * /profile/RemoveTwitterChannels:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove twitter channels.
+ *     description: allow user to delete all his twitter channels.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.delete('/RemoveTwitterChannels', verifyAuth, deleteTwitterChannels)
+
+/**
+ * @swagger
+ * /profile/RemoveTwitterChannel/{id}:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove twitter channel.
+ *     description: allow user to delete his twitter channel.
+ *     parameters:
+ *       - name: id
+ *         description: id of twitter channel.
+ *         in: path
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.delete('/RemoveTwitterChannel/:id', verifyAuth, deleteTwitterChannel)
+
+/**
+ * @swagger
  * /profile/RemoveGoogleChannels:
  *   delete:
  *     tags:
@@ -329,8 +379,31 @@ router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
  *       "500":
  *          description: error:<br> server error
  */
-
 router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
+
+/**
+ * @swagger
+ * /profile/RemoveGoogleChannel/{id}:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove google channel.
+ *     description: allow user to delete his google channel.
+ *     parameters:
+ *       - name: id
+ *         description: id of google channel.
+ *         in: path
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "404":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.delete('/RemoveGoogleChannel/:id', verifyAuth, deleteGoogleChannel)
 
 /**
  * @swagger
@@ -355,6 +428,30 @@ router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
 
 /**
  * @swagger
+ * /profile/RemoveFacebookChannel/{id}:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove facebook channel.
+ *     description: allow user to delete his facebook channel.
+ *     parameters:
+ *       - name: id
+ *         description: id of facebook channel.
+ *         in: path
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br>unauthorized
+ *       "404":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.delete('/RemoveFacebookChannel/:id', verifyAuth, deleteFacebookChannel)
+
+/**
+ * @swagger
  * /profile/RemoveLinkedInChannels:
  *   delete:
  *     tags:
@@ -373,6 +470,33 @@ router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
  */
 
 router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
+
+/**
+ * @swagger
+ * /profile/RemoveLinkedInChannel/{organization}:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove linkedin channels.
+ *     description: allow user to delete all his linkedin channels.  <br> without access_token
+ *     parameters:
+ *       - name: organization
+ *         description: organization of linkedin channel.
+ *         in: path
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> <br>unauthorized
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.delete(
+    '/RemoveLinkedInChannel/:organization',
+    verifyAuth,
+    deleteLinkedinChannel
+)
 
 /**
  * @swagger
@@ -1079,7 +1203,7 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
  *         required: true
  *     responses:
  *       "200":
- *          description: email changed,{"code":"status code","message":"email changed"}
+ *          description: data:{"code":"200","message":"success","data":"true/false"}
  *       "400":
  *          description: error:<br> please provide all fields
  *       "401":
@@ -1092,4 +1216,27 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
  *          description: error:<br> server error
  */
 router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
+
+/**
+ * @swagger
+ * /profile/linkedin/ShareByActivity/{activity}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: get share id by activity id linkedin.
+ *     description: get share id by activity id linkedin.
+ *     parameters:
+ *       - name: activity
+ *         description: activity.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data:{"code":"200","message":"success","data":"sharedId"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
 module.exports = router
