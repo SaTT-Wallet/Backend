@@ -29,6 +29,7 @@ const {
     campaignsStatistics,
     deleteDraft,
     statLinkCampaign,
+    totalInvested,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -473,6 +474,25 @@ router.post('/validate', verifyAuth, validateCampaign)
  */
 
 router.post('/gains', verifyAuth, gains)
+
+/**
+ * @swagger
+ * /campaign/invested:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: get campaign invested.
+ *     description:  get campaign invested.
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success",data={totalInvested,totalInvestedUSD}
+ *       "401":
+ *          description: error:error message<br>"unothorized"
+ *       "500":
+ *          description: error:error message
+ */
+
+router.get('/invested', verifyAuth, totalInvested)
 
 /**
  * @swagger
