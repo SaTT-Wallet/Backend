@@ -511,6 +511,7 @@ exports.apply = async (req, res) => {
     var id = req.user._id
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     let campaignDetails = await Campaigns.findOne({ hash })
+
     try {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
@@ -548,7 +549,16 @@ exports.apply = async (req, res) => {
             cred,
             campaignDetails.token
         )
-        return responseHandler.makeResponseData(res, 200, 'success', ret)
+
+        if (ret) {
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Insufficient funds for gas'
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
