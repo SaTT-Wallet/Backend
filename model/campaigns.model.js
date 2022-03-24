@@ -43,6 +43,16 @@ const campaignsSchema = mongoose.Schema(
                 ],
             },
         ],
+        missions: [
+            {
+                oracle: { type: String },
+                sub_missions: [
+                    {
+                        mission: { type: String },
+                    },
+                ],
+            },
+        ],
         cost: { type: String },
         cost_usd: { type: String },
         idNode: { type: String },
