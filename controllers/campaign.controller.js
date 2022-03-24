@@ -1848,3 +1848,40 @@ module.exports.statLinkCampaign = async (req, res) => {
         )
     }
 }
+
+module.exports.totalInvested = async (req, res) => {
+    try {
+        let prices = await getPrices()
+        let sattPrice$ = prices.SATT.price
+        let totalInvested = '0'
+        let userCampaigns = await Campaigns.aggregate([
+            {
+                $project: basicAtt,
+            },
+            {
+                $match: {
+                    hash: { $exists: true },
+                    idNode: '0' + req.user._id,
+                },
+            },
+        ])
+        userCampaigns.forEach((elem) => {
+            totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
+        })
+        let totalInvestedUSD =
+            sattPrice$ *
+            parseFloat(new Big(totalInvested).div(etherInWei).toFixed(0))
+        totalInvested = new Big(totalInvested).toFixed()
+
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            totalInvestedUSD,
+            totalInvested,
+        })
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
