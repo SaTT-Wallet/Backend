@@ -569,7 +569,7 @@ module.exports.requestMoney = async (req, res) => {
         await notificationManager(id, 'send_demande_satt_event', {
             name: req.body.to,
             price: req.body.price,
-            cryptoCurrency: req.body.cryptoCurrency,
+            currency: req.body.cryptoCurrency,
             message: message,
             wallet: req.body.wallet,
         })
@@ -580,7 +580,7 @@ module.exports.requestMoney = async (req, res) => {
             await notificationManager(result._id, 'demande_satt_event', {
                 name: req.body.name,
                 price: req.body.price,
-                cryptoCurrency: req.body.currency,
+                currency: req.body.cryptoCurrency,
                 message: message,
                 wallet: req.body.wallet,
             })
@@ -680,8 +680,9 @@ module.exports.changeNotificationsStatus = async (req, res) => {
 module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const arrayNotifications = await Notification.find({ idNode })
-
+        const arrayNotifications = await Notification.find({ idNode }).sort({
+            createdAt: 1,
+        })
         if (arrayNotifications.length === 0) {
             return makeResponseError(res, 404, 'No notifications found')
         }

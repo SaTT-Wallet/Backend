@@ -657,7 +657,7 @@ module.exports.getQrCode = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', {
                 qrCode: data,
                 secret: secret.base32,
-                googleAuthName: `SaTT_Token ${req.params.id}`,
+                googleAuthName: `SaTT_Token ${id}`,
             })
         })
     } catch (err) {
