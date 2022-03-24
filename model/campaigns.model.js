@@ -6,6 +6,7 @@ const campaignsSchema = mongoose.Schema(
         description: { type: String },
         resume: { type: String },
         brand: { type: String },
+        reference: { type: String },
         countries: [
             {
                 item_id: { type: Number },
