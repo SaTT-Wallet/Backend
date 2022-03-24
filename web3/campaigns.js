@@ -523,6 +523,7 @@ exports.getGains = async (idProm, credentials) => {
             gas: gas,
             gasPrice: gasPrice,
         })
+
         return {
             transactionHash: receipt.transactionHash,
             idProm: idProm,
@@ -668,11 +669,22 @@ exports.updatePromStats = async (idProm, credentials) => {
         var gas = 200000
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
+
+        console.log(
+            'here',
+            await ctr.methods.updatePromStats(idProm).send({
+                from: credentials.address,
+                gas: gas,
+                gasPrice: gasPrice,
+            })
+        )
         var receipt = await ctr.methods.updatePromStats(idProm).send({
             from: credentials.address,
             gas: gas,
             gasPrice: gasPrice,
         })
+
+        console.log('receipt', receipt)
 
         return {
             transactionHash: receipt.transactionHash,
@@ -684,13 +696,16 @@ exports.updatePromStats = async (idProm, credentials) => {
     }
 }
 
-exports.getTransactionAmount = async (transactionHash, network) => {
+exports.getTransactionAmount = async (
+    credentials,
+    transactionHash,
+    network
+) => {
     try {
         let data = await network.getTransactionReceipt(transactionHash)
-        let hex =
-            network == app.web3.eth
-                ? await app.web3.utils.hexToNumberString(data.logs[0].data)
-                : await app.web3Bep20.utils.hexToNumberString(data.logs[0].data)
+
+        let hex = credentials.Web3ETH.hexToNumberString(data.logs[0].data)
+
         return hex
     } catch (e) {
         console.log(e.message)
