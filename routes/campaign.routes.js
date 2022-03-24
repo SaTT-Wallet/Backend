@@ -372,7 +372,7 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
  *       "200":
  *          description: code,<br>message:"success"
  *       "401":
- *          description: error:error message<br>"unothorized"
+ *          description: error:error message<br>"unothorized","Insufficient funds for gas"
  *       "500":
  *          description: error:error message
  */
