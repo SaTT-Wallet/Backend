@@ -7,7 +7,7 @@ const linkedinProfileSchema = mongoose.Schema(
         linkedinId: { type: String },
         pages: [
             {
-                organization: {
+                'organization~': {
                     localizedName: { type: String },
                 },
                 role: { type: String },
