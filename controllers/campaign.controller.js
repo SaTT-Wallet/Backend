@@ -511,6 +511,7 @@ exports.apply = async (req, res) => {
     var id = req.user._id
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     let campaignDetails = await Campaigns.findOne({ hash })
+
     try {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
@@ -548,7 +549,16 @@ exports.apply = async (req, res) => {
             cred,
             campaignDetails.token
         )
-        return responseHandler.makeResponseData(res, 200, 'success', ret)
+
+        if (ret) {
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Insufficient funds for gas'
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -801,6 +811,7 @@ exports.gains = async (req, res) => {
         var ctr = await getPromContract(idProm, credentials)
 
         var gasPrice = await ctr.getGasPrice()
+
         let prom = await ctr.methods.proms(idProm).call()
         var linkedinData =
             prom.typeSN == '5' &&
@@ -889,6 +900,7 @@ exports.gains = async (req, res) => {
             linkedinData
         )
         var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
+
         var abos = await answerAbos(
             prom.typeSN,
             prom.idPost,
@@ -917,6 +929,7 @@ exports.gains = async (req, res) => {
                 stats.views != prevstat[0].views
             ) {
                 var evts = await updatePromStats(idProm, credentials)
+
                 var evt = evts.events[0]
                 var idRequest = evt.raw.topics[1]
                 requests = [{ id: idRequest }]
@@ -954,7 +967,6 @@ exports.gains = async (req, res) => {
         }
 
         var ret = await getGains(idProm, credentials)
-
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -963,7 +975,6 @@ exports.gains = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        // im hereeeeeee
         if (credentials) lock(credentials)
         if (ret?.transactionHash) {
             let campaign = await Campaigns.findOne(
@@ -978,6 +989,7 @@ exports.gains = async (req, res) => {
                     : credentials.Web3BEP20.eth
 
             let amount = await getTransactionAmount(
+                credentials,
                 ret.transactionHash,
                 network
             )
