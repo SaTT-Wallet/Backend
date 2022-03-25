@@ -92,7 +92,7 @@ exports.exportkeyBtc = async (req, res) => {
             this.lockERC20(cred)
         }
     } else {
-        return responseHandler.makeResponseError(res, 404, 'Account not found')
+        return responseHandler.makeResponseError(res, 204, 'Account not found')
     }
 }
 exports.exportkey = async (req, res) => {

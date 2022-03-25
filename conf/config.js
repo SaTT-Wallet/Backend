@@ -732,7 +732,7 @@ let token200 = [
         last_historical_data: '2021-10-22T10:09:34.000Z',
         platform: {
             network: 'ERC20',
-            token_address: '0x967da4048cd07ab37855c090aaf366e4ce1b9f48',
+            token_address: '0x967da2048cd07ab37855c090aaf366e4ce1b9f48',
             decimals: 18,
         },
     },

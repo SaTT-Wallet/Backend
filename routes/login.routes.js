@@ -184,7 +184,7 @@ router.post('/purge', verifyAuth, purgeAccount)
  *          description: code,<br>message:"changed"
  *       "401":
  *          description: code,<br>error:"wrong password"
- *       "404":
+ *       "204":
  *          description: error:"no account"
  *       "500":
  *          description: error:"error"
@@ -269,7 +269,7 @@ router.post('/walletconnect', walletConnection)
  *          description: code,<br>message="Email was sent to email"
  *       "401":
  *          description: code,<br>error:"account_locked"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"account not exists"
  *       "500":
  *          description: error=eror
@@ -299,7 +299,7 @@ router.post('/passlost', codeRecover)
  *     responses:
  *       "200":
  *          description: code,<br>message:"code_is_matched"
- *       "404":
+ *       "204":
  *          description: code,<br>error"user not found"
  *       "401":
  *          description: code,error
@@ -331,7 +331,7 @@ router.post('/confirmCode', confirmCode)
  *     responses:
  *       "200":
  *          description: code,<br>message:successfully
- *       "404":
+ *       "204":
  *          description: code,<br>error"user not found"
  *       "401":
  *          description: code,error
@@ -647,7 +647,7 @@ passport.use(
  *     responses:
  *       "200":
  *          description: code,message:"Email sent"
- *       "404":
+ *       "204":
  *          description: code,error:"user not found"
  *       "500":
  *          description: error=eror
