@@ -304,7 +304,7 @@ router.get('/campaigns', campaigns)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: error:error message<br>"Campaign  not found"
  *       "500":
  *          description: error:"error"
@@ -467,7 +467,7 @@ router.post('/validate', verifyAuth, validateCampaign)
  *          description: code,<br>message:"success"
  *       "401":
  *          description: error:error message<br>"unothorized"
- *       "404":
+ *       "204":
  *          description: error:error message<br>"oracle not available"
  *       "500":
  *          description: error:error message
@@ -1003,7 +1003,7 @@ router.get('/statistics', campaignsStatistics)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No campaign found
  *       "500":
  *          description: error:<br> server error

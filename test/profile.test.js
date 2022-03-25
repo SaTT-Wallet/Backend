@@ -93,7 +93,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'No file exists' || err === 'token required'
@@ -121,7 +121,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'Only images allowed' || err === 'token required'
@@ -189,7 +189,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'
@@ -214,7 +214,7 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
         } catch (error) {
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'No interest found' || err === 'token required'
@@ -398,7 +398,7 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
         } catch (error) {
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'No channel found' || err === 'token required'
@@ -424,7 +424,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'No channel found' || err === 'token required'
@@ -540,7 +540,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error.response)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'No file exists' || err === 'token required'
@@ -608,7 +608,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -637,7 +637,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (

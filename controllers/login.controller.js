@@ -48,7 +48,7 @@ exports.changePassword = async (req, res) => {
                 )
             }
         } else {
-            return responseHandler.makeResponseError(res, 404, 'no account')
+            return responseHandler.makeResponseError(res, 204, 'no account')
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -172,7 +172,7 @@ exports.codeRecover = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'account not exists',
                 false
             )
@@ -229,7 +229,7 @@ exports.confirmCode = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'user not found',
                 false
             )
@@ -284,7 +284,7 @@ exports.passRecover = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'user not found',
                 false
             )
@@ -331,7 +331,7 @@ exports.resendConfirmationToken = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'user not found',
                 false
             )
