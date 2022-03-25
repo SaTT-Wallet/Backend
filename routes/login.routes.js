@@ -662,6 +662,10 @@ router.post('/resend/confirmationToken', resendConfirmationToken)
  *     - "auth"
  *     summary: save firebase access token.
  *     description: system allow user to save his firebase token to use notification .
+ *     parameters:
+ *       - name: fireBase
+ *         description: fireBase device required for mobile user should send "mobile"
+ *         in: query
  *     requestBody:
  *       content:
  *         application/json:
