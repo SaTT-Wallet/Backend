@@ -81,6 +81,8 @@ const userSchema = mongoose.Schema(
         zipCode: { type: String },
         visitPassphrase: { type: Boolean, default: false },
         fireBaseAccessToken: { type: String },
+        fireBaseAccessTokenMObile: { type: String },
+
         phone: {
             number: { type: String },
             internationalNumber: { type: String },

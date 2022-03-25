@@ -368,9 +368,15 @@ exports.resendConfirmationToken = async (req, res) => {
 exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
+
+        let fireBase =
+            req.query.fireBase === 'mobile'
+                ? 'fireBaseAccessTokenMObile'
+                : 'fireBaseAccessToken'
+
         await User.updateOne(
             { _id: req.user._id },
-            { $set: { fireBaseAccessToken: data.fb_accesstoken } }
+            { $set: { [fireBase]: data.fb_accesstoken } }
         )
         return responseHandler.makeResponseData(res, 200, 'success', true)
     } catch (err) {
