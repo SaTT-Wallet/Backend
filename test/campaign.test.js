@@ -189,7 +189,7 @@ describe('Campaign Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'Campaign not found'
@@ -222,7 +222,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
         } catch (error) {
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'wallet not found'
@@ -297,7 +297,7 @@ describe('Campaign Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -639,7 +639,7 @@ describe('Campaign Management', () => {
         } catch (error) {
             // console.log(error.response)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'Campaign not found'
@@ -671,7 +671,7 @@ describe('Campaign Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'

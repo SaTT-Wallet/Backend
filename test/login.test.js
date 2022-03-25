@@ -122,7 +122,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -166,7 +166,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'wrong password'
@@ -207,7 +207,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'wrong password'
@@ -248,7 +248,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -294,7 +294,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -341,7 +341,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -388,7 +388,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error.message).to.satisfy((err) => {
                 return err === 'account_already_used'
@@ -426,7 +426,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'user not found' || err === 'Missing credentials'
@@ -464,7 +464,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
         }
     })
 
@@ -509,7 +509,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -555,7 +555,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -598,7 +598,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'account_exists'
@@ -638,7 +638,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -689,7 +689,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'
@@ -725,7 +725,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'
@@ -763,7 +763,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'
@@ -793,7 +793,7 @@ describe('LOgin Management', () => {
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data
-            expect(error.code).to.be.within(400, 404)
+            expect(error.code).to.be.within(400, 204)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'
