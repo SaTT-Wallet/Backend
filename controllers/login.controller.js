@@ -487,17 +487,7 @@ exports.authApple = async (req, res) => {
         let idSn = req.body.idSN
         let name = req.body.name
 
-        const validateEmail = /\S+@\S+\.\S+/
-
-        if (!validateEmail.test(email.toLowerCase())) {
-            return responseHandler.makeResponseError(
-                res,
-                400,
-                'please enter a valid email address!'
-            )
-        }
-
-        let user = await User.findOne({ $or: [{ email }, { id_apple }] })
+        let user = await User.findOne({ id_apple })
         if (user) {
             let userAuth = cloneUser(user)
             let token = generateAccessToken(userAuth)
