@@ -345,7 +345,7 @@ exports.campaignDetails = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Campaign not found'
             )
         }
@@ -1118,12 +1118,20 @@ exports.update = async (req, res) => {
             { new: true }
         )
 
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'updated',
-            updatedCampaign
-        )
+        if (updatedCampaign) {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'updated',
+                updatedCampaign
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Campaign not found'
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1215,7 +1223,7 @@ module.exports.linkStats = async (req, res) => {
                 info.totalToEarn = campaign.funds[1]
             return responseHandler.makeResponseData(res, 200, 'success', info)
         } else {
-            return responseHandler.makeResponseError(res, 404, 'link not found')
+            return responseHandler.makeResponseError(res, 204, 'link not found')
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1268,7 +1276,7 @@ exports.getFunds = async (req, res) => {
         var campaignDetails = await Campaigns.findOne({ hash })
 
         if (campaignDetails?.idNode !== '0' + _id) {
-            return responseHandler.makeResponseError(res, 404, 'unauthorized')
+            return responseHandler.makeResponseError(res, 204, 'unauthorized')
         } else {
             var cred = await unlock(req, res)
             var ret = await getRemainingFunds(campaignDetails.token, hash, cred)

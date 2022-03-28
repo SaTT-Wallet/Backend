@@ -119,7 +119,7 @@ router.get('/account', verifyAuth, account)
  *          description: success, <br> {"code":"status code","message":"success","data":"success"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired
- *       "404":
+ *       "204":
  *          description: error:<br> No file exists
  *       "500":
  *          description: error:<br> server error
@@ -149,7 +149,7 @@ router.get('/picture', verifyAuth, profilePicture)
  *          description: success, <br> {"code":"status code","message":"saved"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired
- *       "404":
+ *       "204":
  *          description: error:<br> Only images allowed
  *       "500":
  *          description: error:<br> server error
@@ -247,7 +247,7 @@ router.get('/UserLegal', verifyAuth, UserLegalProfile)
  *          description: success, {"code":"status code","message":"success","data":{"interests":[]}}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No interest found
  *       "500":
  *          description: error:<br> server error
@@ -330,7 +330,7 @@ router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -354,7 +354,7 @@ router.delete('/RemoveTwitterChannels', verifyAuth, deleteTwitterChannels)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -374,7 +374,7 @@ router.delete('/RemoveTwitterChannel/:id', verifyAuth, deleteTwitterChannel)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -398,7 +398,7 @@ router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -418,7 +418,7 @@ router.delete('/RemoveGoogleChannel/:id', verifyAuth, deleteGoogleChannel)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -443,7 +443,7 @@ router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br>unauthorized
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -463,7 +463,7 @@ router.delete('/RemoveFacebookChannel/:id', verifyAuth, deleteFacebookChannel)
  *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -511,7 +511,7 @@ router.delete(
  *          description: success, {"code":"status code","message":"success"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No channel found
  *       "500":
  *          description: error:<br> server error
@@ -827,7 +827,7 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *          description: Email was sent, {"code":"status code","message":"Email was sent"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> user not found
  *       "500":
  *          description: error:<br> server error
@@ -887,7 +887,7 @@ router.post(
  *          description: Downloaded user kyc file from db
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No file exists
  *       "500":
  *          description: error:<br> server error
@@ -933,7 +933,7 @@ router.post('/notification/seen/:id', verifyAuth, notificationUpdate)
  *          description: Notification clicked,{"code":"status code","message":"Notification clicked"}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No notifications found
  *       "500":
  *          description: error:<br> server error
@@ -956,7 +956,7 @@ router.get(
  *          description: success,{"code":"status code","message":"success","data":{"isSend","notifications":[]}}
  *       "401":
  *          description: error:<br> Invalid Access Token <br> AC_Token expired,
- *       "404":
+ *       "204":
  *          description: error:<br> No notifications found
  *       "500":
  *          description: error:<br> server error

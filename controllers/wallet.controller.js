@@ -75,7 +75,7 @@ exports.exportBtc = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -99,7 +99,7 @@ exports.exportEth = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Account not found'
             )
         }
@@ -116,7 +116,7 @@ exports.mywallet = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -145,7 +145,7 @@ exports.userBalance = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -189,7 +189,7 @@ exports.totalBalances = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -269,7 +269,7 @@ exports.transfertErc20 = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -347,7 +347,7 @@ exports.transfertBep20 = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Account not found'
             )
         }
@@ -388,7 +388,7 @@ exports.checkWalletToken = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -405,7 +405,7 @@ exports.checkWalletToken = async (req, res) => {
         if (code === '0x') {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'not a token address'
             )
         } else {
@@ -507,7 +507,7 @@ exports.addNewToken = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Account not found'
             )
         }
@@ -541,7 +541,7 @@ exports.transfertBtc = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -582,7 +582,7 @@ exports.transfertBNB = async (req, res) => {
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
-            responseHandler.makeResponseError(res, 404, ' Account not found')
+            responseHandler.makeResponseError(res, 204, ' Account not found')
         }
     } catch (err) {
         console.log(err)
@@ -644,7 +644,7 @@ exports.transfertEther = async (req, res) => {
             }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
-            responseHandler.makeResponseError(res, 404, ' Account not found')
+            responseHandler.makeResponseError(res, 204, ' Account not found')
         }
     } catch (err) {
         console.log('err', err)
@@ -681,6 +681,9 @@ exports.transfertEther = async (req, res) => {
 
 exports.getQuote = async (req, res) => {
     try {
+        let ip =
+            req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+        if (ip) ip = ip.split(':')[3]
         if (req.user.hasWallet == true) {
             if (req.body.requested_amount < 50) {
                 responseHandler.makeResponseError(
@@ -691,7 +694,7 @@ exports.getQuote = async (req, res) => {
             } else {
                 let requestQuote = req.body
                 requestQuote['end_user_id'] = String(req.user._id)
-                requestQuote['client_ip'] = req.addressIp
+                requestQuote['client_ip'] = ip
                 requestQuote['payment_methods'] = ['credit_card']
                 requestQuote['wallet_id'] = 'satt'
                 const simplexQuote = {
@@ -717,7 +720,7 @@ exports.getQuote = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -779,7 +782,7 @@ exports.payementRequest = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -889,7 +892,7 @@ module.exports.getMnemo = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -917,7 +920,7 @@ module.exports.verifyMnemo = async (req, res) => {
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
@@ -992,14 +995,14 @@ module.exports.removeToken = async (req, res) => {
             } else {
                 return responseHandler.makeResponseError(
                     res,
-                    404,
+                    204,
                     'Token not found'
                 )
             }
         } else {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'Wallet not found'
             )
         }
