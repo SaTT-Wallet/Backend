@@ -681,6 +681,9 @@ exports.transfertEther = async (req, res) => {
 
 exports.getQuote = async (req, res) => {
     try {
+        let ip =
+            req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+        if (ip) ip = ip.split(':')[3]
         if (req.user.hasWallet == true) {
             if (req.body.requested_amount < 50) {
                 responseHandler.makeResponseError(
@@ -691,7 +694,7 @@ exports.getQuote = async (req, res) => {
             } else {
                 let requestQuote = req.body
                 requestQuote['end_user_id'] = String(req.user._id)
-                requestQuote['client_ip'] = req.addressIp
+                requestQuote['client_ip'] = ip
                 requestQuote['payment_methods'] = ['credit_card']
                 requestQuote['wallet_id'] = 'satt'
                 const simplexQuote = {
