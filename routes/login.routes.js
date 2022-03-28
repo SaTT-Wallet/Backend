@@ -326,8 +326,6 @@ router.post('/confirmCode', confirmCode)
  *                 type: string
  *               newpass:
  *                 type: string
- *               code:
- *                 type: number
  *     responses:
  *       "200":
  *          description: code,<br>message:successfully
