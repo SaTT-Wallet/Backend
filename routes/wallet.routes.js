@@ -44,8 +44,8 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *          description: code:200,<br>message:"success"
  *       "401":
  *          description: code:401,<br>error:"token required"
- *       "404":
- *          description: code:404,<br>error:"Wallet not found"
+ *       "204":
+ *          description: code:204,<br>error:"Wallet not found"
  *       "500":
  *          description: code:500,<br>error
  */
@@ -64,7 +64,7 @@ router.get('/mywallet', verifyAuth, mywallet)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -121,7 +121,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -174,7 +174,7 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "401":
  *          description: code,<br>error:"not_enough_budget"
@@ -212,7 +212,7 @@ router.post('/transferErc20', verifyAuth, transfertErc20)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "401":
  *          description: code,<br>error:"not_enough_budget"
@@ -242,7 +242,7 @@ router.post('/transferBep20', verifyAuth, transfertBep20)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found" /"not a token address"
 
  *       "500":
@@ -277,7 +277,7 @@ router.post('/checkWalletToken', verifyAuth, checkWalletToken)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found" /"not a token address"
  *       "401":
  *          description: code,<br>error:"token already added"
@@ -309,7 +309,7 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "401":
  *          description: code,<br>error:"not_enough_budget" /"wrong password"
@@ -341,7 +341,7 @@ router.post('/transfertBtc', verifyAuth, transfertBtc)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "401":
  *          description: code,<br>error:"not_enough_budget" /"wrong password"
@@ -372,7 +372,7 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "401":
  *          description: code,<br>error:"not_enough_budget" /"wrong password"
@@ -406,7 +406,7 @@ router.post('/transfertEther', verifyAuth, transfertEther)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "403":
  *          description: code,<br>error:"Please enter amount of 50 USD or more"
@@ -438,7 +438,7 @@ router.post('/getQuote', verifyAuth, getQuote)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -490,7 +490,7 @@ router.post('/bridge', verifyAuth, bridge)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -517,7 +517,7 @@ router.post('/exportBtc', verifyAuth, exportBtc)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -535,7 +535,7 @@ router.post('/exportETH', verifyAuth, exportEth)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -561,7 +561,7 @@ router.get('/getMnemo', verifyAuth, getMnemo)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"
@@ -633,7 +633,7 @@ router.delete('/removeToken/:tokenAddress', verifyAuth, removeToken)
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
- *       "404":
+ *       "204":
  *          description: code,<br>error:"Token not found" /"Wallet not found"
  *       "500":
  *          description: code,<br>error:"error"

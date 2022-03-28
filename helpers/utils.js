@@ -94,7 +94,7 @@ exports.readHTMLFileProfile = (
                 notification: {
                     name: body.name,
                     price: body.price,
-                    cryptoCurrency: body.cryptoCurrency,
+                    currency: body.cryptoCurrency,
                     message: body.message,
                     wallet: body.wallet,
                 },
