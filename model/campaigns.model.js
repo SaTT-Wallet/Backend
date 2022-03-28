@@ -34,7 +34,7 @@ const campaignsSchema = mongoose.Schema(
         bounties: [
             {
                 oracle: { type: String },
-                categorie: [
+                categories: [
                     {
                         minFollowers: { type: Number },
                         maxFollowers: { type: Number },
