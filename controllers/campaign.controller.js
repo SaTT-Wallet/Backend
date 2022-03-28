@@ -1118,12 +1118,20 @@ exports.update = async (req, res) => {
             { new: true }
         )
 
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'updated',
-            updatedCampaign
-        )
+        if (updatedCampaign) {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'updated',
+                updatedCampaign
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Campaign not found'
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
