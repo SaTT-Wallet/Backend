@@ -48,7 +48,7 @@ exports.changePassword = async (req, res) => {
                 )
             }
         } else {
-            return responseHandler.makeResponseError(res, 404, 'no account')
+            return responseHandler.makeResponseError(res, 204, 'no account')
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -172,7 +172,7 @@ exports.codeRecover = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'account not exists',
                 false
             )
@@ -229,7 +229,7 @@ exports.confirmCode = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'user not found',
                 false
             )
@@ -284,7 +284,7 @@ exports.passRecover = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'user not found',
                 false
             )
@@ -331,7 +331,7 @@ exports.resendConfirmationToken = async (req, res) => {
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
-                404,
+                204,
                 'user not found',
                 false
             )
@@ -368,9 +368,15 @@ exports.resendConfirmationToken = async (req, res) => {
 exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
+
+        let fireBase =
+            req.query.fireBase === 'mobile'
+                ? 'fireBaseAccessTokenMObile'
+                : 'fireBaseAccessToken'
+
         await User.updateOne(
             { _id: req.user._id },
-            { $set: { fireBaseAccessToken: data.fb_accesstoken } }
+            { $set: { [fireBase]: data.fb_accesstoken } }
         )
         return responseHandler.makeResponseData(res, 200, 'success', true)
     } catch (err) {
@@ -487,17 +493,7 @@ exports.authApple = async (req, res) => {
         let idSn = req.body.idSN
         let name = req.body.name
 
-        const validateEmail = /\S+@\S+\.\S+/
-
-        if (!validateEmail.test(email.toLowerCase())) {
-            return responseHandler.makeResponseError(
-                res,
-                400,
-                'please enter a valid email address!'
-            )
-        }
-
-        let user = await User.findOne({ $or: [{ email }, { id_apple }] })
+        let user = await User.findOne({ id_apple })
         if (user) {
             let userAuth = cloneUser(user)
             let token = generateAccessToken(userAuth)
@@ -657,7 +653,7 @@ module.exports.getQrCode = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', {
                 qrCode: data,
                 secret: secret.base32,
-                googleAuthName: `SaTT_Token ${req.params.id}`,
+                googleAuthName: `SaTT_Token ${id}`,
             })
         })
     } catch (err) {

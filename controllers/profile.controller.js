@@ -101,7 +101,7 @@ exports.account = async (req, res) => {
             let { password, ...user } = req.user.toObject()
             return makeResponseData(res, 200, 'success', user)
         } else {
-            return makeResponseError(res, 404, 'user not found')
+            return makeResponseError(res, 204, 'user not found')
         }
     } catch (err) {
         return makeResponseError(
@@ -117,7 +117,7 @@ exports.profilePicture = async (req, response) => {
         const idUser = req.query.id ? +req.query.id : req.user._id
         gfsprofilePic.files.findOne({ 'user.$id': idUser }, (err, file) => {
             if (!file || file.length === 0) {
-                return makeResponseError(response, 404, 'No file exists')
+                return makeResponseError(response, 204, 'No file exists')
             } else {
                 response.writeHead(200, {
                     'Content-Type': 'image/png',
@@ -157,7 +157,7 @@ module.exports.addProfilePicture = async (req, res) => {
             )
             return makeResponseData(res, 201, 'Saved')
         }
-        return makeResponseData(res, 404, 'Only images allowed')
+        return makeResponseData(res, 204, 'Only images allowed')
     } catch (err) {
         return makeResponseError(
             res,
@@ -255,7 +255,7 @@ exports.addUserLegalProfile = async (req, res) => {
             })
             return makeResponseData(res, 201, 'legal saved')
         }
-        return makeResponseError(res, 404, 'Only images allowed')
+        return makeResponseError(res, 204, 'Only images allowed')
     } catch (err) {
         return makeResponseError(
             res,
@@ -272,7 +272,7 @@ exports.FindUserLegalProfile = async (req, res) => {
         const _id = req.params.id
         gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
             if (!file || file.length === 0) {
-                return makeResponseError(res, 404, 'No file exists')
+                return makeResponseError(res, 204, 'No file exists')
             } else {
                 if (file.contentType) {
                     contentType = file.contentType
@@ -301,7 +301,7 @@ exports.deleteTwitterChannels = async (req, res) => {
         const UserId = req.user._id
         const result = await TwitterProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel found')
+            return makeResponseError(res, 204, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
@@ -339,7 +339,7 @@ exports.deleteGoogleChannels = async (req, res) => {
         const UserId = req.user._id
         const result = await GoogleProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel found')
+            return makeResponseError(res, 204, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
@@ -377,7 +377,7 @@ exports.deleteFacebookChannels = async (req, res) => {
         const UserId = req.user._id
         const result = await FbProfile.deleteMany({ UserId })
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel found')
+            return makeResponseError(res, 204, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
@@ -417,7 +417,7 @@ exports.deleteLinkedinChannels = async (req, res) => {
             { $set: { pages: [] } }
         )
         if (result.deletedCount === 0) {
-            return makeResponseError(res, 404, 'No channel found')
+            return makeResponseError(res, 204, 'No channel found')
         } else {
             return makeResponseData(res, 200, 'deleted successfully')
         }
@@ -463,7 +463,7 @@ exports.UserInterstes = async (req, res) => {
         const result = await Interests.find({ userId })
 
         if (!result.length) {
-            return makeResponseError(res, 404, 'No interest found')
+            return makeResponseError(res, 204, 'No interest found')
         } else if (result.length >= 2) {
             result.forEach((item, index) => {
                 allInterests = [...allInterests, ...item.interests]
@@ -526,7 +526,7 @@ exports.socialAccounts = async (req, res) => {
             !channelsTwitter?.length &&
             !channelsFacebook?.length
         ) {
-            return makeResponseError(res, 404, 'No channel found')
+            return makeResponseError(res, 204, 'No channel found')
         }
         return makeResponseData(res, 200, 'success', networks)
     } catch (err) {
@@ -546,7 +546,7 @@ module.exports.checkOnBoarding = async (req, res) => {
             { $set: { onBoarding: true } }
         )
         if (result.nModified === 0) {
-            return makeResponseError(res, 404, 'user not found')
+            return makeResponseError(res, 204, 'user not found')
         }
         return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
@@ -585,7 +585,7 @@ module.exports.requestMoney = async (req, res) => {
                 wallet: req.body.wallet,
             })
         } else {
-            return makeResponseError(res, 404, 'user not found')
+            return makeResponseError(res, 204, 'user not found')
         }
         readHTMLFileProfile(
             __dirname + '/../public/emailtemplate/notification.html',
@@ -665,7 +665,7 @@ module.exports.changeNotificationsStatus = async (req, res) => {
             { $set: { isSeen: true } }
         )
         if (result.nModified === 0) {
-            return makeResponseError(res, 404, 'No notifications found')
+            return makeResponseError(res, 204, 'No notifications found')
         }
         return makeResponseData(res, 200, 'Notification clicked')
     } catch (err) {
@@ -683,10 +683,10 @@ module.exports.getNotifications = async (req, res) => {
         const arrayNotifications = await Notification.find({ idNode })
 
         if (arrayNotifications.length === 0) {
-            return makeResponseError(res, 404, 'No notifications found')
+            return makeResponseError(res, 204, 'No notifications found')
         }
 
-        const limit = parseInt(req.query.limit) || 50
+        const limit = parseInt(req.query.limit) || 10000000
         const page = parseInt(req.query.page) || 1
         const startIndex = (page - 1) * limit
         const endIndex = page * limit

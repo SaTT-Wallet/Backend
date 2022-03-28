@@ -110,7 +110,7 @@ const options = {
 const swaggerSpec = swaggerJSDoc(options)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
 
-// catch 404 and forward to error handler
+// catch 204 and forward to error handler
 app.use(function (req, res, next) {
     res.status(404)
     // respond with json
