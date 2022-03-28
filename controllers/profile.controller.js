@@ -680,7 +680,9 @@ module.exports.changeNotificationsStatus = async (req, res) => {
 module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const arrayNotifications = await Notification.find({ idNode })
+        const arrayNotifications = await Notification.find({ idNode }).sort({
+            createdAt: 'desc',
+        })
 
         if (arrayNotifications.length === 0) {
             return makeResponseError(res, 204, 'No notifications found')
