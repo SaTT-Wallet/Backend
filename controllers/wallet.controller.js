@@ -1078,3 +1078,27 @@ module.exports.getTransactionHistory = async (req, res) => {
         )
     }
 }
+
+exports.balanceStat = async (req, res) => {
+    try {
+        const id = req.user._id
+        let result = {}
+        let user = await User.findOne({ _id: id })
+        if (user.daily && user.daily.length > 0) {
+            result.daily = user.daily
+        }
+        if (user.weekly && user.weekly.length > 0) {
+            result.weekly = user.weekly
+        }
+        if (user.monthly && user.monthly.length > 0) {
+            result.monthly = user.monthly
+        }
+        return responseHandler.makeResponseData(res, 200, 'success', result)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
