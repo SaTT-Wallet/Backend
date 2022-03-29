@@ -1,3 +1,4 @@
+<meta name="google-site-verification" content="yFZ1eB49Dqnj3XvNgErrmHLx0xOfATFJTNGletWnVlw" />
 <!-- ABOUT THE PROJECT -->
 
 ## Node-SaTT <img align="left" width="50" height="50" src="docs/img/logo-s.png">
