@@ -123,20 +123,20 @@ module.exports.updateStat = async () => {
         event.views = views === 'old' ? event.views : views
         event.media_url = (socialOracle && socialOracle.media_url) || ''
         event.oracle = findBountyOracle(event.typeSN)
-        if (campaign && socialOracle) {
-            event.abosNumber = await answerAbos(
-                event.typeSN,
-                event.idPost,
-                event.idUser,
-                linkedinProfile
-            )
-            event.oracle === 'twitter' &&
-                (await TwitterProfile.updateOne(
-                    { UserId: userWallet.UserId },
-                    { $set: { subscibers: event.abosNumber } }
-                ))
-        }
-        if (event.abosNumber === 'indisponible') event.status = 'indisponible'
+        // if (campaign && socialOracle) {
+        //     event.abosNumber = await answerAbos(
+        //         event.typeSN,
+        //         event.idPost,
+        //         event.idUser,
+        //         linkedinProfile
+        //     )
+        //     event.oracle === 'twitter' &&
+        //         (await TwitterProfile.updateOne(
+        //             { UserId: userWallet.UserId },
+        //             { $set: { subscibers: event.abosNumber } }
+        //         ))
+        // }
+        // if (event.abosNumber === 'indisponible') event.status = 'indisponible'
 
         if (campaign.ratios.length && socialOracle) {
             event.totalToEarn = getTotalToEarn(event, campaign.ratios)
