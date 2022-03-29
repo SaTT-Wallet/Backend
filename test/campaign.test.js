@@ -180,16 +180,21 @@ describe('Campaign Management', () => {
                 { campaign },
                 options
             )
-
-            result = account.data
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('updated')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(200)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('updated')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
-            // console.log(error)
+            console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'Campaign not found'
@@ -222,7 +227,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
         } catch (error) {
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'wallet not found'
@@ -297,7 +302,7 @@ describe('Campaign Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -465,7 +470,7 @@ describe('Campaign Management', () => {
 
     it('Get campaign pending link', async () => {
         let result
-        let id = '61f169ec724cc395ed336770'
+        let id = '613f7b6c74542262388a77be'
 
         try {
             let account = await axios.get(
@@ -629,17 +634,21 @@ describe('Campaign Management', () => {
                     'content-type': 'application/json',
                 },
             })
-
-            result = account.data
-            // console.log(account.data)
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(200)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('success')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
-            // console.log(error.response)
+            // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'Campaign not found'
@@ -649,7 +658,7 @@ describe('Campaign Management', () => {
 
     it('Get campaign list', async () => {
         let result
-        let idWallet = '0x71dfcee7ab5d4cd66b010a36c70527cac3727561'
+        let idWallet = '0x19d2328aa26b19243dd1b00104c67d0dd5c07d2f'
         try {
             let account = await axios.get(
                 `${baseUrl}/campaign/campaigns?idWallet=${idWallet}`,
@@ -662,16 +671,21 @@ describe('Campaign Management', () => {
                     },
                 }
             )
-
-            result = account.data
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(200)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('success')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
-            // console.log(error)
+            console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.within(400, 404)
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required'
@@ -725,7 +739,7 @@ describe('Campaign Management', () => {
     it('Get link stats', async () => {
         let result
         let id =
-            '0x20055c4e5029f7cdea0380524e23920e819258bf7b1d3c067dfb67cf6f25b2f1'
+            '0x0c4b5cbe8854222540b4ada1adc720d15f4dd2491c091af9afab3b9cff061d26'
 
         try {
             let account = await axios.get(
@@ -748,7 +762,7 @@ describe('Campaign Management', () => {
             expect(result).to.have.property('data')
             expect(result.message).to.equal('success')
         } catch (error) {
-            // console.log(error.response.data)
+            // console.log(error)
             error = error.response.data
             expect(error.code).to.be.within(400, 500)
             expect(error).to.have.property('error')
@@ -936,12 +950,17 @@ describe('Campaign Management', () => {
             )
 
             result = account.data
-
-            // console.log( account)
-            result = account.data
-            expect(result.code).to.equal(200)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('Token added')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(200)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('budget retrieved')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
             // console.log(error.response.data)
             error = error.response.data

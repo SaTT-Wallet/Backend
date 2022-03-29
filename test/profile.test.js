@@ -45,7 +45,7 @@ describe('Profile Management', () => {
             expect(result).to.have.property('data')
             expect(result.data).to.be.an('object')
         } catch (error) {
-            // console.log('---------error', error)
+            // console.log('error', error)
             expect(error).to.be.null
         }
     })
@@ -121,7 +121,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'Only images allowed' || err === 'token required'
@@ -308,14 +308,21 @@ describe('Profile Management', () => {
 
         try {
             let account = await axios.delete(url, options)
-            result = account.data
-            expect(result.code).to.equal(201)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(201)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('success')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 406)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'No channel found'
@@ -337,14 +344,21 @@ describe('Profile Management', () => {
 
         try {
             let account = await axios.delete(url, options)
-            result = account.data
-            expect(result.code).to.equal(201)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(201)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('success')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 406)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'No channel found'
@@ -366,14 +380,21 @@ describe('Profile Management', () => {
 
         try {
             let account = await axios.delete(url, options)
-            result = account.data
-            expect(result.code).to.equal(201)
-            expect(result).to.have.property('data')
-            expect(result.message).to.equal('success')
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(201)
+                expect(result).to.have.property('data')
+                expect(result.message).to.equal('success')
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 406)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'No channel found'
@@ -462,16 +483,23 @@ describe('Profile Management', () => {
                 },
                 options
             )
-            result = account.data
-            expect(result.code).to.equal(201)
-            expect(result).to.have.property('data')
-            expect(result.message).to.satisfy((str) => {
-                str.startsWith('Email was sent')
-            })
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(201)
+                expect(result).to.have.property('data')
+                expect(result.message).to.satisfy((str) => {
+                    str.startsWith('Email was sent')
+                })
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
-            // console.log(error.response)
+            // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 406)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'user not found'
@@ -501,16 +529,24 @@ describe('Profile Management', () => {
                 },
                 options
             )
-            result = account.data
-            expect(result.code).to.equal(201)
-            expect(result).to.have.property('data')
-            expect(result.message).to.satisfy((str) => {
-                str.startsWith('legal saved')
-            })
+
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(201)
+                expect(result).to.have.property('data')
+                expect(result.message).to.satisfy((str) => {
+                    str.startsWith('legal saved')
+                })
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
-            // console.log(error.response)
+            // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 406)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'token required' || err === 'Only images allowed'
@@ -534,13 +570,19 @@ describe('Profile Management', () => {
                 }
             )
 
-            // console.log( account)
-            result = account.data
-            expect(result.code).to.equal(200)
+            if (account.data) {
+                result = account.data
+                expect(result.code).to.equal(200)
+            } else {
+                result = account
+                expect(result.status).to.equal(204)
+                expect(result.statusText).to.equal('No Content')
+            }
+            // console.log(account)
         } catch (error) {
-            // console.log(error.response)
+            // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return err === 'No file exists' || err === 'token required'
@@ -608,7 +650,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (
@@ -637,7 +679,7 @@ describe('Profile Management', () => {
         } catch (error) {
             // console.log(error)
             error = error.response.data
-            expect(error.code).to.be.within(400, 204)
+            expect(error.code).to.be.oneOf([400, 401, 204])
             expect(error).to.have.property('error')
             expect(error.error).to.satisfy((err) => {
                 return (

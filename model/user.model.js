@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema(
     {
         first_name: { type: String },
         name: { type: String },
-        idSn: { type: Number },
+        idSn: { type: Number, default: 0 },
         idOnSn: { type: String },
         idOnSn2: { type: String },
         idOnSn3: { type: String },

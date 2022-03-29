@@ -326,8 +326,7 @@ router.post('/confirmCode', confirmCode)
  *                 type: string
  *               newpass:
  *                 type: string
- *               code:
- *                 type: number
+
  *     responses:
  *       "200":
  *          description: code,<br>message:successfully
@@ -514,7 +513,7 @@ router.get(
             process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
     },
-    authSignInErrorHandler
+    authErrorHandler
 )
 
 /**
