@@ -754,18 +754,19 @@ exports.validateCampaign = async (req, res) => {
                 link,
                 userId,
                 linkedinProfile
-            )
-            socialOracle.abosNumber =
-                campaign.bounties.length ||
-                (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
-                    ? await answerAbos(
-                          link.typeSN,
-                          link.idPost,
-                          link.idUser,
-                          linkedinProfile
-                      )
-                    : 0
-            ;(socialOracle.status = true), (link.status = true)
+            )(
+                // socialOracle.abosNumber =
+                //     campaign.bounties.length ||
+                //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
+                //         ? await answerAbos(
+                //               link.typeSN,
+                //               link.idPost,
+                //               link.idUser,
+                //               linkedinProfile
+                //           )
+                //         : 0
+                (socialOracle.status = true)
+            )((link.status = true))
             if (socialOracle.views === 'old')
                 socialOracle.views = link.views || '0'
             link.likes = socialOracle.likes
@@ -820,6 +821,7 @@ exports.gains = async (req, res) => {
                 { accessToken: 1, _id: 0 }
             ))
         var link = await CampaignLink.findOne({ id_prom: idProm })
+
         if (req.body.bounty) {
             if (prom.funds.amount > 0 && prom.isPayed) {
                 var ret = await getGains(idProm, credentials)
@@ -840,12 +842,7 @@ exports.gains = async (req, res) => {
             let maxBountieFollowers =
                 bountie.categories[bountie.categories.length - 1].maxFollowers
             var evts = await updateBounty(idProm, credentials)
-            stats = await answerAbos(
-                prom.typeSN,
-                prom.idPost,
-                prom.idUser,
-                linkedinData
-            )
+            stats = link.abosNumber
             if (+stats >= +maxBountieFollowers) {
                 stats = (+maxBountieFollowers - 1).toString()
             }
@@ -901,12 +898,7 @@ exports.gains = async (req, res) => {
         )
         var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
 
-        var abos = await answerAbos(
-            prom.typeSN,
-            prom.idPost,
-            prom.idUser,
-            linkedinData
-        )
+        var abos = link.abosNumber
         if (stats) stats = limitStats(prom.typeSN, stats, ratios, abos, '')
         stats.views = stats.views || 0
         if (stats.views === 'old') stats.views = link.views
