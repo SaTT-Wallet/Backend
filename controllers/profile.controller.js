@@ -661,9 +661,10 @@ module.exports.changeNotificationsStatus = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
         const result = await Notification.updateMany(
-            { $and: [{ idNode }, { isSend: false }] },
+            { idNode, isSeen: false },
             { $set: { isSeen: true } }
         )
+
         if (result.nModified === 0) {
             return makeResponseError(res, 204, 'No notifications found')
         }
@@ -706,11 +707,11 @@ module.exports.getNotifications = async (req, res) => {
                 limit: limit,
             }
         }
-        const isSend = await Notification.find({
+        const isSeen = await Notification.find({
             idNode,
-            isSend: false,
+            isSeen: false,
         })
-        notifications.isSend = isSend.length
+        notifications.isSeen = isSeen.length
         notifications.notifications = arrayNotifications.slice(
             startIndex,
             endIndex
