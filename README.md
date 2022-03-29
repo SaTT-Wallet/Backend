@@ -4,11 +4,11 @@
 
 ### Introduction
 
-Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://dapp.satt.io/)
+Welcome to SaTT Token Webservice endpoint, this backend provides webservice to SaTT Token WebWallet and advertising campaign manager : [Wallet](https://dapp.satt.io/)
 
 It provides :
 
--   Masterseed HD Wallet management for SaTT and other main cryptos.
+-   Masterseed HD Wallet management for SaTT Token and other main cryptos.
 -   Transaction management
 -   Advertising campaign management
 
@@ -25,7 +25,7 @@ This projetct is build in `JavaScript` for `NodeJS` and these main `npm` modules
 
 ## Getting Started
 
-To run SaTT API webservice Provider you will need `NodeJS 12.0+` and `npm` Package manager.
+To run SaTT Token API webservice Provider you will need `NodeJS 12.0+` and `npm` Package manager.
 
 ### Prerequisites
 
