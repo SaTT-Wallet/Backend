@@ -31,6 +31,7 @@ const {
     statLinkCampaign,
     totalInvested,
     findKit,
+    deleteKit,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -646,6 +647,31 @@ router.get('/:idCampaign/kits', kits)
  *          description: code,<br>error
  */
 router.get('/kit/:id', findKit)
+
+/**
+ * @swagger
+ * /campaign/kit/{idKit}:
+ *   delete:
+ *     tags:
+ *     - "campaign"
+ *     summary: delete kit
+ *     description: deleteKit <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: the  idKit.
+ *         in: path
+ *         required: idKit
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: code,<br>error
+ */
+router.delete('/kit/:idKit', deleteKit)
 
 /**
  * @swagger
