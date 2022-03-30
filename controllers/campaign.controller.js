@@ -28,22 +28,6 @@ const { fundCampaign, getTransactionAmount } = require('../web3/campaigns')
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection, basicAtt } = require('../conf/config')
 
-const storage = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_kit',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-module.exports.upload = multer({ storage }).array('file')
 const {
     unlock,
     createPerformanceCampaign,
@@ -121,14 +105,33 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 
-const conn = mongoose.createConnection(mongoConnection().mongoURI)
+//const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
+const promise = mongoose.connect(mongoConnection().mongoURI, {
+    useNewUrlParser: true,
+})
 
+const conn = mongoose.connection
 conn.once('open', () => {
-    gfsKit = Grid(conn.db, mongoose.mongo)
+    gfsKit = Grid(conn, mongoose.mongo)
     gfsKit.collection('campaign_kit')
 })
 
+const storage = new GridFsStorage({
+    db: promise,
+    file: (req, file) => {
+        return new Promise((resolve, reject) => {
+            const filename = uuidv4()
+            const fileInfo = {
+                filename: filename,
+                bucketName: 'campaign_kit',
+            }
+            resolve(fileInfo)
+        })
+    },
+})
+
+module.exports.upload = multer({ storage }).array('file')
 module.exports.launchCampaign = async (req, res) => {
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
