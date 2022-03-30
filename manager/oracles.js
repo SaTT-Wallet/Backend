@@ -496,7 +496,7 @@ exports.youtube = async (idPost) => {
 
         return perf
     } catch (err) {
-        rconsole.log(err.message)
+        console.log(err.message)
     }
 }
 exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
