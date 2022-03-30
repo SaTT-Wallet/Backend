@@ -575,6 +575,8 @@ exports.apply = async (req, res) => {
 
             let OwnerCampaign = campaignDetails.idNode
             let idOwner = parseInt(OwnerCampaign.substring(1))
+
+            console.log('idOwner', idOwner)
             await notificationManager(idOwner, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
@@ -588,7 +590,7 @@ exports.apply = async (req, res) => {
             if (prom.typeSN == 5) {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
             }
-            prom.type = 'waiting_for_validation'
+            prom.type = 'Waiting_for_validation'
             prom.id_wallet = cred.address.toLowerCase()
             prom.idPost = idPost
             prom.id_campaign = hash
