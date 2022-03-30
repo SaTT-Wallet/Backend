@@ -108,7 +108,10 @@ const sharp = require('sharp')
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
 const promise = mongoose.connect(mongoConnection().mongoURI, {
+    useUnifiedTopology: true,
     useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: true,
 })
 
 const conn = mongoose.connection
@@ -509,7 +512,7 @@ exports.apply = async (req, res) => {
     let title = req.body.title
     var id = req.user._id
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-    let campaignDetails = await Campaigns.findOne({ hash })
+    var campaignDetails = await Campaigns.findOne({ hash })
 
     try {
         let promExist = await CampaignLink.findOne({
@@ -569,7 +572,10 @@ exports.apply = async (req, res) => {
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost)
-            await notificationManager(id, 'apply_campaign', {
+
+            let OwnerCampaign = campaignDetails.idNode
+            let idOwner = parseInt(OwnerCampaign.substring(1))
+            await notificationManager(idOwner, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
