@@ -38,6 +38,9 @@ const { mongoConnection, oauth } = require('../conf/config')
 
 const connect = mongoose.connect(mongoConnection().mongoURI, {
     useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
 })
 
 const conn = mongoose.connection
