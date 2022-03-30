@@ -28,10 +28,10 @@ const campaignroutes = require('./routes/campaign.routes')
 let connect
 try {
     connect = mongoose.connect(mongoConnection().mongoURI, {
-        useUnifiedTopology: true,
         useNewUrlParser: true,
+        useUnifiedTopology: true,
         useCreateIndex: true,
-        useFindAndModify: true,
+        useFindAndModify: false,
     })
     console.log(mongoConnection().mongoURI)
 
