@@ -580,7 +580,7 @@ module.exports.requestMoney = async (req, res) => {
             await notificationManager(result._id, 'demande_satt_event', {
                 name: req.body.name,
                 price: req.body.price,
-                cryptoCurrency: req.body.currency,
+                cryptoCurrency: req.body.cryptoCurrency,
                 message: message,
                 wallet: req.body.wallet,
             })
