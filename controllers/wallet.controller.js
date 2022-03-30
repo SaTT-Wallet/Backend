@@ -364,11 +364,11 @@ exports.transfertBep20 = async (req, res) => {
             })
             const wallet = await Wallet.findOne(
                 { 'keystore.address': to.substring(2) },
-                { projection: { UserId: true } }
+                { UserId: 1 }
             )
             if (wallet) {
                 await notificationManager(
-                    req.user._id,
+                    wallet.UserId,
                     'receive_transfer_event',
                     {
                         amount,
@@ -598,7 +598,7 @@ exports.transfertBNB = async (req, res) => {
             })
             const wallet = await Wallet.findOne(
                 { 'keystore.address': to.substring(2) },
-                { projection: { UserId: true } }
+                { UserId: 1 }
             )
             if (wallet) {
                 await notificationManager(
@@ -660,7 +660,7 @@ exports.transfertEther = async (req, res) => {
             })
             const wallet = await Wallet.findOne(
                 { 'keystore.address': to.substring(2) },
-                { UserId: true }
+                { UserId: 1 }
             )
             if (wallet) {
                 await notificationManager(

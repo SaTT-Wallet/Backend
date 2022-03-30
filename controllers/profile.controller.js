@@ -38,6 +38,9 @@ const { mongoConnection, oauth } = require('../conf/config')
 
 const connect = mongoose.connect(mongoConnection().mongoURI, {
     useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
 })
 
 const conn = mongoose.connection
@@ -580,7 +583,7 @@ module.exports.requestMoney = async (req, res) => {
             await notificationManager(result._id, 'demande_satt_event', {
                 name: req.body.name,
                 price: req.body.price,
-                cryptoCurrency: req.body.currency,
+                cryptoCurrency: req.body.cryptoCurrency,
                 message: message,
                 wallet: req.body.wallet,
             })
@@ -661,9 +664,10 @@ module.exports.changeNotificationsStatus = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
         const result = await Notification.updateMany(
-            { $and: [{ idNode }, { isSend: false }] },
+            { idNode, isSeen: false },
             { $set: { isSeen: true } }
         )
+
         if (result.nModified === 0) {
             return makeResponseError(res, 204, 'No notifications found')
         }
@@ -706,11 +710,11 @@ module.exports.getNotifications = async (req, res) => {
                 limit: limit,
             }
         }
-        const isSend = await Notification.find({
+        const isSeen = await Notification.find({
             idNode,
-            isSend: false,
+            isSeen: false,
         })
-        notifications.isSend = isSend.length
+        notifications.isSeen = isSeen.length
         notifications.notifications = arrayNotifications.slice(
             startIndex,
             endIndex

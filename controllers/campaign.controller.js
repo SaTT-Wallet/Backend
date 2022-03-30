@@ -28,22 +28,6 @@ const { fundCampaign, getTransactionAmount } = require('../web3/campaigns')
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection, basicAtt } = require('../conf/config')
 
-const storage = new GridFsStorage({
-    url: mongoConnection().mongoURI,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = uuidv4()
-            const fileInfo = {
-                filename: filename,
-                bucketName: 'campaign_kit',
-            }
-            resolve(fileInfo)
-        })
-    },
-})
-
-module.exports.upload = multer({ storage }).array('file')
 const {
     unlock,
     createPerformanceCampaign,
@@ -121,18 +105,36 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 
-const conn = mongoose.createConnection(mongoConnection().mongoURI)
+//const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
-
-conn.once('open', () => {
-    gfsKit = Grid(conn.db, mongoose.mongo)
-    gfsKit.collection('campaign_kit')
-
-    // gfsKit = new mongoose.mongo.GridFSBucket(conn.db, {
-    //     bucketName: 'yourBucketName',
-    // })
+const promise = mongoose.connect(mongoConnection().mongoURI, {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: true,
 })
 
+const conn = mongoose.connection
+conn.once('open', () => {
+    gfsKit = Grid(conn, mongoose.mongo)
+    gfsKit.collection('campaign_kit')
+})
+
+const storage = new GridFsStorage({
+    db: promise,
+    file: (req, file) => {
+        return new Promise((resolve, reject) => {
+            const filename = uuidv4()
+            const fileInfo = {
+                filename: filename,
+                bucketName: 'campaign_kit',
+            }
+            resolve(fileInfo)
+        })
+    },
+})
+
+module.exports.upload = multer({ storage }).array('file')
 module.exports.launchCampaign = async (req, res) => {
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
@@ -510,7 +512,7 @@ exports.apply = async (req, res) => {
     let title = req.body.title
     var id = req.user._id
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-    let campaignDetails = await Campaigns.findOne({ hash })
+    var campaignDetails = await Campaigns.findOne({ hash })
 
     try {
         let promExist = await CampaignLink.findOne({
@@ -570,7 +572,12 @@ exports.apply = async (req, res) => {
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost)
-            await notificationManager(id, 'apply_campaign', {
+
+            let OwnerCampaign = campaignDetails.idNode
+            let idOwner = parseInt(OwnerCampaign.substring(1))
+
+            console.log('idOwner', idOwner)
+            await notificationManager(idOwner, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
@@ -583,7 +590,7 @@ exports.apply = async (req, res) => {
             if (prom.typeSN == 5) {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
             }
-            prom.type = 'waiting_for_validation'
+            prom.type = 'Waiting_for_validation'
             prom.id_wallet = cred.address.toLowerCase()
             prom.idPost = idPost
             prom.id_campaign = hash
@@ -754,19 +761,18 @@ exports.validateCampaign = async (req, res) => {
                 link,
                 userId,
                 linkedinProfile
-            )(
-                // socialOracle.abosNumber =
-                //     campaign.bounties.length ||
-                //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
-                //         ? await answerAbos(
-                //               link.typeSN,
-                //               link.idPost,
-                //               link.idUser,
-                //               linkedinProfile
-                //           )
-                //         : 0
-                (socialOracle.status = true)
-            )((link.status = true))
+            )
+            // socialOracle.abosNumber =
+            //     campaign.bounties.length ||
+            //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
+            //         ? await answerAbos(
+            //               link.typeSN,
+            //               link.idPost,
+            //               link.idUser,
+            //               linkedinProfile
+            //           )
+            //         : 0
+            socialOracle.status = true((link.status = true))
             if (socialOracle.views === 'old')
                 socialOracle.views = link.views || '0'
             link.likes = socialOracle.likes
@@ -1100,6 +1106,50 @@ exports.addKits = async (req, res) => {
     }
 }
 
+exports.findKit = async (req, res) => {
+    try {
+        const _id = req.params.id
+        let file = gfsKit.files.findOne({ _id })
+        if (!file.filename || file.length === 0) {
+            return responseHandler.makeResponseError(res, 204, 'no files exist')
+        } else {
+            if (file.contentType) {
+                contentType = file.contentType
+            } else {
+                contentType = file.mimeType
+            }
+            res.writeHead(200, {
+                'Content-Type': contentType,
+                'Content-Disposition': `attachment; filename=${file.filename}`,
+            })
+            const readstream = gfsKit.createReadStream(file.filename)
+            readstream.pipe(res)
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.deleteKit = async (req, res) => {
+    try {
+        const _id = req.params.idKit
+        gfsKit.files.findOneAndDelete({ _id }, (err, data) => {
+            return responseHandler.makeResponseError(
+                res,
+                200,
+                'kit deleted',
+                true
+            )
+        })
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+    }
+}
+
 exports.update = async (req, res) => {
     try {
         let campaign = req.body
@@ -1422,7 +1472,7 @@ exports.getLinks = async (req, res) => {
         var count = await CampaignLink.find(
             { id_wallet },
             { type: { $exists: 0 } }
-        ).count()
+        ).countDocuments()
 
         let tri =
             req.query.state === 'owner'

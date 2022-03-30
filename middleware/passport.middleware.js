@@ -63,8 +63,8 @@ const handleSocialMediaSignin = async (query, cb) => {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
-        let userAuth = cloneUser(user)
-        let token = generateAccessToken(userAuth)
+        //  let userAuth = cloneUser(user)
+        let token = generateAccessToken({ _id: user._id })
         return cb(null, { id: user._id, token, expires_in: date })
     } else {
         return cb('Register First')
