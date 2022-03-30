@@ -1,3 +1,4 @@
+const sharp = require('sharp');
 
 module.exports =  app => {
 
@@ -238,13 +239,12 @@ module.exports =  app => {
 			event.media_url=  socialOracle && socialOracle.media_url || '';
 			// event.typeSN=="3" && socialOracle &&	await app.db.request().updateOne({idPost:event.idPost},{$set:{likes:event.likes,shares:event.shares,views:event.views}});
 			event.oracle=app.oracle.findBountyOracle(event.typeSN);
-			if(campaign && socialOracle) 
-			{
-				event.abosNumber = await app.oracleManager.answerAbos(event.typeSN,event.idPost,event.idUser,linkedinProfile)
-				event.oracle==="twitter" && await app.db.twitterProfile().updateOne({UserId:userWallet.UserId},{$set:{subscibers:event.abosNumber}} )
+			// if(campaign && socialOracle) 
+			// {
+			// 	event.oracle==="twitter" && await app.db.twitterProfile().updateOne({UserId:userWallet.UserId},{$set:{subscibers:event.abosNumber}} )
 		
-			}
-				if(event.abosNumber==='indisponible') event.status='indisponible';
+			// }
+				
 
 			if(campaign.ratios.length && socialOracle){		
 				event.totalToEarn= app.campaign.getTotalToEarn(event,campaign.ratios);				
@@ -1253,7 +1253,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 					let linkedinProfile = link.oracle == "linkedin" && await app.db.linkedinProfile().findOne({userId:userWallet.UserId});
 				   	let userId= link.oracle === 'instagram' ? userWallet.UserId : null;
                     let socialOracle = await app.campaign.getPromApplyStats(link.oracle,link,userId,linkedinProfile);
-					socialOracle.abosNumber =  campaign.bounties.length || (campaign.ratios && app.campaign.getReachLimit(campaign.ratios,link.oracle))?await app.oracleManager.answerAbos(link.typeSN,link.idPost,link.idUser,linkedinProfile):0;
+					socialOracle.abosNumber =  link.abosNumber || 0;
 					socialOracle.status = true,link.status= true;
 					if(socialOracle.views ==='old') socialOracle.views = link.views ||'0';
 					link.likes = socialOracle.likes;
@@ -1651,7 +1651,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 				let bountie=campaign.bounties.find( b=> b.oracle == app.oracle.findBountyOracle(prom.typeSN));
 				let maxBountieFollowers=bountie.categories[bountie.categories.length-1].maxFollowers;
 				var evts = await app.campaign.updateBounty(idProm,cred2);
-				stats = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
+				stats =link.abosNumber;
 				if (+stats >= +maxBountieFollowers){
 					stats= (+maxBountieFollowers - 1).toString()
 				}
@@ -1670,7 +1670,7 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 			var prevstat = await app.db.request().find({isNew:false,typeSN:prom.typeSN,idPost:prom.idPost,idUser:prom.idUser}).sort({date: -1}).toArray();
 			stats = await app.oracleManager.answerOne(prom.typeSN,prom.idPost,prom.idUser,link.typeURL,linkedinData);
 			var ratios   = await ctr.methods.getRatios(prom.idCampaign).call();
-			var abos = await app.oracleManager.answerAbos(prom.typeSN,prom.idPost,prom.idUser,linkedinData);
+			var abos = link.abosNumber;
 		   if(stats) stats =  app.oracleManager.limitStats(prom.typeSN,stats,ratios,abos,"");
                         stats.views = stats.views || 0
 						if(stats.views==="old") stats.views = link.views 
@@ -2997,16 +2997,32 @@ app.get('/filterLinks/:id_wallet',async(req,res)=>{
 		}
 	});
 
-
 	app.get('/coverByCampaign/:id', async(req,res)=>{
-		let campaign=await app.db.campaigns().findOne({_id:ObjectId(req.params.id)});
-		var img = Buffer.from(campaign.cover, 'base64');
-	
-	   res.writeHead(200, {
-		 'Content-Type': 'image/png',
-		 'Content-Length': img.length
-	   });
-		 res.end(img); 
+		let _id = req.params.id
+        let campaign = await app.db.campaigns().findOne({ _id:ObjectId(_id) })
+        let image = Buffer.from(campaign.cover, 'base64')
+		if(req.query.width && req.query.heigth)
+        sharp(image)
+        .resize(+req.query.heigth,+req.query.width)
+        .toBuffer()
+        .then(resizedImageBuffer => {
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Content-Length': resizedImageBuffer.length,
+            })
+            res.end(resizedImageBuffer)
+        })
+		else{
+			res.writeHead(200, {
+
+				'Content-Type': 'image/png',
+	   
+			'Content-Length': image.length
+	   
+			  });
+	   
+				res.end(image); 
+		}
 		});
 
 	return app;
