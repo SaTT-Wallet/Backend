@@ -1449,7 +1449,7 @@ exports.getLinks = async (req, res) => {
         var count = await CampaignLink.find(
             { id_wallet },
             { type: { $exists: 0 } }
-        ).count()
+        ).countDocuments()
 
         let tri =
             req.query.state === 'owner'
