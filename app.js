@@ -27,11 +27,11 @@ const campaignroutes = require('./routes/campaign.routes')
 /// db.url is different depending on NODE_ENV
 let connect
 try {
-    connect = require('mongoose').connect(mongoConnection().mongoURI, {
-        useNewUrlParser: true,
+    connect = mongoose.connect(mongoConnection().mongoURI, {
         useUnifiedTopology: true,
+        useNewUrlParser: true,
         useCreateIndex: true,
-        useFindAndModify: false,
+        useFindAndModify: true,
     })
     console.log(mongoConnection().mongoURI)
 
