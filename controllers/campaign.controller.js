@@ -1135,6 +1135,22 @@ exports.findKit = async (req, res) => {
     }
 }
 
+exports.deleteKit = async (req, res) => {
+    try {
+        const _id = req.params.idKit
+        gfsKit.files.findOneAndDelete({ _id }, (err, data) => {
+            return responseHandler.makeResponseError(
+                res,
+                200,
+                'kit deleted',
+                true
+            )
+        })
+    } catch (err) {
+        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+    }
+}
+
 exports.update = async (req, res) => {
     try {
         let campaign = req.body
