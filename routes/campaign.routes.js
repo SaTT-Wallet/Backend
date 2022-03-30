@@ -30,6 +30,7 @@ const {
     deleteDraft,
     statLinkCampaign,
     totalInvested,
+    findKit,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -620,6 +621,31 @@ router.post('/save', verifyAuth, saveCampaign)
  *          description: code,<br>error
  */
 router.get('/:idCampaign/kits', kits)
+
+/**
+ * @swagger
+ * /campaign/kit/{id}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: get one kit
+ *     description: Get one kit <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description: the  id.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: code,<br>error
+ */
+router.get('/kit/:id', findKit)
 
 /**
  * @swagger

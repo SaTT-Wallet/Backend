@@ -1099,6 +1099,34 @@ exports.addKits = async (req, res) => {
     }
 }
 
+exports.findKit = async (req, res) => {
+    try {
+        const _id = req.params.id
+        let file = gfsKit.files.findOne({ _id })
+        if (!file.filename || file.length === 0) {
+            return responseHandler.makeResponseError(res, 204, 'no files exist')
+        } else {
+            if (file.contentType) {
+                contentType = file.contentType
+            } else {
+                contentType = file.mimeType
+            }
+            res.writeHead(200, {
+                'Content-Type': contentType,
+                'Content-Disposition': `attachment; filename=${file.filename}`,
+            })
+            const readstream = gfsKit.createReadStream(file.filename)
+            readstream.pipe(res)
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.update = async (req, res) => {
     try {
         let campaign = req.body
