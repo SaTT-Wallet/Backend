@@ -761,19 +761,18 @@ exports.validateCampaign = async (req, res) => {
                 link,
                 userId,
                 linkedinProfile
-            )(
-                // socialOracle.abosNumber =
-                //     campaign.bounties.length ||
-                //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
-                //         ? await answerAbos(
-                //               link.typeSN,
-                //               link.idPost,
-                //               link.idUser,
-                //               linkedinProfile
-                //           )
-                //         : 0
-                (socialOracle.status = true)
-            )((link.status = true))
+            )
+            // socialOracle.abosNumber =
+            //     campaign.bounties.length ||
+            //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
+            //         ? await answerAbos(
+            //               link.typeSN,
+            //               link.idPost,
+            //               link.idUser,
+            //               linkedinProfile
+            //           )
+            //         : 0
+            socialOracle.status = true((link.status = true))
             if (socialOracle.views === 'old')
                 socialOracle.views = link.views || '0'
             link.likes = socialOracle.likes
