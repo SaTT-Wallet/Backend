@@ -887,7 +887,7 @@ module.exports.verifyLink = async (req, response) => {
                 })
                 if (twitterProfile) {
                     linked = true
-                    res = await verifyTwitter(userId, idPost)
+                    res = await verifyTwitter(twitterProfile, userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 

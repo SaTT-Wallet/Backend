@@ -132,26 +132,23 @@ exports.verifyInsta = async function (userId, idPost) {
     }
 }
 
-exports.verifyTwitter = async function (userId, idPost) {
+exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
+        var tweet = new Twitter2({
+            consumer_key: process.env.TWITTER_CONSUMER_KEY,
+            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+            access_token_key: twitterProfile.access_token_key,
+            access_token_secret: twitterProfile.access_token_secret,
+        })
+        var res = await tweet.get('tweets', {
+            ids: idPost,
+            'tweet.fields': 'author_id',
+        })
         var twitterProfile = await TwitterProfile.findOne({
+            id: res.data[0].author_id,
             UserId: userId,
         }).select('access_token_key access_token_secret id')
-
-        if (twitterProfile.deactivate === true) return 'deactivate'
-        else {
-            var tweet = new Twitter2({
-                consumer_key: process.env.TWITTER_CONSUMER_KEY,
-                consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-                access_token_key: twitterProfile.access_token_key,
-                access_token_secret: twitterProfile.access_token_secret,
-            })
-            var res = await tweet.get('tweets', {
-                ids: idPost,
-                'tweet.fields': 'author_id',
-            })
-            return res.data[0].author_id == twitterProfile.id
-        }
+        return twitterProfile ? true : false
     } catch (err) {
         console.log(err.message)
         return 'lien_invalid'
@@ -923,52 +920,75 @@ exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
             process.env.FB_GRAPH_VERSION +
             '/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token=' +
             accessToken
-
         var res = await rp({ uri: accountsUrl, json: true })
 
-        while (true) {
-            for (var i = 0; i < res.data.length; i++) {
-                let page = {
-                    UserId: UserId,
-                    username: res.data[i].username,
-                    token: res.data[i].access_token,
-                    picture: res.data[i].picture.data.url,
-                    name: res.data[i].name,
-                    subscribers: res.data[i].fan_count,
-                }
-
-                if (res.data[i].instagram_business_account) {
-                    if (!isInsta) {
-                        message += '_instagram_facebook'
-                        isInsta = true
+        let pages = await FbPage.find({ UserId })
+        if (res.data.length === 0) {
+            message = 'required_page'
+        } else if (this.isDefferent(res.data, pages)) {
+            while (true) {
+                for (var i = 0; i < res.data.length; i++) {
+                    let page = {
+                        UserId: UserId,
+                        username: res.data[i].username,
+                        token: res.data[i].access_token,
+                        picture: res.data[i].picture.data.url,
+                        name: res.data[i].name,
+                        subscribers: res.data[i].fan_count,
                     }
-                    instagram_id = res.data[i].instagram_business_account.id
-                    page.instagram_id = instagram_id
-                    var media =
-                        'https://graph.facebook.com/' +
-                        process.env.FB_GRAPH_VERSION +
-                        '/' +
-                        instagram_id +
-                        '?fields=username&access_token=' +
-                        accessToken
-                    var resMedia = await rp({ uri: media, json: true })
-                    page.instagram_username = resMedia.username
-                }
-                await FbPage.updateOne(
-                    { id: res.data[i].id, UserId },
-                    { $set: page },
-                    { upsert: true }
-                )
-            }
-            if (!res.paging || !res.paging.next) {
-                break
-            }
-            res = await rp({ uri: res.paging.next, json: true })
-        }
 
-        if (!isInsta && res.data.length > 0) message += '_facebook'
+                    if (res.data[i].instagram_business_account) {
+                        if (!isInsta) {
+                            message += '_instagram_facebook'
+                            isInsta = true
+                        }
+                        instagram_id = res.data[i].instagram_business_account.id
+                        page.instagram_id = instagram_id
+                        var media =
+                            'https://graph.facebook.com/' +
+                            process.env.FB_GRAPH_VERSION +
+                            '/' +
+                            instagram_id +
+                            '?fields=username&access_token=' +
+                            accessToken
+                        var resMedia = await rp({ uri: media, json: true })
+                        page.instagram_username = resMedia.username
+                    }
+                    await FbPage.updateOne(
+                        { id: res.data[i].id, UserId },
+                        { $set: page },
+                        { upsert: true }
+                    )
+                }
+                if (!res.paging || !res.paging.next) {
+                    break
+                }
+                res = await rp({ uri: res.paging.next, json: true })
+            }
+
+            if (!isInsta && res.data.length > 0) message += '_facebook'
+        } else {
+            message = 'page already exists'
+        }
         return message
     } catch (e) {
         console.log({ message: e.message })
+    }
+}
+exports.isDefferent = (data, pages) => {
+    try {
+        let isNew = false
+        let i = 0
+        while (!isNew && i < data.length) {
+            let items = data[i]
+            let object = pages.find((item) => item.id == items.id) || false
+            if (!object) {
+                isNew = true
+                return true
+            } else i++
+        }
+        return isNew
+    } catch (e) {
+        return { message: e.message }
     }
 }
