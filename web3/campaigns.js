@@ -11,6 +11,8 @@ const {
 const { Constants } = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
+const { ObjectId } = require('mongodb')
+const { Mongoose } = require('mongoose')
 
 exports.unlock = async (req, res) => {
     try {
@@ -715,13 +717,17 @@ exports.getTransactionAmount = async (
 exports.campaignStatus = (campaign) => {
     try {
         let type = ''
-        let dateNow = new Date()
-        campaign.startDate = Date.parse(campaign.startDate)
-            ? new Date(Date.parse(campaign.startDate))
-            : new Date(+campaign.startDate * 1000)
-        campaign.endDate = Date.parse(campaign.endDate)
-            ? new Date(Date.parse(campaign.endDate))
-            : new Date(+campaign.endDate * 1000)
+        let dateNow = Math.floor(new Date().getTime() / 1000)
+
+        campaign.startDate =
+            typeof campaign.startDate == 'number'
+                ? campaign.startDate
+                : Math.floor(new Date(campaign.startDate).getTime() / 1000)
+        campaign.endDate =
+            typeof campaign.endDate == 'number'
+                ? campaign.endDate
+                : Math.floor(new Date(campaign.endDate).getTime() / 1000)
+
         let isFinished =
             dateNow > campaign.endDate ||
             (campaign.funds && campaign.funds[1] == '0')
@@ -731,6 +737,7 @@ exports.campaignStatus = (campaign) => {
             type = 'inProgress'
         else if (!isFinished && campaign.hash) type = 'apply'
         else type = 'none'
+
         return type
     } catch (err) {
         console.error(err)
