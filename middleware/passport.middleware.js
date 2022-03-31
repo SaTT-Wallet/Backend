@@ -352,9 +352,7 @@ exports.facebookAuthSignup = async (
     cb
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({
-        idOnSn: profile._json.token_for_business,
-    })
+    var user = await User.findOne({ idOnSn: profile._json.token_for_business })
     if (user) {
         return cb('account_already_used&idSn=' + user.idSn)
     } else {
