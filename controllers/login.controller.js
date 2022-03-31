@@ -372,6 +372,8 @@ exports.resendConfirmationToken = async (req, res) => {
 exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
+
+        console.log('data', data)
         let fireBase =
             req.query.fireBase === 'mobile'
                 ? 'fireBaseAccessTokenMObile'
