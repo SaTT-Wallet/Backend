@@ -372,12 +372,11 @@ exports.resendConfirmationToken = async (req, res) => {
 exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
-
         let fireBase =
             req.query.fireBase === 'mobile'
                 ? 'fireBaseAccessTokenMObile'
                 : 'fireBaseAccessToken'
-
+        console.log('firebase', fireBase)
         await User.updateOne(
             { _id: req.user._id },
             { $set: { [fireBase]: data.fb_accesstoken } }
