@@ -38,9 +38,7 @@ exports.bep20Connexion = async () => {
 
 exports.erc20Connexion = async () => {
     try {
-        return await new Web3(
-            new Web3.providers.WebsocketProvider(web3Url, options)
-        )
+        return await new Web3(new Web3.providers.HttpProvider(web3Url, options))
     } catch (err) {
         console.log(err.message ? err.message : err.error)
     }
