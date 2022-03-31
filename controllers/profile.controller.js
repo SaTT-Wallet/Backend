@@ -378,7 +378,7 @@ exports.deleteGoogleChannel = async (req, res) => {
 exports.deleteFacebookChannels = async (req, res) => {
     try {
         const UserId = req.user._id
-        const result = await FbProfile.deleteMany({ UserId })
+        const result = await FbPage.deleteMany({ UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
         } else {
