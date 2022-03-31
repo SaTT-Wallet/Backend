@@ -590,7 +590,7 @@ exports.apply = async (req, res) => {
             if (prom.typeSN == 5) {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
             }
-            prom.type = 'Waiting_for_validation'
+            prom.type = 'waiting_for_validation'
             prom.id_wallet = cred.address.toLowerCase()
             prom.idPost = idPost
             prom.id_campaign = hash
