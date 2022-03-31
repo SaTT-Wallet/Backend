@@ -621,8 +621,8 @@ exports.apply = async (req, res) => {
             )
             if (socialOracle.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
-            ;(prom.likes = socialOracle.likes),
-                (prom.shares = socialOracle.shares || '0')
+            prom.likes = socialOracle.likes
+            prom.shares = socialOracle.shares || '0'
             await CampaignLink.updateOne({ _id: insert._id }, { $set: prom })
             let event = {
                 id: hash,
@@ -640,7 +640,7 @@ exports.apply = async (req, res) => {
 }
 
 exports.linkNotifications = async (req, res) => {
-    var id = req.user._id
+    // var id = req.user._id
 
     const lang = req.query.lang || 'en'
     configureTranslation(lang)
@@ -661,7 +661,7 @@ exports.linkNotifications = async (req, res) => {
         )
         let owner = Number(element.idNode.substring(1))
         let hash = element.hash
-        await notificationManager(id, 'cmp_candidate_insert_link', {
+        await notificationManager(owner, 'cmp_candidate_insert_link', {
             cmp_name: element.title,
             cmp_hash: hash,
             linkHash: idProm,
@@ -755,24 +755,14 @@ exports.validateCampaign = async (req, res) => {
                 link.oracle == 'linkedin' &&
                 (await LinkedinProfile.findOne({ userId: id }))
             let userId = link.oracle === 'instagram' ? id : null
-
             let socialOracle = await getPromApplyStats(
                 link.oracle,
                 link,
                 userId,
                 linkedinProfile
             )
-            // socialOracle.abosNumber =
-            //     campaign.bounties.length ||
-            //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
-            //         ? await answerAbos(
-            //               link.typeSN,
-            //               link.idPost,
-            //               link.idUser,
-            //               linkedinProfile
-            //           )
-            //         : 0
-            socialOracle.status = true((link.status = true))
+            socialOracle.status = true
+            link.status = true
             if (socialOracle.views === 'old')
                 socialOracle.views = link.views || '0'
             link.likes = socialOracle.likes
@@ -1461,7 +1451,7 @@ exports.erc20Allow = async (req, res) => {
 
 exports.getLinks = async (req, res) => {
     try {
-        const { id_wallet } = req.params
+        const id_wallet = req.params.id_wallet
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)

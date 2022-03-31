@@ -55,6 +55,8 @@ module.exports.updateStat = async () => {
             tags: 0,
             cover: 0,
             coverSrc: 0,
+            coverMobile: 0,
+            coverSrcMobile: 0,
             countries: 0,
         }
     )

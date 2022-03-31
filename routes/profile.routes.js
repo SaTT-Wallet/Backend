@@ -87,6 +87,7 @@ const {
     linkedinCredentials,
     googleCredentials,
 } = require('../conf/config')
+const { sendNotificationTest } = require('../manager/notification')
 
 /**
  * @swagger
@@ -1239,4 +1240,6 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
  *          description: error:<br> server error
  */
 router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
+
+router.get('/sendNotificationMobile', sendNotificationTest)
 module.exports = router
