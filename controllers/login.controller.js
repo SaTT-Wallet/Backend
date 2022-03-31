@@ -373,12 +373,10 @@ exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
 
-        console.log('data', data)
         let fireBase =
             req.query.fireBase === 'mobile'
                 ? 'fireBaseAccessTokenMObile'
                 : 'fireBaseAccessToken'
-        console.log('firebase', fireBase)
         await User.updateOne(
             { _id: req.user._id },
             { $set: { [fireBase]: data.fb_accesstoken } }
