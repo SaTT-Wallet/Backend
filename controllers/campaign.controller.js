@@ -1649,13 +1649,12 @@ exports.rejectLink = async (req, res) => {
 
     try {
         if (idUser === campaign?.idNode) {
-            //  let reason = []
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
                 { $set: { status: 'rejected', type: 'rejected' } },
                 { returnOriginal: false }
             )
-            let id = req.user._id
+            let id = +req.body.idUser
             await notificationManager(id, 'cmp_candidate_reject_link', {
                 cmp_name: title,
                 action: 'link_rejected',
