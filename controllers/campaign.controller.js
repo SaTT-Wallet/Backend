@@ -554,12 +554,6 @@ exports.apply = async (req, res) => {
 
         if (ret) {
             return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'Insufficient funds for gas'
-            )
         }
     } catch (err) {
         return responseHandler.makeResponseError(
