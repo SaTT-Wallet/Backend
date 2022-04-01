@@ -552,9 +552,7 @@ exports.apply = async (req, res) => {
             campaignDetails.token
         )
 
-        if (ret) {
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        }
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
