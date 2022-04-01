@@ -1122,8 +1122,8 @@ exports.findKit = async (req, res) => {
 exports.deleteKit = async (req, res) => {
     try {
         const _id = req.params.idKit
-        gfsKit.files.findOneAndDelete({ _id }, (err, data) => {
-            return responseHandler.makeResponseError(
+        gfsKit.files.deleteOne({ _id }, (err, data) => {
+            return responseHandler.makeResponseData(
                 res,
                 200,
                 'kit deleted',
@@ -1131,7 +1131,11 @@ exports.deleteKit = async (req, res) => {
             )
         })
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
