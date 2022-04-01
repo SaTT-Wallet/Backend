@@ -1121,8 +1121,10 @@ exports.findKit = async (req, res) => {
 
 exports.deleteKit = async (req, res) => {
     try {
-        const _id = req.params.idKit
-        gfsKit.files.deleteOne({ _id }, (err, data) => {
+        const _id = req.params.id
+
+        console.log(_id)
+        gfsKit.files.deleteOne({ _id: ObjectId(_id) }, (err, data) => {
             return responseHandler.makeResponseData(
                 res,
                 200,
