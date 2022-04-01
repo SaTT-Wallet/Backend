@@ -569,11 +569,7 @@ exports.apply = async (req, res) => {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost)
 
-            let OwnerCampaign = campaignDetails.idNode
-            let idOwner = parseInt(OwnerCampaign.substring(1))
-
-            console.log('idOwner', idOwner)
-            await notificationManager(idOwner, 'apply_campaign', {
+            await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
@@ -619,7 +615,7 @@ exports.apply = async (req, res) => {
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
-            await CampaignLink.updateOne({ _id: insert._id }, { $set: prom })
+            
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -629,8 +625,7 @@ exports.apply = async (req, res) => {
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
             }
-
-            await Event.create(event)
+            await Promise.allSettled([CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),Event.create(event)])
         }
     }
 }
@@ -1124,9 +1119,11 @@ exports.findKit = async (req, res) => {
 
 exports.deleteKit = async (req, res) => {
     try {
-        const _id = req.params.idKit
-        gfsKit.files.findOneAndDelete({ _id }, (err, data) => {
-            return responseHandler.makeResponseError(
+        const _id = req.params.id
+
+        console.log(_id)
+        gfsKit.files.deleteOne({ _id: ObjectId(_id) }, (err, data) => {
+            return responseHandler.makeResponseData(
                 res,
                 200,
                 'kit deleted',
@@ -1134,7 +1131,11 @@ exports.deleteKit = async (req, res) => {
             )
         })
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
