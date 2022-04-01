@@ -104,6 +104,7 @@ const {
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
+const { ObjectId } = require('mongodb')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -116,7 +117,7 @@ const promise = mongoose.connect(mongoConnection().mongoURI, {
 
 const conn = mongoose.connection
 conn.once('open', () => {
-    gfsKit = Grid(conn, mongoose.mongo)
+    gfsKit = Grid(conn.db, mongoose.mongo)
     gfsKit.collection('campaign_kit')
 })
 
@@ -1099,7 +1100,7 @@ exports.addKits = async (req, res) => {
 exports.findKit = async (req, res) => {
     try {
         const _id = req.params.id
-        let file = gfsKit.files.findOne({ _id })
+        let file = await gfsKit.files.findOne({ _id: ObjectId(_id) })
         if (!file.filename || file.length === 0) {
             return responseHandler.makeResponseError(res, 204, 'no files exist')
         } else {
