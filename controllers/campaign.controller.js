@@ -104,6 +104,7 @@ const {
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
+const { ObjectId } = require('mongodb')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -116,7 +117,7 @@ const promise = mongoose.connect(mongoConnection().mongoURI, {
 
 const conn = mongoose.connection
 conn.once('open', () => {
-    gfsKit = Grid(conn, mongoose.mongo)
+    gfsKit = Grid(conn.db, mongoose.mongo)
     gfsKit.collection('campaign_kit')
 })
 
@@ -529,6 +530,7 @@ exports.apply = async (req, res) => {
         }
 
         var cred = await unlock(req, res)
+
         if (!cred) return
         if (typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne(
@@ -539,10 +541,12 @@ exports.apply = async (req, res) => {
                 linkedinProfile.accessToken,
                 idPost.toString()
             )
+
             var media_url = linkedinInfo.mediaUrl
             idUser = linkedinInfo.idUser
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
+
         var ret = await applyCampaign(
             hash,
             typeSN,
@@ -552,15 +556,7 @@ exports.apply = async (req, res) => {
             campaignDetails.token
         )
 
-        if (ret) {
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'Insufficient funds for gas'
-            )
-        }
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -812,7 +808,6 @@ exports.gains = async (req, res) => {
                 { accessToken: 1, _id: 0 }
             ))
         var link = await CampaignLink.findOne({ id_prom: idProm })
-
         if (req.body.bounty) {
             if (prom.funds.amount > 0 && prom.isPayed) {
                 var ret = await getGains(idProm, credentials)
@@ -1094,7 +1089,7 @@ exports.addKits = async (req, res) => {
 exports.findKit = async (req, res) => {
     try {
         const _id = req.params.id
-        let file = gfsKit.files.findOne({ _id })
+        let file = await gfsKit.files.findOne({ _id: ObjectId(_id) })
         if (!file.filename || file.length === 0) {
             return responseHandler.makeResponseError(res, 204, 'no files exist')
         } else {
@@ -1121,9 +1116,11 @@ exports.findKit = async (req, res) => {
 
 exports.deleteKit = async (req, res) => {
     try {
-        const _id = req.params.idKit
-        gfsKit.files.findOneAndDelete({ _id }, (err, data) => {
-            return responseHandler.makeResponseError(
+        const _id = req.params.id
+
+        console.log(_id)
+        gfsKit.files.deleteOne({ _id: ObjectId(_id) }, (err, data) => {
+            return responseHandler.makeResponseData(
                 res,
                 200,
                 'kit deleted',
@@ -1131,7 +1128,11 @@ exports.deleteKit = async (req, res) => {
             )
         })
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
