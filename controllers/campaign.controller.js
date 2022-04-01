@@ -615,7 +615,7 @@ exports.apply = async (req, res) => {
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
-            
+
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -625,7 +625,10 @@ exports.apply = async (req, res) => {
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
             }
-            await Promise.allSettled([CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),Event.create(event)])
+            await Promise.allSettled([
+                CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+                Event.create(event),
+            ])
         }
     }
 }
@@ -953,19 +956,18 @@ exports.gains = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        if (credentials) lock(credentials)
+        credentials && lock(credentials)
+
         if (ret?.transactionHash) {
             let campaign = await Campaigns.findOne(
                 { hash: hash },
                 { token: 1, _id: 0 }
             )
-
             let campaignType = {}
             let network =
                 campaign.token.type == 'erc20'
                     ? credentials.Web3ETH
                     : credentials.Web3BEP20
-
             let amount = await getTransactionAmount(
                 credentials,
                 ret.transactionHash,
@@ -993,7 +995,6 @@ exports.gains = async (req, res) => {
                 hash,
                 credentials
             )
-
             var result = await contract.methods.campaigns(hash).call()
             campaignType.funds = result.funds
             if (result.funds[1] === '0') campaignType.type = 'finished'
