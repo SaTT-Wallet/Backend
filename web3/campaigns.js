@@ -422,8 +422,10 @@ exports.applyCampaign = async (
 ) => {
     try {
         let web3 = await getContractByToken(token.addr, credentials)
+
         var gas = 400000
         var gasPrice = await web3.getGasPrice()
+
         var receipt = await web3.methods
             .applyCampaign(idCampaign, typeSN, idPost, idUser)
             .send({
@@ -431,6 +433,7 @@ exports.applyCampaign = async (
                 gas: gas,
                 gasPrice: gasPrice,
             })
+
         let prom = receipt.events.CampaignApplied.returnValues.prom
         receipt.events.CampaignApplied.transactionHash &&
             console.log(
@@ -456,7 +459,7 @@ exports.applyCampaign = async (
             idProm: prom,
         }
     } catch (err) {
-        console.log(err.message)
+        return err.message
     }
 }
 
