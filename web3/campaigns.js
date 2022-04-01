@@ -707,10 +707,8 @@ exports.getTransactionAmount = async (
     network
 ) => {
     try {
-        let data = await network.getTransactionReceipt(transactionHash)
-
-        let hex = credentials.Web3ETH.hexToNumberString(data.logs[0].data)
-
+        let data = await network.eth.getTransactionReceipt(transactionHash)
+        let hex = network.utils.hexToNumberString(data.logs[0].data)
         return hex
     } catch (e) {
         console.log(e.message)

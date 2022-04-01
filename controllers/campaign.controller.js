@@ -968,8 +968,8 @@ exports.gains = async (req, res) => {
             let campaignType = {}
             let network =
                 campaign.token.type == 'erc20'
-                    ? credentials.Web3ETH.eth
-                    : credentials.Web3BEP20.eth
+                    ? credentials.Web3ETH
+                    : credentials.Web3BEP20
 
             let amount = await getTransactionAmount(
                 credentials,
@@ -994,7 +994,10 @@ exports.gains = async (req, res) => {
                 }
             )
 
-            let contract = await getCampaignContractByHashCampaign(hash)
+            let contract = await getCampaignContractByHashCampaign(
+                hash,
+                credentials
+            )
 
             var result = await contract.methods.campaigns(hash).call()
             campaignType.funds = result.funds
