@@ -810,7 +810,6 @@ exports.gains = async (req, res) => {
                 { accessToken: 1, _id: 0 }
             ))
         var link = await CampaignLink.findOne({ id_prom: idProm })
-
         if (req.body.bounty) {
             if (prom.funds.amount > 0 && prom.isPayed) {
                 var ret = await getGains(idProm, credentials)
