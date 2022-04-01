@@ -30,6 +30,7 @@ const options = {
 }
 exports.bep20Connexion = async () => {
     try {
+        let Web3 = require('web3')
         return new Web3(new Web3.providers.HttpProvider(web3UrlBep20, options))
     } catch (err) {
         console.log(err.message ? err.message : err.error)
@@ -38,6 +39,7 @@ exports.bep20Connexion = async () => {
 
 exports.erc20Connexion = async () => {
     try {
+        let Web3 = require('web3')
         return await new Web3(new Web3.providers.HttpProvider(web3Url, options))
     } catch (err) {
         console.log(err.message ? err.message : err.error)
