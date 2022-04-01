@@ -530,6 +530,7 @@ exports.apply = async (req, res) => {
         }
 
         var cred = await unlock(req, res)
+
         if (!cred) return
         if (typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne(
@@ -540,10 +541,12 @@ exports.apply = async (req, res) => {
                 linkedinProfile.accessToken,
                 idPost.toString()
             )
+
             var media_url = linkedinInfo.mediaUrl
             idUser = linkedinInfo.idUser
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
+
         var ret = await applyCampaign(
             hash,
             typeSN,
