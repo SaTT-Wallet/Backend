@@ -2353,9 +2353,13 @@ module.exports = function (app) {
       let token = req.headers['authorization'].split(' ')[1];
       const auth = await app.crm.auth(token);
       const id = +auth.id;
-      await app.db
-        .sn_user()
+      let onBoardinDone = app.db
+        .sn_user() 
         .updateOne({ _id: Long.fromNumber(id) }, { $set: { onBoarding: true } });
+       let firstNotif =  app.account.notificationManager(id, "buy_some_gas",{action : "Buy a bit of gas"});
+       let secondfNotif = app.account.notificationManager(id, "invite_friends",{action : "Invite your friends"});
+       let thirdfNotif =  app.account.notificationManager(id, "join_on_social",{action : "Join us on our social networks"});
+       await Promise.allSettled([onBoardinDone,firstNotif,secondfNotif,thirdfNotif]);
       res.send(JSON.stringify({ success: 'onBoarding updated' })).status(201);
     } catch (err) {
       res.end('{"error":"' + (err.message ? err.message : err.error) + '"}');
