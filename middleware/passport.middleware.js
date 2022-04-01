@@ -59,13 +59,18 @@ const handleSocialMediaSignin = async (query, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne(query)
     if (user) {
-        if (user.account_locked) {
+        let validAuth = await isBlocked(user, true)
+        if (!validAuth.res && validAuth.auth == true) {
+            let token = generateAccessToken({ _id: user._id })
+            await User.updateOne(
+                { _id: Long.fromNumber(user._id) },
+                { $set: { failed_count: 0 } }
+            )
+            return cb(null, { id: user._id, token, expires_in: date })
+        } else {
             let message = `account_locked:${user.date_locked}`
             return cb({ error: true, message, blockedDate: user.date_locked })
         }
-        //  let userAuth = cloneUser(user)
-        let token = generateAccessToken({ _id: user._id })
-        return cb(null, { id: user._id, token, expires_in: date })
     } else {
         return cb('Register First')
     }

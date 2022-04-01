@@ -820,7 +820,7 @@ exports.answerOne = async (
                         .toLowerCase()
                         .substring(2),
                 })
-                var res = await this.instagram(userWallet.UserId, idPost)
+                var res = await this.instagram(userWallet.UserId, campaign_link)
 
                 break
             case '4':
