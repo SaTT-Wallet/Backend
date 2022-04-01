@@ -553,15 +553,7 @@ exports.apply = async (req, res) => {
             campaignDetails.token
         )
 
-        if (ret) {
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'Insufficient funds for gas'
-            )
-        }
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
