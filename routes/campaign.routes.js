@@ -471,6 +471,8 @@ router.post('/validate', verifyAuth, validateCampaign)
  *          description: error:error message<br>"unothorized"
  *       "204":
  *          description: error:error message<br>"oracle not available"
+ *       "403":
+ *          description: error:error message<br>"You didn't exceed the limits timing to harvest again"
  *       "500":
  *          description: error:error message
  */
