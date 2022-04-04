@@ -280,8 +280,7 @@ exports.transfertErc20 = async (req, res) => {
         if (ret && ret.transactionHash) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
-                cryptoCurrency : req.body.symbole,
-                token: tokenName,
+                cryptoCurrency: tokenName,
                 from: cred.address,
                 to,
                 transactionHash: ret.transactionHash,
@@ -296,9 +295,8 @@ exports.transfertErc20 = async (req, res) => {
                     wallet.UserId,
                     'receive_transfer_event',
                     {
-                        cryptoCurrency : req.body.symbole,
                         amount,
-                        token: tokenName,
+                        cryptoCurrency: tokenName,
                         from: cred.address,
                         transactionHash: ret.transactionHash,
                         network: 'ERC20',
