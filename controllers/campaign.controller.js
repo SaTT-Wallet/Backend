@@ -1630,7 +1630,8 @@ exports.rejectLink = async (req, res) => {
     const email = req.body.email
     let link = req.body.link
     configureTranslation(lang)
-    let reason = req.body.reason
+    let reason = []
+    req.body.reason.forEach((str) => reason.push({ reason: str }))
     let idUser = '0' + req.user._id
 
     const campaign = await Campaigns.findOne(
@@ -1661,7 +1662,6 @@ exports.rejectLink = async (req, res) => {
                 cmp_hash: idCampaign,
                 promHash: idLink,
             })
-
             readHTMLFileCampaign(
                 __dirname + '/../public/emailtemplate/rejected_link.html',
                 'rejectLink',
