@@ -1633,7 +1633,10 @@ exports.rejectLink = async (req, res) => {
     const email = req.body.email
     const link = req.body.link
     configureTranslation(lang)
-    const reason = req.body.reason
+
+    let reason = []
+    req.body.reason.forEach((str) => reason.push({ reason: str }))
+
     const idUser = '0' + req.user._id
 
     console.log('body', req.body)
