@@ -21,7 +21,6 @@ const campaignLinkSchema = mongoose.Schema(
         views: { type: Number, default: 0 },
         totalToEarn: { type: String },
         payedAmount: { type: String },
-        lastHarvestDate: { type: mongoose.Schema.Types.Mixed },
     },
     {
         collection: 'campaign_link',
