@@ -650,7 +650,7 @@ router.get('/kit/:id', findKit)
 
 /**
  * @swagger
- * /campaign/kit/{idKit}:
+ * /campaign/kit/{id}:
  *   delete:
  *     tags:
  *     - "campaign"
@@ -660,9 +660,9 @@ router.get('/kit/:id', findKit)
  *       - application/json
  *     parameters:
  *       - name: id
- *         description: the  idKit.
+ *         description: the  id.
  *         in: path
- *         required: idKit
+ *         required: true
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
@@ -671,7 +671,7 @@ router.get('/kit/:id', findKit)
  *       "500":
  *          description: code,<br>error
  */
-router.delete('/kit/:idKit', deleteKit)
+router.delete('/kit/:id', deleteKit)
 
 /**
  * @swagger

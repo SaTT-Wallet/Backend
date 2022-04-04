@@ -378,7 +378,7 @@ exports.deleteGoogleChannel = async (req, res) => {
 exports.deleteFacebookChannels = async (req, res) => {
     try {
         const UserId = req.user._id
-        const result = await FbProfile.deleteMany({ UserId })
+        const result = await FbPage.deleteMany({ UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
         } else {
@@ -544,13 +544,25 @@ exports.socialAccounts = async (req, res) => {
 module.exports.checkOnBoarding = async (req, res) => {
     try {
         const _id = req.user._id
-        const result = await User.updateOne(
+        const userUpdated = User.updateOne(
             { _id },
             { $set: { onBoarding: true } }
         )
-        if (result.nModified === 0) {
-            return makeResponseError(res, 204, 'user not found')
-        }
+        const firstNotif = notificationManager(_id, 'buy_some_gas', {
+            action: 'buy_some_gas',
+        })
+        const secondNotif = notificationManager(_id, 'invite_friends', {
+            action: 'Invite your friends',
+        })
+        const thirdNotif = notificationManager(_id, 'join_on_social', {
+            action: 'Join us on social',
+        })
+        await Promise.allSettled([
+            userUpdated,
+            firstNotif,
+            secondNotif,
+            thirdNotif,
+        ])
         return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
         return makeResponseError(
@@ -887,7 +899,7 @@ module.exports.verifyLink = async (req, response) => {
                 })
                 if (twitterProfile) {
                     linked = true
-                    res = await verifyTwitter(userId, idPost)
+                    res = await verifyTwitter(twitterProfile, userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 

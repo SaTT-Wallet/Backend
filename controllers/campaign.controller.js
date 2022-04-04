@@ -104,6 +104,7 @@ const {
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
+const { ObjectId } = require('mongodb')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -116,7 +117,7 @@ const promise = mongoose.connect(mongoConnection().mongoURI, {
 
 const conn = mongoose.connection
 conn.once('open', () => {
-    gfsKit = Grid(conn, mongoose.mongo)
+    gfsKit = Grid(conn.db, mongoose.mongo)
     gfsKit.collection('campaign_kit')
 })
 
@@ -529,6 +530,7 @@ exports.apply = async (req, res) => {
         }
 
         var cred = await unlock(req, res)
+
         if (!cred) return
         if (typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne(
@@ -539,10 +541,12 @@ exports.apply = async (req, res) => {
                 linkedinProfile.accessToken,
                 idPost.toString()
             )
+
             var media_url = linkedinInfo.mediaUrl
             idUser = linkedinInfo.idUser
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
+
         var ret = await applyCampaign(
             hash,
             typeSN,
@@ -552,15 +556,7 @@ exports.apply = async (req, res) => {
             campaignDetails.token
         )
 
-        if (ret) {
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'Insufficient funds for gas'
-            )
-        }
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -573,11 +569,7 @@ exports.apply = async (req, res) => {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost)
 
-            let OwnerCampaign = campaignDetails.idNode
-            let idOwner = parseInt(OwnerCampaign.substring(1))
-
-            console.log('idOwner', idOwner)
-            await notificationManager(idOwner, 'apply_campaign', {
+            await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 hash,
@@ -590,7 +582,7 @@ exports.apply = async (req, res) => {
             if (prom.typeSN == 5) {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
             }
-            prom.type = 'Waiting_for_validation'
+            prom.type = 'waiting_for_validation'
             prom.id_wallet = cred.address.toLowerCase()
             prom.idPost = idPost
             prom.id_campaign = hash
@@ -621,9 +613,9 @@ exports.apply = async (req, res) => {
             )
             if (socialOracle.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
-            ;(prom.likes = socialOracle.likes),
-                (prom.shares = socialOracle.shares || '0')
-            await CampaignLink.updateOne({ _id: insert._id }, { $set: prom })
+            prom.likes = socialOracle.likes
+            prom.shares = socialOracle.shares || '0'
+
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -633,14 +625,16 @@ exports.apply = async (req, res) => {
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
             }
-
-            await Event.create(event)
+            await Promise.allSettled([
+                CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+                Event.create(event),
+            ])
         }
     }
 }
 
 exports.linkNotifications = async (req, res) => {
-    var id = req.user._id
+    // var id = req.user._id
 
     const lang = req.query.lang || 'en'
     configureTranslation(lang)
@@ -661,7 +655,7 @@ exports.linkNotifications = async (req, res) => {
         )
         let owner = Number(element.idNode.substring(1))
         let hash = element.hash
-        await notificationManager(id, 'cmp_candidate_insert_link', {
+        await notificationManager(owner, 'cmp_candidate_insert_link', {
             cmp_name: element.title,
             cmp_hash: hash,
             linkHash: idProm,
@@ -755,24 +749,14 @@ exports.validateCampaign = async (req, res) => {
                 link.oracle == 'linkedin' &&
                 (await LinkedinProfile.findOne({ userId: id }))
             let userId = link.oracle === 'instagram' ? id : null
-
             let socialOracle = await getPromApplyStats(
                 link.oracle,
                 link,
                 userId,
                 linkedinProfile
             )
-            // socialOracle.abosNumber =
-            //     campaign.bounties.length ||
-            //     (campaign.ratios && getReachLimit(campaign.ratios, link.oracle))
-            //         ? await answerAbos(
-            //               link.typeSN,
-            //               link.idPost,
-            //               link.idUser,
-            //               linkedinProfile
-            //           )
-            //         : 0
-            socialOracle.status = true((link.status = true))
+            socialOracle.status = true
+            link.status = true
             if (socialOracle.views === 'old')
                 socialOracle.views = link.views || '0'
             link.likes = socialOracle.likes
@@ -827,7 +811,6 @@ exports.gains = async (req, res) => {
                 { accessToken: 1, _id: 0 }
             ))
         var link = await CampaignLink.findOne({ id_prom: idProm })
-
         if (req.body.bounty) {
             if (prom.funds.amount > 0 && prom.isPayed) {
                 var ret = await getGains(idProm, credentials)
@@ -973,19 +956,18 @@ exports.gains = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        if (credentials) lock(credentials)
+        credentials && lock(credentials)
+
         if (ret?.transactionHash) {
             let campaign = await Campaigns.findOne(
                 { hash: hash },
                 { token: 1, _id: 0 }
             )
-
             let campaignType = {}
             let network =
                 campaign.token.type == 'erc20'
-                    ? credentials.Web3ETH.eth
-                    : credentials.Web3BEP20.eth
-
+                    ? credentials.Web3ETH
+                    : credentials.Web3BEP20
             let amount = await getTransactionAmount(
                 credentials,
                 ret.transactionHash,
@@ -1009,8 +991,10 @@ exports.gains = async (req, res) => {
                 }
             )
 
-            let contract = await getCampaignContractByHashCampaign(hash)
-
+            let contract = await getCampaignContractByHashCampaign(
+                hash,
+                credentials
+            )
             var result = await contract.methods.campaigns(hash).call()
             campaignType.funds = result.funds
             if (result.funds[1] === '0') campaignType.type = 'finished'
@@ -1109,7 +1093,7 @@ exports.addKits = async (req, res) => {
 exports.findKit = async (req, res) => {
     try {
         const _id = req.params.id
-        let file = gfsKit.files.findOne({ _id })
+        let file = await gfsKit.files.findOne({ _id: ObjectId(_id) })
         if (!file.filename || file.length === 0) {
             return responseHandler.makeResponseError(res, 204, 'no files exist')
         } else {
@@ -1136,9 +1120,11 @@ exports.findKit = async (req, res) => {
 
 exports.deleteKit = async (req, res) => {
     try {
-        const _id = req.params.idKit
-        gfsKit.files.findOneAndDelete({ _id }, (err, data) => {
-            return responseHandler.makeResponseError(
+        const _id = req.params.id
+
+        console.log(_id)
+        gfsKit.files.deleteOne({ _id: ObjectId(_id) }, (err, data) => {
+            return responseHandler.makeResponseData(
                 res,
                 200,
                 'kit deleted',
@@ -1146,7 +1132,11 @@ exports.deleteKit = async (req, res) => {
             )
         })
     } catch (err) {
-        res.end('{"error":"' + (err.message ? err.message : err.error) + '"}')
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1461,7 +1451,7 @@ exports.erc20Allow = async (req, res) => {
 
 exports.getLinks = async (req, res) => {
     try {
-        const { id_wallet } = req.params
+        const id_wallet = req.params.id_wallet
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -1659,13 +1649,12 @@ exports.rejectLink = async (req, res) => {
 
     try {
         if (idUser === campaign?.idNode) {
-            //  let reason = []
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
                 { $set: { status: 'rejected', type: 'rejected' } },
                 { returnOriginal: false }
             )
-            let id = req.user._id
+            let id = +req.body.idUser
             await notificationManager(id, 'cmp_candidate_reject_link', {
                 cmp_name: title,
                 action: 'link_rejected',

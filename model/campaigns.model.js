@@ -19,8 +19,8 @@ const campaignsSchema = mongoose.Schema(
             addr: { type: String },
         },
         tags: [{ type: String }],
-        endDate: { type: Number },
-        startDate: { type: Number },
+        endDate: { type: mongoose.Schema.Types.Mixed },
+        startDate: { type: mongoose.Schema.Types.Mixed },
         remuneration: { type: String },
         ratios: [
             {
