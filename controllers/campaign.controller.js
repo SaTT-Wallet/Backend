@@ -983,6 +983,9 @@ exports.gains = async (req, res) => {
                               .plus(new Big(amount))
                               .toFixed()
                     updatedFUnds.type = 'already_recovered'
+
+                    updatedFUnds.lastHarvestDate = Date.now()
+
                     await CampaignLink.updateOne(
                         { id_prom: idProm },
                         { $set: updatedFUnds }
@@ -1628,7 +1631,7 @@ exports.rejectLink = async (req, res) => {
     const idCampaign = req.body.idCampaign
     const idLink = req.params.idLink
     const email = req.body.email
-    let link = req.body.link
+    const link = req.body.link
     configureTranslation(lang)
     let reason = []
     req.body.reason.forEach((str) => reason.push({ reason: str }))
