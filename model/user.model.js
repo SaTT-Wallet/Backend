@@ -36,6 +36,8 @@ const userSchema = mongoose.Schema(
         dateFirstAttempt: { type: Number },
         completed: { type: Boolean },
         password: { type: String },
+        lastHarvestDate: { type: mongoose.Schema.Types.Mixed },
+
         secureCode: {
             code: { type: Number },
             expiring: { type: Number },

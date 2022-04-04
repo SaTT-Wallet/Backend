@@ -797,157 +797,191 @@ exports.gains = async (req, res) => {
     var stats
     var requests = false
     try {
-        var credentials = await unlock(req, res)
-        var ctr = await getPromContract(idProm, credentials)
+        var date = Math.floor(Date.now() / 1000) + 86400
 
-        var gasPrice = await ctr.getGasPrice()
+        if (date - req.user.lastHarvestDate < 1) {
+            return responseHandler.makeResponseError(
+                res,
+                403,
+                "You didn't exceed the limits timing to harvest again"
+            )
+        } else {
+            var credentials = await unlock(req, res)
+            var ctr = await getPromContract(idProm, credentials)
 
-        let prom = await ctr.methods.proms(idProm).call()
-        var linkedinData =
-            prom.typeSN == '5' &&
-            (await LinkedinProfile.findOne(
-                { userId: req.user._id },
-                { accessToken: 1, _id: 0 }
-            ))
-        var link = await CampaignLink.findOne({ id_prom: idProm })
-        if (req.body.bounty) {
-            if (prom.funds.amount > 0 && prom.isPayed) {
-                var ret = await getGains(idProm, credentials)
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'success',
-                    ret
+            var gasPrice = await ctr.getGasPrice()
+
+            let prom = await ctr.methods.proms(idProm).call()
+            var linkedinData =
+                prom.typeSN == '5' &&
+                (await LinkedinProfile.findOne(
+                    { userId: req.user._id },
+                    { accessToken: 1, _id: 0 }
+                ))
+            var link = await CampaignLink.findOne({ id_prom: idProm })
+            if (req.body.bounty) {
+                if (prom.funds.amount > 0 && prom.isPayed) {
+                    var ret = await getGains(idProm, credentials)
+                    return responseHandler.makeResponseData(
+                        res,
+                        200,
+                        'success',
+                        ret
+                    )
+                }
+                let campaign = await Campaigns.findOne(
+                    { hash: hash },
+                    { bounties: 1 }
                 )
-            }
-            let campaign = await Campaigns.findOne(
-                { hash: hash },
-                { bounties: 1 }
-            )
-            let bountie = campaign.bounties.find(
-                (b) => b.oracle == findBountyOracle(prom.typeSN)
-            )
-            let maxBountieFollowers =
-                bountie.categories[bountie.categories.length - 1].maxFollowers
-            var evts = await updateBounty(idProm, credentials)
-            stats = link.abosNumber
-            if (+stats >= +maxBountieFollowers) {
-                stats = (+maxBountieFollowers - 1).toString()
+                let bountie = campaign.bounties.find(
+                    (b) => b.oracle == findBountyOracle(prom.typeSN)
+                )
+                let maxBountieFollowers =
+                    bountie.categories[bountie.categories.length - 1]
+                        .maxFollowers
+                var evts = await updateBounty(idProm, credentials)
+                stats = link.abosNumber
+                if (+stats >= +maxBountieFollowers) {
+                    stats = (+maxBountieFollowers - 1).toString()
+                }
+
+                await Request.updateOne(
+                    { id: idProm },
+                    {
+                        $set: {
+                            nbAbos: stats,
+                            isBounty: true,
+                            new: false,
+                            date: Date.now(),
+                            typeSN: prom.typeSN,
+                            idPost: prom.idPost,
+                            idUser: prom.idUser,
+                        },
+                    },
+                    { upsert: true }
+                )
+                try {
+                    await answerBounty({
+                        ctr,
+                        gasPrice: gasPrice,
+                        from: process.env.CAMPAIGN_OWNER,
+                        campaignContract: ctr.options.address,
+                        idProm: idProm,
+                        nbAbos: stats,
+                    })
+                } finally {
+                    var ret = await getGains(idProm, credentials)
+
+                    if (ret) {
+                        await User.updateOne(
+                            { _id: req.user._id },
+                            {
+                                $set: {
+                                    lastHarvestDate: Date.now(),
+                                },
+                            }
+                        )
+                    }
+
+                    return responseHandler.makeResponseData(
+                        res,
+                        200,
+                        'success',
+                        ret
+                    )
+                }
             }
 
-            await Request.updateOne(
-                { id: idProm },
-                {
-                    $set: {
-                        nbAbos: stats,
-                        isBounty: true,
-                        new: false,
-                        date: Date.now(),
-                        typeSN: prom.typeSN,
-                        idPost: prom.idPost,
-                        idUser: prom.idUser,
-                    },
-                },
-                { upsert: true }
+            var prevstat = await Request.find({
+                new: false,
+                typeSN: prom.typeSN,
+                idPost: prom.idPost,
+                idUser: prom.idUser,
+            }).sort({ date: -1 })
+
+            stats = await answerOne(
+                prom.typeSN,
+                prom.idPost,
+                prom.idUser,
+                link.typeURL,
+                linkedinData
             )
-            try {
-                await answerBounty({
-                    ctr,
+            var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
+
+            var abos = link.abosNumber
+            if (stats) stats = limitStats(prom.typeSN, stats, ratios, abos, '')
+            stats.views = stats.views || 0
+            if (stats.views === 'old') stats.views = link.views
+            stats.shares = stats.shares || 0
+            stats.likes = stats.likes || 0
+
+            requests = await Request.find({
+                new: true,
+                isBounty: false,
+                typeSN: prom.typeSN,
+                idPost: prom.idPost,
+                idUser: prom.idUser,
+            })
+
+            if (!requests.length) {
+                if (
+                    !prevstat.length ||
+                    stats.likes != prevstat[0].likes ||
+                    stats.shares != prevstat[0].shares ||
+                    stats.views != prevstat[0].views
+                ) {
+                    var evts = await updatePromStats(idProm, credentials)
+
+                    var evt = evts.events[0]
+                    var idRequest = evt.raw.topics[1]
+                    requests = [{ id: idRequest }]
+                }
+            }
+            if (requests && requests.length) {
+                await Request.updateOne(
+                    { id: requests[0].id },
+                    {
+                        $set: {
+                            id: requests[0].id,
+                            likes: stats.likes,
+                            shares: stats.shares,
+                            views: stats.views,
+                            new: false,
+                            date: Date.now(),
+                            typeSN: prom.typeSN,
+                            idPost: prom.idPost,
+                            idUser: prom.idUser,
+                        },
+                    },
+                    { upsert: true }
+                )
+
+                await answerCall({
+                    credentials,
                     gasPrice: gasPrice,
                     from: process.env.CAMPAIGN_OWNER,
                     campaignContract: ctr.options.address,
-                    idProm: idProm,
-                    nbAbos: stats,
+                    idRequest: requests[0].id,
+                    likes: stats.likes,
+                    shares: stats.shares,
+                    views: stats.views,
                 })
-            } finally {
-                var ret = await getGains(idProm, credentials)
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'success',
-                    ret
+            }
+
+            var ret = await getGains(idProm, credentials)
+
+            if (ret) {
+                await User.updateOne(
+                    { _id: req.user._id },
+                    {
+                        $set: {
+                            lastHarvestDate: Date.now(),
+                        },
+                    }
                 )
             }
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
-
-        var prevstat = await Request.find({
-            new: false,
-            typeSN: prom.typeSN,
-            idPost: prom.idPost,
-            idUser: prom.idUser,
-        }).sort({ date: -1 })
-
-        stats = await answerOne(
-            prom.typeSN,
-            prom.idPost,
-            prom.idUser,
-            link.typeURL,
-            linkedinData
-        )
-        var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
-
-        var abos = link.abosNumber
-        if (stats) stats = limitStats(prom.typeSN, stats, ratios, abos, '')
-        stats.views = stats.views || 0
-        if (stats.views === 'old') stats.views = link.views
-        stats.shares = stats.shares || 0
-        stats.likes = stats.likes || 0
-
-        requests = await Request.find({
-            new: true,
-            isBounty: false,
-            typeSN: prom.typeSN,
-            idPost: prom.idPost,
-            idUser: prom.idUser,
-        })
-
-        if (!requests.length) {
-            if (
-                !prevstat.length ||
-                stats.likes != prevstat[0].likes ||
-                stats.shares != prevstat[0].shares ||
-                stats.views != prevstat[0].views
-            ) {
-                var evts = await updatePromStats(idProm, credentials)
-
-                var evt = evts.events[0]
-                var idRequest = evt.raw.topics[1]
-                requests = [{ id: idRequest }]
-            }
-        }
-        if (requests && requests.length) {
-            await Request.updateOne(
-                { id: requests[0].id },
-                {
-                    $set: {
-                        id: requests[0].id,
-                        likes: stats.likes,
-                        shares: stats.shares,
-                        views: stats.views,
-                        new: false,
-                        date: Date.now(),
-                        typeSN: prom.typeSN,
-                        idPost: prom.idPost,
-                        idUser: prom.idUser,
-                    },
-                },
-                { upsert: true }
-            )
-
-            await answerCall({
-                credentials,
-                gasPrice: gasPrice,
-                from: process.env.CAMPAIGN_OWNER,
-                campaignContract: ctr.options.address,
-                idRequest: requests[0].id,
-                likes: stats.likes,
-                shares: stats.shares,
-                views: stats.views,
-            })
-        }
-
-        var ret = await getGains(idProm, credentials)
-        return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -983,8 +1017,6 @@ exports.gains = async (req, res) => {
                               .plus(new Big(amount))
                               .toFixed()
                     updatedFUnds.type = 'already_recovered'
-
-                    updatedFUnds.lastHarvestDate = Date.now()
 
                     await CampaignLink.updateOne(
                         { id_prom: idProm },
