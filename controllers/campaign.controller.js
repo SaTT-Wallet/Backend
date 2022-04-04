@@ -654,10 +654,9 @@ exports.linkNotifications = async (req, res) => {
             }
         )
         let owner = Number(element.idNode.substring(1))
-        let hash = element.hash
         await notificationManager(owner, 'cmp_candidate_insert_link', {
             cmp_name: element.title,
-            cmp_hash: hash,
+            cmp_hash: _id,
             linkHash: idProm,
         })
 
