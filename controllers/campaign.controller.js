@@ -799,8 +799,16 @@ exports.gains = async (req, res) => {
     try {
         //86400 one day
         var date = Math.floor(Date.now() / 1000) + 300
+        console.log('user', Math.floor(req.user.lastHarvestDate / 1000))
 
-        if (date - req.user.lastHarvestDate > 300) {
+        console.log('date', date)
+        console.log(
+            'equation',
+            date - Math.floor(req.user.lastHarvestDate / 1000)
+        )
+
+        if (date - Math.floor(req.user.lastHarvestDate / 1000) <= 300) {
+            console.log('true')
             return responseHandler.makeResponseError(
                 res,
                 403,
@@ -984,6 +992,7 @@ exports.gains = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
+        console.log('err', err)
         return responseHandler.makeResponseError(
             res,
             500,
