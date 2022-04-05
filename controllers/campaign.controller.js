@@ -800,10 +800,6 @@ exports.gains = async (req, res) => {
         //86400 one day
         var date = Math.floor(Date.now() / 1000) + 300
 
-        let today = Date.now()
-
-        // if(today>req.user.lastHarvestDate)
-
         if (date - req.user.lastHarvestDate > 300) {
             return responseHandler.makeResponseError(
                 res,
