@@ -839,9 +839,12 @@ module.exports.verifyLink = async (req, response) => {
         var res = false
         switch (typeSN) {
             case '1':
-                var fbProfile = await FbProfile.findOne({ UserId: userId })
-
-                if (fbProfile) {
+                let fbProfile = await FbProfile.findOne({ UserId: userId })
+                let fbPage = await FbPage.findOne({
+                    UserId: userId,
+                    username: idUser,
+                })
+                if (fbProfile && fbPage) {
                     linked = true
                     res = await verifyFacebook(userId, idUser, idPost)
 
