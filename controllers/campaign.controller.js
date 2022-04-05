@@ -798,7 +798,7 @@ exports.gains = async (req, res) => {
     var requests = false
     try {
         //86400 one day
-        var date = Math.floor(Date.now() / 1000) + 300
+        var date = Math.floor(Date.now() / 1000)
         console.log('user', Math.floor(req.user.lastHarvestDate / 1000))
 
         console.log('date', date)
