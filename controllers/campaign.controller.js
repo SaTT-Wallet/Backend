@@ -807,7 +807,10 @@ exports.gains = async (req, res) => {
             date - Math.floor(req.user.lastHarvestDate / 1000)
         )
 
-        if (date - Math.floor(req.user.lastHarvestDate / 1000) <= 300) {
+        if (
+            req.user.lastHarvestDate &&
+            date - Math.floor(req.user.lastHarvestDate / 1000) <= 300
+        ) {
             console.log('true')
             return responseHandler.makeResponseError(
                 res,
