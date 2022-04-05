@@ -797,9 +797,14 @@ exports.gains = async (req, res) => {
     var stats
     var requests = false
     try {
-        var date = Math.floor(Date.now() / 1000) + 86400
+        //86400 one day
+        var date = Math.floor(Date.now() / 1000) + 300
 
-        if (date - req.user.lastHarvestDate < 1) {
+        let today = Date.now()
+
+        // if(today>req.user.lastHarvestDate)
+
+        if (date - req.user.lastHarvestDate > 300) {
             return responseHandler.makeResponseError(
                 res,
                 403,
