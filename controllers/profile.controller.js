@@ -585,7 +585,7 @@ module.exports.requestMoney = async (req, res) => {
             name: req.body.to,
             price: req.body.price,
             currency: req.body.cryptoCurrency,
-            message: message,
+            message,
             wallet: req.body.wallet,
         })
 
@@ -596,7 +596,7 @@ module.exports.requestMoney = async (req, res) => {
                 name: req.body.name,
                 price: req.body.price,
                 currency: req.body.cryptoCurrency,
-                message: message,
+                message,
                 wallet: req.body.wallet,
             })
         } else {
