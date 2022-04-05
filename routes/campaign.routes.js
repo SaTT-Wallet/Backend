@@ -978,7 +978,10 @@ router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaign)
  *               link:
  *                 type: string
  *               reason:
- *                 type: string
+ *                 type: array
+ *                 items:
+ *                  id:
+ *                      type: string
  *               lang:
  *                 type: string
  *               idUser:
