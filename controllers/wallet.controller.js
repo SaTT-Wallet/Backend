@@ -258,12 +258,8 @@ exports.transfertErc20 = async (req, res) => {
 
             var ret = await transfer(tokenERC20, to, amount, cred)
 
-            if (!ret) {
-                return responseHandler.makeResponseError(
-                    res,
-                    402,
-                    'insufficient funds for gas'
-                )
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
             }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
@@ -335,12 +331,8 @@ exports.transfertBep20 = async (req, res) => {
 
             var ret = await sendBep20(req.body.token, to, amount, cred)
 
-            if (!ret) {
-                return responseHandler.makeResponseError(
-                    res,
-                    402,
-                    'insufficient funds for gas'
-                )
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
             }
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -358,7 +350,7 @@ exports.transfertBep20 = async (req, res) => {
         if (ret && ret.transactionHash) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,
-                currency : req.body.symbole,
+                currency: req.body.symbole,
                 network: 'BEP20',
                 to: req.body.to,
                 transactionHash: ret.transactionHash,
@@ -373,7 +365,7 @@ exports.transfertBep20 = async (req, res) => {
                     'receive_transfer_event',
                     {
                         amount,
-                        currency : req.body.symbole,
+                        currency: req.body.symbole,
                         network: 'BEP20',
                         from: cred.address,
                         transactionHash: ret.transactionHash,
@@ -574,12 +566,8 @@ exports.transfertBNB = async (req, res) => {
                 )
             }
             var ret = await transferNativeBNB(to, amount, cred)
-            if (!ret) {
-                return responseHandler.makeResponseError(
-                    res,
-                    402,
-                    'insufficient funds for gas'
-                )
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
             }
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -637,12 +625,8 @@ exports.transfertEther = async (req, res) => {
 
             var ret = await transferEther(to, amount, cred)
 
-            if (!ret) {
-                return responseHandler.makeResponseError(
-                    res,
-                    402,
-                    'insufficient funds for gas'
-                )
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
             }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
