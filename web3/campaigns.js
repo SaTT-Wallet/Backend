@@ -459,7 +459,7 @@ exports.applyCampaign = async (
             idProm: prom,
         }
     } catch (err) {
-        return err.message
+        return { error: err.message }
     }
 }
 
