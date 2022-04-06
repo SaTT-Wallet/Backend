@@ -44,11 +44,21 @@ let environment = {
             ':' +
             process.env.MONGO_PASS_MAINNET +
             '@' +
-            process.env.MONGO_HOST_MAINNET +
+            process.env.MONGO_HOST_1_MAINNET +
+            ':' +
+            process.env.MONGO_PORT_MAINNET +
+            ',' +
+            process.env.MONGO_HOST_2_MAINNET +
+            ':' +
+            process.env.MONGO_PORT_MAINNET +
+            ',' +
+            process.env.MONGO_HOST_3_MAINNET +
             ':' +
             process.env.MONGO_PORT_MAINNET +
             '/' +
-            process.env.MONGO_BASE_MAINNET,
+            process.env.MONGO_BASE_MAINNET +
+            '?replicaSet=' +
+            process.env.MONGO_RUPLICASET_MAINNET,
     },
 }
 
