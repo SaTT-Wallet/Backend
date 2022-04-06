@@ -555,6 +555,9 @@ exports.apply = async (req, res) => {
             cred,
             campaignDetails.token
         )
+        if (ret.error) {
+            return responseHandler.makeResponseError(res, 402, ret.error)
+        }
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
@@ -804,7 +807,6 @@ exports.gains = async (req, res) => {
             req.user.lastHarvestDate &&
             date - Math.floor(req.user.lastHarvestDate / 1000) <= 86400
         ) {
-            console.log('true')
             return responseHandler.makeResponseError(
                 res,
                 403,
