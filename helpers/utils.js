@@ -193,8 +193,7 @@ exports.readHTMLFileCampaign = (
         if (event === 'rejectLink') {
             var emailContent = {
                 reject_reason: reason,
-                cmp_link:
-                    process.env.BASED_URL + '/myWallet/campaign/' + idCampaign,
+                cmp_link: process.env.BASED_URL + '/campaign/' + idCampaign,
                 satt_faq: process.env.SATT_FAQ,
                 satt_url: process.env.BASED_URL,
                 cmp_title: title,
