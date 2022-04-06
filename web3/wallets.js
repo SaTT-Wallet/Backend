@@ -330,7 +330,7 @@ exports.sendBep20 = async (token, to, amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
+        return { error: err.message }
     }
 }
 
@@ -632,7 +632,7 @@ exports.transfer = async (token, to, amount, credentials) => {
             amount,
         }
     } catch (err) {
-        return err.message
+        return { error: err.message }
     }
 }
 
@@ -735,7 +735,7 @@ exports.transferNativeBNB = async (to, amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
+        return { error: err.message }
     }
 }
 
@@ -763,8 +763,8 @@ exports.transferEther = async (to, amount, credentials) => {
             to: to,
             amount: amount,
         }
-    } catch (e) {
-        console.log(e)
+    } catch (err) {
+        return { error: err.message }
     }
 }
 
