@@ -270,8 +270,6 @@ exports.addUserLegalProfile = async (req, res) => {
 
 exports.FindUserLegalProfile = async (req, res) => {
     try {
-        const id = req.user._id
-
         const _id = req.params.id
         gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
             if (!file || file.length === 0) {
