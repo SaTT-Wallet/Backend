@@ -1067,7 +1067,7 @@ exports.kits = async (req, res) => {
     try {
         const idCampaign = req.params.idCampaign
         gfsKit.files
-            .find({ 'campaign.$id': idCampaign })
+            .find({ 'campaign.$id': ObjectId(idCampaign) })
             .toArray((err, files) => {
                 return responseHandler.makeResponseData(
                     res,
