@@ -1214,9 +1214,6 @@ if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
 } else {
     configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
 }
-// configSendBox = booltestnet
-//     ? process.env.CONFIG_SEND_BOX_MAINNET
-//     : process.env.CONFIG_SEND_BOX_TESTNET
 
 let networkSegWitCompat = {
     baseNetwork: 'bitcoin',
