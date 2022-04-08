@@ -1209,7 +1209,7 @@ let loginSettings = {
 
 let configSendBox
 
-if (process.env.NODE_ENV == 'TESTNET') {
+if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
     configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
 } else {
     configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
