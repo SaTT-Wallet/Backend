@@ -12,7 +12,7 @@ const {
     bep20Connexion,
 } = require('../blockchainConnexion')
 
-//const { configSendBox } = require('../conf/config')
+const { configSendBox } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -684,9 +684,7 @@ exports.getQuote = async (req, res) => {
                 requestQuote['payment_methods'] = ['credit_card']
                 requestQuote['wallet_id'] = 'satt'
                 const simplexQuote = {
-                    url:
-                        process.env.CONFIG_SEND_BOX +
-                        '/wallet/merchant/v2/quote',
+                    url: configSendBox + '/wallet/merchant/v2/quote',
                     method: 'POST',
                     body: requestQuote,
                     headers: {
@@ -751,8 +749,7 @@ exports.payementRequest = async (req, res) => {
             let payment = await payementRequest(request)
             const paymentRequest = {
                 url:
-                    process.env.CONFIG_SEND_BOX +
-                    '/wallet/merchant/v2/payments/partner/data',
+                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
                 method: 'POST',
                 body: payment,
                 headers: {
