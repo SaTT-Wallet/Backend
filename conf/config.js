@@ -1207,11 +1207,16 @@ let loginSettings = {
     lockedPeriod: process.env.lockedPeriod,
 }
 
-let configSendBox = {}
+let configSendBox
 
-configSendBox = booltestnet
-    ? process.env.CONFIG_SEND_BOX_MAINNET
-    : process.env.CONFIG_SEND_BOX_TESTNET
+if (process.env.NODE_ENV == 'TESTNET') {
+    configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
+} else {
+    configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
+}
+// configSendBox = booltestnet
+//     ? process.env.CONFIG_SEND_BOX_MAINNET
+//     : process.env.CONFIG_SEND_BOX_TESTNET
 
 let networkSegWitCompat = {
     baseNetwork: 'bitcoin',
@@ -1306,5 +1311,4 @@ module.exports.config = config
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
 module.exports.configSendBox = configSendBox
-module.exports.booltestnet = booltestnet
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
