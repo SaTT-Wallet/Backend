@@ -1207,11 +1207,11 @@ let loginSettings = {
     lockedPeriod: process.env.lockedPeriod,
 }
 
-// let configSendBox = {}
+let configSendBox = {}
 
-// configSendBox = booltestnet
-//     ? 'https://sandbox.test-simplexcc.com'
-//     : 'https://backend-wallet-api.simplexcc.com'
+configSendBox = booltestnet
+    ? process.env.CONFIG_SEND_BOX_MAINNET
+    : process.env.CONFIG_SEND_BOX_TESTNET
 
 let networkSegWitCompat = {
     baseNetwork: 'bitcoin',
@@ -1305,6 +1305,6 @@ module.exports.Tokens = Tokens
 module.exports.config = config
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
-//module.exports.configSendBox = configSendBox
+module.exports.configSendBox = configSendBox
 module.exports.booltestnet = booltestnet
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
