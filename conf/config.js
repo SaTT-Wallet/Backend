@@ -1308,4 +1308,5 @@ module.exports.config = config
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
 module.exports.configSendBox = configSendBox
+module.exports.booltestnet = booltestnet
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
