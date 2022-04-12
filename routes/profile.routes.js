@@ -187,6 +187,8 @@ router.post('/picture', verifyAuth, uploadImageProfile, addProfilePicture)
  *                 type: string
  *               locale:
  *                 type: string
+ *               hasBiometrics:
+ *                 type: boolean
  *               phone:
  *                 type: object
  *                 properties:
