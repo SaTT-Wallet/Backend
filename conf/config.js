@@ -1207,11 +1207,13 @@ let loginSettings = {
     lockedPeriod: process.env.lockedPeriod,
 }
 
-let configSendBox = {}
+let configSendBox
 
-configSendBox = booltestnet
-    ? 'https://sandbox.test-simplexcc.com'
-    : 'https://backend-wallet-api.simplexcc.com'
+if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
+    configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
+} else {
+    configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
+}
 
 let networkSegWitCompat = {
     baseNetwork: 'bitcoin',
