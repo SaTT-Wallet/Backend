@@ -44,9 +44,9 @@ node_modules/
 jspm_packages/
 
 #config files
-# conf/wallets/
-# conf/ssl/fullchain.pem
-# conf/ssl/privkey.pem
+conf/wallets/
+conf/ssl/fullchain.pem
+conf/ssl/privkey.pem
 
 # TypeScript v1 declaration files
 typings/
@@ -78,7 +78,7 @@ typings/
 # dotenv environment variables file
 
 .env.test
-#.env
+.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
