@@ -1092,7 +1092,7 @@ exports.addKits = async (req, res) => {
             typeof req.body.link === 'string'
                 ? Array(req.body.link)
                 : req.body.link
-        let idCampaign = req.body.campaign
+        let idCampaign = ObjectId(req.body.campaign)
 
         if (files) {
             files.forEach((file) => {
