@@ -87,7 +87,7 @@ exports.exportBtc = async (req, res) => {
 exports.exportEth = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var cred = await unlock(req, res)
+            // var cred = await unlock(req, res)
             let ret = await exportkey(req, res)
 
             return responseHandler.makeResponseData(
