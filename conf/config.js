@@ -1138,7 +1138,7 @@ let basicAtt = {
     coverMobile: 0,
     coverSrcMobile: 0,
 }
-let booltestnet = true
+
 let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
     linkedinActivityUrl: (activityURN) =>
@@ -1209,9 +1209,14 @@ let loginSettings = {
 
 let configSendBox
 
+let booltestnet
+
 if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
     configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
+    booltestnet = true
 } else {
+    booltestnet = false
+
     configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
 }
 
