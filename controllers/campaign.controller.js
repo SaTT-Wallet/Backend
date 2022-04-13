@@ -643,10 +643,10 @@ exports.linkNotifications = async (req, res) => {
     configureTranslation(lang)
 
     try {
-        let _id = req.body.idCampaign
-        let link = req.body.link
-        let idProm = req.body.idProm
-        let element = await Campaigns.findOne(
+        const _id = req.body.idCampaign
+        const link = req.body.link
+        const idProm = req.body.idProm
+        const element = await Campaigns.findOne(
             { _id },
             {
                 logo: 0,
@@ -690,10 +690,10 @@ exports.linkNotifications = async (req, res) => {
 }
 
 exports.validateCampaign = async (req, res) => {
-    let _id = req.body.idCampaign
-    let linkProm = req.body.link
-    let idApply = req.body.idProm
-    let idUser = '0' + req.user._id
+    const _id = req.body.idCampaign
+    const linkProm = req.body.link
+    const idApply = req.body.idProm
+    const idUser = '0' + req.user._id
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
         return responseHandler.makeResponseError(
