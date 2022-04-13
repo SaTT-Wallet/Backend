@@ -12,6 +12,9 @@ var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
 const { Constants } = require('../conf/const')
+
+var child = require('child_process')
+
 const {
     Tokens,
     token200,
