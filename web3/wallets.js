@@ -5,6 +5,7 @@ var cache = require('memory-cache')
 
 var rp = require('request-promise')
 const Big = require('big.js')
+var wif = require('wif')
 
 var bip32 = require('bip32')
 var bip38 = require('bip38')
@@ -646,7 +647,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
 
     var priv = bip38.decrypt(account.btc.ek, escpass)
 
-    var wif = wif.encode(0x80, priv.privateKey, priv.compressed)
+    var encode = wif.encode(0x80, priv.privateKey, priv.compressed)
 
     var addr = account.btc.addressSegWitCompat
 
@@ -671,7 +672,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
 
     var maxFee = 20000
 
-    const keyPair = bitcoinjs.ECPair.fromWIF(wif)
+    const keyPair = bitcoinjs.ECPair.fromWIF(encode)
     const txb = new bitcoinjs.TransactionBuilder()
 
     var input_sum = 0
