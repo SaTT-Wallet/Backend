@@ -558,6 +558,19 @@ exports.instagram = async (UserId, link) => {
                     if (data[i].shortcode == idPost) {
                         perf.likes = data[i].like_count
                         perf.media_url = data[i].media_url
+                        var mediaViews =
+                            'https://graph.facebook.com/' +
+                            oauth.facebook.fbGraphVersion +
+                            '/' +
+                            data[i].id +
+                            '/insights?metric=impressions&access_token=' +
+                            accessToken
+                        var resMediaViews = await rp({
+                            uri: mediaViews,
+                            json: true,
+                        })
+                        let nbviews = JSON.stringify(resMediaViews)
+                        perf.views = JSON.parse(nbviews).data[0].values[0].value
                         break
                     }
                 }
