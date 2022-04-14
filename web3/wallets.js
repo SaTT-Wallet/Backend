@@ -696,7 +696,6 @@ exports.sendBtc = async function (id, pass, to, amount) {
         return {
             error: 'insufficient funds for gas',
         }
-
     }
 
     const p2wpkh = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })
@@ -829,22 +828,22 @@ exports.createSeed = async (req, res) => {
             .privateKeyToAccount(privkey)
             .encrypt(pass)
 
-        if (!booltestnet) {
-            child.execSync(
-                process.env.BTC_CMD +
-                    ' importpubkey ' +
-                    pubBtc +
-                    " 'default' false"
-            )
+        // if (!booltestnet) {
+        //     child.execSync(
+        //         process.env.BTC_CMD +
+        //             ' importpubkey ' +
+        //             pubBtc +
+        //             " 'default' false"
+        //     )
 
-            const client = new bitcoinCore({
-                host: process.env.BTC_HOST,
-                username: process.env.BTC_USER,
-                password: process.env.BTC_PASSWORD,
-            })
+        //     const client = new bitcoinCore({
+        //         host: process.env.BTC_HOST,
+        //         username: process.env.BTC_USER,
+        //         password: process.env.BTC_PASSWORD,
+        //     })
 
-            await new Client().importPubKey('default', false)
-        }
+        //     await new Client().importPubKey('default', false)
+        // }
 
         var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
         var btcWallet = {
