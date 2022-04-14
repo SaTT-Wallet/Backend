@@ -13,6 +13,7 @@ var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
 const bitcoinCore = require('bitcoin-core')
+const Client = require('bitcoin-core')
 
 const { Constants } = require('../conf/const')
 
