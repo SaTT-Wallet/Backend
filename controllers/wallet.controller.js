@@ -546,7 +546,7 @@ exports.transfertBtc = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        if (cred) await lock(cred.address)
+        if (cred) await lock(cred)
     }
 }
 
