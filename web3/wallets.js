@@ -694,8 +694,9 @@ exports.sendBtc = async function (id, pass, to, amount) {
 
     if (parseInt(amount) + parseInt(fee) > max) {
         return {
-            error: 'insufficient funds, fee requirement : ' + fee + ' satoshis',
+            error: 'insufficient funds for gas',
         }
+
     }
 
     const p2wpkh = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey })

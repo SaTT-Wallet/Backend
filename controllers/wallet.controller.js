@@ -530,6 +530,9 @@ exports.transfertBtc = async (req, res) => {
                 )
             }
             var hash = await sendBtc(id, pass, req.body.to, req.body.val)
+            if (hash.error) {
+                return responseHandler.makeResponseError(res, 402, hash.error)
+            }
 
             return responseHandler.makeResponseData(res, 200, 'success', hash)
         } else {
