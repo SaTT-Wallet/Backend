@@ -385,6 +385,32 @@ exports.resendConfirmationToken = async (req, res) => {
     }
 }
 
+exports.getToken = async (req, res) => {
+    try {
+        let _id = +req.params.id
+        var date = Math.floor(Date.now() / 1000) + 86400
+        console.log(_id)
+        var user = await User.findOne({ _id })
+        let userAuth = cloneUser(user.toObject())
+        let token = generateAccessToken(userAuth)
+        res.send({
+            id: user._id,
+            token,
+            expires_in: date,
+            noredirect: req.body.noredirect,
+        })
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
 exports.saveFirebaseAccessToken = async (req, res) => {
     try {
         let data = req.body
