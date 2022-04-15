@@ -624,7 +624,10 @@ exports.transfer = async (token, to, amount, credentials) => {
         )
 
         var gasPrice = await contract.getGasPrice()
-        var gas = 600000
+        //   var gas = 600000
+        var gas = await contract.methods
+            .transfer(to, amount)
+            .estimateGas({ from: credentials.address })
 
         var receipt = await contract.methods.transfer(to, amount).send({
             from: credentials.address,
@@ -724,8 +727,8 @@ exports.sendBtc = async function (id, pass, to, amount) {
 exports.transferNativeBNB = async (to, amount, credentials) => {
     var gasPrice = await credentials.Web3BEP20.eth.getGasPrice()
 
-    var gas = 21000
-
+    //  var gas = 21000
+    var gas = await credentials.Web3BEP20.eth.estimateGas({ to })
     try {
         var receipt = await credentials.Web3BEP20.eth
             .sendTransaction({
@@ -752,8 +755,8 @@ exports.transferEther = async (to, amount, credentials) => {
     try {
         var gasPrice = await credentials.Web3ETH.eth.getGasPrice()
 
-        var gas = 21000
-
+        // var gas = 21000
+        var gas = await credentials.Web3ETH.eth.estimateGas({ to })
         var receipt = await credentials.Web3ETH.eth
             .sendTransaction({
                 from: credentials.address,
