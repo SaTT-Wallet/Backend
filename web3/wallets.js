@@ -108,16 +108,8 @@ exports.exportkey = async (req, res) => {
     let account = await Wallet.findOne({ UserId: parseInt(id) })
 
     if (account) {
-        try {
-            var Web3ETH = await erc20Connexion()
-            Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
-            return account.keystore
-        } catch (e) {
-            return 'Wrong password'
-        } finally {
-            let cred = { Web3ETH, address: '0x' + account.keystore.address }
-            this.lockERC20(cred)
-        }
+        var Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
     } else {
         return 'Account not found'
     }
