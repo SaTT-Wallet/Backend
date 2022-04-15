@@ -89,22 +89,20 @@ exports.exportEth = async (req, res) => {
         if (req.user.hasWallet == true) {
             let ret = await exportkey(req, res)
 
+            console.log('ret', ret)
+
             if (!ret) {
                 return
             }
 
-            return responseHandler.makeResponseData(
+            responseHandler.makeResponseData(
                 res.attachment(),
                 200,
                 'success',
                 ret
             )
         } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Account not found'
-            )
+            responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
         console.log(err.message)
