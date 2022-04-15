@@ -103,7 +103,13 @@ exports.exportEth = async (req, res) => {
             responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
-        console.log(err)
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
