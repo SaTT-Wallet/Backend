@@ -89,8 +89,6 @@ exports.exportEth = async (req, res) => {
         if (req.user.hasWallet == true) {
             let ret = await exportkey(req, res)
 
-            console.log('ret', ret)
-
             if (!ret) {
                 return
             }
