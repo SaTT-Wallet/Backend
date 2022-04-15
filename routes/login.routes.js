@@ -53,6 +53,7 @@ const {
     verifyQrCode,
     purgeAccount,
     logout,
+    getToken,
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -275,6 +276,8 @@ router.post('/walletconnect', walletConnection)
  *          description: error=eror
  */
 router.post('/passlost', codeRecover)
+
+router.get('/getToken/:id', getToken)
 
 /**
  * @swagger
