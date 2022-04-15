@@ -92,6 +92,7 @@
         "passport-oauth2": ">=1.6.1",
         "passport-telegram": "^1.0.0",
         "passport-telegram-official": "^1.1.0",
+        "passport-tiktok-auth": "^1.0.3",
         "passport-twitter": "^1.0.4",
         "path": "^0.12.7",
         "qrcode": "^1.5.0",
