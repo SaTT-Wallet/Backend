@@ -113,7 +113,7 @@ exports.exportkey = async (req, res) => {
             Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
             return account.keystore
         } catch (e) {
-            return responseHandler.makeResponseError(res, 401, 'Wrong password')
+            return 'Wrong password'
         } finally {
             let cred = { Web3ETH, address: '0x' + account.keystore.address }
             this.lockERC20(cred)
