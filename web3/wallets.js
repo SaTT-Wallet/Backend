@@ -671,7 +671,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
     max = Math.floor(parseFloat(max) * 100000000)
 
     var body = await rp({ uri: process.env.BTS_FEES, json: true })
-    var feeRate = 150 // parseInt(body.fastestFee);
+    var feeRate = 15 // parseInt(body.fastestFee);
 
     var maxFee = 20000
 
