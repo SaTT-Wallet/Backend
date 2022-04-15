@@ -115,6 +115,9 @@ exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             var ret = await getAccount(req, res)
+            if (!ret) {
+                return
+            }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
