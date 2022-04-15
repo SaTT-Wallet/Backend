@@ -110,6 +110,7 @@ exports.exportkey = async (req, res) => {
     if (account) {
         var Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return account.keystore
     } else {
         return 'Account not found'
     }
