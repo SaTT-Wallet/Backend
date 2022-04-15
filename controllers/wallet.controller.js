@@ -93,18 +93,14 @@ exports.exportEth = async (req, res) => {
                 return
             }
 
-            return responseHandler.makeResponseData(
+            responseHandler.makeResponseData(
                 res.attachment(),
                 200,
                 'success',
                 ret
             )
         } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Account not found'
-            )
+            responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
         console.log(err)
