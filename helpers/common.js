@@ -85,7 +85,7 @@ module.exports.updateStat = async () => {
         var endDate = Date.parse(campaign?.endDate)
             ? new Date(Date.parse(campaign?.endDate))
             : new Date(+campaign?.endDate * 1000)
-        campaign.isFinished = endDate < dateNow || campaign.funds[1] === '0'
+        campaign.isFinished = endDate < dateNow || campaign?.funds[1] === '0'
         if (campaign && campaign.funds)
             campaign.remaining = campaign.funds[1] || campaign.cost
 
