@@ -8,7 +8,7 @@ const {
     Interests,
     Notification,
     FbPage,
-    TikTokProfile
+    TikTokProfile,
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -99,7 +99,7 @@ module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
 
-exports.account = async(req, res) => {
+exports.account = async (req, res) => {
     try {
         if (req.user) {
             let { password, ...user } = req.user.toObject()
@@ -116,7 +116,7 @@ exports.account = async(req, res) => {
     }
 }
 
-exports.profilePicture = async(req, response) => {
+exports.profilePicture = async (req, response) => {
     try {
         const idUser = req.query.id ? +req.query.id : req.user._id
         gfsprofilePic.files.findOne({ 'user.$id': idUser }, (err, file) => {
@@ -141,21 +141,24 @@ exports.profilePicture = async(req, response) => {
     }
 }
 
-module.exports.addProfilePicture = async(req, res) => {
+module.exports.addProfilePicture = async (req, res) => {
     try {
         if (req.file) {
             await gfsprofilePic.files.findOneAndDelete({
                 'user.$id': req.user._id,
             })
-            await gfsprofilePic.files.updateOne({ _id: req.file.id }, {
-                $set: {
-                    user: {
-                        $ref: 'user',
-                        $id: req.user._id,
-                        $db: 'nodesatt',
+            await gfsprofilePic.files.updateOne(
+                { _id: req.file.id },
+                {
+                    $set: {
+                        user: {
+                            $ref: 'user',
+                            $id: req.user._id,
+                            $db: 'nodesatt',
+                        },
                     },
-                },
-            })
+                }
+            )
             return makeResponseData(res, 201, 'Saved')
         }
         return makeResponseData(res, 204, 'Only images allowed')
@@ -168,7 +171,7 @@ module.exports.addProfilePicture = async(req, res) => {
     }
 }
 
-exports.updateProfile = async(req, res) => {
+exports.updateProfile = async (req, res) => {
     try {
         const id = req.user._id
         let profile = req.body
@@ -181,7 +184,11 @@ exports.updateProfile = async(req, res) => {
                 return makeResponseError(res, 406, 'email already exists')
             }
         }
-        const updatedProfile = await User.findOneAndUpdate({ _id: id }, { $set: profile }, { new: true }).select('-password')
+        const updatedProfile = await User.findOneAndUpdate(
+            { _id: id },
+            { $set: profile },
+            { new: true }
+        ).select('-password')
 
         if (updatedProfile.nModified === 0) {
             return makeResponseError(res, 400, 'update failed')
@@ -197,7 +204,7 @@ exports.updateProfile = async(req, res) => {
     }
 }
 
-exports.UserLegalProfile = async(req, res) => {
+exports.UserLegalProfile = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
         const files = await gfsUserLegal.files.find({ idNode }).toArray()
@@ -218,7 +225,7 @@ exports.UserLegalProfile = async(req, res) => {
     }
 }
 
-exports.addUserLegalProfile = async(req, res) => {
+exports.addUserLegalProfile = async (req, res) => {
     try {
         const id = req.user._id
         const idNode = '0' + id
@@ -228,20 +235,24 @@ exports.addUserLegalProfile = async(req, res) => {
             await gfsUserLegal.files.deleteMany({
                 $and: [{ idNode }, { type }],
             })
-            const updatedLegalProfile = await gfsUserLegal.files.updateMany({ _id: req.file.id }, {
-                $set: {
-                    idNode,
-                    DataUser: {
-                        $ref: 'user',
-                        $id: Long.fromNumber(id),
-                        $db: 'nodesatt',
+            const updatedLegalProfile = await gfsUserLegal.files.updateMany(
+                { _id: req.file.id },
+                {
+                    $set: {
+                        idNode,
+                        DataUser: {
+                            $ref: 'user',
+                            $id: Long.fromNumber(id),
+                            $db: 'nodesatt',
+                        },
+                        validate: false,
+                        type,
                     },
-                    validate: false,
-                    type,
                 },
-            }, {
-                new: true,
-            })
+                {
+                    new: true,
+                }
+            )
 
             await notificationManager(id, 'save_legal_file_event', {
                 type,
@@ -258,7 +269,7 @@ exports.addUserLegalProfile = async(req, res) => {
     }
 }
 
-exports.FindUserLegalProfile = async(req, res) => {
+exports.FindUserLegalProfile = async (req, res) => {
     try {
         const _id = req.params.id
         gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
@@ -287,7 +298,7 @@ exports.FindUserLegalProfile = async(req, res) => {
         )
     }
 }
-exports.deleteTwitterChannels = async(req, res) => {
+exports.deleteTwitterChannels = async (req, res) => {
     try {
         const UserId = req.user._id
         const result = await TwitterProfile.deleteMany({ UserId })
@@ -305,12 +316,12 @@ exports.deleteTwitterChannels = async(req, res) => {
     }
 }
 
-exports.deleteTwitterChannel = async(req, res) => {
+exports.deleteTwitterChannel = async (req, res) => {
     try {
         let UserId = req.user._id
         let _id = req.params.id
         let twitterProfile = await TwitterProfile.findOne({ _id })
-        if (twitterProfile ? .UserId !== UserId)
+        if (twitterProfile?.UserId !== UserId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
             await TwitterProfile.deleteOne({ UserId })
@@ -325,7 +336,7 @@ exports.deleteTwitterChannel = async(req, res) => {
     }
 }
 
-exports.deleteGoogleChannels = async(req, res) => {
+exports.deleteGoogleChannels = async (req, res) => {
     try {
         const UserId = req.user._id
         const result = await GoogleProfile.deleteMany({ UserId })
@@ -343,12 +354,12 @@ exports.deleteGoogleChannels = async(req, res) => {
     }
 }
 
-exports.deleteGoogleChannel = async(req, res) => {
+exports.deleteGoogleChannel = async (req, res) => {
     try {
         let UserId = req.user._id
         let _id = req.params.id
         let googleProfile = await GoogleProfile.findOne({ _id })
-        if (googleProfile ? .UserId !== UserId)
+        if (googleProfile?.UserId !== UserId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
             await GoogleProfile.deleteOne({ _id })
@@ -363,7 +374,7 @@ exports.deleteGoogleChannel = async(req, res) => {
     }
 }
 
-exports.deleteFacebookChannels = async(req, res) => {
+exports.deleteFacebookChannels = async (req, res) => {
     try {
         const UserId = req.user._id
         const result = await FbPage.deleteMany({ UserId })
@@ -381,12 +392,12 @@ exports.deleteFacebookChannels = async(req, res) => {
     }
 }
 
-exports.deleteFacebookChannel = async(req, res) => {
+exports.deleteFacebookChannel = async (req, res) => {
     try {
         let UserId = req.user._id
         let _id = req.params.id
         let facebookProfile = await FbPage.findOne({ _id })
-        if (facebookProfile ? .UserId !== UserId)
+        if (facebookProfile?.UserId !== UserId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
             await FbPage.deleteOne({ _id })
@@ -400,10 +411,13 @@ exports.deleteFacebookChannel = async(req, res) => {
         )
     }
 }
-exports.deleteLinkedinChannels = async(req, res) => {
+exports.deleteLinkedinChannels = async (req, res) => {
     try {
         const userId = req.user._id
-        const result = await LinkedinProfile.deleteMany({ userId }, { $set: { pages: [] } })
+        const result = await LinkedinProfile.deleteMany(
+            { userId },
+            { $set: { pages: [] } }
+        )
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
         } else {
@@ -418,7 +432,7 @@ exports.deleteLinkedinChannels = async(req, res) => {
     }
 }
 
-exports.deleteLinkedinChannel = async(req, res) => {
+exports.deleteLinkedinChannel = async (req, res) => {
     try {
         let userId = req.user._id
         let organization = req.params.organization
@@ -426,10 +440,13 @@ exports.deleteLinkedinChannel = async(req, res) => {
             { $unwind: { path: '$pages' } },
             { $match: { 'pages.organization': organization } },
         ])
-        if (linkedinProfile[0] ? .userId !== userId)
+        if (linkedinProfile[0]?.userId !== userId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
-            await LinkedinProfile.updateOne({ userId }, { $pull: { pages: { organization } } })
+            await LinkedinProfile.updateOne(
+                { userId },
+                { $pull: { pages: { organization } } }
+            )
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
@@ -440,7 +457,7 @@ exports.deleteLinkedinChannel = async(req, res) => {
         )
     }
 }
-exports.UserInterstes = async(req, res) => {
+exports.UserInterstes = async (req, res) => {
     try {
         const userId = req.user._id
         let allInterests = []
@@ -467,15 +484,19 @@ exports.UserInterstes = async(req, res) => {
     }
 }
 
-exports.UpdateIntersts = async(req, res) => {
+exports.UpdateIntersts = async (req, res) => {
     try {
         let id = req.user._id
         let userInterests = req.body.interests
 
-        const interests = await Interests.findOneAndUpdate({ userId: id }, { $set: { interests: userInterests } }, {
-            new: true,
-            upsert: true,
-        })
+        const interests = await Interests.findOneAndUpdate(
+            { userId: id },
+            { $set: { interests: userInterests } },
+            {
+                new: true,
+                upsert: true,
+            }
+        )
         if (interests.nModified === 0) {
             return makeResponseError(res, 400, 'updated failed')
         }
@@ -489,7 +510,7 @@ exports.UpdateIntersts = async(req, res) => {
     }
 }
 
-exports.socialAccounts = async(req, res) => {
+exports.socialAccounts = async (req, res) => {
     try {
         let UserId = req.user._id
         let networks = {}
@@ -502,13 +523,14 @@ exports.socialAccounts = async(req, res) => {
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin ? .pages || []
-        networks.tikTok = channelsTiktok ? .pages || []
-        if (!channelsGoogle ? .length &&
-            !channelsLinkedin ? .length &&
-            !channelsTwitter ? .length &&
-            !channelsFacebook ? .length &&
-            !channelsTiktok ? .length
+        networks.linkedin = channelsLinkedin?.pages || []
+        networks.tikTok = channelsTiktok?.pages || []
+        if (
+            !channelsGoogle?.length &&
+            !channelsLinkedin?.length &&
+            !channelsTwitter?.length &&
+            !channelsFacebook?.length &&
+            !channelsTiktok?.length
         ) {
             return makeResponseError(res, 204, 'No channel found')
         }
@@ -522,10 +544,13 @@ exports.socialAccounts = async(req, res) => {
     }
 }
 
-module.exports.checkOnBoarding = async(req, res) => {
+module.exports.checkOnBoarding = async (req, res) => {
     try {
         const _id = req.user._id
-        const userUpdated = User.updateOne({ _id }, { $set: { onBoarding: true } })
+        const userUpdated = User.updateOne(
+            { _id },
+            { $set: { onBoarding: true } }
+        )
         const firstNotif = notificationManager(_id, 'buy_some_gas', {
             action: 'buy_some_gas',
         })
@@ -551,7 +576,7 @@ module.exports.checkOnBoarding = async(req, res) => {
     }
 }
 
-module.exports.requestMoney = async(req, res) => {
+module.exports.requestMoney = async (req, res) => {
     try {
         let lang = req.body.lang || 'en'
         var message = req.body.message
@@ -599,7 +624,7 @@ module.exports.requestMoney = async(req, res) => {
     }
 }
 
-exports.support = async(req, res) => {
+exports.support = async (req, res) => {
     const validateEmail = /\S+@\S+\.\S+/
 
     try {
@@ -626,7 +651,7 @@ exports.support = async(req, res) => {
     }
 }
 
-module.exports.notificationUpdate = async(req, res) => {
+module.exports.notificationUpdate = async (req, res) => {
     let _id = req.params.id
 
     if (_id === '{_id}' || !_id) {
@@ -650,10 +675,13 @@ module.exports.notificationUpdate = async(req, res) => {
     }
 }
 
-module.exports.changeNotificationsStatus = async(req, res) => {
+module.exports.changeNotificationsStatus = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const result = await Notification.updateMany({ idNode, isSeen: false }, { $set: { isSeen: true } })
+        const result = await Notification.updateMany(
+            { idNode, isSeen: false },
+            { $set: { isSeen: true } }
+        )
 
         if (result.nModified === 0) {
             return makeResponseError(res, 204, 'No notifications found')
@@ -668,7 +696,7 @@ module.exports.changeNotificationsStatus = async(req, res) => {
     }
 }
 
-module.exports.getNotifications = async(req, res) => {
+module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
         const arrayNotifications = await Notification.find({ idNode }).sort({
@@ -716,7 +744,7 @@ module.exports.getNotifications = async(req, res) => {
     }
 }
 
-module.exports.changeEmail = async(req, res) => {
+module.exports.changeEmail = async (req, res) => {
     var pass = req.body.pass
     var email = req.body.email
     var user = req.user
@@ -735,7 +763,10 @@ module.exports.changeEmail = async(req, res) => {
             newEmail.expiring = Date.now() + 3600 * 20
             newEmail.code = code
 
-            const result = await User.updateOne({ _id: Long.fromNumber(req.user._id) }, { $set: { newEmail } })
+            const result = await User.updateOne(
+                { _id: Long.fromNumber(req.user._id) },
+                { $set: { newEmail } }
+            )
 
             let requestDate = manageTime()
             let ip =
@@ -766,7 +797,7 @@ module.exports.changeEmail = async(req, res) => {
         )
     }
 }
-module.exports.confrimChangeMail = async(req, res) => {
+module.exports.confrimChangeMail = async (req, res) => {
     try {
         var id = req.user._id
         var code = req.body.code
@@ -780,7 +811,10 @@ module.exports.confrimChangeMail = async(req, res) => {
             return makeResponseError(res, 406, 'code incorrect')
         } else {
             var newEmail = user.newEmail.email
-            await User.updateOne({ _id: Long.fromNumber(id) }, { $set: { email: newEmail } })
+            await User.updateOne(
+                { _id: Long.fromNumber(id) },
+                { $set: { email: newEmail } }
+            )
             return makeResponseData(res, 200, 'email changed')
         }
     } catch (err) {
@@ -792,7 +826,7 @@ module.exports.confrimChangeMail = async(req, res) => {
     }
 }
 
-module.exports.verifyLink = async(req, response) => {
+module.exports.verifyLink = async (req, response) => {
     try {
         var userId = req.user._id
         var typeSN = req.params.typeSN
@@ -841,7 +875,10 @@ module.exports.verifyLink = async(req, response) => {
                     }
 
                     var result = await rp(options)
-                    await GoogleProfile.updateOne({ UserId: userId }, { $set: { accessToken: result.access_token } })
+                    await GoogleProfile.updateOne(
+                        { UserId: userId },
+                        { $set: { accessToken: result.access_token } }
+                    )
                     linked = true
                     res = await verifyYoutube(userId, idPost)
                     if (res && res.deactivate === true) deactivate = true
@@ -907,7 +944,7 @@ module.exports.verifyLink = async(req, response) => {
     }
 }
 
-module.exports.ShareByActivity = async(req, res) => {
+module.exports.ShareByActivity = async (req, res) => {
     try {
         let userId = req.user._id
         let activityURN = req.params.activity
