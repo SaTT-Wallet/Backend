@@ -730,20 +730,23 @@ exports.addlinkedinChannel = async (
  * begin add facebook channel strategy
  */
 exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
+            console.log('6');
+
+    //console.log('from addTikTokChannel',profile,accessToken);
     let longToken = accessToken
     let UserId = +req.query.state.split('|')[0]
-    let isInsta = false
-    let TikTokProfile = await TikTokProfile.findOne({ UserId })
-    if (TikTokProfile) {
-        await TikTokProfile.updateOne(
-            { UserId },
-            { $set: { accessToken: longToken } }
-        )
-    } else {
-        ;[profile.accessToken, profile.UserId] = [longToken, UserId]
-        await TikTokProfile.create(profile)
-    }
-    let message = await getFacebookPages(UserId, accessToken, isInsta)
+    // let isInsta = false
+    // let TikTokProfile = await TikTokProfile.findOne({ UserId })
+    // if (TikTokProfile) {
+    //     await TikTokProfile.updateOne(
+    //         { UserId },
+    //         { $set: { accessToken: longToken } }
+    //     )
+    // } else {
+    //     ;[profile.accessToken, profile.UserId] = [longToken, UserId]
+    //     await TikTokProfile.create(profile)
+    // }
+    // let message = await getFacebookPages(UserId, accessToken, isInsta)
     return cb(null, { id: UserId, token: accessToken }, { message })
 }
 /*
