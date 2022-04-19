@@ -1827,7 +1827,6 @@ module.exports.coverByCampaign = async (req, res) => {
 
 module.exports.campaignsStatistics = async (req, res) => {
     try {
-        
         let totalAbos = 0
         let totalViews = 0
         let totalPayed = 0
@@ -1859,21 +1858,27 @@ module.exports.campaignsStatistics = async (req, res) => {
         let i = 0
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
-            if(campaign){
-            if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
-                totalAbos += +links[j].abosNumber
-            if (links[j].views) totalViews += +links[j].views
-            if (links[j].payedAmount)
-                totalPayed = new Big(totalPayed)
-                    .plus(
-                        new Big(links[j].payedAmount).div(
-                            new Big(10).pow(getDecimal(campaign?.token.name))
+            if (campaign) {
+                if (
+                    links[j].abosNumber &&
+                    links[j].abosNumber !== 'indisponible'
+                )
+                    totalAbos += +links[j].abosNumber
+                if (links[j].views) totalViews += +links[j].views
+                if (links[j].payedAmount)
+                    totalPayed = new Big(totalPayed)
+                        .plus(
+                            new Big(links[j].payedAmount).div(
+                                new Big(10).pow(
+                                    getDecimal(campaign?.token.name)
+                                )
+                            )
                         )
-                    )
-                    .toFixed()
-                        }
+                        .toFixed()
+            }
             j++
         }
+
         while (i < pools.length) {
             if (pools[i].type === 'apply') {
                 tvl = new Big(tvl)
@@ -1883,7 +1888,6 @@ module.exports.campaignsStatistics = async (req, res) => {
                         )
                     )
                     .toFixed()
-
             }
             i++
         }
@@ -1892,12 +1896,13 @@ module.exports.campaignsStatistics = async (req, res) => {
             sattPrice: SATT.price,
             percentChange: SATT.percent_change_24h,
             nbPools: pools.length,
-            reach: totalAbos,
+            reach: ((totalViews / totalAbos) * 100).toFixed(2),
             posts: links.length,
             views: totalViews,
             harvested: totalPayed,
             tvl: tvl,
         }
+
         return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
         console.log(err.message)
