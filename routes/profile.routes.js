@@ -729,10 +729,11 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
-            console.log('1',res);
+            console.log('1');
+   // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
+    const state = req.params.idUser 
+    console.log(state);
 
-   // console.log('from get /addChannel',res)
-    const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic'],
         state,
@@ -744,7 +745,7 @@ passport.use(
     new tikTokStrategy(
         tikTokCredentials('callback/addChannel/tikTok'),
         async (req, accessToken, profile, cb) => {
-
+            console.log('2');
            // console.log('from callback', accessToken, profile, cb)
             //addTikTokChannel(req, accessToken, profile, cb)
         }
