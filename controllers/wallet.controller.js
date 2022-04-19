@@ -60,18 +60,16 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
 )
 exports.exportBtc = async (req, res) => {
     try {
+        res.attachment()
         if (req.user.hasWallet == true) {
             var cred = await unlock(req, res)
             if (!cred) return
 
             let ret = await exportkeyBtc(req, res)
 
-            return responseHandler.makeResponseData(
-                res.attachment(),
-                200,
-                'success',
-                ret
-            )
+            console.log('ret', ret)
+
+            res.status(200).send({ ret })
         } else {
             return responseHandler.makeResponseError(
                 res,
@@ -86,19 +84,13 @@ exports.exportBtc = async (req, res) => {
 
 exports.exportEth = async (req, res) => {
     try {
+        res.attachment()
         if (req.user.hasWallet == true) {
             let ret = await exportkey(req, res)
-
             if (!ret) {
                 return
             }
-
-            responseHandler.makeResponseData(
-                res.attachment(),
-                200,
-                'success',
-                ret
-            )
+            res.status(200).send(ret)
         } else {
             responseHandler.makeResponseError(res, 204, 'Account not found')
         }
