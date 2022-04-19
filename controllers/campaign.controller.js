@@ -1827,6 +1827,7 @@ module.exports.coverByCampaign = async (req, res) => {
 
 module.exports.campaignsStatistics = async (req, res) => {
     try {
+        
         let totalAbos = 0
         let totalViews = 0
         let totalPayed = 0
@@ -1858,6 +1859,7 @@ module.exports.campaignsStatistics = async (req, res) => {
         let i = 0
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
+            if(campaign){
             if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
                 totalAbos += +links[j].abosNumber
             if (links[j].views) totalViews += +links[j].views
@@ -1869,6 +1871,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                         )
                     )
                     .toFixed()
+                        }
             j++
         }
         while (i < pools.length) {
@@ -1880,6 +1883,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                         )
                     )
                     .toFixed()
+
             }
             i++
         }
