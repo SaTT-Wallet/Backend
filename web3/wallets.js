@@ -211,7 +211,7 @@ exports.getPrices = async () => {
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
 
-            var priceMap = response.data.map((elem) => {
+            var priceMap = response.data.map(elem => {
                 var obj = {}
                 obj = {
                     symbol: elem.symbol,
