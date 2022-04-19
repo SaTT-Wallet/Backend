@@ -1892,7 +1892,7 @@ module.exports.campaignsStatistics = async (req, res) => {
             sattPrice: SATT.price,
             percentChange: SATT.percent_change_24h,
             nbPools: pools.length,
-            reach: ((totalViews/totalAbos)*100 ) .toFixed(2) +"%" ,
+            reach: ((totalViews/totalAbos)*100 ) .toFixed(2) ,
             posts: links.length,
             views: totalViews,
             harvested: totalPayed,
