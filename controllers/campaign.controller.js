@@ -1858,6 +1858,8 @@ module.exports.campaignsStatistics = async (req, res) => {
         let i = 0
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
+
+           
             if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
                 totalAbos += +links[j].abosNumber
             if (links[j].views) totalViews += +links[j].views
@@ -1869,8 +1871,10 @@ module.exports.campaignsStatistics = async (req, res) => {
                         )
                     )
                     .toFixed()
+                       
             j++
         }
+        
         while (i < pools.length) {
             if (pools[i].type === 'apply') {
                 tvl = new Big(tvl)
@@ -1888,12 +1892,16 @@ module.exports.campaignsStatistics = async (req, res) => {
             sattPrice: SATT.price,
             percentChange: SATT.percent_change_24h,
             nbPools: pools.length,
-            reach: totalAbos,
+            reach: ((totalViews/totalAbos)*100 ) .toFixed(2) +"%" ,
             posts: links.length,
             views: totalViews,
             harvested: totalPayed,
             tvl: tvl,
         }
+      
+
+
+
         return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
         console.log(err.message)
