@@ -1304,12 +1304,12 @@ exports.linkedinCredentials = (callback) => {
     }
 }
 exports.tikTokCredentials = (callback) => {
-    console.log('callback from tikTokCredentials',callback);
+    console.log('callback from tikTokCredentials', callback)
     return {
         clientID: process.env.TIKTOK_KEY,
         clientSecret: process.env.TIKTOK_SECRET,
-        callbackURL: process.env.BASEURLLOCAL  + callback, // process.env.BASEURL  BASEURLLOCAL",
-        scope: ['user.info.basic'],
+        callbackURL: process.env.BASEURL + callback, // process.env.BASEURL  process.env.BASEURL BASEURLLOCAL",
+        scope: ['user.info.basic', 'video.list'],
         passReqToCallback: true,
     }
 }
