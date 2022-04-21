@@ -161,6 +161,8 @@ module.exports.launchCampaign = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -218,6 +220,8 @@ module.exports.launchBounty = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -323,6 +327,8 @@ exports.campaigns = async (req, res) => {
             count,
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -353,6 +359,8 @@ exports.campaignDetails = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -497,6 +505,8 @@ exports.campaignPromp = async (req, res) => {
             })
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -561,6 +571,8 @@ exports.apply = async (req, res) => {
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -681,6 +693,8 @@ exports.linkNotifications = async (req, res) => {
             )
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -725,6 +739,8 @@ exports.validateCampaign = async (req, res) => {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -990,7 +1006,7 @@ exports.gains = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
-        console.log('err', err)
+        console.log('err', err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1055,6 +1071,8 @@ exports.saveCampaign = async (req, res) => {
         let draft = await Campaigns.create(campaign)
         return responseHandler.makeResponseData(res, 200, 'success', draft)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1077,6 +1095,8 @@ exports.kits = async (req, res) => {
                 )
             })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1124,6 +1144,8 @@ exports.addKits = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1152,6 +1174,8 @@ exports.findKit = async (req, res) => {
             readstream.pipe(res)
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1174,6 +1198,8 @@ exports.deleteKit = async (req, res) => {
             )
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1207,6 +1233,8 @@ exports.update = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1300,6 +1328,8 @@ module.exports.linkStats = async (req, res) => {
             return responseHandler.makeResponseError(res, 204, 'link not found')
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1320,6 +1350,8 @@ module.exports.increaseBudget = async (req, res) => {
 
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1363,6 +1395,8 @@ exports.getFunds = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1399,6 +1433,8 @@ exports.bep20Approval = async (req, res) => {
             spender: campaignAddress,
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1425,6 +1461,8 @@ exports.erc20Approval = async (req, res) => {
             spender: campaignAddress,
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1451,6 +1489,8 @@ exports.bep20Allow = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1480,6 +1520,8 @@ exports.erc20Allow = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1592,6 +1634,7 @@ exports.getLinks = async (req, res) => {
         var Links = { Links: allProms, count }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
+        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1721,6 +1764,8 @@ exports.rejectLink = async (req, res) => {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1734,6 +1779,8 @@ module.exports.updateStatistics = async (req, res) => {
         await updateStat()
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1768,6 +1815,8 @@ module.exports.coverByCampaign = async (req, res) => {
             res.end(image)
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1809,19 +1858,27 @@ module.exports.campaignsStatistics = async (req, res) => {
         let i = 0
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
-            if (links[j].abosNumber && links[j].abosNumber !== 'indisponible')
-                totalAbos += +links[j].abosNumber
-            if (links[j].views) totalViews += +links[j].views
-            if (links[j].payedAmount)
-                totalPayed = new Big(totalPayed)
-                    .plus(
-                        new Big(links[j].payedAmount).div(
-                            new Big(10).pow(getDecimal(campaign?.token.name))
+            if (campaign) {
+                if (
+                    links[j].abosNumber &&
+                    links[j].abosNumber !== 'indisponible'
+                )
+                    totalAbos += +links[j].abosNumber
+                if (links[j].views) totalViews += +links[j].views
+                if (links[j].payedAmount)
+                    totalPayed = new Big(totalPayed)
+                        .plus(
+                            new Big(links[j].payedAmount).div(
+                                new Big(10).pow(
+                                    getDecimal(campaign?.token.name)
+                                )
+                            )
                         )
-                    )
-                    .toFixed()
+                        .toFixed()
+            }
             j++
         }
+
         while (i < pools.length) {
             if (pools[i].type === 'apply') {
                 tvl = new Big(tvl)
@@ -1839,14 +1896,17 @@ module.exports.campaignsStatistics = async (req, res) => {
             sattPrice: SATT.price,
             percentChange: SATT.percent_change_24h,
             nbPools: pools.length,
-            reach: totalAbos,
+            reach: ((totalViews / totalAbos) * 100).toFixed(2),
             posts: links.length,
             views: totalViews,
             harvested: totalPayed,
             tvl: tvl,
         }
+
         return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1872,6 +1932,8 @@ module.exports.deleteDraft = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1929,6 +1991,8 @@ module.exports.statLinkCampaign = async (req, res) => {
             reachTotal: totalAbos,
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1966,6 +2030,8 @@ module.exports.totalInvested = async (req, res) => {
             totalInvested,
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,

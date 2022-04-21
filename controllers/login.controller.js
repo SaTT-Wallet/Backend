@@ -51,6 +51,8 @@ exports.changePassword = async (req, res) => {
             return responseHandler.makeResponseError(res, 204, 'no account')
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -65,6 +67,8 @@ exports.captcha = async (req, res) => {
         let captcha = await Captcha.findOne().limit(1).skip(random)
         return responseHandler.makeResponseData(res, 200, 'success', captcha)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -108,6 +112,8 @@ exports.verifyCaptcha = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -143,6 +149,8 @@ exports.walletConnection = async (req, res) => {
             })
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -212,6 +220,8 @@ exports.codeRecover = async (req, res) => {
             user.email
         )
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -264,6 +274,8 @@ exports.confirmCode = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -319,6 +331,8 @@ exports.passRecover = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -360,6 +374,34 @@ exports.resendConfirmationToken = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
+exports.getToken = async (req, res) => {
+    try {
+        let _id = +req.params.id
+        var date = Math.floor(Date.now() / 1000) + 86400
+        console.log(_id)
+        var user = await User.findOne({ _id })
+        let userAuth = cloneUser(user.toObject())
+        let token = generateAccessToken(userAuth)
+        res.send({
+            id: user._id,
+            token,
+            expires_in: date,
+            noredirect: req.body.noredirect,
+        })
+    } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -383,6 +425,8 @@ exports.saveFirebaseAccessToken = async (req, res) => {
         )
         return responseHandler.makeResponseData(res, 200, 'success', true)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -447,6 +491,8 @@ exports.updateLastStep = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -479,6 +525,8 @@ exports.purgeAccount = async (req, res) => {
                 false
             )
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -547,6 +595,8 @@ exports.authApple = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -596,6 +646,8 @@ exports.socialSignUp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', param)
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -636,6 +688,8 @@ exports.socialSignin = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -660,6 +714,8 @@ module.exports.getQrCode = async (req, res) => {
             })
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -683,6 +739,8 @@ module.exports.verifyQrCode = async (req, res) => {
         let data = { verifiedCode: verified }
         return responseHandler.makeResponseData(res, 200, 'success', data)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -710,6 +768,8 @@ exports.socialdisconnect = async (req, res) => {
             false
         )
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -725,6 +785,8 @@ exports.logout = async (req, res) => {
         await User.updateOne({ _id }, { $set: { fireBaseAccessToken: null } })
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
