@@ -12,6 +12,9 @@ var bip38 = require('bip38')
 var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
+const bitcoinCore = require('bitcoin-core')
+const Client = require('bitcoin-core')
+
 const { Constants } = require('../conf/const')
 
 var child = require('child_process')
@@ -105,16 +108,9 @@ exports.exportkey = async (req, res) => {
     let account = await Wallet.findOne({ UserId: parseInt(id) })
 
     if (account) {
-        try {
-            var Web3ETH = await erc20Connexion()
-            Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
-            return account.keystore
-        } catch (e) {
-            return responseHandler.makeResponseError(res, 401, 'Wrong password')
-        } finally {
-            let cred = { Web3ETH, address: '0x' + account.keystore.address }
-            this.lockERC20(cred)
-        }
+        var Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return account.keystore
     } else {
         return 'Account not found'
     }
@@ -215,7 +211,7 @@ exports.getPrices = async () => {
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
 
-            var priceMap = response.data.map((elem) => {
+            var priceMap = response.data.map(elem => {
                 var obj = {}
                 obj = {
                     symbol: elem.symbol,
@@ -318,9 +314,11 @@ exports.sendBep20 = async (token, to, amount, credentials) => {
         )
 
         var gasPrice = await contract.getGasPrice()
-        var gas = await contract.methods
-            .transfer(to, amount)
-            .estimateGas({ from: credentials.address })
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
 
         var receipt = await contract.methods.transfer(to, amount).send({
             from: credentials.address,
@@ -621,7 +619,12 @@ exports.transfer = async (token, to, amount, credentials) => {
         )
 
         var gasPrice = await contract.getGasPrice()
-        var gas = 600000
+        //   var gas = 600000
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
 
         var receipt = await contract.methods.transfer(to, amount).send({
             from: credentials.address,
@@ -668,7 +671,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
     max = Math.floor(parseFloat(max) * 100000000)
 
     var body = await rp({ uri: process.env.BTS_FEES, json: true })
-    var feeRate = 150 // parseInt(body.fastestFee);
+    var feeRate = 15 // parseInt(body.fastestFee);
 
     var maxFee = 20000
 
@@ -691,7 +694,7 @@ exports.sendBtc = async function (id, pass, to, amount) {
 
     if (parseInt(amount) + parseInt(fee) > max) {
         return {
-            error: 'insufficient funds, fee requirement : ' + fee + ' satoshis',
+            error: 'insufficient funds for gas',
         }
     }
 
@@ -721,8 +724,10 @@ exports.sendBtc = async function (id, pass, to, amount) {
 exports.transferNativeBNB = async (to, amount, credentials) => {
     var gasPrice = await credentials.Web3BEP20.eth.getGasPrice()
 
-    var gas = 21000
-
+    //  var gas = 21000
+    var gas =
+        (await credentials.Web3BEP20.eth.estimateGas({ to })) *
+        process.env.GAS_MULTIPLAyer
     try {
         var receipt = await credentials.Web3BEP20.eth
             .sendTransaction({
@@ -749,8 +754,10 @@ exports.transferEther = async (to, amount, credentials) => {
     try {
         var gasPrice = await credentials.Web3ETH.eth.getGasPrice()
 
-        var gas = 21000
-
+        // var gas = 21000
+        var gas =
+            (await credentials.Web3ETH.eth.estimateGas({ to })) *
+            process.env.GAS_MULTIPLAyer
         var receipt = await credentials.Web3ETH.eth
             .sendTransaction({
                 from: credentials.address,
@@ -825,22 +832,22 @@ exports.createSeed = async (req, res) => {
             .privateKeyToAccount(privkey)
             .encrypt(pass)
 
-        if (!booltestnet) {
-            child.execSync(
-                process.env.BTC_CMD +
-                    ' importpubkey ' +
-                    pubBtc +
-                    " 'default' false"
-            )
+        // if (!booltestnet) {
+        //     child.execSync(
+        //         process.env.BTC_CMD +
+        //             ' importpubkey ' +
+        //             pubBtc +
+        //             " 'default' false"
+        //     )
 
-            const client = new bitcoinCore({
-                host: process.env.BTC_HOST,
-                username: process.env.BTC_USER,
-                password: process.env.BTC_PASSWORD,
-            })
+        //     const client = new bitcoinCore({
+        //         host: process.env.BTC_HOST,
+        //         username: process.env.BTC_USER,
+        //         password: process.env.BTC_PASSWORD,
+        //     })
 
-            await new Client().importPubKey('default', false)
-        }
+        //     await new Client().importPubKey('default', false)
+        // }
 
         var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
         var btcWallet = {

@@ -60,18 +60,16 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
 )
 exports.exportBtc = async (req, res) => {
     try {
+        res.attachment()
         if (req.user.hasWallet == true) {
             var cred = await unlock(req, res)
             if (!cred) return
 
             let ret = await exportkeyBtc(req, res)
 
-            return responseHandler.makeResponseData(
-                res.attachment(),
-                200,
-                'success',
-                ret
-            )
+            console.log('ret', ret)
+
+            res.status(200).send({ ret })
         } else {
             return responseHandler.makeResponseError(
                 res,
@@ -86,25 +84,24 @@ exports.exportBtc = async (req, res) => {
 
 exports.exportEth = async (req, res) => {
     try {
+        res.attachment()
         if (req.user.hasWallet == true) {
-            // var cred = await unlock(req, res)
             let ret = await exportkey(req, res)
-
-            return responseHandler.makeResponseData(
-                res.attachment(),
-                200,
-                'success',
-                ret
-            )
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
         } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Account not found'
-            )
+            responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
-        console.log(err)
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -112,6 +109,9 @@ exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             var ret = await getAccount(req, res)
+            if (!ret) {
+                return
+            }
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
@@ -121,6 +121,8 @@ exports.mywallet = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -194,6 +196,8 @@ exports.totalBalances = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -418,6 +422,8 @@ exports.checkWalletToken = async (req, res) => {
             })
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -506,6 +512,8 @@ exports.addNewToken = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -530,6 +538,9 @@ exports.transfertBtc = async (req, res) => {
                 )
             }
             var hash = await sendBtc(id, pass, req.body.to, req.body.val)
+            if (hash.error) {
+                return responseHandler.makeResponseError(res, 402, hash.error)
+            }
 
             return responseHandler.makeResponseData(res, 200, 'success', hash)
         } else {
@@ -540,6 +551,8 @@ exports.transfertBtc = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -711,6 +724,8 @@ exports.getQuote = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -773,6 +788,8 @@ exports.payementRequest = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -883,6 +900,8 @@ module.exports.getMnemo = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -911,6 +930,8 @@ module.exports.verifyMnemo = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -937,6 +958,8 @@ exports.createNewWallet = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -993,6 +1016,8 @@ module.exports.removeToken = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1057,6 +1082,8 @@ module.exports.getTransactionHistory = async (req, res) => {
             All_Transactions,
         })
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1081,6 +1108,8 @@ exports.balanceStat = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
+        console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
