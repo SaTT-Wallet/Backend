@@ -2390,7 +2390,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS_MAINNET
     Constants.priceGap.address.token =
         process.env.CONST_PRICEGAP_ADDRESS_MAINNET
-    Constants.bep20.address.sattBep20 = pprocess.env.CONST_BEP20_ADDRESS_MAINNET
+    Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_MAINNET
     Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
