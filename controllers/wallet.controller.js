@@ -10,6 +10,7 @@ const {
     getContractByToken,
     erc20Connexion,
     bep20Connexion,
+    testPolygonConnexion
 } = require('../blockchainConnexion')
 
 const { configSendBox } = require('../conf/config')
@@ -32,6 +33,7 @@ const {
     getListCryptoByUid,
     getBalanceByUid,
     getBalance,
+    getBalancePolygon,
     transfer,
     unlockBsc,
     lockBSC,
@@ -305,6 +307,19 @@ exports.transfertErc20 = async (req, res) => {
             }
         }
     }
+}
+exports.getContractPolygon =  async (req, res) => {
+    try {
+        let web3MATIC = await testPolygonConnexion()
+        console.log(web3MATIC)
+        // web3MATIC.eth.accounts.wallet.decrypt([account.keystore], pass)
+
+         let result = await getBalancePolygon(web3MATIC,'0x195DC8342D923D3dFe0167Dc902A33Eabd801653','0x83c3b1a2a9387e5fbbd959835091cb0b247e9a1c')
+        // console.log('result: //////////////////',result)
+
+    } catch (err) {
+        console.log(err)
+    } 
 }
 
 exports.transfertBep20 = async (req, res) => {
