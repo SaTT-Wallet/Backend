@@ -1,4 +1,8 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
+const { BetaAnalyticsDataClient } = require('@google-analytics/data')
+
+const analyticsDataClient = new BetaAnalyticsDataClient()
+
 var rp = require('request-promise')
 const {
     FbPage,
@@ -79,7 +83,7 @@ exports.verifyFacebook = async function (userId, pageName, idPost) {
     }
 }
 
-exports.verifyYoutube = async function (userId, idPost) {
+exports.verifyYoutube = async function (userId, idPost, propertyId) {
     try {
         var googleProfile = await GoogleProfile.findOne({
             UserId: userId,
@@ -109,7 +113,60 @@ exports.verifyYoutube = async function (userId, idPost) {
         console.log(err.message)
     }
 }
+exports.verifyGoogleAnalytic = async function (userId, propertyId) {
+    console.log(userId, propertyId)
 
+    try {
+        // var googleProfile = await GoogleProfile.findOne({
+        //     UserId: userId,
+        // })
+
+        // var res = await rp({
+        //     uri: 'https://www.googleapis.com/youtube/v3/videos',
+        //     qs: {
+        //         id: idPost,
+        //         access_token: googleProfile.accessToken,
+        //         part: 'snippet',
+        //     },
+        //     json: true,
+        // })
+        var response = analyticsDataClient.runReport({
+            property: 'properties/' + propertyId,
+            dateRanges: [
+                {
+                    startDate: '2022-04-01',
+                    endDate: 'today',
+                },
+            ],
+            metrics: [
+                {
+                    name: 'screenPageViews',
+                },
+            ],
+            dimensions: [
+                {
+                    name: 'pagePath',
+                },
+            ],
+        })
+        console.log('Report result:')
+        response.rows.forEach((row) => {
+            console.log(row.dimensionValues[0], row.metricValues[0])
+        })
+        // if (res.items) {
+        //     var channelId = res.items[0]?.snippet.channelId
+        //     var googleProfile = await GoogleProfile.findOne({
+        //         UserId: userId,
+        //         channelId: channelId,
+        //     })
+        //     return googleProfile
+        // } else {
+        //     return false
+        // }
+    } catch (err) {
+        console.log(err.message)
+    }
+}
 exports.verifyInsta = async function (userId, idPost) {
     try {
         var media =

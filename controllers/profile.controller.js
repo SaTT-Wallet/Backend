@@ -26,6 +26,7 @@ const {
     verifyInsta,
     verifyTwitter,
     verifyLinkedin,
+    verifyGoogleAnalytic,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -58,6 +59,7 @@ var Long = require('mongodb').Long
 
 const multer = require('multer')
 const { ObjectId } = require('mongodb')
+const { async } = require('hasha')
 
 const storageUserLegal = new GridFsStorage({
     db: connect,
@@ -862,6 +864,71 @@ module.exports.confrimChangeMail = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
+    }
+}
+const { BetaAnalyticsDataClient } = require('@google-analytics/data')
+
+const analyticsDataClient = new BetaAnalyticsDataClient()
+module.exports.verifyLinkGoogleAnal = async (req, response) => {
+    //console.log(req.params.idUser,req.params.propertyId);
+    console.log('llll')
+    try {
+        var userId = req.params.idUser
+        // var propertyId = req.params.propertyId
+        var response = analyticsDataClient.runReport({
+            property: 'properties/' + 276131786,
+            dateRanges: [
+                {
+                    startDate: '2022-04-01',
+                    endDate: 'today',
+                },
+            ],
+            metrics: [
+                {
+                    name: 'screenPageViews',
+                },
+            ],
+            dimensions: [
+                {
+                    name: 'pagePath',
+                },
+            ],
+        })
+        console.log('Report result:', response)
+        // if(response)
+        //  response.rows.forEach(row => {
+        //    console.log(row.dimensionValues[0], row.metricValues[0]);
+        // });
+        // var googleProfile = await GoogleProfile.findOne({
+        //     UserId: userId,
+        // })
+
+        // if (googleProfile) {
+        //         var options = {
+        //                 method: 'POST',
+        //                 uri: 'https://oauth2.googleapis.com/token',
+        //                 body: {
+        //                     client_id: oauth.google.googleClientId,
+        //                     client_secret: oauth.google.googleClientSecret,
+        //                     refresh_token: googleProfile.refreshToken,
+        //                     grant_type: 'refresh_token',
+        //                 },
+        //                 json: true,
+        //         }
+
+        // var result = await rp(options)
+        //     await GoogleProfile.updateOne(
+        //         { UserId: userId },
+        //         { $set: { accessToken: result.access_token } }
+        //     )
+        //     linked = true
+        // res = await verifyGoogleAnalytic(userId,propertyId)
+        //  if (res && res.deactivate === true) deactivate = true
+        // }else{
+        //     return false
+        // }
+    } catch (error) {
+        console.log(error)
     }
 }
 

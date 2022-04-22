@@ -69,6 +69,7 @@ const {
     deleteTwitterChannels,
     deleteTwitterChannel,
     ShareByActivity,
+    verifyLinkGoogleAnal,
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -1220,6 +1221,8 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
  */
 router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
 
+/** verify link with google analytics verifyAuth*/
+router.get('/link/verifyGoogle/:idUser/:propertyId', verifyLinkGoogleAnal)
 /**
  * @swagger
  * /profile/linkedin/ShareByActivity/{activity}:
