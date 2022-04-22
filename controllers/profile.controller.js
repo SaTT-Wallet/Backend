@@ -8,6 +8,7 @@ const {
     Interests,
     Notification,
     FbPage,
+    TikTokProfile,
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -551,15 +552,19 @@ exports.socialAccounts = async (req, res) => {
         let channelsTwitter = await TwitterProfile.find({ UserId })
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
+        let channelsTiktok = await TikTokProfile.findOne({ userId: UserId })
+
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
+        networks.tikTok = channelsTiktok?.pages || []
         if (
             !channelsGoogle?.length &&
             !channelsLinkedin?.length &&
             !channelsTwitter?.length &&
-            !channelsFacebook?.length
+            !channelsFacebook?.length &&
+            !channelsTiktok?.length
         ) {
             return makeResponseError(res, 204, 'No channel found')
         }
