@@ -729,10 +729,9 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
-    console.log('1')
+    console.log('res form /addChannel/tikTok/:idUser', res)
     // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
     const state = req.params.idUser
-    console.log(state)
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic', 'video.list'],
         state,
@@ -744,7 +743,7 @@ passport.use(
     new tikTokStrategy(
         tikTokCredentials('profile/callback/addChannel/tikTok'),
         async (req, accessToken, profile, cb) => {
-            console.log('2')
+            console.log('profile accessToken')
             // console.log('from callback', accessToken, profile, cb)
             //addTikTokChannel(req, accessToken, profile, cb)
         }
@@ -754,7 +753,7 @@ passport.use(
 router.get(
     '/callback/addChannel/tikTok',
     (req, res, next) => {
-        console.log('3')
+        console.log('res form /callback/addChannel/tikTok', res)
         // console.log('form get c ',res);
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
@@ -765,7 +764,7 @@ router.get(
     },
     async (req, response) => {
         try {
-            console.log('4')
+            console.log('response form async /callback/addChannel/t', response)
 
             // console.log('res',response)
             redirect = req.query.state.split('|')[1]
@@ -778,7 +777,7 @@ router.get(
                     '&sn=tiktok'
             )
         } catch (e) {
-            console.log('5')
+            console.log('error form /callback/addChannel/tikTok', e)
 
             //console.log(e)
         }

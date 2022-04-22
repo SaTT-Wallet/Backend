@@ -63,8 +63,8 @@ TWITTER_ACCESS_TOKEN_SECRET=YOUR_TWITTER_ACCESS_TOKEN_SECRET
 
 # Create a Linkedin app to get your Linkedin credentials
 ## Please check the documentaion for more details.
-TIKTOK_KEY=awykvnk5xvj06qxl
-TIKTOK_SECRET=9a6880fc55b7a3099638401423084da6
+TIKTOK_KEY=awvdj7d878ehk0zl
+TIKTOK_SECRET=faa31e6ea3cef7dfc0888110168754d1
 
 # Create a TIKTOK app to get your Linkedin credentials
 TIKTOK_ACCESS_TOKEN_KEY=awykvnk5xvj06qxl
