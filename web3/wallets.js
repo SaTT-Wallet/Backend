@@ -15,7 +15,7 @@ var ethUtil = require('ethereumjs-util')
 const bitcoinCore = require('bitcoin-core')
 const Client = require('bitcoin-core')
 
-const { Constants } = require('../conf/const')
+const { Constants, PolygonConstants } = require('../conf/const')
 
 var child = require('child_process')
 
@@ -28,6 +28,7 @@ const {
     pathBtcSegwit,
     pathEth,
     booltestnet,
+
 } = require('../conf/config')
 exports.unlock = async (req, res) => {
     try {
@@ -64,6 +65,7 @@ exports.unlockBsc = async (req, res) => {
         })
     }
 }
+
 
 exports.lockBSC = async (credentials) => {
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
@@ -294,6 +296,18 @@ exports.filterAmount = function (input, nbre = 10) {
         return '-'
     }
 }
+exports.getBalancePolygon = async (Web3, token, address) => {
+    try {
+        console.log('in function')
+        let contract =  new Web3.eth.Contract(PolygonConstants.token.abi, token)
+        // console.log('METHODS', contract.methods)
+        amount = await contract.methods.balanceOf(address).call()
+        return amount.toString()
+    } catch (err) {
+        console.error(err)
+        return '0'
+    }
+}
 
 exports.getBalance = async (Web3, token, address) => {
     try {
@@ -306,6 +320,7 @@ exports.getBalance = async (Web3, token, address) => {
 }
 
 exports.sendBep20 = async (token, to, amount, credentials) => {
+    console.log('SEND BEP', token, credentials )
     try {
         var contract = await this.getTokenContractByToken(
             token,
@@ -592,7 +607,14 @@ exports.getBalanceByUid = async (req, res) => {
 }
 
 exports.getTokenContractByToken = async (token, credentials, network) => {
-    if (network === 'ERC20') {
+    if(network = 'MATIC'){
+        var contract = new credentials.Web3ETH.eth.Contract(
+            PolygonConstants.token.abi,
+            token
+        )
+        contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
+    }
+  else  if (network === 'ERC20') {
         var contract = new credentials.Web3ETH.eth.Contract(
             Constants.token.abi,
             token
@@ -606,7 +628,7 @@ exports.getTokenContractByToken = async (token, credentials, network) => {
 
         contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
     }
-
+   console.log('contract: /////////', contract)
     return contract
 }
 
@@ -866,7 +888,7 @@ exports.createSeed = async (req, res) => {
             btc: btcWallet,
             mnemo: mnemonic,
         })
-
+    
         return {
             address: '0x' + account.address,
             btcAddress: btcWallet.addressSegWitCompat,
