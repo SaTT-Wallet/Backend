@@ -12,7 +12,6 @@
         "newVersion": " node changepackage.js",
         "push": "git checkout developement && git pull && node changepackage.js develop  && git add package.json && git commit -m  NewVersionpackage && git push"
     },
-    
     "dependencies": {
         "@apollo/client": "^3.4.17",
         "ansi-regex": ">=5.0.1",
