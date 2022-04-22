@@ -7,7 +7,7 @@ var TwitterStrategy = require('passport-twitter').Strategy
 let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy
 var GoogleStrategy = require('passport-google-oauth20').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
-
+var tikTokStrategy = require('passport-tiktok-auth').Strategy
 var session = require('express-session')
 
 let router = express.Router()
@@ -75,6 +75,7 @@ const {
     addTwitterChannel,
     addlinkedinChannel,
     addyoutubeChannel,
+    addTikTokChannel,
     verifyAuth,
     telegram_connect_function,
     connectTelegramAccount,
@@ -86,6 +87,7 @@ const {
     twitterCredentials,
     linkedinCredentials,
     googleCredentials,
+    tikTokCredentials,
 } = require('../conf/config')
 const { sendNotificationTest } = require('../manager/notification')
 
@@ -714,7 +716,73 @@ router.get(
         }
     }
 )
+/**
+ * @swagger
+ * /profile/addChannel/tikTok/{idUser}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: signin with tikTok.
+ *     description: user asked for signin with tikTok, system redirect him to signin tikTok page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
+    console.log('res form /addChannel/tikTok/:idUser', res)
+    // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
+    const state = req.params.idUser
+    passport.authenticate('tikTok_strategy_add_channel', {
+        scope: ['user.info.basic', 'video.list'],
+        state,
+    })(req, res, next)
+})
 
+passport.use(
+    'tikTok_strategy_add_channel',
+    new tikTokStrategy(
+        tikTokCredentials('profile/callback/addChannel/tikTok'),
+        async (req, accessToken, profile, cb) => {
+            //console.log('profile accessToken')
+            console.log('from callback', accessToken, profile, cb)
+            //addTikTokChannel(req, accessToken, profile, cb)
+        }
+    )
+)
+
+router.get(
+    '/callback/addChannel/tikTok',
+    (req, res, next) => {
+        console.log('res form /callback/addChannel/tikTok', res)
+        // console.log('form get c ',res);
+        passport.authenticate('tikTok_strategy_add_channel', {
+            failureRedirect:
+                process.env.BASED_URL +
+                req.query.state.split('|')[1] +
+                '?message=access-denied',
+        })(req, res, next)
+    },
+    async (req, response) => {
+        try {
+            console.log('response form async /callback/addChannel/t', response)
+
+            // console.log('res',response)
+            redirect = req.query.state.split('|')[1]
+            let message = req.authInfo.message
+            response.redirect(
+                process.env.BASED_URL +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=tiktok'
+            )
+        } catch (e) {
+            console.log('error form /callback/addChannel/tikTok', e)
+
+            //console.log(e)
+        }
+    }
+)
 /**
  * @swagger
  * /profile/addChannel/youtube/{idUser}:
