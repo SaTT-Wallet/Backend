@@ -10,6 +10,7 @@ const {
     getContractByToken,
     erc20Connexion,
     bep20Connexion,
+    testPolygonConnexion
 } = require('../blockchainConnexion')
 
 const { configSendBox } = require('../conf/config')
@@ -306,6 +307,15 @@ exports.transfertErc20 = async (req, res) => {
         }
     }
 }
+// exports.getContractPolygon =  async (req, res) => {
+//     try {
+//         let web3MATIC = await polygonConnexion()
+//         let result = await getBalance(web3MATIC,'0x195DC8342D923D3dFe0167Dc902A33Eabd801653','0x359B39B916Bb4df416dbeA5a2De266dfa9B3bcBf')
+//         return result   
+//     } catch (err) {
+//         console.log(err)
+//     } 
+// }
 
 exports.transfertBep20 = async (req, res) => {
     try {
