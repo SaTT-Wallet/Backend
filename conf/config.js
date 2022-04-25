@@ -1201,6 +1201,10 @@ let oauth = {
         appSecret: process.env.APP_SECRET,
         fbGraphVersion: process.env.FB_GRAPH_VERSION,
     },
+    tikTok: {
+        tikTokConsumerKey: process.env.TIKTOK_KEY,
+        tikTokConsumerSecret: process.env.TIKTOK_SECRET,
+    },
 }
 
 let loginSettings = {
@@ -1299,7 +1303,16 @@ exports.linkedinCredentials = (callback) => {
         passReqToCallback: true,
     }
 }
-module.exports.basicAtt = basicAtt
+exports.tikTokCredentials = (callback) => {
+    console.log('callback from tikTokCredentials', callback)
+    return {
+        clientID: process.env.TIKTOK_KEY,
+        clientSecret: process.env.TIKTOK_SECRET,
+        callbackURL: process.env.BASEURL + callback, // process.env.BASEURL  process.env.BASEURL BASEURLLOCAL",
+        scope: ['user.info.basic', 'video.list'],
+        passReqToCallback: true,
+    }
+}
 module.exports.persmissionsObjFb = persmissionsObjFb
 module.exports.pathBtcSegwit = pathBtcSegwit
 
