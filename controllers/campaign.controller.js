@@ -37,6 +37,7 @@ const {
     bep20Allow,
     lockBSC,
     bep20Approve,
+    polygonApprove,
     lockERC20,
     erc20Allow,
     erc20Approve,
@@ -1444,6 +1445,31 @@ exports.bep20Approval = async (req, res) => {
     }
 }
 
+exports.polygonApproval = async (req, res) => {
+    try {
+        let { tokenAddress, campaignAddress } = req.body
+        let account = await getAccount(req, res)
+        let allowance = await polygonApprove(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        console.log(err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
 exports.erc20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
@@ -1881,11 +1907,15 @@ module.exports.campaignsStatistics = async (req, res) => {
 
         while (i < pools.length) {
             if (pools[i].type === 'apply') {
-                let key = pools[i]?.token.name === "SATTBEP20" && "SATT"  || pools[i]?.token.name
+                let key =
+                    (pools[i]?.token.name === 'SATTBEP20' && 'SATT') ||
+                    pools[i]?.token.name
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1]).div(
-                            new Big(10).pow(getDecimal(key)).times(Crypto[key].price)
+                            new Big(10)
+                                .pow(getDecimal(key))
+                                .times(Crypto[key].price)
                         )
                     )
                     .toFixed(2)
