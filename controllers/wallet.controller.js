@@ -481,12 +481,16 @@ exports.checkWalletToken = async (req, res) => {
         }
         let Web3BEP20 = await bep20Connexion()
         let Web3ETH = await erc20Connexion()
-
+        let web3MATIC = await polygonConnexion()
         let [tokenAdress, network] = [req.body.tokenAdress, req.body.network]
         let abi =
             network === 'bep20' ? Constants.bep20.abi : Constants.token.abi
-        let networkToken = network === 'bep20' ? Web3BEP20.eth : Web3ETH.eth
-
+        let networkToken =
+            network === 'bep20'
+                ? Web3BEP20.eth
+                : network === 'polygon'
+                ? web3MATIC.eth
+                : Web3ETH.eth
         let code = await networkToken.getCode(tokenAdress)
 
         if (code === '0x') {
