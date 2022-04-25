@@ -456,7 +456,7 @@ exports.updateLastStep = async (req, res) => {
                         email: profile.email,
                         firstName: profile.firstName,
                         lastName: profile.lastName,
-                        enabled: 1,
+                        enabled: 0,
                         completed: true,
                         password: synfonyHash(password),
                     },
