@@ -16,6 +16,7 @@ const {
     transfertBep20,
     mywallet,
     transfertErc20,
+    transferPolygon,
     totalBalances,
     userBalance,
     gasPriceBep20,
@@ -27,10 +28,10 @@ const {
     removeToken,
     getTransactionHistory,
     bridge,
-    balanceStat
+    balanceStat,
 } = require('../controllers/wallet.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
- const testPolygon = require('../blockchainConnexion')
+const testPolygon = require('../blockchainConnexion')
 /**
  * @swagger
  * /wallet/mywallet:
@@ -73,7 +74,6 @@ router.get('/mywallet', verifyAuth, mywallet)
  */
 router.get('/userBalance', verifyAuth, userBalance)
 
-
 // router.get('/polygonCnx', testPolygon.polygonConnexion)
 // router.get('/polygonContract', getContractPolygon)
 
@@ -96,7 +96,6 @@ router.get('/userBalance', verifyAuth, userBalance)
 
 router.get('/Bep20GasPrice', gasPriceBep20)
 
-
 /**
  * @swagger
  * /wallet/polygonGasPrice:
@@ -114,7 +113,7 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  *          description: error:"error"
  */
 
- router.get('/polygonGasPrice', gasPricePolygon)
+router.get('/polygonGasPrice', gasPricePolygon)
 
 /**
  * @swagger
@@ -208,6 +207,41 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  *          description: code,<br>error:"error"
  */
 router.post('/transferErc20', verifyAuth, transfertErc20)
+/**
+ * @swagger
+ * /wallet/transferPolygon:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfer Polygon.
+ *     description: transfer crypto belongs to polygon network <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               symbole:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/transferPolygon', verifyAuth, transferPolygon)
 
 /**
  * @swagger
