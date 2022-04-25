@@ -10,7 +10,7 @@ const {
     getContractByToken,
     erc20Connexion,
     bep20Connexion,
-    testPolygonConnexion,
+    polygonConnexion,
 } = require('../blockchainConnexion')
 
 const { configSendBox } = require('../conf/config')
@@ -156,6 +156,13 @@ exports.userBalance = async (req, res) => {
     } catch (err) {
         console.log(err)
     }
+}
+exports.gasPricePolygon = async (req, res) => {
+    let Web3ETH = await polygonConnexion()
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
 }
 
 exports.gasPriceBep20 = async (req, res) => {

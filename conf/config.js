@@ -1323,6 +1323,7 @@ module.exports.networkSegWit = networkSegWit
 module.exports.token200 = token200
 module.exports.Tokens = Tokens
 module.exports.config = config
+module.exports.basicAtt = basicAtt
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
 module.exports.configSendBox = configSendBox

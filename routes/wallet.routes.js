@@ -20,6 +20,7 @@ const {
     totalBalances,
     userBalance,
     gasPriceBep20,
+    gasPricePolygon,
     cryptoDetails,
     getMnemo,
     verifyMnemo,
@@ -94,6 +95,25 @@ router.get('/userBalance', verifyAuth, userBalance)
  */
 
 router.get('/Bep20GasPrice', gasPriceBep20)
+
+/**
+ * @swagger
+ * /wallet/polygonGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get Matic gas price
+ *     description: get Matic gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/polygonGasPrice', gasPricePolygon)
 
 /**
  * @swagger
