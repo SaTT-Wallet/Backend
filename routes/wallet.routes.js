@@ -26,9 +26,7 @@ const {
     removeToken,
     getTransactionHistory,
     bridge,
-    balanceStat,
-    getContractPolygon
-
+    balanceStat
 } = require('../controllers/wallet.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
  const testPolygon = require('../blockchainConnexion')
@@ -75,8 +73,8 @@ router.get('/mywallet', verifyAuth, mywallet)
 router.get('/userBalance', verifyAuth, userBalance)
 
 
-router.get('/polygonCnx', testPolygon.testPolygonConnexion)
-router.get('/polygonContract', getContractPolygon)
+// router.get('/polygonCnx', testPolygon.polygonConnexion)
+// router.get('/polygonContract', getContractPolygon)
 
 /**
  * @swagger
