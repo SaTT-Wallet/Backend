@@ -128,9 +128,7 @@ exports.getAccount = async (req, res) => {
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         var ether_balance = await Web3ETH.eth.getBalance(address)
-
         var bnb_balance = await Web3BEP20.eth.getBalance(address)
-
         contractSatt = new Web3ETH.eth.Contract(
             Constants.token.abi,
             Constants.token.satt
@@ -296,18 +294,19 @@ exports.filterAmount = function (input, nbre = 10) {
         return '-'
     }
 }
-exports.getBalancePolygon = async (Web3, token, address) => {
-    try {
-        console.log('in function')
-        let contract =  new Web3.eth.Contract(PolygonConstants.token.abi, token)
-        // console.log('METHODS', contract.methods)
-        amount = await contract.methods.balanceOf(address).call()
-        return amount.toString()
-    } catch (err) {
-        console.error(err)
-        return '0'
-    }
-}
+// exports.getBalancePolygon = async (Web3, token, address) => {
+//     try {
+//         console.log('in function')
+//         let contract =  new Web3.eth.Contract(PolygonConstants.token.abi, token)
+//         // console.log('METHODS', contract.methods)
+//         amount = await contract.methods.balanceOf(address).call()
+//         console.log("amount", amount.toString())
+//         return amount.toString()
+//     } catch (err) {
+//         console.error(err)
+//         return '0'
+//     }
+// }
 
 exports.getBalance = async (Web3, token, address) => {
     try {

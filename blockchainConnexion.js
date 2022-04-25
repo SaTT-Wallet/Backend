@@ -46,17 +46,8 @@ exports.erc20Connexion = async () => {
         console.log(err.message ? err.message : err.error)
     }
 }
-exports.testPolygonConnexion = async () => {
-    try {
-        let Web3 = require('web3')
-        let polygonConnexion = await new Web3(new Web3.providers.HttpProvider(web3PolygonUrl))
-        let blockNumber = await polygonConnexion.eth.getBlockNumber()
-        console.log("block number : ////////////////////", blockNumber)
-        return polygonConnexion
-    } catch (err) {
-        console.log(err.message ? err.message : err.error)
-    }
-}
+
+
 exports.polygonConnexion = async () => {
     try {
         let Web3 = require('web3')
