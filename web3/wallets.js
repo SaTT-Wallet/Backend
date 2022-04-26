@@ -42,13 +42,13 @@ exports.unlock = async (req, res) => {
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         let Web3BEP20 = await bep20Connexion()
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
-        let Web3Polygon = await polygonConnexion()
-        Web3Polygon.eth.accounts.wallet.decrypt([account.keystore], pass)
+        let Web3POLYGON = await polygonConnexion()
+        Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
         return {
             address: '0x' + account.keystore.address,
             Web3ETH,
             Web3BEP20,
-            Web3Polygon,
+            Web3POLYGON,
         }
     } catch (err) {
         res.status(500).send({
@@ -134,10 +134,10 @@ exports.getAccount = async (req, res) => {
         var address = '0x' + account.keystore.address
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
-        let Web3polygon = await polygonConnexion()
+        let Web3POLYGON = await polygonConnexion()
         var ether_balance = await Web3ETH.eth.getBalance(address)
         var bnb_balance = await Web3BEP20.eth.getBalance(address)
-        var polygon_balance = await Web3polygon.eth.getBalance(address)
+        var polygon_balance = await Web3POLYGON.eth.getBalance(address)
 
         contractSatt = new Web3ETH.eth.Contract(
             Constants.token.abi,
@@ -647,7 +647,7 @@ exports.getBalanceByUid = async (req, res) => {
 
 exports.getTokenContractByToken = async (token, credentials, network) => {
     if (network === 'POLYGON') {
-        var contract = new credentials.Web3Polygon.eth.Contract(
+        var contract = new credentials.Web3POLYGON.eth.Contract(
             PolygonConstants.token.abi,
             token
         )
