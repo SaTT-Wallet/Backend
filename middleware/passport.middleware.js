@@ -730,7 +730,7 @@ exports.addlinkedinChannel = async (
  * begin add facebook channel strategy
  */
 exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
-            console.log('6');
+    console.log('6')
 
     //console.log('from addTikTokChannel',profile,accessToken);
     let longToken = accessToken
@@ -816,6 +816,10 @@ module.exports.verifyAuth = (req, res, next) => {
         if (err) return res.json(err)
         let _id = user?._id ? user?._id : user?._doc._id
         newUser = await User.findOne({ _id })
+
+        if (!newUser) {
+            return responseHandler.makeResponseError(res, 401, 'Invalid token')
+        }
         req.user = newUser
         next()
     })
