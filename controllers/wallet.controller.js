@@ -781,46 +781,39 @@ exports.getQuote = async (req, res) => {
     try {
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-        if (ip) ip = ip.split(':')[3]
-        if (req.user.hasWallet == true) {
-            if (req.body.requested_amount < 50) {
-                responseHandler.makeResponseError(
-                    res,
-                    403,
-                    'Please enter amount of 50 USD or more'
-                )
-            } else {
-                let requestQuote = req.body
-                requestQuote['end_user_id'] = String(req.user._id)
-                requestQuote['client_ip'] = ip
-                requestQuote['payment_methods'] = ['credit_card']
-                requestQuote['wallet_id'] = 'satt'
-                const simplexQuote = {
-                    url: configSendBox + '/wallet/merchant/v2/quote',
-                    method: 'POST',
-                    body: requestQuote,
-                    headers: {
-                        Authorization: `ApiKey ${process.env.SEND_BOX}`,
-                    },
-                    json: true,
-                }
-                var quote = await rp(simplexQuote)
-                delete quote.supported_digital_currencies
-                delete quote.supported_fiat_currencies
 
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'success',
-                    quote
-                )
-            }
-        } else {
-            return responseHandler.makeResponseError(
+        if (ip) ip = ip.split(':')[3]
+        if (!ip) {
+            ip = '41.230.35.91'
+        }
+
+        if (req.body.requested_amount < 50) {
+            responseHandler.makeResponseError(
                 res,
-                204,
-                'Wallet not found'
+                403,
+                'Please enter amount of 50 USD or more'
             )
+        } else {
+            let requestQuote = req.body
+            requestQuote['end_user_id'] = String(req.user._id)
+            requestQuote['client_ip'] = ip
+            requestQuote['wallet_id'] = 'satt'
+            requestQuote['payment_methods'] = ['credit_card']
+
+            const simplexQuote = {
+                url: configSendBox + '/wallet/merchant/v2/quote',
+                method: 'POST',
+                body: requestQuote,
+                headers: {
+                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
+                },
+                json: true,
+            }
+            var quote = await rp(simplexQuote)
+            delete quote.supported_digital_currencies
+            delete quote.supported_fiat_currencies
+
+            return responseHandler.makeResponseData(res, 200, 'success', quote)
         }
     } catch (err) {
         console.log(err.message)
