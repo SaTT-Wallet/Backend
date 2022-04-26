@@ -574,6 +574,12 @@ exports.addNewToken = async (req, res) => {
                         json: true,
                         gzip: true,
                     }
+
+                    console.log(
+                        'here we are calling CMC api with this link : ' +
+                            process.env.CMR_URL +
+                            symbol
+                    )
                     let metaData = await rp(cryptoMetaData)
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }
