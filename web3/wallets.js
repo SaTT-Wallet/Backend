@@ -646,7 +646,7 @@ exports.getBalanceByUid = async (req, res) => {
 }
 
 exports.getTokenContractByToken = async (token, credentials, network) => {
-    if ((network = 'POLYGON')) {
+    if (network === 'POLYGON') {
         var contract = new credentials.Web3Polygon.eth.Contract(
             PolygonConstants.token.abi,
             token
