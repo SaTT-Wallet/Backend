@@ -6,6 +6,7 @@ const {
     getContractByToken,
     getPromContract,
     getContractCampaigns,
+    polygonConnexion,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const')
@@ -254,6 +255,50 @@ exports.bep20Approve = async (token, address, spender) => {
         var amount = await contract.methods.allowance(address, spender).call()
         return { amount: amount.toString() }
     } catch (err) {
+        return { amount: '0' }
+    }
+}
+
+exports.polygonAllow = async (token, credentials, spender, amount, res) => {
+    try {
+        var contract = new credentials.Web3Polygon.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        var gasPrice = await credentials.Web3Polygon.eth.getGasPrice()
+        var gas = await contract.methods
+            .approve(spender, amount)
+            .estimateGas({ from: credentials.address })
+        var receipt = await contract.methods
+            .approve(spender, amount)
+            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
+            .once('transactionHash', function (transactionHash) {
+                console.log('approve transactionHash', transactionHash)
+            })
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
+exports.polygonApprove = async (token, address, spender) => {
+    try {
+        let Web3POLYGON = await polygonConnexion()
+        var contract = new Web3POLYGON.eth.Contract(Constants.token.abi, token)
+        var amount = await contract.methods.allowance(address, spender).call()
+        console.log('amount', amount)
+
+        return { amount: amount.toString() }
+    } catch (err) {
+        console.log(err)
         return { amount: '0' }
     }
 }
