@@ -254,7 +254,7 @@ exports.transferPolygon = async (req, res) => {
             }
             var result = await getAccount(req, res)
             let balance = await getBalance(
-                cred.Web3Polygon,
+                cred.Web3POLYGON,
                 tokenPolygon,
                 result.address
             )
