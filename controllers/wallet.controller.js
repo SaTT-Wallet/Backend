@@ -793,7 +793,6 @@ exports.getQuote = async (req, res) => {
                 let requestQuote = req.body
                 requestQuote['end_user_id'] = String(req.user._id)
                 requestQuote['client_ip'] = ip
-                requestQuote['payment_methods'] = ['credit_card']
                 requestQuote['wallet_id'] = 'satt'
                 const simplexQuote = {
                     url: configSendBox + '/wallet/merchant/v2/quote',
