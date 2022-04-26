@@ -20,11 +20,11 @@ contract owned {
 }
 
 interface ERC223 {
- 
+
   function transfer(address to, uint256 value) public returns (bool ok);
   function transfer(address to, uint value, bytes data) public  returns (bool ok);
-  
-  
+
+
 }
 
 
