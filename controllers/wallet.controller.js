@@ -13,7 +13,7 @@ const {
     polygonConnexion,
 } = require('../blockchainConnexion')
 
-const { configSendBox } = require('../conf/config')
+const { configSendBox, PolygonApi } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -1167,8 +1167,33 @@ module.exports.getTransactionHistory = async (req, res) => {
             BEP20_transactions,
             'BEP20'
         )
-        const All_Transactions =
-            all_Eth_transactions.concat(all_BNB_transactions)
+
+        //POLYGON Network
+        const requestOptions_POLYGON_transactions = {
+            method: 'GET',
+            uri: PolygonApi + address + '&action=tokentx',
+            json: true,
+            gzip: true,
+        }
+
+        const requestOptions_MATIC_transactions = {
+            method: 'GET',
+            uri: PolygonApi + address + '&action=txlist',
+            json: true,
+            gzip: true,
+        }
+        var POLYGON_transactions = await rp(requestOptions_MATIC_transactions)
+        var MATIC_transactions = await rp(requestOptions_POLYGON_transactions)
+        var all_POLYGON_transactions = FilterTransactionsByHash(
+            POLYGON_transactions,
+            MATIC_transactions,
+            'POLYGON'
+        )
+
+        const All_Transactions = all_Eth_transactions.concat(
+            all_BNB_transactions,
+            all_POLYGON_transactions
+        )
 
         return responseHandler.makeResponseData(res, 200, 'success', {
             All_Transactions,
