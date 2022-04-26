@@ -23,9 +23,18 @@ exports.unlock = async (req, res) => {
 
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
+        let Web3POLYGON = await polygonConnexion()
+
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
-        return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
+        Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
+
+        return {
+            address: '0x' + account.keystore.address,
+            Web3ETH,
+            Web3BEP20,
+            Web3POLYGON,
+        }
     } catch (err) {
         res.status(500).send({
             code: 500,
@@ -50,13 +59,38 @@ exports.unlockBsc = async (req, res) => {
     }
 }
 
+exports.unlockPolygon = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId })
+        let Web3POLYGON = await polygonConnexion()
+        Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return { address: '0x' + account.keystore.address, Web3POLYGON }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
 exports.lock = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
+    credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
 }
 
 exports.lockERC20 = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
+}
+
+exports.lockBSC = async (credentials) => {
+    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
+}
+
+exports.lockPolygon = async (credentials) => {
+    credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
 }
 
 exports.getAccount = async (req, res) => {
@@ -261,11 +295,11 @@ exports.bep20Approve = async (token, address, spender) => {
 
 exports.polygonAllow = async (token, credentials, spender, amount, res) => {
     try {
-        var contract = new credentials.Web3Polygon.eth.Contract(
+        var contract = new credentials.Web3POLYGON.eth.Contract(
             Constants.token.abi,
             token
         )
-        var gasPrice = await credentials.Web3Polygon.eth.getGasPrice()
+        var gasPrice = await credentials.Web3POLYGON.eth.getGasPrice()
         var gas = await contract.methods
             .approve(spender, amount)
             .estimateGas({ from: credentials.address })
