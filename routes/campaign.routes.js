@@ -33,6 +33,7 @@ const {
     totalInvested,
     findKit,
     deleteKit,
+    polygonAllow,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -67,35 +68,6 @@ router.post('/bep20/approval', verifyAuth, bep20Approval)
 
 /**
  * @swagger
- * /campaign/polygon/approval:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: polygon aprroval
- *     description: Approve the smart contract POLYGON to interact with user wallet
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               tokenAddress:
- *                 type: string
- *               campaignAddress:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"Unauthorized"
- *       "500":
- *          description: error:"error"
- */
-router.post('/polygon/approval', verifyAuth, polygonApproval)
-
-/**
- * @swagger
  * /campaign/bep20/allow:
  *   post:
  *     tags:
@@ -126,6 +98,68 @@ router.post('/polygon/approval', verifyAuth, polygonApproval)
  *          description: error:"error"
  */
 router.post('/bep20/allow', verifyAuth, bep20Allow)
+
+/**
+ * @swagger
+ * /campaign/polygon/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: polygon aprroval
+ *     description: Approve the smart contract POLYGON to interact with user wallet
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/polygon/approval', verifyAuth, polygonApproval)
+
+/**
+ * @swagger
+ * /campaign/polygon/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: polygon allow
+ *     description: Allow user wallet to interact the smart contract polygon
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaignAddress:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/polygon/allow', verifyAuth, polygonAllow)
+
 /**
  * @swagger
  * /campaign/erc20/approval:
