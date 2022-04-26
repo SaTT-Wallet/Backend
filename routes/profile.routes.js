@@ -81,6 +81,7 @@ const {
     connectTelegramAccount,
     linkGoogleAccount,
     linkFacebookAccount,
+    googleAuthSignup2,
 } = require('../middleware/passport.middleware')
 const {
     facebookCredentials,
@@ -1223,6 +1224,50 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
 
 /** verify link with google analytics verifyAuth*/
 router.get('/link/verifyGoogle/:idUser/:propertyId', verifyLinkGoogleAnal)
+/*******/
+router.get('/analytics/google', async (req, res, next) => {
+    console.log('rr')
+    passport.authenticate('auth_signup_googleStrategyy', {
+        scope: [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/analytics.readonly',
+            'https://www.googleapis.com/auth/analytics',
+        ],
+    })(req, res, next)
+})
+passport.use(
+    'auth_signup_googleStrategyy',
+    new GoogleStrategy(
+        googleCredentials('profile/callback/analytics/google'),
+        async (req, accessToken, refreshToken, profile, cb) => {
+            googleAuthSignup2(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+router.get(
+    '/callback/analytics/google',
+    passport.authenticate('auth_signup_googleStrategyy', {
+        scope: [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/analytics.readonly',
+            'https://www.googleapis.com/auth/analytics',
+        ],
+    }),
+    async (req, response) => {
+        console.log('grgr')
+        var param = {
+            access_token: req.user.token,
+            expires_in: req.user.expires_in,
+            token_type: 'bearer',
+            scope: 'user',
+        }
+        // response.redirect(
+        //     process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
+        // )
+    }
+)
 /**
  * @swagger
  * /profile/linkedin/ShareByActivity/{activity}:

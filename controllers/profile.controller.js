@@ -36,7 +36,9 @@ const mongoose = require('mongoose')
 let gfsprofilePic
 let gfsUserLegal
 const { mongoConnection, oauth } = require('../conf/config')
+const { BetaAnalyticsDataClient } = require('@google-analytics/data')
 
+const analyticsDataClient = new BetaAnalyticsDataClient()
 const connect = mongoose.connect(mongoConnection().mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -866,35 +868,93 @@ module.exports.confrimChangeMail = async (req, res) => {
         )
     }
 }
-const { BetaAnalyticsDataClient } = require('@google-analytics/data')
 
-const analyticsDataClient = new BetaAnalyticsDataClient()
 module.exports.verifyLinkGoogleAnal = async (req, response) => {
     //console.log(req.params.idUser,req.params.propertyId);
-    console.log('llll')
+
+    console.log('propertyId-->', req.params.propertyId)
     try {
-        var userId = req.params.idUser
+        //var userId = req.params.idUser
         // var propertyId = req.params.propertyId
-        var response = analyticsDataClient.runReport({
-            property: 'properties/' + 276131786,
-            dateRanges: [
-                {
-                    startDate: '2022-04-01',
-                    endDate: 'today',
-                },
-            ],
-            metrics: [
-                {
-                    name: 'screenPageViews',
-                },
-            ],
-            dimensions: [
-                {
-                    name: 'pagePath',
-                },
-            ],
-        })
-        console.log('Report result:', response)
+        // var response = analyticsDataClient.runReport({
+        //     property: 'properties/' + 276131786,
+        //     dateRanges: [
+        //         {
+        //             startDate: '2022-04-01',
+        //             endDate: 'today',
+        //         },
+        //     ],
+        //     metrics: [
+        //         {
+        //             name: 'screenPageViews',
+        //         },
+        //     ],
+        //     dimensions: [
+        //         {
+        //             name: 'pagePath',
+        //         },
+        //     ],
+        // })
+        //POST https://analyticsdata.googleapis.com/v1beta/{property=properties/*}:runReport
+
+        var options = {
+            method: 'POST',
+            uri: 'https://analyticsdata.googleapis.com/v1beta/properties/276131786:runReport',
+            //uri: 'https://content-analyticsdata.googleapis.com/v1beta/properties/276131786?alt=json&key=AIzaSyAa8yy0GdcGPHdtD083HiGGx_S0vMPScDM',
+            body: {
+                // "metrics": [
+                //     {
+                //       "name": "screenPageViews"
+                //     }
+                //   ],
+                dimensions: [
+                    {
+                        name: 'pagePath',
+                    },
+                ],
+                metrics: [
+                    {
+                        name: 'screenPageViews',
+                    },
+                ],
+                dateRanges: [
+                    {
+                        startDate: '2022-03-20',
+                        endDate: '2022-04-26',
+                    },
+                ],
+            },
+            headers: {
+                authorization:
+                    'Bearer ya29.A0ARrdaM9bHLhaR8kLWZuVtuxC0qf8mdwsLHKWuBiDZdjrVE2yCdzu42OfT6-oFSA7kMHigN1TlspP5X4ludcZKttVjtqenLHrx4Depbqm14zSE34EyUS2j0mLdeA4BcA9MmctnCmOzSwFA6PxLOtRtVn-qZVYWwyiZhI',
+                'content-type': 'application/json',
+            },
+            json: true,
+        }
+
+        var result = await rp(options)
+        let array = result.rows
+        let i = 0
+        let arrayPath = []
+        let calSum = 0
+        let cal = 0
+        while (i < array.length) {
+            arrayPath.push(array[i].dimensionValues[0].value)
+            // console.log("page: "+i);
+            // console.log(array[i].dimensionValues[0].value +'-->'+array[i].metricValues[0].value);
+            // console.log(typeof array[i].dimensionValues[0].value);
+            if (arrayPath.includes('/auth/login')) {
+                console.log(
+                    'yyes include and stat -->',
+                    array[i].metricValues[0].value
+                )
+                cal += array[i].metricValues[0].value
+                calSum += cal
+            }
+            i++
+        }
+        console.log(arrayPath.length, 'sum', calSum)
+        // console.log('Report result:', result.rows)
         // if(response)
         //  response.rows.forEach(row => {
         //    console.log(row.dimensionValues[0], row.metricValues[0]);
@@ -928,7 +988,18 @@ module.exports.verifyLinkGoogleAnal = async (req, response) => {
         //     return false
         // }
     } catch (error) {
-        console.log(error)
+        //Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential.
+        // See https://developers.google.com/identity/sign-in/web/devconsole-project.
+        //console.log('error:',error.error.error.message)
+        if (
+            error.error.error.message.includes(
+                'Request had invalid authentication credentials'
+            )
+        ) {
+            console.log(
+                'from profile.controller:heeey access token is expired '
+            )
+        }
     }
 }
 

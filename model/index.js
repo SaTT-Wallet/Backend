@@ -14,6 +14,7 @@ var Event = require('../model/event.model')
 var Request = require('../model/request.model')
 var Captcha = require('../model/captcha.model')
 var UserArchived = require('../model/UserArchive.model')
+var GoogleAnalyticsProfile = require('../model/googleAnalyticsProfile.model')
 
 module.exports = {
     UserArchived,
@@ -33,4 +34,5 @@ module.exports = {
     FbPage,
     Wallet,
     CustomToken,
+    GoogleAnalyticsProfile,
 }

@@ -12,7 +12,7 @@ var FbProfile = require('../model/fbProfile.model')
 var TwitterProfile = require('../model/twitterProfile.model')
 var GoogleProfile = require('../model/googleProfile.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
-
+var GoogleAnalyticsProfile = require('../model/googleAnalyticsProfile.model')
 const { responseHandler } = require('../helpers/response-handler')
 
 var requirement = require('../helpers/utils')
@@ -416,6 +416,58 @@ exports.googleAuthSignup = async (
     }
 }
 
+exports.googleAuthSignup2 = async (
+    req,
+    accessToken,
+    refreshToken,
+    profile,
+    cb
+) => {
+    let longTokenGoogle = accessToken
+    let UserId = +req.query.state.split('|')[0]
+    let isInsta = false
+    let fbProfile = await GoogleAnalyticsProfile.findOne({ UserId })
+    if (fbProfile) {
+        await GoogleAnalyticsProfile.updateOne(
+            { UserId },
+            { $set: { accessToken: longToken } }
+        )
+    } else {
+        ;[profile.accessToken, profile.UserId] = [longTokenGoogle, UserId]
+        await GoogleAnalyticsProfile.create(profile)
+    }
+    console.log('profile', profile)
+
+    var date = Math.floor(Date.now() / 1000) + 86400
+    var user = await User.findOne({ idOnSn2: profile.id })
+    //  console.log('profile',profile);
+
+    if (user) {
+        console.log('yy')
+        return cb(null, { id: createdUser._id, token: token, expires_in: date })
+
+        // return cb('account_already_used&idSn=' + user.idSn)
+    } else {
+        log('noo')
+        // let createdUser = createUser(
+        //     1,
+        //     2,
+        //     req.body.lang,
+        //     req.body.newsLetter,
+        //     profile.photos.length ? profile.photos[0].value : false,
+        //     profile.displayName,
+        //     profile.emails.length ? profile.emails[0].value : false,
+        //     'idOnSn2',
+        //     profile.id,
+        //     profile.name.givenName,
+        //     profile.name.familyName
+        // )
+        // let user = await new User(createdUser).save()
+        // createdUser._id = user._id
+        //  let token = generateAccessToken(createdUser)
+        return cb(null, { id: createdUser._id, token: token, expires_in: date })
+    }
+}
 /*
  *end signup with google strategy
  */
