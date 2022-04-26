@@ -848,7 +848,8 @@ module.exports.verifyAuthGetQuote = (req, res, next) => {
             }
         )
     } else {
-        req.user._id = ''
+        req.user._id = Math.floor(1000 + Math.random() * 9000) + ''
+        next()
     }
 }
 
