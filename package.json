@@ -95,6 +95,7 @@
         "passport-tiktok-auth": "^1.0.3",
         "passport-twitter": "^1.0.4",
         "path": "^0.12.7",
+        "public-ip": "^5.0.0",
         "qrcode": "^1.5.0",
         "request": "^2.88.0",
         "request-promise": "^4.2.2",
