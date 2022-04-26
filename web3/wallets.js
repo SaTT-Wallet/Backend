@@ -366,7 +366,6 @@ exports.sendPolygon = async (token, to, amount, credentials) => {
             credentials,
             'POLYGON'
         )
-
         var gasPrice = await contract.getGasPrice()
         var gas =
             (await contract.methods

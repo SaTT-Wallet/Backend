@@ -3,9 +3,11 @@ const {
     Constants,
     erc20TokenCampaigns,
     bep20TokenCampaigns,
+    polygonTokensCampaign,
     web3UrlBep20,
     web3Url,
-    web3PolygonUrl
+    web3PolygonUrl,
+    PolygonConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const options = {
@@ -47,7 +49,6 @@ exports.erc20Connexion = async () => {
     }
 }
 
-
 exports.polygonConnexion = async () => {
     try {
         let Web3 = require('web3')
@@ -57,6 +58,7 @@ exports.polygonConnexion = async () => {
     }
 }
 exports.getContractByToken = async (token, credentials) => {
+    console.log(credentials)
     try {
         let abiCampaign = Constants.campaign.abi
         if (erc20TokenCampaigns.includes(token.toLowerCase())) {
@@ -71,6 +73,12 @@ exports.getContractByToken = async (token, credentials) => {
                 Constants.campaign.address.campaignBep20
             )
             contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
+        } else if (polygonTokensCampaign.includes(token.toLowerCase())) {
+            var contract = new credentials.Web3POLYGON.eth.Contract(
+                abiCampaign,
+                PolygonConstants.campaign.address
+            )
+            contract.getGasPrice = credentials.Web3POLYGON.eth.getGasPrice
         }
         return contract
     } catch (err) {
