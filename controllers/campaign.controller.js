@@ -23,7 +23,13 @@ const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
 const { getPrices } = require('../web3/wallets')
-const { fundCampaign, getTransactionAmount } = require('../web3/campaigns')
+const {
+    fundCampaign,
+    getTransactionAmount,
+    unlockPolygon,
+    polygonAllow,
+    lockPolygon,
+} = require('../web3/campaigns')
 
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection, basicAtt } = require('../conf/config')
@@ -1467,6 +1473,36 @@ exports.polygonApproval = async (req, res) => {
             err.message ? err.message : err.error,
             false
         )
+    }
+}
+
+exports.polygonAllow = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let polygonToken = req.body.tokenAddress
+        var cred = await unlockPolygon(req, res)
+        if (!cred) return
+        let ret = await polygonAllow(
+            polygonToken,
+            cred,
+            campaignAddress,
+            amount,
+            res
+        )
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lockPolygon(cred)
     }
 }
 
