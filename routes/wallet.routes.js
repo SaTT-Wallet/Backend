@@ -30,8 +30,10 @@ const {
     bridge,
     balanceStat,
 } = require('../controllers/wallet.controller')
-const { verifyAuth } = require('../middleware/passport.middleware')
-const testPolygon = require('../blockchainConnexion')
+const {
+    verifyAuth,
+    verifyAuthGetQuote,
+} = require('../middleware/passport.middleware')
 /**
  * @swagger
  * /wallet/mywallet:
@@ -473,7 +475,7 @@ router.post('/transfertEther', verifyAuth, transfertEther)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/getQuote', verifyAuth, getQuote)
+router.post('/getQuote', verifyAuthGetQuote, getQuote)
 
 /**
  * @swagger

@@ -824,5 +824,32 @@ module.exports.verifyAuth = (req, res, next) => {
         next()
     })
 }
+module.exports.verifyAuthGetQuote = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader?.split(' ')[1]
+    if (!!token) {
+        jwt.verify(
+            token,
+            process.env.REFRESH_TOKEN_SECRET,
+            async (err, user) => {
+                if (err) return res.json(err)
+                let _id = user?._id ? user?._id : user?._doc._id
+                newUser = await User.findOne({ _id })
+
+                if (!newUser) {
+                    return responseHandler.makeResponseError(
+                        res,
+                        401,
+                        'Invalid token'
+                    )
+                }
+                req.user = newUser
+                next()
+            }
+        )
+    } else {
+        req.user._id = ''
+    }
+}
 
 module.exports.createUser = createUser
