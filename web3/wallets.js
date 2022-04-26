@@ -1,6 +1,10 @@
 const { Wallet, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
-const { erc20Connexion, bep20Connexion } = require('../blockchainConnexion')
+const {
+    erc20Connexion,
+    bep20Connexion,
+    polygonConnexion,
+} = require('../blockchainConnexion')
 var cache = require('memory-cache')
 
 var rp = require('request-promise')
@@ -15,7 +19,7 @@ var ethUtil = require('ethereumjs-util')
 const bitcoinCore = require('bitcoin-core')
 const Client = require('bitcoin-core')
 
-const { Constants } = require('../conf/const')
+const { Constants, PolygonConstants } = require('../conf/const')
 
 var child = require('child_process')
 
@@ -36,11 +40,16 @@ exports.unlock = async (req, res) => {
         let account = await Wallet.findOne({ UserId })
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
-
         let Web3BEP20 = await bep20Connexion()
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
-
-        return { address: '0x' + account.keystore.address, Web3ETH, Web3BEP20 }
+        let Web3Polygon = await polygonConnexion()
+        Web3Polygon.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return {
+            address: '0x' + account.keystore.address,
+            Web3ETH,
+            Web3BEP20,
+            Web3Polygon,
+        }
     } catch (err) {
         res.status(500).send({
             code: 500,
@@ -125,9 +134,10 @@ exports.getAccount = async (req, res) => {
         var address = '0x' + account.keystore.address
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
+        let Web3polygon = await polygonConnexion()
         var ether_balance = await Web3ETH.eth.getBalance(address)
-
         var bnb_balance = await Web3BEP20.eth.getBalance(address)
+        var polygon_balance = await Web3polygon.eth.getBalance(address)
 
         contractSatt = new Web3ETH.eth.Contract(
             Constants.token.abi,
@@ -140,6 +150,7 @@ exports.getAccount = async (req, res) => {
             address: '0x' + account.keystore.address,
             ether_balance: ether_balance,
             bnb_balance: bnb_balance,
+            matic_balance: polygon_balance,
             satt_balance: satt_balance ? satt_balance.toString() : 0,
             version: account.mnemo ? 2 : 1,
         }
@@ -173,7 +184,6 @@ exports.getAccount = async (req, res) => {
                 result.btc_balance = 0
             }
         }
-
         return result
     } else {
         return res.status(401).end('Account not found')
@@ -211,7 +221,7 @@ exports.getPrices = async () => {
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
 
-            var priceMap = response.data.map(elem => {
+            var priceMap = response.data.map((elem) => {
                 var obj = {}
                 obj = {
                     symbol: elem.symbol,
@@ -294,6 +304,19 @@ exports.filterAmount = function (input, nbre = 10) {
         return '-'
     }
 }
+// exports.getBalancePolygon = async (Web3, token, address) => {
+//     try {
+//         console.log('in function')
+//         let contract =  new Web3.eth.Contract(PolygonConstants.token.abi, token)
+//         // console.log('METHODS', contract.methods)
+//         amount = await contract.methods.balanceOf(address).call()
+//         console.log("amount", amount.toString())
+//         return amount.toString()
+//     } catch (err) {
+//         console.error(err)
+//         return '0'
+//     }
+// }
 
 exports.getBalance = async (Web3, token, address) => {
     try {
@@ -311,6 +334,37 @@ exports.sendBep20 = async (token, to, amount, credentials) => {
             token,
             credentials,
             'BEP20'
+        )
+
+        var gasPrice = await contract.getGasPrice()
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+exports.sendPolygon = async (token, to, amount, credentials) => {
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            'POLYGON'
         )
 
         var gasPrice = await contract.getGasPrice()
@@ -592,7 +646,13 @@ exports.getBalanceByUid = async (req, res) => {
 }
 
 exports.getTokenContractByToken = async (token, credentials, network) => {
-    if (network === 'ERC20') {
+    if (network === 'POLYGON') {
+        var contract = new credentials.Web3Polygon.eth.Contract(
+            PolygonConstants.token.abi,
+            token
+        )
+        contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
+    } else if (network === 'ERC20') {
         var contract = new credentials.Web3ETH.eth.Contract(
             Constants.token.abi,
             token

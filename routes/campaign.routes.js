@@ -4,6 +4,7 @@ const {
     rejectLink,
     bep20Approval,
     erc20Approval,
+    polygonApproval,
     campaignDetails,
     campaigns,
     launchCampaign,
@@ -63,6 +64,35 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *          description: error:"error"
  */
 router.post('/bep20/approval', verifyAuth, bep20Approval)
+
+/**
+ * @swagger
+ * /campaign/polygon/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: polygon aprroval
+ *     description: Approve the smart contract POLYGON to interact with user wallet
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/polygon/approval', verifyAuth, polygonApproval)
 
 /**
  * @swagger

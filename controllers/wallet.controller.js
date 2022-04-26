@@ -10,6 +10,7 @@ const {
     getContractByToken,
     erc20Connexion,
     bep20Connexion,
+    polygonConnexion,
 } = require('../blockchainConnexion')
 
 const { configSendBox } = require('../conf/config')
@@ -38,6 +39,7 @@ const {
     sendBep20,
     sendBtc,
     transferNativeBNB,
+    sendPolygon,
     transferEther,
     FilterTransactionsByHash,
     getTokenContractByToken,
@@ -155,6 +157,13 @@ exports.userBalance = async (req, res) => {
         console.log(err)
     }
 }
+exports.gasPricePolygon = async (req, res) => {
+    let Web3ETH = await polygonConnexion()
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
+}
 
 exports.gasPriceBep20 = async (req, res) => {
     let Web3ETH = await erc20Connexion()
@@ -231,7 +240,78 @@ exports.totalBalances = async (req, res) => {
         }
     }
 }
+exports.transferPolygon = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            var tokenPolygon = req.body.token
+            var to = req.body.to
+            var amount = req.body.amount
+            var tokenName = req.body.symbole
+            var cred = await unlock(req, res)
 
+            if (!cred) {
+                return
+            }
+            var result = await getAccount(req, res)
+            let balance = await getBalance(
+                cred.Web3Polygon,
+                tokenPolygon,
+                result.address
+            )
+
+            if (new Big(amount).gt(new Big(balance))) {
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'not_enough_budget'
+                )
+            }
+
+            var ret = await sendPolygon(tokenPolygon, to, amount, cred)
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
+            }
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {
+        console.log(err)
+    } finally {
+        cred && lock(cred)
+        if (ret && ret.transactionHash) {
+            await notificationManager(req.user._id, 'transfer_event', {
+                amount,
+                currency: tokenName,
+                from: cred.address,
+                to,
+                transactionHash: ret.transactionHash,
+                network: 'POLYGON',
+            })
+            const wallet = await Wallet.findOne({
+                'keystore.address': to.substring(2),
+            }).select('UserId')
+
+            if (wallet) {
+                await notificationManager(
+                    wallet.UserId,
+                    'receive_transfer_event',
+                    {
+                        amount,
+                        currency: tokenName,
+                        from: cred.address,
+                        transactionHash: ret.transactionHash,
+                        network: 'POLYGON',
+                    }
+                )
+            }
+        }
+    }
+}
 exports.transfertErc20 = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
@@ -306,6 +386,15 @@ exports.transfertErc20 = async (req, res) => {
         }
     }
 }
+// exports.getContractPolygon =  async (req, res) => {
+//     try {
+//         let web3MATIC = await polygonConnexion()
+//         let result = await getBalance(web3MATIC,'0x195DC8342D923D3dFe0167Dc902A33Eabd801653','0x359B39B916Bb4df416dbeA5a2De266dfa9B3bcBf')
+//         return result
+//     } catch (err) {
+//         console.log(err)
+//     }
+// }
 
 exports.transfertBep20 = async (req, res) => {
     try {
@@ -392,12 +481,16 @@ exports.checkWalletToken = async (req, res) => {
         }
         let Web3BEP20 = await bep20Connexion()
         let Web3ETH = await erc20Connexion()
-
+        let web3MATIC = await polygonConnexion()
         let [tokenAdress, network] = [req.body.tokenAdress, req.body.network]
         let abi =
             network === 'bep20' ? Constants.bep20.abi : Constants.token.abi
-        let networkToken = network === 'bep20' ? Web3BEP20.eth : Web3ETH.eth
-
+        let networkToken =
+            network === 'bep20'
+                ? Web3BEP20.eth
+                : network === 'polygon'
+                ? web3MATIC.eth
+                : Web3ETH.eth
         let code = await networkToken.getCode(tokenAdress)
 
         if (code === '0x') {
@@ -481,6 +574,12 @@ exports.addNewToken = async (req, res) => {
                         json: true,
                         gzip: true,
                     }
+
+                    console.log(
+                        'here we are calling CMC api with this link : ' +
+                            process.env.CMR_URL +
+                            symbol
+                    )
                     let metaData = await rp(cryptoMetaData)
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }

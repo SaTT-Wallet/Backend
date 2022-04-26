@@ -13,6 +13,7 @@ var TwitterProfile = require('../model/twitterProfile.model')
 var GoogleProfile = require('../model/googleProfile.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
 var GoogleAnalyticsProfile = require('../model/googleAnalyticsProfile.model')
+var TikTokProfile = require('../model/tikTokProfile.model')
 const { responseHandler } = require('../helpers/response-handler')
 
 var requirement = require('../helpers/utils')
@@ -778,7 +779,29 @@ exports.addlinkedinChannel = async (
 /*
  * end add linkedin channel strategy
  */
+/*
+ * begin add facebook channel strategy
+ */
+exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
+    console.log('6')
 
+    //console.log('from addTikTokChannel',profile,accessToken);
+    let longToken = accessToken
+    let UserId = +req.query.state.split('|')[0]
+    // let isInsta = false
+    // let TikTokProfile = await TikTokProfile.findOne({ UserId })
+    // if (TikTokProfile) {
+    //     await TikTokProfile.updateOne(
+    //         { UserId },
+    //         { $set: { accessToken: longToken } }
+    //     )
+    // } else {
+    //     ;[profile.accessToken, profile.UserId] = [longToken, UserId]
+    //     await TikTokProfile.create(profile)
+    // }
+    // let message = await getFacebookPages(UserId, accessToken, isInsta)
+    return cb(null, { id: UserId, token: accessToken }, { message })
+}
 /*
  * begin add youtube channel strategy
  */

@@ -93,6 +93,7 @@
         "passport-oauth2": ">=1.6.1",
         "passport-telegram": "^1.0.0",
         "passport-telegram-official": "^1.1.0",
+        "passport-tiktok-auth": "^1.0.3",
         "passport-twitter": "^1.0.4",
         "path": "^0.12.7",
         "qrcode": "^1.5.0",
@@ -126,7 +127,7 @@
         "husky": "^7.0.4",
         "lint-staged": "^12.3.3",
         "nodemon": "^2.0.15",
-        "prettier": "2.5.1"
+        "prettier": "2.6.2"
     },
     "lint-staged": {
         "*.{js,css,md}": "prettier --write"
