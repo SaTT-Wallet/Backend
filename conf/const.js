@@ -3507,7 +3507,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_MAINNET
     PolygonConstants.campaign.address =
-        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_MAINNET
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_MAINNET_POLYGON
 } else {
@@ -3530,7 +3530,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
     PolygonConstants.campaign.address =
-        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_TESTNET_POLYGON
 }
