@@ -78,17 +78,24 @@ exports.payementRequest = async (payment) => {
     }
 }
 
-let sattContract, sattBEP20CONTRACT, daiContract, busdContract, usdtContract
+let sattContract,
+    sattBEP20CONTRACT,
+    sattPOLYGONCONTRACT,
+    daiContract,
+    busdContract,
+    usdtContract
 
 if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattContract = process.env.TOKEN_SATT_CONTRACT_TESTNET
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
+    sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT_TESTNET
     daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
     usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
     busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
 } else {
     sattContract = process.env.TOKEN_SATT_CONTRACT
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
+    sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT
     daiContract = process.env.TOKEN_DAI_CONTRACT
     usdtContract = process.env.TOKEN_USDT_CONTRACT
     busdContract = process.env.TOKEN_BUSD_CONTRACT
@@ -192,6 +199,24 @@ let Tokens = {
         contract: busdContract,
         dicimal: process.env.TOKEN_BUSD_DICIMAL,
         network: process.env.TOKEN_BUSD_NETWORK,
+    },
+    SATT_POLYGON: {
+        name: process.env.TOKEN_SATT_POLYGON_NAME,
+        symbol: process.env.TOKEN_SATT_POLYGON_SYMBOL,
+        undername: process.env.TOKEN_SATT_POLYGON_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_POLYGON_UNDERNAME2,
+        contract: sattPOLYGONCONTRACT,
+        dicimal: process.env.TOKEN_SATT_POLYGON_DICIMAL,
+        network: process.env.TOKEN_SATT_POLYGON_NETWORK,
+    },
+    MATIC: {
+        name: process.env.TOKEN_MATIC_NAME,
+        symbol: process.env.TOKEN_MATIC_SYMBOL,
+        undername: process.env.TOKEN_MATIC_UNDERNAME,
+        undername2: process.env.TOKEN_MATIC_UNDERNAME2,
+        contract: process.env.TOKEN_MATIC_CONTRACT,
+        dicimal: process.env.TOKEN_MATIC_DICIMAL,
+        network: process.env.TOKEN_MATIC_NETWORK,
     },
 }
 
