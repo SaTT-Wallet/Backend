@@ -1217,8 +1217,10 @@ let booltestnet
 
 if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
     configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
+    PolygonApi = process.env.POLYGONSCAN_testnet_API
     booltestnet = true
 } else {
+    PolygonApi = process.env.POLYGONSCAN_API
     booltestnet = false
 
     configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
@@ -1304,7 +1306,6 @@ exports.linkedinCredentials = (callback) => {
     }
 }
 exports.tikTokCredentials = (callback) => {
-    console.log('callback from tikTokCredentials', callback)
     return {
         clientID: process.env.TIKTOK_KEY,
         clientSecret: process.env.TIKTOK_SECRET,
@@ -1329,3 +1330,4 @@ module.exports.loginSettings = loginSettings
 module.exports.configSendBox = configSendBox
 module.exports.booltestnet = booltestnet
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
+module.exports.PolygonApi = PolygonApi
