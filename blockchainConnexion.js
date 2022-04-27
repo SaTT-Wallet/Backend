@@ -58,7 +58,6 @@ exports.polygonConnexion = async () => {
     }
 }
 exports.getContractByToken = async (token, credentials) => {
-    console.log(credentials)
     try {
         let abiCampaign = Constants.campaign.abi
         if (erc20TokenCampaigns.includes(token.toLowerCase())) {
@@ -74,6 +73,7 @@ exports.getContractByToken = async (token, credentials) => {
             )
             contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
         } else if (polygonTokensCampaign.includes(token.toLowerCase())) {
+            console.log('in polygon ctr')
             var contract = new credentials.Web3POLYGON.eth.Contract(
                 abiCampaign,
                 PolygonConstants.campaign.address
