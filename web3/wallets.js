@@ -492,6 +492,7 @@ exports.getListCryptoByUid = async (req, res) => {
             listOfCrypto.push(crypto)
         }
         delete ret.address
+        delete ret.matic_balance
         for (const Amount in ret) {
             let crypto = {}
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
