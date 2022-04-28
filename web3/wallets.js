@@ -439,6 +439,8 @@ exports.getListCryptoByUid = async (req, res) => {
             ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
             let Web3ETH = await erc20Connexion()
             let Web3BEP20 = await bep20Connexion()
+            let Web3POLYGON = await polygonConnexion()
+
             let balance = {}
             if (network == 'ERC20') {
                 balance.amount = await this.getBalance(
@@ -446,9 +448,15 @@ exports.getListCryptoByUid = async (req, res) => {
                     token_info[T_name].contract,
                     ret.address
                 )
-            } else {
+            } else if (network == 'BEP20') {
                 balance.amount = await this.getBalance(
                     Web3BEP20,
+                    token_info[T_name].contract,
+                    ret.address
+                )
+            } else if (network == 'POLYGON') {
+                balance.amount = await this.getBalance(
+                    Web3POLYGON,
                     token_info[T_name].contract,
                     ret.address
                 )
