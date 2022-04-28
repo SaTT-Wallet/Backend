@@ -683,6 +683,9 @@ exports.getQuote = async (req, res) => {
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
         if (ip) ip = ip.split(':')[3]
+        if (!ip) {
+            ip = '41.230.35.91'
+        }
         if (req.user.hasWallet == true) {
             if (req.body.requested_amount < 50) {
                 responseHandler.makeResponseError(
