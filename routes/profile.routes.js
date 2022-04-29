@@ -1291,9 +1291,9 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
 router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
 
 /** verify link with google analytics verifyAuth*/
-router.get('/link/verifyGoogle/:idUser/:propertyId', verifyLinkGoogleAnal)
+router.post('/link/verifyGoogle/:idUser/:propertyId', verifyLinkGoogleAnal)
 /*******/
-router.get('/analytics/google', async (req, res, next) => {
+router.get('/analytics/google/:idUser', async (req, res, next) => {
     console.log('rr')
     passport.authenticate('auth_signup_googleStrategyy', {
         scope: [
@@ -1309,6 +1309,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('profile/callback/analytics/google'),
         async (req, accessToken, refreshToken, profile, cb) => {
+            console.log('accessToken', accessToken)
             googleAuthSignup2(req, accessToken, refreshToken, profile, cb)
         }
     )

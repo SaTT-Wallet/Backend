@@ -10,7 +10,7 @@ const GoogleAnalyticsProfileSchema = mongoose.Schema(
         id: { type: String },
         displayName: { type: String },
         name: { familyName: { type: String }, givenName: { type: String } },
-        emails: [{ value: { type: String }, verified: { type: boolean } }],
+        emails: [{ value: { type: String }, verified: { type: Boolean } }],
         photos: [
             {
                 value: { type: String },
@@ -26,7 +26,7 @@ const GoogleAnalyticsProfileSchema = mongoose.Schema(
             profile: { type: String },
             picture: { type: String },
             email: { type: String },
-            email_verified: { type: boolean },
+            email_verified: { type: Boolean },
             locale: { type: String },
             hd: { type: String },
         },

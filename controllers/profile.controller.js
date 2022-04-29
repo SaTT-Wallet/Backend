@@ -875,36 +875,24 @@ module.exports.confrimChangeMail = async (req, res) => {
 }
 
 module.exports.verifyLinkGoogleAnal = async (req, response) => {
-    //console.log(req.params.idUser,req.params.propertyId);
+    // let domaine= req.body.link.split('//').slice(-1)[0].split('/')[0]
+    // console.log('ddd-->',req.body.link.split('https://'+domaine)[1]);
+    // let splitedUrl=req.body.link.split('https://'+domaine)[1]
+    let url = req.body.link
+    let propertyId = req.params.propertyId
+    var userId = req.params.idUser
+    console.log(userId, propertyId, url)
 
-    console.log('propertyId-->', req.params.propertyId)
     try {
-        //var userId = req.params.idUser
-        // var propertyId = req.params.propertyId
-        // var response = analyticsDataClient.runReport({
-        //     property: 'properties/' + 276131786,
-        //     dateRanges: [
-        //         {
-        //             startDate: '2022-04-01',
-        //             endDate: 'today',
-        //         },
-        //     ],
-        //     metrics: [
-        //         {
-        //             name: 'screenPageViews',
-        //         },
-        //     ],
-        //     dimensions: [
-        //         {
-        //             name: 'pagePath',
-        //         },
-        //     ],
-        // })
         //POST https://analyticsdata.googleapis.com/v1beta/{property=properties/*}:runReport
-
+        //UA-55488742-6
+        //283301661
         var options = {
             method: 'POST',
-            uri: 'https://analyticsdata.googleapis.com/v1beta/properties/276131786:runReport',
+            uri:
+                'https://analyticsdata.googleapis.com/v1beta/properties/' +
+                propertyId +
+                ':runReport',
             //uri: 'https://content-analyticsdata.googleapis.com/v1beta/properties/276131786?alt=json&key=AIzaSyAa8yy0GdcGPHdtD083HiGGx_S0vMPScDM',
             body: {
                 // "metrics": [
@@ -925,13 +913,13 @@ module.exports.verifyLinkGoogleAnal = async (req, response) => {
                 dateRanges: [
                     {
                         startDate: '2022-03-20',
-                        endDate: '2022-04-26',
+                        endDate: '2022-04-29',
                     },
                 ],
             },
             headers: {
                 authorization:
-                    'Bearer ya29.A0ARrdaM9bHLhaR8kLWZuVtuxC0qf8mdwsLHKWuBiDZdjrVE2yCdzu42OfT6-oFSA7kMHigN1TlspP5X4ludcZKttVjtqenLHrx4Depbqm14zSE34EyUS2j0mLdeA4BcA9MmctnCmOzSwFA6PxLOtRtVn-qZVYWwyiZhI',
+                    'Bearer ya29.A0ARrdaM_3hiIs82jKgA5xvDs5qP4BeSiTYBiM_iieFmcWPAeqprkFyBNWJRbO6QpoqUpPiJU3JAM_pBelwn5FkoQoW9nd2hiYl3_yuHzXyRnGWHAywI6YzCRnHj6B5rAlAPdTk6cm5VlvkGcg9Sb5Zmpvosvzy4XhdRQ',
                 'content-type': 'application/json',
             },
             json: true,
@@ -946,24 +934,27 @@ module.exports.verifyLinkGoogleAnal = async (req, response) => {
         while (i < array.length) {
             arrayPath.push(array[i].dimensionValues[0].value)
             // console.log("page: "+i);
-            // console.log(array[i].dimensionValues[0].value +'-->'+array[i].metricValues[0].value);
-            // console.log(typeof array[i].dimensionValues[0].value);
-            if (arrayPath.includes('/auth/login')) {
-                console.log(
-                    'yyes include and stat -->',
+            console.log(
+                array[i].dimensionValues[0].value +
+                    '-->' +
                     array[i].metricValues[0].value
-                )
-                cal += array[i].metricValues[0].value
-                calSum += cal
+            )
+            // console.log(typeof array[i].dimensionValues[0].value);
+            if (arrayPath.includes(url)) {
+                console.log('hhhhh -->', array[i].metricValues[0].value)
+                cal = array[i].metricValues[0].value
+                // calSum += cal
             }
             i++
         }
-        console.log(arrayPath.length, 'sum', calSum)
+        console.log(arrayPath.length, 'sum', cal)
+        return makeResponseData(response, 200, 'success', cal)
+
         // console.log('Report result:', result.rows)
         // if(response)
         //  response.rows.forEach(row => {
         //    console.log(row.dimensionValues[0], row.metricValues[0]);
-        // });
+        // });s
         // var googleProfile = await GoogleProfile.findOne({
         //     UserId: userId,
         // })
@@ -993,17 +984,29 @@ module.exports.verifyLinkGoogleAnal = async (req, response) => {
         //     return false
         // }
     } catch (error) {
+        console.log(error)
         //Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential.
         // See https://developers.google.com/identity/sign-in/web/devconsole-project.
         //console.log('error:',error.error.error.message)
+        //User does not have sufficient permissions for this property.
+        // To learn more about Property ID, see https://developers.google.com/analytics/devguides/reporting/data/v1/property-id.
+
         if (
             error.error.error.message.includes(
                 'Request had invalid authentication credentials'
             )
         ) {
+            return makeResponseError(response, 406, 'account not linked')
+
             console.log(
                 'from profile.controller:heeey access token is expired '
             )
+        } else if (
+            error.error.error.message.includes(
+                'User does not have sufficient permissions for this property'
+            )
+        ) {
+            return makeResponseError(response, 406, 'Proprety invalid')
         }
     }
 }
