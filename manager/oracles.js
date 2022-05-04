@@ -770,10 +770,9 @@ exports.getButtonStatus = (link) => {
         else if (totalToEarn === '0' && link.payedAmount === '0')
             type = 'no_gains'
         else if (
-            (totalToEarn === '0' &&
-                link.campaign.funds[1] === '0' &&
-                link.payedAmount === '0') ||
-            link.campaign.isFinished
+            totalToEarn === '0' &&
+            link.campaign.funds[1] === '0' &&
+            link.payedAmount === '0'
         )
             type = 'not_enough_budget'
         else if (
