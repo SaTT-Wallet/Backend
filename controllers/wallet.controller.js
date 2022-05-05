@@ -166,7 +166,7 @@ exports.gasPricePolygon = async (req, res) => {
 }
 
 exports.gasPriceBep20 = async (req, res) => {
-    let Web3ETH = await erc20Connexion()
+    let Web3ETH = await bep20Connexion()
 
     var gasPrice = await Web3ETH.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
