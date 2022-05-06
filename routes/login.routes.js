@@ -422,7 +422,7 @@ router.get(
             console.log(e)
         }
     },
-    authSignInErrorHandler
+    authErrorHandler
 )
 
 /**
