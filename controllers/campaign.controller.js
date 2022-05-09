@@ -1944,8 +1944,8 @@ module.exports.campaignsStatistics = async (req, res) => {
         while (i < pools.length) {
             if (pools[i].type === 'apply') {
                 let key =
-                    (pools[i]?.token.name === 'SATTBEP20' && 'SATT') ||
-                    pools[i]?.token.name
+                    (pools[i]?.token.name === 'SATTBEP20' && 'SATT' || (pools[i]?.token.name === 'SATTPOLYGON') && 'SATT'   ) ||
+                    pools[i]?.token.name 
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1]).div(
@@ -1959,6 +1959,7 @@ module.exports.campaignsStatistics = async (req, res) => {
 
             i++
         }
+
         let result = {
             marketCap: SATT.market_cap,
             sattPrice: SATT.price,
