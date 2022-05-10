@@ -724,27 +724,23 @@ exports.updateBounty = async (idProm, credentials) => {
 }
 
 exports.validateProm = async (idProm, credentials) => {
-    try {
-        var gas = 100000
-        let ctr = await getPromContract(idProm, credentials)
-        var gasPrice = await ctr.getGasPrice()
-        var receipt = await ctr.methods.validateProm(idProm).send({
-            from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
-        })
-        receipt.transactionHash &&
-            console.log(
-                'validateProm',
-                credentials.address,
-                `${receipt.transactionHash} confirmed validated prom ${idProm}`
-            )
-        return {
-            transactionHash: receipt.transactionHash,
-            idProm: idProm,
-        }
-    } catch (err) {
-        console.log(err.message)
+    var gas = 100000
+    let ctr = await getPromContract(idProm, credentials)
+    var gasPrice = await ctr.getGasPrice()
+    var receipt = await ctr.methods.validateProm(idProm).send({
+        from: credentials.address,
+        gas: gas,
+        gasPrice: gasPrice,
+    })
+    receipt.transactionHash &&
+        console.log(
+            'validateProm',
+            credentials.address,
+            `${receipt.transactionHash} confirmed validated prom ${idProm}`
+        )
+    return {
+        transactionHash: receipt.transactionHash,
+        idProm: idProm,
     }
 }
 
