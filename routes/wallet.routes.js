@@ -29,6 +29,7 @@ const {
     getTransactionHistory,
     bridge,
     balanceStat,
+    sattConnect,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -718,5 +719,7 @@ router.get('/transaction_history/:address', getTransactionHistory)
  *          description: code,<br>error:"error"
  */
 router.get('/stats', verifyAuth, balanceStat)
+
+router.get('/satt-connect', sattConnect)
 
 module.exports = router
