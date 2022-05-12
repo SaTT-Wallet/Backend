@@ -787,37 +787,36 @@ exports.getQuote = async (req, res) => {
             ip = '41.230.35.91'
         }
 
-        if (req.body.requested_amount < 50) {
+        /*if (req.body.requested_amount < 50) {
             responseHandler.makeResponseError(
                 res,
                 403,
                 'Please enter amount of 50 USD or more'
             )
-        } else {
-            let requestQuote = req.body
-            requestQuote['end_user_id'] = String(req.user._id)
-            requestQuote['client_ip'] = ip
-            requestQuote['wallet_id'] = 'satt'
-            requestQuote['payment_methods'] = ['credit_card']
+        } else {*/
+        let requestQuote = req.body
+        requestQuote['end_user_id'] = String(req.user._id)
+        requestQuote['client_ip'] = ip
+        requestQuote['wallet_id'] = 'satt'
 
-            const simplexQuote = {
-                url: configSendBox + '/wallet/merchant/v2/quote',
-                method: 'POST',
-                body: requestQuote,
-                headers: {
-                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
-                },
-                json: true,
-            }
-            var quote = await rp(simplexQuote)
-            delete quote.supported_digital_currencies
-            delete quote.supported_fiat_currencies
-
-            return responseHandler.makeResponseData(res, 200, 'success', quote)
+        const simplexQuote = {
+            url: configSendBox + '/wallet/merchant/v2/quote',
+            method: 'POST',
+            body: requestQuote,
+            headers: {
+                Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            },
+            json: true,
         }
+        var quote = await rp(simplexQuote)
+        if (!!quote.error) {
+            return responseHandler.makeResponseData(res, 403, 'error', quote)
+        }
+        delete quote.supported_digital_currencies
+        delete quote.supported_fiat_currencies
+        return responseHandler.makeResponseData(res, 200, 'success', quote)
+        /*}*/
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
