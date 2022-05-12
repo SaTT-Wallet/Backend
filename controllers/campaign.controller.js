@@ -155,6 +155,7 @@ module.exports.launchCampaign = async (req, res) => {
     try {
         var cred = await unlock(req, res)
         if (!cred) return
+        console.log('in func ')
         var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,

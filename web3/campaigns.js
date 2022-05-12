@@ -168,6 +168,7 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
+        console.log('paramas', token, credentials)
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 600000
