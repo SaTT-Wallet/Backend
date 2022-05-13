@@ -795,3 +795,36 @@ exports.logout = async (req, res) => {
         )
     }
 }
+
+exports.sattConnect = async (req, res) => {
+    const address = req.body.address
+    const password = req.body.password
+    try {
+        const user = await User.findOne({ address })
+        if (user) {
+            let userAuth = cloneUser(user.toObject())
+            let token = generateAccessToken(userAuth)
+
+            var param = {
+                access_token: token,
+                expires_in: date,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+
+            return responseHandler.makeResponseData(res, 200, 'success', param)
+        } else {
+            return responseHandler.makeResponseError(res, 401, {
+                error: true,
+                message: 'user not found',
+            })
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
