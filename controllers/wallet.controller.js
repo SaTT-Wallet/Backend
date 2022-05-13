@@ -1236,9 +1236,3 @@ exports.balanceStat = async (req, res) => {
         )
     }
 }
-
-exports.sattConnect = async (req, res) => {
-    res.sendFile(
-        path.join(__dirname, '..', 'public/emailtemplate/satt-connect.html')
-    )
-}
