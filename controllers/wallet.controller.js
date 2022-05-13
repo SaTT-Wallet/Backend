@@ -810,11 +810,8 @@ exports.getQuote = async (req, res) => {
         }
         var quote = await rp(simplexQuote)
         if (!!quote.error) {
-            return responseHandler.makeResponseError(
-                res,
-                403,
-                quote.message ? quote.message : quote.error
-            )
+            console.log(quote)
+            return responseHandler.makeResponseError(res, 403, quote.error)
         }
         delete quote.supported_digital_currencies
         delete quote.supported_fiat_currencies
