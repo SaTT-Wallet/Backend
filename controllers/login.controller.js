@@ -265,7 +265,7 @@ exports.confirmCode = async (req, res) => {
             ;(authMethod.token = token),
                 (authMethod.expires_in = date),
                 (authMethod.idUser = user._id)
-            //await User.updateOne({ _id: user._id }, { $set: { enabled: 1 } })
+            await User.updateOne({ _id: user._id }, { $set: { enabled: 1 } })
             return responseHandler.makeResponseData(
                 res,
                 200,
