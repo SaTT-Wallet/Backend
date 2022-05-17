@@ -21,6 +21,7 @@ const {
     erc20Connexion,
     bep20Connexion,
 } = require('../blockchainConnexion')
+const { log } = require('console')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -185,15 +186,43 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     }
 }
 
-exports.getInstagramUserName = async (shortcode) => {
+exports.getInstagramUserName = async (shortcode, id) => {
+    let userName
+    // let shortcode =req.params.shortcode
+    // let id= req.params.id
     try {
-        var media =
-            'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
-            shortcode
-        var resMedia = await rp({ uri: media, json: true })
-        return resMedia.author_name
-    } catch {
-        console.log(err.message)
+        var fbProfile = await FbProfile.findOne({ UserId: id })
+        if (fbProfile) {
+            var accessToken = fbProfile.accessToken
+            var media =
+                'https://graph.facebook.com/' +
+                oauth.facebook.fbGraphVersion +
+                '/me/accounts?fields=id,instagram_business_account{id, name, username, media{shortcode, username}}&access_token=' +
+                accessToken
+            var resMedia = await rp({ uri: media, json: true })
+            var data = resMedia.data
+            data = data.filter(
+                (element) => !!element.instagram_business_account
+            )
+            data.forEach((account) => {
+                userName = account.instagram_business_account.username
+                // account.instagram_business_account.media.data.forEach((media) => {
+                //     if (media.shortcode === shortcode) {
+                //         userName = media.username
+                //     }
+                // })
+            })
+        }
+        //https://www.instagram.com/p/CXdclE_oKjm/?__a=1
+        // var media =
+        //     'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
+        //     shortcode
+        // var media ='https://www.instagram.com/p/'+shortcode+'/?__a=1'
+        // var resMedia = await rp({ uri: media, json: true })
+        // console.log('resMedia', resMedia)
+        return userName
+    } catch (err) {
+        console.log('instagram username errr', err)
     }
 }
 
@@ -394,9 +423,9 @@ exports.getPromApplyStats = async (
             socialOracle = await this.twitter(link.idUser, link.idPost)
         else if (oracles == 'youtube')
             socialOracle = await this.youtube(link.idPost)
-        else if (oracles == 'instagram')
+        else if (oracles == 'instagram') {
             socialOracle = await this.instagram(id, link)
-        else {
+        } else {
             socialOracle = await this.linkedin(
                 link.idUser,
                 link.idPost,
@@ -408,7 +437,7 @@ exports.getPromApplyStats = async (
         delete socialOracle.date
         return socialOracle
     } catch (err) {
-        console.log(err.message)
+        console.log('err from getPromApplyStats-->', err.message)
     }
 }
 
@@ -540,9 +569,11 @@ exports.instagram = async (UserId, link) => {
         var fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
+        console.log('fbPage', fbPage)
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
+            console.log('fbProfile', fbProfile)
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var media =
@@ -580,7 +611,7 @@ exports.instagram = async (UserId, link) => {
             }
         }
     } catch (err) {
-        console.log(err.message)
+        console.log('this.instagram', err.message)
     }
 }
 
