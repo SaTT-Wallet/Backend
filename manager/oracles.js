@@ -210,6 +210,7 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 // })
             })
         }
+        return userName
         // var media =
         //     'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
         //     shortcode
