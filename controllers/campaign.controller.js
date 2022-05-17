@@ -582,7 +582,7 @@ exports.apply = async (req, res) => {
         cred && lock(cred)
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
-                prom.instagramUserName = await getInstagramUserName(idPost)
+                prom.instagramUserName = await getInstagramUserName(idPost, id)
 
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
@@ -640,6 +640,7 @@ exports.apply = async (req, res) => {
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
             }
+            console.log('evv', event)
             await Promise.allSettled([
                 CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
                 Event.create(event),
