@@ -185,15 +185,38 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     }
 }
 
-exports.getInstagramUserName = async (shortcode) => {
+exports.getInstagramUserName = async (shortcode, id) => {
+    let userName
     try {
-        var media =
-            'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
-            shortcode
-        var resMedia = await rp({ uri: media, json: true })
-        return resMedia.author_name
-    } catch {
-        console.log(err.message)
+        var fbProfile = await FbProfile.findOne({ UserId: id })
+        if (fbProfile) {
+            var accessToken = fbProfile.accessToken
+            var media =
+                'https://graph.facebook.com/' +
+                oauth.facebook.fbGraphVersion +
+                '/me/accounts?fields=id,instagram_business_account{id, name, username, media{shortcode, username}}&access_token=' +
+                accessToken
+            var resMedia = await rp({ uri: media, json: true })
+            var data = resMedia.data
+            data = data.filter(
+                (element) => !!element.instagram_business_account
+            )
+            data.forEach((account) => {
+                userName = account.instagram_business_account.username
+                // account.instagram_business_account.media.data.forEach((media) => {
+                //     if (media.shortcode === shortcode) {
+                //         userName = media.username
+                //     }
+                // })
+            })
+        }
+        // var media =
+        //     'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
+        //     shortcode
+        // var resMedia = await rp({ uri: media, json: true })
+        // return resMedia.author_name
+    } catch (err) {
+        console.log('instagram username errro--->', err)
     }
 }
 
