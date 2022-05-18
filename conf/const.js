@@ -4,7 +4,7 @@ let Constants = {
     oracle: { abi: [], address: { oracleErc20: '', oracleBep20: '' } },
     wSaTT: { abi: [], address: { token: '' } },
     priceGap: { abi: [], address: { token: '' } },
-    bep20: { abi: [], address: { sattBep20: '', busd: '' } },
+    bep20: { abi: [], address: { sattBep20: '', busd: '', bnb: '' } },
 }
 let PolygonConstants = {
     oracle: { abi: [], address: '' },
@@ -3504,6 +3504,8 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_PRICEGAP_ADDRESS_MAINNET
     Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_MAINNET
     Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
+    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
+
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_MAINNET
     PolygonConstants.campaign.address =
@@ -3526,6 +3528,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     Constants.priceGap.address.token =
         process.env.CONST_PRICEGAP_ADDRESS_MAINNET
     Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_TESTNET
+    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
     Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDTESTNET
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
@@ -3543,6 +3546,7 @@ let erc20TokenCampaigns = [
 let bep20TokenCampaigns = [
     Constants.bep20.address.busd.toLowerCase(),
     Constants.bep20.address.sattBep20.toLowerCase(),
+    Constants.bep20.address.bnb.toLowerCase(),
 ]
 
 let polygonTokensCampaign = [PolygonConstants.token.satt.toLowerCase()]
