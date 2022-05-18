@@ -1,6 +1,7 @@
 const { User, Wallet, CustomToken } = require('../model/index')
 
 const rp = require('request-promise')
+const path = require('path')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
@@ -49,6 +50,7 @@ const { notificationManager } = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
+const { async } = require('hasha')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
