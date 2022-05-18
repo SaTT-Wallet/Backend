@@ -155,6 +155,7 @@ module.exports.launchCampaign = async (req, res) => {
     try {
         var cred = await unlock(req, res)
         if (!cred) return
+        console.log('in func ')
         var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
@@ -589,7 +590,7 @@ exports.apply = async (req, res) => {
         cred && lock(cred)
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
-                prom.instagramUserName = await getInstagramUserName(idPost)
+                prom.instagramUserName = await getInstagramUserName(idPost, id)
 
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
