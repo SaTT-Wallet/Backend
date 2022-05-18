@@ -230,6 +230,11 @@ passport.use(
                                 address,
                                 noredirect: req.body.noredirect,
                             })
+                        } else {
+                            return done(null, false, {
+                                error: true,
+                                message: 'Wallet not found',
+                            })
                         }
                     } else {
                         return done(null, false, {
