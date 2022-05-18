@@ -169,7 +169,6 @@ exports.gasPricePolygon = async (req, res) => {
 
 exports.gasPriceBep20 = async (req, res) => {
     let Web3ETH = await bep20Connexion()
-
     var gasPrice = await Web3ETH.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
@@ -789,18 +788,10 @@ exports.getQuote = async (req, res) => {
             ip = '41.230.35.91'
         }
 
-        /*if (req.body.requested_amount < 50) {
-            responseHandler.makeResponseError(
-                res,
-                403,
-                'Please enter amount of 50 USD or more'
-            )
-        } else {*/
         let requestQuote = req.body
         requestQuote['end_user_id'] = String(req.user._id)
         requestQuote['client_ip'] = ip
         requestQuote['wallet_id'] = 'satt'
-
         const simplexQuote = {
             url: configSendBox + '/wallet/merchant/v2/quote',
             method: 'POST',
@@ -812,13 +803,13 @@ exports.getQuote = async (req, res) => {
         }
         var quote = await rp(simplexQuote)
         if (!!quote.error) {
-            console.log(quote)
             return responseHandler.makeResponseError(res, 403, quote.error)
         }
+
         delete quote.supported_digital_currencies
         delete quote.supported_fiat_currencies
+
         return responseHandler.makeResponseData(res, 200, 'success', quote)
-        /*}*/
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
