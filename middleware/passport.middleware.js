@@ -33,6 +33,7 @@ var app = express()
 var session = require('express-session')
 const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
+const { Wallet } = require('../model')
 
 try {
     app.use(
@@ -195,6 +196,108 @@ exports.emailConnection = async (req, res, next) => {
 }
 /*
  * end signin with email and password
+ */
+
+/*
+ * begin satt wallet connect
+ */
+passport.use(
+    'sattConnectStrategy',
+    new emailStrategy(
+        { passReqToCallback: true },
+        async (req, username, password, done) => {
+            var date = Math.floor(Date.now() / 1000) + 86400
+            var user = await User.findOne({ email: username.toLowerCase() })
+            if (user) {
+                if (user.password == synfonyHash(password)) {
+                    let validAuth = await isBlocked(user, true)
+                    if (!validAuth.res && validAuth.auth == true) {
+                        let userAuth = cloneUser(user.toObject())
+                        let token = generateAccessToken(userAuth)
+                        await User.updateOne(
+                            { _id: Long.fromNumber(user._id) },
+                            { $set: { failed_count: 0 } }
+                        )
+                        if (user.hasWallet == true) {
+                            let account = await Wallet.findOne({
+                                UserId: user._id,
+                            })
+                            let address = '0x' + account.keystore.address
+                            return done(null, {
+                                id: user._id,
+                                token,
+                                expires_in: date,
+                                address,
+                                noredirect: req.body.noredirect,
+                            })
+                        } else {
+                            return done(null, false, {
+                                error: true,
+                                message: 'Wallet not found',
+                            })
+                        }
+                    } else {
+                        return done(null, false, {
+                            error: true,
+                            message: 'account_locked',
+                            blockedDate: validAuth.blockedDate,
+                        })
+                    }
+                } else {
+                    let validAuth = await isBlocked(user, false)
+                    if (validAuth.res) {
+                        return done(null, false, {
+                            error: true,
+                            message: 'account_locked',
+                            blockedDate: validAuth.blockedDate,
+                        })
+                    }
+                    return done(null, false, {
+                        error: true,
+                        message: 'invalid_credentials',
+                        blockedDate: validAuth.blockedDate,
+                    })
+                }
+            } else {
+                return done(null, false, {
+                    error: true,
+                    message: 'user not found',
+                })
+            }
+        }
+    )
+)
+exports.sattConnect = async (req, res, next) => {
+    passport.authenticate(
+        'sattConnectStrategy',
+        { session: false },
+        (err, user, info) => {
+            if (err) {
+                return responseHandler.makeResponseError(res, 401, err)
+            }
+            if (!user) {
+                return responseHandler.makeResponseError(res, 401, info)
+            }
+            req.logIn(user, function (err) {
+                var param = {
+                    access_token: user.token,
+                    expires_in: user.expires_in,
+                    token_type: 'bearer',
+                    address: user.address,
+                    scope: 'user',
+                }
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    param
+                )
+            })
+        }
+    )(req, res, next)
+}
+/*
+ * end satt wallet connect
  */
 
 /*
