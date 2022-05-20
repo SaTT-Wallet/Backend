@@ -1,6 +1,9 @@
 let Constants = {
     token: { abi: [], satt: '', tether: '', dai: '' },
-    campaign: { abi: [], address: { campaignErc20: '', campaignBep20: '' } },
+    campaign: {
+        abi: [],
+        address: { campaignErc20: '', campaignBep20: '', campaignPolygon: '' },
+    },
     oracle: { abi: [], address: { oracleErc20: '', oracleBep20: '' } },
     wSaTT: { abi: [], address: { token: '' } },
     priceGap: { abi: [], address: { token: '' } },
@@ -3495,6 +3498,8 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_MAINNET
     Constants.campaign.address.campaignBep20 =
         process.env.CONST_COMPAIGN_ADDRESS_MAINNETBEP20
+    Constants.campaign.address.campaignPolygon =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
     Constants.oracle.address.oracleErc20 =
         process.env.CONST_ORACLE_ADDRESS_MAINNET
     Constants.oracle.address.oracleBep20 =
@@ -3520,6 +3525,8 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_TESTNET
     Constants.campaign.address.campaignBep20 =
         process.env.CONST_COMPAIGN_ADDRESS_TESTNETBEP20
+    Constants.campaign.address.campaignPolygon =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
     Constants.oracle.address.oracleErc20 =
         process.env.CONST_ORACLE_ADDRESS_TESTNET
     Constants.oracle.address.oracleBep20 =
