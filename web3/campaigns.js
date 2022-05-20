@@ -20,15 +20,12 @@ exports.unlock = async (req, res) => {
         let UserId = req.user._id
         let pass = req.body.pass
         let account = await Wallet.findOne({ UserId })
-
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
-
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
-
         return {
             address: '0x' + account.keystore.address,
             Web3ETH,
