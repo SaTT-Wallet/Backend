@@ -23,17 +23,9 @@ exports.unlock = async (req, res) => {
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
-        console.log('1')
-
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
-        console.log('2')
-
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
-        console.log('3')
-
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
-        console.log('4')
-
         return {
             address: '0x' + account.keystore.address,
             Web3ETH,
