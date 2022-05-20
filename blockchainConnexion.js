@@ -121,12 +121,22 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         let Web3BEP20 = credentials?.Web3BEP20
             ? credentials.Web3BEP20
             : await this.bep20Connexion()
-
-        let Web3 =
+        let Web3POLYGON = credentials?.Web3POLYGON
+            ? credentials.Web3POLYGON
+            : await this.polygonConnexion()
+        if (
             contract.toLowerCase() ===
             Constants.campaign.address.campaignErc20.toLowerCase()
-                ? Web3ETH
-                : Web3BEP20
+        ) {
+            Web3 = Web3ETH
+        } else if (
+            contract.toLowerCase() ===
+            Constants.campaign.address.campaignPolygon.toLowerCase()
+        ) {
+            Web3 = Web3POLYGON
+        } else {
+            Web3 = Web3BEP20
+        }
         let ctr = new Web3.eth.Contract(abi, contract)
         ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
