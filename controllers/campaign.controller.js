@@ -112,6 +112,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
+const { Constants } = require('../conf/const')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -178,6 +179,11 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
+            if (tokenAddress == Constants.bep20.address.sattBep20) {
+                amount = (amount * 95) / 100
+            } else {
+                amount = (amount * 85) / 100
+            }
             lock(cred)
             var campaign = {
                 hash: ret.hash,
@@ -190,7 +196,13 @@ module.exports.launchCampaign = async (req, res) => {
                 contract: contract.toLowerCase(),
                 walletId: cred.address,
                 type: 'inProgress',
+                cost: amount,
             }
+            let campaignData = await Campaigns.findOne({ _id })
+            campaign.cost_usd =
+                (tokenAddress == Constants.bep20.address.sattBep20 &&
+                    campaignData.cost_usd * 0.95) ||
+                campaignData.cost_usd * 0.85
             await Campaigns.updateOne({ _id }, { $set: campaign })
             let event = {
                 id: ret.hash,
