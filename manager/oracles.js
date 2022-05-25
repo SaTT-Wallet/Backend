@@ -113,21 +113,39 @@ exports.verifyYoutube = async function (userId, idPost) {
 
 exports.verifyInsta = async function (userId, idPost) {
     try {
-        var media =
-            'http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
-            idPost
+        let userName
+        var fbProfile = await FbProfile.findOne({ UserId: userId })
+        if (fbProfile) {
+            var accessToken = fbProfile.accessToken
+            var media =
+                'https://graph.facebook.com/' +
+                oauth.facebook.fbGraphVersion +
+                '/me/accounts?fields=id,instagram_business_account{id, name, username, media{shortcode, username}}&access_token=' +
+                accessToken
+            var resMedia = await rp({ uri: media, json: true })
+            let data = resMedia.data
+            data = data.filter(
+                (element) => !!element.instagram_business_account
+            )
+            data.forEach((account) => {
+                // userName = account.instagram_business_account.username
+                account.instagram_business_account.media.data.forEach(
+                    (media) => {
+                        if (media.shortcode === idPost) {
+                            userName = media.username
+                        }
+                    }
+                )
+            })
+            var page = await FbPage.findOne({
+                $and: [{ UserId: userId }, { instagram_username: userName }],
+            })
 
-        var resMedia = await rp({ uri: media, json: true })
-        var page = await FbPage.findOne({
-            $and: [
-                { UserId: userId },
-                { instagram_username: resMedia.author_name },
-            ],
-        })
-
-        if (page && !page.deactivate) return true
-        else if (page && page.deactivate === true) return 'deactivate'
-        else return false
+            if (page && !page.deactivate) return true
+            else if (page && page.deactivate === true) return 'deactivate'
+            else return false
+        }
+        return false
     } catch (err) {
         return 'lien_invalid'
     }
