@@ -137,6 +137,9 @@ exports.verifyInsta = async function (userId, idPost) {
                     }
                 )
             })
+            if (!userName) {
+                return false
+            }
             var page = await FbPage.findOne({
                 $and: [{ UserId: userId }, { instagram_username: userName }],
             })
