@@ -136,6 +136,9 @@ exports.verifyInsta = async function (userId, idPost) {
                     }
                 )
             })
+            if (!userName) {
+                return false
+            }
             var page = await FbPage.findOne({
                 $and: [{ UserId: userId }, { instagram_username: userName }],
             })
@@ -220,12 +223,14 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 (element) => !!element.instagram_business_account
             )
             data.forEach((account) => {
-                userName = account.instagram_business_account.username
-                // account.instagram_business_account.media.data.forEach((media) => {
-                //     if (media.shortcode === shortcode) {
-                //         userName = media.username
-                //     }
-                // })
+                // userName = account.instagram_business_account.username
+                account.instagram_business_account.media.data.forEach(
+                    (media) => {
+                        if (media.shortcode === shortcode) {
+                            userName = media.username
+                        }
+                    }
+                )
             })
         }
         return userName
