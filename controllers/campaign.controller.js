@@ -1287,7 +1287,7 @@ module.exports.linkStats = async (req, res) => {
             const ratio = campaign.ratios
             const bounties = campaign.bounties
             let abosNumber = info.abosNumber || 0
-            info.currency = campaign.token.name
+            info._doc.currency = campaign.token.name
             if (ratio.length) {
                 let socialStats = {
                     likes: info.likes,
