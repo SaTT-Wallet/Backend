@@ -742,10 +742,10 @@ passport.use(
     'tikTok_strategy_add_channel',
     new tikTokStrategy(
         tikTokCredentials('profile/callback/addChannel/tikTok'),
-        async (req, accessToken, profile, cb) => {
+        async (req, accessToken, refreshToken, profile, cb) => {
             //console.log('profile accessToken')
-            console.log('from callback', accessToken, profile, cb)
-            //addTikTokChannel(req, accessToken, profile, cb)
+            //  console.log('from wael', {accessToken, profile, cb})
+            addTikTokChannel(req, accessToken, profile, cb)
         }
     )
 )
@@ -753,7 +753,7 @@ passport.use(
 router.get(
     '/callback/addChannel/tikTok',
     (req, res, next) => {
-        //console.log('res form /callback/addChannel/tikTok', res)
+        // console.log('res form /callback/addChannel/tikTok', res)
         // console.log('form get c ',res);
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
@@ -764,17 +764,13 @@ router.get(
     },
     async (req, response) => {
         try {
-            console.log('response form async /callback/addChannel/t', response)
+            //console.log('response form async /callback/addChannel/t', response)
 
-            //console.log('res',response)
             redirect = req.query.state.split('|')[1]
-            let message = req.authInfo.message
+
+            let message = 'account_linked_with_success'
             response.redirect(
-                process.env.BASED_URL +
-                    redirect +
-                    '?message=' +
-                    message +
-                    '&sn=tiktok'
+                process.env.BASED_URL + '?message=' + message + '&sn=tiktok'
             )
         } catch (e) {
             console.log('error form /callback/addChannel/tikTok', e)
