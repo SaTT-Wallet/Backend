@@ -1334,7 +1334,7 @@ exports.tikTokCredentials = (callback) => {
     return {
         clientID: process.env.TIKTOK_KEY,
         clientSecret: process.env.TIKTOK_SECRET,
-        callbackURL: process.env.BASEURL + '/' + callback, // process.env.BASEURL  process.env.BASEURL BASEURLLOCAL",
+        callbackURL: process.env.BASEURL + callback, // process.env.BASEURL  process.env.BASEURL BASEURLLOCAL",
         scope: ['user.info.basic', 'video.list'],
         passReqToCallback: true,
     }
