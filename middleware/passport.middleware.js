@@ -835,20 +835,25 @@ exports.addlinkedinChannel = async (
 exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
     //    console.log('6')
 
-    //console.log('from addTikTokChannel',profile,accessToken);
+    // console.log('from addTikTokChannel',profile,accessToken);
 
-    let UserId = +req.query.state.split('|')[0]
+    let userId = +req.query.state.split('|')[0]
 
-    let profileData = await TikTokProfile.findOne({ UserId })
-    if (profileData) {
-        await TikTokProfile.updateOne({ UserId }, { $set: { accessToken } })
-    } else {
-        ;[profile.accessToken, profile.UserId] = [accessToken, UserId]
-        //	console.log('profile ===>', profile)
-        //        await TikTokProfile.create(profile)
+    try {
+        let profileData = await TikTokProfile.findOne({ userId })
+        // console.log('profile data ===> ', profileData);
+        if (profileData) {
+            await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
+        } else {
+            ;[profile.accessToken, profile.userId] = [accessToken, userId]
+            //	console.log('profile ===>', profile)
+            await TikTokProfile.create(profile)
+        }
+    } catch (error) {
+        console.log('Error ===> ', error)
     }
 
-    return cb(null, { id: UserId, token: accessToken })
+    return cb(null, { id: userId, token: accessToken })
 }
 
 /*
