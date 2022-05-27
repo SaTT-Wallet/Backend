@@ -552,13 +552,13 @@ exports.socialAccounts = async (req, res) => {
         let channelsTwitter = await TwitterProfile.find({ UserId })
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.findOne({ userId: UserId })
+        let channelsTiktok = await TikTokProfile.find({ userId: UserId })
 
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
-        networks.tikTok = channelsTiktok?.pages || []
+        networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
             !channelsLinkedin?.length &&
