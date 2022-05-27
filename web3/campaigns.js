@@ -596,22 +596,18 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
 }
 
 exports.getGains = async (idProm, credentials) => {
-    try {
-        var ctr = await getPromContract(idProm, credentials)
-        var gas = 200000
-        var gasPrice = await ctr.getGasPrice()
-        var receipt = await ctr.methods.getGains(idProm).send({
-            from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
-        })
+    var ctr = await getPromContract(idProm, credentials)
+    var gas = 200000
+    var gasPrice = await ctr.getGasPrice()
+    var receipt = await ctr.methods.getGains(idProm).send({
+        from: credentials.address,
+        gas: gas,
+        gasPrice: gasPrice,
+    })
 
-        return {
-            transactionHash: receipt.transactionHash,
-            idProm: idProm,
-        }
-    } catch (err) {
-        console.log(err)
+    return {
+        transactionHash: receipt.transactionHash,
+        idProm: idProm,
     }
 }
 
@@ -748,14 +744,6 @@ exports.updatePromStats = async (idProm, credentials) => {
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
 
-        console.log(
-            'here',
-            await ctr.methods.updatePromStats(idProm).send({
-                from: credentials.address,
-                gas: gas,
-                gasPrice: gasPrice,
-            })
-        )
         var receipt = await ctr.methods.updatePromStats(idProm).send({
             from: credentials.address,
             gas: gas,
