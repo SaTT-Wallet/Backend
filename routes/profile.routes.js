@@ -731,7 +731,7 @@ router.get(
 router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
     // console.log('res form /addChannel/tikTok/:idUser', res)
     // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
-    const state = req.params.idUser
+    const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic', 'video.list'],
         state,
@@ -770,7 +770,11 @@ router.get(
 
             let message = 'account_linked_with_success'
             response.redirect(
-                process.env.BASED_URL + '?message=' + message + '&sn=tiktok'
+                process.env.BASED_URL +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=tiktok'
             )
         } catch (e) {
             console.log('error form /callback/addChannel/tikTok', e)
