@@ -748,14 +748,6 @@ exports.updatePromStats = async (idProm, credentials) => {
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
 
-        console.log(
-            'here',
-            await ctr.methods.updatePromStats(idProm).send({
-                from: credentials.address,
-                gas: gas,
-                gasPrice: gasPrice,
-            })
-        )
         var receipt = await ctr.methods.updatePromStats(idProm).send({
             from: credentials.address,
             gas: gas,

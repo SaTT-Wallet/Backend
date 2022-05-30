@@ -66,6 +66,7 @@ const {
     getContractByToken,
     getContractCampaigns,
     getPromContract,
+    getCampaignOwnerAddr,
 } = require('../blockchainConnexion')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
@@ -997,11 +998,13 @@ exports.gains = async (req, res) => {
                     },
                     { upsert: true }
                 )
-
+                let campaignContractOwnerAddr = await getCampaignOwnerAddr(
+                    idProm
+                )
                 await answerCall({
                     credentials,
                     gasPrice: gasPrice,
-                    from: process.env.CAMPAIGN_OWNER,
+                    from: campaignContractOwnerAddr,
                     campaignContract: ctr.options.address,
                     idRequest: requests[0].id,
                     likes: stats.likes,
@@ -1041,9 +1044,10 @@ exports.gains = async (req, res) => {
             )
             let campaignType = {}
             let network =
-                campaign.token.type == 'erc20'
-                    ? credentials.Web3ETH
-                    : credentials.Web3BEP20
+                (campaign.token.type == 'erc20' && credentials.Web3ETH) ||
+                (campaign.token.type == 'bep20' && credentials.Web3BEP20) ||
+                credentials.Web3POLYGON
+
             let amount = await getTransactionAmount(
                 credentials,
                 ret.transactionHash,
