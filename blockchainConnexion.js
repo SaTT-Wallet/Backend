@@ -145,6 +145,33 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
     }
 }
 
+exports.getCampaignOwnerAddr = async (idProm) => {
+    try {
+        let campaignContractOwnerAddr
+        var prom = await Event.findOne(
+            { prom: idProm },
+            { contract: 1, _id: 0 }
+        )
+        if (!prom.contract) return
+        if (
+            prom.contract.toLowerCase() ===
+                Constants.campaign.address.campaignErc20.toLowerCase() ||
+            prom.contract.toLowerCase() ===
+                Constants.campaign.address.campaignBep20.toLowerCase()
+        ) {
+            campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER
+        } else if (
+            prom.contract.toLowerCase() ===
+            PolygonConstants.campaign.address.toLowerCase()
+        ) {
+            campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
+        }
+        return campaignContractOwnerAddr
+    } catch (err) {
+        console.log(err)
+    }
+}
+
 exports.getContract = async (address) => {
     if (address) {
         let abi = Constants.campaign.abi
@@ -165,12 +192,18 @@ exports.getOracleContractByCampaignContract = async (
 ) => {
     try {
         let abi = Constants.oracle.abi
-        if (credentials.Web3ETH && credentials.Web3BEP20) {
+        if (
+            credentials.Web3ETH &&
+            credentials.Web3BEP20 &&
+            credentials.Web3POLYGON
+        ) {
             var Web3ETH = credentials?.Web3ETH
             var Web3BEP20 = credentials.Web3BEP20
+            var Web3POLYGON = credentials.Web3POLYGON
         } else {
             var Web3ETH = await this.erc20Connexion()
             var Web3BEP20 = await this.bep20Connexion()
+            var Web3POLYGON = await this.polygonConnexion()
         }
 
         if (
@@ -179,6 +212,12 @@ exports.getOracleContractByCampaignContract = async (
         ) {
             Web3 = Web3ETH
             address = Constants.oracle.address.oracleErc20
+        } else if (
+            campaignContract.toLowerCase() ===
+            PolygonConstants.campaign.address.toLowerCase()
+        ) {
+            Web3 = Web3POLYGON
+            address = PolygonConstants.oracle.address
         } else {
             Web3 = Web3BEP20
             address = Constants.oracle.address.oracleBep20
