@@ -45,7 +45,7 @@ node_modules/
 jspm_packages/
 
 #config files
-conf/wallets/
+#conf/wallets/
 conf/ssl/fullchain.pem
 conf/ssl/privkey.pem
 
