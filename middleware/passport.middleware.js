@@ -845,7 +845,11 @@ exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
         if (profileData) {
             await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
         } else {
-            ;[profile.accessToken, profile.userId] = [accessToken, userId]
+            ;[profile.accessToken, profile.userId, profile.userTiktokId] = [
+                accessToken,
+                userId,
+                profile.id,
+            ]
             //	console.log('profile ===>', profile)
             await TikTokProfile.create(profile)
         }
