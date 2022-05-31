@@ -12,6 +12,7 @@ const {
 } = require('../model/index')
 var Twitter2 = require('twitter-v2')
 var fs = require('fs')
+const axios = require('axios')
 
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
@@ -203,6 +204,31 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
         return res
     } catch (err) {
         console.log(err.message)
+    }
+}
+
+exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
+    try {
+        let videoInfoResponse = await axios.post(
+            'https://open-api.tiktok.com/video/query/',
+            {
+                access_token: tiktokProfile.accessToken,
+                open_id: tiktokProfile.userTiktokId,
+                filters: {
+                    video_ids: [idPost],
+                },
+                fields: ['embed_html', 'embed_link'],
+            }
+        )
+
+        if (videoInfoResponse.data.data.videos) {
+            return true
+        } else {
+            return false
+        }
+    } catch (err) {
+        console.log(err.message)
+        return 'lien_invalid'
     }
 }
 
