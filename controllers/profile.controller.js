@@ -27,6 +27,7 @@ const {
     verifyInsta,
     verifyTwitter,
     verifyLinkedin,
+    verifytiktok,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -967,6 +968,15 @@ module.exports.verifyLink = async (req, response) => {
                 if (linkedinProfile && linkedinProfile.pages.length > 0) {
                     linked = true
                     res = await verifyLinkedin(linkedinProfile, idPost)
+                    if (res === 'deactivate') deactivate = true
+                }
+
+                break
+            case '6':
+                var tiktokProfile = await TikTokProfile.findOne({ userId })
+                if (tiktokProfile) {
+                    linked = true
+                    res = await verifytiktok(tiktokProfile, userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 
