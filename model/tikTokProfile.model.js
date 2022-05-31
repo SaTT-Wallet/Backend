@@ -4,6 +4,7 @@ const tikTokProfileSchema = mongoose.Schema(
     {
         accessToken: { type: String },
         userId: { type: Number, required: true, ref: 'user' },
+        userTiktokId: { type: String },
         username: { type: String },
         displayName: { type: String },
         profileImage: { type: String },
