@@ -11,7 +11,7 @@ let Constants = {
 }
 let PolygonConstants = {
     oracle: { abi: [], address: '' },
-    token: { abi: [], satt: '' },
+    token: { abi: [], satt: '', matic: '' },
     campaign: { abi: [], address: '' },
 }
 Constants.token.abi = [
@@ -3513,6 +3513,8 @@ if (process.env.NODE_ENV === 'mainnet') {
 
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_MAINNET
+    PolygonConstants.token.matic =
+        process.env.CONST_TOKEN_MATIC_POLYGON_ADDRESS_MAINNET
     PolygonConstants.campaign.address =
         process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
     PolygonConstants.oracle.address =
@@ -3539,6 +3541,8 @@ if (process.env.NODE_ENV === 'mainnet') {
     Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDTESTNET
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
+    PolygonConstants.token.matic =
+        process.env.CONST_TOKEN_MATIC_POLYGON_ADDRESS_TESTNET
     PolygonConstants.campaign.address =
         process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
     PolygonConstants.oracle.address =
@@ -3556,7 +3560,10 @@ let bep20TokenCampaigns = [
     Constants.bep20.address.bnb.toLowerCase(),
 ]
 
-let polygonTokensCampaign = [PolygonConstants.token.satt.toLowerCase()]
+let polygonTokensCampaign = [
+    PolygonConstants.token.satt.toLowerCase(),
+    PolygonConstants.token.matic.toLowerCase(),
+]
 
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3PolygonUrl = process.env.WEB3_URL_POLYGON
