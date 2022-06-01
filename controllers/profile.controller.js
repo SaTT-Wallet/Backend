@@ -27,6 +27,7 @@ const {
     verifyInsta,
     verifyTwitter,
     verifyLinkedin,
+    verifytiktok,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -552,13 +553,13 @@ exports.socialAccounts = async (req, res) => {
         let channelsTwitter = await TwitterProfile.find({ UserId })
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.findOne({ userId: UserId })
+        let channelsTiktok = await TikTokProfile.find({ userId: UserId })
 
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
-        networks.tikTok = channelsTiktok?.pages || []
+        networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
             !channelsLinkedin?.length &&
@@ -966,6 +967,15 @@ module.exports.verifyLink = async (req, response) => {
                 if (linkedinProfile && linkedinProfile.pages.length > 0) {
                     linked = true
                     res = await verifyLinkedin(linkedinProfile, idPost)
+                    if (res === 'deactivate') deactivate = true
+                }
+
+                break
+            case '6':
+                var tiktokProfile = await TikTokProfile.findOne({ userId })
+                if (tiktokProfile) {
+                    linked = true
+                    res = await verifytiktok(tiktokProfile, userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 
