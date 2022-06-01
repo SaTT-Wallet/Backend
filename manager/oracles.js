@@ -12,6 +12,7 @@ const {
 } = require('../model/index')
 var Twitter2 = require('twitter-v2')
 var fs = require('fs')
+const axios = require('axios')
 
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
@@ -113,21 +114,42 @@ exports.verifyYoutube = async function (userId, idPost) {
 
 exports.verifyInsta = async function (userId, idPost) {
     try {
-        var media =
-            'http://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
-            idPost
+        let userName
+        var fbProfile = await FbProfile.findOne({ UserId: userId })
+        if (fbProfile) {
+            var accessToken = fbProfile.accessToken
+            var media =
+                'https://graph.facebook.com/' +
+                oauth.facebook.fbGraphVersion +
+                '/me/accounts?fields=id,instagram_business_account{id, name, username, media{shortcode, username}}&access_token=' +
+                accessToken
+            var resMedia = await rp({ uri: media, json: true })
+            let data = resMedia.data
+            data = data.filter(
+                (element) => !!element.instagram_business_account
+            )
+            data.forEach((account) => {
+                // userName = account.instagram_business_account.username
+                account.instagram_business_account.media.data.forEach(
+                    (media) => {
+                        if (media.shortcode === idPost) {
+                            userName = media.username
+                        }
+                    }
+                )
+            })
+            if (!userName) {
+                return false
+            }
+            var page = await FbPage.findOne({
+                $and: [{ UserId: userId }, { instagram_username: userName }],
+            })
 
-        var resMedia = await rp({ uri: media, json: true })
-        var page = await FbPage.findOne({
-            $and: [
-                { UserId: userId },
-                { instagram_username: resMedia.author_name },
-            ],
-        })
-
-        if (page && !page.deactivate) return true
-        else if (page && page.deactivate === true) return 'deactivate'
-        else return false
+            if (page && !page.deactivate) return true
+            else if (page && page.deactivate === true) return 'deactivate'
+            else return false
+        }
+        return false
     } catch (err) {
         return 'lien_invalid'
     }
@@ -186,6 +208,31 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     }
 }
 
+exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
+    try {
+        let videoInfoResponse = await axios.post(
+            'https://open-api.tiktok.com/video/query/',
+            {
+                access_token: tiktokProfile.accessToken,
+                open_id: tiktokProfile.userTiktokId,
+                filters: {
+                    video_ids: [idPost],
+                },
+                fields: ['embed_html', 'embed_link'],
+            }
+        )
+
+        if (videoInfoResponse.data.data.videos) {
+            return true
+        } else {
+            return false
+        }
+    } catch (err) {
+        console.log(err.message)
+        return 'lien_invalid'
+    }
+}
+
 exports.getInstagramUserName = async (shortcode, id) => {
     let userName
     // let shortcode =req.params.shortcode
@@ -205,12 +252,14 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 (element) => !!element.instagram_business_account
             )
             data.forEach((account) => {
-                userName = account.instagram_business_account.username
-                // account.instagram_business_account.media.data.forEach((media) => {
-                //     if (media.shortcode === shortcode) {
-                //         userName = media.username
-                //     }
-                // })
+                // userName = account.instagram_business_account.username
+                account.instagram_business_account.media.data.forEach(
+                    (media) => {
+                        if (media.shortcode === shortcode) {
+                            userName = media.username
+                        }
+                    }
+                )
             })
         }
         //https://www.instagram.com/p/CXdclE_oKjm/?__a=1
@@ -926,7 +975,13 @@ exports.answerCall = async (opts) => {
             process.env.CAMPAIGN_WALLET_PATH,
             'utf8'
         )
+        var campaignKeystorePolygon = fs.readFileSync(
+            process.env.CAMPAIGN_WALLET_POLYGON_PATH,
+            'utf8'
+        )
         campaignWallet = JSON.parse(campaignKeystore)
+        campaignWalletPolygon = JSON.parse(campaignKeystorePolygon)
+
         opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
@@ -934,6 +989,10 @@ exports.answerCall = async (opts) => {
         opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
+            [campaignWalletPolygon],
+            process.env.CAMPAIGN_OWNER_PASS_POLYGON
         )
         var gasPrice = await contract.getGasPrice()
         var receipt = await contract.methods
