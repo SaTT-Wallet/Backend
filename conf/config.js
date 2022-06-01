@@ -1331,10 +1331,12 @@ exports.linkedinCredentials = (callback) => {
     }
 }
 exports.tikTokCredentials = (callback) => {
+    let baseurl = process.env.BASEURL.split(':3015').join('') // remove port from url
+    console.log(baseurl)
     return {
         clientID: process.env.TIKTOK_KEY,
         clientSecret: process.env.TIKTOK_SECRET,
-        callbackURL: process.env.BASEURL + callback, // process.env.BASEURL  process.env.BASEURL BASEURLLOCAL",
+        callbackURL: baseurl + callback, // process.env.BASEURL  process.env.BASEURL BASEURLLOCAL",
         scope: ['user.info.basic', 'video.list'],
         passReqToCallback: true,
     }
