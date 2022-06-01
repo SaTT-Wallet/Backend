@@ -223,11 +223,13 @@ passport.use(
                                 UserId: user._id,
                             })
                             let address = '0x' + account.keystore.address
+                            let keystore = account.keystore
                             return done(null, {
                                 id: user._id,
                                 token,
                                 expires_in: date,
                                 address,
+                                keystore,
                                 noredirect: req.body.noredirect,
                             })
                         } else {
@@ -284,6 +286,7 @@ exports.sattConnect = async (req, res, next) => {
                     expires_in: user.expires_in,
                     token_type: 'bearer',
                     address: user.address,
+                    keystore: user.keystore,
                     scope: 'user',
                 }
                 return responseHandler.makeResponseData(
