@@ -488,6 +488,29 @@ exports.deleteLinkedinChannel = async (req, res) => {
         )
     }
 }
+
+exports.deleteTiktokChannel = async (req, res) => {
+    try {
+        let userId = req.user._id
+        console.log({ userId })
+
+        let tiktokProfile = await TikTokProfile.findOne({ userId })
+        if (tiktokProfile.userId !== userId)
+            return makeResponseError(res, 401, 'unauthorized')
+        else {
+            await tiktokProfile.deleteOne({ userId })
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.UserInterstes = async (req, res) => {
     try {
         const userId = req.user._id
