@@ -494,11 +494,37 @@ exports.deleteTiktokChannel = async (req, res) => {
         let userId = req.user._id
         console.log({ userId })
 
-        let tiktokProfile = await TikTokProfile.findOne({ userId })
+        let tiktokProfile = await TikTokProfile.findOne({
+            _id: ObjectId(req.params.id),
+        })
         if (tiktokProfile.userId !== userId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
-            await tiktokProfile.deleteOne({ userId })
+            await tiktokProfile.deleteOne({ _id: ObjectId(req.params.id) })
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.deleteTiktokChannels = async (req, res) => {
+    try {
+        let userId = req.user._id
+        console.log({ userId })
+
+        let tiktokProfiles = await TikTokProfile.find({ userId })
+        console.log({ tiktokProfiles })
+        if (tiktokProfiles.length === 0)
+            return makeResponseError(res, 204, 'No channel found')
+        else {
+            await tiktokProfiles.delete({ userId })
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
