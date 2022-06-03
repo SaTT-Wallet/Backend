@@ -524,7 +524,7 @@ exports.deleteTiktokChannels = async (req, res) => {
         if (tiktokProfiles.length === 0)
             return makeResponseError(res, 204, 'No channel found')
         else {
-            await tiktokProfiles.delete({ userId })
+            await TikTokProfile.deleteMany({ userId })
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
