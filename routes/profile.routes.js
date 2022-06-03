@@ -66,6 +66,7 @@ const {
     deleteGoogleChannel,
     deleteFacebookChannel,
     deleteLinkedinChannel,
+    deleteTiktokChannel,
     deleteTwitterChannels,
     deleteTwitterChannel,
     ShareByActivity,
@@ -502,6 +503,27 @@ router.delete(
     verifyAuth,
     deleteLinkedinChannel
 )
+
+/**
+ * @swagger
+ * /profile/RemoveTiktokChannel:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove tiktok channel.
+ *     description: allow user to delete all his tiktok channel.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "204":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.delete('/RemoveTiktokChannel', verifyAuth, deleteTiktokChannel)
 
 /**
  * @swagger
