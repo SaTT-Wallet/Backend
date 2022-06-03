@@ -22,6 +22,7 @@ const {
     erc20Connexion,
     bep20Connexion,
 } = require('../blockchainConnexion')
+const { log } = require('console')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -234,6 +235,8 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
 
 exports.getInstagramUserName = async (shortcode, id) => {
     let userName
+    // let shortcode =req.params.shortcode
+    // let id= req.params.id
     try {
         var fbProfile = await FbProfile.findOne({ UserId: id })
         if (fbProfile) {
@@ -259,14 +262,16 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 )
             })
         }
-        return userName
+        //https://www.instagram.com/p/CXdclE_oKjm/?__a=1
         // var media =
         //     'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
         //     shortcode
+        // var media ='https://www.instagram.com/p/'+shortcode+'/?__a=1'
         // var resMedia = await rp({ uri: media, json: true })
-        // return resMedia.author_name
+        // console.log('resMedia', resMedia)
+        return userName
     } catch (err) {
-        console.log('instagram username errro--->', err)
+        console.log('instagram username errr', err)
     }
 }
 
@@ -467,9 +472,9 @@ exports.getPromApplyStats = async (
             socialOracle = await this.twitter(link.idUser, link.idPost)
         else if (oracles == 'youtube')
             socialOracle = await this.youtube(link.idPost)
-        else if (oracles == 'instagram')
+        else if (oracles == 'instagram') {
             socialOracle = await this.instagram(id, link)
-        else {
+        } else {
             socialOracle = await this.linkedin(
                 link.idUser,
                 link.idPost,
@@ -481,7 +486,7 @@ exports.getPromApplyStats = async (
         delete socialOracle.date
         return socialOracle
     } catch (err) {
-        console.log(err.message)
+        console.log('err from getPromApplyStats-->', err.message)
     }
 }
 
@@ -613,9 +618,11 @@ exports.instagram = async (UserId, link) => {
         var fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
+        console.log('fbPage', fbPage)
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
+            console.log('fbProfile', fbProfile)
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var media =
@@ -653,7 +660,7 @@ exports.instagram = async (UserId, link) => {
             }
         }
     } catch (err) {
-        console.log(err.message)
+        console.log('this.instagram', err.message)
     }
 }
 

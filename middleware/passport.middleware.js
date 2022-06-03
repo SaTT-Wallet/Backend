@@ -223,11 +223,13 @@ passport.use(
                                 UserId: user._id,
                             })
                             let address = '0x' + account.keystore.address
+                            let keystore = account.keystore
                             return done(null, {
                                 id: user._id,
                                 token,
                                 expires_in: date,
                                 address,
+                                keystore,
                                 noredirect: req.body.noredirect,
                             })
                         } else {
@@ -284,6 +286,7 @@ exports.sattConnect = async (req, res, next) => {
                     expires_in: user.expires_in,
                     token_type: 'bearer',
                     address: user.address,
+                    keystore: user.keystore,
                     scope: 'user',
                 }
                 return responseHandler.makeResponseData(
@@ -935,6 +938,35 @@ module.exports.verifyAuth = (req, res, next) => {
         next()
     })
 }
+module.exports.verifyAuthGetQuote = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader?.split(' ')[1]
+    if (!!token) {
+        jwt.verify(
+            token,
+            process.env.REFRESH_TOKEN_SECRET,
+            async (err, user) => {
+                if (err) return res.json(err)
+                let _id = user?._id ? user?._id : user?._doc._id
+                newUser = await User.findOne({ _id })
+
+                if (!newUser) {
+                    return responseHandler.makeResponseError(
+                        res,
+                        401,
+                        'Invalid token'
+                    )
+                }
+                req.user = newUser
+                next()
+            }
+        )
+    } else {
+        req.user = { _id: Math.floor(1000 + Math.random() * 9000) + '' }
+        next()
+    }
+}
+
 module.exports.verifyAuthGetQuote = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1]
