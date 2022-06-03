@@ -59,5 +59,10 @@
     "request": "Une demande de réinitialisation de votre",
     "mail": "adresse Mail",
     "verif-code": "Code de vérification",
-    "send-money": "Envoyer la somme"
+    "send-money": "Connexion",
+    "ask_to_send_footer": "En utilisant le site Web et les services offerts par ATAYEN, Inc., l'utilisateur reconnaît les risques encourus en effectuant des achats sur",
+    "ask_to_send_footer2": "le marché des crypto-actifs. Les marchés des crypto-actifs sont décentralisés et non réglementés. les services fournis par ATAYEN, Inc.",
+    "ask_to_send_footer3": "et en particulier le portefeuille Satt , concernent donc des marchés non régulés qui ne sont régis par aucun règlement européen spécifique .",
+    "ask_to_send_footer4": "cadre réglementaire.En savoir plus ",
+    "ask_to_send_footer5": "Lisez notre politique de confidentialité et nos conditions d'utilisation si vous avez d'autres questions."
 }
