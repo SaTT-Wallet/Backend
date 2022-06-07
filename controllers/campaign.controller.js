@@ -13,6 +13,7 @@ const {
     Campaigns,
     CampaignLink,
     LinkedinProfile,
+    TikTokProfile,
     Wallet,
     Event,
     Request,
@@ -578,6 +579,10 @@ exports.apply = async (req, res) => {
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
 
+        if (typeSN == 6) {
+            var tiktokProfile = await TikTokProfile.findOne({ userId: id })
+        }
+
         var ret = await applyCampaign(
             hash,
             typeSN,
@@ -630,7 +635,8 @@ exports.apply = async (req, res) => {
                 prom.typeSN,
                 prom.idPost,
                 idUser,
-                linkedinProfile
+                linkedinProfile,
+                tiktokProfile
             )
             let userWallet = await Wallet.findOne(
                 {
@@ -645,8 +651,10 @@ exports.apply = async (req, res) => {
                 prom.oracle,
                 prom,
                 userId,
-                linkedinProfile
+                linkedinProfile,
+                tiktokProfile
             )
+
             if (socialOracle.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
@@ -787,12 +795,16 @@ exports.validateCampaign = async (req, res) => {
             let linkedinProfile =
                 link.oracle == 'linkedin' &&
                 (await LinkedinProfile.findOne({ userId: id }))
+            let tiktokProfile =
+                link.oracle == 'tiktok' &&
+                (await TikTokProfile.findOne({ userId: id }))
             let userId = link.oracle === 'instagram' ? id : null
             let socialOracle = await getPromApplyStats(
                 link.oracle,
                 link,
                 userId,
-                linkedinProfile
+                linkedinProfile,
+                tiktokProfile
             )
             socialOracle.status = true
             link.status = true
