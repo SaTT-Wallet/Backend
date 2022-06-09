@@ -955,12 +955,19 @@ exports.gains = async (req, res) => {
                 idUser: prom.idUser,
             }).sort({ date: -1 })
 
+            if (prom.typeSN === '6') {
+                var tiktokProfile = await TikTokProfile.findOne({
+                    userId: req.user._id,
+                })
+            }
+
             stats = await answerOne(
                 prom.typeSN,
                 prom.idPost,
                 prom.idUser,
                 link.typeURL,
-                linkedinData
+                linkedinData,
+                tiktokProfile
             )
             var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
 
