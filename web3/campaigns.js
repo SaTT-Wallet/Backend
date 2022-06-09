@@ -214,7 +214,7 @@ exports.createBountiesCampaign = async (
 ) => {
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
-    var gas = 600000
+    var gas = 1000000
 
     try {
         var receipt = await ctr.methods
