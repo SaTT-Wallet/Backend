@@ -811,7 +811,11 @@ router.get(
 
             redirect = req.query.state.split('|')[1]
 
-            let message = 'account_linked_with_success'
+            if (req.authInfo.message) {
+                message = req.authInfo.message
+            } else {
+                message = 'account_linked_with_success'
+            }
             response.redirect(
                 process.env.BASED_URL +
                     redirect +
