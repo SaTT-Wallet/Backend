@@ -689,8 +689,6 @@ module.exports.requestMoney = async (req, res) => {
                 message,
                 wallet: req.body.wallet,
             })
-        } else {
-            return makeResponseError(res, 204, 'user not found')
         }
         readHTMLFileProfile(
             __dirname + '/../public/emailtemplate/notification.html',
