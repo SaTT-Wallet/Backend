@@ -513,7 +513,7 @@ exports.getPromApplyStats = async (
             )
         } else {
             console.log('from getPromApplyStats')
-            socialOracle = await this.tiktok(tiktokProfile, link)
+            socialOracle = await this.tiktok(tiktokProfile, link.idPost)
         }
 
         delete socialOracle.date
@@ -776,27 +776,41 @@ exports.twitter = async (userName, idPost) => {
     }
 }
 
-exports.tiktok = async (tiktokProfile, tiktokLink) => {
-    let videoInfoResponse = await axios
-        .post('https://open-api.tiktok.com/video/query/', {
-            access_token: tiktokProfile.accessToken,
-            open_id: tiktokProfile.userTiktokId,
-            filters: {
-                video_ids: [tiktokLink.idPost],
-            },
-            fields: [
-                'like_count',
-                'comment_count',
-                'share_count',
-                'view_count',
-            ],
-        })
-        .then((response) => response.data)
+exports.tiktok = async (tiktokProfile, idPost) => {
+    console.log({
+        access_token: tiktokProfile.accessToken,
+        open_id: tiktokProfile.userTiktokId,
+        filters: {
+            video_ids: [idPost],
+        },
+    })
 
-    return {
-        likes: videoInfoResponse.data.videos[0].like_count,
-        shares: videoInfoResponse.data.videos[0].share_count,
-        views: videoInfoResponse.data.videos[0].view_count,
+    try {
+        let videoInfoResponse = await axios
+            .post('https://open-api.tiktok.com/video/query/', {
+                access_token: tiktokProfile.accessToken,
+                open_id: tiktokProfile.userTiktokId,
+                filters: {
+                    video_ids: [idPost],
+                },
+                fields: [
+                    'like_count',
+                    'comment_count',
+                    'share_count',
+                    'view_count',
+                ],
+            })
+            .then((response) => response.data)
+
+        console.log({ videoInfoResponse })
+
+        return {
+            likes: videoInfoResponse.data.videos[0].like_count,
+            shares: videoInfoResponse.data.videos[0].share_count,
+            views: videoInfoResponse.data.videos[0].view_count,
+        }
+    } catch (error) {
+        console.loge(error)
     }
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
@@ -950,7 +964,8 @@ exports.answerOne = async (
     idPost,
     idUser,
     type = null,
-    linkedinProfile = null
+    linkedinProfile = null,
+    tiktokProfile = null
 ) => {
     try {
         switch (typeSN) {
@@ -983,6 +998,10 @@ exports.answerOne = async (
                     type,
                     linkedinProfile
                 )
+
+                break
+            case '6':
+                var res = await this.tiktok(tiktokProfile, idPost)
 
                 break
             default:
