@@ -168,7 +168,7 @@ exports.createPerformanceCampaign = async (
         console.log('paramas', token, credentials)
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
-        var gas = 30000000
+        var gas = 5000000 
         var receipt = await ctr.methods
             .createPriceFundAll(
                 dataUrl,
@@ -214,7 +214,7 @@ exports.createBountiesCampaign = async (
 ) => {
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
-    var gas = 30000000
+    var gas = 5000000 
 
     try {
         var receipt = await ctr.methods
