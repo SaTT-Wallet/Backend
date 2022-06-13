@@ -159,7 +159,7 @@ exports.getCampaignOwnerAddr = async (idProm) => {
             prom.contract.toLowerCase() ===
                 Constants.campaign.address.campaignBep20.toLowerCase()
         ) {
-            campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER
+            campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
         } else if (
             prom.contract.toLowerCase() ===
             PolygonConstants.campaign.address.toLowerCase()
@@ -225,6 +225,7 @@ exports.getOracleContractByCampaignContract = async (
 
         let ctr = new Web3.eth.Contract(abi, address)
         ctr.getGasPrice = await Web3.eth.getGasPrice
+        console.log('gazzzz', await ctr.getGasPrice())
         return ctr
     } catch (err) {
         console.log(err.message)

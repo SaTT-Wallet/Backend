@@ -1048,7 +1048,7 @@ exports.answerCall = async (opts) => {
             opts.credentials
         )
         var campaignKeystore = fs.readFileSync(
-            process.env.CAMPAIGN_WALLET_PATH,
+            process.env.CAMPAIGN_WALLET_POLYGON_PATH,
             'utf8'
         )
         var campaignKeystorePolygon = fs.readFileSync(
@@ -1060,11 +1060,11 @@ exports.answerCall = async (opts) => {
 
         opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
             [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
+            process.env.CAMPAIGN_OWNER_PASS_POLYGON
         )
         opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
             [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
+            process.env.CAMPAIGN_OWNER_PASS_POLYGON
         )
         opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
             [campaignWalletPolygon],
