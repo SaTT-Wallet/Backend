@@ -920,7 +920,7 @@ exports.gains = async (req, res) => {
                     await answerBounty({
                         ctr,
                         gasPrice: gasPrice,
-                        from: process.env.CAMPAIGN_OWNER,
+                        from: process.env.CAMPAIGN_OWNER_POLYGON,
                         campaignContract: ctr.options.address,
                         idProm: idProm,
                         nbAbos: stats,
