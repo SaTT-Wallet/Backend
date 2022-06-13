@@ -1048,27 +1048,23 @@ exports.answerCall = async (opts) => {
             opts.credentials
         )
         var campaignKeystore = fs.readFileSync(
-            process.env.CAMPAIGN_WALLET_POLYGON_PATH,
+            process.env.CAMPAIGN_WALLET_PATH,
             'utf8'
         )
-        var campaignKeystorePolygon = fs.readFileSync(
-            process.env.CAMPAIGN_WALLET_POLYGON_PATH,
-            'utf8'
-        )
+    
         campaignWallet = JSON.parse(campaignKeystore)
-        campaignWalletPolygon = JSON.parse(campaignKeystorePolygon)
 
         opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
             [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS_POLYGON
+            process.env.CAMPAIGN_OWNER_PASS
         )
         opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
             [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS_POLYGON
+            process.env.CAMPAIGN_OWNER_PASS
         )
         opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
-            [campaignWalletPolygon],
-            process.env.CAMPAIGN_OWNER_PASS_POLYGON
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
         )
         var gasPrice = await contract.getGasPrice()
         var receipt = await contract.methods
