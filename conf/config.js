@@ -1185,24 +1185,24 @@ let config = {
     },
     bridgeKeystore: {
         version: 3,
-        id: '4dc797da-5601-4a6f-bc49-a5c2f2236467',
-        address: '359b39b916bb4df416dbea5a2de266dfa9b3bcbf',
+        id: '8a6cc367-db49-4fb4-a46b-2a5dd50c90d7',
+        address: 'd01a19594444e179f2b27faff73907508fc96d1b',
         crypto: {
             ciphertext:
-                '2dba72cd6b838d3a2f28b8f3f41a456be5242de1970aeda4fa61a68a042e6352',
+                '1c212f452f78ae0c1c1c9ee199923a4abbf92ff0790ef1054ecb87388c15818c',
             cipherparams: {
-                iv: 'e443f8ad2b0c58e55ef38d1c8e999cd8',
+                iv: 'e68d9ac516c239e6f40da4b35152d610',
             },
             cipher: 'aes-128-ctr',
             kdf: 'scrypt',
             kdfparams: {
                 dklen: 32,
-                salt: 'a6b7ffa902f4e1b061401d5667f34de81693c59d38295a07a7da96a51897abf2',
+                salt: '839688c2298c829239b0c2fc5a66edd0b3369700655a9afeb8b62764aa7965fe',
                 n: 8192,
                 r: 8,
                 p: 1,
             },
-            mac: 'a2597a2ab7ce0b365a8ccb9a87caebd32b9d03636dad3b50532b77683135a1c5',
+            mac: 'f96ff770a448732ff6abee63caefd3e93ce88c79b3a9d31e74d2d49029f13639',
         },
     },
 }
