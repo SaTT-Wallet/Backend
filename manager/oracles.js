@@ -12,6 +12,7 @@ const {
 } = require('../model/index')
 var Twitter2 = require('twitter-v2')
 var fs = require('fs')
+const axios = require('axios')
 
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
@@ -207,6 +208,31 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     }
 }
 
+exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
+    try {
+        let videoInfoResponse = await axios.post(
+            'https://open-api.tiktok.com/video/query/',
+            {
+                access_token: tiktokProfile.accessToken,
+                open_id: tiktokProfile.userTiktokId,
+                filters: {
+                    video_ids: [idPost],
+                },
+                fields: ['embed_html', 'embed_link'],
+            }
+        )
+
+        if (videoInfoResponse.data.data.videos) {
+            return true
+        } else {
+            return false
+        }
+    } catch (err) {
+        console.log(err.message)
+        return 'lien_invalid'
+    }
+}
+
 exports.getInstagramUserName = async (shortcode, id) => {
     let userName
     // let shortcode =req.params.shortcode
@@ -226,12 +252,14 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 (element) => !!element.instagram_business_account
             )
             data.forEach((account) => {
-                userName = account.instagram_business_account.username
-                // account.instagram_business_account.media.data.forEach((media) => {
-                //     if (media.shortcode === shortcode) {
-                //         userName = media.username
-                //     }
-                // })
+                // userName = account.instagram_business_account.username
+                account.instagram_business_account.media.data.forEach(
+                    (media) => {
+                        if (media.shortcode === shortcode) {
+                            userName = media.username
+                        }
+                    }
+                )
             })
         }
         //https://www.instagram.com/p/CXdclE_oKjm/?__a=1
@@ -257,13 +285,21 @@ exports.findBountyOracle = (typeSN) => {
             ? 'instagram'
             : typeSN == '4'
             ? 'twitter'
-            : 'linkedin'
+            : typeSN == '5'
+            ? 'linkedin'
+            : 'tiktok'
     } catch (err) {
         console.log(err.message)
     }
 }
 
-exports.answerAbos = async (typeSN, idPost, idUser, linkedinProfile = null) => {
+exports.answerAbos = async (
+    typeSN,
+    idPost,
+    idUser,
+    linkedinProfile = null,
+    tiktokProfile = null
+) => {
     try {
         switch (typeSN) {
             case '1':
@@ -284,6 +320,10 @@ exports.answerAbos = async (typeSN, idPost, idUser, linkedinProfile = null) => {
                 break
             case '5':
                 var res = await this.linkedinAbos(linkedinProfile, idUser)
+
+                break
+            case '6':
+                var res = await this.tiktokAbos(linkedinProfile, idUser)
 
                 break
             default:
@@ -430,11 +470,29 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
     }
 }
 
+exports.tiktokAbos = async (tiktokProfile, organization) => {
+    try {
+        const linkedinData = {
+            url: `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + linkedinProfile.accessToken,
+            },
+            json: true,
+        }
+        let postData = await rp(linkedinData)
+        return postData.firstDegreeSize
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
 exports.getPromApplyStats = async (
     oracles,
     link,
     id,
-    linkedinProfile = null
+    linkedinProfile = null,
+    tiktokProfile = null
 ) => {
     try {
         let socialOracle = {}
@@ -446,13 +504,16 @@ exports.getPromApplyStats = async (
             socialOracle = await this.youtube(link.idPost)
         else if (oracles == 'instagram') {
             socialOracle = await this.instagram(id, link)
-        } else {
+        } else if (oracles == 'linkedin') {
             socialOracle = await this.linkedin(
                 link.idUser,
                 link.idPost,
                 link.typeURL,
                 linkedinProfile
             )
+        } else {
+            console.log('from getPromApplyStats')
+            socialOracle = await this.tiktok(tiktokProfile, link.idPost)
         }
 
         delete socialOracle.date
@@ -714,6 +775,44 @@ exports.twitter = async (userName, idPost) => {
         return 'indisponible'
     }
 }
+
+exports.tiktok = async (tiktokProfile, idPost) => {
+    console.log({
+        access_token: tiktokProfile.accessToken,
+        open_id: tiktokProfile.userTiktokId,
+        filters: {
+            video_ids: [idPost],
+        },
+    })
+
+    try {
+        let videoInfoResponse = await axios
+            .post('https://open-api.tiktok.com/video/query/', {
+                access_token: tiktokProfile.accessToken,
+                open_id: tiktokProfile.userTiktokId,
+                filters: {
+                    video_ids: [idPost],
+                },
+                fields: [
+                    'like_count',
+                    'comment_count',
+                    'share_count',
+                    'view_count',
+                ],
+            })
+            .then((response) => response.data)
+
+        console.log({ videoInfoResponse })
+
+        return {
+            likes: videoInfoResponse.data.videos[0].like_count,
+            shares: videoInfoResponse.data.videos[0].share_count,
+            views: videoInfoResponse.data.videos[0].view_count,
+        }
+    } catch (error) {
+        console.loge(error)
+    }
+}
 exports.getReachLimit = (campaignRatio, oracle) => {
     try {
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
@@ -865,7 +964,8 @@ exports.answerOne = async (
     idPost,
     idUser,
     type = null,
-    linkedinProfile = null
+    linkedinProfile = null,
+    tiktokProfile = null
 ) => {
     try {
         switch (typeSN) {
@@ -898,6 +998,10 @@ exports.answerOne = async (
                     type,
                     linkedinProfile
                 )
+
+                break
+            case '6':
+                var res = await this.tiktok(tiktokProfile, idPost)
 
                 break
             default:
@@ -947,12 +1051,18 @@ exports.answerCall = async (opts) => {
             process.env.CAMPAIGN_WALLET_PATH,
             'utf8'
         )
+
         campaignWallet = JSON.parse(campaignKeystore)
+
         opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
         opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
@@ -965,7 +1075,11 @@ exports.answerCall = async (opts) => {
                 opts.shares,
                 opts.views
             )
-            .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+            .send({
+                from: process.env.CAMPAIGN_OWNER,
+                gas: 500000,
+                gasPrice: gasPrice,
+            })
             .once('transactionHash', function (hash) {
                 console.log('oracle answerCall transactionHash', hash)
             })

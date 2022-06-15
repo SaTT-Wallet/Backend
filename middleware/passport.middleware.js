@@ -223,11 +223,13 @@ passport.use(
                                 UserId: user._id,
                             })
                             let address = '0x' + account.keystore.address
+                            let keystore = account.keystore
                             return done(null, {
                                 id: user._id,
                                 token,
                                 expires_in: date,
                                 address,
+                                keystore,
                                 noredirect: req.body.noredirect,
                             })
                         } else {
@@ -284,6 +286,7 @@ exports.sattConnect = async (req, res, next) => {
                     expires_in: user.expires_in,
                     token_type: 'bearer',
                     address: user.address,
+                    keystore: user.keystore,
                     scope: 'user',
                 }
                 return responseHandler.makeResponseData(
@@ -833,25 +836,39 @@ exports.addlinkedinChannel = async (
  * begin add facebook channel strategy
  */
 exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
-    console.log('6')
+    //    console.log('6')
 
-    //console.log('from addTikTokChannel',profile,accessToken);
-    let longToken = accessToken
-    let UserId = +req.query.state.split('|')[0]
-    // let isInsta = false
-    // let TikTokProfile = await TikTokProfile.findOne({ UserId })
-    // if (TikTokProfile) {
-    //     await TikTokProfile.updateOne(
-    //         { UserId },
-    //         { $set: { accessToken: longToken } }
-    //     )
-    // } else {
-    //     ;[profile.accessToken, profile.UserId] = [longToken, UserId]
-    //     await TikTokProfile.create(profile)
-    // }
-    // let message = await getFacebookPages(UserId, accessToken, isInsta)
-    return cb(null, { id: UserId, token: accessToken }, { message })
+    // console.log('from addTikTokChannel',profile,accessToken);
+
+    let userId = +req.query.state.split('|')[0]
+
+    try {
+        let profileData = await TikTokProfile.findOne({
+            userTiktokId: profile.id,
+        })
+        // console.log('profile data ===> ', profileData);
+        if (profileData) {
+            // await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
+            return cb(null, profile, {
+                status: false,
+                message: 'account exist',
+            })
+        } else {
+            ;[profile.accessToken, profile.userId, profile.userTiktokId] = [
+                accessToken,
+                userId,
+                profile.id,
+            ]
+            //	console.log('profile ===>', profile)
+            await TikTokProfile.create(profile)
+        }
+    } catch (error) {
+        console.log('Error ===> ', error)
+    }
+
+    return cb(null, { id: userId, token: accessToken })
 }
+
 /*
  * begin add youtube channel strategy
  */
