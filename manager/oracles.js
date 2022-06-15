@@ -1051,7 +1051,7 @@ exports.answerCall = async (opts) => {
             process.env.CAMPAIGN_WALLET_PATH,
             'utf8'
         )
-    
+
         campaignWallet = JSON.parse(campaignKeystore)
 
         opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
@@ -1075,7 +1075,11 @@ exports.answerCall = async (opts) => {
                 opts.shares,
                 opts.views
             )
-            .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+            .send({
+                from: process.env.CAMPAIGN_OWNER,
+                gas: 500000,
+                gasPrice: gasPrice,
+            })
             .once('transactionHash', function (hash) {
                 console.log('oracle answerCall transactionHash', hash)
             })
