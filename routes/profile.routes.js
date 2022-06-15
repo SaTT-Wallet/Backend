@@ -689,7 +689,11 @@ router.get(
                 message = 'account_linked_with_success'
             }
             response.redirect(
-                process.env.BASED_URL + redirect + '?message=' + message
+                process.env.BASED_URL +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=twitter'
             )
         } catch (e) {
             console.log(e)
