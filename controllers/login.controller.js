@@ -828,3 +828,33 @@ exports.sattConnect = async (req, res) => {
         )
     }
 }
+
+exports.setVisitSignUpStep = async (req, res, next) => {
+    try {
+        const userId = req.body.userId
+        const visitedStep = req.body.visitedStep
+
+        const user = await User.findOne({ _id: userId })
+        if (!user) {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'account not exists',
+                false
+            )
+        }
+        await User.updateOne(
+            { _id: userId },
+            { $set: { ['visited-' + visitedStep]: true } }
+        )
+
+        return responseHandler.makeResponseData(res, 200, 'success', true)
+    } catch (error) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
