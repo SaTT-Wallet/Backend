@@ -54,6 +54,7 @@ const {
     purgeAccount,
     logout,
     getToken,
+    setVisitSignUpStep,
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -942,5 +943,33 @@ router.get('/logout', verifyAuth, logout)
  *          description: error=eror
  */
 router.post('/satt-connect', sattConnect)
+
+/**
+ * @swagger
+ * /auth/satt-connect:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: check if credentials are correct.
+ *     description: Check credentials and return wallet address and access token  <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","address":"address",scope":"user "}
+ *       "401":
+ *          description: code,<br>error
+ *       "500":
+ *          description: error=eror
+ */
+router.get('/setVisitSignUpStep', setVisitSignUpStep)
 
 module.exports = router
