@@ -23,6 +23,7 @@ const {
     bep20Connexion,
 } = require('../blockchainConnexion')
 const { log } = require('console')
+const puppeteer = require('puppeteer')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -323,7 +324,7 @@ exports.answerAbos = async (
 
                 break
             case '6':
-                var res = await this.tiktokAbos(linkedinProfile, idUser)
+                var res = await this.tiktokAbos(idUser)
 
                 break
             default:
@@ -470,21 +471,32 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
     }
 }
 
-exports.tiktokAbos = async (tiktokProfile, organization) => {
-    try {
-        const linkedinData = {
-            url: `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken,
-            },
-            json: true,
+exports.tiktokAbos = async (username) => {
+    const vgmUrl = 'https://www.tiktok.com/' + username
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+    await page.goto(vgmUrl)
+    const scrappedData = await page.$$eval('strong', (elements) =>
+        elements
+            .filter((element) => {
+                return element.getAttribute('data-e2e') === 'followers-count'
+            })
+            .map((element) => element.innerHTML)
+    )
+    let abosNumber
+    if (!!scrappedData.length) {
+        abosNumber = scrappedData[0]
+
+        if (abosNumber.indexOf('M') > 0) {
+            abosNumber = parseFloat(abosNumber.split('M')[0]) * 1000000
+        } else if (abosNumber.indexOf('K') > 0) {
+            abosNumber = parseFloat(abosNumber.split('k')[0]) * 1000
+        } else {
+            abosNumber = parseFloat(abosNumber)
         }
-        let postData = await rp(linkedinData)
-        return postData.firstDegreeSize
-    } catch (err) {
-        console.log(err.message)
     }
+    await browser.close()
+    return abosNumber
 }
 
 exports.getPromApplyStats = async (
