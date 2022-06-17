@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const tikTokProfileSchema = mongoose.Schema(
     {
         accessToken: { type: String },
+        refreshToken: { type: String },
         userId: { type: Number, required: true, ref: 'user' },
         userTiktokId: { type: String },
         username: { type: String },

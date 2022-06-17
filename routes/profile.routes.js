@@ -777,6 +777,7 @@ router.get(
 router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
     // console.log('res form /addChannel/tikTok/:idUser', res)
     // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
+
     const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic', 'video.list'],
@@ -791,7 +792,7 @@ passport.use(
         async (req, accessToken, refreshToken, profile, cb) => {
             //console.log('profile accessToken')
             //  console.log('from wael', {accessToken, profile, cb})
-            addTikTokChannel(req, accessToken, profile, cb)
+            addTikTokChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
 )
