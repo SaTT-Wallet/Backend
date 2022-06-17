@@ -946,21 +946,21 @@ router.post('/satt-connect', sattConnect)
 
 /**
  * @swagger
- * /auth/satt-connect:
+ * /auth/setVisitSignUpStep:
  *   post:
  *     tags:
  *     - "auth"
- *     summary: check if credentials are correct.
- *     description: Check credentials and return wallet address and access token  <br> without access_token.
+ *     summary: set visited sign up step the user last visited.
+ *     description: set visited sign up step the user last visited  <br> without access_token.
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               username:
+ *               userId:
  *                 type: string
- *               password:
+ *               visitedStep:
  *                 type: string
  *     responses:
  *       "200":
@@ -970,6 +970,6 @@ router.post('/satt-connect', sattConnect)
  *       "500":
  *          description: error=eror
  */
-router.get('/setVisitSignUpStep', setVisitSignUpStep)
+router.post('/setVisitSignUpStep', setVisitSignUpStep)
 
 module.exports = router
