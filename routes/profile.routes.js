@@ -43,7 +43,6 @@ const {
     uploadUserLegal,
     addUserLegalProfile,
     UpdateIntersts,
-    AddIntersts,
     UserInterstes,
     deleteLinkedinChannels,
     profilePicture,
