@@ -186,7 +186,6 @@ exports.gasPriceErc20 = async (req, res) => {
 
 exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
-
     return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
 

@@ -1983,15 +1983,18 @@ module.exports.campaignsStatistics = async (req, res) => {
                     (pools[i]?.token.name === 'SATTBEP20' && 'SATT') ||
                     (pools[i]?.token.name === 'SATTPOLYGON' && 'SATT') ||
                     pools[i]?.token.name
+                    console.log(pools[i]._id)
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1]).div(
                             new Big(10)
                                 .pow(getDecimal(key))
-                                .times(Crypto[key].price)
-                        )
-                    )
+                                
+                        ).times(Crypto[key].price)
+                     )
                     .toFixed(2)
+                    console.log(tvl)
+
             }
 
             i++
