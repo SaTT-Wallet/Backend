@@ -168,7 +168,7 @@ exports.createPerformanceCampaign = async (
         console.log('paramas', token, credentials)
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
-        var gas = 5000000 
+        var gas = 5000000
         var receipt = await ctr.methods
             .createPriceFundAll(
                 dataUrl,
@@ -214,7 +214,7 @@ exports.createBountiesCampaign = async (
 ) => {
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
-    var gas = 5000000 
+    var gas = 5000000
 
     try {
         var receipt = await ctr.methods
@@ -596,22 +596,18 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
 }
 
 exports.getGains = async (idProm, credentials) => {
-    try {
-        var ctr = await getPromContract(idProm, credentials)
-        var gas = 200000
-        var gasPrice = await ctr.getGasPrice()
-        var receipt = await ctr.methods.getGains(idProm).send({
-            from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
-        })
+    var ctr = await getPromContract(idProm, credentials)
+    var gas = 200000
+    var gasPrice = await ctr.getGasPrice()
+    var receipt = await ctr.methods.getGains(idProm).send({
+        from: credentials.address,
+        gas: gas,
+        gasPrice: gasPrice,
+    })
 
-        return {
-            transactionHash: receipt.transactionHash,
-            idProm: idProm,
-        }
-    } catch (err) {
-        console.log(err)
+    return {
+        transactionHash: receipt.transactionHash,
+        idProm: idProm,
     }
 }
 
@@ -703,7 +699,7 @@ exports.influencersLinks = async (links) => {
 exports.updateBounty = async (idProm, credentials) => {
     try {
         var gas = 200000
-        var ctr = await getPromContract(idProm)
+        var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
 
         var receipt = await ctr.methods.updateBounty(idProm).send({
