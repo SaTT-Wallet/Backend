@@ -1993,7 +1993,6 @@ module.exports.campaignsStatistics = async (req, res) => {
                         ).times(Crypto[key].price)
                      )
                     .toFixed(2)
-                    console.log(tvl)
 
             }
 
