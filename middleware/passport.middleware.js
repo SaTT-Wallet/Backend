@@ -835,7 +835,14 @@ exports.addlinkedinChannel = async (
 /*
  * begin add facebook channel strategy
  */
-exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
+exports.addTikTokChannel = async (
+    req,
+    accessToken,
+    refreshToken,
+    profile,
+    cb
+) => {
+    console.log('refreshToken', refreshToken)
     //    console.log('6')
 
     // console.log('from addTikTokChannel',profile,accessToken);
@@ -854,11 +861,13 @@ exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
                 message: 'account exist',
             })
         } else {
-            ;[profile.accessToken, profile.userId, profile.userTiktokId] = [
-                accessToken,
-                userId,
-                profile.id,
-            ]
+            ;[
+                profile.accessToken,
+                profile.userId,
+                profile.userTiktokId,
+                profile.refreshToken,
+            ] = [accessToken, userId, profile.id, refreshToken]
+
             //	console.log('profile ===>', profile)
             await TikTokProfile.create(profile)
         }
