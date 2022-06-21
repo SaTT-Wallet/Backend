@@ -24,6 +24,7 @@ const {
 } = require('../blockchainConnexion')
 const { log } = require('console')
 const puppeteer = require('puppeteer')
+const { env } = require('twitter/.eslintrc')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -211,10 +212,12 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
 
 exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
     try {
+        let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
+        let resMedia = await rp({ uri: getUrl, json: true })
         let videoInfoResponse = await axios.post(
             'https://open-api.tiktok.com/video/query/',
             {
-                access_token: tiktokProfile.accessToken,
+                access_token: resMedia?.data.access_token,
                 open_id: tiktokProfile.userTiktokId,
                 filters: {
                     video_ids: [idPost],
@@ -324,7 +327,7 @@ exports.answerAbos = async (
 
                 break
             case '6':
-                var res = await this.tiktokAbos(idUser)
+                var res = await this.tiktokAbos(tiktokProfile.username)
 
                 break
             default:
@@ -472,7 +475,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (username) => {
-    const vgmUrl = 'https://www.tiktok.com/' + username
+    const vgmUrl = 'https://www.tiktok.com/@' + username
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(vgmUrl)
@@ -798,9 +801,11 @@ exports.tiktok = async (tiktokProfile, idPost) => {
     })
 
     try {
+        let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
+        let resMedia = await rp({ uri: getUrl, json: true })
         let videoInfoResponse = await axios
             .post('https://open-api.tiktok.com/video/query/', {
-                access_token: tiktokProfile.accessToken,
+                access_token: resMedia?.data.access_token,
                 open_id: tiktokProfile.userTiktokId,
                 filters: {
                     video_ids: [idPost],
@@ -955,13 +960,39 @@ exports.getButtonStatus = (link) => {
 
 exports.answerBounty = async function (opts) {
     try {
-        let contract = opts.ctr
+        let contract = await getOracleContractByCampaignContract(
+            opts.campaignContract,
+            opts.credentials
+        )
+        var campaignKeystore = fs.readFileSync(
+            process.env.CAMPAIGN_WALLET_PATH,
+            'utf8'
+        )
+
+        campaignWallet = JSON.parse(campaignKeystore)
+
+        opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
 
         var gasPrice = await contract.getGasPrice()
 
         var receipt = await contract.methods
             .answerBounty(opts.campaignContract, opts.idProm, opts.nbAbos)
-            .send({ from: opts.from, gas: 500000, gasPrice: gasPrice })
+            .send({
+                from: process.env.CAMPAIGN_OWNER,
+                gas: 500000,
+                gasPrice: gasPrice,
+            })
             .once('transactionHash', function (hash) {
                 console.log('oracle answerBounty transactionHash', hash)
             })
