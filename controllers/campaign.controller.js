@@ -875,7 +875,8 @@ exports.gains = async (req, res) => {
                     { accessToken: 1, _id: 0 }
                 ))
             var link = await CampaignLink.findOne({ id_prom: idProm })
-            if (req.body.bounty) {
+            let campaignData = await Campaigns.findOne({ hash: hash })
+            if (!!campaignData.bounties.length) {
                 if (prom.funds.amount > 0 && prom.isPayed) {
                     var ret = await getGains(idProm, credentials)
                     return responseHandler.makeResponseData(
@@ -918,9 +919,9 @@ exports.gains = async (req, res) => {
                 )
                 try {
                     await answerBounty({
-                        ctr,
+                        credentials,
                         gasPrice: gasPrice,
-                        from: process.env.CAMPAIGN_OWNER_POLYGON,
+                        from: process.env.CAMPAIGN_OWNER,
                         campaignContract: ctr.options.address,
                         idProm: idProm,
                         nbAbos: stats,
@@ -1983,17 +1984,14 @@ module.exports.campaignsStatistics = async (req, res) => {
                     (pools[i]?.token.name === 'SATTBEP20' && 'SATT') ||
                     (pools[i]?.token.name === 'SATTPOLYGON' && 'SATT') ||
                     pools[i]?.token.name
-                    console.log(pools[i]._id)
+                console.log(pools[i]._id)
                 tvl = new Big(tvl)
                     .plus(
-                        new Big(pools[i].funds[1]).div(
-                            new Big(10)
-                                .pow(getDecimal(key))
-                                
-                        ).times(Crypto[key].price)
-                     )
+                        new Big(pools[i].funds[1])
+                            .div(new Big(10).pow(getDecimal(key)))
+                            .times(Crypto[key].price)
+                    )
                     .toFixed(2)
-
             }
 
             i++
