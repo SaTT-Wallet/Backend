@@ -223,7 +223,14 @@ exports.getPrices = async () => {
 
             var priceMap = response.data.map((elem) => {
                 var obj = {}
+                let tokenAddress = null
+                if (elem.platform?.name === 'BNB') {
+                    tokenAddress = elem.platform?.token_address
+                }
+
                 obj = {
+                    network: (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                    tokenAddress: tokenAddress,
                     symbol: elem.symbol,
                     name: elem.name,
                     price: elem.quote.USD.price,
@@ -249,9 +256,11 @@ exports.getPrices = async () => {
 
             for (var i = 0; i < token200.length; i++) {
                 var token = token200[i]
-
                 if (finalMap[token.symbol]) {
-                    finalMap[token.symbol].network = token.platform.network
+                    finalMap[token.symbol].network =
+                        (finalMap[token.symbol].network &&
+                            finalMap[token.symbol].network) ||
+                        token.platform.network
                     finalMap[token.symbol].tokenAddress =
                         token.platform.token_address
                     finalMap[token.symbol].decimals = token.platform.decimals

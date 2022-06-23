@@ -201,7 +201,7 @@ exports.codeRecover = async (req, res) => {
         let requestDate = manageTime()
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-        if (ip) ip = ip.split(':')[3]
+       // if (ip) ip = ip.split(':')[3]
 
         let code = await updateAndGenerateCode(user._id, 'reset')
 
@@ -265,7 +265,7 @@ exports.confirmCode = async (req, res) => {
             ;(authMethod.token = token),
                 (authMethod.expires_in = date),
                 (authMethod.idUser = user._id)
-            //await User.updateOne({ _id: user._id }, { $set: { enabled: 1 } })
+            await User.updateOne({ _id: user._id }, { $set: { enabled: 1 } })
             return responseHandler.makeResponseData(
                 res,
                 200,
@@ -787,6 +787,69 @@ exports.logout = async (req, res) => {
     } catch (err) {
         console.log(err.message)
 
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
+exports.sattConnect = async (req, res) => {
+    const address = req.body.address
+    const password = req.body.password
+    try {
+        const user = await User.findOne({ address })
+        if (user) {
+            let userAuth = cloneUser(user.toObject())
+            let token = generateAccessToken(userAuth)
+
+            var param = {
+                access_token: token,
+                expires_in: date,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+
+            return responseHandler.makeResponseData(res, 200, 'success', param)
+        } else {
+            return responseHandler.makeResponseError(res, 401, {
+                error: true,
+                message: 'user not found',
+            })
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
+exports.setVisitSignUpStep = async (req, res, next) => {
+    try {
+        const userId = req.body.userId
+        const visitedStep = req.body.visitedStep
+
+        const user = await User.findOne({ _id: userId })
+        if (!user) {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'account not exists',
+                false
+            )
+        }
+        await User.updateOne(
+            { _id: userId },
+            { $set: { ['visited-' + visitedStep]: true } }
+        )
+
+        return responseHandler.makeResponseData(res, 200, 'success', true)
+    } catch (error) {
         return responseHandler.makeResponseError(
             res,
             500,
