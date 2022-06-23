@@ -27,6 +27,7 @@ const {
     verifyInsta,
     verifyTwitter,
     verifyLinkedin,
+    verifytiktok,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -487,6 +488,55 @@ exports.deleteLinkedinChannel = async (req, res) => {
         )
     }
 }
+
+exports.deleteTiktokChannel = async (req, res) => {
+    try {
+        let userId = req.user._id
+        console.log({ userId })
+
+        let tiktokProfile = await TikTokProfile.findOne({
+            _id: ObjectId(req.params.id),
+        })
+        if (tiktokProfile.userId !== userId)
+            return makeResponseError(res, 401, 'unauthorized')
+        else {
+            await tiktokProfile.deleteOne({ _id: ObjectId(req.params.id) })
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.deleteTiktokChannels = async (req, res) => {
+    try {
+        let userId = req.user._id
+        console.log({ userId })
+
+        let tiktokProfiles = await TikTokProfile.find({ userId })
+        console.log({ tiktokProfiles })
+        if (tiktokProfiles.length === 0)
+            return makeResponseError(res, 204, 'No channel found')
+        else {
+            await TikTokProfile.deleteMany({ userId })
+            return makeResponseData(res, 200, 'deleted successfully')
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.UserInterstes = async (req, res) => {
     try {
         const userId = req.user._id
@@ -552,13 +602,13 @@ exports.socialAccounts = async (req, res) => {
         let channelsTwitter = await TwitterProfile.find({ UserId })
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.findOne({ userId: UserId })
+        let channelsTiktok = await TikTokProfile.find({ userId: UserId })
 
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
         networks.linkedin = channelsLinkedin?.pages || []
-        networks.tikTok = channelsTiktok?.pages || []
+        networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
             !channelsLinkedin?.length &&
@@ -632,7 +682,6 @@ module.exports.requestMoney = async (req, res) => {
                 message,
                 wallet: req.body.wallet,
             })
-
             await notificationManager(result._id, 'demande_satt_event', {
                 name: req.body.name,
                 price: req.body.price,
@@ -640,8 +689,6 @@ module.exports.requestMoney = async (req, res) => {
                 message,
                 wallet: req.body.wallet,
             })
-        } else {
-            return makeResponseError(res, 204, 'user not found')
         }
         readHTMLFileProfile(
             __dirname + '/../public/emailtemplate/notification.html',
@@ -819,7 +866,7 @@ module.exports.changeEmail = async (req, res) => {
             let requestDate = manageTime()
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-            if (ip) ip = ip.split(':')[3]
+            //if (ip) ip = ip.split(':')[3]
 
             const lang = req.query.lang || 'en'
             configureTranslation(lang)
@@ -967,6 +1014,15 @@ module.exports.verifyLink = async (req, response) => {
                 if (linkedinProfile && linkedinProfile.pages.length > 0) {
                     linked = true
                     res = await verifyLinkedin(linkedinProfile, idPost)
+                    if (res === 'deactivate') deactivate = true
+                }
+
+                break
+            case '6':
+                var tiktokProfile = await TikTokProfile.findOne({ userId })
+                if (tiktokProfile) {
+                    linked = true
+                    res = await verifytiktok(tiktokProfile, userId, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 

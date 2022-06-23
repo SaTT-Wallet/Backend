@@ -1,20 +1,14 @@
 const mongoose = require('mongoose')
 
-const tikTokProfileSchema = mongoose.Schema({
+const tikTokProfileSchema = mongoose.Schema(
+    {
         accessToken: { type: String },
+        refreshToken: { type: String },
         userId: { type: Number, required: true, ref: 'user' },
-        linkedinId: { type: String },
-        pages: [{
-            'organization~': {
-                localizedName: { type: String },
-            },
-            role: { type: String },
-            organization: { type: String },
-            roleAssignee: { type: String },
-            state: { type: String },
-            subscribers: { type: Number },
-            photo: { type: String },
-        }, ],
+        userTiktokId: { type: String },
+        username: { type: String },
+        displayName: { type: String },
+        profileImage: { type: String },
     },
 
     {

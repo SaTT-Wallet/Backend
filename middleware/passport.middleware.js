@@ -33,6 +33,7 @@ var app = express()
 var session = require('express-session')
 const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
+const { Wallet } = require('../model')
 
 try {
     app.use(
@@ -195,6 +196,111 @@ exports.emailConnection = async (req, res, next) => {
 }
 /*
  * end signin with email and password
+ */
+
+/*
+ * begin satt wallet connect
+ */
+passport.use(
+    'sattConnectStrategy',
+    new emailStrategy(
+        { passReqToCallback: true },
+        async (req, username, password, done) => {
+            var date = Math.floor(Date.now() / 1000) + 86400
+            var user = await User.findOne({ email: username.toLowerCase() })
+            if (user) {
+                if (user.password == synfonyHash(password)) {
+                    let validAuth = await isBlocked(user, true)
+                    if (!validAuth.res && validAuth.auth == true) {
+                        let userAuth = cloneUser(user.toObject())
+                        let token = generateAccessToken(userAuth)
+                        await User.updateOne(
+                            { _id: Long.fromNumber(user._id) },
+                            { $set: { failed_count: 0 } }
+                        )
+                        if (user.hasWallet == true) {
+                            let account = await Wallet.findOne({
+                                UserId: user._id,
+                            })
+                            let address = '0x' + account.keystore.address
+                            let keystore = account.keystore
+                            return done(null, {
+                                id: user._id,
+                                token,
+                                expires_in: date,
+                                address,
+                                keystore,
+                                noredirect: req.body.noredirect,
+                            })
+                        } else {
+                            return done(null, false, {
+                                error: true,
+                                message: 'Wallet not found',
+                            })
+                        }
+                    } else {
+                        return done(null, false, {
+                            error: true,
+                            message: 'account_locked',
+                            blockedDate: validAuth.blockedDate,
+                        })
+                    }
+                } else {
+                    let validAuth = await isBlocked(user, false)
+                    if (validAuth.res) {
+                        return done(null, false, {
+                            error: true,
+                            message: 'account_locked',
+                            blockedDate: validAuth.blockedDate,
+                        })
+                    }
+                    return done(null, false, {
+                        error: true,
+                        message: 'invalid_credentials',
+                        blockedDate: validAuth.blockedDate,
+                    })
+                }
+            } else {
+                return done(null, false, {
+                    error: true,
+                    message: 'user not found',
+                })
+            }
+        }
+    )
+)
+exports.sattConnect = async (req, res, next) => {
+    passport.authenticate(
+        'sattConnectStrategy',
+        { session: false },
+        (err, user, info) => {
+            if (err) {
+                return responseHandler.makeResponseError(res, 401, err)
+            }
+            if (!user) {
+                return responseHandler.makeResponseError(res, 401, info)
+            }
+            req.logIn(user, function (err) {
+                var param = {
+                    access_token: user.token,
+                    expires_in: user.expires_in,
+                    token_type: 'bearer',
+                    address: user.address,
+                    keystore: user.keystore,
+                    scope: 'user',
+                }
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    param
+                )
+            })
+        }
+    )(req, res, next)
+}
+/*
+ * end satt wallet connect
  */
 
 /*
@@ -729,26 +835,49 @@ exports.addlinkedinChannel = async (
 /*
  * begin add facebook channel strategy
  */
-exports.addTikTokChannel = async (req, accessToken, profile, cb) => {
-    console.log('6')
+exports.addTikTokChannel = async (
+    req,
+    accessToken,
+    refreshToken,
+    profile,
+    cb
+) => {
+    console.log('refreshToken', refreshToken)
+    //    console.log('6')
 
-    //console.log('from addTikTokChannel',profile,accessToken);
-    let longToken = accessToken
-    let UserId = +req.query.state.split('|')[0]
-    // let isInsta = false
-    // let TikTokProfile = await TikTokProfile.findOne({ UserId })
-    // if (TikTokProfile) {
-    //     await TikTokProfile.updateOne(
-    //         { UserId },
-    //         { $set: { accessToken: longToken } }
-    //     )
-    // } else {
-    //     ;[profile.accessToken, profile.UserId] = [longToken, UserId]
-    //     await TikTokProfile.create(profile)
-    // }
-    // let message = await getFacebookPages(UserId, accessToken, isInsta)
-    return cb(null, { id: UserId, token: accessToken }, { message })
+    // console.log('from addTikTokChannel',profile,accessToken);
+
+    let userId = +req.query.state.split('|')[0]
+
+    try {
+        let profileData = await TikTokProfile.findOne({
+            userTiktokId: profile.id,
+        })
+        // console.log('profile data ===> ', profileData);
+        if (profileData) {
+            // await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
+            return cb(null, profile, {
+                status: false,
+                message: 'account exist',
+            })
+        } else {
+            ;[
+                profile.accessToken,
+                profile.userId,
+                profile.userTiktokId,
+                profile.refreshToken,
+            ] = [accessToken, userId, profile.id, refreshToken]
+
+            //	console.log('profile ===>', profile)
+            await TikTokProfile.create(profile)
+        }
+    } catch (error) {
+        console.log('Error ===> ', error)
+    }
+
+    return cb(null, { id: userId, token: accessToken })
 }
+
 /*
  * begin add youtube channel strategy
  */
@@ -824,6 +953,35 @@ module.exports.verifyAuth = (req, res, next) => {
         next()
     })
 }
+module.exports.verifyAuthGetQuote = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader?.split(' ')[1]
+    if (!!token) {
+        jwt.verify(
+            token,
+            process.env.REFRESH_TOKEN_SECRET,
+            async (err, user) => {
+                if (err) return res.json(err)
+                let _id = user?._id ? user?._id : user?._doc._id
+                newUser = await User.findOne({ _id })
+
+                if (!newUser) {
+                    return responseHandler.makeResponseError(
+                        res,
+                        401,
+                        'Invalid token'
+                    )
+                }
+                req.user = newUser
+                next()
+            }
+        )
+    } else {
+        req.user = { _id: Math.floor(1000 + Math.random() * 9000) + '' }
+        next()
+    }
+}
+
 module.exports.verifyAuthGetQuote = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1]

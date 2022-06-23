@@ -1,6 +1,7 @@
 const { User, Wallet, CustomToken } = require('../model/index')
 
 const rp = require('request-promise')
+const path = require('path')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
@@ -50,6 +51,7 @@ const { notificationManager } = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
+const { async } = require('hasha')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -168,7 +170,6 @@ exports.gasPricePolygon = async (req, res) => {
 
 exports.gasPriceBep20 = async (req, res) => {
     let Web3ETH = await bep20Connexion()
-
     var gasPrice = await Web3ETH.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
         gasPrice: gasPrice / 1000000000,
@@ -186,7 +187,6 @@ exports.gasPriceErc20 = async (req, res) => {
 
 exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
-
     return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
 
@@ -883,23 +883,15 @@ exports.getQuote = async (req, res) => {
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
 
-        if (ip) ip = ip.split(':')[3]
+       // if (ip) ip = ip.split(':')[3]
         if (!ip) {
             ip = '41.230.35.91'
         }
 
-        /*if (req.body.requested_amount < 50) {
-            responseHandler.makeResponseError(
-                res,
-                403,
-                'Please enter amount of 50 USD or more'
-            )
-        } else {*/
         let requestQuote = req.body
         requestQuote['end_user_id'] = String(req.user._id)
         requestQuote['client_ip'] = ip
         requestQuote['wallet_id'] = 'satt'
-
         const simplexQuote = {
             url: configSendBox + '/wallet/merchant/v2/quote',
             method: 'POST',
@@ -911,13 +903,13 @@ exports.getQuote = async (req, res) => {
         }
         var quote = await rp(simplexQuote)
         if (!!quote.error) {
-            console.log(quote)
             return responseHandler.makeResponseError(res, 403, quote.error)
         }
+
         delete quote.supported_digital_currencies
         delete quote.supported_fiat_currencies
+
         return responseHandler.makeResponseData(res, 200, 'success', quote)
-        /*}*/
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -933,7 +925,7 @@ exports.payementRequest = async (req, res) => {
         if (req.user.hasWallet == true) {
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-            if (ip) ip = ip.split(':')[3]
+          //  if (ip) ip = ip.split(':')[3]
             let payment_id = randomUUID()
             const uiad = process.env.UIAD
             let user_agent = req.headers['user-agent']

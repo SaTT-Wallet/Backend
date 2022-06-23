@@ -20,15 +20,12 @@ exports.unlock = async (req, res) => {
         let UserId = req.user._id
         let pass = req.body.pass
         let account = await Wallet.findOne({ UserId })
-
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
-
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
-
         return {
             address: '0x' + account.keystore.address,
             Web3ETH,
@@ -171,7 +168,7 @@ exports.createPerformanceCampaign = async (
         console.log('paramas', token, credentials)
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
-        var gas = 600000
+        var gas = 5000000
         var receipt = await ctr.methods
             .createPriceFundAll(
                 dataUrl,
@@ -217,7 +214,7 @@ exports.createBountiesCampaign = async (
 ) => {
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
-    var gas = 600000
+    var gas = 5000000
 
     try {
         var receipt = await ctr.methods
@@ -599,22 +596,18 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
 }
 
 exports.getGains = async (idProm, credentials) => {
-    try {
-        var ctr = await getPromContract(idProm, credentials)
-        var gas = 200000
-        var gasPrice = await ctr.getGasPrice()
-        var receipt = await ctr.methods.getGains(idProm).send({
-            from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
-        })
+    var ctr = await getPromContract(idProm, credentials)
+    var gas = 200000
+    var gasPrice = await ctr.getGasPrice()
+    var receipt = await ctr.methods.getGains(idProm).send({
+        from: credentials.address,
+        gas: gas,
+        gasPrice: gasPrice,
+    })
 
-        return {
-            transactionHash: receipt.transactionHash,
-            idProm: idProm,
-        }
-    } catch (err) {
-        console.log(err)
+    return {
+        transactionHash: receipt.transactionHash,
+        idProm: idProm,
     }
 }
 
@@ -706,7 +699,7 @@ exports.influencersLinks = async (links) => {
 exports.updateBounty = async (idProm, credentials) => {
     try {
         var gas = 200000
-        var ctr = await getPromContract(idProm)
+        var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
 
         var receipt = await ctr.methods.updateBounty(idProm).send({
@@ -751,14 +744,6 @@ exports.updatePromStats = async (idProm, credentials) => {
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
 
-        console.log(
-            'here',
-            await ctr.methods.updatePromStats(idProm).send({
-                from: credentials.address,
-                gas: gas,
-                gasPrice: gasPrice,
-            })
-        )
         var receipt = await ctr.methods.updatePromStats(idProm).send({
             from: credentials.address,
             gas: gas,
