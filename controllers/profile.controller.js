@@ -866,7 +866,7 @@ module.exports.changeEmail = async (req, res) => {
             let requestDate = manageTime()
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-            if (ip) ip = ip.split(':')[3]
+            //if (ip) ip = ip.split(':')[3]
 
             const lang = req.query.lang || 'en'
             configureTranslation(lang)
