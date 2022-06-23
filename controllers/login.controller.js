@@ -201,7 +201,7 @@ exports.codeRecover = async (req, res) => {
         let requestDate = manageTime()
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-        if (ip) ip = ip.split(':')[3]
+       // if (ip) ip = ip.split(':')[3]
 
         let code = await updateAndGenerateCode(user._id, 'reset')
 

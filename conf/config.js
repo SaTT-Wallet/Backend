@@ -1331,7 +1331,7 @@ exports.linkedinCredentials = (callback) => {
     }
 }
 exports.tikTokCredentials = (callback) => {
-    let baseurl = process.env.BASEURL.split(':3015').join('') // remove port from url
+    let baseurl = process.env.BASEURL // remove port from url
     console.log(baseurl)
     return {
         clientID: process.env.TIKTOK_KEY,
