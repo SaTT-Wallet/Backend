@@ -13,6 +13,7 @@ const {
     Campaigns,
     CampaignLink,
     LinkedinProfile,
+    TikTokProfile,
     Wallet,
     Event,
     Request,
@@ -66,6 +67,7 @@ const {
     getContractByToken,
     getContractCampaigns,
     getPromContract,
+    getCampaignOwnerAddr,
 } = require('../blockchainConnexion')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
@@ -112,6 +114,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
+const { Constants } = require('../conf/const')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -178,6 +181,11 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
+            if (tokenAddress == Constants.bep20.address.sattBep20) {
+                amount = (amount * 95) / 100
+            } else {
+                amount = (amount * 85) / 100
+            }
             lock(cred)
             var campaign = {
                 hash: ret.hash,
@@ -190,7 +198,13 @@ module.exports.launchCampaign = async (req, res) => {
                 contract: contract.toLowerCase(),
                 walletId: cred.address,
                 type: 'inProgress',
+                cost: amount,
             }
+            let campaignData = await Campaigns.findOne({ _id })
+            campaign.cost_usd =
+                (tokenAddress == Constants.bep20.address.sattBep20 &&
+                    campaignData.cost_usd * 0.95) ||
+                campaignData.cost_usd * 0.85
             await Campaigns.updateOne({ _id }, { $set: campaign })
             let event = {
                 id: ret.hash,
@@ -565,6 +579,10 @@ exports.apply = async (req, res) => {
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
 
+        if (typeSN == 6) {
+            var tiktokProfile = await TikTokProfile.findOne({ userId: id })
+        }
+
         var ret = await applyCampaign(
             hash,
             typeSN,
@@ -590,7 +608,7 @@ exports.apply = async (req, res) => {
         cred && lock(cred)
         if (ret && ret.transactionHash) {
             if (typeSN == 3)
-                prom.instagramUserName = await getInstagramUserName(idPost)
+                prom.instagramUserName = await getInstagramUserName(idPost, id)
 
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
@@ -617,7 +635,8 @@ exports.apply = async (req, res) => {
                 prom.typeSN,
                 prom.idPost,
                 idUser,
-                linkedinProfile
+                linkedinProfile,
+                tiktokProfile
             )
             let userWallet = await Wallet.findOne(
                 {
@@ -632,8 +651,10 @@ exports.apply = async (req, res) => {
                 prom.oracle,
                 prom,
                 userId,
-                linkedinProfile
+                linkedinProfile,
+                tiktokProfile
             )
+
             if (socialOracle.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
@@ -648,6 +669,7 @@ exports.apply = async (req, res) => {
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
             }
+            console.log('evv', event)
             await Promise.allSettled([
                 CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
                 Event.create(event),
@@ -773,12 +795,16 @@ exports.validateCampaign = async (req, res) => {
             let linkedinProfile =
                 link.oracle == 'linkedin' &&
                 (await LinkedinProfile.findOne({ userId: id }))
+            let tiktokProfile =
+                link.oracle == 'tiktok' &&
+                (await TikTokProfile.findOne({ userId: id }))
             let userId = link.oracle === 'instagram' ? id : null
             let socialOracle = await getPromApplyStats(
                 link.oracle,
                 link,
                 userId,
-                linkedinProfile
+                linkedinProfile,
+                tiktokProfile
             )
             socialOracle.status = true
             link.status = true
@@ -849,7 +875,8 @@ exports.gains = async (req, res) => {
                     { accessToken: 1, _id: 0 }
                 ))
             var link = await CampaignLink.findOne({ id_prom: idProm })
-            if (req.body.bounty) {
+            let campaignData = await Campaigns.findOne({ hash: hash })
+            if (!!campaignData.bounties.length) {
                 if (prom.funds.amount > 0 && prom.isPayed) {
                     var ret = await getGains(idProm, credentials)
                     return responseHandler.makeResponseData(
@@ -892,7 +919,7 @@ exports.gains = async (req, res) => {
                 )
                 try {
                     await answerBounty({
-                        ctr,
+                        credentials,
                         gasPrice: gasPrice,
                         from: process.env.CAMPAIGN_OWNER,
                         campaignContract: ctr.options.address,
@@ -929,12 +956,19 @@ exports.gains = async (req, res) => {
                 idUser: prom.idUser,
             }).sort({ date: -1 })
 
+            if (prom.typeSN === '6') {
+                var tiktokProfile = await TikTokProfile.findOne({
+                    userId: req.user._id,
+                })
+            }
+
             stats = await answerOne(
                 prom.typeSN,
                 prom.idPost,
                 prom.idUser,
                 link.typeURL,
-                linkedinData
+                linkedinData,
+                tiktokProfile
             )
             var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
 
@@ -985,11 +1019,13 @@ exports.gains = async (req, res) => {
                     },
                     { upsert: true }
                 )
-
+                let campaignContractOwnerAddr = await getCampaignOwnerAddr(
+                    idProm
+                )
                 await answerCall({
                     credentials,
                     gasPrice: gasPrice,
-                    from: process.env.CAMPAIGN_OWNER,
+                    from: campaignContractOwnerAddr,
                     campaignContract: ctr.options.address,
                     idRequest: requests[0].id,
                     likes: stats.likes,
@@ -1029,9 +1065,10 @@ exports.gains = async (req, res) => {
             )
             let campaignType = {}
             let network =
-                campaign.token.type == 'erc20'
-                    ? credentials.Web3ETH
-                    : credentials.Web3BEP20
+                (campaign.token.type == 'erc20' && credentials.Web3ETH) ||
+                (campaign.token.type == 'bep20' && credentials.Web3BEP20) ||
+                credentials.Web3POLYGON
+
             let amount = await getTransactionAmount(
                 credentials,
                 ret.transactionHash,
@@ -1275,7 +1312,7 @@ module.exports.linkStats = async (req, res) => {
             const ratio = campaign.ratios
             const bounties = campaign.bounties
             let abosNumber = info.abosNumber || 0
-            info.currency = campaign.token.name
+            info._doc.currency = campaign.token.name
             if (ratio.length) {
                 let socialStats = {
                     likes: info.likes,
@@ -1947,15 +1984,15 @@ module.exports.campaignsStatistics = async (req, res) => {
                     (pools[i]?.token.name === 'SATTBEP20' && 'SATT') ||
                     (pools[i]?.token.name === 'SATTPOLYGON' && 'SATT') ||
                     pools[i]?.token.name
+                console.log(pools[i]._id)
                 tvl = new Big(tvl)
                     .plus(
-                        new Big(pools[i].funds[1]).div(
-                            new Big(10)
-                                .pow(getDecimal(key))
-                                .times(Crypto[key].price)
-                        )
+                        new Big(pools[i].funds[1])
+                            .div(new Big(10).pow(getDecimal(key)))
+                            .times(Crypto[key].price)
                     )
                     .toFixed(2)
+                console.log(tvl)
             }
 
             i++

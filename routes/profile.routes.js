@@ -43,7 +43,6 @@ const {
     uploadUserLegal,
     addUserLegalProfile,
     UpdateIntersts,
-    AddIntersts,
     UserInterstes,
     deleteLinkedinChannels,
     profilePicture,
@@ -66,6 +65,8 @@ const {
     deleteGoogleChannel,
     deleteFacebookChannel,
     deleteLinkedinChannel,
+    deleteTiktokChannel,
+    deleteTiktokChannels,
     deleteTwitterChannels,
     deleteTwitterChannel,
     ShareByActivity,
@@ -505,6 +506,47 @@ router.delete(
 
 /**
  * @swagger
+ * /profile/RemoveTiktokChannel:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove tiktok channel.
+ *     description: allow user to delete all his tiktok channel.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "204":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.delete('/RemoveTiktokChannel/:id', verifyAuth, deleteTiktokChannel)
+/**
+ * @swagger
+ * /profile/RemoveTiktokChannel:
+ *   delete:
+ *     tags:
+ *     - "profile"
+ *     summary: remove tiktok channel.
+ *     description: allow user to delete all his tiktok channel.  <br> without access_token
+ *     responses:
+ *       "200":
+ *          description: deleted successfully, {"code":"status code","message":"deleted successfully"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token <br> AC_Token expired,
+ *       "204":
+ *          description: error:<br> No channel found
+ *       "500":
+ *          description: error:<br> server error
+ */
+
+router.delete('/RemoveTiktokChannels', verifyAuth, deleteTiktokChannels)
+
+/**
+ * @swagger
  * /profile/socialAccounts:
  *   get:
  *     tags:
@@ -646,7 +688,11 @@ router.get(
                 message = 'account_linked_with_success'
             }
             response.redirect(
-                process.env.BASED_URL + redirect + '?message=' + message
+                process.env.BASED_URL +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=twitter'
             )
         } catch (e) {
             console.log(e)
@@ -729,9 +775,10 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
-    console.log('res form /addChannel/tikTok/:idUser', res)
+    // console.log('res form /addChannel/tikTok/:idUser', res)
     // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
-    const state = req.params.idUser
+
+    const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic', 'video.list'],
         state,
@@ -742,10 +789,10 @@ passport.use(
     'tikTok_strategy_add_channel',
     new tikTokStrategy(
         tikTokCredentials('profile/callback/addChannel/tikTok'),
-        async (req, accessToken, profile, cb) => {
+        async (req, accessToken, refreshToken, profile, cb) => {
             //console.log('profile accessToken')
-            console.log('from callback', accessToken, profile, cb)
-            //addTikTokChannel(req, accessToken, profile, cb)
+            //  console.log('from wael', {accessToken, profile, cb})
+            addTikTokChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
 )
@@ -753,7 +800,7 @@ passport.use(
 router.get(
     '/callback/addChannel/tikTok',
     (req, res, next) => {
-        console.log('res form /callback/addChannel/tikTok', res)
+        // console.log('res form /callback/addChannel/tikTok', res)
         // console.log('form get c ',res);
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
@@ -764,11 +811,15 @@ router.get(
     },
     async (req, response) => {
         try {
-            console.log('response form async /callback/addChannel/t', response)
+            //console.log('response form async /callback/addChannel/t', response)
 
-            // console.log('res',response)
             redirect = req.query.state.split('|')[1]
-            let message = req.authInfo.message
+
+            if (req.authInfo.message) {
+                message = req.authInfo.message
+            } else {
+                message = 'account_linked_with_success'
+            }
             response.redirect(
                 process.env.BASED_URL +
                     redirect +
