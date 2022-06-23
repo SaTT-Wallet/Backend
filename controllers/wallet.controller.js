@@ -782,7 +782,7 @@ exports.getQuote = async (req, res) => {
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
 
-        if (ip) ip = ip.split(':')[3]
+       // if (ip) ip = ip.split(':')[3]
         if (!ip) {
             ip = '41.230.35.91'
         }
@@ -824,7 +824,7 @@ exports.payementRequest = async (req, res) => {
         if (req.user.hasWallet == true) {
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-            if (ip) ip = ip.split(':')[3]
+          //  if (ip) ip = ip.split(':')[3]
             let payment_id = randomUUID()
             const uiad = process.env.UIAD
             let user_agent = req.headers['user-agent']
