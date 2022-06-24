@@ -661,12 +661,17 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
 exports.instagram = async (UserId, link) => {
     try {
         let idPost = link.idPost
+        if(link.idPost === "CV2gD8NKqwP"){
+            a=5
+        }
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         let instagramUserName = link.instagramUserName
         var fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
         console.log('fbPage', fbPage)
+
+        
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
