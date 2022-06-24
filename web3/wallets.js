@@ -368,6 +368,37 @@ exports.sendBep20 = async (token, to, amount, credentials) => {
     }
 }
 
+sendBep20 = async (token, to, amount, credentials) => {
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            'BEP20'
+        )
+
+        var gasPrice = await contract.getGasPrice()
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
 exports.sendPolygon = async (token, to, amount, credentials) => {
     try {
         var contract = await this.getTokenContractByToken(
@@ -398,6 +429,35 @@ exports.sendPolygon = async (token, to, amount, credentials) => {
     }
 }
 
+sendPolygon = async (token, to, amount, credentials) => {
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            'POLYGON'
+        )
+        var gasPrice = await contract.getGasPrice()
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
 exports.getListCryptoByUid = async (req, res) => {
     let id = req.user._id
     let crypto = await this.getPrices()
@@ -688,6 +748,40 @@ exports.getTokenContractByToken = async (token, credentials, network) => {
 }
 
 exports.transfer = async (token, to, amount, credentials) => {
+    console.log({ token, to, amount, credentials })
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            'ERC20'
+        )
+
+        var gasPrice = await contract.getGasPrice()
+        //   var gas = 600000
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+transfer = async (token, to, amount, credentials) => {
     try {
         var contract = await this.getTokenContractByToken(
             token,
@@ -825,7 +919,65 @@ exports.transferNativeBNB = async (to, amount, credentials) => {
     }
 }
 
+transferNativeBNB = async (to, amount, credentials) => {
+    var gasPrice = await credentials.Web3BEP20.eth.getGasPrice()
+
+    //  var gas = 21000
+    var gas =
+        (await credentials.Web3BEP20.eth.estimateGas({ to })) *
+        process.env.GAS_MULTIPLAyer
+    try {
+        var receipt = await credentials.Web3BEP20.eth
+            .sendTransaction({
+                from: credentials.address,
+                value: amount,
+                gas: gas,
+                to: to,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', (transactionHash) => {})
+        return {
+            transactionHash: receipt.transactionHash,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
 exports.transferEther = async (to, amount, credentials) => {
+    if (!credentials.Web3ETH.utils.isAddress(to))
+        return { error: 'Invalid address' }
+    try {
+        var gasPrice = await credentials.Web3ETH.eth.getGasPrice()
+
+        // var gas = 21000
+        var gas =
+            (await credentials.Web3ETH.eth.estimateGas({ to })) *
+            process.env.GAS_MULTIPLAyer
+        var receipt = await credentials.Web3ETH.eth
+            .sendTransaction({
+                from: credentials.address,
+                value: amount,
+                gas: gas,
+                to: to,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', function (hash) {})
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+transferEther = async (to, amount, credentials) => {
     if (!credentials.Web3ETH.utils.isAddress(to))
         return { error: 'Invalid address' }
     try {
@@ -972,4 +1124,28 @@ exports.FilterTransactionsByHash = (
         }
     })
     return transaction_content.concat(erc20_or_bep20_transaction_content)
+}
+
+exports.transferTokens = function ({
+    from,
+    to,
+    amount,
+    tokenSymbol,
+    tokenAddress,
+    network,
+    credentials,
+}) {
+    if (tokenSymbol === 'BTC') {
+        return sendBtc(to, amount, credentials)
+    } else if (tokenSymbol === 'ETH' && network === 'ERC20') {
+        return transferEther(to, amount, credentials)
+    } else if (tokenSymbol === 'BNB' && network === 'BEP20') {
+        return transferNativeBNB(to, amount, credentials)
+    } else if (network === 'BEP20') {
+        return sendBep20(tokenAddress, to, amount, credentials)
+    } else if (network === 'POLYGON') {
+        return sendPolygon(tokenAddress, to, amount, credentials)
+    } else {
+        return transfer(tokenAddress, to, amount, credentials)
+    }
 }

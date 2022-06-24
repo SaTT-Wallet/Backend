@@ -16,6 +16,7 @@ const {
     transfertBep20,
     mywallet,
     transfertErc20,
+    transferTokensController,
     transferPolygon,
     totalBalances,
     userBalance,
@@ -442,7 +443,7 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *          description: code,<br>error:"error"
  */
 router.post('/transfertEther', verifyAuth, transfertEther)
-
+router.post('/transferTokens', verifyAuth, transferTokensController)
 /**
  * @swagger
  * /wallet/getQuote:

@@ -40,6 +40,7 @@ const {
     sendBep20,
     sendBtc,
     transferNativeBNB,
+    transferTokens,
     sendPolygon,
     transferEther,
     FilterTransactionsByHash,
@@ -460,6 +461,106 @@ exports.transfertBep20 = async (req, res) => {
                         amount,
                         currency: req.body.symbole,
                         network: 'BEP20',
+                        from: cred.address,
+                        transactionHash: ret.transactionHash,
+                    }
+                )
+            }
+        }
+    }
+}
+
+exports.transferTokensController = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            var to = req.body.to
+            var amount = req.body.amount
+            let network = req.body.network
+            let tokenSymbol = req.body.tokenSymbol
+            var cred = await unlock(req, res)
+            tokenAddress = !req.body.tokenAddress
+                ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
+                : req.body.tokenAddress
+
+            var result = await getAccount(req, res)
+
+            let wallets = {
+                bep20: cred.Web3BEP20,
+                erc20: cred.Web3ETH,
+                polygon: cred.Web3POLYGON,
+            }
+
+            let balance = await getBalance(
+                wallets[network],
+                tokenAddress,
+                result.address
+            )
+
+            if (['BNB', 'ETH', 'BTC'].includes(tokenSymbol.toUpperCase())) {
+                if (tokenSymbol.toUpperCase() === 'BNB') {
+                    balance = result.bnb_balance
+                } else if (tokenSymbol.toUpperCase() === 'ETH') {
+                    balance = result.ether_balance
+                } else {
+                    balance = result.btc_balance
+                }
+            }
+            console.log(balance)
+
+            if (new Big(amount).gt(new Big(balance))) {
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'not_enough_budget'
+                )
+            }
+
+            var ret = await transferTokens({
+                from: result.address,
+                to,
+                amount,
+                tokenSymbol: tokenSymbol.toUpperCase(),
+                tokenAddress,
+                network: network.toUpperCase(),
+                credentials: cred,
+            })
+
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
+            }
+
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Account not found'
+            )
+        }
+    } catch (err) {
+        console.log(err)
+    } finally {
+        cred && lock(cred)
+        if (ret && ret.transactionHash) {
+            await notificationManager(req.user._id, 'transfer_event', {
+                amount,
+                currency: req.body.tokenSymbol,
+                network: req.body.network,
+                to: req.body.to,
+                transactionHash: ret.transactionHash,
+            })
+            const wallet = await Wallet.findOne(
+                { 'keystore.address': to.substring(2) },
+                { UserId: 1 }
+            )
+            if (wallet) {
+                await notificationManager(
+                    wallet.UserId,
+                    'receive_transfer_event',
+                    {
+                        amount,
+                        currency: req.body.tokenSymbol,
+                        network: req.body.network,
                         from: cred.address,
                         transactionHash: ret.transactionHash,
                     }
