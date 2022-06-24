@@ -661,9 +661,7 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
 exports.instagram = async (UserId, link) => {
     try {
         let idPost = link.idPost
-        if(link.idPost === "CV2gD8NKqwP"){
-            a=5
-        }
+     
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         let instagramUserName = link.instagramUserName
         var fbPage = await FbPage.findOne({
@@ -671,20 +669,25 @@ exports.instagram = async (UserId, link) => {
         })
         console.log('fbPage', fbPage)
 
-        
+    
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
             console.log('fbProfile', fbProfile)
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
+                var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
+                var resMediaAccessToken = await rp({
+                    uri: mediaGetNewAccessToken,
+                    json: true,
+                })
                 var media =
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
                     '/' +
                     instagram_id +
                     '/media?fields=like_count,shortcode,media_url&limit=50&access_token=' +
-                    accessToken
+                    resMediaAccessToken.access_token
                 var resMedia = await rp({ uri: media, json: true })
                 var data = resMedia.data
                 for (let i = 0; i < data.length; i++) {
@@ -697,7 +700,7 @@ exports.instagram = async (UserId, link) => {
                             '/' +
                             data[i].id +
                             '/insights?metric=impressions&access_token=' +
-                            accessToken
+                            resMediaAccessToken.access_token
                         var resMediaViews = await rp({
                             uri: mediaViews,
                             json: true,
