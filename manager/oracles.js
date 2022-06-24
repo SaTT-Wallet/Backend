@@ -673,13 +673,18 @@ exports.instagram = async (UserId, link) => {
             console.log('fbProfile', fbProfile)
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
+                var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
+                var resMediaAccessToken = await rp({
+                    uri: mediaGetNewAccessToken,
+                    json: true,
+                })
                 var media =
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
                     '/' +
                     instagram_id +
                     '/media?fields=like_count,shortcode,media_url&limit=50&access_token=' +
-                    accessToken
+                    resMediaAccessToken.access_token
                 var resMedia = await rp({ uri: media, json: true })
                 var data = resMedia.data
                 for (let i = 0; i < data.length; i++) {
