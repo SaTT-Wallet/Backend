@@ -72,6 +72,7 @@ module.exports.updateStat = async () => {
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
 
+
     
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
@@ -101,7 +102,6 @@ module.exports.updateStat = async () => {
                 if (event.status == 'rejected') return
                 event.campaign = campaign
                 let userWallet =
-                    event.status &&
                     // !campaign.isFinished &&
                     (await Wallet.findOne(
                         {
@@ -155,7 +155,8 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-    })
+    
+})
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
