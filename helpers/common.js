@@ -40,6 +40,7 @@ const {
     getReward,
     getButtonStatus,
 } = require('../manager/oracles')
+const { TikTokProfile } = require('../model')
 
 /*
 	@description: Script that change campaign and links statistics
@@ -70,6 +71,8 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
+
+    
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -83,6 +86,7 @@ module.exports.updateStat = async () => {
             }
         )
 
+
         if (campaign) {
             var endDate = Date.parse(campaign?.endDate)
                 ? new Date(Date.parse(campaign?.endDate))
@@ -94,7 +98,7 @@ module.exports.updateStat = async () => {
                 if (campaign && campaign.funds)
                     campaign.remaining = campaign.funds[1] || campaign.cost
 
-                if (!event.status || event.status == 'rejected') return
+                if (event.status == 'rejected') return
                 event.campaign = campaign
                 let userWallet =
                     event.status &&
@@ -114,14 +118,17 @@ module.exports.updateStat = async () => {
                     (await LinkedinProfile.findOne({
                         userId: userWallet.UserId,
                     }))
+                    if ( event.typeSN == '6') {
+                        var tiktokProfile = await TikTokProfile.findOne({ userId: userWallet.UserId })
+                    }
                 let socialOracle =
-                    event.status &&
                     // !campaign.isFinished &&
                     (await getPromApplyStats(
                         findBountyOracle(event.typeSN),
                         event,
                         userWallet.UserId,
-                        linkedinProfile
+                        linkedinProfile,
+                        tiktokProfile
                     ))
 
                 if (socialOracle === 'indisponible')
