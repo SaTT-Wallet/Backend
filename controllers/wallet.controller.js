@@ -115,10 +115,11 @@ exports.exportWalletInfos = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             let ret = await exportWalletInfo(req, res)
+            let address = '0x' + ret.keystore.address
             if (!ret) {
                 return
             }
-            res.status(200).send(ret)
+            res.status(200).send({ keystore: ret, address })
         } else {
             responseHandler.makeResponseError(res, 204, 'Account not found')
         }
