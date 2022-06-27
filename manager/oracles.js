@@ -625,12 +625,14 @@ exports.youtube = async (idPost) => {
 exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
         var perf = { shares: 0, likes: 0, views: 0 }
+        let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
+        let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
         let url = config.linkedinStatsUrl(type, idPost, organization)
         const linkedinData = {
             url: url,
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                Authorization: 'Bearer ' + resAccessToken.access_token,
             },
             json: true,
         }
@@ -645,7 +647,7 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
                 url: config.linkedinUgcPostStats(idPost),
                 method: 'GET',
                 headers: {
-                    Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                    Authorization: 'Bearer ' + resAccessToken.access_token,
                 },
                 json: true,
             }
