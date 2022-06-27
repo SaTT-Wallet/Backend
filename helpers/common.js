@@ -71,85 +71,94 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
-        let campaign = await Campaigns.findOne(
-            { hash: event.id_campaign },
-            {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-                coverSrc: 0,
-                countries: 0,
-            }
-        )
-
-        if (campaign) {
-            var endDate = Date.parse(campaign?.endDate)
-                ? new Date(Date.parse(campaign?.endDate))
-                : new Date(+campaign?.endDate * 1000)
-
-            campaign.isFinished =
-                endDate < dateNow || campaign?.funds[1] === '0'
-            if (!campaign.isFinished) {
-                if (campaign && campaign.funds)
-                    campaign.remaining = campaign.funds[1] || campaign.cost
-
-                if (event.status == 'rejected') return
-                event.campaign = campaign
-                let userWallet =
-                    // !campaign.isFinished &&
-                    await Wallet.findOne(
-                        {
-                            'keystore.address': event.id_wallet
-                                .toLowerCase()
-                                .substring(2),
-                        },
-                        { UserId: 1, _id: 0 }
-                    )
-
-                let linkedinProfile =
-                    event.typeSN == '5' &&
-                    (await LinkedinProfile.findOne({
-                        userId: userWallet.UserId,
-                    }))
-                if (event.typeSN == '6') {
-                    var tiktokProfile = await TikTokProfile.findOne({
-                        userId: userWallet.UserId,
-                    })
+        if (
+            event.id_prom ==
+            '0x2947c1541101b9296fa3bbdfc9edd69ffb277540d27fee1684e9a382d9094889'
+        ) {
+            let campaign = await Campaigns.findOne(
+                { hash: event.id_campaign },
+                {
+                    logo: 0,
+                    resume: 0,
+                    description: 0,
+                    tags: 0,
+                    cover: 0,
+                    coverSrc: 0,
+                    countries: 0,
                 }
-                let socialOracle =
-                    // !campaign.isFinished &&
-                    await getPromApplyStats(
-                        findBountyOracle(event.typeSN),
-                        event,
-                        userWallet.UserId,
-                        linkedinProfile,
-                        tiktokProfile
-                    )
+            )
 
-                if (socialOracle === 'indisponible')
-                    event.status = 'indisponible'
-                event.shares = (socialOracle && socialOracle.shares) || '0'
-                event.likes = (socialOracle && socialOracle.likes) || '0'
-                let views = (socialOracle && socialOracle.views) || '0'
-                event.views = views === 'old' ? event.views : views
-                event.media_url = (socialOracle && socialOracle.media_url) || ''
-                event.oracle = findBountyOracle(event.typeSN)
+            if (campaign) {
+                var endDate = Date.parse(campaign?.endDate)
+                    ? new Date(Date.parse(campaign?.endDate))
+                    : new Date(+campaign?.endDate * 1000)
 
-                if (campaign.ratios.length && socialOracle) {
-                    event.totalToEarn = getTotalToEarn(event, campaign.ratios)
+                campaign.isFinished =
+                    endDate < dateNow || campaign?.funds[1] === '0'
+                if (!campaign.isFinished) {
+                    if (campaign && campaign.funds)
+                        campaign.remaining = campaign.funds[1] || campaign.cost
+
+                    if (event.status == 'rejected') return
+                    event.campaign = campaign
+                    let userWallet =
+                        // !campaign.isFinished &&
+                        await Wallet.findOne(
+                            {
+                                'keystore.address': event.id_wallet
+                                    .toLowerCase()
+                                    .substring(2),
+                            },
+                            { UserId: 1, _id: 0 }
+                        )
+
+                    let linkedinProfile =
+                        event.typeSN == '5' &&
+                        (await LinkedinProfile.findOne({
+                            userId: userWallet.UserId,
+                        }))
+                    if (event.typeSN == '6') {
+                        var tiktokProfile = await TikTokProfile.findOne({
+                            userId: userWallet.UserId,
+                        })
+                    }
+                    let socialOracle =
+                        // !campaign.isFinished &&
+                        await getPromApplyStats(
+                            findBountyOracle(event.typeSN),
+                            event,
+                            userWallet.UserId,
+                            linkedinProfile,
+                            tiktokProfile
+                        )
+
+                    if (socialOracle === 'indisponible')
+                        event.status = 'indisponible'
+                    event.shares = (socialOracle && socialOracle.shares) || '0'
+                    event.likes = (socialOracle && socialOracle.likes) || '0'
+                    let views = (socialOracle && socialOracle.views) || '0'
+                    event.views = views === 'old' ? event.views : views
+                    event.media_url =
+                        (socialOracle && socialOracle.media_url) || ''
+                    event.oracle = findBountyOracle(event.typeSN)
+
+                    if (campaign.ratios.length && socialOracle) {
+                        event.totalToEarn = getTotalToEarn(
+                            event,
+                            campaign.ratios
+                        )
+                    }
+
+                    if (campaign.bounties.length && socialOracle) {
+                        event.totalToEarn = getReward(event, campaign.bounties)
+                    }
+                    // if (campaign.isFinished) event.totalToEarn = 0
+
+                    if (campaign) event.type = getButtonStatus(event)
+                    delete event.campaign
+                    delete event.payedAmount
+                    await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
                 }
-
-                if (campaign.bounties.length && socialOracle) {
-                    event.totalToEarn = getReward(event, campaign.bounties)
-                }
-                // if (campaign.isFinished) event.totalToEarn = 0
-
-                if (campaign) event.type = getButtonStatus(event)
-                delete event.campaign
-                delete event.payedAmount
-                await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
     })
