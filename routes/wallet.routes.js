@@ -30,6 +30,7 @@ const {
     getTransactionHistory,
     bridge,
     balanceStat,
+    exportWalletInfos,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -586,6 +587,33 @@ router.post('/exportBtc', verifyAuth, exportBtc)
  *          description: code,<br>error:"error"
  */
 router.post('/exportETH', verifyAuth, exportEth)
+
+/**
+ * @swagger
+ * /wallet/exportWalletInfos:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export eth wallet.
+ *     description: user can download his ETH key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/exportWalletInfos', verifyAuth, exportWalletInfos)
 
 /**
  * @swagger
