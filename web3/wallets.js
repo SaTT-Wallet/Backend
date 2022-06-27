@@ -125,6 +125,17 @@ exports.exportkey = async (req, res) => {
     }
 }
 
+exports.exportWalletInfo = async (req, res) => {
+    let id = req.user._id
+    let account = await Wallet.findOne({ UserId: parseInt(id) })
+
+    if (account) {
+        return account
+    } else {
+        return 'Account not found'
+    }
+}
+
 exports.getAccount = async (req, res) => {
     let UserId = req.user._id
 
