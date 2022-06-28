@@ -7,6 +7,7 @@ const {
     web3UrlBep20,
     web3Url,
     web3PolygonUrl,
+    web3Tron,
     PolygonConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
@@ -57,6 +58,15 @@ exports.polygonConnexion = async () => {
         console.log(err.message ? err.message : err.error)
     }
 }
+exports.tronConnexion = async () => {
+      try {
+        let Web3 = require('web3')
+   return await new Web3(new Web3.providers.HttpProvider(web3Tron))
+    } catch (err) {
+     console.log(err.message ? err.message : err.error)
+   }
+    }
+
 exports.getContractByToken = async (token, credentials) => {
     try {
         let abiCampaign = Constants.campaign.abi
