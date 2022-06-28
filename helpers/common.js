@@ -71,9 +71,6 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
-
-
-    
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -86,7 +83,6 @@ module.exports.updateStat = async () => {
                 countries: 0,
             }
         )
-
 
         if (campaign) {
             var endDate = Date.parse(campaign?.endDate)
@@ -103,33 +99,34 @@ module.exports.updateStat = async () => {
                 event.campaign = campaign
                 let userWallet =
                     // !campaign.isFinished &&
-                    (await Wallet.findOne(
+                    await Wallet.findOne(
                         {
                             'keystore.address': event.id_wallet
                                 .toLowerCase()
                                 .substring(2),
                         },
                         { UserId: 1, _id: 0 }
-                    ))
+                    )
 
                 let linkedinProfile =
                     event.typeSN == '5' &&
-                    event.status &&
                     (await LinkedinProfile.findOne({
                         userId: userWallet.UserId,
                     }))
-                    if ( event.typeSN == '6') {
-                        var tiktokProfile = await TikTokProfile.findOne({ userId: userWallet.UserId })
-                    }
+                if (event.typeSN == '6') {
+                    var tiktokProfile = await TikTokProfile.findOne({
+                        userId: userWallet.UserId,
+                    })
+                }
                 let socialOracle =
                     // !campaign.isFinished &&
-                    (await getPromApplyStats(
+                    await getPromApplyStats(
                         findBountyOracle(event.typeSN),
                         event,
                         userWallet.UserId,
                         linkedinProfile,
                         tiktokProfile
-                    ))
+                    )
 
                 if (socialOracle === 'indisponible')
                     event.status = 'indisponible'
@@ -155,8 +152,7 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-    
-})
+    })
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
