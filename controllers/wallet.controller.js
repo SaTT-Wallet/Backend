@@ -45,6 +45,7 @@ const {
     transferEther,
     FilterTransactionsByHash,
     getTokenContractByToken,
+    exportWalletInfo,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -102,6 +103,28 @@ exports.exportEth = async (req, res) => {
     } catch (err) {
         console.log(err.message)
 
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportWalletInfos = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            let ret = await exportWalletInfo(req, res)
+            let address = '0x' + ret.keystore.address
+            if (!ret) {
+                return
+            }
+            res.status(200).send({ keystore: ret.keystore, address })
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -883,7 +906,7 @@ exports.getQuote = async (req, res) => {
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
 
-       // if (ip) ip = ip.split(':')[3]
+        // if (ip) ip = ip.split(':')[3]
         if (!ip) {
             ip = '41.230.35.91'
         }
@@ -925,7 +948,7 @@ exports.payementRequest = async (req, res) => {
         if (req.user.hasWallet == true) {
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-          //  if (ip) ip = ip.split(':')[3]
+            //  if (ip) ip = ip.split(':')[3]
             let payment_id = randomUUID()
             const uiad = process.env.UIAD
             let user_agent = req.headers['user-agent']
