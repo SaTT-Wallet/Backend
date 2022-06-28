@@ -81,6 +81,7 @@ exports.payementRequest = async (payment) => {
 let sattContract,
     sattBEP20CONTRACT,
     sattPOLYGONCONTRACT,
+    sattTRONCONTRACT
     daiContract,
     busdContract,
     usdtContract
@@ -89,6 +90,8 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattContract = process.env.TOKEN_SATT_CONTRACT_TESTNET
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
     sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT_TESTNET
+    sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
+
     daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
     usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
     busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
@@ -96,6 +99,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattContract = process.env.TOKEN_SATT_CONTRACT
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
     sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT
+    sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
     daiContract = process.env.TOKEN_DAI_CONTRACT
     usdtContract = process.env.TOKEN_USDT_CONTRACT
     busdContract = process.env.TOKEN_BUSD_CONTRACT
@@ -217,6 +221,15 @@ let Tokens = {
         contract: process.env.TOKEN_MATIC_CONTRACT,
         dicimal: process.env.TOKEN_MATIC_DICIMAL,
         network: process.env.TOKEN_MATIC_NETWORK,
+    },
+    SATT_TRON: {
+        name: process.env.TOKEN_SATT_TRON_NAME,
+        symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
+        undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_TRON_UNDERNAME2,
+        contract: sattTRONCONTRACT,
+        dicimal: process.env.TOKEN_SATT_TRON_DICIMAL,
+        network: process.env.TOKEN_SATT_TRON_NETWORK,
     },
 }
 
