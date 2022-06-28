@@ -3760,6 +3760,7 @@ let polygonTokensCampaign = [PolygonConstants.token.satt.toLowerCase()]
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3PolygonUrl = process.env.WEB3_URL_POLYGON
 exports.web3Url = process.env.WEB3_URL
+exports.web3Tron = process.env.WEB3_URL_TRON
 
 module.exports.Constants = Constants
 module.exports.PolygonConstants = PolygonConstants
