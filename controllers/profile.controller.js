@@ -29,6 +29,7 @@ const {
     verifyLinkedin,
     verifytiktok,
     getFacebookPages,
+    updateFacebookPages,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -943,7 +944,7 @@ module.exports.verifyLink = async (req, response) => {
         switch (typeSN) {
             case '1':
                 let fbProfile = await FbProfile.findOne({ UserId: userId })
-                await getFacebookPages(userId, fbProfile.accessToken, false)
+                await updateFacebookPages(userId, fbProfile.accessToken, false)
                 let fbPage = await FbPage.findOne({
                     UserId: userId,
                     username: idUser,
