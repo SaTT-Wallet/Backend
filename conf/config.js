@@ -81,7 +81,7 @@ exports.payementRequest = async (payment) => {
 let sattContract,
     sattBEP20CONTRACT,
     sattPOLYGONCONTRACT,
-    sattTRONCONTRACT
+    sattTRONCONTRACT,
     daiContract,
     busdContract,
     usdtContract
