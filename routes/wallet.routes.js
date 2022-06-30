@@ -11,6 +11,7 @@ const {
     transfertBNB,
     transfertBtc,
     gasPriceErc20,
+    gasPriceTron,
     checkWalletToken,
     addNewToken,
     transfertBep20,
