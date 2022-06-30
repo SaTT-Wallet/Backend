@@ -39,8 +39,9 @@ const {
     getTotalToEarn,
     getReward,
     getButtonStatus,
+    updateFacebookPages,
 } = require('../manager/oracles')
-const { TikTokProfile } = require('../model')
+const { TikTokProfile, FbProfile } = require('../model')
 
 /*
 	@description: Script that change campaign and links statistics
@@ -117,6 +118,16 @@ module.exports.updateStat = async () => {
                     var tiktokProfile = await TikTokProfile.findOne({
                         userId: userWallet.UserId,
                     })
+                }
+                if (event.typeSN == '1') {
+                    var facebookProfile = await FbProfile.findOne({
+                        userId: userWallet.UserId,
+                    })
+                    await updateFacebookPages(
+                        userWallet.UserId,
+                        facebookProfile.accessToken,
+                        false
+                    )
                 }
                 let socialOracle =
                     // !campaign.isFinished &&
