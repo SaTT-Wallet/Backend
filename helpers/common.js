@@ -35,12 +35,12 @@ const { campaignStatus } = require('../web3/campaigns')
 const {
     getPromApplyStats,
     findBountyOracle,
-    answerAbos,
     getTotalToEarn,
     getReward,
     getButtonStatus,
+    updateFacebookPages,
 } = require('../manager/oracles')
-const { TikTokProfile } = require('../model')
+const { TikTokProfile, FbProfile } = require('../model')
 
 /*
 	@description: Script that change campaign and links statistics
@@ -113,6 +113,17 @@ module.exports.updateStat = async () => {
                     (await LinkedinProfile.findOne({
                         userId: userWallet.UserId,
                     }))
+
+                if (event.typeSN == '1') {
+                    var facebookProfile = await FbProfile.findOne({
+                        userId: userWallet.UserId,
+                    })
+                    await updateFacebookPages(
+                        userWallet.UserId,
+                        facebookProfile.accessToken,
+                        false
+                    )
+                }
                 if (event.typeSN == '6') {
                     var tiktokProfile = await TikTokProfile.findOne({
                         userId: userWallet.UserId,
