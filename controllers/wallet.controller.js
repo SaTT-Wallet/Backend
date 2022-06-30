@@ -12,9 +12,10 @@ const {
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,
+    tronConnexion,
 } = require('../blockchainConnexion')
 
-const { configSendBox, PolygonApi } = require('../conf/config')
+const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -72,8 +73,6 @@ exports.exportBtc = async (req, res) => {
             if (!cred) return
 
             let ret = await exportkeyBtc(req, res)
-
-            console.log('ret', ret)
 
             res.status(200).send({ ret })
         } else {
@@ -207,6 +206,14 @@ exports.gasPriceErc20 = async (req, res) => {
         gasPrice: gasPrice / 1000000000,
     })
 }
+// exports.gasPriceTron = async (req, res) => {
+//     let Web3TRON = await tronConnexion()
+//     var gasPrice = await Web3TRON.eth.getGasPrice()
+
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice / 1000000000,
+//     })
+// }
 
 exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
@@ -528,7 +535,6 @@ exports.transferTokensController = async (req, res) => {
                     balance = result.btc_balance
                 }
             }
-            console.log(balance)
 
             if (new Big(amount).gt(new Big(balance))) {
                 return responseHandler.makeResponseError(
@@ -668,7 +674,15 @@ exports.addNewToken = async (req, res) => {
                 sn_users: { $in: [req.user._id] },
             })
 
-            if (tokenExist) {
+            defaultAddressList = []
+            for (const crypto in Tokens) {
+                defaultAddressList.push(Tokens[crypto].contract)
+            }
+
+            if (
+                tokenExist ||
+                defaultAddressList.indexOf(req.body.tokenAdress) >= 0
+            ) {
                 return responseHandler.makeResponseError(
                     res,
                     401,
