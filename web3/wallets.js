@@ -4,6 +4,7 @@ const {
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,
+    tronConnexion,
 } = require('../blockchainConnexion')
 var cache = require('memory-cache')
 
@@ -44,11 +45,15 @@ exports.unlock = async (req, res) => {
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         let Web3POLYGON = await polygonConnexion()
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
+        // let Web3TRON = await tronConnexion()
+        // Web3TRON.eth.accounts.wallet.decrypt([account.keystore], pass)
+
         return {
             address: '0x' + account.keystore.address,
             Web3ETH,
             Web3BEP20,
             Web3POLYGON,
+            // Web3TRON
         }
     } catch (err) {
         res.status(500).send({
@@ -146,10 +151,12 @@ exports.getAccount = async (req, res) => {
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
+        // let Web3TRON = await tronConnexion()
+
         var ether_balance = await Web3ETH.eth.getBalance(address)
         var bnb_balance = await Web3BEP20.eth.getBalance(address)
         var polygon_balance = await Web3POLYGON.eth.getBalance(address)
-
+        // var tron_balance = await Web3TRON.eth.getBalance(address)
         contractSatt = new Web3ETH.eth.Contract(
             Constants.token.abi,
             Constants.token.satt
@@ -162,6 +169,7 @@ exports.getAccount = async (req, res) => {
             ether_balance: ether_balance,
             bnb_balance: bnb_balance,
             matic_balance: polygon_balance,
+            // tron_balance:tron_balance,
             satt_balance: satt_balance ? satt_balance.toString() : 0,
             version: account.mnemo ? 2 : 1,
         }
@@ -520,6 +528,7 @@ exports.getListCryptoByUid = async (req, res) => {
             let Web3ETH = await erc20Connexion()
             let Web3BEP20 = await bep20Connexion()
             let Web3POLYGON = await polygonConnexion()
+            // let Web3TRON = await tronConnexion()
 
             let balance = {}
             if (network == 'ERC20') {
@@ -541,6 +550,13 @@ exports.getListCryptoByUid = async (req, res) => {
                     ret.address
                 )
             }
+            // else if (network == 'TRON') {
+            //     balance.amount = await this.getBalance(
+            //         Web3TRON,
+            //         token_info[T_name].contract,
+            //         ret.address
+            //     )
+            // }
 
             let key = T_name.split('_')[0]
 
@@ -581,6 +597,8 @@ exports.getListCryptoByUid = async (req, res) => {
         }
         delete ret.address
         delete ret.matic_balance
+        // delete ret.tron_balance
+
         for (const Amount in ret) {
             let crypto = {}
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
@@ -662,7 +680,6 @@ exports.getBalanceByUid = async (req, res) => {
 
         for (const T_name in token_info) {
             var network = token_info[T_name].network
-
             let Web3ETH = await erc20Connexion()
             let Web3BEP20 = await bep20Connexion()
 
@@ -689,6 +706,9 @@ exports.getBalanceByUid = async (req, res) => {
             ) {
                 key = 'SATT'
             }
+            // console.log("CryptoPrices",CryptoPrices)
+
+            // console.log("balance",balance)
             if (CryptoPrices) {
                 if (CryptoPrices.hasOwnProperty(key)) {
                     Total_balance +=
@@ -711,7 +731,6 @@ exports.getBalanceByUid = async (req, res) => {
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
 
             let decimal = tokenSymbol === 'BTC' ? 8 : 18
-
             Total_balance +=
                 this.filterAmount(
                     new Big((await ret[Amount]) * 1)
