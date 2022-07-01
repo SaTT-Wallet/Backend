@@ -1755,6 +1755,7 @@ module.exports.campaignStatistics = async (req, res) => {
             instagram: initStat(),
             youtube: initStat(),
             linkedin: initStat(),
+            tiktok: initStat(),
         }
         var links = await CampaignLink.find({ id_campaign: hash })
 
@@ -2071,6 +2072,8 @@ module.exports.statLinkCampaign = async (req, res) => {
             instagram: initStat(),
             youtube: initStat(),
             linkedin: initStat(),
+            tiktok: initStat(),
+            
         }
         let links = await CampaignLink.find({ id_campaign })
         let i = 0
