@@ -72,6 +72,7 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
+        if(event.id_prom === "0xec6d1dd5ed6e56841a47563c204a8eb8540e49bc81e8d9449e91339ab77a06d9"){
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -121,7 +122,7 @@ module.exports.updateStat = async () => {
                 }
                 if (event.typeSN == '1') {
                     var facebookProfile = await FbProfile.findOne({
-                        userId: userWallet.UserId,
+                        UserId: userWallet.UserId,
                     })
                     await updateFacebookPages(
                         userWallet.UserId,
@@ -163,7 +164,7 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-    })
+    }})
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
