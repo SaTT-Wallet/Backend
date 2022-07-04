@@ -12,9 +12,10 @@ const {
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,
+    tronConnexion,
 } = require('../blockchainConnexion')
 
-const { configSendBox, PolygonApi } = require('../conf/config')
+const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -45,6 +46,7 @@ const {
     transferEther,
     FilterTransactionsByHash,
     getTokenContractByToken,
+    exportWalletInfo,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -71,8 +73,6 @@ exports.exportBtc = async (req, res) => {
             if (!cred) return
 
             let ret = await exportkeyBtc(req, res)
-
-            console.log('ret', ret)
 
             res.status(200).send({ ret })
         } else {
@@ -102,6 +102,28 @@ exports.exportEth = async (req, res) => {
     } catch (err) {
         console.log(err.message)
 
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportWalletInfos = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            let ret = await exportWalletInfo(req, res)
+            let address = '0x' + ret.keystore.address
+            if (!ret) {
+                return
+            }
+            res.status(200).send({ keystore: ret.keystore, address })
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -184,6 +206,14 @@ exports.gasPriceErc20 = async (req, res) => {
         gasPrice: gasPrice / 1000000000,
     })
 }
+// exports.gasPriceTron = async (req, res) => {
+//     let Web3TRON = await tronConnexion()
+//     var gasPrice = await Web3TRON.eth.getGasPrice()
+
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice / 1000000000,
+//     })
+// }
 
 exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
@@ -505,7 +535,6 @@ exports.transferTokensController = async (req, res) => {
                     balance = result.btc_balance
                 }
             }
-            console.log(balance)
 
             if (new Big(amount).gt(new Big(balance))) {
                 return responseHandler.makeResponseError(
@@ -645,7 +674,15 @@ exports.addNewToken = async (req, res) => {
                 sn_users: { $in: [req.user._id] },
             })
 
-            if (tokenExist) {
+            defaultAddressList = []
+            for (const crypto in Tokens) {
+                defaultAddressList.push(Tokens[crypto].contract)
+            }
+
+            if (
+                tokenExist ||
+                defaultAddressList.indexOf(req.body.tokenAdress) >= 0
+            ) {
                 return responseHandler.makeResponseError(
                     res,
                     401,
@@ -883,7 +920,7 @@ exports.getQuote = async (req, res) => {
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
 
-       // if (ip) ip = ip.split(':')[3]
+        // if (ip) ip = ip.split(':')[3]
         if (!ip) {
             ip = '41.230.35.91'
         }
@@ -925,7 +962,7 @@ exports.payementRequest = async (req, res) => {
         if (req.user.hasWallet == true) {
             let ip =
                 req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-          //  if (ip) ip = ip.split(':')[3]
+            //  if (ip) ip = ip.split(':')[3]
             let payment_id = randomUUID()
             const uiad = process.env.UIAD
             let user_agent = req.headers['user-agent']

@@ -792,7 +792,7 @@ exports.addlinkedinChannel = async (
     let linkedinId = profile.id
     const linkedinData = config.linkedinPages(accessToken)
     let linkedinPages = await rp(linkedinData)
-    var linkedinProfile = { accessToken, userId, linkedinId }
+    var linkedinProfile = { accessToken, refreshToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
         for (let i = 0; i < linkedinPages.elements.length; i++) {
