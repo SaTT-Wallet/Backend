@@ -72,7 +72,6 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
- 
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -139,15 +138,16 @@ module.exports.updateStat = async () => {
                         linkedinProfile,
                         tiktokProfile
                     )
-
-                if (socialOracle === 'indisponible')
+                if (socialOracle === 'indisponible' ) 
                     event.status = 'indisponible'
-                event.shares = (socialOracle && socialOracle.shares) || '0'
+
+               if (socialOracle && socialOracle !== 'indisponible') 
+                {event.shares = (socialOracle && socialOracle.shares) || '0'
                 event.likes = (socialOracle && socialOracle.likes) || '0'
                 let views = (socialOracle && socialOracle.views) || '0'
                 event.views = views === 'old' ? event.views : views
                 event.media_url = (socialOracle && socialOracle.media_url) || ''
-                event.oracle = findBountyOracle(event.typeSN)
+                event.oracle = findBountyOracle(event.typeSN)}
 
                 if (campaign.ratios.length && socialOracle) {
                     event.totalToEarn = getTotalToEarn(event, campaign.ratios)
@@ -164,7 +164,7 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-    })
+      })
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
