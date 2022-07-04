@@ -14,6 +14,202 @@ let PolygonConstants = {
     token: { abi: [], satt: '' },
     campaign: { abi: [], address: '' },
 }
+let TronConstant = {
+    token: { abi: [], satt: '' },
+}
+TronConstant.token.abi = [
+    { inputs: [], stateMutability: 'nonpayable', type: 'constructor' },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'address',
+                name: 'tokenOwner',
+                type: 'address',
+            },
+            {
+                indexed: true,
+                internalType: 'address',
+                name: 'spender',
+                type: 'address',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'tokens',
+                type: 'uint256',
+            },
+        ],
+        name: 'Approval',
+        type: 'event',
+    },
+    {
+        anonymous: false,
+        inputs: [
+            {
+                indexed: true,
+                internalType: 'address',
+                name: 'from',
+                type: 'address',
+            },
+            {
+                indexed: true,
+                internalType: 'address',
+                name: 'to',
+                type: 'address',
+            },
+            {
+                indexed: false,
+                internalType: 'uint256',
+                name: 'value',
+                type: 'uint256',
+            },
+        ],
+        name: 'Transfer',
+        type: 'event',
+    },
+    { stateMutability: 'payable', type: 'fallback' },
+    {
+        inputs: [
+            { internalType: 'address', name: '', type: 'address' },
+            { internalType: 'address', name: '', type: 'address' },
+        ],
+        name: 'allowance',
+        outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            { internalType: 'address', name: '_spender', type: 'address' },
+            { internalType: 'uint256', name: '_value', type: 'uint256' },
+        ],
+        name: 'approve',
+        outputs: [{ internalType: 'bool', name: 'success', type: 'bool' }],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [{ internalType: 'address', name: '', type: 'address' }],
+        name: 'balanceOf',
+        outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'decimals',
+        outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'name',
+        outputs: [{ internalType: 'string', name: '', type: 'string' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'owner',
+        outputs: [
+            { internalType: 'address payable', name: '', type: 'address' },
+        ],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'symbol',
+        outputs: [{ internalType: 'string', name: '', type: 'string' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            { internalType: 'address', name: '_from', type: 'address' },
+            { internalType: 'uint256', name: '_value', type: 'uint256' },
+            { internalType: 'bytes', name: '_data', type: 'bytes' },
+        ],
+        name: 'tokenFallback',
+        outputs: [],
+        stateMutability: 'pure',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'totalSupply',
+        outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [
+            { internalType: 'address', name: 'to', type: 'address' },
+            { internalType: 'uint256', name: 'value', type: 'uint256' },
+        ],
+        name: 'transfer',
+        outputs: [{ internalType: 'bool', name: 'success', type: 'bool' }],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            { internalType: 'address', name: 'to', type: 'address' },
+            { internalType: 'uint256', name: 'value', type: 'uint256' },
+            { internalType: 'bytes', name: 'data', type: 'bytes' },
+        ],
+        name: 'transfer',
+        outputs: [{ internalType: 'bool', name: 'success', type: 'bool' }],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            { internalType: 'address', name: '_from', type: 'address' },
+            { internalType: 'address', name: '_to', type: 'address' },
+            { internalType: 'uint256', name: '_value', type: 'uint256' },
+        ],
+        name: 'transferFrom',
+        outputs: [{ internalType: 'bool', name: 'success', type: 'bool' }],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'address payable',
+                name: 'newOwner',
+                type: 'address',
+            },
+        ],
+        name: 'transferOwnership',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            { internalType: 'address', name: 'token', type: 'address' },
+            { internalType: 'address', name: 'to', type: 'address' },
+            { internalType: 'uint256', name: 'val', type: 'uint256' },
+        ],
+        name: 'transferToken',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [],
+        name: 'withdraw',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    { stateMutability: 'payable', type: 'receive' },
+]
 Constants.token.abi = [
     {
         constant: true,
@@ -3517,6 +3713,7 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_MAINNET_POLYGON
+    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_MAINNET
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET
@@ -3543,6 +3740,7 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_TESTNET_POLYGON
+    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_TESTNET
 }
 
 let erc20TokenCampaigns = [
@@ -3558,13 +3756,15 @@ let bep20TokenCampaigns = [
 
 let polygonTokensCampaign = [PolygonConstants.token.satt.toLowerCase()]
 
+
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3PolygonUrl = process.env.WEB3_URL_POLYGON
 exports.web3Url = process.env.WEB3_URL
+exports.web3Tron = process.env.WEB3_URL_TRON
 
 module.exports.Constants = Constants
 module.exports.PolygonConstants = PolygonConstants
-
+module.exports.TronConstant = TronConstant
 module.exports.erc20TokenCampaigns = erc20TokenCampaigns
 module.exports.bep20TokenCampaigns = bep20TokenCampaigns
 module.exports.polygonTokensCampaign = polygonTokensCampaign

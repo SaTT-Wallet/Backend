@@ -35,12 +35,12 @@ const { campaignStatus } = require('../web3/campaigns')
 const {
     getPromApplyStats,
     findBountyOracle,
-    answerAbos,
     getTotalToEarn,
     getReward,
     getButtonStatus,
+    updateFacebookPages,
 } = require('../manager/oracles')
-const { TikTokProfile } = require('../model')
+const { TikTokProfile, FbProfile } = require('../model')
 
 /*
 	@description: Script that change campaign and links statistics
@@ -71,9 +71,6 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
-
-
-    
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -86,7 +83,6 @@ module.exports.updateStat = async () => {
                 countries: 0,
             }
         )
-
 
         if (campaign) {
             var endDate = Date.parse(campaign?.endDate)
@@ -103,42 +99,57 @@ module.exports.updateStat = async () => {
                 event.campaign = campaign
                 let userWallet =
                     // !campaign.isFinished &&
-                    (await Wallet.findOne(
+                    await Wallet.findOne(
                         {
                             'keystore.address': event.id_wallet
                                 .toLowerCase()
                                 .substring(2),
                         },
                         { UserId: 1, _id: 0 }
-                    ))
+                    )
 
                 let linkedinProfile =
                     event.typeSN == '5' &&
-                    event.status &&
                     (await LinkedinProfile.findOne({
                         userId: userWallet.UserId,
                     }))
-                    if ( event.typeSN == '6') {
-                        var tiktokProfile = await TikTokProfile.findOne({ userId: userWallet.UserId })
-                    }
+
+                if (event.typeSN == '1') {
+                    var facebookProfile = await FbProfile.findOne({
+                        userId: userWallet.UserId,
+                    })
+                    await updateFacebookPages(
+                        userWallet.UserId,
+                        facebookProfile.accessToken,
+                        false
+                    )
+                }
+                if (event.typeSN == '6') {
+                    var tiktokProfile = await TikTokProfile.findOne({
+                        userId: userWallet.UserId,
+                    })
+                }
                 let socialOracle =
                     // !campaign.isFinished &&
-                    (await getPromApplyStats(
+                    await getPromApplyStats(
                         findBountyOracle(event.typeSN),
                         event,
                         userWallet.UserId,
                         linkedinProfile,
                         tiktokProfile
-                    ))
+                    )
 
                 if (socialOracle === 'indisponible')
                     event.status = 'indisponible'
-                event.shares = (socialOracle && socialOracle.shares) || '0'
+
+                    if (socialOracle && socialOracle !== 'indisponible') 
+
+             {   event.shares = (socialOracle && socialOracle.shares) || '0'
                 event.likes = (socialOracle && socialOracle.likes) || '0'
                 let views = (socialOracle && socialOracle.views) || '0'
                 event.views = views === 'old' ? event.views : views
                 event.media_url = (socialOracle && socialOracle.media_url) || ''
-                event.oracle = findBountyOracle(event.typeSN)
+                event.oracle = findBountyOracle(event.typeSN)}
 
                 if (campaign.ratios.length && socialOracle) {
                     event.totalToEarn = getTotalToEarn(event, campaign.ratios)
@@ -155,8 +166,7 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-    
-})
+    })
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
