@@ -18,6 +18,7 @@ const linkedinProfileSchema = mongoose.Schema(
                 photo: { type: String },
             },
         ],
+        refreshToken: { type: String },
     },
 
     {

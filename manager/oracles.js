@@ -625,12 +625,14 @@ exports.youtube = async (idPost) => {
 exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
         var perf = { shares: 0, likes: 0, views: 0 }
+        let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
+        let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
         let url = config.linkedinStatsUrl(type, idPost, organization)
         const linkedinData = {
             url: url,
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                Authorization: 'Bearer ' + resAccessToken.access_token,
             },
             json: true,
         }
@@ -645,7 +647,7 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
                 url: config.linkedinUgcPostStats(idPost),
                 method: 'GET',
                 headers: {
-                    Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                    Authorization: 'Bearer ' + resAccessToken.access_token,
                 },
                 json: true,
             }
@@ -661,7 +663,7 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
 exports.instagram = async (UserId, link) => {
     try {
         let idPost = link.idPost
-     
+
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         let instagramUserName = link.instagramUserName
         var fbPage = await FbPage.findOne({
@@ -669,7 +671,6 @@ exports.instagram = async (UserId, link) => {
         })
         console.log('fbPage', fbPage)
 
-    
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
@@ -1139,7 +1140,62 @@ exports.answerCall = async (opts) => {
         console.log(error.message)
     }
 }
+exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
+    try {
+        var instagram_id = false
+        var accountsUrl =
+            'https://graph.facebook.com/' +
+            process.env.FB_GRAPH_VERSION +
+            '/me/accounts?fields=instagram_business_account,access_token,username,name,picture,fan_count&access_token=' +
+            accessToken
+        var res = await rp({ uri: accountsUrl, json: true })
 
+        if (res.data.length === 0) {
+            return
+        } else {
+            while (true) {
+                for (var i = 0; i < res.data.length; i++) {
+                    let page = {
+                        UserId: UserId,
+                        username: res.data[i].username,
+                        token: res.data[i].access_token,
+                        picture: res.data[i].picture.data.url,
+                        name: res.data[i].name,
+                        subscribers: res.data[i].fan_count,
+                    }
+
+                    if (res.data[i].instagram_business_account) {
+                        if (!isInsta) {
+                            isInsta = true
+                        }
+                        instagram_id = res.data[i].instagram_business_account.id
+                        page.instagram_id = instagram_id
+                        var media =
+                            'https://graph.facebook.com/' +
+                            process.env.FB_GRAPH_VERSION +
+                            '/' +
+                            instagram_id +
+                            '?fields=username&access_token=' +
+                            accessToken
+                        var resMedia = await rp({ uri: media, json: true })
+                        page.instagram_username = resMedia.username
+                    }
+                    await FbPage.updateOne(
+                        { id: res.data[i].id, UserId },
+                        { $set: page },
+                        { upsert: true }
+                    )
+                }
+                if (!res.paging || !res.paging.next) {
+                    break
+                }
+                res = await rp({ uri: res.paging.next, json: true })
+            }
+        }
+    } catch (e) {
+        console.log({ message: e.message })
+    }
+}
 exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
     try {
         let message = 'account_linked_with_success'
