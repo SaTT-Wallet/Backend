@@ -836,7 +836,7 @@ exports.tiktok = async (tiktokProfile, idPost) => {
             views: videoInfoResponse.data.videos[0].view_count,
         }
     } catch (error) {
-        console.loge(error)
+        console.log(error)
     }
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
