@@ -23,7 +23,7 @@ const {
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation } = require('../helpers/utils')
-const { getPrices } = require('../web3/wallets')
+const { getPrices, getAccount } = require('../web3/wallets')
 const {
     fundCampaign,
     getTransactionAmount,
@@ -38,13 +38,13 @@ const { mongoConnection, basicAtt } = require('../conf/config')
 const {
     unlock,
     createPerformanceCampaign,
-    getAccount,
     lock,
     unlockBsc,
     bep20Allow,
     lockBSC,
     bep20Approve,
     polygonApprove,
+    bttApprove,
     lockERC20,
     erc20Allow,
     erc20Approve,
@@ -146,6 +146,7 @@ const storage = new GridFsStorage({
 })
 
 module.exports.upload = multer({ storage }).array('file')
+
 module.exports.launchCampaign = async (req, res) => {
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
@@ -1458,6 +1459,34 @@ exports.getFunds = async (req, res) => {
                 }
             )
         }
+    }
+}
+
+exports.bttApproval = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res)
+        console.log('account', account)
+        let allowance = await bttApprove(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
     }
 }
 

@@ -5,6 +5,7 @@ const {
     bep20Approval,
     erc20Approval,
     polygonApproval,
+    bttApproval,
     campaignDetails,
     campaigns,
     launchCampaign,
@@ -36,6 +37,35 @@ const {
     polygonAllow,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
+
+/**
+ * @swagger
+ * /campaign/btt/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: BTT aprroval
+ *     description: Approve the smart contract BTT to interact with user wallet
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/btt/approval', verifyAuth, bttApproval)
 
 /**
  * @swagger
