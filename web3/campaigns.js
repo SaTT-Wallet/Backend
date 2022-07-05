@@ -7,6 +7,7 @@ const {
     getPromContract,
     getContractCampaigns,
     polygonConnexion,
+    bttConnexion,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const')
@@ -247,6 +248,17 @@ exports.createBountiesCampaign = async (
             code: 500,
             error: err.message ? err.message : err.error,
         })
+    }
+}
+
+exports.bttApprove = async (token, address, spender) => {
+    try {
+        let Web3Btt = await bttConnexion()
+        var contract = new Web3Btt.eth.Contract(Constants.token.abi, token)
+        var amount = await contract.methods.allowance(address, spender).call()
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
     }
 }
 
