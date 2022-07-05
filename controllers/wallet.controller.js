@@ -12,6 +12,7 @@ const {
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,
+    bttConnexion,
     tronConnexion,
 } = require('../blockchainConnexion')
 
@@ -47,6 +48,7 @@ const {
     FilterTransactionsByHash,
     getTokenContractByToken,
     exportWalletInfo,
+    sendBtt,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -206,6 +208,16 @@ exports.gasPriceErc20 = async (req, res) => {
         gasPrice: gasPrice / 1000000000,
     })
 }
+
+exports.gasPriceBtt = async (req, res) => {
+    let Web3ETH = await bttConnexion()
+
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
+}
+
 // exports.gasPriceTron = async (req, res) => {
 //     let Web3TRON = await tronConnexion()
 //     var gasPrice = await Web3TRON.eth.getGasPrice()
@@ -499,7 +511,76 @@ exports.transfertBep20 = async (req, res) => {
         }
     }
 }
+exports.transfertBtt = async (req, res) => {
+    try {
+        if (req.user.hasWallet == true) {
+            var to = req.body.to
+            var amount = req.body.amount
+            var cred = await unlock(req, res)
+            tokenBTT = req.body.token
 
+            var result = await getAccount(req, res)
+
+            let balance = await getBalance(
+                cred.web3UrlBTT,
+                tokenBTT,
+                result.address
+            )
+
+            if (new Big(amount).gt(new Big(balance))) {
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'not_enough_budget'
+                )
+            }
+
+            var ret = await sendBtt(tokenBTT, to, amount, cred)
+
+            if (ret.error) {
+                return responseHandler.makeResponseError(res, 402, ret.error)
+            }
+
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Account not found'
+            )
+        }
+    } catch (err) {
+        console.log(err)
+    } finally {
+        cred && lockBSC(cred)
+        if (ret && ret.transactionHash) {
+            await notificationManager(req.user._id, 'transfer_event', {
+                amount,
+                currency: req.body.symbole,
+                network: 'BEP20',
+                to: req.body.to,
+                transactionHash: ret.transactionHash,
+            })
+            const wallet = await Wallet.findOne(
+                { 'keystore.address': to.substring(2) },
+                { UserId: 1 }
+            )
+            if (wallet) {
+                await notificationManager(
+                    wallet.UserId,
+                    'receive_transfer_event',
+                    {
+                        amount,
+                        currency: req.body.symbole,
+                        network: 'BEP20',
+                        from: cred.address,
+                        transactionHash: ret.transactionHash,
+                    }
+                )
+            }
+        }
+    }
+}
 exports.transferTokensController = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
@@ -518,6 +599,7 @@ exports.transferTokensController = async (req, res) => {
                 bep20: cred.Web3BEP20,
                 erc20: cred.Web3ETH,
                 polygon: cred.Web3POLYGON,
+                BTT: cred.web3UrlBTT,
             }
 
             let balance = await getBalance(
@@ -526,11 +608,15 @@ exports.transferTokensController = async (req, res) => {
                 result.address
             )
 
-            if (['BNB', 'ETH', 'BTC'].includes(tokenSymbol.toUpperCase())) {
+            if (
+                ['BNB', 'ETH', 'BTC', 'BTT'].includes(tokenSymbol.toUpperCase())
+            ) {
                 if (tokenSymbol.toUpperCase() === 'BNB') {
                     balance = result.bnb_balance
                 } else if (tokenSymbol.toUpperCase() === 'ETH') {
                     balance = result.ether_balance
+                } else if (tokenSymbol.toUpperCase() === 'BTT') {
+                    balance = result.btt_balance
                 } else {
                     balance = result.btc_balance
                 }
