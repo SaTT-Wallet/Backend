@@ -6,6 +6,7 @@ const {
     erc20Approval,
     polygonApproval,
     bttApproval,
+    bttAllow,
     campaignDetails,
     campaigns,
     launchCampaign,
@@ -66,6 +67,39 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *          description: error:"error"
  */
 router.post('/btt/approval', verifyAuth, bttApproval)
+
+/**
+ * @swagger
+ * /campaign/BTT/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: BTT allow
+ *     description: Allow user wallet to interact the smart contract BTT
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaignAddress:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/btt/allow', verifyAuth, bttAllow)
 
 /**
  * @swagger

@@ -32,11 +32,12 @@ const {
     lockPolygon,
 } = require('../web3/campaigns')
 
+const { unlock } = require('../web3/wallets')
+
 const { v4: uuidv4 } = require('uuid')
 const { mongoConnection, basicAtt } = require('../conf/config')
 
 const {
-    unlock,
     createPerformanceCampaign,
     lock,
     unlockBsc,
@@ -45,6 +46,7 @@ const {
     bep20Approve,
     polygonApprove,
     bttApprove,
+    bttAllow,
     lockERC20,
     erc20Allow,
     erc20Approve,
@@ -1467,7 +1469,6 @@ exports.bttApproval = async (req, res) => {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
         let account = await getAccount(req, res)
-        console.log('account', account)
         let allowance = await bttApprove(
             tokenAddress,
             account.address,
@@ -1487,6 +1488,37 @@ exports.bttApproval = async (req, res) => {
             err.message ? err.message : err.error,
             false
         )
+    }
+}
+
+exports.bttAllow = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let polygonToken = req.body.tokenAddress
+        var cred = await unlock(req, res)
+        if (!cred) return
+
+        let ret = await bttAllow(
+            polygonToken,
+            cred,
+            campaignAddress,
+            amount,
+            res
+        )
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lock(cred)
     }
 }
 
