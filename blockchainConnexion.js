@@ -5,6 +5,7 @@ const {
     bep20TokenCampaigns,
     polygonTokensCampaign,
     web3UrlBep20,
+    web3UrlBTT,
     web3Url,
     web3PolygonUrl,
     web3Tron,
@@ -58,6 +59,15 @@ exports.polygonConnexion = async () => {
         console.log(err.message ? err.message : err.error)
     }
 }
+exports.bttConnexion = async () => {
+    try {
+        let Web3 = require('web3')
+        return new Web3(new Web3.providers.HttpProvider(web3UrlBTT, options))
+    } catch (err) {
+        console.log(err.message ? err.message : err.error)
+    }
+}
+
 // exports.tronConnexion = async () => {
 //       try {
 //         let Web3 = require('web3')
