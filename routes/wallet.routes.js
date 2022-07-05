@@ -22,6 +22,7 @@ const {
     totalBalances,
     userBalance,
     gasPriceBep20,
+    gasPriceBtt,
     gasPricePolygon,
     cryptoDetails,
     getMnemo,
@@ -100,6 +101,25 @@ router.get('/userBalance', verifyAuth, userBalance)
  */
 
 router.get('/Bep20GasPrice', gasPriceBep20)
+
+/**
+ * @swagger
+ * /wallet/BttGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get bnb gas price
+ *     description: get btt gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/BttGasPrice', gasPriceBtt)
 
 /**
  * @swagger
@@ -445,6 +465,45 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *          description: code,<br>error:"error"
  */
 router.post('/transfertEther', verifyAuth, transfertEther)
+
+/**
+ * @swagger
+ * /wallet/transferTokens:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfer ALL TOKENS.
+ *     description: transfer BTT <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               from:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               tokenSymbol:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *               network:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget" /"wrong password"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
 router.post('/transferTokens', verifyAuth, transferTokensController)
 /**
  * @swagger
