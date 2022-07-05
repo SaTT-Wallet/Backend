@@ -856,7 +856,7 @@ module.exports.changeEmail = async (req, res) => {
             const code = Math.floor(100000 + Math.random() * 900000)
             newEmail = {}
             newEmail.email = email
-            newEmail.expiring = Date.now() + 3600 * 20
+            newEmail.expiring = Date.now() + 3600 * 20 * 5
             newEmail.code = code
 
             const result = await User.updateOne(
