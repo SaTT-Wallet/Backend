@@ -1118,6 +1118,10 @@ exports.answerCall = async (opts) => {
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
+        opts.credentials.web3UrlBTT.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
         var gasPrice = await contract.getGasPrice()
         var receipt = await contract.methods
             .answer(
