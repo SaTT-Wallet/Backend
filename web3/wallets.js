@@ -816,7 +816,7 @@ exports.getTokenContractByToken = async (token, credentials, network) => {
             BttConstants.token.abi,
             token
         )
-        contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
+        contract.getGasPrice = credentials.web3UrlBTT.eth.getGasPrice
     } else {
         var contract = new credentials.Web3BEP20.eth.Contract(
             Constants.bep20.abi,
