@@ -167,6 +167,8 @@ module.exports.updateStat = async () => {
             }
         }
     })
+
+
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {

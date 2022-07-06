@@ -153,7 +153,7 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         let Web3POLYGON = credentials?.Web3POLYGON
             ? credentials.Web3POLYGON
             : await this.polygonConnexion()
-        let web3UrlBTT = credentials?.Web3POLYGON
+        let web3UrlBTT = credentials?.web3UrlBTT
             ? credentials.web3UrlBTT
             : await this.bttConnexion()
         if (
@@ -190,20 +190,20 @@ exports.getCampaignOwnerAddr = async (idProm) => {
             { contract: 1, _id: 0 }
         )
         if (!prom.contract) return
-        if (
-            prom.contract.toLowerCase() ===
-                Constants.campaign.address.campaignErc20.toLowerCase() ||
-            prom.contract.toLowerCase() ===
-                Constants.campaign.address.campaignBep20.toLowerCase()
-        ) {
-            campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
-        } else if (
-            prom.contract.toLowerCase() ===
-            PolygonConstants.campaign.address.toLowerCase()
-        ) {
-            campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
-        }
-        return campaignContractOwnerAddr
+        // if (
+        //     prom.contract.toLowerCase() ===
+        //         Constants.campaign.address.campaignErc20.toLowerCase() ||
+        //     prom.contract.toLowerCase() ===
+        //         Constants.campaign.address.campaignBep20.toLowerCase()
+        // ) {
+        //     campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
+        // } else if (
+        //     prom.contract.toLowerCase() ===
+        //     PolygonConstants.campaign.address.toLowerCase()
+        // ) {
+        //     campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
+        // }
+        return  process.env.CAMPAIGN_OWNER
     } catch (err) {
         console.log(err)
     }
@@ -232,15 +232,19 @@ exports.getOracleContractByCampaignContract = async (
         if (
             credentials.Web3ETH &&
             credentials.Web3BEP20 &&
-            credentials.Web3POLYGON
+            credentials.Web3POLYGON &&
+            credentials.web3UrlBTT
+
         ) {
             var Web3ETH = credentials?.Web3ETH
             var Web3BEP20 = credentials.Web3BEP20
             var Web3POLYGON = credentials.Web3POLYGON
+            var web3UrlBTT =  credentials.web3UrlBTT
         } else {
             var Web3ETH = await this.erc20Connexion()
             var Web3BEP20 = await this.bep20Connexion()
             var Web3POLYGON = await this.polygonConnexion()
+            var web3UrlBTT = await this.bttConnexion()
         }
 
         if (
@@ -255,10 +259,18 @@ exports.getOracleContractByCampaignContract = async (
         ) {
             Web3 = Web3POLYGON
             address = PolygonConstants.oracle.address
+        } else if (
+            campaignContract.toLowerCase() ===
+            BttConstants.campaign.address.toLowerCase()
+        ) {
+            Web3 = web3UrlBTT
+            address = BttConstants.oracle.address
         } else {
             Web3 = Web3BEP20
             address = Constants.oracle.address.oracleBep20
+           
         }
+        
 
         let ctr = new Web3.eth.Contract(abi, address)
         ctr.getGasPrice = await Web3.eth.getGasPrice
