@@ -10,6 +10,8 @@ const {
     web3PolygonUrl,
     web3Tron,
     PolygonConstants,
+    bttTokensCampaign,
+    BttConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const options = {
@@ -93,13 +95,19 @@ exports.getContractByToken = async (token, credentials) => {
             )
             contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
         } else if (polygonTokensCampaign.includes(token.toLowerCase())) {
-            console.log('in polygon ctr')
             var contract = new credentials.Web3POLYGON.eth.Contract(
                 abiCampaign,
                 PolygonConstants.campaign.address
             )
             contract.getGasPrice = credentials.Web3POLYGON.eth.getGasPrice
+        } else if (bttTokensCampaign.includes(token.toLowerCase())) {
+            var contract = new credentials.web3UrlBTT.eth.Contract(
+                abiCampaign,
+                BttConstants.campaign.address
+            )
+            contract.getGasPrice = credentials.web3UrlBTT.eth.getGasPrice
         }
+
         return contract
     } catch (err) {
         console.log(err.message ? err.message : err.error)

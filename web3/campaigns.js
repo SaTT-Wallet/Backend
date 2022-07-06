@@ -7,6 +7,7 @@ const {
     getPromContract,
     getContractCampaigns,
     polygonConnexion,
+    bttConnexion,
 } = require('../blockchainConnexion')
 
 const { Constants } = require('../conf/const')
@@ -76,6 +77,7 @@ exports.lock = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
     credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
+    credentials.web3UrlBTT.eth.accounts.wallet.remove(credentials.address)
 }
 
 exports.lockERC20 = async (credentials) => {
@@ -165,7 +167,6 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
-        console.log('paramas', token, credentials)
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
@@ -250,6 +251,18 @@ exports.createBountiesCampaign = async (
     }
 }
 
+exports.bttApprove = async (token, address, spender) => {
+    try {
+        let Web3Btt = await bttConnexion()
+        var contract = new Web3Btt.eth.Contract(Constants.token.abi, token)
+
+        var amount = await contract.methods.allowance(address, spender).call()
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
+    }
+}
+
 exports.bep20Allow = async (token, credentials, spender, amount, res) => {
     try {
         var contract = new credentials.Web3BEP20.eth.Contract(
@@ -298,6 +311,36 @@ exports.polygonAllow = async (token, credentials, spender, amount, res) => {
             token
         )
         var gasPrice = await credentials.Web3POLYGON.eth.getGasPrice()
+        var gas = await contract.methods
+            .approve(spender, amount)
+            .estimateGas({ from: credentials.address })
+        var receipt = await contract.methods
+            .approve(spender, amount)
+            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
+            .once('transactionHash', function (transactionHash) {
+                console.log('approve transactionHash', transactionHash)
+            })
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
+exports.bttAllow = async (token, credentials, spender, amount, res) => {
+    try {
+        var contract = new credentials.web3UrlBTT.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        var gasPrice = await credentials.web3UrlBTT.eth.getGasPrice()
         var gas = await contract.methods
             .approve(spender, amount)
             .estimateGas({ from: credentials.address })
