@@ -34,6 +34,7 @@ const {
     pathEth,
     booltestnet,
 } = require('../conf/config')
+
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -148,6 +149,7 @@ exports.getAccount = async (req, res) => {
 
     if (account) {
         var address = '0x' + account.keystore.address
+        //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
@@ -362,6 +364,37 @@ exports.sendBep20 = async (token, to, amount, credentials) => {
             token,
             credentials,
             'BEP20'
+        )
+
+        var gasPrice = await contract.getGasPrice()
+        var gas =
+            (await contract.methods
+                .transfer(to, amount)
+                .estimateGas({ from: credentials.address })) *
+            process.env.GAS_MULTIPLAyer
+
+        var receipt = await contract.methods.transfer(to, amount).send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+sendToken = async (token, to, amount, credentials, networks) => {
+    try {
+        var contract = await this.getTokenContractByToken(
+            token,
+            credentials,
+            networks
         )
 
         var gasPrice = await contract.getGasPrice()
@@ -968,6 +1001,37 @@ transferNativeBNB = async (to, amount, credentials) => {
             .once('transactionHash', (transactionHash) => {})
         return {
             transactionHash: receipt.transactionHash,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+exports.transferNative = async (to, amount, credentials, WEB3) => {
+    if (!credentials.WEB3.utils.isAddress(to))
+        return { error: 'Invalid address' }
+    try {
+        var gasPrice = await credentials.WEB3.eth.getGasPrice()
+
+        // var gas = 21000
+        var gas =
+            (await credentials.WEB3.eth.estimateGas({ to })) *
+            process.env.GAS_MULTIPLAyer
+        var receipt = await credentials.WEB3.eth
+            .sendTransaction({
+                from: credentials.address,
+                value: amount,
+                gas: gas,
+                to: to,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', function (hash) {})
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
             to: to,
             amount: amount,
         }
