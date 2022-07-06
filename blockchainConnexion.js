@@ -101,6 +101,7 @@ exports.getContractByToken = async (token, credentials) => {
             )
             contract.getGasPrice = credentials.Web3POLYGON.eth.getGasPrice
         } else if (bttTokensCampaign.includes(token.toLowerCase())) {
+            console.log('token', token)
             var contract = new credentials.web3UrlBTT.eth.Contract(
                 abiCampaign,
                 BttConstants.campaign.address
@@ -152,6 +153,9 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         let Web3POLYGON = credentials?.Web3POLYGON
             ? credentials.Web3POLYGON
             : await this.polygonConnexion()
+        let web3UrlBTT = credentials?.Web3POLYGON
+            ? credentials.web3UrlBTT
+            : await this.bttConnexion()
         if (
             contract.toLowerCase() ===
             Constants.campaign.address.campaignErc20.toLowerCase()
@@ -162,6 +166,11 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
             Constants.campaign.address.campaignPolygon.toLowerCase()
         ) {
             Web3 = Web3POLYGON
+        } else if (
+            contract.toLowerCase() ===
+            BttConstants.campaign.address.toLowerCase()
+        ) {
+            Web3 = web3UrlBTT
         } else {
             Web3 = Web3BEP20
         }
