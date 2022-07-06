@@ -158,6 +158,9 @@ module.exports.launchCampaign = async (req, res) => {
     var ratios = req.body.ratios
     var contract = req.body.contract
     let _id = req.body.idCampaign
+    let currency = req.body.currency
+    let network = req.body.network
+
     try {
         var cred = await unlock(req, res)
         if (!cred) return
@@ -193,6 +196,11 @@ module.exports.launchCampaign = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
+                token: {
+                    name: currency,
+                    type: network,
+                    addr: tokenAddress,
+                },
                 coverSrc: null,
                 dataUrl,
                 funds: [contract, amount],
