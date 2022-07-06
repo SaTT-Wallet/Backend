@@ -82,6 +82,7 @@ let sattContract,
     sattBEP20CONTRACT,
     sattPOLYGONCONTRACT,
     sattTRONCONTRACT,
+    sattBTTCONTRACT,
     daiContract,
     busdContract,
     usdtContract
@@ -91,6 +92,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
     sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT_TESTNET
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
+    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT_TESTNET
 
     daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
     usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
@@ -100,6 +102,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
     sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
+    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
     daiContract = process.env.TOKEN_DAI_CONTRACT
     usdtContract = process.env.TOKEN_USDT_CONTRACT
     busdContract = process.env.TOKEN_BUSD_CONTRACT
@@ -222,6 +225,25 @@ let Tokens = {
         dicimal: process.env.TOKEN_MATIC_DICIMAL,
         network: process.env.TOKEN_MATIC_NETWORK,
     },
+    SATT_BTT: {
+        name: process.env.TOKEN_SATT_BTT_NAME,
+        symbol: process.env.TOKEN_SATT_BTT_SYMBOL,
+        undername: process.env.TOKEN_SATT_BTT_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_BTT_UNDERNAME2,
+        contract: sattBTTCONTRACT,
+        dicimal: process.env.TOKEN_SATT_BTT_DICIMAL,
+        network: process.env.TOKEN_SATT_BTT_NETWORK,
+    },
+    BTT: {
+        name: process.env.TOKEN_BTT_NAME,
+        symbol: process.env.TOKEN_BTT_SYMBOL,
+        undername: process.env.TOKEN_BTT_UNDERNAME,
+        undername2: process.env.TOKEN_BTT_UNDERNAME2,
+        contract: process.env.TOKEN_BTT_CONTRACT,
+        dicimal: process.env.TOKEN_BTT_DICIMAL,
+        network: process.env.TOKEN_BTT_NETWORK,
+    },
+
     // SATT_TRON: {
     //     name: process.env.TOKEN_SATT_TRON_NAME,
     //     symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
