@@ -7,6 +7,15 @@ const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
 var fs = require('fs')
 
+const Web3 = require('web3')
+const {
+    networkProviders,
+    getWeb3Connection,
+    getHttpProvider,
+} = require('../web3/web3-connection')
+const { transferV2 } = require('../web3/transfer-tokens')
+const { unlockAccount } = require('../web3/account')
+
 const {
     getContractByToken,
     erc20Connexion,
@@ -503,55 +512,34 @@ exports.transfertBep20 = async (req, res) => {
 exports.transferTokensController = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
+            let from = req.body.from
             var to = req.body.to
             var amount = req.body.amount
             let network = req.body.network
             let tokenSymbol = req.body.tokenSymbol
-            var cred = await unlock(req, res)
+
+            //var cred = await unlock(req, res)
+            let pass = req.body.pass
             tokenAddress = !req.body.tokenAddress
                 ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
                 : req.body.tokenAddress
 
-            var result = await getAccount(req, res)
-
-            let wallets = {
-                bep20: cred.Web3BEP20,
-                erc20: cred.Web3ETH,
-                polygon: cred.Web3POLYGON,
-            }
-
-            let balance = await getBalance(
-                wallets[network],
-                tokenAddress,
-                result.address
+            const provider = getHttpProvider(
+                networkProviders[network.toUpperCase()]
             )
 
-            if (['BNB', 'ETH', 'BTC'].includes(tokenSymbol.toUpperCase())) {
-                if (tokenSymbol.toUpperCase() === 'BNB') {
-                    balance = result.bnb_balance
-                } else if (tokenSymbol.toUpperCase() === 'ETH') {
-                    balance = result.ether_balance
-                } else {
-                    balance = result.btc_balance
-                }
-            }
+            // get wallet keystore
+            const accountData = await Wallet.findOne({ UserId: 638 })
 
-            if (new Big(amount).gt(new Big(balance))) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'not_enough_budget'
-                )
-            }
-
-            var ret = await transferTokens({
-                from: result.address,
-                to,
+            // sen transfer transaction
+            var ret = await transferV2({
+                fromAddress: from,
+                toAddress: to,
                 amount,
-                tokenSymbol: tokenSymbol.toUpperCase(),
                 tokenAddress,
-                network: network.toUpperCase(),
-                credentials: cred,
+                provider,
+                walletPassword: pass,
+                keyStore: accountData.keystore,
             })
 
             if (ret.error) {
@@ -567,9 +555,9 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
+        console.error(err)
+        return responseHandler.makeResponseError(res, 402, err.message)
     } finally {
-        cred && lock(cred)
         if (ret && ret.transactionHash) {
             await notificationManager(req.user._id, 'transfer_event', {
                 amount,

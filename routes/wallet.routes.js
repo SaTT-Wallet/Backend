@@ -445,7 +445,7 @@ router.post('/transfertBNB', verifyAuth, transfertBNB)
  *          description: code,<br>error:"error"
  */
 router.post('/transfertEther', verifyAuth, transfertEther)
-router.post('/transferTokens', verifyAuth, transferTokensController)
+router.post('/transferTokens', transferTokensController)
 /**
  * @swagger
  * /wallet/getQuote:
