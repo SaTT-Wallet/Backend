@@ -643,7 +643,7 @@ exports.getListCryptoByUid = async (req, res) => {
         }
         delete ret.address
         delete ret.matic_balance
-        // delete ret.tron_balance
+        delete ret.btt_balance
 
         for (const Amount in ret) {
             let crypto = {}
