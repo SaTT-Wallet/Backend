@@ -836,7 +836,7 @@ exports.tiktok = async (tiktokProfile, idPost) => {
             views: videoInfoResponse.data.videos[0].view_count,
         }
     } catch (error) {
-        console.loge(error)
+        console.log(error)
     }
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
@@ -1115,6 +1115,10 @@ exports.answerCall = async (opts) => {
             process.env.CAMPAIGN_OWNER_PASS
         )
         opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.web3UrlBTT.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )

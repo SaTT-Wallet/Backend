@@ -4,6 +4,7 @@ const networkProviders = {
     ETH: process.env.WEB3_URL,
     BSC: process.env.WEB3_URL_BEP20,
     POLYGON: process.env.WEB3_URL_POLYGON,
+    BTTC: process.env.WEB3_URL_BTT,
 }
 
 const getWeb3Connection = function (provider) {

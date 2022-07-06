@@ -142,14 +142,15 @@ module.exports.updateStat = async () => {
                 if (socialOracle === 'indisponible')
                     event.status = 'indisponible'
 
-                    if (socialOracle && socialOracle !== 'indisponible') 
-
-             {   event.shares = (socialOracle && socialOracle.shares) || '0'
-                event.likes = (socialOracle && socialOracle.likes) || '0'
-                let views = (socialOracle && socialOracle.views) || '0'
-                event.views = views === 'old' ? event.views : views
-                event.media_url = (socialOracle && socialOracle.media_url) || ''
-                event.oracle = findBountyOracle(event.typeSN)}
+                if (socialOracle && socialOracle !== 'indisponible') {
+                    event.shares = (socialOracle && socialOracle.shares) || '0'
+                    event.likes = (socialOracle && socialOracle.likes) || '0'
+                    let views = (socialOracle && socialOracle.views) || '0'
+                    event.views = views === 'old' ? event.views : views
+                    event.media_url =
+                        (socialOracle && socialOracle.media_url) || ''
+                    event.oracle = findBountyOracle(event.typeSN)
+                }
 
                 if (campaign.ratios.length && socialOracle) {
                     event.totalToEarn = getTotalToEarn(event, campaign.ratios)
