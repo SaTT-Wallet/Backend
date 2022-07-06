@@ -161,7 +161,6 @@ module.exports.launchCampaign = async (req, res) => {
     try {
         var cred = await unlock(req, res)
         if (!cred) return
-        console.log('in func ')
         var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
@@ -176,7 +175,6 @@ module.exports.launchCampaign = async (req, res) => {
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,

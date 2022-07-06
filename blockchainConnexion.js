@@ -95,20 +95,19 @@ exports.getContractByToken = async (token, credentials) => {
             )
             contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
         } else if (polygonTokensCampaign.includes(token.toLowerCase())) {
-            console.log('in polygon ctr')
             var contract = new credentials.Web3POLYGON.eth.Contract(
                 abiCampaign,
                 PolygonConstants.campaign.address
             )
             contract.getGasPrice = credentials.Web3POLYGON.eth.getGasPrice
         } else if (bttTokensCampaign.includes(token.toLowerCase())) {
-            console.log('in BTT ctr')
             var contract = new credentials.web3UrlBTT.eth.Contract(
                 abiCampaign,
                 BttConstants.campaign.address
             )
-            contract.getGasPrice = credentials.Web3POLYGON.eth.getGasPrice
+            contract.getGasPrice = credentials.web3UrlBTT.eth.getGasPrice
         }
+
         return contract
     } catch (err) {
         console.log(err.message ? err.message : err.error)
