@@ -6,22 +6,16 @@ const networkProviders = {
     POLYGON: process.env.WEB3_URL_POLYGON,
 }
 
-const getProvider = function (network) {
-    return new Web3.providers.HttpProvider(networkProviders[network])
-}
-
 const getWeb3Connection = function (provider) {
     return new Web3(provider)
 }
 
-const ethProvider = getProvider(networkProviders.ETH)
-const bscProvider = getProvider(networkProviders.BSC)
-const polygonProvider = getProvider(networkProviders.POLYGON)
-
-const web3Connection = {
-    ethereum: getWeb3Connection(ethProvider),
-    bschain: getWeb3Connection(bscProvider),
-    polygon: getWeb3Connection(polygonProvider),
+const getHttpProvider = function (providerUrl) {
+    return new Web3.providers.HttpProvider(providerUrl)
 }
 
-module.exports = web3Connection
+module.exports = {
+    getWeb3Connection,
+    getHttpProvider,
+    networkProviders,
+}
