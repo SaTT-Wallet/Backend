@@ -13,7 +13,7 @@ const {
     getWeb3Connection,
     getHttpProvider,
 } = require('../web3/web3-connection')
-const { transferV2 } = require('../web3/transfer-tokens')
+const { transferV2 } = require('../web3/transfer/transfer-tokens')
 const { unlockAccount } = require('../web3/account')
 
 const {
@@ -617,10 +617,11 @@ exports.transferTokensController = async (req, res) => {
                 fromAddress: from,
                 toAddress: to,
                 amount,
-                tokenAddress,
+                tokenSmartContractAddress: tokenAddress,
+                tokenSmartContractAbi: Constants.token.abi,
                 provider,
                 walletPassword: pass,
-                keyStore: accountData.keystore,
+                publicKey: accountData.keystore,
             })
 
             if (ret.error) {
