@@ -203,7 +203,7 @@ exports.getCampaignOwnerAddr = async (idProm) => {
         // ) {
         //     campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
         // }
-        return  process.env.CAMPAIGN_OWNER
+        return process.env.CAMPAIGN_OWNER
     } catch (err) {
         console.log(err)
     }
@@ -234,12 +234,11 @@ exports.getOracleContractByCampaignContract = async (
             credentials.Web3BEP20 &&
             credentials.Web3POLYGON &&
             credentials.web3UrlBTT
-
         ) {
             var Web3ETH = credentials?.Web3ETH
             var Web3BEP20 = credentials.Web3BEP20
             var Web3POLYGON = credentials.Web3POLYGON
-            var web3UrlBTT =  credentials.web3UrlBTT
+            var web3UrlBTT = credentials.web3UrlBTT
         } else {
             var Web3ETH = await this.erc20Connexion()
             var Web3BEP20 = await this.bep20Connexion()
@@ -268,9 +267,7 @@ exports.getOracleContractByCampaignContract = async (
         } else {
             Web3 = Web3BEP20
             address = Constants.oracle.address.oracleBep20
-           
         }
-        
 
         let ctr = new Web3.eth.Contract(abi, address)
         ctr.getGasPrice = await Web3.eth.getGasPrice
