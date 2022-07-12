@@ -311,7 +311,7 @@ exports.transferTokensController = async (req, res) => {
             )
 
             // get wallet keystore
-            const accountData = await Wallet.findOne({ UserId: 638 })
+            const accountData = await Wallet.findOne({ UserId: req.user._id })
 
             if (network.toUpperCase() === 'BTC') {
                 //TODO: transferring btc need to be tested locally with testnet
@@ -322,6 +322,8 @@ exports.transferTokensController = async (req, res) => {
                     account: accountData,
                 })
             } else {
+
+
                 result = await transferTokens({
                     fromAddress: from,
                     toAddress: to,
@@ -332,6 +334,7 @@ exports.transferTokensController = async (req, res) => {
                     walletPassword: pass,
                     encryptedPrivateKey: accountData.keystore,
                 })
+
             }
 
             if (result.error) {
