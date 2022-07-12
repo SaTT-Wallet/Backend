@@ -610,13 +610,13 @@ exports.transferTokensController = async (req, res) => {
             const accountData = await Wallet.findOne({ UserId: 638 })
 
             if (network.toUpperCase() === 'BTC') {
-                // transferring btc is deactivated for now until we can test it locally
-                /*result = await transferBTC({
+                //TODO: transferring btc need to be tested locally with testnet
+                result = await transferBTC({
                     to,
                     amount,
                     walletPassword: pass,
-                    account: accountData
-                })*/
+                    account: accountData,
+                })
             } else {
                 result = await transferTokens({
                     fromAddress: from,
@@ -659,9 +659,14 @@ exports.transferTokensController = async (req, res) => {
                         }
                     )
                 }
-            }
 
-            return responseHandler.makeResponseData(res, 200, 'success', result)
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    result
+                )
+            }
         } else {
             return responseHandler.makeResponseError(
                 res,
