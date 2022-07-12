@@ -142,7 +142,10 @@ module.exports.updateStat = async () => {
                     event.status = 'indisponible'
 
                if (socialOracle && socialOracle !== 'indisponible') 
-                {event.shares = (socialOracle && socialOracle.shares) || '0'
+                {
+                    event.status = true 
+                    event.type = 'harvest'
+                    event.shares = (socialOracle && socialOracle.shares) || '0'
                 event.likes = (socialOracle && socialOracle.likes) || '0'
                 let views = (socialOracle && socialOracle.views) || '0'
                 event.views = views === 'old' ? event.views : views
