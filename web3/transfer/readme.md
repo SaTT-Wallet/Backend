@@ -31,11 +31,12 @@ npm i @atayen-org/transfer
 # Usage
 
 ```
-const { transferTokens } = require('transfer');
+const { transferTokens } = require('@atayen-org/transfer');
 const Web3 = require('web3')
 
 const provider = new Web3.providers.HttpProvider("http_provider_url")
-const
+const tokenSmartContractAbi = // you need to provider smart contract abi
+const encryptedPrivateKey = // An encrypted version of your private key
 
 transferTokens({
   fromAddress: "0x7ccf8e6b1ea2c018ec133299b4d41de4e5b28304",
