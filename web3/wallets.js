@@ -153,6 +153,7 @@ exports.getAccount = async (req, res) => {
 
     if (account) {
         var address = '0x' + account.keystore.address
+        //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
@@ -1020,6 +1021,37 @@ transferNativeBNB = async (to, amount, credentials) => {
             .once('transactionHash', (transactionHash) => {})
         return {
             transactionHash: receipt.transactionHash,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+exports.transferNative = async (to, amount, credentials, WEB3) => {
+    if (!credentials.WEB3.utils.isAddress(to))
+        return { error: 'Invalid address' }
+    try {
+        var gasPrice = await credentials.WEB3.eth.getGasPrice()
+
+        // var gas = 21000
+        var gas =
+            (await credentials.WEB3.eth.estimateGas({ to })) *
+            process.env.GAS_MULTIPLAyer
+        var receipt = await credentials.WEB3.eth
+            .sendTransaction({
+                from: credentials.address,
+                value: amount,
+                gas: gas,
+                to: to,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', function (hash) {})
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
             to: to,
             amount: amount,
         }
