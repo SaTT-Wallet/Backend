@@ -71,7 +71,7 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
-        if (event.id_prom === "0x3b42a823a8c44955d70dac8d23af329d31af2ba4567b55024934142211e1bd9b"){
+
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -170,7 +170,7 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-    }
+    
     })
 }
 
