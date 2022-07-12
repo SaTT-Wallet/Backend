@@ -13,7 +13,10 @@ const {
     getWeb3Connection,
     getHttpProvider,
 } = require('../web3/web3-connection')
-const { transferTokens, transferBTC } = require('../web3/transfer')
+const {
+    transferTokens,
+    transferBTC,
+} = require('../libs/transfer/transfer-tokens')
 const { unlockAccount } = require('../web3/account')
 
 const {
