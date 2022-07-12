@@ -390,7 +390,10 @@ exports.getListCryptoByUid = async (req, res) => {
                 if (token_info[symbol])
                     symbol = `${symbol}_${userTokens[i].network}`
                 token_info[symbol] = {
-                    dicimal: Number(userTokens[i].decimal),
+                    dicimal:
+                        (!!Number(userTokens[i].decimal) &&
+                            Number(userTokens[i].decimal)) ||
+                        18,
                     symbol: userTokens[i].symbol,
                     network: userTokens[i].network,
                     contract: userTokens[i].tokenAdress,
@@ -564,7 +567,10 @@ exports.getBalanceByUid = async (req, res) => {
                 if (token_info[symbol])
                     symbol = `${symbol}_${userTokens[i].network}`
                 token_info[symbol] = {
-                    dicimal: Number(userTokens[i].decimal),
+                    dicimal:
+                        (!!Number(userTokens[i].decimal) &&
+                            Number(userTokens[i].decimal)) ||
+                        18,
                     symbol: userTokens[i].symbol,
                     network: userTokens[i].network,
                     contract: userTokens[i].tokenAdress,
