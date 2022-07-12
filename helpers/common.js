@@ -71,6 +71,7 @@ module.exports.updateStat = async () => {
     })
     var Events = await CampaignLink.find()
     Events.forEach(async (event) => {
+
         let campaign = await Campaigns.findOne(
             { hash: event.id_campaign },
             {
@@ -143,6 +144,8 @@ module.exports.updateStat = async () => {
                     event.status = 'indisponible'
 
                 if (socialOracle && socialOracle !== 'indisponible') {
+                    event.status = true 
+                    event.type = 'harvest'
                     event.shares = (socialOracle && socialOracle.shares) || '0'
                     event.likes = (socialOracle && socialOracle.likes) || '0'
                     let views = (socialOracle && socialOracle.views) || '0'
@@ -167,6 +170,7 @@ module.exports.updateStat = async () => {
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
+    
     })
 }
 
