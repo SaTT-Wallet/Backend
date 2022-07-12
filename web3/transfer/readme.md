@@ -30,7 +30,7 @@ npm i @atayen-org/transfer
 
 # Usage
 
-```
+```js
 const { transferTokens } = require('@atayen-org/transfer');
 const Web3 = require('web3')
 
