@@ -9,7 +9,7 @@ module.exports.transferTokens = async function ({
     tokenSmartContractAbi = null,
     provider,
     walletPassword,
-    publicKey,
+    encryptedPrivateKey,
 }) {
     const web3 = new Web3(provider)
 
@@ -48,7 +48,7 @@ module.exports.transferTokens = async function ({
                   .transfer(toAddress, amount)
                   .estimateGas({ from: fromAddress })
 
-    web3.eth.accounts.wallet.decrypt([publicKey], walletPassword)
+    web3.eth.accounts.wallet.decrypt([encryptedPrivateKey], walletPassword)
 
     try {
         let result
