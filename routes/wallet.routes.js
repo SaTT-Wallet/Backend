@@ -7,18 +7,12 @@ const {
     exportBtc,
     payementRequest,
     getQuote,
-    transfertEther,
-    transfertBNB,
-    transfertBtc,
     gasPriceErc20,
     gasPriceTron,
     checkWalletToken,
     addNewToken,
-    transfertBep20,
     mywallet,
-    transfertErc20,
     transferTokensController,
-    transferPolygon,
     totalBalances,
     userBalance,
     gasPriceBep20,
@@ -199,115 +193,6 @@ router.get('/Erc20GasPrice', gasPriceErc20)
 
 /**
  * @swagger
- * /wallet/transferErc20:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer erc20.
- *     description: transfer crypto belongs to erc20 network <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               pass:
- *                 type: string
- *               symbole:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transferErc20', verifyAuth, transfertErc20)
-/**
- * @swagger
- * /wallet/transferPolygon:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer Polygon.
- *     description: transfer crypto belongs to polygon network <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               pass:
- *                 type: string
- *               symbole:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transferPolygon', verifyAuth, transferPolygon)
-
-/**
- * @swagger
- * /wallet/transferBep20:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer bep20.
- *     description: transfer crypto belongs to bep20 network <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *               symbole:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               decimal:
- *                 type: number
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transferBep20', verifyAuth, transfertBep20)
-
-/**
- * @swagger
  * /wallet/checkWalletToken:
  *   post:
  *     tags:
@@ -370,101 +255,6 @@ router.post('/checkWalletToken', verifyAuth, checkWalletToken)
  *          description: code,<br>error:"error"
  */
 router.post('/addNewToken', verifyAuth, addNewToken)
-
-/**
- * @swagger
- * /wallet/transfertBtc:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer BTC.
- *     description: transfer btc <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *               to:
- *                 type: string
- *               val:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget" /"wrong password"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transfertBtc', verifyAuth, transfertBtc)
-
-/**
- * @swagger
- * /wallet/transfertBNB:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer BNB.
- *     description: transfer bnb <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *               to:
- *                 type: string
- *               val:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget" /"wrong password"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transfertBNB', verifyAuth, transfertBNB)
-/**
- * @swagger
- * /wallet/transfertEther:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer ETHER.
- *     description: transfer ETH <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *               to:
- *                 type: string
- *               val:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget" /"wrong password"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transfertEther', verifyAuth, transfertEther)
 
 /**
  * @swagger
@@ -593,7 +383,7 @@ router.post('/payementRequest', verifyAuth, payementRequest)
  *       "500":
  *          description: error:error message
  */
-router.post('/bridge', verifyAuth, bridge)
+//router.post('/bridge', verifyAuth, bridge)
 
 /**
  * @swagger
