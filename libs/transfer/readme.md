@@ -1,3 +1,7 @@
+# About
+
+This package act as a transaction signer to sign and send token funds from one account address to another.
+
 # Installation
 
 ```
@@ -7,6 +11,8 @@ npm i @atayen-org/transfer
 # Methods
 
 ## transferTokens
+
+Use this function to transfer native or custom EVM tokens. However you need to provide token's SmartContract address and ABI if you want to transfer custom tokens.
 
 | Properties                | Description                                                                                 |
 | ------------------------- | ------------------------------------------------------------------------------------------- |
@@ -20,6 +26,8 @@ npm i @atayen-org/transfer
 | encryptedPrivateKey       | Will be used to decrypt your account along with your encryption password ( walletPasswrod ) |
 
 ## transferBTC
+
+For the bitcoin protocol
 
 | Properties     | Description                                     |
 | -------------- | ----------------------------------------------- |
