@@ -371,9 +371,16 @@ passport.use(
         var date = Math.floor(Date.now() / 1000) + 86400
         let user = await User.findOne({ email: username.toLowerCase() })
         if (user) {
-            return done(null, false, {
+            /*return done(null, false, {
                 error: true,
                 message: 'account_already_used',
+            })*/
+            let token = generateAccessToken(user)
+            return done(null, {
+                id: user._id,
+                token,
+                expires_in: date,
+                noredirect: req.body.noredirect,
             })
         } else {
             var createdUser = createUser(
@@ -465,7 +472,9 @@ exports.facebookAuthSignup = async (
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn: profile._json.token_for_business })
     if (user) {
-        return cb('account_already_used&idSn=' + user.idSn)
+        // return cb('account_already_used&idSn=' + user.idSn)
+        let token = generateAccessToken(user)
+        return cb(null, { id: user._id, token: token, expires_in: date })
     } else {
         let createdUser = createUser(
             1,
@@ -500,7 +509,9 @@ exports.googleAuthSignup = async (
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn2: profile.id })
     if (user) {
-        return cb('account_already_used&idSn=' + user.idSn)
+        // return cb('account_already_used&idSn=' + user.idSn)
+        let token = generateAccessToken(user)
+        return cb(null, { id: user._id, token: token, expires_in: date })
     } else {
         let createdUser = createUser(
             1,
@@ -550,7 +561,9 @@ exports.signup_telegram_function = async (req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn3: profile.id })
     if (user) {
-        return cb('account_already_used&idSn=' + user.idSn)
+        // return cb('account_already_used&idSn=' + user.idSn)
+        let token = generateAccessToken(user)
+        return cb(null, { id: user._id, token: token, expires_in: date })
     } else {
         let createdUser = createUser(
             1,
