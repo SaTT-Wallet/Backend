@@ -624,15 +624,27 @@ exports.youtube = async (idPost) => {
 }
 exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
+        let accessToken = linkedinProfile.accessToken
         var perf = { shares: 0, likes: 0, views: 0 }
-        let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-        let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+        const params = new URLSearchParams()
+        params.append('client_id', process.env.LINKEDIN_KEY)
+        params.append('client_secret', process.env.LINKEDIN_SECRET)
+        params.append('token', accessToken)
+        let tokenValidityBody = await axios.post(
+            'https://www.linkedin.com/oauth/v2/introspectToken',
+            params
+        )
+        if (!tokenValidityBody.data?.active) {
+            let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
+            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            accessToken = resAccessToken.access_token
+        }
         let url = config.linkedinStatsUrl(type, idPost, organization)
         const linkedinData = {
             url: url,
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + resAccessToken.access_token,
+                Authorization: 'Bearer ' + accessToken,
             },
             json: true,
         }
@@ -647,7 +659,7 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
                 url: config.linkedinUgcPostStats(idPost),
                 method: 'GET',
                 headers: {
-                    Authorization: 'Bearer ' + resAccessToken.access_token,
+                    Authorization: 'Bearer ' + accessToken,
                 },
                 json: true,
             }

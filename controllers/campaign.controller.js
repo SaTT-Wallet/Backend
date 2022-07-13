@@ -565,10 +565,7 @@ exports.apply = async (req, res) => {
 
         if (!cred) return
         if (typeSN == 5) {
-            var linkedinProfile = await LinkedinProfile.findOne(
-                { userId: id },
-                { accessToken: 1, _id: 0 }
-            )
+            var linkedinProfile = await LinkedinProfile.findOne({ userId: id })
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString()
@@ -2073,7 +2070,6 @@ module.exports.statLinkCampaign = async (req, res) => {
             youtube: initStat(),
             linkedin: initStat(),
             tiktok: initStat(),
-            
         }
         let links = await CampaignLink.find({ id_campaign })
         let i = 0
