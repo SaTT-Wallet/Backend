@@ -1073,7 +1073,7 @@ exports.gains = async (req, res) => {
             let network =
                 (campaign.token.type == 'erc20' && credentials.Web3ETH) ||
                 (campaign.token.type == 'bep20' && credentials.Web3BEP20) ||
-                credentials.Web3POLYGON
+                credentials.Web3POLYGON || credentials.web3UrlBTT
 
             let amount = await getTransactionAmount(
                 credentials,
