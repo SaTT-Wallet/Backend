@@ -510,8 +510,9 @@ exports.googleAuthSignup = async (
     var user = await User.findOne({ idOnSn2: profile.id })
     if (user) {
         // return cb('account_already_used&idSn=' + user.idSn)
+        console.log('start')
         let token = generateAccessToken(user)
-        console.log('token', token)
+        console.log('end token', token)
         return cb(null, { id: user._id, token: token, expires_in: date })
     } else {
         let createdUser = createUser(
