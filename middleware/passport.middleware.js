@@ -34,7 +34,6 @@ var session = require('express-session')
 const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
-const { signinWithEmail } = require('./passport.middleware')
 
 try {
     app.use(
