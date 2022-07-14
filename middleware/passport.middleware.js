@@ -34,6 +34,7 @@ var session = require('express-session')
 const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
+const { signinWithEmail } = require('./passport.middleware')
 
 try {
     app.use(
@@ -112,57 +113,61 @@ let createUser = (
 /*
  * begin signin with email and password
  */
+
+exports.signinWithEmail = async (req, username, password, done) => {
+    var date = Math.floor(Date.now() / 1000) + 86400
+    var user = await User.findOne({ email: username.toLowerCase() })
+    if (user) {
+        if (user.password == synfonyHash(password)) {
+            let validAuth = await isBlocked(user, true)
+            if (!validAuth.res && validAuth.auth == true) {
+                let userAuth = cloneUser(user.toObject())
+                let token = generateAccessToken(userAuth)
+                await User.updateOne(
+                    { _id: Long.fromNumber(user._id) },
+                    { $set: { failed_count: 0 } }
+                )
+                return done(null, {
+                    id: user._id,
+                    token,
+                    expires_in: date,
+                    noredirect: req.body.noredirect,
+                })
+            } else {
+                return done(null, false, {
+                    error: true,
+                    message: 'account_locked',
+                    blockedDate: validAuth.blockedDate,
+                })
+            }
+        } else {
+            let validAuth = await isBlocked(user, false)
+            if (validAuth.res) {
+                return done(null, false, {
+                    error: true,
+                    message: 'account_locked',
+                    blockedDate: validAuth.blockedDate,
+                })
+            }
+            return done(null, false, {
+                error: true,
+                message: 'invalid_credentials',
+                blockedDate: validAuth.blockedDate,
+            })
+        }
+    } else {
+        return done(null, false, {
+            error: true,
+            message: 'user not found',
+        })
+    }
+}
 passport.use(
     'signinEmailStrategy',
     new emailStrategy(
         { passReqToCallback: true },
         async (req, username, password, done) => {
-            var date = Math.floor(Date.now() / 1000) + 86400
-            var user = await User.findOne({ email: username.toLowerCase() })
-            if (user) {
-                if (user.password == synfonyHash(password)) {
-                    let validAuth = await isBlocked(user, true)
-                    if (!validAuth.res && validAuth.auth == true) {
-                        let userAuth = cloneUser(user.toObject())
-                        let token = generateAccessToken(userAuth)
-                        await User.updateOne(
-                            { _id: Long.fromNumber(user._id) },
-                            { $set: { failed_count: 0 } }
-                        )
-                        return done(null, {
-                            id: user._id,
-                            token,
-                            expires_in: date,
-                            noredirect: req.body.noredirect,
-                        })
-                    } else {
-                        return done(null, false, {
-                            error: true,
-                            message: 'account_locked',
-                            blockedDate: validAuth.blockedDate,
-                        })
-                    }
-                } else {
-                    let validAuth = await isBlocked(user, false)
-                    if (validAuth.res) {
-                        return done(null, false, {
-                            error: true,
-                            message: 'account_locked',
-                            blockedDate: validAuth.blockedDate,
-                        })
-                    }
-                    return done(null, false, {
-                        error: true,
-                        message: 'invalid_credentials',
-                        blockedDate: validAuth.blockedDate,
-                    })
-                }
-            } else {
-                return done(null, false, {
-                    error: true,
-                    message: 'user not found',
-                })
-            }
+            await signinWithEmail(req, username, password, done)
         }
     )
 )
@@ -371,17 +376,7 @@ passport.use(
         var date = Math.floor(Date.now() / 1000) + 86400
         let user = await User.findOne({ email: username.toLowerCase() })
         if (user) {
-            /*return done(null, false, {
-                error: true,
-                message: 'account_already_used',
-            })*/
-            let token = generateAccessToken(user)
-            return done(null, {
-                id: user._id,
-                token,
-                expires_in: date,
-                noredirect: req.body.noredirect,
-            })
+            await signinWithEmail(req, username, password, done)
         } else {
             var createdUser = createUser(
                 0,
@@ -472,9 +467,10 @@ exports.facebookAuthSignup = async (
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn: profile._json.token_for_business })
     if (user) {
-        // return cb('account_already_used&idSn=' + user.idSn)
-        let token = generateAccessToken(user)
-        return cb(null, { id: user._id, token: token, expires_in: date })
+        await handleSocialMediaSignin(
+            { idOnSn: profile._json.token_for_business },
+            cb
+        )
     } else {
         let createdUser = createUser(
             1,
