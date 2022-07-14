@@ -114,7 +114,7 @@ let createUser = (
  * begin signin with email and password
  */
 
-exports.signinWithEmail = async (req, username, password, done) => {
+const signinWithEmail = async (req, username, password, done) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ email: username.toLowerCase() })
     if (user) {
