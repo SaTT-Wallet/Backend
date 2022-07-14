@@ -1,6 +1,6 @@
 {
   "name": "@atayen-org/transfer",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "description": "",
   "main": "transfer-tokens.js",
   "scripts": {
