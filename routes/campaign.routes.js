@@ -592,6 +592,8 @@ router.post('/validate', verifyAuth, validateCampaign)
  *                 type: string
  *               hash:
  *                 type: string
+ *               ff:
+ *                  type: string
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
