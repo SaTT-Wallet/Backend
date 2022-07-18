@@ -513,7 +513,7 @@ exports.getPromApplyStats = async (
         let socialOracle = {}
         if (oracles == 'facebook')
             socialOracle = await facebook(link.idUser, link.idPost)
-        if (oracles == 'twitter')
+        else if (oracles == 'twitter')
             socialOracle = await twitter(link.idUser, link.idPost)
         else if (oracles == 'youtube') socialOracle = await youtube(link.idPost)
         else if (oracles == 'instagram')
@@ -578,17 +578,15 @@ const facebook = async (pageName, idPost) => {
                 likes: likes,
                 views: views,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res2.full_picture,
+                media_url: res2.full_picture || '',
             }
-
-            console.log('media_url', res2.full_picture)
 
             return perf
         } else {
             return { shares: 0, likes: 0, views: 0 }
         }
     } catch (err) {
-        console.log(err.message)
+        console.log('error form facebook', err.message)
     }
 }
 
@@ -679,18 +677,15 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
 const instagram = async (UserId, link) => {
     try {
         let idPost = link.idPost
-
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         let instagramUserName = link.instagramUserName
         var fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
-        console.log('fbPage', fbPage)
 
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
-            // console.log('fbProfile', fbProfile)
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
@@ -747,7 +742,7 @@ const twitter = async (userName, idPost) => {
         })
 
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
-        var twitterProfile = await TwitterProfile.findOne({
+        var twitterProfile = await TwitterProfile.find({
             username: tweet_res.user.screen_name,
         })
 
@@ -792,6 +787,8 @@ const twitter = async (userName, idPost) => {
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
 
+            console.log('media_url', res.includes.media[0].url && true)
+
             var perf = {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
@@ -818,15 +815,9 @@ const twitter = async (userName, idPost) => {
 }
 
 const tiktok = async (tiktokProfile, idPost) => {
-    console.log({
-        access_token: tiktokProfile.accessToken,
-        open_id: tiktokProfile.userTiktokId,
-        filters: {
-            video_ids: [idPost],
-        },
-    })
-
     try {
+        if (!tiktokProfile) return 'indisponible'
+
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp({ uri: getUrl, json: true })
         let videoInfoResponse = await axios
@@ -917,7 +908,7 @@ exports.getReward = (result, bounties) => {
                 bounty.oracle === result.oracle ||
                 bounty.oracle == this.findBountyOracle(result.typeSN)
             ) {
-                bounty = bounty.toObject()
+                bounty = bounty?.toObject()
                 bounty.categories.forEach((category) => {
                     if (
                         +category.minFollowers <= +result.abosNumber &&
