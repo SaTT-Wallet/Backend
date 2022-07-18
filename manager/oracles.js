@@ -742,7 +742,7 @@ const twitter = async (userName, idPost) => {
         })
 
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
-        var twitterProfile = await TwitterProfile.find({
+        var twitterProfile = await TwitterProfile.findOne({
             username: tweet_res.user.screen_name,
         })
 
