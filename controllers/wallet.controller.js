@@ -322,8 +322,6 @@ exports.transferTokensController = async (req, res) => {
                     account: accountData,
                 })
             } else {
-
-
                 result = await transferTokens({
                     fromAddress: from,
                     toAddress: to,
@@ -334,7 +332,6 @@ exports.transferTokensController = async (req, res) => {
                     walletPassword: pass,
                     encryptedPrivateKey: accountData.keystore,
                 })
-
             }
 
             if (result.error) {
@@ -382,8 +379,11 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        console.error(err)
-        return responseHandler.makeResponseError(res, 402, err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            'Internal server error'
+        )
     }
 }
 
