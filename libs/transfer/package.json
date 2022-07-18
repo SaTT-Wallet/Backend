@@ -1,8 +1,8 @@
 {
   "name": "@atayen-org/transfer",
-  "version": "2.3.6",
+  "version": "2.3.8",
   "description": "",
-  "main": "transfer-tokens.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
