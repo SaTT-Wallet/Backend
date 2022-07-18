@@ -1,7 +1,7 @@
-const transferTokens = require('./transfer-tokens')
-const transferBTC = require('./transfer-btc')
+const { transferTokens } = require('./transfer-tokens')
+const { transferBTC } = require('./transfer-btc')
 
-module.exports.default = {
+module.exports = {
     transferTokens,
     transferBTC,
 }
