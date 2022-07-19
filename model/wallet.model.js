@@ -33,6 +33,8 @@ const walletSchema = mongoose.Schema(
             ek: { type: String },
         },
         mnemo: { type: String },
+        tronAddress: { type: String },
+        tronValue: { type: String },
     },
     {
         collection: 'wallet',
