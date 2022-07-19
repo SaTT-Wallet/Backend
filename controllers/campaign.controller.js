@@ -70,6 +70,7 @@ const {
     getContractCampaigns,
     getPromContract,
     getCampaignOwnerAddr,
+    bttConnexion,
 } = require('../blockchainConnexion')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
@@ -147,6 +148,33 @@ const storage = new GridFsStorage({
     },
 })
 
+
+module.exports.wrappedbtt = async (cred,amount) => {
+    try {
+
+      
+          
+        let web3UrlBTT = cred.web3UrlBTT
+        contractWbtt = new web3UrlBTT.eth.Contract(
+            Constants.wbtt.abi,
+            Constants.token.wbtt
+        )
+        var gas = 200000
+
+        var ret = await contractWbtt.methods.deposit().send({
+            from: "0x1723e1ac746cad7fb35b1511944655e928a224ca",
+            value : amount,
+            gas: gas,
+
+       })
+       return ret
+        
+    } catch (error) {
+        console.log(error)
+    }
+ 
+}
+
 module.exports.upload = multer({ storage }).array('file')
 
 module.exports.launchCampaign = async (req, res) => {
@@ -163,6 +191,10 @@ module.exports.launchCampaign = async (req, res) => {
 
     try {
         var cred = await unlock(req, res)
+        if (tokenAddress === "0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e")
+             wrapped = await this.wrappedbtt(cred,amount) 
+           
+        
         if (!cred) return
         var ret = await createPerformanceCampaign(
             dataUrl,
@@ -480,8 +512,8 @@ exports.campaignPromp = async (req, res) => {
                                 : '0'
                             let share = result.shares
                                 ? new Big(num['share']).times(
-                                      result.shares.toString()
-                                  )
+                                    result.shares.toString()
+                                )
                                 : '0'
                             let totalToEarn = new Big(view)
                                 .plus(new Big(like))
@@ -507,7 +539,7 @@ exports.campaignPromp = async (req, res) => {
                             bounty.categories.forEach((category) => {
                                 if (
                                     +category.minFollowers <=
-                                        +result.abosNumber &&
+                                    +result.abosNumber &&
                                     +result.abosNumber <= +category.maxFollowers
                                 ) {
                                     let totalToEarn = category.reward
@@ -714,7 +746,7 @@ exports.linkNotifications = async (req, res) => {
         User.findOne({ _id: owner }, (err, result) => {
             readHTMLFileCampaign(
                 __dirname +
-                    '/../public/emailtemplate/Email_Template_link_added.html',
+                '/../public/emailtemplate/Email_Template_link_added.html',
                 'linkNotifications',
                 element.title,
                 result.email,
@@ -840,7 +872,7 @@ exports.validateCampaign = async (req, res) => {
             })
             readHTMLFileCampaign(
                 __dirname +
-                    '/../public/emailtemplate/email_validated_link.html',
+                '/../public/emailtemplate/email_validated_link.html',
                 'campaignValidation',
                 campaign.title,
                 email,
@@ -1088,8 +1120,8 @@ exports.gains = async (req, res) => {
                     updatedFUnds.payedAmount = !result.payedAmount
                         ? amount
                         : new Big(result.payedAmount)
-                              .plus(new Big(amount))
-                              .toFixed()
+                            .plus(new Big(amount))
+                            .toFixed()
                     updatedFUnds.type = 'already_recovered'
 
                     await CampaignLink.updateOne(
@@ -1714,31 +1746,31 @@ exports.getLinks = async (req, res) => {
         let tri =
             req.query.state === 'owner'
                 ? [
-                      [
-                          'waiting_for_validation',
-                          'harvest',
-                          'already_recovered',
-                          'not_enough_budget',
-                          'no_gains',
-                          'indisponible',
-                          'rejected',
-                          'none',
-                      ],
-                      '$type',
-                  ]
+                    [
+                        'waiting_for_validation',
+                        'harvest',
+                        'already_recovered',
+                        'not_enough_budget',
+                        'no_gains',
+                        'indisponible',
+                        'rejected',
+                        'none',
+                    ],
+                    '$type',
+                ]
                 : [
-                      [
-                          'harvest',
-                          'already_recovered',
-                          'waiting_for_validation',
-                          'not_enough_budget',
-                          'no_gains',
-                          'indisponible',
-                          'rejected',
-                          'none',
-                      ],
-                      '$type',
-                  ]
+                    [
+                        'harvest',
+                        'already_recovered',
+                        'waiting_for_validation',
+                        'not_enough_budget',
+                        'no_gains',
+                        'indisponible',
+                        'rejected',
+                        'none',
+                    ],
+                    '$type',
+                ]
         let userLinks = await CampaignLink.aggregate([
             {
                 $match: query,
@@ -1779,12 +1811,12 @@ exports.getLinks = async (req, res) => {
             if (campaign) {
                 let cmp = {}
                 const funds = campaign.funds ? campaign.funds[1] : campaign.cost
-                ;(cmp._id = campaign._id),
-                    (cmp.currency = campaign.token.name),
-                    (cmp.title = campaign.title),
-                    (cmp.remaining = funds),
-                    (cmp.ratio = campaign.ratios),
-                    (cmp.bounties = campaign.bounties)
+                    ; (cmp._id = campaign._id),
+                        (cmp.currency = campaign.token.name),
+                        (cmp.title = campaign.title),
+                        (cmp.remaining = funds),
+                        (cmp.ratio = campaign.ratios),
+                        (cmp.bounties = campaign.bounties)
                 result.campaign = cmp
                 arrayOfLinks.push(result)
             }
@@ -1869,7 +1901,7 @@ module.exports.campaignInvested = async (req, res) => {
         totalInvested = new Big(totalInvested).toFixed()
 
         res.json({ totalInvested, totalInvestedUSD })
-    } catch (e) {}
+    } catch (e) { }
 }
 
 exports.rejectLink = async (req, res) => {
