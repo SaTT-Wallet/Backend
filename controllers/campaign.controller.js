@@ -661,7 +661,7 @@ exports.apply = async (req, res) => {
                 tiktokProfile
             )
 
-            if (socialOracle.views === 'old') socialOracle.views = '0'
+            if (socialOracle?.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
@@ -676,7 +676,7 @@ exports.apply = async (req, res) => {
                 owner: campaignDetails.contract.toLowerCase(),
                 media_url: socialOracle.media_url,
             }
-            console.log('evv', event)
+            // console.log('evv', event)
             await Promise.allSettled([
                 CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
                 Event.create(event),
