@@ -10,11 +10,13 @@ const {
     bttConnexion,
 } = require('../blockchainConnexion')
 
-const { Constants } = require('../conf/const')
+const { Constants, tronTokensCampaign } = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
 const { ObjectId } = require('mongodb')
 const { Mongoose } = require('mongoose')
+const { isTronNetwork } = require('./campaigns')
+const { bttTokensCampaign } = require('./conf/const')
 
 exports.unlock = async (req, res) => {
     try {
@@ -24,14 +26,17 @@ exports.unlock = async (req, res) => {
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
         return {
             address: '0x' + account.keystore.address,
+            tronAddress: account.tronAddress,
             Web3ETH,
             Web3BEP20,
             Web3POLYGON,
+            tronSdk: sdk,
         }
     } catch (err) {
         res.status(500).send({
@@ -155,6 +160,8 @@ exports.getAccount = async (req, res) => {
         return res.status(401).end('Account not found')
     }
 }
+exports.isTronNetwork = (token) =>
+    (!!tronTokensCampaign.includes(token.toLowerCase()) && true) || false
 
 exports.createPerformanceCampaign = async (
     dataUrl,
@@ -167,6 +174,8 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
+        if (isTronNetwork(token)) {
+        }
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
