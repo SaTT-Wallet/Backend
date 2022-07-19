@@ -875,18 +875,59 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
+        /// creating tron address
+        const bufferPass = Buffer.from(pass, 'utf8')
+        const hexPass = bufferPass.toString('hex')
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        const resTron = await sdk.createaddress({ value: hexPass })
+        /////
+
         await Wallet.create({
             UserId: parseInt(UserId),
             keystore: account,
             num: count,
             btc: btcWallet,
             mnemo: mnemonic,
+            tronAddress: resTron.base58checkAddress,
+            tronValue: resTron.value,
         })
 
         return {
             address: '0x' + account.address,
             btcAddress: btcWallet.addressSegWitCompat,
+            tronAddress: resTron.base58checkAddress,
         }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+exports.addWalletTron = async (req, res) => {
+    try {
+        var UserId = req.user._id
+        var pass = req.body.pass
+        let wallet = await Wallet.findOne({ UserId })
+        //converting pass to hex
+        const bufferPass = Buffer.from(pass, 'utf8')
+        const hexPass = bufferPass.toString('hex')
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        const resTron = await sdk.createaddress({ value: hexPass })
+        ;(wallet.tronAddress = resTron.base58checkAddress),
+            (wallet.tronValue = resTron.value)
+
+        let updatedWallet = await Wallet.findOneAndUpdate(
+            { _id: wallet._id },
+            {
+                $set: {
+                    tronAddress: resTron.base58checkAddress,
+                    tronValue: resTron.value,
+                },
+            },
+            {
+                new: true,
+            }
+        )
+        return resTron.base58checkAddress
     } catch (error) {
         console.log(error)
     }
