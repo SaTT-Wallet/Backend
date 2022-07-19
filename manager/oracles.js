@@ -713,12 +713,18 @@ const instagram = async (UserId, link) => {
                             data[i].id +
                             '/insights?metric=impressions&access_token=' +
                             resMediaAccessToken.access_token
-                        var resMediaViews = await rp({
-                            uri: mediaViews,
-                            json: true,
-                        })
-                        let nbviews = JSON.stringify(resMediaViews)
-                        perf.views = JSON.parse(nbviews).data[0].values[0].value
+                        try {
+                            var resMediaViews = await rp({
+                                uri: mediaViews,
+                                json: true,
+                            })
+                            let nbviews = JSON.stringify(resMediaViews)
+                            perf.views =
+                                JSON.parse(nbviews).data[0].values[0].value
+                        } catch (error) {
+                            perf.views = 0
+                            return perf
+                        }
                         break
                     }
                 }
