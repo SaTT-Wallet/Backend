@@ -571,8 +571,8 @@ const facebook = async (pageName, idPost) => {
             if (res2.shares) {
                 shares = res2.shares.count
             }
-            var likes = res3.data[0].values[0].value.like
-            var views = res3.data[1].values[0].value
+            var likes = res3.data[0].values[0].value.like || 0
+            var views = res3.data[1].values[0].value || 0
             var perf = {
                 shares: shares,
                 likes: likes,
