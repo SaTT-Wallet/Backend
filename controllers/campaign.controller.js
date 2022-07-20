@@ -1110,7 +1110,8 @@ exports.gains = async (req, res) => {
             let network =
                 (campaign.token.type == 'erc20' && credentials.Web3ETH) ||
                 (campaign.token.type == 'bep20' && credentials.Web3BEP20) ||
-                credentials.Web3POLYGON || credentials.web3UrlBTT
+                credentials.Web3POLYGON ||
+                credentials.web3UrlBTT
 
             let amount = await getTransactionAmount(
                 credentials,
@@ -1532,6 +1533,64 @@ exports.bttApproval = async (req, res) => {
 }
 
 exports.bttAllow = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let polygonToken = req.body.tokenAddress
+        var cred = await unlock(req, res)
+        if (!cred) return
+
+        let ret = await bttAllow(
+            polygonToken,
+            cred,
+            campaignAddress,
+            amount,
+            res
+        )
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lock(cred)
+    }
+}
+
+exports.tronApproval = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res)
+        let allowance = await bttApprove(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
+exports.tronAllow = async (req, res) => {
     try {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount

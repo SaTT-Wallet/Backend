@@ -27,6 +27,7 @@ const {
     bridge,
     balanceStat,
     exportWalletInfos,
+    addTronWalletToExistingAccount,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -534,6 +535,32 @@ router.post('/verifyMnemo', verifyAuth, verifyMnemo)
  *          description: code,<br>error:"error"
  */
 router.post('/create', verifyAuth, createNewWallet)
+
+/**
+ * @swagger
+ * /wallet/add-tron-wallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: add TRX wallet to preExisting ETH/BTC Wallet .
+ *     description: add TRX wallet to preExisting ETH/BTC Wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/add-tron-wallet', verifyAuth, addTronWalletToExistingAccount)
 
 /**
  * @swagger
