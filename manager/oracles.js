@@ -512,23 +512,21 @@ exports.getPromApplyStats = async (
     try {
         let socialOracle = {}
         if (oracles == 'facebook')
-            socialOracle = await this.facebook(link.idUser, link.idPost)
+            socialOracle = await facebook(link.idUser, link.idPost)
         else if (oracles == 'twitter')
-            socialOracle = await this.twitter(link.idUser, link.idPost)
-        else if (oracles == 'youtube')
-            socialOracle = await this.youtube(link.idPost)
-        else if (oracles == 'instagram') {
-            socialOracle = await this.instagram(id, link)
-        } else if (oracles == 'linkedin') {
-            socialOracle = await this.linkedin(
+            socialOracle = await twitter(link.idUser, link.idPost)
+        else if (oracles == 'youtube') socialOracle = await youtube(link.idPost)
+        else if (oracles == 'instagram')
+            socialOracle = await instagram(id, link)
+        else if (oracles == 'linkedin') {
+            socialOracle = await linkedin(
                 link.idUser,
                 link.idPost,
                 link.typeURL,
                 linkedinProfile
             )
         } else {
-            console.log('from getPromApplyStats')
-            socialOracle = await this.tiktok(tiktokProfile, link.idPost)
+            socialOracle = await tiktok(tiktokProfile, link.idPost)
         }
 
         delete socialOracle.date
@@ -538,7 +536,7 @@ exports.getPromApplyStats = async (
     }
 }
 
-exports.facebook = async (pageName, idPost) => {
+const facebook = async (pageName, idPost) => {
     try {
         var page = await FbPage.findOne({ username: pageName })
         if (page) {
@@ -573,14 +571,14 @@ exports.facebook = async (pageName, idPost) => {
             if (res2.shares) {
                 shares = res2.shares.count
             }
-            var likes = res3.data[0].values[0].value.like
-            var views = res3.data[1].values[0].value
+            var likes = res3.data[0].values[0].value.like || 0
+            var views = res3.data[1].values[0].value || 0
             var perf = {
                 shares: shares,
                 likes: likes,
                 views: views,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res2.full_picture,
+                media_url: res2.full_picture || '',
             }
 
             return perf
@@ -588,16 +586,16 @@ exports.facebook = async (pageName, idPost) => {
             return { shares: 0, likes: 0, views: 0 }
         }
     } catch (err) {
-        console.log(err.message)
+        console.log('error form facebook', err.message)
     }
 }
 
-exports.youtube = async (idPost) => {
+const youtube = async (idPost) => {
     try {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
         }
-        var perf = { shares: 0, likes: 0, views: 0 }
+        var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         var body = await rp({
             uri: 'https://www.googleapis.com/youtube/v3/videos',
             qs: {
@@ -607,12 +605,17 @@ exports.youtube = async (idPost) => {
             },
         })
         var res = JSON.parse(body)
+        var media = await rp({
+            uri: `https://www.youtube.com/oembed?url=https%3A//youtube.com/watch%3Fv%3D${idPost}&format=json`,
+            json: true,
+        })
         if (res.items && res.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
+                media_url: media.thumbnail_url,
             }
         }
 
@@ -621,7 +624,7 @@ exports.youtube = async (idPost) => {
         console.log(err.message)
     }
 }
-exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
+const linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
         let accessToken = linkedinProfile.accessToken
         var perf = { shares: 0, likes: 0, views: 0 }
@@ -640,14 +643,18 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
         }
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
+        let mediaUrl = config.linkedinMediaUrl(idPost)
+
+        console.log('mediaUrl', mediaUrl)
         const linkedinData = {
-            url: url,
+            url: mediaUrl,
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + accessToken,
             },
             json: true,
         }
+        console.log('linkedinData', linkedinData)
         var body = await rp(linkedinData)
         if (body.elements.length) {
             perf.views = body.elements[0]?.totalShareStatistics.impressionCount
@@ -672,21 +679,18 @@ exports.linkedin = async (organization, idPost, type, linkedinProfile) => {
     }
 }
 
-exports.instagram = async (UserId, link) => {
+const instagram = async (UserId, link) => {
     try {
         let idPost = link.idPost
-
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         let instagramUserName = link.instagramUserName
         var fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
-        console.log('fbPage', fbPage)
 
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId })
-            console.log('fbProfile', fbProfile)
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
@@ -714,12 +718,18 @@ exports.instagram = async (UserId, link) => {
                             data[i].id +
                             '/insights?metric=impressions&access_token=' +
                             resMediaAccessToken.access_token
-                        var resMediaViews = await rp({
-                            uri: mediaViews,
-                            json: true,
-                        })
-                        let nbviews = JSON.stringify(resMediaViews)
-                        perf.views = JSON.parse(nbviews).data[0].values[0].value
+                        try {
+                            var resMediaViews = await rp({
+                                uri: mediaViews,
+                                json: true,
+                            })
+                            let nbviews = JSON.stringify(resMediaViews)
+                            perf.views =
+                                JSON.parse(nbviews).data[0].values[0].value
+                        } catch (error) {
+                            perf.views = 0
+                            return perf
+                        }
                         break
                     }
                 }
@@ -733,7 +743,7 @@ exports.instagram = async (UserId, link) => {
     }
 }
 
-exports.twitter = async (userName, idPost) => {
+const twitter = async (userName, idPost) => {
     try {
         var tweet = new Twitter({
             consumer_key: oauth.twitter.consumer_key_alt,
@@ -759,7 +769,7 @@ exports.twitter = async (userName, idPost) => {
                 likes: res.favorite_count,
                 views: 0,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes?.media[0]?.url,
+                media_url: res.includes.media[0].url || 'test',
             }
             return perf
         }
@@ -788,13 +798,16 @@ exports.twitter = async (userName, idPost) => {
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
 
+            console.log('media_url', res.includes.media[0].url && true)
+
             var perf = {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes?.media[0]?.url,
+                media_url: res.includes.media[0].url,
                 views: 'old',
             }
+
             return perf
         }
 
@@ -803,7 +816,7 @@ exports.twitter = async (userName, idPost) => {
             likes: res.data[0].public_metrics.like_count,
             views: res.data[0].non_public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-            media_url: res.includes?.media[0]?.url,
+            media_url: res.includes.media[0].url,
         }
 
         return perf
@@ -812,16 +825,10 @@ exports.twitter = async (userName, idPost) => {
     }
 }
 
-exports.tiktok = async (tiktokProfile, idPost) => {
-    console.log({
-        access_token: tiktokProfile.accessToken,
-        open_id: tiktokProfile.userTiktokId,
-        filters: {
-            video_ids: [idPost],
-        },
-    })
-
+const tiktok = async (tiktokProfile, idPost) => {
     try {
+        if (!tiktokProfile) return 'indisponible'
+
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp({ uri: getUrl, json: true })
         let videoInfoResponse = await axios
@@ -836,16 +843,16 @@ exports.tiktok = async (tiktokProfile, idPost) => {
                     'comment_count',
                     'share_count',
                     'view_count',
+                    'cover_image_url',
                 ],
             })
             .then((response) => response.data)
-
-        console.log({ videoInfoResponse })
 
         return {
             likes: videoInfoResponse.data.videos[0].like_count,
             shares: videoInfoResponse.data.videos[0].share_count,
             views: videoInfoResponse.data.videos[0].view_count,
+            media_url: videoInfoResponse.data.videos[0].cover_image_url,
         }
     } catch (error) {
         console.log(error)
@@ -912,7 +919,7 @@ exports.getReward = (result, bounties) => {
                 bounty.oracle === result.oracle ||
                 bounty.oracle == this.findBountyOracle(result.typeSN)
             ) {
-                bounty = bounty.toObject()
+                bounty = bounty?.toObject()
                 bounty.categories.forEach((category) => {
                     if (
                         +category.minFollowers <= +result.abosNumber &&
