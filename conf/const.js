@@ -18,6 +18,8 @@ let PolygonConstants = {
 
 let TronConstant = {
     token: { abi: [], satt: '' },
+    campaign: { abi: [], address: '' },
+    oracle: { abi: [], address: '' },
 }
 let BttConstants = {
     token: { abi: [], satt: '' },
@@ -3057,11 +3059,14 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_MAINNET_POLYGON
-    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_MAINNET
     BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_MAINNET
     BttConstants.campaign.address =
         process.env.CONST_COMPAIGN_ADDRESS_MAINNET_BTT
     BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_BTT
+    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_MAINNET
+    TronConstant.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_TRON
+    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_TRON
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
     Constants.token.wbtt = "0xd6cb96a00b312d5930fc2e8084a98ff2daa5ad2e"
@@ -3090,11 +3095,14 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_TESTNET_POLYGON
-    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_TESTNET
     BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_TESTNET
     BttConstants.campaign.address =
         process.env.CONST_COMPAIGN_ADDRESS_TESTNET_BTT
     BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_BTT
+    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_TESTNET
+    TronConstant.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_TRON
+    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
 }
 
 let erc20TokenCampaigns = [
@@ -3111,6 +3119,7 @@ let bep20TokenCampaigns = [
 let polygonTokensCampaign = [PolygonConstants.token.satt.toLowerCase()]
 
 let bttTokensCampaign = [BttConstants.token.satt.toLowerCase(), Constants.token.wbtt.toLowerCase()]
+let tronTokensCampaign = [TronConstant.token.satt.toLowerCase()]
 
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3UrlBTT = process.env.WEB3_URL_BTT
@@ -3128,3 +3137,4 @@ module.exports.erc20TokenCampaigns = erc20TokenCampaigns
 module.exports.bep20TokenCampaigns = bep20TokenCampaigns
 module.exports.polygonTokensCampaign = polygonTokensCampaign
 module.exports.bttTokensCampaign = bttTokensCampaign
+module.exports.tronTokensCampaign = tronTokensCampaign
