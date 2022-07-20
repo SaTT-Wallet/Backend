@@ -174,7 +174,7 @@ exports.getAccount = async (req, res) => {
         var satt_balance = await contractSatt.methods.balanceOf(address).call()
 
         var result = {
-            btc: account.addressSegWit,
+            btc: account.btc.addressSegWitCompat,
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
@@ -383,6 +383,8 @@ exports.getListCryptoByUid = async (req, res) => {
         var ret = await this.getAccount(req, res)
         delete ret.btc
         delete ret.version
+        delete ret.tronAddress
+        delete ret.tronValue
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
         })
@@ -526,6 +528,9 @@ exports.getListCryptoByUid = async (req, res) => {
             ;[crypto.symbol, crypto.undername, crypto.undername2] =
                 Array(3).fill(tokenSymbol)
             crypto.price = CryptoPrices[tokenSymbol].price
+            console.log(tokenSymbol)
+            console.log(crypto.price)
+
             crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
 
             crypto.total_balance =
@@ -558,6 +563,8 @@ exports.getBalanceByUid = async (req, res) => {
 
         let ret = await this.getAccount(req, res)
         delete ret.btc
+        delete ret.tronAddress
+        delete ret.tronValue
         delete ret.version
 
         let userTokens = await CustomToken.find({
@@ -619,7 +626,11 @@ exports.getBalanceByUid = async (req, res) => {
                 if (CryptoPrices.hasOwnProperty(key)) {
                     Total_balance +=
                         this.filterAmount(
-                            new Big(balance['amount'] * 1)
+                            new Big(
+                                (!!(balance['amount'] * 1) &&
+                                    balance['amount'] * 1) ||
+                                    0
+                            )
                                 .div(
                                     (
                                         10 ** +token_info[T_name].dicimal
@@ -633,10 +644,12 @@ exports.getBalanceByUid = async (req, res) => {
 
         delete ret.address
         for (const Amount in ret) {
+            console.log(ret)
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
 
             let decimal = tokenSymbol === 'BTC' ? 8 : 18
+            console.log(tokenSymbol, ret[Amount])
             Total_balance +=
                 this.filterAmount(
                     new Big((await ret[Amount]) * 1)
