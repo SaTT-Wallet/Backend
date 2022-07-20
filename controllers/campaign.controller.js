@@ -881,6 +881,9 @@ exports.validateCampaign = async (req, res) => {
         }
     }
 }
+
+
+
 exports.gains = async (req, res) => {
     var idProm = req.body.idProm
     var hash = req.body.hash
@@ -901,6 +904,8 @@ exports.gains = async (req, res) => {
             )
         } else {
             var credentials = await unlock(req, res)
+
+
             var ctr = await getPromContract(idProm, credentials)
 
             var gasPrice = await ctr.getGasPrice()

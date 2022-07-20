@@ -801,7 +801,7 @@ exports.updatePromStats = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log(err)
+        console.log("err update prom",err)
     }
 }
 
