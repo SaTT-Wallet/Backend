@@ -9,6 +9,7 @@ const eventSchema = mongoose.Schema(
         txhash: { type: String },
         contract: { type: String },
         owner: { type: String },
+        media_url: { type: String },
     },
     { timestamps: true, strict: false, collection: 'event' }
 )
