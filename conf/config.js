@@ -1218,6 +1218,9 @@ let config = {
             json: true,
         }
     },
+    linkedinMediaUrl: (idPost) =>
+        `${process.env.LINKEDIN_ORIGINAL_ARTICLE}${idPost}`,
+
     bridgeKeystore: {
         version: 3,
         id: '8a6cc367-db49-4fb4-a46b-2a5dd50c90d7',
