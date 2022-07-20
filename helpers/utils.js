@@ -17,6 +17,7 @@ const jwt = require('jsonwebtoken')
 
 const handlebars = require('handlebars')
 var ejs = require('ejs')
+const ethers = require('ethers')
 var transporter = nodemailer.createTransport({
     host: process.env.MAILER_HOST,
     port: process.env.MAILER_PORT,
@@ -320,6 +321,76 @@ exports.cloneUser = (user) => {
         ...newUser
     } = user
     return newUser
+}
+
+exports.encodeParams = async (inputs) => {
+    var ethers = require('ethers')
+    const AbiCoder = ethers.utils.AbiCoder
+    const ADDRESS_PREFIX_REGEX = /^(41)/
+    const ADDRESS_PREFIX = '41'
+    let typesValues = inputs
+    let parameters = ''
+
+    if (typesValues.length == 0) return parameters
+    const abiCoder = new AbiCoder()
+    let types = []
+    const values = []
+
+    for (let i = 0; i < typesValues.length; i++) {
+        let { type, value } = typesValues[i]
+        if (type == 'address') value = value.replace(ADDRESS_PREFIX_REGEX, '0x')
+        else if (type == 'address[]')
+            value = value.map((v) =>
+                toHex(v).replace(ADDRESS_PREFIX_REGEX, '0x')
+            )
+        types.push(type)
+        values.push(value)
+    }
+    console.log(types, values)
+    try {
+        parameters = abiCoder.encode(types, values).replace(/^(0x)/, '')
+    } catch (ex) {
+        console.log(ex)
+    }
+    return parameters
+
+    /*
+    HOW TO USE FUNCTION
+    let inputs = [
+        {type: 'address', value: "412ed5dd8a98aea00ae32517742ea5289761b2710e"},
+        {type: 'uint256', value: 50000000000}
+    ]
+    let parameters = await encodeParams(inputs)
+    console.log(parameters)*/
+}
+
+exports.decodeParams = async (types, output, ignoreMethodHash) => {
+    var ethers = require('ethers')
+
+    const AbiCoder = ethers.utils.AbiCoder
+    const ADDRESS_PREFIX_REGEX = /^(41)/
+    const ADDRESS_PREFIX = '41'
+
+    if (!output || typeof output === 'boolean') {
+        ignoreMethodHash = output
+        output = types
+    }
+
+    if (ignoreMethodHash && output.replace(/^0x/, '').length % 64 === 8)
+        output = '0x' + output.replace(/^0x/, '').substring(8)
+
+    const abiCoder = new AbiCoder()
+
+    if (output.replace(/^0x/, '').length % 64)
+        throw new Error(
+            'The encoded string is not valid. Its length must be a multiple of 64.'
+        )
+    return abiCoder.decode(types, output).reduce((obj, arg, index) => {
+        if (types[index] == 'address')
+            arg = ADDRESS_PREFIX + arg.substr(2).toLowerCase()
+        obj.push(arg)
+        return obj
+    }, [])
 }
 
 //global function that generates user acessToken

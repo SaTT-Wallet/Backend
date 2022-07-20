@@ -571,8 +571,8 @@ const facebook = async (pageName, idPost) => {
             if (res2.shares) {
                 shares = res2.shares.count
             }
-            var likes = res3.data[0].values[0].value.like
-            var views = res3.data[1].values[0].value
+            var likes = res3.data[0].values[0].value.like || 0
+            var views = res3.data[1].values[0].value || 0
             var perf = {
                 shares: shares,
                 likes: likes,
@@ -595,7 +595,7 @@ const youtube = async (idPost) => {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
         }
-        var perf = { shares: 0, likes: 0, views: 0 }
+        var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         var body = await rp({
             uri: 'https://www.googleapis.com/youtube/v3/videos',
             qs: {
@@ -605,12 +605,17 @@ const youtube = async (idPost) => {
             },
         })
         var res = JSON.parse(body)
+        var media = await rp({
+            uri: `https://www.youtube.com/oembed?url=https%3A//youtube.com/watch%3Fv%3D${idPost}&format=json`,
+            json: true,
+        })
         if (res.items && res.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
+                media_url: media.thumbnail_url,
             }
         }
 
@@ -713,12 +718,18 @@ const instagram = async (UserId, link) => {
                             data[i].id +
                             '/insights?metric=impressions&access_token=' +
                             resMediaAccessToken.access_token
-                        var resMediaViews = await rp({
-                            uri: mediaViews,
-                            json: true,
-                        })
-                        let nbviews = JSON.stringify(resMediaViews)
-                        perf.views = JSON.parse(nbviews).data[0].values[0].value
+                        try {
+                            var resMediaViews = await rp({
+                                uri: mediaViews,
+                                json: true,
+                            })
+                            let nbviews = JSON.stringify(resMediaViews)
+                            perf.views =
+                                JSON.parse(nbviews).data[0].values[0].value
+                        } catch (error) {
+                            perf.views = 0
+                            return perf
+                        }
                         break
                     }
                 }
