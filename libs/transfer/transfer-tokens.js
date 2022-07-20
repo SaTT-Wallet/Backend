@@ -12,7 +12,6 @@ module.exports.transferTokens = async function ({
     encryptedPrivateKey,
 }) {
     const web3 = new Web3(provider)
-
     if (!web3.utils.isAddress(fromAddress)) {
         throw Error('The sender address is not a valid ethereum address !!')
     }
@@ -50,6 +49,7 @@ module.exports.transferTokens = async function ({
 
     web3.eth.accounts.wallet.decrypt([encryptedPrivateKey], walletPassword)
 
+    
     try {
         let result
 

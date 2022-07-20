@@ -57,6 +57,8 @@ const {
     getTokenContractByToken,
     exportWalletInfo,
     sendBtt,
+    createWalletTron,
+    addWalletTron,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -322,8 +324,6 @@ exports.transferTokensController = async (req, res) => {
                     account: accountData,
                 })
             } else {
-
-
                 result = await transferTokens({
                     fromAddress: from,
                     toAddress: to,
@@ -334,7 +334,6 @@ exports.transferTokensController = async (req, res) => {
                     walletPassword: pass,
                     encryptedPrivateKey: accountData.keystore,
                 })
-
             }
 
             if (result.error) {
@@ -382,8 +381,11 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        console.error(err)
-        return responseHandler.makeResponseError(res, 402, err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            'Internal server error'
+        )
     }
 }
 
@@ -835,6 +837,38 @@ exports.createNewWallet = async (req, res) => {
                 }
             )
         }
+    }
+}
+
+exports.addTronWalletToExistingAccount = async (req, res) => {
+    try {
+        var id = req.user._id
+        let user = await User.findOne({ _id: id }, { password: 1 })
+        let wallet = await Wallet.findOne({ UserId: id })
+        if (user.password === synfonyHash(req.body.pass)) {
+            return responseHandler.makeResponseError(res, 401, 'same password')
+            //do not forget to check hasWallet attribute
+        } else if (!!wallet.tronAddress) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'tron wallet already exists'
+            )
+        } else {
+            var ret = await addWalletTron(req, res)
+
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                tronAddress: ret,
+            })
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
