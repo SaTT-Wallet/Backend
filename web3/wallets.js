@@ -40,6 +40,7 @@ exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -49,16 +50,15 @@ exports.unlock = async (req, res) => {
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
         let web3UrlBTT = await bttConnexion()
         web3UrlBTT.eth.accounts.wallet.decrypt([account.keystore], pass)
-        // let Web3TRON = await tronConnexion()
-        // Web3TRON.eth.accounts.wallet.decrypt([account.keystore], pass)
 
         return {
             address: '0x' + account.keystore.address,
+            tronAddress: account.tronAddress,
             Web3ETH,
             Web3BEP20,
             Web3POLYGON,
             web3UrlBTT,
-            // Web3TRON
+            tronSdk: sdk,
         }
     } catch (err) {
         res.status(500).send({
@@ -174,7 +174,10 @@ exports.getAccount = async (req, res) => {
         var satt_balance = await contractSatt.methods.balanceOf(address).call()
 
         var result = {
+            btc: account.btc.addressSegWitCompat,
             address: '0x' + account.keystore.address,
+            tronAddress: account.tronAddress,
+            tronValue: account.tronValue,
             ether_balance: ether_balance,
             bnb_balance: bnb_balance,
             matic_balance: polygon_balance,
@@ -380,6 +383,8 @@ exports.getListCryptoByUid = async (req, res) => {
         var ret = await this.getAccount(req, res)
         delete ret.btc
         delete ret.version
+        delete ret.tronAddress
+        delete ret.tronValue
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
         })
@@ -523,6 +528,9 @@ exports.getListCryptoByUid = async (req, res) => {
             ;[crypto.symbol, crypto.undername, crypto.undername2] =
                 Array(3).fill(tokenSymbol)
             crypto.price = CryptoPrices[tokenSymbol].price
+            console.log(tokenSymbol)
+            console.log(crypto.price)
+
             crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
 
             crypto.total_balance =
@@ -555,6 +563,8 @@ exports.getBalanceByUid = async (req, res) => {
 
         let ret = await this.getAccount(req, res)
         delete ret.btc
+        delete ret.tronAddress
+        delete ret.tronValue
         delete ret.version
 
         let userTokens = await CustomToken.find({
@@ -616,7 +626,11 @@ exports.getBalanceByUid = async (req, res) => {
                 if (CryptoPrices.hasOwnProperty(key)) {
                     Total_balance +=
                         this.filterAmount(
-                            new Big(balance['amount'] * 1)
+                            new Big(
+                                (!!(balance['amount'] * 1) &&
+                                    balance['amount'] * 1) ||
+                                    0
+                            )
                                 .div(
                                     (
                                         10 ** +token_info[T_name].dicimal
@@ -630,10 +644,12 @@ exports.getBalanceByUid = async (req, res) => {
 
         delete ret.address
         for (const Amount in ret) {
+            console.log(ret)
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
 
             let decimal = tokenSymbol === 'BTC' ? 8 : 18
+            console.log(tokenSymbol, ret[Amount])
             Total_balance +=
                 this.filterAmount(
                     new Big((await ret[Amount]) * 1)
@@ -875,18 +891,59 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
+        /// creating tron address
+        const bufferPass = Buffer.from(pass, 'utf8')
+        const hexPass = bufferPass.toString('hex')
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        const resTron = await sdk.createaddress({ value: hexPass })
+        /////
+
         await Wallet.create({
             UserId: parseInt(UserId),
             keystore: account,
             num: count,
             btc: btcWallet,
             mnemo: mnemonic,
+            tronAddress: resTron.base58checkAddress,
+            tronValue: resTron.value,
         })
 
         return {
             address: '0x' + account.address,
             btcAddress: btcWallet.addressSegWitCompat,
+            tronAddress: resTron.base58checkAddress,
         }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+exports.addWalletTron = async (req, res) => {
+    try {
+        var UserId = req.user._id
+        var pass = req.body.pass
+        let wallet = await Wallet.findOne({ UserId })
+        //converting pass to hex
+        const bufferPass = Buffer.from(pass, 'utf8')
+        const hexPass = bufferPass.toString('hex')
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        const resTron = await sdk.createaddress({ value: hexPass })
+        ;(wallet.tronAddress = resTron.base58checkAddress),
+            (wallet.tronValue = resTron.value)
+
+        let updatedWallet = await Wallet.findOneAndUpdate(
+            { _id: wallet._id },
+            {
+                $set: {
+                    tronAddress: resTron.base58checkAddress,
+                    tronValue: resTron.value,
+                },
+            },
+            {
+                new: true,
+            }
+        )
+        return resTron.base58checkAddress
     } catch (error) {
         console.log(error)
     }
