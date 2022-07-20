@@ -43,7 +43,7 @@ exports.readHTMLFileProfile = (
     readHTMLFile(path, async (err, html) => {
         var template = handlebars.compile(html)
 
-        if (event === 'changeEmail') {
+        if (event === 'changeEmail' || event === 'createTronWallet') {
             var replacements = {
                 ip,
                 requestDate,
