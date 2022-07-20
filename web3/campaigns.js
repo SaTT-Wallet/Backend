@@ -159,8 +159,6 @@ exports.getAccount = async (req, res) => {
     }
 }
 
-exports.isTronNetwork = (token) =>
-    (!!tronTokensCampaign.includes(token.toLowerCase()) && true) || false
 
 exports.createPerformanceCampaign = async (
     dataUrl,
@@ -173,17 +171,17 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
-        if (isTronNetwork(token)) {
-            const abiCoder = new ethers.utils.AbiCoder()
-            const parameters = ethers.defaultAbiCoder
-            credentials.tronSdk.triggersmartcontract({
-                owner_address: credentials.tronAddress,
-                contract_address: TronConstant.campaign.address,
-                function_selector:
-                    'createPriceFundAll(string, uint64, uint64, uint256[], address, uint256)',
-                call_value: 0,
-            })
-        }
+        // if (!!tronTokensCampaign.includes(token.toLowerCase())) {
+        //     const abiCoder = new ethers.utils.AbiCoder()
+        //     const parameters = ethers.defaultAbiCoder
+        //     credentials.tronSdk.triggersmartcontract({
+        //         owner_address: credentials.tronAddress,
+        //         contract_address: TronConstant.campaign.address,
+        //         function_selector:
+        //             'createPriceFundAll(string, uint64, uint64, uint256[], address, uint256)',
+        //         call_value: 0,
+        //     })
+        // }
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
@@ -818,7 +816,7 @@ exports.updatePromStats = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log(err)
+        console.log("err update prom",err)
     }
 }
 

@@ -1085,3 +1085,21 @@ module.exports.ShareByActivity = async (req, res) => {
         )
     }
 }
+module.exports.facebookVerify = async (req, res) => {
+    try {
+        const { email } = req.body
+        const account = await FbProfile.findOne({ 'emails.0.value': email })
+
+        if (!account) {
+            return makeResponseError(res, 404, 'account not found!')
+        }
+        return makeResponseData(res, 200, 'success')
+    } catch (err) {
+        // console.log('error', err.message)
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
