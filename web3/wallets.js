@@ -174,7 +174,7 @@ exports.getAccount = async (req, res) => {
         var satt_balance = await contractSatt.methods.balanceOf(address).call()
 
         var result = {
-            btc: account.addressSegWit,
+            btc: account.btc.addressSegWitCompat,
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
