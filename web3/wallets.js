@@ -40,6 +40,7 @@ exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -49,16 +50,15 @@ exports.unlock = async (req, res) => {
         Web3POLYGON.eth.accounts.wallet.decrypt([account.keystore], pass)
         let web3UrlBTT = await bttConnexion()
         web3UrlBTT.eth.accounts.wallet.decrypt([account.keystore], pass)
-        // let Web3TRON = await tronConnexion()
-        // Web3TRON.eth.accounts.wallet.decrypt([account.keystore], pass)
 
         return {
             address: '0x' + account.keystore.address,
+            tronAddress: account.tronAddress,
             Web3ETH,
             Web3BEP20,
             Web3POLYGON,
             web3UrlBTT,
-            // Web3TRON
+            tronSdk: sdk,
         }
     } catch (err) {
         res.status(500).send({
@@ -174,6 +174,7 @@ exports.getAccount = async (req, res) => {
         var satt_balance = await contractSatt.methods.balanceOf(address).call()
 
         var result = {
+            ...account,
             address: '0x' + account.keystore.address,
             ether_balance: ether_balance,
             bnb_balance: bnb_balance,
