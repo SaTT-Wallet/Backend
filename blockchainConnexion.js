@@ -137,7 +137,7 @@ exports.getPromContract = async (idProm, credentials = false) => {
 
         return this.getContractCampaigns(prom.contract, credentials)
     } catch (err) {
-        console.log(err.message)
+        console.log("err prom",err.message)
     }
 }
 
@@ -178,7 +178,7 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
     } catch (err) {
-        console.log(err.message)
+        console.log("err cmp",err.message)
     }
 }
 
