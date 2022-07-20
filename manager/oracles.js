@@ -532,7 +532,7 @@ exports.getPromApplyStats = async (
         delete socialOracle.date
         return socialOracle
     } catch (err) {
-        console.log('err from getPromApplyStats', err.message)
+        console.log('error from getPromApplyStats', err.message)
     }
 }
 
