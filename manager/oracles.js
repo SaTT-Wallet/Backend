@@ -1041,11 +1041,11 @@ exports.answerOne = async (
     try {
         switch (typeSN) {
             case '1':
-                var res = await this.facebook(idUser, idPost)
+                var res = await facebook(idUser, idPost)
 
                 break
             case '2':
-                var res = await this.youtube(idPost)
+                var res = await youtube(idPost)
 
                 break
             case '3':
@@ -1055,15 +1055,15 @@ exports.answerOne = async (
                         .toLowerCase()
                         .substring(2),
                 })
-                var res = await this.instagram(userWallet.UserId, campaign_link)
+                var res = await instagram(userWallet.UserId, campaign_link)
 
                 break
             case '4':
-                var res = await this.twitter(idUser, idPost)
+                var res = await twitter(idUser, idPost)
 
                 break
             case '5':
-                var res = await this.linkedin(
+                var res = await linkedin(
                     idUser,
                     idPost,
                     type,
@@ -1072,7 +1072,7 @@ exports.answerOne = async (
 
                 break
             case '6':
-                var res = await this.tiktok(tiktokProfile, idPost)
+                var res = await tiktok(tiktokProfile, idPost)
 
                 break
             default:
