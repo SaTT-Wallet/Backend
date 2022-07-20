@@ -10,13 +10,11 @@ const {
     bttConnexion,
 } = require('../blockchainConnexion')
 
-const { Constants, tronTokensCampaign } = require('../conf/const')
+const { Constants, tronTokensCampaign, TronConstant } = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
-const { ObjectId } = require('mongodb')
-const { Mongoose } = require('mongoose')
 const { isTronNetwork } = require('./campaigns')
-const { bttTokensCampaign } = require('./conf/const')
+const { ethers } = require('ethers')
 
 exports.unlock = async (req, res) => {
     try {
@@ -160,6 +158,7 @@ exports.getAccount = async (req, res) => {
         return res.status(401).end('Account not found')
     }
 }
+
 exports.isTronNetwork = (token) =>
     (!!tronTokensCampaign.includes(token.toLowerCase()) && true) || false
 
@@ -175,6 +174,15 @@ exports.createPerformanceCampaign = async (
 ) => {
     try {
         if (isTronNetwork(token)) {
+            const abiCoder = new ethers.utils.AbiCoder()
+            const parameters = ethers.defaultAbiCoder
+            credentials.tronSdk.triggersmartcontract({
+                owner_address: credentials.tronAddress,
+                contract_address: TronConstant.campaign.address,
+                function_selector:
+                    'createPriceFundAll(string, uint64, uint64, uint256[], address, uint256)',
+                call_value: 0,
+            })
         }
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
