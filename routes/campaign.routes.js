@@ -105,12 +105,12 @@ router.post('/btt/allow', verifyAuth, bttAllow)
 
 /**
  * @swagger
- * /campaign/btt/approval:
+ * /campaign/tron/approval:
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: BTT aprroval
- *     description: Approve the smart contract BTT to interact with user wallet
+ *     summary: TRON aprroval
+ *     description: Approve the smart contract TRON to interact with user wallet
  *     requestBody:
  *       required: true
  *       content:
@@ -120,7 +120,7 @@ router.post('/btt/allow', verifyAuth, bttAllow)
  *             properties:
  *               tokenAddress:
  *                 type: string
- *               campaignAddress:
+ *               privateKey:
  *                 type: string
  *     responses:
  *       "200":
@@ -147,14 +147,11 @@ router.post('/tron/approval', verifyAuth, tronApproval)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               campaignAddress:
- *                 type: string
- *               amount:
- *                 type: string
- *               pass:
- *                 type: string
  *               tokenAddress:
  *                 type: string
+ *               privateKey:
+ *                 type: string
+
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
@@ -182,7 +179,7 @@ router.post('/tron/allow', verifyAuth, tronAllow)
  *             properties:
  *               tokenAddress:
  *                 type: string
- *               campaignAddress:
+ *               privateKey:
  *                 type: string
  *     responses:
  *       "200":

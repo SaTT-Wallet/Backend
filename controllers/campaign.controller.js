@@ -30,6 +30,8 @@ const {
     unlockPolygon,
     polygonAllow,
     lockPolygon,
+    tronApprove,
+    tronAllowance,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -71,6 +73,7 @@ const {
     getPromContract,
     getCampaignOwnerAddr,
     bttConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
@@ -148,12 +151,8 @@ const storage = new GridFsStorage({
     },
 })
 
-
-module.exports.wrappedbtt = async (cred,amount) => {
+module.exports.wrappedbtt = async (cred, amount) => {
     try {
-
-      
-          
         let web3UrlBTT = cred.web3UrlBTT
         contractWbtt = new web3UrlBTT.eth.Contract(
             Constants.wbtt.abi,
@@ -162,17 +161,14 @@ module.exports.wrappedbtt = async (cred,amount) => {
         var gas = 200000
 
         var ret = await contractWbtt.methods.deposit().send({
-            from: "0x1723e1ac746cad7fb35b1511944655e928a224ca",
-            value : amount,
+            from: '0x1723e1ac746cad7fb35b1511944655e928a224ca',
+            value: amount,
             gas: gas,
-
-       })
-       return ret
-        
+        })
+        return ret
     } catch (error) {
         console.log(error)
     }
- 
 }
 
 module.exports.upload = multer({ storage }).array('file')
@@ -190,11 +186,19 @@ module.exports.launchCampaign = async (req, res) => {
     let network = req.body.network
 
     try {
+        let tronWeb
+        if (network === 'TRON') {
+            let privateKey = req.body.pass
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+        }
+
         var cred = await unlock(req, res)
-        if (tokenAddress === "0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e")
-             wrapped = await this.wrappedbtt(cred,amount) 
-           
-        
+        if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e')
+            wrapped = await this.wrappedbtt(cred, amount)
+
         if (!cred) return
         var ret = await createPerformanceCampaign(
             dataUrl,
@@ -204,6 +208,7 @@ module.exports.launchCampaign = async (req, res) => {
             tokenAddress,
             amount,
             cred,
+            tronWeb,
             res
         )
         if (!ret) return
@@ -512,8 +517,8 @@ exports.campaignPromp = async (req, res) => {
                                 : '0'
                             let share = result.shares
                                 ? new Big(num['share']).times(
-                                    result.shares.toString()
-                                )
+                                      result.shares.toString()
+                                  )
                                 : '0'
                             let totalToEarn = new Big(view)
                                 .plus(new Big(like))
@@ -539,7 +544,7 @@ exports.campaignPromp = async (req, res) => {
                             bounty.categories.forEach((category) => {
                                 if (
                                     +category.minFollowers <=
-                                    +result.abosNumber &&
+                                        +result.abosNumber &&
                                     +result.abosNumber <= +category.maxFollowers
                                 ) {
                                     let totalToEarn = category.reward
@@ -747,7 +752,7 @@ exports.linkNotifications = async (req, res) => {
         User.findOne({ _id: owner }, (err, result) => {
             readHTMLFileCampaign(
                 __dirname +
-                '/../public/emailtemplate/Email_Template_link_added.html',
+                    '/../public/emailtemplate/Email_Template_link_added.html',
                 'linkNotifications',
                 element.title,
                 result.email,
@@ -873,7 +878,7 @@ exports.validateCampaign = async (req, res) => {
             })
             readHTMLFileCampaign(
                 __dirname +
-                '/../public/emailtemplate/email_validated_link.html',
+                    '/../public/emailtemplate/email_validated_link.html',
                 'campaignValidation',
                 campaign.title,
                 email,
@@ -882,8 +887,6 @@ exports.validateCampaign = async (req, res) => {
         }
     }
 }
-
-
 
 exports.gains = async (req, res) => {
     var idProm = req.body.idProm
@@ -905,7 +908,6 @@ exports.gains = async (req, res) => {
             )
         } else {
             var credentials = await unlock(req, res)
-
 
             var ctr = await getPromContract(idProm, credentials)
 
@@ -1127,8 +1129,8 @@ exports.gains = async (req, res) => {
                     updatedFUnds.payedAmount = !result.payedAmount
                         ? amount
                         : new Big(result.payedAmount)
-                            .plus(new Big(amount))
-                            .toFixed()
+                              .plus(new Big(amount))
+                              .toFixed()
                     updatedFUnds.type = 'already_recovered'
 
                     await CampaignLink.updateOne(
@@ -1567,17 +1569,18 @@ exports.bttAllow = async (req, res) => {
 exports.tronApproval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
-        let campaignAddress = req.body.campaignAddress
-        let account = await getAccount(req, res)
-        let allowance = await bttApprove(
+        let tronWeb = await webTronInstance()
+        tronWeb.setPrivateKey(req.body.privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(req.body.privateKey)
+        tronWeb.setAddress(walletAddr)
+        let allowance = await tronApprove(
+            walletAddr,
+            tronWeb,
             tokenAddress,
-            account.address,
-            campaignAddress
+            res
         )
         return responseHandler.makeResponseData(res, 200, 'success', {
-            token: tokenAddress,
             allowance: allowance,
-            spender: campaignAddress,
         })
     } catch (err) {
         console.log(err.message)
@@ -1593,32 +1596,22 @@ exports.tronApproval = async (req, res) => {
 
 exports.tronAllow = async (req, res) => {
     try {
-        let campaignAddress = req.body.campaignAddress
-        let amount = req.body.amount
-        let polygonToken = req.body.tokenAddress
-        var cred = await unlock(req, res)
-        if (!cred) return
-
-        let ret = await bttAllow(
-            polygonToken,
-            cred,
-            campaignAddress,
-            amount,
-            res
-        )
+        let tokenAddress = req.body.tokenAddress
+        let tronWeb = await webTronInstance()
+        tronWeb.setPrivateKey(req.body.privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(req.body.privateKey)
+        tronWeb.setAddress(walletAddr)
+        let ret = await tronAllowance(tronWeb, tokenAddress, res)
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error,
             false
         )
-    } finally {
-        if (cred) lock(cred)
     }
 }
 
@@ -1811,31 +1804,31 @@ exports.getLinks = async (req, res) => {
         let tri =
             req.query.state === 'owner'
                 ? [
-                    [
-                        'waiting_for_validation',
-                        'harvest',
-                        'already_recovered',
-                        'not_enough_budget',
-                        'no_gains',
-                        'indisponible',
-                        'rejected',
-                        'none',
-                    ],
-                    '$type',
-                ]
+                      [
+                          'waiting_for_validation',
+                          'harvest',
+                          'already_recovered',
+                          'not_enough_budget',
+                          'no_gains',
+                          'indisponible',
+                          'rejected',
+                          'none',
+                      ],
+                      '$type',
+                  ]
                 : [
-                    [
-                        'harvest',
-                        'already_recovered',
-                        'waiting_for_validation',
-                        'not_enough_budget',
-                        'no_gains',
-                        'indisponible',
-                        'rejected',
-                        'none',
-                    ],
-                    '$type',
-                ]
+                      [
+                          'harvest',
+                          'already_recovered',
+                          'waiting_for_validation',
+                          'not_enough_budget',
+                          'no_gains',
+                          'indisponible',
+                          'rejected',
+                          'none',
+                      ],
+                      '$type',
+                  ]
         let userLinks = await CampaignLink.aggregate([
             {
                 $match: query,
@@ -1876,12 +1869,12 @@ exports.getLinks = async (req, res) => {
             if (campaign) {
                 let cmp = {}
                 const funds = campaign.funds ? campaign.funds[1] : campaign.cost
-                    ; (cmp._id = campaign._id),
-                        (cmp.currency = campaign.token.name),
-                        (cmp.title = campaign.title),
-                        (cmp.remaining = funds),
-                        (cmp.ratio = campaign.ratios),
-                        (cmp.bounties = campaign.bounties)
+                ;(cmp._id = campaign._id),
+                    (cmp.currency = campaign.token.name),
+                    (cmp.title = campaign.title),
+                    (cmp.remaining = funds),
+                    (cmp.ratio = campaign.ratios),
+                    (cmp.bounties = campaign.bounties)
                 result.campaign = cmp
                 arrayOfLinks.push(result)
             }
@@ -1966,7 +1959,7 @@ module.exports.campaignInvested = async (req, res) => {
         totalInvested = new Big(totalInvested).toFixed()
 
         res.json({ totalInvested, totalInvestedUSD })
-    } catch (e) { }
+    } catch (e) {}
 }
 
 exports.rejectLink = async (req, res) => {

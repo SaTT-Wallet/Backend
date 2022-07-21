@@ -8,6 +8,7 @@ const {
     getContractCampaigns,
     polygonConnexion,
     bttConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
 const { Constants, tronTokensCampaign, TronConstant } = require('../conf/const')
@@ -159,7 +160,6 @@ exports.getAccount = async (req, res) => {
     }
 }
 
-
 exports.createPerformanceCampaign = async (
     dataUrl,
     startDate,
@@ -168,6 +168,7 @@ exports.createPerformanceCampaign = async (
     token,
     amount,
     credentials,
+    tronWeb,
     res
 ) => {
     try {
@@ -182,6 +183,32 @@ exports.createPerformanceCampaign = async (
         //         call_value: 0,
         //     })
         // }
+
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                Constants.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr
+                .createPriceFundAll(
+                    dataUrl,
+                    startDate,
+                    endDate,
+                    ratios,
+                    token,
+                    amount
+                )
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: true,
+                })
+
+            return {
+                transactionHash: receipt,
+            }
+        }
+
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
@@ -273,6 +300,19 @@ exports.bttApprove = async (token, address, spender) => {
 
         var amount = await contract.methods.allowance(address, spender).call()
         return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
+    }
+}
+
+exports.tronApprove = async (walletAddr, tronWeb, token, res) => {
+    try {
+        let ctr = await tronWeb.contract(Constants.token.abi, token)
+        let amount = await ctr
+            .allowance(walletAddr, TronConstant.campaign.address)
+            .call()
+
+        return { amount: tronWeb.BigNumber(amount._hex).toString() }
     } catch (err) {
         return { amount: '0' }
     }
@@ -370,6 +410,26 @@ exports.bttAllow = async (token, credentials, spender, amount, res) => {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
             spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+exports.tronAllowance = async (tronWeb, token, res) => {
+    try {
+        let ctr = await tronWeb.contract(TronConstant.token.abi, token)
+        let receipt = await ctr
+            .approve(TronConstant.campaign.address, 999999999999)
+            .send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+        return {
+            transactionHash: receipt,
         }
     } catch (err) {
         res.status(500).send({
@@ -816,7 +876,7 @@ exports.updatePromStats = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log("err update prom",err)
+        console.log('err update prom', err)
     }
 }
 
