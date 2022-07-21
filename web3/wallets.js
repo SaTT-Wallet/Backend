@@ -476,7 +476,10 @@ exports.getListCryptoByUid = async (req, res) => {
 
             if (CryptoPrices) {
                 if (CryptoPrices.hasOwnProperty(key)) {
-                    crypto.price = CryptoPrices[key].price
+                    crypto.price =
+                        crypto.symbol === 'BTT'
+                            ? CryptoPrices[key].price.toFixed(10)
+                            : CryptoPrices[key].price
                     crypto.variation = CryptoPrices[key].percent_change_24h
                     crypto.total_balance =
                         this.filterAmount(
@@ -528,8 +531,6 @@ exports.getListCryptoByUid = async (req, res) => {
             ;[crypto.symbol, crypto.undername, crypto.undername2] =
                 Array(3).fill(tokenSymbol)
             crypto.price = CryptoPrices[tokenSymbol].price
-            console.log(tokenSymbol)
-            console.log(crypto.price)
 
             crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
 
