@@ -120,7 +120,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
-const { Constants } = require('../conf/const')
+const { Constants, TronConstant } = require('../conf/const')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -187,19 +187,21 @@ module.exports.launchCampaign = async (req, res) => {
 
     try {
         let tronWeb
+        let cred
         if (network === 'TRON') {
             let privateKey = req.body.pass
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
+        } else {
+            cred = await unlock(req, res)
+            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e')
+                wrapped = await this.wrappedbtt(cred, amount)
+
+            if (!cred) return
         }
 
-        var cred = await unlock(req, res)
-        if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e')
-            wrapped = await this.wrappedbtt(cred, amount)
-
-        if (!cred) return
         var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
@@ -606,10 +608,20 @@ exports.apply = async (req, res) => {
                 'Link already sent'
             )
         }
+        var cred
+        var tronWeb
+        if (campaignDetails.network === 'TRON') {
+            let privateKey = req.body.pass
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+        } else {
+            cred = await unlock(req, res)
 
-        var cred = await unlock(req, res)
+            if (!cred) return
+        }
 
-        if (!cred) return
         if (typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne({ userId: id })
             var linkedinInfo = await getLinkedinLinkInfo(
@@ -632,6 +644,7 @@ exports.apply = async (req, res) => {
             idPost,
             idUser,
             cred,
+            tronWeb,
             campaignDetails.token
         )
         if (ret.error) {
@@ -804,9 +817,19 @@ exports.validateCampaign = async (req, res) => {
         if (idUser === campaign?.idNode) {
             const lang = 'en'
             configureTranslation(lang)
+            var tronWeb
+            var cred
+            if (campaign.network === 'TRON') {
+                let privateKey = req.body.pass
+                tronWeb = await webTronInstance()
+                tronWeb.setPrivateKey(privateKey)
+                let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+                tronWeb.setAddress(walletAddr)
+            } else {
+                cred = await unlock(req, res)
+            }
 
-            var cred = await unlock(req, res)
-            var ret = await validateProm(idApply, cred)
+            var ret = await validateProm(idApply, cred, tronWeb)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
@@ -907,13 +930,30 @@ exports.gains = async (req, res) => {
                 "You didn't exceed the limits timing to harvest again"
             )
         } else {
-            var credentials = await unlock(req, res)
+            var tronWeb
+            var credentials
+            var ctr
+            var gasPrice
+            let campaignData = await Campaigns.findOne({ hash: hash })
+            if (campaignData.network === 'TRON') {
+                let privateKey = req.body.pass
+                tronWeb = await webTronInstance()
+                tronWeb.setPrivateKey(privateKey)
+                let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+                tronWeb.setAddress(walletAddr)
+                ctr = await tronWeb.contract(
+                    Constants.campaign.abi,
+                    TronConstant.campaign.address
+                )
+            } else {
+                credentials = await unlock(req, res)
+                ctr = await getPromContract(idProm, credentials)
+                gasPrice = await ctr.getGasPrice()
+            }
 
-            var ctr = await getPromContract(idProm, credentials)
-
-            var gasPrice = await ctr.getGasPrice()
-
-            let prom = await ctr.methods.proms(idProm).call()
+            let prom =
+                (!!tronWeb && (await ctr.proms(idProm).call())) ||
+                (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
@@ -921,10 +961,9 @@ exports.gains = async (req, res) => {
                     { accessToken: 1, _id: 0 }
                 ))
             var link = await CampaignLink.findOne({ id_prom: idProm })
-            let campaignData = await Campaigns.findOne({ hash: hash })
             if (!!campaignData.bounties.length) {
                 if (prom.funds.amount > 0 && prom.isPayed) {
-                    var ret = await getGains(idProm, credentials)
+                    var ret = await getGains(idProm, credentials, tronWeb)
                     return responseHandler.makeResponseData(
                         res,
                         200,
@@ -942,7 +981,7 @@ exports.gains = async (req, res) => {
                 let maxBountieFollowers =
                     bountie.categories[bountie.categories.length - 1]
                         .maxFollowers
-                var evts = await updateBounty(idProm, credentials)
+                var evts = await updateBounty(idProm, credentials, tronWeb)
                 stats = link.abosNumber
                 if (+stats >= +maxBountieFollowers) {
                     stats = (+maxBountieFollowers - 1).toString()
@@ -966,9 +1005,12 @@ exports.gains = async (req, res) => {
                 try {
                     await answerBounty({
                         credentials,
+                        tronWeb,
                         gasPrice: gasPrice,
                         from: process.env.CAMPAIGN_OWNER,
-                        campaignContract: ctr.options.address,
+                        campaignContract:
+                            (!!tronWeb && TronConstant.campaign.address) ||
+                            ctr.options.address,
                         idProm: idProm,
                         nbAbos: stats,
                     })
@@ -1040,7 +1082,11 @@ exports.gains = async (req, res) => {
                     stats.shares != prevstat[0].shares ||
                     stats.views != prevstat[0].views
                 ) {
-                    var evts = await updatePromStats(idProm, credentials)
+                    var evts = await updatePromStats(
+                        idProm,
+                        credentials,
+                        tronWeb
+                    )
 
                     var evt = evts.events[0]
                     var idRequest = evt.raw.topics[1]
@@ -1070,9 +1116,12 @@ exports.gains = async (req, res) => {
                 )
                 await answerCall({
                     credentials,
+                    tronWeb,
                     gasPrice: gasPrice,
                     from: campaignContractOwnerAddr,
-                    campaignContract: ctr.options.address,
+                    campaignContract:
+                        (!!tronWeb && TronConstant.campaign.address) ||
+                        ctr.options.address,
                     idRequest: requests[0].id,
                     likes: stats.likes,
                     shares: stats.shares,
@@ -1080,7 +1129,7 @@ exports.gains = async (req, res) => {
                 })
             }
 
-            var ret = await getGains(idProm, credentials)
+            var ret = await getGains(idProm, credentials, tronWeb)
 
             if (ret) {
                 await User.updateOne(
@@ -1118,6 +1167,7 @@ exports.gains = async (req, res) => {
 
             let amount = await getTransactionAmount(
                 credentials,
+                tronWeb,
                 ret.transactionHash,
                 network
             )
@@ -1142,10 +1192,13 @@ exports.gains = async (req, res) => {
 
             let contract = await getCampaignContractByHashCampaign(
                 hash,
-                credentials
+                credentials,
+                tronWeb
             )
-            var result = await contract.methods.campaigns(hash).call()
-            campaignType.funds = result.funds
+            var result =
+                (!!tronWeb && (await contract.campaigns(hash).call())) ||
+                (await contract.methods.campaigns(hash).call())
+            campaignType.funds = result.funds //TODO return right funds
             if (result.funds[1] === '0') campaignType.type = 'finished'
             await Campaigns.updateOne({ hash: hash }, { $set: campaignType })
         }

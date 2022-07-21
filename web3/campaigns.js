@@ -613,9 +613,31 @@ exports.applyCampaign = async (
     idPost,
     idUser,
     credentials,
+    tronWeb,
     token
 ) => {
     try {
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                Constants.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr
+                .applyCampaign(idCampaign, typeSN, idPost, idUser)
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+
+            return {
+                transactionHash: receipt,
+                idCampaign: idCampaign,
+                typeSN: typeSN,
+                idPost: idPost,
+                idUser: idUser,
+            } //TODO add promId to returned object
+        }
         let web3 = await getContractByToken(token.addr, credentials)
 
         var gas = 400000
@@ -637,14 +659,6 @@ exports.applyCampaign = async (
                 `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${prom} ${idCampaign}`
             )
 
-        console.log({
-            transactionHash: receipt.events.CampaignApplied.transactionHash,
-            idCampaign: idCampaign,
-            typeSN: typeSN,
-            idPost: idPost,
-            idUser: idUser,
-            idProm: prom,
-        })
         return {
             transactionHash: receipt.events.CampaignApplied.transactionHash,
             idCampaign: idCampaign,
@@ -713,7 +727,22 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     }
 }
 
-exports.getGains = async (idProm, credentials) => {
+exports.getGains = async (idProm, credentials, tronWeb) => {
+    if (!!tronWeb) {
+        let ctr = await tronWeb.contract(
+            Constants.campaign.abi,
+            TronConstant.campaign.address
+        )
+        let receipt = await ctr.getGains(idProm).send({
+            feeLimit: 100_000_000,
+            callValue: 0,
+            shouldPollResponse: false,
+        })
+        return {
+            transactionHash: receipt,
+            idProm: idProm,
+        }
+    }
     var ctr = await getPromContract(idProm, credentials)
     var gas = 200000
     var gasPrice = await ctr.getGasPrice()
@@ -814,8 +843,24 @@ exports.influencersLinks = async (links) => {
     }
 }
 
-exports.updateBounty = async (idProm, credentials) => {
+exports.updateBounty = async (idProm, credentials, tronWeb) => {
     try {
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                Constants.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr.updateBounty(idProm).send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+            return {
+                transactionHash: receipt,
+                idProm: idProm,
+                events: null, //TODO add events to returned value
+            }
+        }
         var gas = 200000
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
@@ -835,7 +880,22 @@ exports.updateBounty = async (idProm, credentials) => {
     }
 }
 
-exports.validateProm = async (idProm, credentials) => {
+exports.validateProm = async (idProm, credentials, tronWeb) => {
+    if (!!tronWeb) {
+        let ctr = await tronWeb.contract(
+            Constants.campaign.abi,
+            TronConstant.campaign.address
+        )
+        let receipt = await ctr.validateProm(idProm).send({
+            feeLimit: 100_000_000,
+            callValue: 0,
+            shouldPollResponse: false,
+        })
+        return {
+            transactionHash: receipt,
+            idProm: idProm,
+        }
+    }
     var gas = 100000
     let ctr = await getPromContract(idProm, credentials)
     var gasPrice = await ctr.getGasPrice()
@@ -856,8 +916,24 @@ exports.validateProm = async (idProm, credentials) => {
     }
 }
 
-exports.updatePromStats = async (idProm, credentials) => {
+exports.updatePromStats = async (idProm, credentials, tronWeb) => {
     try {
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                Constants.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr.updatePromStats(idProm).send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+            return {
+                transactionHash: receipt,
+                idProm: idProm,
+                events: null, //TODO add events to retuned value
+            }
+        }
         var gas = 200000
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
@@ -882,10 +958,15 @@ exports.updatePromStats = async (idProm, credentials) => {
 
 exports.getTransactionAmount = async (
     credentials,
+    tronWeb,
     transactionHash,
     network
 ) => {
     try {
+        if (!!tronWeb) {
+            //TODO get amount and return it
+            return 0
+        }
         let data = await network.eth.getTransactionReceipt(transactionHash)
         let hex = network.utils.hexToNumberString(data.logs[0].data)
         return hex
