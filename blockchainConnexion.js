@@ -8,12 +8,12 @@ const {
     web3UrlBTT,
     web3Url,
     web3PolygonUrl,
-    web3Tron,
     PolygonConstants,
     bttTokensCampaign,
     BttConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
+const { TronConstant } = require('./conf/const')
 const options = {
     timeout: 30000,
 
@@ -130,12 +130,21 @@ exports.getContractByToken = async (token, credentials) => {
 
 exports.getCampaignContractByHashCampaign = async (
     hash,
-    credentials = false
+    credentials = false,
+    tronWeb = null
 ) => {
     try {
         var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
-        if (campaign?.contract)
+        if (campaign?.contract) {
+            if (!!tronWeb) {
+                let ctr = await tronWeb.contract(
+                    Constants.campaign.abi,
+                    TronConstant.campaign.address
+                )
+                return ctr
+            }
             return this.getContractCampaigns(campaign.contract, credentials)
+        }
     } catch (err) {
         console.log(err.message)
     }
