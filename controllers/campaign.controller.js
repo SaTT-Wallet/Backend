@@ -22,7 +22,7 @@ const {
 
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
-const { configureTranslation } = require('../helpers/utils')
+const { configureTranslation, timeout } = require('../helpers/utils')
 const { getPrices, getAccount } = require('../web3/wallets')
 const {
     fundCampaign,
@@ -161,12 +161,61 @@ module.exports.wrappedbtt = async (cred, amount) => {
         var gas = 200000
 
         var ret = await contractWbtt.methods.deposit().send({
-            from: '0x1723e1ac746cad7fb35b1511944655e928a224ca',
             value: amount,
             from: cred.address,
-            value: amount,
             gas: gas,
         })
+        return ret
+    } catch (error) {
+        console.log(error)
+    }
+}
+exports.swapTrx = async (req, res) => {
+    try {
+        let privateKey = req.body.privateKey
+        let amount = req.body.amount
+        let tronWeb = await webTronInstance()
+        tronWeb.setPrivateKey(privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+        tronWeb.setAddress(walletAddr)
+        let result = await wrappedtrx(tronWeb, amount)
+        return responseHandler.makeResponseData(res, 200, 'success', result)
+    } catch (err) {
+        console.log(err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+async function wrappedtrx(webTron, amount) {
+    try {
+        let ctr = await webTron.contract(
+            TronConstant.token.wtrxAbi,
+            TronConstant.token.wtrx
+        )
+
+        var ret = await ctr.deposit().send({
+            feeLimit: 100_000_000,
+            callValue: amount,
+            shouldPollResponse: false,
+        })
+
+        await timeout(10000)
+        let result = await webTron.trx.getTransaction(ret)
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: ret,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: 'cannot swap trx coins',
+            })
+        }
+
         return ret
     } catch (error) {
         console.log(error)
@@ -198,8 +247,9 @@ module.exports.launchCampaign = async (req, res) => {
             tronWeb.setAddress(walletAddr)
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e')
-                wrapped = await this.wrappedbtt(cred, amount)
+            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
+                let wrapped = await this.wrappedbtt(cred, amount)
+            }
 
             if (!cred) return
         }
