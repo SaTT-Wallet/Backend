@@ -175,7 +175,7 @@ exports.createPerformanceCampaign = async (
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
-                Constants.campaign.abi2,
+                TronConstant.campaign.abi2,
                 TronConstant.campaign.address
             )
             let receipt = await ctr
@@ -188,9 +188,9 @@ exports.createPerformanceCampaign = async (
                     amount
                 )
                 .send({
-                    feeLimit: 100_000_000,
+                    feeLimit: 1e9,
                     callValue: 0,
-                    shouldPollResponse: true,
+                    shouldPollResponse: false,
                 })
             await timeout(10000)
             let result = await tronWeb.trx.getTransaction(receipt)
