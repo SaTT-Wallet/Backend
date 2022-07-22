@@ -151,7 +151,9 @@ router.post('/tron/approval', verifyAuth, tronApproval)
  *                 type: string
  *               privateKey:
  *                 type: string
-
+ *               amount:
+ *                 type: number
+ *
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
