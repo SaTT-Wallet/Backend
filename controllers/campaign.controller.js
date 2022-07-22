@@ -163,6 +163,8 @@ module.exports.wrappedbtt = async (cred, amount) => {
         var ret = await contractWbtt.methods.deposit().send({
             from: '0x1723e1ac746cad7fb35b1511944655e928a224ca',
             value: amount,
+            from: cred.address,
+            value: amount,
             gas: gas,
         })
         return ret
@@ -1660,6 +1662,7 @@ exports.tronAllow = async (req, res) => {
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
         console.log(err.message)
+
         return responseHandler.makeResponseError(
             res,
             500,
