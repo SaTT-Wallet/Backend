@@ -16,6 +16,7 @@ const { config } = require('../conf/config')
 const rp = require('request-promise')
 const { isTronNetwork } = require('./campaigns')
 const { ethers } = require('ethers')
+const { timeout } = require('../helpers/utils')
 
 exports.unlock = async (req, res) => {
     try {
@@ -172,21 +173,9 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
-        // if (!!tronTokensCampaign.includes(token.toLowerCase())) {
-        //     const abiCoder = new ethers.utils.AbiCoder()
-        //     const parameters = ethers.defaultAbiCoder
-        //     credentials.tronSdk.triggersmartcontract({
-        //         owner_address: credentials.tronAddress,
-        //         contract_address: TronConstant.campaign.address,
-        //         function_selector:
-        //             'createPriceFundAll(string, uint64, uint64, uint256[], address, uint256)',
-        //         call_value: 0,
-        //     })
-        // }
-
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
-                Constants.campaign.abi,
+                Constants.campaign.abi2,
                 TronConstant.campaign.address
             )
             let receipt = await ctr
@@ -203,9 +192,17 @@ exports.createPerformanceCampaign = async (
                     callValue: 0,
                     shouldPollResponse: true,
                 })
-
-            return {
-                transactionHash: receipt,
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
             }
         }
 
@@ -418,18 +415,27 @@ exports.bttAllow = async (token, credentials, spender, amount, res) => {
         })
     }
 }
-exports.tronAllowance = async (tronWeb, token, res) => {
+exports.tronAllowance = async (tronWeb, token, amount, res) => {
     try {
         let ctr = await tronWeb.contract(TronConstant.token.abi, token)
         let receipt = await ctr
-            .approve(TronConstant.campaign.address, 999999999999)
+            .approve(TronConstant.campaign.address, amount)
             .send({
                 feeLimit: 100_000_000,
                 callValue: 0,
                 shouldPollResponse: false,
             })
-        return {
-            transactionHash: receipt,
+        await timeout(10000)
+        let result = await tronWeb.trx.getTransaction(receipt)
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: result,
+            })
         }
     } catch (err) {
         res.status(500).send({

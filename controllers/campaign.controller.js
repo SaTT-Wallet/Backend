@@ -1649,12 +1649,13 @@ exports.tronApproval = async (req, res) => {
 
 exports.tronAllow = async (req, res) => {
     try {
+        let amount = req.body.amount
         let tokenAddress = req.body.tokenAddress
         let tronWeb = await webTronInstance()
         tronWeb.setPrivateKey(req.body.privateKey)
         let walletAddr = tronWeb.address.fromPrivateKey(req.body.privateKey)
         tronWeb.setAddress(walletAddr)
-        let ret = await tronAllowance(tronWeb, tokenAddress, res)
+        let ret = await tronAllowance(tronWeb, tokenAddress, amount, res)
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
