@@ -38,6 +38,7 @@ const {
     polygonAllow,
     tronApproval,
     tronAllow,
+    swapTrx,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -134,6 +135,34 @@ router.post('/tron/approval', verifyAuth, tronApproval)
 
 /**
  * @swagger
+ * /campaign/tron/swapTrx:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: swap trx
+ *     description: swap trx to wrappedtrx
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: string
+ *               privateKey:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/tron/swapTrx', verifyAuth, swapTrx)
+/**
+ * @swagger
  * /campaign/tron/allow:
  *   post:
  *     tags:
@@ -152,7 +181,7 @@ router.post('/tron/approval', verifyAuth, tronApproval)
  *               privateKey:
  *                 type: string
  *               amount:
- *                 type: number
+ *                 type: string
  *
  *     responses:
  *       "200":
