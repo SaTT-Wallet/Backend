@@ -381,11 +381,7 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            'Internal server error'
-        )
+        return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
 
