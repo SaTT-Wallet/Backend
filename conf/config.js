@@ -85,7 +85,8 @@ let sattContract,
     sattBTTCONTRACT,
     daiContract,
     busdContract,
-    usdtContract
+    usdtContract,
+    TRON_CONTRACT
 
 if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
@@ -97,6 +98,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
     usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
     busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
+    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
 } else {
     sattContract = process.env.TOKEN_SATT_CONTRACT
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
@@ -106,6 +108,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     daiContract = process.env.TOKEN_DAI_CONTRACT
     usdtContract = process.env.TOKEN_USDT_CONTRACT
     busdContract = process.env.TOKEN_BUSD_CONTRACT
+    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT
 }
 let Tokens = {
     SATT: {
@@ -243,16 +246,24 @@ let Tokens = {
         dicimal: process.env.TOKEN_BTT_DICIMAL,
         network: process.env.TOKEN_BTT_NETWORK,
     },
-
-    // SATT_TRON: {
-    //     name: process.env.TOKEN_SATT_TRON_NAME,
-    //     symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
-    //     undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
-    //     undername2: process.env.TOKEN_SATT_TRON_UNDERNAME2,
-    //     contract: sattTRONCONTRACT,
-    //     dicimal: process.env.TOKEN_SATT_TRON_DICIMAL,
-    //     network: process.env.TOKEN_SATT_TRON_NETWORK,
-    // },
+    TRX: {
+        name: process.env.TOKEN_TRON_NAME,
+        symbol: process.env.TOKEN_TRON_SYMBOL,
+        undername: process.env.TOKEN_TRON_UNDERNAME,
+        undername2: process.env.TOKEN_TRON_UNDERNAME2,
+        contract: TRON_CONTRACT,
+        dicimal: process.env.TOKEN_TRON_DICIMAL,
+        network: process.env.TOKEN_TRON_NETWORK,
+    },
+    SATT_TRON: {
+        name: process.env.TOKEN_SATT_TRON_NAME,
+        symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
+        undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_TRON_UNDERNAME2,
+        contract: sattTRONCONTRACT,
+        dicimal: process.env.TOKEN_SATT_TRON_DICIMAL,
+        network: process.env.TOKEN_SATT_TRON_NETWORK,
+    },
 }
 
 let token200 = [
