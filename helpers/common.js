@@ -143,14 +143,14 @@ module.exports.updateStat = async () => {
 
                if (socialOracle && socialOracle !== 'indisponible') 
                 {
-                    event.status = true 
-                    event.type = 'harvest'
+
                     event.shares = (socialOracle && socialOracle.shares) || '0'
                 event.likes = (socialOracle && socialOracle.likes) || '0'
                 let views = (socialOracle && socialOracle.views) || '0'
                 event.views = views === 'old' ? event.views : views
                 event.media_url = (socialOracle && socialOracle.media_url) || ''
-                event.oracle = findBountyOracle(event.typeSN)}
+                event.oracle = findBountyOracle(event.typeSN)
+                event.type = getButtonStatus(event)}
 
                 if (campaign.ratios.length && socialOracle) {
                     event.totalToEarn = getTotalToEarn(event, campaign.ratios)
