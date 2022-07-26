@@ -1,6 +1,7 @@
 const qrcode = require('qrcode')
 const speakeasy = require('speakeasy')
 const mongoose = require('mongoose')
+const validator = require('validator')
 
 const { Captcha, UserArchived, User, Wallet } = require('../model/index')
 
@@ -201,7 +202,7 @@ exports.codeRecover = async (req, res) => {
         let requestDate = manageTime()
         let ip =
             req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-       // if (ip) ip = ip.split(':')[3]
+        // if (ip) ip = ip.split(':')[3]
 
         let code = await updateAndGenerateCode(user._id, 'reset')
 
@@ -855,6 +856,47 @@ exports.setVisitSignUpStep = async (req, res, next) => {
             500,
             err.message ? err.message : err.error,
             false
+        )
+    }
+}
+
+module.exports.signupRequest = async (req, res) => {
+    const { email } = req.body
+
+    try {
+        if (!validator.isEmail(email)) {
+            return responseHandler.makeResponseError(
+                res,
+                400,
+                'please provide a valid email address!'
+            )
+        } else {
+            const existUser = await User.findOne({ email })
+            if (existUser) {
+                return responseHandler.makeResponseError(
+                    res,
+                    406,
+                    'Account already exist'
+                )
+            } else {
+                readHTMLFileLogin(
+                    __dirname + '/../public/emailtemplate/contact_support.html',
+                    'signup',
+                    req.body
+                )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'Email was sent'
+                )
+            }
+        }
+    } catch (err) {
+        // console.log('error', err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
         )
     }
 }
