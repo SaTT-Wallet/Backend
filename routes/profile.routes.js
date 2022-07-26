@@ -70,7 +70,6 @@ const {
     deleteTwitterChannels,
     deleteTwitterChannel,
     ShareByActivity,
-    facebookVerify,
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -1362,34 +1361,6 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
  *          description: error:<br> server error
  */
 router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
-
-/**
- * @swagger
- * /profile/facebook/verify:
- *   post:
- *     tags:
- *     - "profile"
- *     summary: verify facebook account .
- *     description: verify if user have a facebook account.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *     responses:
- *       "200":
- *          description: email changed,{"code":"status code","message":"email changed"}
- *       "401":
- *          description: error:<br> Invalid Access Token <br> AC_Token expired
- *       "406":
- *          description: error:<br> code incorrect
- *       "500":
- *          description: error:<br> server error
- */
-router.post('/facebook/verify', facebookVerify)
 
 router.get('/sendNotificationMobile', sendNotificationTest)
 module.exports = router
