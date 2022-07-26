@@ -70,14 +70,14 @@ exports.bttConnexion = async () => {
     }
 }
 
-// exports.tronConnexion = async () => {
-//       try {
-//         let Web3 = require('web3')
-//    return await new Web3(new Web3.providers.HttpProvider(web3Tron))
-//     } catch (err) {
-//      console.log(err.message ? err.message : err.error)
-//    }
-//     }
+exports.tronConnexion = async () => {
+    try {
+        let Web3 = require('web3')
+        return await new Web3(new Web3.providers.HttpProvider(web3Tron))
+    } catch (err) {
+        console.log(err.message ? err.message : err.error)
+    }
+}
 
 exports.getContractByToken = async (token, credentials) => {
     try {
@@ -137,7 +137,7 @@ exports.getPromContract = async (idProm, credentials = false) => {
 
         return this.getContractCampaigns(prom.contract, credentials)
     } catch (err) {
-        console.log("err prom",err.message)
+        console.log('err prom', err.message)
     }
 }
 
@@ -178,7 +178,7 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
     } catch (err) {
-        console.log("err cmp",err.message)
+        console.log('err cmp', err.message)
     }
 }
 
