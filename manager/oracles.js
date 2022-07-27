@@ -643,11 +643,11 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         }
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
-        let mediaUrl = config.linkedinMediaUrl(idPost)
+        // let mediaUrl = config.linkedinMediaUrl(idPost)
 
-        console.log('mediaUrl', mediaUrl)
+        console.log('Url', url)
         const linkedinData = {
-            url: mediaUrl,
+            url: url,
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + accessToken,
@@ -1063,12 +1063,7 @@ exports.answerOne = async (
 
                 break
             case '5':
-                var res = await linkedin(
-                    idUser,
-                    idPost,
-                    type,
-                    linkedinProfile
-                )
+                var res = await linkedin(idUser, idPost, type, linkedinProfile)
 
                 break
             case '6':
