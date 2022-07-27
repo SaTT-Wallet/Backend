@@ -880,7 +880,7 @@ module.exports.signupRequest = async (req, res) => {
             //     )
             // } else {
             readHTMLFileLogin(
-                __dirname + '/../public/emailtemplate/contact_support.html',
+                __dirname + '/../public/emails/signup.html',
                 'signup',
                 req.body
             )
