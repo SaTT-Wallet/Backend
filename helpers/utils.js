@@ -185,7 +185,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
 
             var mailOptions = {
                 from: process.env.CONTACT_MAIL,
-                to: body.email,
+                to: ip.email,
                 subject: 'Sign Up',
                 html: htmlToSend,
             }
