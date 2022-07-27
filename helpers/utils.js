@@ -173,12 +173,9 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
         if (event === 'signup') {
             let mailContent = {
                 SaTT: {
-                    Url: process.env.BASEURL + 'FAQ',
-                },
-                letter: {
-                    from: process.env.CONTACT_MAIL,
-                    subject: 'signup request',
-                    message: 'signup request',
+                    satt_faq: process.env.BASEURL + 'FAQ',
+                    imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                    signup_url: process.env.BASED_URL + '/auth/registration',
                 },
             }
             let htmlToSend = ejs.render(html, mailContent)
