@@ -6,7 +6,7 @@ const requestSchema = mongoose.Schema(
         typeSN: { type: Number },
         idUser: { type: String },
         idPost: { type: String },
-        new: { type: Boolean, default: false },
+        new: { type: Boolean, default: true },
         date: { type: Number },
         likes: { type: Number, default: 0 },
         shares: { type: Number, default: 0 },
