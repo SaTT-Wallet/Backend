@@ -159,7 +159,6 @@ exports.getAccount = async (req, res) => {
     }
 }
 
-
 exports.createPerformanceCampaign = async (
     dataUrl,
     startDate,
@@ -540,7 +539,7 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
             linkInfo.mediaUrl =
                 postData.results[urn][
                     'domainEntity~'
-                ].content.contentEntities[0].entityLocaion
+                ].content.contentEntities[0].entityLocation
         return linkInfo
     } catch (err) {
         console.log(err.message)
@@ -816,7 +815,7 @@ exports.updatePromStats = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log("err update prom",err)
+        console.log('err update prom', err)
     }
 }
 
