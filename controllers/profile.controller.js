@@ -1,4 +1,6 @@
 var rp = require('request-promise')
+const validator = require('validator')
+
 const {
     User,
     GoogleProfile,
@@ -713,10 +715,8 @@ module.exports.requestMoney = async (req, res) => {
 }
 
 exports.support = async (req, res) => {
-    const validateEmail = /\S+@\S+\.\S+/
-
     try {
-        if (validateEmail.test(req.body.email)) {
+        if (validator.isEmail(req.body.email)) {
             readHTMLFileProfile(
                 __dirname + '/../public/emailtemplate/contact_support.html',
                 'contact_support',
@@ -1078,24 +1078,6 @@ module.exports.ShareByActivity = async (req, res) => {
     } catch (err) {
         console.log(err.message)
 
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-module.exports.facebookVerify = async (req, res) => {
-    try {
-        const { email } = req.body
-        const account = await FbProfile.findOne({ 'emails.0.value': email })
-
-        if (!account) {
-            return makeResponseError(res, 404, 'account not found!')
-        }
-        return makeResponseData(res, 200, 'success')
-    } catch (err) {
-        // console.log('error', err.message)
         return makeResponseError(
             res,
             500,
