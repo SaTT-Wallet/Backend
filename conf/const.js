@@ -18,7 +18,7 @@ let PolygonConstants = {
 
 let TronConstant = {
     token: { abi: [], satt: '', wtrx: '', wtrxAbi: [] },
-    campaign: { abi: [], address: '', abi2: '' },
+    campaign: { abi: [], address: '' },
     oracle: { abi: [], address: '' },
 }
 let BttConstants = {
@@ -656,7 +656,7 @@ TronConstant.token.abi = [
     },
     { stateMutability: 'payable', type: 'receive' },
 ]
-TronConstant.campaign.abi2 = [
+TronConstant.campaign.abi = [
     {
         anonymous: false,
         inputs: [
