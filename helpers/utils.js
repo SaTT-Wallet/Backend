@@ -169,6 +169,24 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
                 html: htmlToSend,
             }
         }
+
+        if (event === 'signup') {
+            let mailContent = {
+                SaTT: {
+                    satt_faq: process.env.BASEURL + 'FAQ',
+                    imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                    signup_url: process.env.BASED_URL + '/auth/registration',
+                },
+            }
+            let htmlToSend = ejs.render(html, mailContent)
+
+            var mailOptions = {
+                from: process.env.CONTACT_MAIL,
+                to: ip.email,
+                subject: 'Sign Up',
+                html: htmlToSend,
+            }
+        }
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.log(error.message)

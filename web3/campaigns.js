@@ -607,7 +607,7 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
             linkInfo.mediaUrl =
                 postData.results[urn][
                     'domainEntity~'
-                ].content.contentEntities[0].entityLocaion
+                ].content.contentEntities[0].entityLocation
         return linkInfo
     } catch (err) {
         console.log(err.message)
