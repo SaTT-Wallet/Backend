@@ -175,9 +175,10 @@ exports.createPerformanceCampaign = async (
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
-                TronConstant.campaign.abi2,
+                TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
+
             let receipt = await ctr
                 .createPriceFundAll(
                     dataUrl,
@@ -216,7 +217,7 @@ exports.createPerformanceCampaign = async (
                 endDate,
                 ratios,
                 token,
-                amount
+                amount + ''
             )
             .send({
                 from: credentials.address,

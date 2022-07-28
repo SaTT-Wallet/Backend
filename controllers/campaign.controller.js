@@ -199,7 +199,7 @@ async function wrappedtrx(webTron, amount) {
 
         var ret = await ctr.deposit().send({
             feeLimit: 100_000_000,
-            callValue: amount,
+            callValue: +amount,
             shouldPollResponse: false,
         })
 
@@ -245,6 +245,9 @@ module.exports.launchCampaign = async (req, res) => {
             tronWeb.setPrivateKey(privateKey)
             let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
+            if (tokenAddress === 'TRpHXiD9PRoorNh9Lx4NeJUAP7NcG5zFwi') {
+                let wrapped = await wrappedtrx(tronWeb, amount)
+            }
         } else {
             cred = await unlock(req, res)
             if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
