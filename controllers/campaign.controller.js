@@ -689,7 +689,7 @@ exports.apply = async (req, res) => {
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
-            prom.media_url = socialOracle.media_url
+
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -698,7 +698,7 @@ exports.apply = async (req, res) => {
                 txhash: ret.transactionHash,
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
-                media_url: socialOracle.media_url,
+                media_url: prom.media_url,
             }
             // console.log('evv', event)
             await Promise.allSettled([
