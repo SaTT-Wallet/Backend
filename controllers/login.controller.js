@@ -871,25 +871,21 @@ module.exports.signupRequest = async (req, res) => {
                 'please provide a valid email address!'
             )
         } else {
-            const existUser = await User.findOne({ email })
-            if (existUser) {
-                return responseHandler.makeResponseError(
-                    res,
-                    406,
-                    'Account already exist'
-                )
-            } else {
-                readHTMLFileLogin(
-                    __dirname + '/../public/emailtemplate/contact_support.html',
-                    'signup',
-                    req.body
-                )
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'Email was sent'
-                )
-            }
+            // const existUser = await User.findOne({ email })
+            // if (existUser) {
+            //     return responseHandler.makeResponseError(
+            //         res,
+            //         406,
+            //         'Account already exist'
+            //     )
+            // } else {
+            readHTMLFileLogin(
+                __dirname + '/../public/emails/signup.html',
+                'signup',
+                req.body
+            )
+            return responseHandler.makeResponseData(res, 200, 'Email was sent')
+            // }
         }
     } catch (err) {
         // console.log('error', err.message)
