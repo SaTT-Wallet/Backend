@@ -8,145 +8,272 @@
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
             name="viewport"
         />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Raleway:wght@700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Raleway:wght@300;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Poppins:wght@300&family=Raleway:wght@300;700&display=swap');
+            * {
+                font-family: Raleway;
+            }
+
+            p {
+                margin: 0;
+                padding: 0;
+            }
+        </style>
     </head>
     <body style="background-color: #f6f6ff">
         <table align="center" style="background-color: #fff">
-            <tr align="left">
-                <td style="padding: 10px">
-                    <img src="{{imgUrl}}/SaTT-logo_.png" alt="logo" />
+            <tr align="center">
+                <td style="padding: 10px" colspan="3" rowspan="1">
+                    <img
+                        src="<%= SaTT.imgUrl%>/metaverse-logo.png"
+                        alt="logo"
+                    />
                 </td>
             </tr>
             <tr align="center">
                 <td><img src="{{imgUrl}}/welcome-code.png" alt="" /></td>
             </tr>
             <tr align="center">
-                <td>
+                <td colspan="3" rowspan="1">
                     <span
                         style="
-                            color: #9f33b9;
-                            font-size: 50px;
-                            font-weight: 700;
-                            font-family: system-ui;
+                            font-family: Raleway;
+                            font-style: normal;
+                            font-weight: 900;
+                            font-size: 36px;
+                            line-height: 101.5%;
+                            text-align: center;
+                            letter-spacing: 0.2em;
+                            text-transform: uppercase;
+                            color: #0f1128;
                         "
-                        >Welcome !</span
+                        >Welcome!</span
                     >
                 </td>
             </tr>
             <tr align="center">
-                <td style="padding: 20px 0">
+                <td style="padding: 20px 0" colspan="3" rowspan="1">
                     <span
                         style="
+                            color: black;
                             font-size: 20px;
-                            font-weight: 700;
-                            font-family: system-ui;
+                            font-weight: 900;
+                            font-family: Raleway;
                         "
-                        >Your registration is almost complete !</span
-                    >
-                </td>
-            </tr>
-            <tr align="center">
-                <td style="padding: 0 50px; padding-bottom: 20px">
-                    <span
-                        style="
-                            font-size: 16px;
-                            font-weight: 500;
-                            font-family: system-ui;
-                        "
-                        >Protecting your wallet is our priority.</span
-                    >
-                </td>
-            </tr>
-
-            <tr align="center">
-                <td style="padding: 30px 0">
-                    <a
-                        href="<%= SaTT.signup_url %>"
-                        style="text-decoration: none"
-                    >
-                        <span
-                            style="
-                                color: #fff;
-                                background-color: #6ecda0;
-                                padding: 10px 35px;
-                                font-size: 36px;
-                                font-weight: 700;
-                                border-radius: 30px;
-                                font-family: system-ui;
-                            "
-                            >SignUp</span
-                        ></a
-                    >
-                </td>
-            </tr>
-            <tr align="center">
-                <td>
-                    <span
-                        style="
-                            font-size: 12px;
-                            font-weight: 500;
-                            font-family: system-ui;
-                        "
-                        >This link will only be valid for 5 min</span
+                        >Wallet Registration</span
                     >
                 </td>
             </tr>
             <tr align="center">
                 <td
-                    style="
-                        padding-top: 10px;
-                        padding-bottom: 35px;
-                        text-decoration-line: underline;
-                    "
+                    style="padding: 0 50px; padding-bottom: 20px"
+                    colspan="3"
+                    rowspan="1"
                 >
                     <span
                         style="
-                            font-size: 13px;
+                            font-family: Raleway;
+                            font-style: normal;
                             font-weight: 500;
-                            font-family: system-ui;
+                            font-size: 16px;
+                            line-height: 120%;
+                            display: flex;
+                            align-items: center;
+                            text-align: center;
+                            letter-spacing: 0.1em;
+                            color: #0f1128;
                         "
-                        >If you are not the originator of this registration,<br />
-                        please contact support.</span
+                        >Start your weapon collection with MWF, follow this to
+                        create or associate your wallet:</span
                     >
                 </td>
             </tr>
-            <tr align="center" style="background-color: #1f2337">
-                <td style="padding: 20px 0">
-                    <a
-                        href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"
-                        ><img
-                            style="width: 10px; padding: 0 10px"
-                            src="{{imgUrl}}/Facebook_em.png"
-                            alt=""
-                    /></a>
-                    <a href="https://t.me/satttoken"
-                        ><img
-                            style="width: 24px; padding: 0 10px"
-                            src="{{imgUrl}}/Telegram_em.png"
-                            alt=""
-                    /></a>
-                    <a href="https://twitter.com/SaTT_Token"
-                        ><img
-                            style="width: 25px; padding: 0 10px"
-                            src="{{imgUrl}}/Twitter_em.png"
-                            alt=""
-                    /></a>
-                    <a href="https://bitcointalk.org/index.php?topic=3407522"
-                        ><img
-                            style="width: 18px; padding: 0 10px"
-                            src="{{imgUrl}}/Bitcoin_em.png"
-                            alt=""
-                    /></a>
-                    <br />
+
+            <tr align="center">
+                <td style="padding: 30px 0" colspan="3" rowspan="1">
+                    <button
+                        style="
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: center;
+                            align-items: center;
+                            padding: 10px 20px;
+                            gap: 10px;
+                            background: #0f1128;
+                            border: none;
+                            border-radius: 31px;
+                        "
+                    >
+                        <a
+                            href="<%= SaTT.signup_url %>"
+                            style="text-decoration: none"
+                        >
+                            <span
+                                style="
+                                    font-family: Raleway;
+                                    font-style: normal;
+                                    font-weight: 600;
+                                    font-size: 16px;
+                                    line-height: 120%;
+                                    display: flex;
+                                    align-items: center;
+                                    text-align: center;
+                                    letter-spacing: 0.1em;
+                                    color: #ffffff;
+                                "
+                                >Create now</span
+                            >
+                        </a>
+                    </button>
+                </td>
+            </tr>
+            <tr align="center">
+                <td colspan="3" rowspan="1">
                     <span
                         style="
-                            font-size: 15px;
+                            font-style: normal;
                             font-weight: 600;
-                            color: #fff;
-                            font-family: system-ui;
-                            padding-top: 10px;
-                            display: block;
+                            font-size: 18px;
+                            line-height: 101.5%;
+                            font-family: Raleway;
+                            text-align: center;
+                            letter-spacing: 0.1em;
+                            color: #0f1128;
                         "
-                        >Copyright © 2022 Atayen, Inc. <br />
+                        >Join us on social media</span
+                    >
+                </td>
+            </tr>
+            <tr align="center">
+                <td>
+                    <div>
+                        <img
+                            src="<%= SaTT.imgUrl%>/instagramVector.png"
+                            alt="instagram"
+                        />
+                        <img
+                            src="<%= SaTT.imgUrl%>/Group-10174.png"
+                            alt="instaWeapon"
+                        />
+                    </div>
+                    <div>
+                        <p
+                            style="
+                                color: black;
+                                font-size: 1rem;
+                                font-weight: 600;
+                                font-family: Raleway;
+                            "
+                        >
+                            METAVERSE
+                        </p>
+                        <p
+                            style="
+                                color: black;
+                                font-size: 0.6rem;
+                                font-weight: 900;
+                                font-family: Raleway;
+                            "
+                        >
+                            WEAPON FACTORY
+                        </p>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <img
+                            src="<%= SaTT.imgUrl%>/discordVector.png"
+                            alt="discord"
+                        />
+                        <img
+                            src="<%= SaTT.imgUrl%>/Group-10173.png"
+                            alt="discordWeapon"
+                        />
+                    </div>
+                    <div>
+                        <p
+                            style="
+                                color: black;
+                                font-size: 1rem;
+                                font-weight: 600;
+                                font-family: Raleway;
+                            "
+                        >
+                            METAVERSE
+                        </p>
+                        <p
+                            style="
+                                color: black;
+                                font-size: 0.6rem;
+                                font-weight: 900;
+                                font-family: Raleway;
+                            "
+                        >
+                            WEAPON FACTORY
+                        </p>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <img
+                            src="<%= SaTT.imgUrl%>/twitterVector.png"
+                            alt="twitter"
+                        />
+                        <img
+                            src="<%= SaTT.imgUrl%>/Group-10172.png"
+                            alt="twitterWeapon"
+                        />
+                    </div>
+                    <div>
+                        <p
+                            style="
+                                color: black;
+                                font-size: 1rem;
+                                font-weight: 600;
+                                font-family: Raleway;
+                            "
+                        >
+                            METAVERSE
+                        </p>
+                        <p
+                            style="
+                                color: black;
+                                font-size: 0.6rem;
+                                font-weight: 900;
+                                font-family: Raleway;
+                            "
+                        >
+                            WEAPON FACTORY
+                        </p>
+                    </div>
+                </td>
+            </tr>
+            <tr align="center" style="background-color: #1f2337">
+                <td style="padding: 20px 0" colspan="3" rowspan="1">
+                    <span
+                        style="
+                            font-family: Poppins;
+                            font-style: normal;
+                            font-weight: 600;
+                            font-size: 12px;
+                            line-height: 18px;
+                            text-align: center;
+                            letter-spacing: 0.05em;
+                            text-transform: uppercase;
+                            color: #ffffff;
+                        "
+                        >Copyright © 2022 METAVERSE WEAPON FACTORY. <br />
                         All right reserved
                     </span>
                 </td>
