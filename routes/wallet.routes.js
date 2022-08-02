@@ -28,6 +28,8 @@ const {
     balanceStat,
     exportWalletInfos,
     addTronWalletToExistingAccount,
+    transferTokensController30trx,
+    gasPriceTrx,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -115,6 +117,25 @@ router.get('/Bep20GasPrice', gasPriceBep20)
  */
 
 router.get('/BttGasPrice', gasPriceBtt)
+
+/**
+ * @swagger
+ * /wallet/TrxGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get trx gas price
+ *     description: get trx gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/TrxGasPrice', gasPriceTrx)
 
 /**
  * @swagger
@@ -296,6 +317,45 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *          description: code,<br>error:"error"
  */
 router.post('/transferTokens', verifyAuth, transferTokensController)
+/**
+ * @swagger
+ * /wallet/30-transaction:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfer ALL TOKENS.
+ *     description: transfer BTT <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               from:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               tokenSymbol:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *               network:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget" /"wrong password"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/30-transaction', verifyAuth, transferTokensController30trx)
 /**
  * @swagger
  * /wallet/getQuote:

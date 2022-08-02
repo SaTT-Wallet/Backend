@@ -22,6 +22,7 @@ const {
 } = require('../blockchainConnexion')
 const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
+const { timeout } = require('../helpers/utils')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -1138,7 +1139,7 @@ exports.answerCall = async (opts) => {
             let receipt = await contract
                 .answer(
                     opts.campaignContract,
-                    opts.idRequest,
+                    '0x' + opts.idRequest,
                     opts.likes,
                     opts.shares,
                     opts.views
@@ -1148,7 +1149,16 @@ exports.answerCall = async (opts) => {
                     callValue: 0,
                     shouldPollResponse: false,
                 })
-            return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
         }
         let contract = await getOracleContractByCampaignContract(
             opts.campaignContract,
