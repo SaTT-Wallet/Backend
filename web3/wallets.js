@@ -907,7 +907,7 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
-        let TronWallet = await getWalletTron(UserId,pass)
+        let TronWallet = await this.getWalletTron(UserId,pass)
 
         await Wallet.create({
             UserId: parseInt(UserId),
@@ -936,7 +936,7 @@ exports.addWalletTron = async (req, res) => {
         var UserId = req.user._id
         var pass = req.body.pass
         let wallet = await Wallet.findOne({ UserId });
-        let TronWallet = await getWalletTron(UserId,pass)
+        let TronWallet = await this.getWalletTron(UserId,pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
             { _id: wallet._id },
             {
