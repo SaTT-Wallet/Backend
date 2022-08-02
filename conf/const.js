@@ -1072,11 +1072,6 @@ TronConstant.campaign.abi = [
         inputs: [
             { internalType: 'bytes32', name: 'idProm', type: 'bytes32' },
             { internalType: 'bool', name: 'wrapped', type: 'bool' },
-            {
-                internalType: 'address',
-                name: 'wrappedAddress',
-                type: 'address',
-            },
         ],
         name: 'getGains',
         outputs: [],
@@ -1206,16 +1201,6 @@ TronConstant.campaign.abi = [
             { internalType: 'uint64', name: 'views', type: 'uint64' },
         ],
         stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            { internalType: 'address payable', name: '_to', type: 'address' },
-            { internalType: 'uint256', name: 'amount', type: 'uint256' },
-        ],
-        name: 'sendViaCall',
-        outputs: [],
-        stateMutability: 'payable',
         type: 'function',
     },
     {

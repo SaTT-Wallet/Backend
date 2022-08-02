@@ -121,6 +121,7 @@ const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
 const { Constants, TronConstant } = require('../conf/const')
+const { BigNumber } = require('ethers')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -247,7 +248,7 @@ module.exports.launchCampaign = async (req, res) => {
             tronWeb.setAddress(walletAddr)
             var hexadd = tronWeb.address.toHex(tokenAddress)
 
-            if (tokenAddress === 'TRpHXiD9PRoorNh9Lx4NeJUAP7NcG5zFwi') {
+            if (tokenAddress === TronConstant.token.wtrx) {
                 let wrapped = await wrappedtrx(tronWeb, amount)
             }
         } else {
@@ -518,7 +519,11 @@ exports.campaignPromp = async (req, res) => {
         )
         var tronWeb
         if (campaign.token.type === 'TRON') {
-            tronWeb = webTronInstance()
+            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
         }
 
         let ctr = await getCampaignContractByHashCampaign(
@@ -535,21 +540,34 @@ exports.campaignPromp = async (req, res) => {
             const ratio = campaign.ratios
             const bounties = campaign.bounties
             let allLinks
-            if (req.query.influencer)
+            if (req.query.influencer) {
+                let userWallet = await Wallet.findOne(
+                    {
+                        'keystore.address': req.query.influencer
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { tronAddress: 1, _id: 0 }
+                )
+
                 allLinks = await CampaignLink.find({
                     $and: [
                         {
                             id_campaign: campaign.hash,
-                            id_wallet: req.query.influencer,
+                            id_wallet:
+                                (!!tronWeb && userWallet.tronAddress) ||
+                                req.query.influencer,
                         },
                     ],
                 })
+            }
+
             if (!req.query.influencer)
                 allLinks = await CampaignLink.find({
                     id_campaign: campaign.hash,
                 })
 
-            const allProms = await influencersLinks(allLinks)
+            const allProms = await influencersLinks(allLinks, tronWeb)
 
             for (let i = 0; i < allProms.length; i++) {
                 allProms[i].isAccepted = allProms[i].status
@@ -1023,6 +1041,8 @@ exports.gains = async (req, res) => {
             var credentials
             var ctr
             var gasPrice
+            var wrappedTrx = false
+            var wrappedBtt
             let campaignData = await Campaigns.findOne({ hash: hash })
             if (campaignData.token.type === 'TRON') {
                 let privateKey = req.body.pass
@@ -1034,6 +1054,8 @@ exports.gains = async (req, res) => {
                     Constants.campaign.abi,
                     TronConstant.campaign.address
                 )
+                wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
+                tronWeb.wrappedTrx = wrappedTrx
             } else {
                 credentials = await unlock(req, res)
                 ctr = await getPromContract(idProm, credentials)
@@ -1042,7 +1064,7 @@ exports.gains = async (req, res) => {
 
             let prom =
                 (!!tronWeb && (await ctr.proms('0x' + idProm).call())) ||
-                (await ctr.methods.proms('0x' + idProm).call())
+                (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
@@ -1306,10 +1328,13 @@ exports.gains = async (req, res) => {
                 (await contract.methods.campaigns(hash).call())
             if (!!tronWeb) {
                 campaignType.funds = [result.token, result.amount]
-                if (result.amount === '0') campaignType.type = 'finished'
+                if (tronWeb.toBigNumber(result.amount).toNumber == 0)
+                    campaignType.type = 'finished' // TODO verify big number
+            } else {
+                campaignType.funds = result.funds
+                if (result.funds[1] === '0') campaignType.type = 'finished'
             }
-            campaignType.funds = result.funds
-            if (result.funds[1] === '0') campaignType.type = 'finished'
+
             await Campaigns.updateOne({ hash: hash }, { $set: campaignType })
         }
     }
