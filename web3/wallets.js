@@ -20,7 +20,7 @@ var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
 const bitcoinCore = require('bitcoin-core')
 const Client = require('bitcoin-core')
-const TronWeb = require('tronweb')
+const tronWeb = require('tronweb')
 
 const { Constants, PolygonConstants, BttConstants } = require('../conf/const')
 
