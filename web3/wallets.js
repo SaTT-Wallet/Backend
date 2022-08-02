@@ -918,6 +918,8 @@ exports.createSeed = async (req, res) => {
             tronAddress:TronWallet.addr,
            
         })
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        sdk.validateaddress({address: TronWallet.addrHex})
 
         return {
             address: '0x' + account.address,
