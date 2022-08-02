@@ -958,7 +958,7 @@ exports.addWalletTron = async (req, res) => {
 }
 
 exports.getWalletTron = async (id,pass) => {
-    let wallet = await Wallet.findOne({ id });
+    let wallet = await Wallet.findOne({ UserId:id });
     const seed = bip39.mnemonicToSeedSync(wallet.mnemo, pass)
     const root = bip32.fromSeed(seed)
     const childTron = root.derivePath(pathTron);
