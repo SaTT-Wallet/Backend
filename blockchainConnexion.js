@@ -138,7 +138,7 @@ exports.getCampaignContractByHashCampaign = async (
         if (campaign?.contract) {
             if (!!tronWeb) {
                 let ctr = await tronWeb.contract(
-                    Constants.campaign.abi,
+                    TronConstant.campaign.abi,
                     TronConstant.campaign.address
                 )
                 return ctr
@@ -206,7 +206,6 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
 
 exports.getCampaignOwnerAddr = async (idProm) => {
     try {
-        let campaignContractOwnerAddr
         var prom = await Event.findOne(
             { prom: idProm },
             { contract: 1, _id: 0 }
