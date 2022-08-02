@@ -23,6 +23,7 @@ const {
     polygonConnexion,
     bttConnexion,
     tronConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
 const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
@@ -224,7 +225,16 @@ exports.gasPriceBtt = async (req, res) => {
 
     var gasPrice = await Web3ETH.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
+        gasPrice: (gasPrice * 280) / 1000000000,
+    })
+}
+
+exports.gasPriceTrx = async (req, res) => {
+    let tronWeb = await webTronInstance()
+
+    var gasPrice = await tronWeb.trx.getChainParameters()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
     })
 }
 
@@ -291,6 +301,100 @@ exports.totalBalances = async (req, res) => {
                 await user.save()
             }
         }
+    }
+}
+
+exports.transferTokensController30trx = async () => {
+    let from = req.body.from
+    var to = req.body.to
+    var amount = req.body.amount
+    //TODO: Add a constants enum for different blockchain networks
+    let network = req.body.network
+    let tokenSymbol = req.body.tokenSymbol
+    let pass = req.body.pass
+    let tokenAddress = req.body.tokenAddress
+
+    let result
+
+    try {
+        if (req.user.hasWallet == true) {
+            const provider = getHttpProvider(
+                networkProviders[network.toUpperCase()]
+            )
+
+            // get wallet keystore
+            const accountData = await Wallet.findOne({ UserId: req.user._id })
+
+            if (network.toUpperCase() === 'BTC') {
+                //TODO: transferring btc need to be tested locally with testnet
+                result = await transferBTC({
+                    to,
+                    amount,
+                    walletPassword: pass,
+                    account: accountData,
+                })
+            } else {
+                let counter = 0
+                while (counter < 30) {
+                    result = await transferTokens({
+                        fromAddress: from,
+                        toAddress: to,
+                        amount,
+                        tokenSmartContractAddress: tokenAddress,
+                        tokenSmartContractAbi: Constants.token.abi,
+                        provider,
+                        walletPassword: pass,
+                        encryptedPrivateKey: accountData.keystore,
+                    })
+                }
+            }
+
+            if (result.error) {
+                return responseHandler.makeResponseError(res, 402, result.error)
+            }
+
+            if (result.blockHash) {
+                await notificationManager(req.user._id, 'transfer_event', {
+                    amount,
+                    currency: tokenSymbol,
+                    network,
+                    to,
+                    transactionHash: result.transactionHash,
+                })
+                const wallet = await Wallet.findOne(
+                    { 'keystore.address': to.substring(2) },
+                    { UserId: 1 }
+                )
+                if (wallet) {
+                    await notificationManager(
+                        wallet.UserId,
+                        'receive_transfer_event',
+                        {
+                            amount,
+                            currency: tokenSymbol,
+                            network,
+                            from,
+                            transactionHash: result.transactionHash,
+                        }
+                    )
+                }
+
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    result
+                )
+            }
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Account not found'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
 
