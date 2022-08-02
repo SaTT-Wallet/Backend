@@ -784,14 +784,16 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
 exports.getGains = async (idProm, credentials, tronWeb) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
-            Constants.campaign.abi,
+            TronConstant.campaign.abi,
             TronConstant.campaign.address
         )
-        let receipt = await ctr.getGains('0x' + idProm).send({
-            feeLimit: 100_000_000,
-            callValue: 0,
-            shouldPollResponse: false,
-        })
+        let receipt = await ctr
+            .getGains('0x' + idProm, !!tronWeb.wrappedTrx)
+            .send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
         await timeout(10000)
         let result = await tronWeb.trx.getTransaction(receipt)
         if (result.ret[0].contractRet === 'SUCCESS') {
@@ -854,7 +856,7 @@ exports.filterLinks = (req, id_wallet) => {
     return query
 }
 
-exports.influencersLinks = async (links) => {
+exports.influencersLinks = async (links, tronWeb = null) => {
     try {
         // let idproms = await ctr.methods.getProms(idCampaign).call();
         let proms = links
@@ -867,16 +869,26 @@ exports.influencersLinks = async (links) => {
 
             for (let i = 0; i < links.length; i++) {
                 if (addresses.indexOf(links[i].id_wallet) == -1)
-                    addresses.push(links[i].id_wallet.slice(2).toLowerCase())
+                    addresses.push(
+                        (!!tronWeb && links[i].id_wallet) ||
+                            links[i].id_wallet.slice(2).toLowerCase()
+                    )
             }
 
-            let wallets = await Wallet.find({
-                'keystore.address': { $in: addresses },
-            })
+            let wallets =
+                (!!tronWeb &&
+                    (await Wallet.find({
+                        tronAddress: { $in: addresses },
+                    }))) ||
+                (await Wallet.find({
+                    'keystore.address': { $in: addresses },
+                }))
 
             for (let i = 0; i < wallets.length; i++) {
-                idByAddress['0x' + wallets[i].keystore.address] =
-                    'id#' + wallets[i].UserId
+                idByAddress[
+                    (!!tronWeb && wallets[i].tronAddress) ||
+                        '0x' + wallets[i].keystore.address
+                ] = 'id#' + wallets[i].UserId
                 if (ids.indexOf(wallets[i].UserId) == -1)
                     ids.push(wallets[i].UserId)
             }
@@ -893,7 +905,10 @@ exports.influencersLinks = async (links) => {
             }
             for (let i = 0; i < proms.length; i++) {
                 proms[i].meta =
-                    userById[idByAddress[proms[i].id_wallet.toLowerCase()]]
+                    userById[
+                        (!!tronWeb && idByAddress[proms[i].id_wallet]) ||
+                            idByAddress[proms[i].id_wallet.toLowerCase()]
+                    ]
             }
         }
         return proms
@@ -1064,8 +1079,8 @@ exports.getTransactionAmount = async (
             }
             let eventsRes = await rp(payload)
             const events = !!eventsRes && eventsRes.data
-            let hex = tronWeb.toAscii(events[0])
-            return hex
+            let amount = events[0].result['amount']
+            return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)
         let hex = network.utils.hexToNumberString(data.logs[0].data)
