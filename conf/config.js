@@ -1329,6 +1329,7 @@ let pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
 
 let pathBtcSegwit = "m/84'/0'/0'/0/0"
 let pathEth = "m/44'/60'/0'/0/0'"
+let pathTron = "m/44'/195'/0'/0/0"
 
 let persmissionsObjFb = { scope: ['public_profile', 'email'] }
 
@@ -1394,6 +1395,7 @@ module.exports.persmissionsObjFb = persmissionsObjFb
 module.exports.pathBtcSegwit = pathBtcSegwit
 
 module.exports.pathEth = pathEth
+module.exports.pathTron = pathTron
 
 module.exports.networkSegWitCompat = networkSegWitCompat
 module.exports.networkSegWit = networkSegWit

@@ -942,12 +942,13 @@ exports.createNewWallet = async (req, res) => {
 
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
-        var id = req.user._id
-        let user = await User.findOne({ _id: id }, { password: 1 })
-        let wallet = await Wallet.findOne({ UserId: id })
-        if (user.password === synfonyHash(req.body.pass)) {
-            return responseHandler.makeResponseError(res, 401, 'same password')
-            //do not forget to check hasWallet attribute
+        var cred = await unlock(req, res)
+        if (!cred) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Invalid password'
+            )
         } else if (!!wallet.tronAddress) {
             return responseHandler.makeResponseError(
                 res,

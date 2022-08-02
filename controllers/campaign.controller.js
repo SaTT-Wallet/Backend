@@ -234,7 +234,7 @@ module.exports.launchCampaign = async (req, res) => {
     var contract = req.body.contract
     let _id = req.body.idCampaign
     let currency = req.body.currency
-    var network = req.body.network
+    let network = req.body.network
 
     try {
         var tronWeb
@@ -792,11 +792,11 @@ exports.apply = async (req, res) => {
                 tiktokProfile
             )
 
-            if (socialOracle?.views === 'old') socialOracle.views = '0'
+            // if (socialOracle?.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
-            prom.media_url = socialOracle.media_url
+
             let event = {
                 id: hash,
                 prom: ret.idProm,
@@ -805,7 +805,7 @@ exports.apply = async (req, res) => {
                 txhash: ret.transactionHash,
                 contract: campaignDetails.contract.toLowerCase(),
                 owner: campaignDetails.contract.toLowerCase(),
-                media_url: socialOracle.media_url,
+                media_url: prom.media_url,
             }
             // console.log('evv', event)
             await Promise.allSettled([
