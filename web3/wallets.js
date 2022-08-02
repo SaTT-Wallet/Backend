@@ -21,6 +21,7 @@ var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
 const bitcoinCore = require('bitcoin-core')
 const Client = require('bitcoin-core')
+const tronWeb = require('tronweb')
 
 const {
     Constants,
@@ -39,6 +40,7 @@ const {
     pathBtcSegwitCompat,
     pathBtcSegwit,
     pathEth,
+    pathTron,
     booltestnet,
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
@@ -956,12 +958,7 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
-        /// creating tron address
-        const bufferPass = Buffer.from(pass, 'utf8')
-        const hexPass = bufferPass.toString('hex')
-        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        const resTron = await sdk.createaddress({ value: hexPass })
-        /////
+        let TronWallet = await this.getWalletTron(UserId, pass)
 
         await Wallet.create({
             UserId: parseInt(UserId),
@@ -969,14 +966,15 @@ exports.createSeed = async (req, res) => {
             num: count,
             btc: btcWallet,
             mnemo: mnemonic,
-            tronAddress: resTron.base58checkAddress,
-            tronValue: resTron.value,
+            tronAddress: TronWallet.addr,
         })
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        sdk.validateaddress({ address: TronWallet.addrHex })
 
         return {
             address: '0x' + account.address,
             btcAddress: btcWallet.addressSegWitCompat,
-            tronAddress: resTron.base58checkAddress,
+            tronAddress: TronWallet.addr,
         }
     } catch (error) {
         console.log(error)
@@ -988,30 +986,35 @@ exports.addWalletTron = async (req, res) => {
         var UserId = req.user._id
         var pass = req.body.pass
         let wallet = await Wallet.findOne({ UserId })
-        //converting pass to hex
-        const bufferPass = Buffer.from(pass, 'utf8')
-        const hexPass = bufferPass.toString('hex')
-        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        const resTron = await sdk.createaddress({ value: hexPass })
-        ;(wallet.tronAddress = resTron.base58checkAddress),
-            (wallet.tronValue = resTron.value)
-
+        let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
             { _id: wallet._id },
             {
                 $set: {
-                    tronAddress: resTron.base58checkAddress,
-                    tronValue: resTron.value,
+                    tronAddress: TronWallet.addr,
                 },
             },
             {
                 new: true,
             }
         )
-        return resTron.base58checkAddress
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        sdk.validateaddress({ address: TronWallet.addrHex })
+        return TronWallet.addr
     } catch (error) {
         console.log(error)
     }
+}
+
+exports.getWalletTron = async (id, pass) => {
+    let wallet = await Wallet.findOne({ UserId: id })
+    const seed = bip39.mnemonicToSeedSync(wallet.mnemo, pass)
+    const root = bip32.fromSeed(seed)
+    const childTron = root.derivePath(pathTron)
+    var tronPriv = childTron.privateKey.toString('hex')
+    var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
+    var tronAddrHex = tronWeb.address.toHex(tronAddr)
+    return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
 }
 
 exports.FilterTransactionsByHash = (
