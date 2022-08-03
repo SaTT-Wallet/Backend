@@ -102,15 +102,24 @@ module.exports.updateStat = async () => {
         if (event.status == 'rejected') continue
 
         userWallet =
-            // !campaign.isFinished &&
-            await Wallet.findOne(
+            (event.id_wallet.indexOf('0x') >= 0 &&
+                // !campaign.isFinished &&
+                (await Wallet.findOne(
+                    {
+                        'keystore.address': event.id_wallet
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { UserId: 1, _id: 0 }
+                ))) ||
+            (await Wallet.findOne(
                 {
-                    'keystore.address': event.id_wallet
-                        .toLowerCase()
-                        .substring(2),
+                    tronAddress: event.id_wallet,
                 },
                 { UserId: 1, _id: 0 }
-            )
+            ))
+        console.log('event user wallet ', event.id_wallet)
+        console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
         if (userWallet) {
             let linkedinProfile =
                 event.typeSN == '5' &&

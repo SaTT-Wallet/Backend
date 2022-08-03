@@ -852,7 +852,6 @@ exports.filterLinks = (req, id_wallet) => {
             ],
         }
     }
-
     return query
 }
 
