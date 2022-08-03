@@ -23,7 +23,7 @@ const {
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation, timeout } = require('../helpers/utils')
-const { getPrices, getAccount } = require('../web3/wallets')
+const { getPrices, getAccount, getWalletTron } = require('../web3/wallets')
 const {
     fundCampaign,
     getTransactionAmount,
@@ -241,7 +241,7 @@ module.exports.launchCampaign = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = req.body.pass
+            let privateKey = (await getWalletTron(id, req.body.pass)).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -701,7 +701,7 @@ exports.apply = async (req, res) => {
         var cred
         var tronWeb
         if (campaignDetails.token.type === 'TRON') {
-            let privateKey = req.body.pass
+            let privateKey = (await getWalletTron(id, pass)).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -919,7 +919,7 @@ exports.validateCampaign = async (req, res) => {
             var tronWeb
             var cred
             if (campaign.token.type === 'TRON') {
-                let privateKey = req.body.pass
+                let privateKey = (await getWalletTron(id, pass)).priv
                 tronWeb = await webTronInstance()
                 tronWeb.setPrivateKey(privateKey)
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
