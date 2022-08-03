@@ -1051,7 +1051,7 @@ exports.gains = async (req, res) => {
                 var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
                 tronWeb.setAddress(walletAddr)
                 ctr = await tronWeb.contract(
-                    Constants.campaign.abi,
+                    TronConstant.campaign.abi,
                     TronConstant.campaign.address
                 )
                 wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
@@ -1328,9 +1328,8 @@ exports.gains = async (req, res) => {
                 (await contract.methods.campaigns(hash).call())
             if (!!tronWeb) {
                 campaignType.funds = [result.token, result.amount]
-                if (tronWeb.toBigNumber(result.amount).toNumber == 0)
-                    campaignType.type = 'finished' // TODO verify big number
-            } else {
+                if (tronWeb.toDecimal(result.amount._hex) === 0)
+                    campaignType.type = 'finished'
                 campaignType.funds = result.funds
                 if (result.funds[1] === '0') campaignType.type = 'finished'
             }
@@ -1979,17 +1978,35 @@ exports.erc20Allow = async (req, res) => {
 exports.getLinks = async (req, res) => {
     try {
         const id_wallet = req.params.id_wallet
+        let userWallet = await Wallet.findOne(
+            {
+                'keystore.address': id_wallet.toLowerCase().substring(2),
+            },
+            { tronAddress: 1, _id: 0 }
+        )
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
         let arrayOfLinks = []
-        let allProms = []
+        let arrayOfTronLinks = []
 
-        let query = filterLinks(req, id_wallet)
-        var count = await CampaignLink.find(
-            { id_wallet },
-            { type: { $exists: 0 } }
-        ).countDocuments()
+        let allProms = []
+        let allTronProms = []
+
+        let query1 = filterLinks(req, id_wallet)
+        let query2 = filterLinks(req, userWallet.tronAddress)
+
+        var count =
+            (await CampaignLink.find(
+                { id_wallet },
+                { type: { $exists: 0 } }
+            ).countDocuments()) +
+            ((!!userWallet.tronAddress &&
+                (await CampaignLink.find(
+                    { tronAddress: userWallet.tronAddress },
+                    { type: { $exists: 0 } }
+                ).countDocuments())) ||
+                0)
 
         let tri =
             req.query.state === 'owner'
@@ -2021,7 +2038,7 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: query,
+                $match: query1,
             },
             {
                 $addFields: {
@@ -2041,8 +2058,33 @@ exports.getLinks = async (req, res) => {
             .skip(skip)
             .limit(limit)
 
-        for (var i = 0; i < userLinks.length; i++) {
-            var result = userLinks[i]
+        let tronUserLinks =
+            (!!userWallet.tronAddress &&
+                (await CampaignLink.aggregate([
+                    {
+                        $match: query2,
+                    },
+                    {
+                        $addFields: {
+                            sort: {
+                                $indexOfArray: tri,
+                            },
+                        },
+                    },
+                    {
+                        $sort: {
+                            sort: 1,
+                            appliedDate: -1,
+                            _id: 1,
+                        },
+                    },
+                ])
+                    .skip(skip)
+                    .limit(limit))) ||
+            []
+
+        for (let i = 0; i < userLinks.length; i++) {
+            let result = userLinks[i]
             let campaign = await Campaigns.findOne(
                 { hash: result.id_campaign },
                 {
@@ -2074,7 +2116,43 @@ exports.getLinks = async (req, res) => {
                 ? await influencersLinks(arrayOfLinks)
                 : arrayOfLinks
 
-        var Links = { Links: allProms, count }
+        //repeating same process with tron links
+
+        for (let i = 0; i < tronUserLinks.length; i++) {
+            let result = tronUserLinks[i]
+            let campaign = await Campaigns.findOne(
+                { hash: result.id_campaign },
+                {
+                    fields: {
+                        logo: 0,
+                        resume: 0,
+                        description: 0,
+                        tags: 0,
+                        cover: 0,
+                    },
+                }
+            )
+
+            if (campaign) {
+                let cmp = {}
+                const funds = campaign.funds ? campaign.funds[1] : campaign.cost
+                ;(cmp._id = campaign._id),
+                    (cmp.currency = campaign.token.name),
+                    (cmp.title = campaign.title),
+                    (cmp.remaining = funds),
+                    (cmp.ratio = campaign.ratios),
+                    (cmp.bounties = campaign.bounties)
+                result.campaign = cmp
+                arrayOfTronLinks.push(result)
+            }
+        }
+        allTronProms =
+            req.query.campaign && req.query.state
+                ? await influencersLinks(arrayOfTronLinks, true)
+                : arrayOfTronLinks
+        console.log(allProms)
+        console.log(allTronProms)
+        var Links = { Links: [...allProms, ...allTronProms], count }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
         console.log(err.message)
