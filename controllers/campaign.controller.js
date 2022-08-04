@@ -1333,7 +1333,6 @@ exports.gains = async (req, res) => {
                 campaignType.funds = result.funds
                 if (result.funds[1] === '0') campaignType.type = 'finished'
             }
-
             await Campaigns.updateOne({ hash: hash }, { $set: campaignType })
         }
     }
