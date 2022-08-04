@@ -2,7 +2,7 @@ clone:
   depth: full
 pipelines:
   branches:
-    '{development}':
+    '{main,development}':
     - step:
         script:
           - git push --mirror git@github.com:SaTT-Wallet/Backend.git
