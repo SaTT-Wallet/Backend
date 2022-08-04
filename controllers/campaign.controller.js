@@ -1759,9 +1759,10 @@ exports.bttAllow = async (req, res) => {
 exports.tronApproval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
-        let tronWeb = await webTronInstance()
-        tronWeb.setPrivateKey(req.body.privateKey)
-        let walletAddr = tronWeb.address.fromPrivateKey(req.body.privateKey)
+        let privateKey = (await getWalletTron(req.user._id, req.body.pass)).priv
+        let tronWeb = await webTronInstance(privateKey)
+        tronWeb.setPrivateKey(privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
         tronWeb.setAddress(walletAddr)
         let allowance = await tronApprove(
             walletAddr,
