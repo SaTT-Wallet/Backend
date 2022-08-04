@@ -5,6 +5,6 @@ pipelines:
     '{main,development}':
     - step:
         script:
-          - git push --mirror git@github.com:Atayen/node-satt.git
+          - git push --mirror git@github.com:SaTT-Wallet/Backend.git
           
      
