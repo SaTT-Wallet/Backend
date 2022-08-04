@@ -268,8 +268,58 @@ exports.createBountiesCampaign = async (
     token,
     amount,
     credentials,
+    tronWeb,
     res
 ) => {
+    if (!!tronWeb) {
+        let ctr = await tronWeb.contract(
+            TronConstant.campaign.abi,
+            TronConstant.campaign.address
+        )
+
+        let receipt = await ctr
+            .createPriceFundBounty(
+                dataUrl,
+                startDate,
+                endDate,
+                bounties,
+                token,
+                amount
+            )
+            .send({
+                feeLimit: 1e9,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+
+        await timeout(10000)
+        let result = await tronWeb.trx.getTransaction(receipt)
+        const payload = {
+            url:
+                process.env.TRON_NETWORK_URL +
+                '/v1/transactions/' +
+                receipt +
+                '/events',
+            method: 'GET',
+            json: true,
+        }
+        let events = await rp(payload)
+        const hash =
+            !!events &&
+            events.data.find((elem) => elem.event_name === 'CampaignCreated')
+                .result['id']
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+                hash: hash,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: result,
+            })
+        }
+    }
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
     var gas = 5000000
