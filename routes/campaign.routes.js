@@ -38,6 +38,7 @@ const {
     polygonAllow,
     tronApproval,
     tronAllow,
+    swapTrx,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -105,12 +106,12 @@ router.post('/btt/allow', verifyAuth, bttAllow)
 
 /**
  * @swagger
- * /campaign/btt/approval:
+ * /campaign/tron/approval:
  *   post:
  *     tags:
  *     - "campaign"
- *     summary: BTT aprroval
- *     description: Approve the smart contract BTT to interact with user wallet
+ *     summary: TRON aprroval
+ *     description: Approve the smart contract TRON to interact with user wallet
  *     requestBody:
  *       required: true
  *       content:
@@ -120,7 +121,7 @@ router.post('/btt/allow', verifyAuth, bttAllow)
  *             properties:
  *               tokenAddress:
  *                 type: string
- *               campaignAddress:
+ *               privateKey:
  *                 type: string
  *     responses:
  *       "200":
@@ -132,6 +133,34 @@ router.post('/btt/allow', verifyAuth, bttAllow)
  */
 router.post('/tron/approval', verifyAuth, tronApproval)
 
+/**
+ * @swagger
+ * /campaign/tron/swapTrx:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: swap trx
+ *     description: swap trx to wrappedtrx
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: string
+ *               privateKey:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/tron/swapTrx', verifyAuth, swapTrx)
 /**
  * @swagger
  * /campaign/tron/allow:
@@ -147,14 +176,13 @@ router.post('/tron/approval', verifyAuth, tronApproval)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               campaignAddress:
+ *               tokenAddress:
+ *                 type: string
+ *               privateKey:
  *                 type: string
  *               amount:
  *                 type: string
- *               pass:
- *                 type: string
- *               tokenAddress:
- *                 type: string
+ *
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
@@ -182,7 +210,7 @@ router.post('/tron/allow', verifyAuth, tronAllow)
  *             properties:
  *               tokenAddress:
  *                 type: string
- *               campaignAddress:
+ *               privateKey:
  *                 type: string
  *     responses:
  *       "200":
@@ -656,8 +684,6 @@ router.post('/validate', verifyAuth, validateCampaign)
  *                 type: string
  *               hash:
  *                 type: string
- *               ff:
- *                  type: string
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"

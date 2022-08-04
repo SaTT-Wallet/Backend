@@ -411,6 +411,9 @@ exports.decodeParams = async (types, output, ignoreMethodHash) => {
     }, [])
 }
 
+exports.timeout = async (ms) =>
+    new Promise((resolve) => setTimeout(resolve, ms))
+
 //global function that generates user acessToken
 exports.generateAccessToken = (user) =>
     jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '24h' })
