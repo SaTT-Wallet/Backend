@@ -1000,7 +1000,7 @@ exports.addWalletTron = async (req, res) => {
         )
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         sdk.validateaddress({ address: TronWallet.addrHex })
-        return TronWallet.addr
+        return TronWallet
     } catch (error) {
         console.log(error)
     }
