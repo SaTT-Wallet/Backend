@@ -322,7 +322,12 @@ exports.bttApprove = async (token, address, spender) => {
 
 exports.tronApprove = async (walletAddr, tronWeb, token, res) => {
     try {
-        let ctr = await tronWeb.contract(Constants.token.abi, token)
+        let ctr = await tronWeb.contract(
+            (!!token === TronConstant.token.wtrx &&
+                TronConstant.token.wtrxAbi) ||
+                TronConstant.token.abi,
+            token
+        )
         let amount = await ctr
             .allowance(walletAddr, TronConstant.campaign.address)
             .call()
@@ -435,7 +440,12 @@ exports.bttAllow = async (token, credentials, spender, amount, res) => {
 }
 exports.tronAllowance = async (tronWeb, token, amount, res) => {
     try {
-        let ctr = await tronWeb.contract(TronConstant.token.abi, token)
+        let ctr = await tronWeb.contract(
+            (!!token === TronConstant.token.wtrx &&
+                TronConstant.token.wtrxAbi) ||
+                TronConstant.token.abi,
+            token
+        )
         let receipt = await ctr
             .approve(TronConstant.campaign.address, amount)
             .send({
