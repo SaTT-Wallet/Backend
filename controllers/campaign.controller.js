@@ -895,6 +895,7 @@ exports.validateCampaign = async (req, res) => {
     const linkProm = req.body.link
     const idApply = req.body.idProm
     const idUser = '0' + req.user._id
+    const pass = req.body.pass
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
         return responseHandler.makeResponseError(
@@ -920,7 +921,7 @@ exports.validateCampaign = async (req, res) => {
             var tronWeb
             var cred
             if (campaign.token.type === 'TRON') {
-                let privateKey = (await getWalletTron(id, pass)).priv
+                let privateKey = (await getWalletTron(req.user._id, pass)).priv
                 tronWeb = await webTronInstance()
                 tronWeb.setPrivateKey(privateKey)
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -1046,7 +1047,9 @@ exports.gains = async (req, res) => {
             var wrappedBtt
             let campaignData = await Campaigns.findOne({ hash: hash })
             if (campaignData.token.type === 'TRON') {
-                let privateKey = req.body.pass
+                let privateKey = (
+                    await getWalletTron(req.user._id, req.body.pass)
+                ).priv
                 tronWeb = await webTronInstance()
                 tronWeb.setPrivateKey(privateKey)
                 var walletAddr = tronWeb.address.fromPrivateKey(privateKey)

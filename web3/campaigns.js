@@ -956,7 +956,7 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
 exports.validateProm = async (idProm, credentials, tronWeb) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
-            Constants.campaign.abi,
+            TronConstant.campaign.abi,
             TronConstant.campaign.address
         )
         let receipt = await ctr.validateProm('0x' + idProm).send({
