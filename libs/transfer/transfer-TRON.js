@@ -5,9 +5,8 @@ module.exports.transferTronTokens = async function ({
     tronAddress,
     toAddress,
     amount,
-    walletPassword,
+    privateKey,
 }) {
-    let privateKey = walletPassword //TODO generate private key from password
     let tronWeb = await webTronInstance()
     tronWeb.setPrivateKey(privateKey)
     let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
