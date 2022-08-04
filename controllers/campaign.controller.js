@@ -241,7 +241,8 @@ module.exports.launchCampaign = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(id, req.body.pass)).priv
+            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
+                .priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -1821,7 +1822,7 @@ exports.tronApproval = async (req, res) => {
 
 exports.tronAllow = async (req, res) => {
     try {
-        let amount = req.body.amount
+        let amount = '100000000000000000000000000000000'
         let privateKey = (await getWalletTron(req.user._id, req.body.pass)).priv
         let tronWeb = await webTronInstance(privateKey)
         tronWeb.setPrivateKey(privateKey)
