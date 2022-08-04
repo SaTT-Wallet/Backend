@@ -682,6 +682,7 @@ exports.apply = async (req, res) => {
     var idUser = req.body.idUser
     let title = req.body.title
     var id = req.user._id
+    var pass = req.body.pass
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash })
 
