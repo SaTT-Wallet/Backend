@@ -13,7 +13,7 @@ const {
     getWeb3Connection,
     getHttpProvider,
 } = require('../web3/web3-connection')
-const { transferTokens, transferBTC } = require('@atayen-org/transfer')
+const { transferTokens, transferBTC } = require('../libs/transfer')
 const { unlockAccount } = require('../web3/account')
 
 const {
@@ -67,6 +67,7 @@ const { notificationManager } = require('../manager/accounts')
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
+const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -407,9 +408,8 @@ exports.transferTokensController = async (req, res) => {
     let tokenSymbol = req.body.tokenSymbol
     let pass = req.body.pass
     let tokenAddress = req.body.tokenAddress
-
+    let userId = req.user._id
     let result
-
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
@@ -417,7 +417,7 @@ exports.transferTokensController = async (req, res) => {
             )
 
             // get wallet keystore
-            const accountData = await Wallet.findOne({ UserId: req.user._id })
+            const accountData = await Wallet.findOne({ UserId: userId })
 
             if (network.toUpperCase() === 'BTC') {
                 //TODO: transferring btc need to be tested locally with testnet
@@ -426,6 +426,13 @@ exports.transferTokensController = async (req, res) => {
                     amount,
                     walletPassword: pass,
                     account: accountData,
+                })
+            } else if (network.toUpperCase() === 'TRON') {
+                result = await transferTronTokens({
+                    tronAddress: accountData.tronAddress,
+                    toAddress: to,
+                    amount,
+                    walletPassword: pass,
                 })
             } else {
                 result = await transferTokens({
