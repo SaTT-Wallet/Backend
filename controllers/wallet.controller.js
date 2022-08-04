@@ -60,6 +60,7 @@ const {
     sendBtt,
     createWalletTron,
     addWalletTron,
+    getWalletTron,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -949,24 +950,18 @@ exports.createNewWallet = async (req, res) => {
 
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
-        var cred = await unlock(req, res)
-        if (!cred) {
+        var tronWallet = await getWalletTron(req.user._id, req.body.pass)
+        if (!tronWallet.addr) {
             return responseHandler.makeResponseError(
                 res,
                 401,
                 'Invalid password'
             )
-        } else if (!!wallet.tronAddress) {
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'tron wallet already exists'
-            )
         } else {
             var ret = await addWalletTron(req, res)
 
             return responseHandler.makeResponseData(res, 200, 'success', {
-                tronAddress: ret,
+                tronAddress: ret.addr,
             })
         }
     } catch (err) {
