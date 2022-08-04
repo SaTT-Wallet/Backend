@@ -338,9 +338,30 @@ module.exports.launchBounty = async (req, res) => {
     var amount = req.body.amount
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
+    let network = req.body.network
+
     try {
-        var cred = await unlock(req, res)
-        if (!cred) return
+        var tronWeb
+        var cred
+        if (network === 'TRON') {
+            let privateKey = (await getWalletTron(id, req.body.pass)).priv
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            var hexadd = tronWeb.address.toHex(tokenAddress)
+
+            if (tokenAddress === TronConstant.token.wtrx) {
+                let wrapped = await wrappedtrx(tronWeb, amount)
+            }
+        } else {
+            cred = await unlock(req, res)
+            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
+                let wrapped = await this.wrappedbtt(cred, amount)
+            }
+
+            if (!cred) return
+        }
         var ret = await createBountiesCampaign(
             dataUrl,
             startDate,
@@ -349,6 +370,7 @@ module.exports.launchBounty = async (req, res) => {
             tokenAddress,
             amount,
             cred,
+            tronWeb,
             res
         )
         if (!ret) return
@@ -364,17 +386,29 @@ module.exports.launchBounty = async (req, res) => {
     } finally {
         cred && lock(cred)
         if (ret && ret.hash) {
-            let campaign = {
+            var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
-                dataUrl,
+                token: {
+                    name: currency,
+                    type: network,
+                    addr: tokenAddress,
+                },
                 coverSrc: null,
-                funds: [contract, amount],
-                contract: contract,
+                dataUrl,
+                funds: [
+                    (!!tronWeb && TronConstant.campaign.address) || contract,
+                    amount,
+                ],
+                contract: (
+                    (!!tronWeb && TronConstant.campaign.address) ||
+                    contract
+                ).toLowerCase(),
+                walletId: (!!tronWeb && walletAddr) || cred.address,
                 type: 'inProgress',
-                walletId: cred.address,
+                cost: amount,
             }
             await Campaigns.updateOne(
                 { _id },
