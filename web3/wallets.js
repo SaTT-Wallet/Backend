@@ -958,18 +958,15 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
-        let TronWallet = await this.getWalletTron(UserId, pass)
-
         await Wallet.create({
             UserId: parseInt(UserId),
             keystore: account,
             num: count,
             btc: btcWallet,
             mnemo: mnemonic,
-            tronAddress: TronWallet.addr,
         })
-        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        sdk.validateaddress({ address: TronWallet.addrHex })
+
+        let TronWallet = await this.addWalletTron(req, res)
 
         return {
             address: '0x' + account.address,
