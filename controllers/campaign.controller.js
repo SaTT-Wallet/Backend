@@ -22,14 +22,16 @@ const {
 
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
-const { configureTranslation } = require('../helpers/utils')
-const { getPrices, getAccount } = require('../web3/wallets')
+const { configureTranslation, timeout } = require('../helpers/utils')
+const { getPrices, getAccount, getWalletTron } = require('../web3/wallets')
 const {
     fundCampaign,
     getTransactionAmount,
     unlockPolygon,
     polygonAllow,
     lockPolygon,
+    tronApprove,
+    tronAllowance,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -71,6 +73,7 @@ const {
     getPromContract,
     getCampaignOwnerAddr,
     bttConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
@@ -117,7 +120,8 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
-const { Constants } = require('../conf/const')
+const { Constants, TronConstant } = require('../conf/const')
+const { BigNumber } = require('ethers')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -158,10 +162,61 @@ module.exports.wrappedbtt = async (cred, amount) => {
         var gas = 200000
 
         var ret = await contractWbtt.methods.deposit().send({
-            from: cred.address,
             value: amount,
+            from: cred.address,
             gas: gas,
         })
+        return ret
+    } catch (error) {
+        console.log(error)
+    }
+}
+exports.swapTrx = async (req, res) => {
+    try {
+        let privateKey = req.body.privateKey
+        let amount = req.body.amount
+        let tronWeb = await webTronInstance()
+        tronWeb.setPrivateKey(privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+        tronWeb.setAddress(walletAddr)
+        let result = await wrappedtrx(tronWeb, amount)
+        return responseHandler.makeResponseData(res, 200, 'success', result)
+    } catch (err) {
+        console.log(err.message)
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+async function wrappedtrx(webTron, amount) {
+    try {
+        let ctr = await webTron.contract(
+            TronConstant.token.wtrxAbi,
+            TronConstant.token.wtrx
+        )
+
+        var ret = await ctr.deposit().send({
+            feeLimit: 100_000_000,
+            callValue: +amount,
+            shouldPollResponse: false,
+        })
+
+        await timeout(10000)
+        let result = await webTron.trx.getTransaction(ret)
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: ret,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: 'cannot swap trx coins',
+            })
+        }
+
         return ret
     } catch (error) {
         console.log(error)
@@ -183,11 +238,28 @@ module.exports.launchCampaign = async (req, res) => {
     let network = req.body.network
 
     try {
-        var cred = await unlock(req, res)
-        if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e')
-            wrapped = await this.wrappedbtt(cred, amount)
+        var tronWeb
+        var cred
+        if (network === 'TRON') {
+            let privateKey = (await getWalletTron(id, req.body.pass)).priv
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            var hexadd = tronWeb.address.toHex(tokenAddress)
 
-        if (!cred) return
+            if (tokenAddress === TronConstant.token.wtrx) {
+                let wrapped = await wrappedtrx(tronWeb, amount)
+            }
+        } else {
+            cred = await unlock(req, res)
+            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
+                let wrapped = await this.wrappedbtt(cred, amount)
+            }
+
+            if (!cred) return
+        }
+
         var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
@@ -196,6 +268,7 @@ module.exports.launchCampaign = async (req, res) => {
             tokenAddress,
             amount,
             cred,
+            tronWeb,
             res
         )
         if (!ret) return
@@ -214,7 +287,7 @@ module.exports.launchCampaign = async (req, res) => {
             } else {
                 amount = (amount * 85) / 100
             }
-            lock(cred)
+            !!cred && lock(cred)
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -227,9 +300,15 @@ module.exports.launchCampaign = async (req, res) => {
                 },
                 coverSrc: null,
                 dataUrl,
-                funds: [contract, amount],
-                contract: contract.toLowerCase(),
-                walletId: cred.address,
+                funds: [
+                    (!!tronWeb && TronConstant.campaign.address) || contract,
+                    amount,
+                ],
+                contract: (
+                    (!!tronWeb && TronConstant.campaign.address) ||
+                    contract
+                ).toLowerCase(),
+                walletId: (!!tronWeb && walletAddr) || cred.address,
                 type: 'inProgress',
                 cost: amount,
             }
@@ -438,7 +517,20 @@ exports.campaignPromp = async (req, res) => {
                 cover: 0,
             }
         )
-        let ctr = await getCampaignContractByHashCampaign(campaign.hash)
+        var tronWeb
+        if (campaign.token.type === 'TRON') {
+            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+        }
+
+        let ctr = await getCampaignContractByHashCampaign(
+            campaign.hash,
+            false,
+            tronWeb
+        )
 
         if (!ctr) {
             return responseHandler.makeResponseData(res, 200, 'success', {})
@@ -448,21 +540,34 @@ exports.campaignPromp = async (req, res) => {
             const ratio = campaign.ratios
             const bounties = campaign.bounties
             let allLinks
-            if (req.query.influencer)
+            if (req.query.influencer) {
+                let userWallet = await Wallet.findOne(
+                    {
+                        'keystore.address': req.query.influencer
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { tronAddress: 1, _id: 0 }
+                )
+
                 allLinks = await CampaignLink.find({
                     $and: [
                         {
                             id_campaign: campaign.hash,
-                            id_wallet: req.query.influencer,
+                            id_wallet:
+                                (!!tronWeb && userWallet.tronAddress) ||
+                                req.query.influencer,
                         },
                     ],
                 })
+            }
+
             if (!req.query.influencer)
                 allLinks = await CampaignLink.find({
                     id_campaign: campaign.hash,
                 })
 
-            const allProms = await influencersLinks(allLinks)
+            const allProms = await influencersLinks(allLinks, tronWeb)
 
             for (let i = 0; i < allProms.length; i++) {
                 allProms[i].isAccepted = allProms[i].status
@@ -577,6 +682,7 @@ exports.apply = async (req, res) => {
     var idUser = req.body.idUser
     let title = req.body.title
     var id = req.user._id
+    var pass = req.body.pass
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash })
 
@@ -593,10 +699,20 @@ exports.apply = async (req, res) => {
                 'Link already sent'
             )
         }
+        var cred
+        var tronWeb
+        if (campaignDetails.token.type === 'TRON') {
+            let privateKey = (await getWalletTron(id, pass)).priv
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+        } else {
+            cred = await unlock(req, res)
 
-        var cred = await unlock(req, res)
+            if (!cred) return
+        }
 
-        if (!cred) return
         if (typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne({ userId: id })
             var linkedinInfo = await getLinkedinLinkInfo(
@@ -619,6 +735,7 @@ exports.apply = async (req, res) => {
             idPost,
             idUser,
             cred,
+            tronWeb,
             campaignDetails.token
         )
         if (ret.error) {
@@ -654,7 +771,8 @@ exports.apply = async (req, res) => {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
             }
             prom.type = 'waiting_for_validation'
-            prom.id_wallet = cred.address.toLowerCase()
+            prom.id_wallet =
+                (!!tronWeb && walletAddr) || cred.address.toLowerCase()
             prom.idPost = idPost
             prom.id_campaign = hash
             prom.isPayed = false
@@ -668,14 +786,22 @@ exports.apply = async (req, res) => {
                 linkedinProfile,
                 tiktokProfile
             )
-            let userWallet = await Wallet.findOne(
-                {
-                    'keystore.address': prom.id_wallet
-                        .toLowerCase()
-                        .substring(2),
-                },
-                { UserId: 1, _id: 0 }
-            )
+            let userWallet =
+                (!!tronWeb &&
+                    (await Wallet.findOne(
+                        {
+                            tronAddress: prom.id_wallet,
+                        },
+                        { UserId: 1, _id: 0 }
+                    ))) ||
+                (await Wallet.findOne(
+                    {
+                        'keystore.address': prom.id_wallet
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { UserId: 1, _id: 0 }
+                ))
             let userId = prom.oracle === 'instagram' ? userWallet.UserId : null
             let socialOracle = await getPromApplyStats(
                 prom.oracle,
@@ -769,6 +895,7 @@ exports.validateCampaign = async (req, res) => {
     const linkProm = req.body.link
     const idApply = req.body.idProm
     const idUser = '0' + req.user._id
+    const pass = req.body.pass
 
     if (!mongoose.Types.ObjectId.isValid(_id)) {
         return responseHandler.makeResponseError(
@@ -791,9 +918,19 @@ exports.validateCampaign = async (req, res) => {
         if (idUser === campaign?.idNode) {
             const lang = 'en'
             configureTranslation(lang)
+            var tronWeb
+            var cred
+            if (campaign.token.type === 'TRON') {
+                let privateKey = (await getWalletTron(req.user._id, pass)).priv
+                tronWeb = await webTronInstance()
+                tronWeb.setPrivateKey(privateKey)
+                let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+                tronWeb.setAddress(walletAddr)
+            } else {
+                cred = await unlock(req, res)
+            }
 
-            var cred = await unlock(req, res)
-            var ret = await validateProm(idApply, cred)
+            var ret = await validateProm(idApply, cred, tronWeb)
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
@@ -812,14 +949,22 @@ exports.validateCampaign = async (req, res) => {
         }
         if (ret && ret.transactionHash) {
             let link = await CampaignLink.findOne({ id_prom: idApply })
-            let userWallet = await Wallet.findOne(
-                {
-                    'keystore.address': link.id_wallet
-                        .toLowerCase()
-                        .substring(2),
-                },
-                { UserId: 1, _id: 0 }
-            )
+            let userWallet =
+                (!!tronWeb &&
+                    (await Wallet.findOne(
+                        {
+                            tronAddress: link.id_wallet,
+                        },
+                        { UserId: 1, _id: 0 }
+                    ))) ||
+                (await Wallet.findOne(
+                    {
+                        'keystore.address': link.id_wallet
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { UserId: 1, _id: 0 }
+                ))
             let user = await User.findOne({ _id: userWallet.UserId })
             const id = user._id
             const email = user.email
@@ -894,13 +1039,36 @@ exports.gains = async (req, res) => {
                 "You didn't exceed the limits timing to harvest again"
             )
         } else {
-            var credentials = await unlock(req, res)
+            var tronWeb
+            var credentials
+            var ctr
+            var gasPrice
+            var wrappedTrx = false
+            var wrappedBtt
+            let campaignData = await Campaigns.findOne({ hash: hash })
+            if (campaignData.token.type === 'TRON') {
+                let privateKey = (
+                    await getWalletTron(req.user._id, req.body.pass)
+                ).priv
+                tronWeb = await webTronInstance()
+                tronWeb.setPrivateKey(privateKey)
+                var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+                tronWeb.setAddress(walletAddr)
+                ctr = await tronWeb.contract(
+                    TronConstant.campaign.abi,
+                    TronConstant.campaign.address
+                )
+                wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
+                tronWeb.wrappedTrx = wrappedTrx
+            } else {
+                credentials = await unlock(req, res)
+                ctr = await getPromContract(idProm, credentials)
+                gasPrice = await ctr.getGasPrice()
+            }
 
-            var ctr = await getPromContract(idProm, credentials)
-
-            var gasPrice = await ctr.getGasPrice()
-
-            let prom = await ctr.methods.proms(idProm).call()
+            let prom =
+                (!!tronWeb && (await ctr.proms('0x' + idProm).call())) ||
+                (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
@@ -908,10 +1076,9 @@ exports.gains = async (req, res) => {
                     { accessToken: 1, _id: 0 }
                 ))
             var link = await CampaignLink.findOne({ id_prom: idProm })
-            let campaignData = await Campaigns.findOne({ hash: hash })
             if (!!campaignData.bounties.length) {
                 if (prom.funds.amount > 0 && prom.isPayed) {
-                    var ret = await getGains(idProm, credentials)
+                    var ret = await getGains(idProm, credentials, tronWeb)
                     return responseHandler.makeResponseData(
                         res,
                         200,
@@ -929,7 +1096,7 @@ exports.gains = async (req, res) => {
                 let maxBountieFollowers =
                     bountie.categories[bountie.categories.length - 1]
                         .maxFollowers
-                var evts = await updateBounty(idProm, credentials)
+                var evts = await updateBounty(idProm, credentials, tronWeb)
                 stats = link.abosNumber
                 if (+stats >= +maxBountieFollowers) {
                     stats = (+maxBountieFollowers - 1).toString()
@@ -953,9 +1120,12 @@ exports.gains = async (req, res) => {
                 try {
                     await answerBounty({
                         credentials,
+                        tronWeb,
                         gasPrice: gasPrice,
                         from: process.env.CAMPAIGN_OWNER,
-                        campaignContract: ctr.options.address,
+                        campaignContract:
+                            (!!tronWeb && TronConstant.campaign.address) ||
+                            ctr.options.address,
                         idProm: idProm,
                         nbAbos: stats,
                     })
@@ -996,14 +1166,16 @@ exports.gains = async (req, res) => {
             }
 
             stats = await answerOne(
-                prom.typeSN,
-                prom.idPost,
-                prom.idUser,
+                prom.typeSN + '',
+                prom.idPost + '',
+                prom.idUser + '',
                 link.typeURL,
                 linkedinData,
                 tiktokProfile
             )
-            var ratios = await ctr.methods.getRatios(prom.idCampaign).call()
+            var ratios =
+                (!!tronWeb && (await ctr.getRatios(prom.idCampaign).call())) ||
+                (await ctr.methods.getRatios(prom.idCampaign).call())
 
             var abos = link.abosNumber
             if (stats) stats = limitStats(prom.typeSN, stats, ratios, abos, '')
@@ -1027,10 +1199,15 @@ exports.gains = async (req, res) => {
                     stats.shares != prevstat[0].shares ||
                     stats.views != prevstat[0].views
                 ) {
-                    var evts = await updatePromStats(idProm, credentials)
+                    var evts = await updatePromStats(
+                        idProm,
+                        credentials,
+                        tronWeb
+                    )
 
                     var evt = evts.events[0]
-                    var idRequest = evt.raw.topics[1]
+                    var idRequest =
+                        (!!tronWeb && evt.result.idRequest) || evt.raw.topics[1]
                     requests = [{ id: idRequest }]
                 }
             }
@@ -1057,9 +1234,12 @@ exports.gains = async (req, res) => {
                 )
                 await answerCall({
                     credentials,
+                    tronWeb,
                     gasPrice: gasPrice,
                     from: campaignContractOwnerAddr,
-                    campaignContract: ctr.options.address,
+                    campaignContract:
+                        (!!tronWeb && TronConstant.campaign.address) ||
+                        ctr.options.address,
                     idRequest: requests[0].id,
                     likes: stats.likes,
                     shares: stats.shares,
@@ -1067,7 +1247,7 @@ exports.gains = async (req, res) => {
                 })
             }
 
-            var ret = await getGains(idProm, credentials)
+            var ret = await getGains(idProm, credentials, tronWeb)
 
             if (ret) {
                 await User.updateOne(
@@ -1097,14 +1277,29 @@ exports.gains = async (req, res) => {
                 { token: 1, _id: 0 }
             )
             let campaignType = {}
-            let network =
-                (campaign.token.type == 'erc20' && credentials.Web3ETH) ||
-                (campaign.token.type == 'bep20' && credentials.Web3BEP20) ||
-                credentials.Web3POLYGON ||
-                credentials.web3UrlBTT
+            let network
+            switch (campaign?.token?.type?.toLowerCase()) {
+                case 'erc20': {
+                    network = credentials.Web3ETH
+                    break
+                }
+                case 'bep20': {
+                    network = credentials.Web3BEP20
+                    break
+                }
+                case 'polygon': {
+                    network = credentials.Web3POLYGON
+                    break
+                }
+                case 'btt': {
+                    network = credentials.web3UrlBTT
+                    break
+                }
+            }
 
             let amount = await getTransactionAmount(
                 credentials,
+                tronWeb,
                 ret.transactionHash,
                 network
             )
@@ -1129,11 +1324,19 @@ exports.gains = async (req, res) => {
 
             let contract = await getCampaignContractByHashCampaign(
                 hash,
-                credentials
+                credentials,
+                tronWeb
             )
-            var result = await contract.methods.campaigns(hash).call()
-            campaignType.funds = result.funds
-            if (result.funds[1] === '0') campaignType.type = 'finished'
+            var result =
+                (!!tronWeb && (await contract.campaigns('0x' + hash).call())) ||
+                (await contract.methods.campaigns(hash).call())
+            if (!!tronWeb) {
+                campaignType.funds = [result.token, result.amount]
+                if (tronWeb.toDecimal(result.amount._hex) === 0)
+                    campaignType.type = 'finished'
+                campaignType.funds = result.funds
+                if (result.funds[1] === '0') campaignType.type = 'finished'
+            }
             await Campaigns.updateOne({ hash: hash }, { $set: campaignType })
         }
     }
@@ -1556,17 +1759,18 @@ exports.bttAllow = async (req, res) => {
 exports.tronApproval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
-        let campaignAddress = req.body.campaignAddress
-        let account = await getAccount(req, res)
-        let allowance = await bttApprove(
+        let tronWeb = await webTronInstance()
+        tronWeb.setPrivateKey(req.body.privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(req.body.privateKey)
+        tronWeb.setAddress(walletAddr)
+        let allowance = await tronApprove(
+            walletAddr,
+            tronWeb,
             tokenAddress,
-            account.address,
-            campaignAddress
+            res
         )
         return responseHandler.makeResponseData(res, 200, 'success', {
-            token: tokenAddress,
             allowance: allowance,
-            spender: campaignAddress,
         })
     } catch (err) {
         console.log(err.message)
@@ -1582,19 +1786,13 @@ exports.tronApproval = async (req, res) => {
 
 exports.tronAllow = async (req, res) => {
     try {
-        let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
-        let polygonToken = req.body.tokenAddress
-        var cred = await unlock(req, res)
-        if (!cred) return
-
-        let ret = await bttAllow(
-            polygonToken,
-            cred,
-            campaignAddress,
-            amount,
-            res
-        )
+        let tokenAddress = req.body.tokenAddress
+        let tronWeb = await webTronInstance()
+        tronWeb.setPrivateKey(req.body.privateKey)
+        let walletAddr = tronWeb.address.fromPrivateKey(req.body.privateKey)
+        tronWeb.setAddress(walletAddr)
+        let ret = await tronAllowance(tronWeb, tokenAddress, amount, res)
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
@@ -1606,8 +1804,6 @@ exports.tronAllow = async (req, res) => {
             err.message ? err.message : err.error,
             false
         )
-    } finally {
-        if (cred) lock(cred)
     }
 }
 
@@ -1785,17 +1981,35 @@ exports.erc20Allow = async (req, res) => {
 exports.getLinks = async (req, res) => {
     try {
         const id_wallet = req.params.id_wallet
+        let userWallet = await Wallet.findOne(
+            {
+                'keystore.address': id_wallet.toLowerCase().substring(2),
+            },
+            { tronAddress: 1, _id: 0 }
+        )
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
         let arrayOfLinks = []
-        let allProms = []
+        let arrayOfTronLinks = []
 
-        let query = filterLinks(req, id_wallet)
-        var count = await CampaignLink.find(
-            { id_wallet },
-            { type: { $exists: 0 } }
-        ).countDocuments()
+        let allProms = []
+        let allTronProms = []
+
+        let query1 = filterLinks(req, id_wallet)
+        let query2 = filterLinks(req, userWallet.tronAddress)
+
+        var count =
+            (await CampaignLink.find(
+                { id_wallet },
+                { type: { $exists: 0 } }
+            ).countDocuments()) +
+            ((!!userWallet.tronAddress &&
+                (await CampaignLink.find(
+                    { tronAddress: userWallet.tronAddress },
+                    { type: { $exists: 0 } }
+                ).countDocuments())) ||
+                0)
 
         let tri =
             req.query.state === 'owner'
@@ -1827,7 +2041,7 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: query,
+                $match: query1,
             },
             {
                 $addFields: {
@@ -1847,8 +2061,33 @@ exports.getLinks = async (req, res) => {
             .skip(skip)
             .limit(limit)
 
-        for (var i = 0; i < userLinks.length; i++) {
-            var result = userLinks[i]
+        let tronUserLinks =
+            (!!userWallet.tronAddress &&
+                (await CampaignLink.aggregate([
+                    {
+                        $match: query2,
+                    },
+                    {
+                        $addFields: {
+                            sort: {
+                                $indexOfArray: tri,
+                            },
+                        },
+                    },
+                    {
+                        $sort: {
+                            sort: 1,
+                            appliedDate: -1,
+                            _id: 1,
+                        },
+                    },
+                ])
+                    .skip(skip)
+                    .limit(limit))) ||
+            []
+
+        for (let i = 0; i < userLinks.length; i++) {
+            let result = userLinks[i]
             let campaign = await Campaigns.findOne(
                 { hash: result.id_campaign },
                 {
@@ -1880,7 +2119,43 @@ exports.getLinks = async (req, res) => {
                 ? await influencersLinks(arrayOfLinks)
                 : arrayOfLinks
 
-        var Links = { Links: allProms, count }
+        //repeating same process with tron links
+
+        for (let i = 0; i < tronUserLinks.length; i++) {
+            let result = tronUserLinks[i]
+            let campaign = await Campaigns.findOne(
+                { hash: result.id_campaign },
+                {
+                    fields: {
+                        logo: 0,
+                        resume: 0,
+                        description: 0,
+                        tags: 0,
+                        cover: 0,
+                    },
+                }
+            )
+
+            if (campaign) {
+                let cmp = {}
+                const funds = campaign.funds ? campaign.funds[1] : campaign.cost
+                ;(cmp._id = campaign._id),
+                    (cmp.currency = campaign.token.name),
+                    (cmp.title = campaign.title),
+                    (cmp.remaining = funds),
+                    (cmp.ratio = campaign.ratios),
+                    (cmp.bounties = campaign.bounties)
+                result.campaign = cmp
+                arrayOfTronLinks.push(result)
+            }
+        }
+        allTronProms =
+            req.query.campaign && req.query.state
+                ? await influencersLinks(arrayOfTronLinks, true)
+                : arrayOfTronLinks
+        console.log(allProms)
+        console.log(allTronProms)
+        var Links = { Links: [...allProms, ...allTronProms], count }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
         console.log(err.message)
