@@ -643,7 +643,7 @@ exports.applyCampaign = async (
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
-                Constants.campaign.abi,
+                TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
             let receipt = await ctr
