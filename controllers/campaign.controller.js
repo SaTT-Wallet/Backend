@@ -339,9 +339,31 @@ module.exports.launchBounty = async (req, res) => {
     var amount = req.body.amount
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
+    var network = req.body.network
     try {
-        var cred = await unlock(req, res)
-        if (!cred) return
+        var tronWeb
+        var cred
+
+        if (network === 'TRON') {
+            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
+                .priv
+            tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            var hexadd = tronWeb.address.toHex(tokenAddress)
+
+            if (tokenAddress === TronConstant.token.wtrx) {
+                let wrapped = await wrappedtrx(tronWeb, amount)
+            }
+        } else {
+            cred = await unlock(req, res)
+            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
+                let wrapped = await this.wrappedbtt(cred, amount)
+            }
+
+            if (!cred) return
+        }
         var ret = await createBountiesCampaign(
             dataUrl,
             startDate,
@@ -350,6 +372,7 @@ module.exports.launchBounty = async (req, res) => {
             tokenAddress,
             amount,
             cred,
+            tronWeb,
             res
         )
         if (!ret) return
