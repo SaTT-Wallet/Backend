@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<!--[if IE 8]>
+<html lang="en" class="ie8"> <![endif]-->
+<!--[if !IE]><!-->
+<html lang="en">
+    <!--<![endif]-->
+    <head>
+        <meta charset="utf-8" />
+        <title>Atayen</title>
+        <meta
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            name="viewport"
+        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            .main {
+                width: 100%;
+                text-align: center;
+            }
+
+            a {
+                text-decoration: none;
+            }
+            .icon {
+                width: 15px;
+            }
+            .content {
+                width: 720px;
+                font-style: normal;
+                font-weight: normal;
+                color: #ffffff;
+                display: inline-table;
+                border: 1px solid #d6d6e8;
+            }
+
+            .content .top {
+                color: #fff;
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+
+            .content .top .col {
+                display: inline-block;
+                width: 48%;
+            }
+
+            .content .top .col a {
+                font-family: 'Poppins', sans-serif;
+                font-size: 14px;
+                line-height: 16px;
+                letter-spacing: 0.03em;
+                color: #f6f6ff;
+            }
+
+            .content .mail-header {
+                background-image: url('https://satt.atayen.us/assets/Images/mail/changeEmail-bg.png');
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                align-items: center;
+                text-align: center;
+                width: 100%;
+                padding-bottom: 35px;
+            }
+
+            .content .mail-header h2 {
+                font-family: 'Poppins', sans-serif;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 40px;
+                line-height: 50px;
+                letter-spacing: 1px;
+                color: #fff;
+                margin-bottom: 20px;
+                margin-top: 25px;
+            }
+
+            .content .mail-header a.btn {
+                font-family: 'Poppins', sans-serif;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 18px;
+                line-height: 22px;
+                letter-spacing: 0.03em;
+                color: #f6f6ff;
+                background: #00cc9e;
+                border-radius: 30px;
+            }
+
+            .content .mail-header p.subtitle {
+                font-family: 'Poppins', sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                line-height: 22px;
+                text-align: center;
+                letter-spacing: 0.02em;
+                color: #ffffff;
+            }
+
+            .content .mail-header p {
+                font-family: 'Poppins', sans-serif;
+                font-size: 146x;
+                line-height: 16px;
+                letter-spacing: 0.03em;
+            }
+
+            .content .mail-body {
+                color: #1f2337;
+                font-style: normal;
+                font-family: 'Poppins', sans-serif;
+                padding: 8px 0;
+            }
+
+            .content .mail-body .subtitle {
+                margin-top: 41px;
+                margin-bottom: 15px;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 16px;
+                line-height: 120%;
+                text-align: center;
+                letter-spacing: 0.03em;
+                color: #323754;
+            }
+
+            .content .mail-body p {
+                font-family: 'Poppins', sans-serif;
+                font-weight: normal;
+                font-size: 16px;
+                line-height: 16px;
+                text-align: center;
+            }
+
+            .content .mail-body a.contact {
+                color: #2048ff;
+            }
+
+            .content .mail-body .actions {
+                margin-top: 30px;
+                margin-bottom: 30px;
+                text-align: center;
+                margin-top: 25px;
+                margin-bottom: 40px;
+            }
+
+            .content .mail-body .actions a {
+                width: auto;
+                min-width: 245px;
+                margin-top: 10px;
+                font-family: 'Poppins', sans-serif;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 18px;
+                line-height: 22px;
+                padding: 15px 35px;
+                align-items: center;
+                text-align: center;
+                letter-spacing: 0.03em;
+                border-radius: 30px;
+                display: inline-block;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            .content .mail-body .actions a.primary {
+                color: #f6f6ff;
+                background: #2048ff;
+            }
+
+            .content .mail-body .actions a.secondary {
+                color: #2048ff;
+                background: #ffffff;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+            }
+
+            .content .mail-footer {
+                border-top: 1px solid rgba(214, 214, 232, 1);
+                text-align: center;
+                color: #797b9c !important;
+                padding: 25px 0;
+                text-transform: uppercase;
+            }
+
+            .content .mail-footer a {
+                font-family: 'Poppins', sans-serif;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 12px;
+                line-height: 16px;
+                text-align: center;
+                letter-spacing: 0.03em;
+                padding: 1px 10px;
+            }
+
+            .content .mail-footer a.border-l {
+                border-left: solid 0.3px;
+            }
+            .gains {
+                margin-top: 25px;
+                font-family: 'Poppins', sans-serif;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 22px;
+                line-height: 28px;
+                text-align: center;
+                letter-spacing: 1px;
+                color: #1f2337;
+            }
+            .Apply_again {
+                background: #2048ff;
+                border-radius: 30px;
+                border: none !important;
+                margin-left: 39%;
+            }
+
+            .text-btn {
+                padding-left: 9%;
+                font-family: 'Poppins', sans-serif;
+                font-style: normal;
+                font-weight: 600;
+                font-size: 18px;
+                line-height: 27px;
+                display: flex;
+                align-items: center;
+                /* text-align: center; */
+                letter-spacing: 0.01em;
+                color: #f6f6ff !important;
+            }
+            .text-title {
+                font-family: Poppins;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 36px;
+                line-height: 50px;
+                text-align: center;
+                letter-spacing: 1px;
+                color: #ffffff;
+            }
+
+            .text-subtitle {
+                padding: 0 100px;
+                font-family: Poppins;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 16px;
+                line-height: 120%;
+                /* or 19px */
+
+                text-align: center;
+                letter-spacing: 0.03em;
+
+                color: #ffffff;
+            }
+            .ip-info {
+                display: flex;
+                background: #f6f6ff !important;
+                border-radius: 15px;
+                font-family: Poppins;
+                margin-bottom: 5px;
+            }
+            .dynamic-info {
+                padding: 1em;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                font-family: Poppins;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 16px;
+                text-align: center;
+                letter-spacing: 0.03em;
+                color: #323754;
+            }
+            .info {
+                padding: 1em;
+                width: 100%;
+                display: flex;
+                justify-content: left;
+                font-family: Poppins;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 16px;
+                text-align: center;
+                letter-spacing: 0.03em;
+                color: #323754;
+            }
+            .vertical-separator::after {
+                content: '';
+                height: 50px;
+                width: 1px;
+                background-color: rgba(214, 214, 232, 1);
+                position: absolute;
+                right: 0px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        </style></head
+    >-
+    <body class="main" align="center">
+        <div class="content">
+            <div class="mail-header">
+                <div class="top">
+                    <div class="col" align="left">
+                        <img
+                            src="{{imgUrl}}/Satt_log_mail.png"
+                            alt=""
+                            width="100px;"
+                        />
+                    </div>
+                    <div class="col"></div>
+                </div>
+                <img src="{{imgUrl}}/accepted_link.png" alt="" />
+                <h2 class="text-title">{{{__ "link_valid"}}}</h2>
+                <p class="text-subtitle">
+                    {{__ "link_trans"}} {{cmp_title}} {{__ "valid_accepted"}}
+                </p>
+            </div>
+            <div class="mail-body">
+                <h1 class="gains">{{__ "valid_question"}}</h1>
+                <p style="color: #323754 !important; padding: 0 80px">
+                    {{__ "valid_gaz"}}
+                </p>
+                <p style="margin-top: 22px; margin-bottom: 33px">
+                    {{__ "valid_need"}}
+                    <span style="color: #2048ff !important"
+                        >{{__ "valid_contact"}}</span
+                    >
+                </p>
+                <div align="center">
+                    <a
+                        style="
+                            color: white;
+                            border-radius: 30px;
+                            background: #2048ff;
+                            font-size: 18px;
+                            font-style: normal;
+                            font-weight: 600;
+                            line-height: 27px;
+                            letter-spacing: 0.01em;
+                            padding: 10px 20px;
+                        "
+                        href="{{cmp_link}}"
+                        >{{__ "valid_post"}}</a
+                    >
+                </div>
+                <div class="subtitle">{{__ "valid_wish"}}</div>
+            </div>
+            <div class="mail-footer">
+                <a href="{{satt_faq}}">{{__ "about"}}</a>
+                <a
+                    class="border-l"
+                    href="mailto:contact@satt-token.com?subject=I%20contact%20you%20from%20Satt-token.com"
+                    >{{__ "contact"}}</a
+                >
+            </div>
+        </div>
+    </body>
+</html>
