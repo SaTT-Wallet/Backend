@@ -268,6 +268,7 @@ exports.createBountiesCampaign = async (
     token,
     amount,
     credentials,
+    tronWeb,
     res
 ) => {
     var ctr = await getContractByToken(token, credentials)
