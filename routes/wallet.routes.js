@@ -315,6 +315,7 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *          description: code,<br>error:"not_enough_budget" /"wrong password"
  *       "500":
  *          description: code,<br>error:"error"
+ * 
  */
 router.post('/transferTokens', verifyAuth, transferTokensController)
 /**
