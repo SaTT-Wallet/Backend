@@ -118,20 +118,20 @@ exports.isBlocked = async (user, auth = false) => {
     return { res, blockedDate: dateNow, auth }
 }
 
-exports.getDecimal = symbol => {
+exports.getDecimal = (symbol) => {
     try {
+        let token_info = Tokens
 
-        symbol = symbol === 'SATTPOLYGON'
-        ? 'SATT_POLYGON'
-        : symbol === 'SATTBEP20'
-        ? 'SATT_BEP20'
-        : symbol === 'SATTBTT'
-        ? 'SATT_BTT'
-        : symbol;
-            
-        return  +token_info[symbol].dicimal
+        symbol =
+            symbol === 'SATTPOLYGON'
+                ? 'SATT_POLYGON'
+                : symbol === 'SATTBEP20'
+                ? 'SATT_BEP20'
+                : symbol === 'SATTBTT'
+                ? 'SATT_BTT'
+                : symbol
 
-
+        return +token_info[symbol].dicimal
     } catch (err) {
         console.log({ message: err.message })
     }
