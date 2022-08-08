@@ -997,13 +997,26 @@ exports.answerBounty = async function (opts) {
                 TronConstant.oracle.address
             )
             let receipt = await contract
-                .answerBounty(opts.campaignContract, opts.idProm, opts.nbAbos)
+                .answerBounty(
+                    opts.campaignContract,
+                    '0x' + opts.idProm,
+                    opts.nbAbos
+                )
                 .send({
                     feeLimit: 100_000_000,
                     callValue: 0,
                     shouldPollResponse: false,
                 })
-            return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
         }
         let contract = await getOracleContractByCampaignContract(
             opts.campaignContract,
