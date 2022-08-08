@@ -980,18 +980,38 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
-                Constants.campaign.abi,
+                TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
-            let receipt = await ctr.updateBounty(idProm).send({
+            let receipt = await ctr.updateBounty('0x' + idProm).send({
                 feeLimit: 100_000_000,
                 callValue: 0,
                 shouldPollResponse: false,
             })
-            return {
-                transactionHash: receipt,
-                idProm: idProm,
-                events: null, //TODO add events to returned value
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            const payload = {
+                url:
+                    process.env.TRON_NETWORK_URL +
+                    '/v1/transactions/' +
+                    receipt +
+                    '/events',
+                method: 'GET',
+                json: true,
+            }
+            let events = await rp(payload)
+
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    idProm: idProm,
+                    events: events, //TODO add events to returned value
+                }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
             }
         }
         var gas = 200000

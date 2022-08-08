@@ -340,6 +340,8 @@ module.exports.launchBounty = async (req, res) => {
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var bounties = req.body.bounties
     let network = req.body.network
+    let currency = req.body.currency
+    let id = req.user._id
 
     try {
         var tronWeb
@@ -571,7 +573,6 @@ exports.campaignPromp = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', {})
         } else {
             const funds = campaign.funds ? campaign.funds[1] : campaign.cost
-
             const ratio = campaign.ratios
             const bounties = campaign.bounties
             let allLinks
@@ -1112,7 +1113,7 @@ exports.gains = async (req, res) => {
                 ))
             var link = await CampaignLink.findOne({ id_prom: idProm })
             if (!!campaignData.bounties.length) {
-                if (prom.funds.amount > 0 && prom.isPayed) {
+                if (tronWeb.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
                     var ret = await getGains(idProm, credentials, tronWeb)
                     return responseHandler.makeResponseData(
                         res,
@@ -1165,7 +1166,7 @@ exports.gains = async (req, res) => {
                         nbAbos: stats,
                     })
                 } finally {
-                    var ret = await getGains(idProm, credentials)
+                    var ret = await getGains(idProm, credentials, tronWeb)
 
                     if (ret) {
                         await User.updateOne(
