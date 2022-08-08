@@ -498,11 +498,13 @@ exports.getListCryptoByUid = async (req, res) => {
 
             if (
                 token_info[T_name]?.contract ==
-                    token_info['SATT_BEP20']?.contract ||
-                token_info[T_name]?.contract == token_info['WSATT']?.contract ||
-                T_name === 'SATT_POLYGON' ||
-                T_name === 'SATT_TRON' ||
-                T_name === 'SATT_BTT'
+                token_info['SATT_BEP20']?.contract
+                // ||
+                // token_info[T_name]?.contract == token_info['WSATT']?.contract ||
+                // T_name === 'SATT_POLYGON' ||
+                // T_name === 'SATT_TRON'
+                //  ||
+                // T_name === 'SATT_BTT'
             ) {
                 key = 'SATT'
             }
@@ -674,12 +676,14 @@ exports.getBalanceByUid = async (req, res) => {
 
             let key = T_name.split('_')[0]
             if (
-                token_info[T_name].contract ==
-                    token_info['SATT_BEP20'].contract ||
-                token_info[T_name].contract == token_info['WSATT'].contract ||
-                T_name === 'SATT_TRON' ||
-                T_name === 'SATT_POLYGON' ||
-                T_name === 'SATT_BTT'
+                token_info[T_name].contract == token_info['SATT_BEP20'].contract
+                // ||
+                //  token_info[T_name].contract == token_info['WSATT'].contract
+                //||
+                //  T_name === 'SATT_TRON' ||
+                //T_name === 'SATT_POLYGON'
+                //  ||
+                // T_name === 'SATT_BTT'
             ) {
                 key = 'SATT'
             }
@@ -1005,15 +1009,13 @@ exports.addWalletTron = async (req, res) => {
 
 exports.getWalletTron = async (id, pass) => {
     let wallet = await Wallet.findOne({ UserId: id })
-    if(wallet.keystore) {
+    if (wallet.keystore) {
         try {
             let Web3ETH = await erc20Connexion()
-            Web3ETH.eth.accounts.wallet.decrypt([wallet.keystore], pass);
+            Web3ETH.eth.accounts.wallet.decrypt([wallet.keystore], pass)
+        } catch (error) {
+            return { error: 'Invalid Tron password' }
         }
-        catch (error) {
-            return {error:"Invalid Tron password"}
-        }
-       
     }
     const seed = bip39.mnemonicToSeedSync(wallet.mnemo, pass)
     const root = bip32.fromSeed(seed)
