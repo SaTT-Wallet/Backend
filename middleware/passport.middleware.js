@@ -436,6 +436,7 @@ exports.emailSignup = async (req, res, next) => {
                 expires_in: user.expires_in,
                 token_type: 'bearer',
                 scope: 'user',
+                loggedIn: user.loggedIn,
             }
             return responseHandler.makeResponseData(res, 200, 'success', param)
         })
