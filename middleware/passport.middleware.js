@@ -131,6 +131,7 @@ const signinWithEmail = async (req, username, password, done) => {
                     token,
                     expires_in: date,
                     noredirect: req.body.noredirect,
+                    loggedIn: true,
                 })
             } else {
                 return done(null, false, {
@@ -375,7 +376,7 @@ passport.use(
         var date = Math.floor(Date.now() / 1000) + 86400
         let user = await User.findOne({ email: username.toLowerCase() })
         if (user) {
-            await signinWithEmail(req, username, password, done)
+            return await signinWithEmail(req, username, password, done)
         } else {
             var createdUser = createUser(
                 0,
