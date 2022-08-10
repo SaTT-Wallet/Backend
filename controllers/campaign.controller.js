@@ -852,6 +852,7 @@ exports.apply = async (req, res) => {
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
+            prom.media_url = media_url || socialOracle.media_url
 
             let event = {
                 id: hash,
