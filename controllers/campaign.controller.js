@@ -2045,6 +2045,7 @@ exports.getLinks = async (req, res) => {
                 { type: { $exists: 0 } }
             ).countDocuments()) +
             ((!!userWallet.tronAddress &&
+                req.query.state === 'part' &&
                 (await CampaignLink.find(
                     { tronAddress: userWallet.tronAddress },
                     { type: { $exists: 0 } }
@@ -2195,7 +2196,13 @@ exports.getLinks = async (req, res) => {
                 : arrayOfTronLinks
         console.log(allProms)
         console.log(allTronProms)
-        var Links = { Links: [...allProms, ...allTronProms], count }
+        var Links = {
+            Links: [
+                ...allProms,
+                ...((req.query.state === 'owner' && []) || allTronProms),
+            ],
+            count,
+        }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
         console.log(err.message)
