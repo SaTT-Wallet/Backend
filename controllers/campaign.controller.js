@@ -757,7 +757,7 @@ exports.apply = async (req, res) => {
                 idPost.toString()
             )
 
-            var media_url = linkedinInfo.mediaUrl
+            var media_url = linkedinInfo?.mediaUrl || ''
             idUser = linkedinInfo.idUser
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }

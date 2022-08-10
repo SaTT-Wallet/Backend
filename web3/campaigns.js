@@ -17,6 +17,7 @@ const rp = require('request-promise')
 const { isTronNetwork } = require('./campaigns')
 const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
+const axios = require('axios')
 
 exports.unlock = async (req, res) => {
     try {
@@ -665,6 +666,20 @@ exports.getUserIdByWallet = async (wallet) => {
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
+        const params = new URLSearchParams()
+        params.append('client_id', process.env.LINKEDIN_KEY)
+        params.append('client_secret', process.env.LINKEDIN_SECRET)
+        params.append('token', accessToken)
+
+        let tokenValidityBody = await axios.post(
+            'https://www.linkedin.com/oauth/v2/introspectToken',
+            params
+        )
+        if (!tokenValidityBody.data?.active) {
+            let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
+            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            accessToken = resAccessToken.access_token
+        }
         let linkInfo = {}
         const linkedinData = {
             url: config.linkedinActivityUrl(activityURN),
