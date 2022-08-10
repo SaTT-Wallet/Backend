@@ -122,6 +122,7 @@ const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
 const { Constants, TronConstant } = require('../conf/const')
 const { BigNumber } = require('ethers')
+const { token } = require('morgan')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -2399,10 +2400,11 @@ module.exports.campaignsStatistics = async (req, res) => {
     try {
         let totalAbos = 0
         let totalViews = 0
-        let totalPayed = 0
+        let totalPayed = new Big(0)
         let tvl = 0
         let Crypto = await getPrices()
         let SATT = Crypto['SATT']
+        let SATTBEP20 = Crypto['OMG']
         let campaignProms = Campaigns.aggregate([
             {
                 $project: basicAtt,
@@ -2431,7 +2433,6 @@ module.exports.campaignsStatistics = async (req, res) => {
 
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
-
             if (campaign) {
                 if (
                     links[j].abosNumber &&
@@ -2440,16 +2441,22 @@ module.exports.campaignsStatistics = async (req, res) => {
                     totalAbos += +links[j].abosNumber
                 if (links[j].views) totalViews += +links[j].views
 
-                if (links[j].payedAmount)
-                    totalPayed = new Big(totalPayed)
-                        .plus(
-                            new Big(links[j].payedAmount).div(
-                                new Big(10).pow(
-                                    getDecimal(campaign?.token.name)
-                                )
-                            )
-                        )
-                        .toFixed()
+                if (links[j].payedAmount && links[j].payedAmount !== '0') {
+                    let tokenName = [
+                        'SATTBEP20',
+                        'SATTPOLYGON',
+                        'WSATT',
+                    ].includes(campaign.token.name)
+                        ? 'SATT'
+                        : campaign.token.name
+                    let payedAmountInCryptoCurrency = new Big(
+                        links[j].payedAmount
+                    ).div(new Big(10).pow(getDecimal(tokenName)))
+                    let cryptoUnitPriceInUSD = new Big(Crypto[tokenName].price)
+                    let tokenPriceInUSD =
+                        payedAmountInCryptoCurrency.times(cryptoUnitPriceInUSD)
+                    totalPayed = totalPayed.plus(tokenPriceInUSD)
+                }
             }
             j++
         }
@@ -2487,7 +2494,7 @@ module.exports.campaignsStatistics = async (req, res) => {
             reach: ((totalViews / totalAbos) * 100).toFixed(2),
             posts: links.length,
             views: totalViews,
-            harvested: totalPayed,
+            harvested: totalPayed.toFixed(),
             tvl: tvl,
         }
 
