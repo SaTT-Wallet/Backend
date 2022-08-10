@@ -13,7 +13,7 @@ const {
     getWeb3Connection,
     getHttpProvider,
 } = require('../web3/web3-connection')
-const { transferTokens, transferBTC } = require('@atayen-org/transfer')
+const { transferTokens, transferBTC } = require('../libs/transfer')
 const { unlockAccount } = require('../web3/account')
 
 const {
@@ -23,6 +23,7 @@ const {
     polygonConnexion,
     bttConnexion,
     tronConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
 const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
@@ -59,6 +60,7 @@ const {
     sendBtt,
     createWalletTron,
     addWalletTron,
+    getWalletTron,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -66,6 +68,7 @@ const { notificationManager } = require('../manager/accounts')
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
+const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -224,7 +227,16 @@ exports.gasPriceBtt = async (req, res) => {
 
     var gasPrice = await Web3ETH.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
+        gasPrice: (gasPrice * 280) / 1000000000,
+    })
+}
+
+exports.gasPriceTrx = async (req, res) => {
+    let tronWeb = await webTronInstance()
+
+    var gasPrice = await tronWeb.trx.getChainParameters()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
     })
 }
 
@@ -294,7 +306,7 @@ exports.totalBalances = async (req, res) => {
     }
 }
 
-exports.transferTokensController = async (req, res) => {
+exports.transferTokensController30trx = async () => {
     let from = req.body.from
     var to = req.body.to
     var amount = req.body.amount
@@ -322,6 +334,107 @@ exports.transferTokensController = async (req, res) => {
                     amount,
                     walletPassword: pass,
                     account: accountData,
+                })
+            } else {
+                let counter = 0
+                while (counter < 30) {
+                    result = await transferTokens({
+                        fromAddress: from,
+                        toAddress: to,
+                        amount,
+                        tokenSmartContractAddress: tokenAddress,
+                        tokenSmartContractAbi: Constants.token.abi,
+                        provider,
+                        walletPassword: pass,
+                        encryptedPrivateKey: accountData.keystore,
+                    })
+                }
+            }
+
+            if (result.error) {
+                return responseHandler.makeResponseError(res, 402, result.error)
+            }
+
+            if (result.blockHash) {
+                await notificationManager(req.user._id, 'transfer_event', {
+                    amount,
+                    currency: tokenSymbol,
+                    network,
+                    to,
+                    transactionHash: result.transactionHash,
+                })
+                const wallet = await Wallet.findOne(
+                    { 'keystore.address': to.substring(2) },
+                    { UserId: 1 }
+                )
+                if (wallet) {
+                    await notificationManager(
+                        wallet.UserId,
+                        'receive_transfer_event',
+                        {
+                            amount,
+                            currency: tokenSymbol,
+                            network,
+                            from,
+                            transactionHash: result.transactionHash,
+                        }
+                    )
+                }
+
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    result
+                )
+            }
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Account not found'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(res, 500, err.message)
+    }
+}
+
+exports.transferTokensController = async (req, res) => {
+    let from = req.body.from
+    var to = req.body.to
+    var amount = req.body.amount
+    //TODO: Add a constants enum for different blockchain networks
+    let network = req.body.network
+    let tokenSymbol = req.body.tokenSymbol
+    let pass = req.body.pass
+    let tokenAddress = req.body.tokenAddress
+    let userId = req.user._id
+    let result
+    try {
+        if (req.user.hasWallet == true) {
+            const provider = getHttpProvider(
+                networkProviders[network.toUpperCase()]
+            )
+
+            // get wallet keystore
+            const accountData = await Wallet.findOne({ UserId: userId })
+
+            if (network.toUpperCase() === 'BTC') {
+                //TODO: transferring btc need to be tested locally with testnet
+                result = await transferBTC({
+                    to,
+                    amount,
+                    walletPassword: pass,
+                    account: accountData,
+                })
+            } else if (network.toUpperCase() === 'TRON') {
+                let privateKey = (await getWalletTron(userId, pass)).priv
+                result = await transferTronTokens({
+                    tronAddress: accountData.tronAddress,
+                    toAddress: to,
+                    amount,
+                    privateKey,
                 })
             } else {
                 result = await transferTokens({
@@ -381,11 +494,7 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            'Internal server error'
-        )
+        return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
 
@@ -842,23 +951,18 @@ exports.createNewWallet = async (req, res) => {
 
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
-        var id = req.user._id
-        let user = await User.findOne({ _id: id }, { password: 1 })
-        let wallet = await Wallet.findOne({ UserId: id })
-        if (user.password === synfonyHash(req.body.pass)) {
-            return responseHandler.makeResponseError(res, 401, 'same password')
-            //do not forget to check hasWallet attribute
-        } else if (!!wallet.tronAddress) {
+        var tronWallet = await getWalletTron(req.user._id, req.body.pass)
+        if (!tronWallet.addr) {
             return responseHandler.makeResponseError(
                 res,
                 401,
-                'tron wallet already exists'
+                'Invalid password'
             )
         } else {
             var ret = await addWalletTron(req, res)
 
             return responseHandler.makeResponseData(res, 200, 'success', {
-                tronAddress: ret,
+                tronAddress: ret.addr,
             })
         }
     } catch (err) {

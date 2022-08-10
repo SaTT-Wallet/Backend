@@ -8,6 +8,7 @@ const {
     getContractCampaigns,
     polygonConnexion,
     bttConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
 const { Constants, tronTokensCampaign, TronConstant } = require('../conf/const')
@@ -15,6 +16,7 @@ const { config } = require('../conf/config')
 const rp = require('request-promise')
 const { isTronNetwork } = require('./campaigns')
 const { ethers } = require('ethers')
+const { timeout } = require('../helpers/utils')
 
 exports.unlock = async (req, res) => {
     try {
@@ -159,7 +161,6 @@ exports.getAccount = async (req, res) => {
     }
 }
 
-
 exports.createPerformanceCampaign = async (
     dataUrl,
     startDate,
@@ -168,20 +169,61 @@ exports.createPerformanceCampaign = async (
     token,
     amount,
     credentials,
+    tronWeb,
     res
 ) => {
     try {
-        // if (!!tronTokensCampaign.includes(token.toLowerCase())) {
-        //     const abiCoder = new ethers.utils.AbiCoder()
-        //     const parameters = ethers.defaultAbiCoder
-        //     credentials.tronSdk.triggersmartcontract({
-        //         owner_address: credentials.tronAddress,
-        //         contract_address: TronConstant.campaign.address,
-        //         function_selector:
-        //             'createPriceFundAll(string, uint64, uint64, uint256[], address, uint256)',
-        //         call_value: 0,
-        //     })
-        // }
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                TronConstant.campaign.abi,
+                TronConstant.campaign.address
+            )
+
+            let receipt = await ctr
+                .createPriceFundAll(
+                    dataUrl,
+                    startDate,
+                    endDate,
+                    ratios,
+                    token,
+                    amount
+                )
+                .send({
+                    feeLimit: 1e9,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            const payload = {
+                url:
+                    process.env.TRON_NETWORK_URL +
+                    '/v1/transactions/' +
+                    receipt +
+                    '/events',
+                method: 'GET',
+                json: true,
+            }
+            let events = await rp(payload)
+            const hash =
+                !!events &&
+                events.data.find(
+                    (elem) => elem.event_name === 'CampaignCreated'
+                ).result['0']
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    hash: hash,
+                }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
+
         var ctr = await getContractByToken(token, credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
@@ -192,7 +234,7 @@ exports.createPerformanceCampaign = async (
                 endDate,
                 ratios,
                 token,
-                amount
+                amount + ''
             )
             .send({
                 from: credentials.address,
@@ -226,8 +268,58 @@ exports.createBountiesCampaign = async (
     token,
     amount,
     credentials,
+    tronWeb,
     res
 ) => {
+    if (!!tronWeb) {
+        let ctr = await tronWeb.contract(
+            TronConstant.campaign.abi,
+            TronConstant.campaign.address
+        )
+
+        let receipt = await ctr
+            .createPriceFundBounty(
+                dataUrl,
+                startDate,
+                endDate,
+                bounties,
+                token,
+                amount
+            )
+            .send({
+                feeLimit: 1e9,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+
+        await timeout(10000)
+        let result = await tronWeb.trx.getTransaction(receipt)
+        const payload = {
+            url:
+                process.env.TRON_NETWORK_URL +
+                '/v1/transactions/' +
+                receipt +
+                '/events',
+            method: 'GET',
+            json: true,
+        }
+        let events = await rp(payload)
+        const hash =
+            !!events &&
+            events.data.find((elem) => elem.event_name === 'CampaignCreated')
+                .result['id']
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+                hash: hash,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: result,
+            })
+        }
+    }
     var ctr = await getContractByToken(token, credentials)
     var gasPrice = await ctr.getGasPrice()
     var gas = 5000000
@@ -273,6 +365,24 @@ exports.bttApprove = async (token, address, spender) => {
 
         var amount = await contract.methods.allowance(address, spender).call()
         return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
+    }
+}
+
+exports.tronApprove = async (walletAddr, tronWeb, token, res) => {
+    try {
+        let ctr = await tronWeb.contract(
+            (!!token === TronConstant.token.wtrx &&
+                TronConstant.token.wtrxAbi) ||
+                TronConstant.token.abi,
+            token
+        )
+        let amount = await ctr
+            .allowance(walletAddr, TronConstant.campaign.address)
+            .call()
+
+        return { amount: tronWeb.BigNumber(amount._hex).toString() }
     } catch (err) {
         return { amount: '0' }
     }
@@ -370,6 +480,40 @@ exports.bttAllow = async (token, credentials, spender, amount, res) => {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
             spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+exports.tronAllowance = async (tronWeb, token, amount, res) => {
+    try {
+        let ctr = await tronWeb.contract(
+            (!!token === TronConstant.token.wtrx &&
+                TronConstant.token.wtrxAbi) ||
+                TronConstant.token.abi,
+            token
+        )
+        let receipt = await ctr
+            .approve(TronConstant.campaign.address, amount)
+            .send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+        await timeout(10000)
+        let result = await tronWeb.trx.getTransaction(receipt)
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: result,
+            })
         }
     } catch (err) {
         res.status(500).send({
@@ -540,7 +684,7 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
             linkInfo.mediaUrl =
                 postData.results[urn][
                     'domainEntity~'
-                ].content.contentEntities[0].entityLocaion
+                ].content.contentEntities[0].entityLocation
         return linkInfo
     } catch (err) {
         console.log(err.message)
@@ -553,9 +697,61 @@ exports.applyCampaign = async (
     idPost,
     idUser,
     credentials,
+    tronWeb,
     token
 ) => {
     try {
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                TronConstant.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr
+                .applyCampaign('0x' + idCampaign, typeSN, idPost, idUser)
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            const payload = {
+                url:
+                    process.env.TRON_NETWORK_URL +
+                    '/v1/transactions/' +
+                    receipt +
+                    '/events',
+                method: 'GET',
+                json: true,
+            }
+            let events = await rp(payload)
+            const prom =
+                !!events &&
+                events.data.find(
+                    (elem) => elem.event_name === 'CampaignApplied'
+                ).result['prom']
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    idCampaign: idCampaign,
+                    typeSN: typeSN,
+                    idPost: idPost,
+                    idUser: idUser,
+                    idProm: prom,
+                }
+            } else if (result.ret[0].contractRet === 'OUT_OF_ENERGY') {
+                res.status(401).send({
+                    code: 401,
+                    error: 'OUT_OF_ENERGY',
+                })
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         let web3 = await getContractByToken(token.addr, credentials)
 
         var gas = 400000
@@ -577,14 +773,6 @@ exports.applyCampaign = async (
                 `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${prom} ${idCampaign}`
             )
 
-        console.log({
-            transactionHash: receipt.events.CampaignApplied.transactionHash,
-            idCampaign: idCampaign,
-            typeSN: typeSN,
-            idPost: idPost,
-            idUser: idUser,
-            idProm: prom,
-        })
         return {
             transactionHash: receipt.events.CampaignApplied.transactionHash,
             idCampaign: idCampaign,
@@ -653,7 +841,29 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     }
 }
 
-exports.getGains = async (idProm, credentials) => {
+exports.getGains = async (idProm, credentials, tronWeb) => {
+    if (!!tronWeb) {
+        let ctr = await tronWeb.contract(
+            TronConstant.campaign.abi,
+            TronConstant.campaign.address
+        )
+        let receipt = await ctr
+            .getGains('0x' + idProm, !!tronWeb.wrappedTrx)
+            .send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+        await timeout(10000)
+        let result = await tronWeb.trx.getTransaction(receipt)
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+                idProm: idProm,
+            }
+        }
+        return
+    }
     var ctr = await getPromContract(idProm, credentials)
     var gas = 200000
     var gasPrice = await ctr.getGasPrice()
@@ -702,11 +912,10 @@ exports.filterLinks = (req, id_wallet) => {
             ],
         }
     }
-
     return query
 }
 
-exports.influencersLinks = async (links) => {
+exports.influencersLinks = async (links, tronWeb = null) => {
     try {
         // let idproms = await ctr.methods.getProms(idCampaign).call();
         let proms = links
@@ -719,16 +928,26 @@ exports.influencersLinks = async (links) => {
 
             for (let i = 0; i < links.length; i++) {
                 if (addresses.indexOf(links[i].id_wallet) == -1)
-                    addresses.push(links[i].id_wallet.slice(2).toLowerCase())
+                    addresses.push(
+                        (!!tronWeb && links[i].id_wallet) ||
+                            links[i].id_wallet.slice(2).toLowerCase()
+                    )
             }
 
-            let wallets = await Wallet.find({
-                'keystore.address': { $in: addresses },
-            })
+            let wallets =
+                (!!tronWeb &&
+                    (await Wallet.find({
+                        tronAddress: { $in: addresses },
+                    }))) ||
+                (await Wallet.find({
+                    'keystore.address': { $in: addresses },
+                }))
 
             for (let i = 0; i < wallets.length; i++) {
-                idByAddress['0x' + wallets[i].keystore.address] =
-                    'id#' + wallets[i].UserId
+                idByAddress[
+                    (!!tronWeb && wallets[i].tronAddress) ||
+                        '0x' + wallets[i].keystore.address
+                ] = 'id#' + wallets[i].UserId
                 if (ids.indexOf(wallets[i].UserId) == -1)
                     ids.push(wallets[i].UserId)
             }
@@ -745,7 +964,10 @@ exports.influencersLinks = async (links) => {
             }
             for (let i = 0; i < proms.length; i++) {
                 proms[i].meta =
-                    userById[idByAddress[proms[i].id_wallet.toLowerCase()]]
+                    userById[
+                        (!!tronWeb && idByAddress[proms[i].id_wallet]) ||
+                            idByAddress[proms[i].id_wallet.toLowerCase()]
+                    ]
             }
         }
         return proms
@@ -754,8 +976,44 @@ exports.influencersLinks = async (links) => {
     }
 }
 
-exports.updateBounty = async (idProm, credentials) => {
+exports.updateBounty = async (idProm, credentials, tronWeb) => {
     try {
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                TronConstant.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr.updateBounty('0x' + idProm).send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            const payload = {
+                url:
+                    process.env.TRON_NETWORK_URL +
+                    '/v1/transactions/' +
+                    receipt +
+                    '/events',
+                method: 'GET',
+                json: true,
+            }
+            let events = await rp(payload)
+
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    idProm: idProm,
+                    events: events, //TODO add events to returned value
+                }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         var gas = 200000
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
@@ -775,7 +1033,31 @@ exports.updateBounty = async (idProm, credentials) => {
     }
 }
 
-exports.validateProm = async (idProm, credentials) => {
+exports.validateProm = async (idProm, credentials, tronWeb) => {
+    if (!!tronWeb) {
+        let ctr = await tronWeb.contract(
+            TronConstant.campaign.abi,
+            TronConstant.campaign.address
+        )
+        let receipt = await ctr.validateProm('0x' + idProm).send({
+            feeLimit: 100_000_000,
+            callValue: 0,
+            shouldPollResponse: false,
+        })
+        await timeout(10000)
+        let result = await tronWeb.trx.getTransaction(receipt)
+        if (result.ret[0].contractRet === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+                idProm: idProm,
+            }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: result,
+            })
+        }
+    }
     var gas = 100000
     let ctr = await getPromContract(idProm, credentials)
     var gasPrice = await ctr.getGasPrice()
@@ -796,8 +1078,44 @@ exports.validateProm = async (idProm, credentials) => {
     }
 }
 
-exports.updatePromStats = async (idProm, credentials) => {
+exports.updatePromStats = async (idProm, credentials, tronWeb) => {
     try {
+        if (!!tronWeb) {
+            let ctr = await tronWeb.contract(
+                Constants.campaign.abi,
+                TronConstant.campaign.address
+            )
+            let receipt = await ctr.updatePromStats('0x' + idProm).send({
+                feeLimit: 100_000_000,
+                callValue: 0,
+                shouldPollResponse: false,
+            })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            const payload = {
+                url:
+                    process.env.TRON_NETWORK_URL +
+                    '/v1/transactions/' +
+                    receipt +
+                    '/events',
+                method: 'GET',
+                json: true,
+            }
+            let eventsRes = await rp(payload)
+            const events = !!eventsRes && eventsRes.data
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    idProm: idProm,
+                    events: events, //TODO add events to retuned value
+                }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         var gas = 200000
         var ctr = await getPromContract(idProm, credentials)
         var gasPrice = await ctr.getGasPrice()
@@ -816,16 +1134,33 @@ exports.updatePromStats = async (idProm, credentials) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log("err update prom",err)
+        console.log('err update prom', err)
     }
 }
 
 exports.getTransactionAmount = async (
     credentials,
+    tronWeb,
     transactionHash,
     network
 ) => {
     try {
+        if (!!tronWeb) {
+            await timeout(5000)
+            const payload = {
+                url:
+                    process.env.TRON_NETWORK_URL +
+                    '/v1/transactions/' +
+                    transactionHash +
+                    '/events',
+                method: 'GET',
+                json: true,
+            }
+            let eventsRes = await rp(payload)
+            const events = !!eventsRes && eventsRes.data
+            let amount = events[0].result['amount']
+            return amount
+        }
         let data = await network.eth.getTransactionReceipt(transactionHash)
         let hex = network.utils.hexToNumberString(data.logs[0].data)
         return hex

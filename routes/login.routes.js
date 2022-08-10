@@ -55,6 +55,7 @@ const {
     logout,
     getToken,
     setVisitSignUpStep,
+    signupRequest,
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -971,5 +972,33 @@ router.post('/satt-connect', sattConnect)
  *          description: error=eror
  */
 router.post('/setVisitSignUpStep', setVisitSignUpStep)
+
+/**
+ * @swagger
+ * /auth/email/signup:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: Signup Request .
+ *     description: send signup request if user doesn't have a satt account.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: Email was sent, {"code":"status code","message":"Email was sent"}
+ *       "400":
+ *          description: error:<br> please provide a valid email address!
+ *       "406":
+ *          description: error:<br> Account already exist
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.post('/email/signup', signupRequest)
 
 module.exports = router
