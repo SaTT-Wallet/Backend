@@ -17,14 +17,12 @@ const axios = require('axios')
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
 const {
-    getContractByToken,
     getOracleContractByCampaignContract,
-    erc20Connexion,
-    bep20Connexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
-const { log } = require('console')
 const puppeteer = require('puppeteer')
-const { env } = require('twitter/.eslintrc')
+const { TronConstant } = require('../conf/const')
+const { timeout } = require('../helpers/utils')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -532,7 +530,7 @@ exports.getPromApplyStats = async (
         delete socialOracle.date
         return socialOracle
     } catch (err) {
-        console.log('err from getPromApplyStats-->', err.message)
+        console.log('error from getPromApplyStats', err.message)
     }
 }
 
@@ -643,11 +641,11 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         }
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
-        let mediaUrl = config.linkedinMediaUrl(idPost)
+        // let mediaUrl = config.linkedinMediaUrl(idPost)
 
-        console.log('mediaUrl', mediaUrl)
+        console.log('Url', url)
         const linkedinData = {
-            url: mediaUrl,
+            url: url,
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + accessToken,
@@ -988,6 +986,38 @@ exports.getButtonStatus = (link) => {
 
 exports.answerBounty = async function (opts) {
     try {
+        if (!!opts.tronWeb) {
+            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+            let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            let contract = await tronWeb.contract(
+                TronConstant.oracle.abi,
+                TronConstant.oracle.address
+            )
+            let receipt = await contract
+                .answerBounty(
+                    opts.campaignContract,
+                    '0x' + opts.idProm,
+                    opts.nbAbos
+                )
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         let contract = await getOracleContractByCampaignContract(
             opts.campaignContract,
             opts.credentials
@@ -1041,11 +1071,11 @@ exports.answerOne = async (
     try {
         switch (typeSN) {
             case '1':
-                var res = await this.facebook(idUser, idPost)
+                var res = await facebook(idUser, idPost)
 
                 break
             case '2':
-                var res = await this.youtube(idPost)
+                var res = await youtube(idPost)
 
                 break
             case '3':
@@ -1055,24 +1085,19 @@ exports.answerOne = async (
                         .toLowerCase()
                         .substring(2),
                 })
-                var res = await this.instagram(userWallet.UserId, campaign_link)
+                var res = await instagram(userWallet.UserId, campaign_link)
 
                 break
             case '4':
-                var res = await this.twitter(idUser, idPost)
+                var res = await twitter(idUser, idPost)
 
                 break
             case '5':
-                var res = await this.linkedin(
-                    idUser,
-                    idPost,
-                    type,
-                    linkedinProfile
-                )
+                var res = await linkedin(idUser, idPost, type, linkedinProfile)
 
                 break
             case '6':
-                var res = await this.tiktok(tiktokProfile, idPost)
+                var res = await tiktok(tiktokProfile, idPost)
 
                 break
             default:
@@ -1114,6 +1139,40 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
 
 exports.answerCall = async (opts) => {
     try {
+        if (!!opts.tronWeb) {
+            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+            let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            let contract = await tronWeb.contract(
+                TronConstant.oracle.abi,
+                TronConstant.oracle.address
+            )
+            let receipt = await contract
+                .answer(
+                    opts.campaignContract,
+                    '0x' + opts.idRequest,
+                    opts.likes,
+                    opts.shares,
+                    opts.views
+                )
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         let contract = await getOracleContractByCampaignContract(
             opts.campaignContract,
             opts.credentials

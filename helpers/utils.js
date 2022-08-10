@@ -43,7 +43,7 @@ exports.readHTMLFileProfile = (
     readHTMLFile(path, async (err, html) => {
         var template = handlebars.compile(html)
 
-        if (event === 'changeEmail') {
+        if (event === 'changeEmail' || event === 'createTronWallet') {
             var replacements = {
                 ip,
                 requestDate,
@@ -166,6 +166,24 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
                 from: process.env.MAIL_SENDER,
                 to: user.email.toLowerCase(),
                 subject: 'Satt wallet activation',
+                html: htmlToSend,
+            }
+        }
+
+        if (event === 'signup') {
+            let mailContent = {
+                SaTT: {
+                    satt_faq: process.env.BASEURL + 'FAQ',
+                    imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                    signup_url: process.env.BASED_URL + '/auth/registration',
+                },
+            }
+            let htmlToSend = ejs.render(html, mailContent)
+
+            var mailOptions = {
+                from: process.env.CONTACT_MAIL,
+                to: ip.email,
+                subject: 'Sign Up',
                 html: htmlToSend,
             }
         }
@@ -392,6 +410,9 @@ exports.decodeParams = async (types, output, ignoreMethodHash) => {
         return obj
     }, [])
 }
+
+exports.timeout = async (ms) =>
+    new Promise((resolve) => setTimeout(resolve, ms))
 
 //global function that generates user acessToken
 exports.generateAccessToken = (user) =>
