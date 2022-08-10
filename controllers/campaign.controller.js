@@ -2043,6 +2043,7 @@ exports.getLinks = async (req, res) => {
                 { type: { $exists: 0 } }
             ).countDocuments()) +
             ((!!userWallet.tronAddress &&
+                req.query.state === 'part' &&
                 (await CampaignLink.find(
                     { tronAddress: userWallet.tronAddress },
                     { type: { $exists: 0 } }
@@ -2193,7 +2194,13 @@ exports.getLinks = async (req, res) => {
                 : arrayOfTronLinks
         console.log(allProms)
         console.log(allTronProms)
-        var Links = { Links: [...allProms, ...allTronProms], count }
+        var Links = {
+            Links: [
+                ...allProms,
+                ...((req.query.state === 'owner' && []) || allTronProms),
+            ],
+            count,
+        }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
         console.log(err.message)
@@ -2390,8 +2397,7 @@ module.exports.coverByCampaign = async (req, res) => {
 
 module.exports.campaignsStatistics = async (req, res) => {
     try {
-        
-        let totalAbos =  0
+        let totalAbos = 0
         let totalViews = 0
         let totalPayed = 0
         let tvl = 0
@@ -2416,14 +2422,13 @@ module.exports.campaignsStatistics = async (req, res) => {
             },
         ])
         let data = await Promise.all([campaignProms, linkProms])
-         
+
         let pools = data[0]
-        
+
         let links = data[1]
         let j = 0
         let i = 0
-       
- 
+
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
 
@@ -2434,48 +2439,45 @@ module.exports.campaignsStatistics = async (req, res) => {
                 )
                     totalAbos += +links[j].abosNumber
                 if (links[j].views) totalViews += +links[j].views
-               
+
                 if (links[j].payedAmount)
-               
                     totalPayed = new Big(totalPayed)
                         .plus(
                             new Big(links[j].payedAmount).div(
                                 new Big(10).pow(
                                     getDecimal(campaign?.token.name)
-                                    
                                 )
                             )
                         )
                         .toFixed()
-                        
             }
             j++
-            
         }
-       
 
         while (i < pools.length) {
-
             if (pools[i].type === 'apply') {
                 let key =
                     pools[i]?.token.name === 'SATTBEP20' ||
-                    pools[i]?.token.name === 'SATTPOLYGON' ? "SATT":
-                    pools[i]?.token.name
-                   pools[i]?.token.name === "SAT" && console.log(pools[i])
-                
+                    pools[i]?.token.name === 'SATTPOLYGON'
+                        ? 'SATT'
+                        : pools[i]?.token.name
+                pools[i]?.token.name === 'SAT' && console.log(pools[i])
+
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1])
-                            .div(new Big(10).pow(getDecimal(pools[i]?.token.name)))
-                            .times(   Crypto[key].price)
+                            .div(
+                                new Big(10).pow(
+                                    getDecimal(pools[i]?.token.name)
+                                )
+                            )
+                            .times(Crypto[key].price)
                     )
                     .toFixed(2)
-               
             }
 
             i++
         }
-        
 
         let result = {
             marketCap: SATT.market_cap,
@@ -2488,7 +2490,6 @@ module.exports.campaignsStatistics = async (req, res) => {
             harvested: totalPayed,
             tvl: tvl,
         }
-        
 
         return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
