@@ -8,12 +8,12 @@ const {
     web3UrlBTT,
     web3Url,
     web3PolygonUrl,
-    web3Tron,
     PolygonConstants,
     bttTokensCampaign,
     BttConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
+const { TronConstant } = require('./conf/const')
 const options = {
     timeout: 30000,
 
@@ -70,6 +70,19 @@ exports.bttConnexion = async () => {
     }
 }
 
+exports.webTronInstance = async () => {
+    try {
+        const TronWeb = require('tronweb')
+        const tronWeb = new TronWeb({
+            fullHost: process.env.TRON_NETWORK_URL,
+            headers: { 'TRON-PRO-API-KEY': process.env.TRON_PRO_API_KEY },
+        })
+        return tronWeb
+    } catch (err) {
+        console.log(err.message ? err.message : err.error)
+    }
+}
+
 // exports.tronConnexion = async () => {
 //       try {
 //         let Web3 = require('web3')
@@ -117,12 +130,21 @@ exports.getContractByToken = async (token, credentials) => {
 
 exports.getCampaignContractByHashCampaign = async (
     hash,
-    credentials = false
+    credentials = false,
+    tronWeb = null
 ) => {
     try {
         var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
-        if (campaign?.contract)
+        if (campaign?.contract) {
+            if (!!tronWeb) {
+                let ctr = await tronWeb.contract(
+                    TronConstant.campaign.abi,
+                    TronConstant.campaign.address
+                )
+                return ctr
+            }
             return this.getContractCampaigns(campaign.contract, credentials)
+        }
     } catch (err) {
         console.log(err.message)
     }
@@ -137,7 +159,7 @@ exports.getPromContract = async (idProm, credentials = false) => {
 
         return this.getContractCampaigns(prom.contract, credentials)
     } catch (err) {
-        console.log("err prom",err.message)
+        console.log('err prom', err.message)
     }
 }
 
@@ -178,13 +200,12 @@ exports.getContractCampaigns = async (contract, credentials = false) => {
         ctr.getGasPrice = await Web3.eth.getGasPrice
         return ctr
     } catch (err) {
-        console.log("err cmp",err.message)
+        console.log('err cmp', err.message)
     }
 }
 
 exports.getCampaignOwnerAddr = async (idProm) => {
     try {
-        let campaignContractOwnerAddr
         var prom = await Event.findOne(
             { prom: idProm },
             { contract: 1, _id: 0 }

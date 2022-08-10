@@ -102,15 +102,24 @@ module.exports.updateStat = async () => {
         if (event.status == 'rejected') continue
 
         userWallet =
-            // !campaign.isFinished &&
-            await Wallet.findOne(
+            (event.id_wallet.indexOf('0x') >= 0 &&
+                // !campaign.isFinished &&
+                (await Wallet.findOne(
+                    {
+                        'keystore.address': event.id_wallet
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { UserId: 1, _id: 0 }
+                ))) ||
+            (await Wallet.findOne(
                 {
-                    'keystore.address': event.id_wallet
-                        .toLowerCase()
-                        .substring(2),
+                    tronAddress: event.id_wallet,
                 },
                 { UserId: 1, _id: 0 }
-            )
+            ))
+        console.log('event user wallet ', event.id_wallet)
+        console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
         if (userWallet) {
             let linkedinProfile =
                 event.typeSN == '5' &&
@@ -145,14 +154,13 @@ module.exports.updateStat = async () => {
             if (socialOracle === 'indisponible') event.status = 'indisponible'
 
             if (socialOracle && socialOracle !== 'indisponible') {
-                event.status = true
-                event.type = 'harvest'
                 event.shares = (socialOracle && socialOracle.shares) || '0'
                 event.likes = (socialOracle && socialOracle.likes) || '0'
                 let views = (socialOracle && socialOracle.views) || '0'
                 event.views = views === 'old' ? event.views : views
                 event.media_url = (socialOracle && socialOracle.media_url) || ''
                 event.oracle = findBountyOracle(event.typeSN)
+                event.type = getButtonStatus(event)
             }
 
             if (event.campaign.ratios.length && socialOracle) {
