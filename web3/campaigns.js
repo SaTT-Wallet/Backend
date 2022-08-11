@@ -1155,12 +1155,12 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
 
 exports.getTransactionAmount = async (
     credentials,
-    tronWeb,
+    type,
     transactionHash,
     network
 ) => {
     try {
-        if (!!tronWeb) {
+        if (type ==='TRON') {
             await timeout(5000)
             const payload = {
                 url:
@@ -1177,7 +1177,8 @@ exports.getTransactionAmount = async (
             return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)
-        let hex = network.utils.hexToNumberString(data.logs[0].data)
+        let amount = type=== "BTT" ? data.logs[1].data : data.logs[0].data
+        let hex = network.utils.hexToNumberString(amount)
         return hex
     } catch (e) {
         console.log(e.message)

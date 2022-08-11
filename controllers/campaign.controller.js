@@ -1063,6 +1063,7 @@ exports.gains = async (req, res) => {
     var hash = req.body.hash
     var stats
     var requests = false
+    var campaignData 
     try {
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
@@ -1083,7 +1084,7 @@ exports.gains = async (req, res) => {
             var gasPrice
             var wrappedTrx = false
             var wrappedBtt
-            let campaignData = await Campaigns.findOne({ hash: hash })
+            campaignData = await Campaigns.findOne({ hash: hash })
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
                     await getWalletTron(req.user._id, req.body.pass)
@@ -1195,6 +1196,7 @@ exports.gains = async (req, res) => {
                 typeSN: prom.typeSN,
                 idPost: prom.idPost,
                 idUser: prom.idUser,
+                idCampaign: prom.idCampaign,
             }).sort({ date: -1 })
 
             if (prom.typeSN === '6') {
@@ -1335,9 +1337,10 @@ exports.gains = async (req, res) => {
                 }
             }
 
+
             let amount = await getTransactionAmount(
                 credentials,
-                tronWeb,
+                campaignData.token.type,
                 ret.transactionHash,
                 network
             )
