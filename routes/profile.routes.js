@@ -790,8 +790,8 @@ passport.use(
     new tikTokStrategy(
         tikTokCredentials('profile/callback/addChannel/tikTok'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            //console.log('profile accessToken')
-            //  console.log('from wael', {accessToken, profile, cb})
+            console.log('profile accessToken')
+            console.log('from wael', { accessToken, profile, cb })
             addTikTokChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
