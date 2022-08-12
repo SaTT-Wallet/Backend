@@ -951,6 +951,9 @@ exports.createNewWallet = async (req, res) => {
 
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
+        let account = await Wallet.findOne({ UserId: req.user._id })
+        let Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.keystore], req.body.pass)
         var tronWallet = await getWalletTron(req.user._id, req.body.pass)
         if (!tronWallet.addr) {
             return responseHandler.makeResponseError(
