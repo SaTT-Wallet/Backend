@@ -1199,7 +1199,7 @@ exports.gains = async (req, res) => {
                 idCampaign: prom.idCampaign,
             }).sort({ date: -1 })
 
-            if (prom.typeSN === '6') {
+            if (prom.typeSN == '6') {
                 var tiktokProfile = await TikTokProfile.findOne({
                     userId: req.user._id,
                 })
@@ -1371,7 +1371,10 @@ exports.gains = async (req, res) => {
                 (!!tronWeb && (await contract.campaigns('0x' + hash).call())) ||
                 (await contract.methods.campaigns(hash).call())
             if (!!tronWeb) {
-                campaignType.funds = [result.token, result.amount]
+                campaignType.funds = [
+                    result.token,
+                    tronWeb.toDecimal(result.amount._hex),
+                ]
                 if (tronWeb.toDecimal(result.amount._hex) === 0)
                     campaignType.type = 'finished'
                 campaignType.funds = result.funds
