@@ -1160,7 +1160,7 @@ exports.getTransactionAmount = async (
     network
 ) => {
     try {
-        if (type ==='TRON') {
+        if (type === 'TRON') {
             await timeout(5000)
             const payload = {
                 url:
@@ -1177,7 +1177,7 @@ exports.getTransactionAmount = async (
             return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)
-        let amount = type=== "BTT" ? data.logs[1].data : data.logs[0].data
+        let amount = type === 'BTT' ? data.logs[1].data : data.logs[0].data
         let hex = network.utils.hexToNumberString(amount)
         return hex
     } catch (e) {
