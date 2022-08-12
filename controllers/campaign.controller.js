@@ -1063,7 +1063,7 @@ exports.gains = async (req, res) => {
     var hash = req.body.hash
     var stats
     var requests = false
-    var campaignData 
+    var campaignData
     try {
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
@@ -1336,7 +1336,6 @@ exports.gains = async (req, res) => {
                     break
                 }
             }
-
 
             let amount = await getTransactionAmount(
                 credentials,
