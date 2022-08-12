@@ -18,6 +18,7 @@ const { isTronNetwork } = require('./campaigns')
 const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
+const { async } = require('hasha')
 
 exports.unlock = async (req, res) => {
     try {
@@ -700,6 +701,45 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
                 postData.results[urn][
                     'domainEntity~'
                 ].content.contentEntities[0].entityLocation
+        return linkInfo
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+exports.getLinkedinLinkInfoMedia = async (accessToken, shareURN) => {
+    try {
+        const params = new URLSearchParams()
+        params.append('client_id', process.env.LINKEDIN_KEY)
+        params.append('client_secret', process.env.LINKEDIN_SECRET)
+        params.append('token', accessToken)
+
+        let tokenValidityBody = await axios.post(
+            'https://www.linkedin.com/oauth/v2/introspectToken',
+            params
+        )
+        if (!tokenValidityBody.data?.active) {
+            let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
+            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            accessToken = resAccessToken.access_token
+        }
+        let linkInfo = {}
+        const linkedinData = {
+            url: config.linkedinShareUrl(shareURN),
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + accessToken,
+            },
+            json: true,
+        }
+        let postData = await rp(linkedinData)
+        let urn = shareURN
+        linkInfo.idUser =
+            postData.results[urn].owner ?? postData.results[urn].author
+        linkInfo.idPost = postData.results[urn].id
+        if (postData.results[urn].content)
+            linkInfo.mediaUrl =
+                postData.results[urn].content.contentEntities[0].entityLocation
         return linkInfo
     } catch (err) {
         console.log(err.message)
