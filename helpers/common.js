@@ -31,7 +31,11 @@ const {
     transferNativeBNB,
     transferEther,
 } = require('../web3/wallets')
-const { campaignStatus, getLinkedinLinkInfo } = require('../web3/campaigns')
+const {
+    campaignStatus,
+    getLinkedinLinkInfo,
+    getLinkedinLinkInfoMedia,
+} = require('../web3/campaigns')
 const {
     getPromApplyStats,
     findBountyOracle,
@@ -128,7 +132,7 @@ module.exports.updateStat = async () => {
                 var linkedinProfile = await LinkedinProfile.findOne({
                     userId: userWallet?.UserId,
                 })
-                var linkedinInfo = await getLinkedinLinkInfo(
+                var linkedinInfo = await getLinkedinLinkInfoMedia(
                     linkedinProfile.accessToken,
                     event.idPost
                 )
