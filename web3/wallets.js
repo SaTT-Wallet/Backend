@@ -595,12 +595,23 @@ exports.getBalanceByUid = async (req, res) => {
         let crypto = await this.getPrices()
 
         var [Total_balance, CryptoPrices] = [0, crypto]
-        var token_info = Object.assign({}, Tokens)
-        delete token_info['SATT']
-        delete token_info['BNB']
-        delete token_info['TRX']
-        delete token_info['MATIC']
-        delete token_info['BTT']
+        var {
+            SATT,
+            BNB,
+            BTT,
+            TRX,
+            MATIC,
+            SATT_TRON,
+            SATT_POLYGON,
+            SATT_BTT,
+            ...token_info
+        } = Tokens
+        // var token_info = Object.assign({}, Tokens)
+        // delete token_info['SATT']
+        // delete token_info['BNB']
+        // delete token_info['TRX']
+        // delete token_info['MATIC']
+        // delete token_info['BTT']
 
         let ret = await this.getAccount(req, res)
         let tronAddress = ret.tronAddress
@@ -1009,6 +1020,7 @@ exports.addWalletTron = async (req, res) => {
 
 exports.getWalletTron = async (id, pass) => {
     let wallet = await Wallet.findOne({ UserId: id })
+
     if (wallet.keystore) {
         try {
             let Web3ETH = await erc20Connexion()

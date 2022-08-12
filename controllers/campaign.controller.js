@@ -757,7 +757,7 @@ exports.apply = async (req, res) => {
                 idPost.toString()
             )
 
-            var media_url = linkedinInfo.mediaUrl
+            var media_url = linkedinInfo?.mediaUrl || ''
             idUser = linkedinInfo.idUser
             idPost = linkedinInfo.idPost.replace(/\D/g, '')
         }
@@ -852,6 +852,7 @@ exports.apply = async (req, res) => {
             prom.views = socialOracle.views
             prom.likes = socialOracle.likes
             prom.shares = socialOracle.shares || '0'
+            prom.media_url = media_url || socialOracle.media_url
 
             let event = {
                 id: hash,
@@ -1062,6 +1063,7 @@ exports.gains = async (req, res) => {
     var hash = req.body.hash
     var stats
     var requests = false
+    var campaignData
     try {
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
@@ -1082,7 +1084,7 @@ exports.gains = async (req, res) => {
             var gasPrice
             var wrappedTrx = false
             var wrappedBtt
-            let campaignData = await Campaigns.findOne({ hash: hash })
+            campaignData = await Campaigns.findOne({ hash: hash })
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
                     await getWalletTron(req.user._id, req.body.pass)
@@ -1194,6 +1196,7 @@ exports.gains = async (req, res) => {
                 typeSN: prom.typeSN,
                 idPost: prom.idPost,
                 idUser: prom.idUser,
+                idCampaign: prom.idCampaign,
             }).sort({ date: -1 })
 
             if (prom.typeSN === '6') {
@@ -1336,7 +1339,7 @@ exports.gains = async (req, res) => {
 
             let amount = await getTransactionAmount(
                 credentials,
-                tronWeb,
+                campaignData.token.type,
                 ret.transactionHash,
                 network
             )
@@ -2044,6 +2047,7 @@ exports.getLinks = async (req, res) => {
                 { type: { $exists: 0 } }
             ).countDocuments()) +
             ((!!userWallet.tronAddress &&
+                req.query.state === 'part' &&
                 (await CampaignLink.find(
                     { tronAddress: userWallet.tronAddress },
                     { type: { $exists: 0 } }
@@ -2194,7 +2198,13 @@ exports.getLinks = async (req, res) => {
                 : arrayOfTronLinks
         console.log(allProms)
         console.log(allTronProms)
-        var Links = { Links: [...allProms, ...allTronProms], count }
+        var Links = {
+            Links: [
+                ...allProms,
+                ...((req.query.state === 'owner' && []) || allTronProms),
+            ],
+            count,
+        }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
         console.log(err.message)
