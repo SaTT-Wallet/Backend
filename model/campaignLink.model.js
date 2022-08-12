@@ -22,6 +22,7 @@ const campaignLinkSchema = mongoose.Schema(
         totalToEarn: { type: String },
         payedAmount: { type: String },
         media_url: { type: String },
+        reason: { type: [] },
     },
     {
         collection: 'campaign_link',
