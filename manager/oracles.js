@@ -473,17 +473,18 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (username) => {
+    username = username.split(' ').join('').toLowerCase()
     const vgmUrl = 'https://www.tiktok.com/@' + username
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(vgmUrl)
-    const scrappedData = await page.$$eval('strong', (elements) =>
-        elements
+    const scrappedData = await page.$$eval('strong', (elements) => {
+        return elements
             .filter((element) => {
                 return element.getAttribute('data-e2e') === 'followers-count'
             })
             .map((element) => element.innerHTML)
-    )
+    })
     let abosNumber
     if (!!scrappedData.length) {
         abosNumber = scrappedData[0]
