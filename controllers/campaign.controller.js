@@ -2294,7 +2294,7 @@ exports.rejectLink = async (req, res) => {
     const link = req.body.link
     configureTranslation(lang)
     let reason = []
-    req.body.reason.forEach((str) => reason.push({ reason: str }))
+    req.body.reason.forEach((str) => reason.push(str))
     let idUser = '0' + req.user._id
 
     const campaign = await Campaigns.findOne(
@@ -2314,7 +2314,13 @@ exports.rejectLink = async (req, res) => {
         if (idUser === campaign?.idNode) {
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
-                { $set: { status: 'rejected', type: 'rejected' } },
+                {
+                    $set: {
+                        status: 'rejected',
+                        type: 'rejected',
+                        reason: reason,
+                    },
+                },
                 { returnOriginal: false }
             )
             let id = +req.body.idUser
