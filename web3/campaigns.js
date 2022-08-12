@@ -1137,7 +1137,7 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
-                Constants.campaign.abi,
+                TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
             let receipt = await ctr.updatePromStats('0x' + idProm).send({
