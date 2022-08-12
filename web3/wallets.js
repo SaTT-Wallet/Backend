@@ -498,9 +498,8 @@ exports.getListCryptoByUid = async (req, res) => {
 
             if (
                 token_info[T_name]?.contract ==
-                token_info['SATT_BEP20']?.contract
-                // ||
-                // token_info[T_name]?.contract == token_info['WSATT']?.contract ||
+                    token_info['SATT_BEP20']?.contract ||
+                token_info[T_name]?.contract == token_info['WSATT']?.contract
                 // T_name === 'SATT_POLYGON' ||
                 // T_name === 'SATT_TRON'
                 //  ||
@@ -1020,7 +1019,7 @@ exports.addWalletTron = async (req, res) => {
 
 exports.getWalletTron = async (id, pass) => {
     let wallet = await Wallet.findOne({ UserId: id })
-   
+
     if (wallet.keystore) {
         try {
             let Web3ETH = await erc20Connexion()
