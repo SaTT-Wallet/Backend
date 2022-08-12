@@ -1063,7 +1063,7 @@ exports.gains = async (req, res) => {
     var hash = req.body.hash
     var stats
     var requests = false
-    var campaignData 
+    var campaignData
     try {
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
@@ -1336,7 +1336,6 @@ exports.gains = async (req, res) => {
                     break
                 }
             }
-
 
             let amount = await getTransactionAmount(
                 credentials,
@@ -2292,7 +2291,7 @@ exports.rejectLink = async (req, res) => {
     const link = req.body.link
     configureTranslation(lang)
     let reason = []
-    req.body.reason.forEach((str) => reason.push({ reason: str }))
+    req.body.reason.forEach((str) => reason.push(str))
     let idUser = '0' + req.user._id
 
     const campaign = await Campaigns.findOne(
@@ -2312,7 +2311,13 @@ exports.rejectLink = async (req, res) => {
         if (idUser === campaign?.idNode) {
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
-                { $set: { status: 'rejected', type: 'rejected' } },
+                {
+                    $set: {
+                        status: 'rejected',
+                        type: 'rejected',
+                        reason: reason,
+                    },
+                },
                 { returnOriginal: false }
             )
             let id = +req.body.idUser
