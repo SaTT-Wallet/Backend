@@ -641,9 +641,7 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         }
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
-        // let mediaUrl = config.linkedinMediaUrl(idPost)
 
-        console.log('Url', url)
         const linkedinData = {
             url: url,
             method: 'GET',
