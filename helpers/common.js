@@ -92,15 +92,6 @@ module.exports.updateStat = async () => {
         }
     })
 
-    // if (campaign) {
-    //     var endDate = Date.parse(campaign?.endDate)
-    //         ? new Date(Date.parse(campaign?.endDate))
-    //         : new Date(+campaign?.endDate * 1000)
-
-    //     campaign.isFinished = endDate < dateNow || campaign?.funds[1] === '0'
-    //     if (!campaign.isFinished) {
-    //         if (campaign && campaign.funds)
-    //             campaign.remaining = campaign.funds[1] || campaign.cost
     let userWallet
     for (const event of eventLint) {
         if (event.status == 'rejected') continue
@@ -139,11 +130,6 @@ module.exports.updateStat = async () => {
 
                 var media_url = linkedinInfo?.mediaUrl || ''
             }
-            // let linkedinProfile =
-            //     event.typeSN == '5' &&
-            //     (await LinkedinProfile.findOne({
-            //         userId: userWallet?.UserId,
-            //     }))
 
             if (event.typeSN == '1') {
                 var facebookProfile = await FbProfile.findOne({
