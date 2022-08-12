@@ -917,7 +917,7 @@ exports.getReward = (result, bounties) => {
                 bounty.oracle === result.oracle ||
                 bounty.oracle == this.findBountyOracle(result.typeSN)
             ) {
-                bounty = bounty?.toObject()
+                bounty = bounty.toObject()
                 bounty.categories.forEach((category) => {
                     if (
                         +category.minFollowers <= +result.abosNumber &&
