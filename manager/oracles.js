@@ -475,6 +475,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (username) => {
+    username = username.split(' ').join('').toLowerCase()
     const vgmUrl = 'https://www.tiktok.com/@' + username
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
