@@ -461,10 +461,17 @@ exports.transferTokensController = async (req, res) => {
                     to,
                     transactionHash: result.transactionHash,
                 })
-                const wallet = await Wallet.findOne(
-                    { 'keystore.address': to.substring(2) },
-                    { UserId: 1 }
-                )
+                const wallet =
+                    (network.toUpperCase() === 'TRON' &&
+                        (await Wallet.findOne(
+                            { tronAddress: to },
+                            { UserId: 1 }
+                        ))) ||
+                    (await Wallet.findOne(
+                        { 'keystore.address': to.substring(2) },
+                        { UserId: 1 }
+                    ))
+
                 if (wallet) {
                     await notificationManager(
                         wallet.UserId,
@@ -473,7 +480,10 @@ exports.transferTokensController = async (req, res) => {
                             amount,
                             currency: tokenSymbol,
                             network,
-                            from,
+                            from:
+                                (network.toUpperCase() === 'TRON' &&
+                                    accountData.tronAddress) ||
+                                from,
                             transactionHash: result.transactionHash,
                         }
                     )
@@ -951,6 +961,9 @@ exports.createNewWallet = async (req, res) => {
 
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
+        let account = await Wallet.findOne({ UserId: req.user._id })
+        let Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.keystore], req.body.pass)
         var tronWallet = await getWalletTron(req.user._id, req.body.pass)
         if (!tronWallet.addr) {
             return responseHandler.makeResponseError(

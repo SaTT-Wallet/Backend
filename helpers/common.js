@@ -31,7 +31,11 @@ const {
     transferNativeBNB,
     transferEther,
 } = require('../web3/wallets')
-const { campaignStatus } = require('../web3/campaigns')
+const {
+    campaignStatus,
+    getLinkedinLinkInfo,
+    getLinkedinLinkInfoMedia,
+} = require('../web3/campaigns')
 const {
     getPromApplyStats,
     findBountyOracle,
@@ -88,15 +92,6 @@ module.exports.updateStat = async () => {
         }
     })
 
-    // if (campaign) {
-    //     var endDate = Date.parse(campaign?.endDate)
-    //         ? new Date(Date.parse(campaign?.endDate))
-    //         : new Date(+campaign?.endDate * 1000)
-
-    //     campaign.isFinished = endDate < dateNow || campaign?.funds[1] === '0'
-    //     if (!campaign.isFinished) {
-    //         if (campaign && campaign.funds)
-    //             campaign.remaining = campaign.funds[1] || campaign.cost
     let userWallet
     for (const event of eventLint) {
         if (event.status == 'rejected') continue
@@ -121,11 +116,20 @@ module.exports.updateStat = async () => {
         console.log('event user wallet ', event.id_wallet)
         console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
         if (userWallet) {
-            let linkedinProfile =
-                event.typeSN == '5' &&
-                (await LinkedinProfile.findOne({
+            if (event.typeSN == 5) {
+                if (event.idPost === '6963504592282132480') {
+                    console.log(event)
+                }
+                var linkedinProfile = await LinkedinProfile.findOne({
                     userId: userWallet?.UserId,
-                }))
+                })
+                var linkedinInfo = await getLinkedinLinkInfoMedia(
+                    linkedinProfile.accessToken,
+                    event.idPost
+                )
+
+                var media_url = linkedinInfo?.mediaUrl || ''
+            }
 
             if (event.typeSN == '1') {
                 var facebookProfile = await FbProfile.findOne({
@@ -151,14 +155,16 @@ module.exports.updateStat = async () => {
                 tiktokProfile
             )
 
-            if (socialOracle === 'indisponible') event.status = 'indisponible'
+            if (socialOracle === 'indisponible') {event.status = 'indisponible'}
+            else {event.status = true }
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = (socialOracle && socialOracle.shares) || '0'
                 event.likes = (socialOracle && socialOracle.likes) || '0'
                 let views = (socialOracle && socialOracle.views) || '0'
                 event.views = views === 'old' ? event.views : views
-                event.media_url = (socialOracle && socialOracle.media_url) || ''
+                event.media_url =
+                    (socialOracle && socialOracle.media_url) || media_url
                 event.oracle = findBountyOracle(event.typeSN)
                 event.type = getButtonStatus(event)
             }

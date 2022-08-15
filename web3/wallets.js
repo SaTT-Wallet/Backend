@@ -498,9 +498,8 @@ exports.getListCryptoByUid = async (req, res) => {
 
             if (
                 token_info[T_name]?.contract ==
-                token_info['SATT_BEP20']?.contract
-                // ||
-                // token_info[T_name]?.contract == token_info['WSATT']?.contract ||
+                    token_info['SATT_BEP20']?.contract ||
+                token_info[T_name]?.contract == token_info['WSATT']?.contract
                 // T_name === 'SATT_POLYGON' ||
                 // T_name === 'SATT_TRON'
                 //  ||

@@ -473,17 +473,18 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (username) => {
+    username = username.split(' ').join('').toLowerCase()
     const vgmUrl = 'https://www.tiktok.com/@' + username
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(vgmUrl)
-    const scrappedData = await page.$$eval('strong', (elements) =>
-        elements
+    const scrappedData = await page.$$eval('strong', (elements) => {
+        return elements
             .filter((element) => {
                 return element.getAttribute('data-e2e') === 'followers-count'
             })
             .map((element) => element.innerHTML)
-    )
+    })
     let abosNumber
     if (!!scrappedData.length) {
         abosNumber = scrappedData[0]
@@ -613,7 +614,7 @@ const youtube = async (idPost) => {
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
-                media_url: media.thumbnail_url,
+                media_url: media.thumbnail_url || '',
             }
         }
 
@@ -641,9 +642,7 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         }
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
-        // let mediaUrl = config.linkedinMediaUrl(idPost)
 
-        console.log('Url', url)
         const linkedinData = {
             url: url,
             method: 'GET',
@@ -708,7 +707,7 @@ const instagram = async (UserId, link) => {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].shortcode == idPost) {
                         perf.likes = data[i].like_count
-                        perf.media_url = data[i].media_url
+                        perf.media_url = data[i].media_url || ''
                         var mediaViews =
                             'https://graph.facebook.com/' +
                             oauth.facebook.fbGraphVersion +
@@ -767,7 +766,7 @@ const twitter = async (userName, idPost) => {
                 likes: res.favorite_count,
                 views: 0,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes.media[0].url || 'test',
+                media_url: res.includes.media[0].url || '',
             }
             return perf
         }
@@ -802,7 +801,7 @@ const twitter = async (userName, idPost) => {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes.media[0].url,
+                media_url: res.includes.media[0].url || '',
                 views: 'old',
             }
 
@@ -814,7 +813,7 @@ const twitter = async (userName, idPost) => {
             likes: res.data[0].public_metrics.like_count,
             views: res.data[0].non_public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-            media_url: res.includes.media[0].url,
+            media_url: res.includes.media[0].url || '',
         }
 
         return perf
@@ -850,7 +849,7 @@ const tiktok = async (tiktokProfile, idPost) => {
             likes: videoInfoResponse.data.videos[0].like_count,
             shares: videoInfoResponse.data.videos[0].share_count,
             views: videoInfoResponse.data.videos[0].view_count,
-            media_url: videoInfoResponse.data.videos[0].cover_image_url,
+            media_url: videoInfoResponse.data.videos[0].cover_image_url || '',
         }
     } catch (error) {
         console.log(error)
