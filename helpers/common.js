@@ -46,34 +46,10 @@ const { TikTokProfile, FbProfile } = require('../model')
 /*
 	@description: Script that change campaign and links statistics
 	*/
-module.exports.updateStat = async () => {
-    let dateNow = new Date()
-    let campaigns = await Campaigns.find(
-        { hash: { $exists: true } },
-        {
-            logo: 0,
-            resume: 0,
-            description: 0,
-            tags: 0,
-            cover: 0,
-            coverSrc: 0,
-            coverMobile: 0,
-            coverSrcMobile: 0,
-            countries: 0,
-        }
-    )
-
-    campaigns.forEach(async (campaign) => {
-        campaign &&
-            (await Campaigns.updateOne(
-                { _id: campaign._id },
-                { $set: { type: campaignStatus(campaign) } }
-            ))
-    })
-    var Events = await CampaignLink.find()
-    Events.forEach(async (event) => {
-        let campaign = await Campaigns.findOne(
-            { hash: event.id_campaign },
+    module.exports.updateStat = async () => {
+        let dateNow = new Date()
+        let campaigns = await Campaigns.find(
+            { hash: { $exists: true } },
             {
                 logo: 0,
                 resume: 0,
@@ -81,94 +57,130 @@ module.exports.updateStat = async () => {
                 tags: 0,
                 cover: 0,
                 coverSrc: 0,
+                coverMobile: 0,
+                coverSrcMobile: 0,
                 countries: 0,
             }
         )
-
-        if (campaign) {
-            var endDate = Date.parse(campaign?.endDate)
-                ? new Date(Date.parse(campaign?.endDate))
-                : new Date(+campaign?.endDate * 1000)
-
-            campaign.isFinished =
-                endDate < dateNow || campaign?.funds[1] === '0'
-            if (!campaign.isFinished) {
-                if (campaign && campaign.funds)
-                    campaign.remaining = campaign.funds[1] || campaign.cost
-
-                if (event.status == 'rejected') return
-                event.campaign = campaign
-                let userWallet =
+    
+        campaigns.forEach(async (campaign) => {
+            campaign &&
+                (await Campaigns.updateOne(
+                    { _id: campaign._id },
+                    { $set: { type: campaignStatus(campaign) } }
+                ))
+            campaign = campaign._doc
+        })
+        var campaignList = await Campaigns.find({
+            hash: { $exists: true },
+            type: { $ne: 'finished' },
+        })
+        var Events = await CampaignLink.find()
+        let eventLint = []
+        Events.forEach((event) => {
+           const result = campaignList.find(
+                (campaign) =>
+                    event.id_campaign === campaign.hash &&
+                    campaign.type !== 'finished'
+            )
+    
+            if (result && result.toObject()) {
+                eventLint.push({ ...event.toObject(), campaign: result.toObject() })
+            }
+        })
+    
+        let userWallet
+        for (const event of eventLint) {
+            if (event.status == 'rejected') continue
+    
+            userWallet =
+                (event.id_wallet.indexOf('0x') >= 0 &&
                     // !campaign.isFinished &&
-                    await Wallet.findOne(
+                    (await Wallet.findOne(
                         {
                             'keystore.address': event.id_wallet
                                 .toLowerCase()
                                 .substring(2),
                         },
                         { UserId: 1, _id: 0 }
-                    )
+                    ))) ||
+                (await Wallet.findOne(
+                    {
+                        tronAddress: event.id_wallet,
+                    },
+                    { UserId: 1, _id: 0 }
+                ))
+            console.log('event user wallet ', event.id_wallet)
+            console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
+            if (userWallet) {
+                if (event.typeSN == 5) {
 
-                let linkedinProfile =
-                    event.typeSN == '5' &&
-                    (await LinkedinProfile.findOne({
-                        userId: userWallet.UserId,
-                    }))
-                if (event.typeSN == '6') {
-                    var tiktokProfile = await TikTokProfile.findOne({
-                        userId: userWallet.UserId,
+                    var linkedinProfile = await LinkedinProfile.findOne({
+                        userId: userWallet?.UserId,
                     })
+                    // var linkedinInfo = await getLinkedinLinkInfoMedia(
+                    //     linkedinProfile.accessToken,
+                    //     event.idPost
+                    // )
+    
+                    // var media_url = linkedinInfo?.mediaUrl || ''
                 }
+    
                 if (event.typeSN == '1') {
                     var facebookProfile = await FbProfile.findOne({
-                        UserId: userWallet.UserId,
+                        UserId: userWallet?.UserId,
                     })
                     await updateFacebookPages(
-                        userWallet.UserId,
+                        userWallet?.UserId,
                         facebookProfile.accessToken,
                         false
                     )
                 }
-                let socialOracle =
-                    // !campaign.isFinished &&
-                    await getPromApplyStats(
-                        findBountyOracle(event.typeSN),
-                        event,
-                        userWallet.UserId,
-                        linkedinProfile,
-                        tiktokProfile
-                    )
-                if (socialOracle === 'indisponible' ) 
-                    event.status = 'indisponible'
-
-               if (socialOracle && socialOracle !== 'indisponible') 
-                {
-
-                    event.shares = (socialOracle && socialOracle.shares) || '0'
-                event.likes = (socialOracle && socialOracle.likes) || '0'
-                let views = (socialOracle && socialOracle.views) || '0'
-                event.views = views === 'old' ? event.views : views
-                event.media_url = (socialOracle && socialOracle.media_url) || ''
-                event.oracle = findBountyOracle(event.typeSN)
-                event.type = getButtonStatus(event)}
-
-                if (campaign.ratios.length && socialOracle) {
-                    event.totalToEarn = getTotalToEarn(event, campaign.ratios)
+                if (event.typeSN == '6') {
+                    var tiktokProfile = await TikTokProfile.findOne({
+                        userId: userWallet?.UserId,
+                    })
                 }
-
-                if (campaign.bounties.length && socialOracle) {
-                    event.totalToEarn = getReward(event, campaign.bounties)
+    
+                let socialOracle = await getPromApplyStats(
+                    findBountyOracle(event.typeSN),
+                    event,
+                    userWallet.UserId,
+                    linkedinProfile,
+                    tiktokProfile
+                )
+    
+                if (socialOracle === 'indisponible') {event.status = 'indisponible'}
+                else {event.status = true }
+    
+                if (socialOracle && socialOracle !== 'indisponible') {
+                    event.shares = (socialOracle && socialOracle.shares) || '0'
+                    event.likes = (socialOracle && socialOracle.likes) || '0'
+                    let views = (socialOracle && socialOracle.views) || '0'
+                    event.views = views === 'old' ? event.views : views
+                    event.media_url =
+                        (socialOracle && socialOracle.media_url) 
+                    event.oracle = findBountyOracle(event.typeSN)
+                    event.type = getButtonStatus(event)
+                }
+    
+                if (event.campaign.ratios.length && socialOracle) {
+                    event.totalToEarn = getTotalToEarn(event, event.campaign.ratios)
+                }
+    
+                if (event.campaign.bounties.length && socialOracle) {
+                    event.totalToEarn = getReward(event, event.campaign.bounties)
                 }
                 // if (campaign.isFinished) event.totalToEarn = 0
-
-                if (campaign) event.type = getButtonStatus(event)
+    
+                if (event.campaign) event.type = getButtonStatus(event)
                 delete event.campaign
                 delete event.payedAmount
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
         }
-      })
-}
+    }
+    
 
 exports.UpdateStats = async (obj, socialOracle) => {
     if (!socialOracle)
