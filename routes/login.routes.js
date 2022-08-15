@@ -76,6 +76,7 @@ const {
     facebookCredentials,
     googleCredentials,
 } = require('../conf/config')
+const { profile } = require('winston')
 
 function authSignInErrorHandler(err, req, res, next) {
     let message = err.message ? err.message : err
@@ -545,6 +546,8 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
+            console.log('\n///////////////////////////////////////////::::::')
+            console.log('profile', profile)
             googleAuthSignin(req, accessToken, refreshToken, profile, cb)
         }
     )
