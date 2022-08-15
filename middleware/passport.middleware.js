@@ -34,6 +34,7 @@ var session = require('express-session')
 const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
+const { profile } = require('winston')
 
 try {
     app.use(
@@ -656,7 +657,6 @@ exports.linkGoogleAccount = async (
 ) => {
     let state = req.query.state.split('|')
     let user_id = +state[0]
-    console.log('profilee', profile)
     let userExist = await User.findOne({ idOnSn2: profile.id })
     if (userExist) {
         return done(null, profile, {
