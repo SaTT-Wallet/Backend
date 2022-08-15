@@ -155,7 +155,8 @@ module.exports.updateStat = async () => {
                 tiktokProfile
             )
 
-            if (socialOracle === 'indisponible') event.status = 'indisponible'
+            if (socialOracle === 'indisponible') {event.status = 'indisponible'}
+            else {event.status = true }
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = (socialOracle && socialOracle.shares) || '0'
