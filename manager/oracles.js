@@ -802,13 +802,12 @@ const twitter = async (userName, idPost) => {
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
 
-            console.log('media_url', res.includes.media[0].url && true)
 
             var perf = {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes.media[0].url,
+                //media_url: res.includes.media[0].url,
                 views: 'old',
             }
 
@@ -820,7 +819,7 @@ const twitter = async (userName, idPost) => {
             likes: res.data[0].public_metrics.like_count,
             views: res.data[0].non_public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-            media_url: res.includes.media[0].url || "",
+          //  media_url: res.includes.media[0].url || "",
         }
 
         return perf
