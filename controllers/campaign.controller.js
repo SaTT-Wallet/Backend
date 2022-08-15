@@ -1199,7 +1199,7 @@ exports.gains = async (req, res) => {
                 idCampaign: prom.idCampaign,
             }).sort({ date: -1 })
 
-            if (prom.typeSN === '6') {
+            if (prom.typeSN == '6') {
                 var tiktokProfile = await TikTokProfile.findOne({
                     userId: req.user._id,
                 })
@@ -1371,7 +1371,10 @@ exports.gains = async (req, res) => {
                 (!!tronWeb && (await contract.campaigns('0x' + hash).call())) ||
                 (await contract.methods.campaigns(hash).call())
             if (!!tronWeb) {
-                campaignType.funds = [result.token, result.amount]
+                campaignType.funds = [
+                    result.token,
+                    tronWeb.toDecimal(result.amount._hex),
+                ]
                 if (tronWeb.toDecimal(result.amount._hex) === 0)
                     campaignType.type = 'finished'
                 campaignType.funds = result.funds
@@ -2291,7 +2294,7 @@ exports.rejectLink = async (req, res) => {
     const link = req.body.link
     configureTranslation(lang)
     let reason = []
-    req.body.reason.forEach((str) => reason.push({ reason: str }))
+    req.body.reason.forEach((str) => reason.push(str))
     let idUser = '0' + req.user._id
 
     const campaign = await Campaigns.findOne(
@@ -2311,7 +2314,13 @@ exports.rejectLink = async (req, res) => {
         if (idUser === campaign?.idNode) {
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { id_prom: idLink },
-                { $set: { status: 'rejected', type: 'rejected' } },
+                {
+                    $set: {
+                        status: 'rejected',
+                        type: 'rejected',
+                        reason: reason,
+                    },
+                },
                 { returnOriginal: false }
             )
             let id = +req.body.idUser
