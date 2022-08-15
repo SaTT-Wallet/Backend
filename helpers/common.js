@@ -78,7 +78,9 @@ const { TikTokProfile, FbProfile } = require('../model')
         var Events = await CampaignLink.find()
         let eventLint = []
         Events.forEach((event) => {
-           const result = campaignList.find(
+
+           
+         const result = campaignList.find(
                 (campaign) =>
                     event.id_campaign === campaign.hash &&
                     campaign.type !== 'finished'
