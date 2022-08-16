@@ -5,6 +5,8 @@ const {
     bep20Approval,
     erc20Approval,
     polygonApproval,
+    bttApproval,
+    bttAllow,
     campaignDetails,
     campaigns,
     launchCampaign,
@@ -34,8 +36,162 @@ const {
     findKit,
     deleteKit,
     polygonAllow,
+    tronApproval,
+    tronAllow,
+    swapTrx,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
+
+/**
+ * @swagger
+ * /campaign/btt/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: BTT aprroval
+ *     description: Approve the smart contract BTT to interact with user wallet
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/btt/approval', verifyAuth, bttApproval)
+
+/**
+ * @swagger
+ * /campaign/BTT/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: BTT allow
+ *     description: Allow user wallet to interact the smart contract BTT
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaignAddress:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/btt/allow', verifyAuth, bttAllow)
+
+/**
+ * @swagger
+ * /campaign/tron/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: TRON aprroval
+ *     description: Approve the smart contract TRON to interact with user wallet
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               privateKey:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/tron/approval', verifyAuth, tronApproval)
+
+/**
+ * @swagger
+ * /campaign/tron/swapTrx:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: swap trx
+ *     description: swap trx to wrappedtrx
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: string
+ *               privateKey:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/tron/swapTrx', verifyAuth, swapTrx)
+/**
+ * @swagger
+ * /campaign/tron/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: TRON allow
+ *     description: Allow user wallet to interact the smart contract TRON
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               privateKey:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/tron/allow', verifyAuth, tronAllow)
 
 /**
  * @swagger
@@ -54,7 +210,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *             properties:
  *               tokenAddress:
  *                 type: string
- *               campaignAddress:
+ *               privateKey:
  *                 type: string
  *     responses:
  *       "200":

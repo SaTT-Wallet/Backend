@@ -34,6 +34,7 @@ var session = require('express-session')
 const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
+const { profile } = require('winston')
 
 try {
     app.use(
@@ -112,57 +113,62 @@ let createUser = (
 /*
  * begin signin with email and password
  */
+
+const signinWithEmail = async (req, username, password, done) => {
+    var date = Math.floor(Date.now() / 1000) + 86400
+    var user = await User.findOne({ email: username.toLowerCase() })
+    if (user) {
+        if (user.password == synfonyHash(password)) {
+            let validAuth = await isBlocked(user, true)
+            if (!validAuth.res && validAuth.auth == true) {
+                let userAuth = cloneUser(user.toObject())
+                let token = generateAccessToken(userAuth)
+                await User.updateOne(
+                    { _id: Long.fromNumber(user._id) },
+                    { $set: { failed_count: 0 } }
+                )
+                return done(null, {
+                    id: user._id,
+                    token,
+                    expires_in: date,
+                    noredirect: req.body.noredirect,
+                    loggedIn: true,
+                })
+            } else {
+                return done(null, false, {
+                    error: true,
+                    message: 'account_locked',
+                    blockedDate: validAuth.blockedDate,
+                })
+            }
+        } else {
+            let validAuth = await isBlocked(user, false)
+            if (validAuth.res) {
+                return done(null, false, {
+                    error: true,
+                    message: 'account_locked',
+                    blockedDate: validAuth.blockedDate,
+                })
+            }
+            return done(null, false, {
+                error: true,
+                message: 'invalid_credentials',
+                blockedDate: validAuth.blockedDate,
+            })
+        }
+    } else {
+        return done(null, false, {
+            error: true,
+            message: 'user not found',
+        })
+    }
+}
 passport.use(
     'signinEmailStrategy',
     new emailStrategy(
         { passReqToCallback: true },
         async (req, username, password, done) => {
-            var date = Math.floor(Date.now() / 1000) + 86400
-            var user = await User.findOne({ email: username.toLowerCase() })
-            if (user) {
-                if (user.password == synfonyHash(password)) {
-                    let validAuth = await isBlocked(user, true)
-                    if (!validAuth.res && validAuth.auth == true) {
-                        let userAuth = cloneUser(user.toObject())
-                        let token = generateAccessToken(userAuth)
-                        await User.updateOne(
-                            { _id: Long.fromNumber(user._id) },
-                            { $set: { failed_count: 0 } }
-                        )
-                        return done(null, {
-                            id: user._id,
-                            token,
-                            expires_in: date,
-                            noredirect: req.body.noredirect,
-                        })
-                    } else {
-                        return done(null, false, {
-                            error: true,
-                            message: 'account_locked',
-                            blockedDate: validAuth.blockedDate,
-                        })
-                    }
-                } else {
-                    let validAuth = await isBlocked(user, false)
-                    if (validAuth.res) {
-                        return done(null, false, {
-                            error: true,
-                            message: 'account_locked',
-                            blockedDate: validAuth.blockedDate,
-                        })
-                    }
-                    return done(null, false, {
-                        error: true,
-                        message: 'invalid_credentials',
-                        blockedDate: validAuth.blockedDate,
-                    })
-                }
-            } else {
-                return done(null, false, {
-                    error: true,
-                    message: 'user not found',
-                })
-            }
+            await signinWithEmail(req, username, password, done)
         }
     )
 )
@@ -371,10 +377,7 @@ passport.use(
         var date = Math.floor(Date.now() / 1000) + 86400
         let user = await User.findOne({ email: username.toLowerCase() })
         if (user) {
-            return done(null, false, {
-                error: true,
-                message: 'account_already_used',
-            })
+            return await signinWithEmail(req, username, password, done)
         } else {
             var createdUser = createUser(
                 0,
@@ -434,6 +437,7 @@ exports.emailSignup = async (req, res, next) => {
                 expires_in: user.expires_in,
                 token_type: 'bearer',
                 scope: 'user',
+                loggedIn: user.loggedIn,
             }
             return responseHandler.makeResponseData(res, 200, 'success', param)
         })
@@ -465,7 +469,10 @@ exports.facebookAuthSignup = async (
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn: profile._json.token_for_business })
     if (user) {
-        return cb('account_already_used&idSn=' + user.idSn)
+        await handleSocialMediaSignin(
+            { idOnSn: profile._json.token_for_business },
+            cb
+        )
     } else {
         let createdUser = createUser(
             1,
@@ -500,7 +507,8 @@ exports.googleAuthSignup = async (
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn2: profile.id })
     if (user) {
-        return cb('account_already_used&idSn=' + user.idSn)
+        // return cb('account_already_used&idSn=' + user.idSn)
+        await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
     } else {
         let createdUser = createUser(
             1,
@@ -550,7 +558,9 @@ exports.signup_telegram_function = async (req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn3: profile.id })
     if (user) {
-        return cb('account_already_used&idSn=' + user.idSn)
+        // return cb('account_already_used&idSn=' + user.idSn)
+        let token = generateAccessToken(user)
+        return cb(null, { id: user._id, token: token, expires_in: date })
     } else {
         let createdUser = createUser(
             1,
@@ -848,29 +858,37 @@ exports.addTikTokChannel = async (
     // console.log('from addTikTokChannel',profile,accessToken);
 
     let userId = +req.query.state.split('|')[0]
-
+    console.log(
+        '\n////////////////',
+        req,
+        accessToken,
+        refreshToken,
+        profile,
+        '\n/////////////////'
+    )
     try {
         let profileData = await TikTokProfile.findOne({
             userTiktokId: profile.id,
         })
-        // console.log('profile data ===> ', profileData);
+        console.log('profile', profileData)
         if (profileData) {
-            // await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
-            return cb(null, profile, {
-                status: false,
-                message: 'account exist',
-            })
-        } else {
-            ;[
-                profile.accessToken,
-                profile.userId,
-                profile.userTiktokId,
-                profile.refreshToken,
-            ] = [accessToken, userId, profile.id, refreshToken]
-
-            //	console.log('profile ===>', profile)
-            await TikTokProfile.create(profile)
+            await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
         }
+        // return cb(null, profile, {
+        //     status: false,
+        //     message: 'account exist',
+        // })
+        // } else {
+        ;[
+            profile.accessToken,
+            profile.userId,
+            profile.userTiktokId,
+            profile.refreshToken,
+        ] = [accessToken, userId, profile.id, refreshToken]
+
+        //	console.log('profile ===>', profile)
+        await TikTokProfile.create(profile)
+        // }
     } catch (error) {
         console.log('Error ===> ', error)
     }

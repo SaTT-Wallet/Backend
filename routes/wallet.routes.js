@@ -7,20 +7,16 @@ const {
     exportBtc,
     payementRequest,
     getQuote,
-    transfertEther,
-    transfertBNB,
-    transfertBtc,
     gasPriceErc20,
+    gasPriceTron,
     checkWalletToken,
     addNewToken,
-    transfertBep20,
     mywallet,
-    transfertErc20,
     transferTokensController,
-    transferPolygon,
     totalBalances,
     userBalance,
     gasPriceBep20,
+    gasPriceBtt,
     gasPricePolygon,
     cryptoDetails,
     getMnemo,
@@ -31,6 +27,9 @@ const {
     bridge,
     balanceStat,
     exportWalletInfos,
+    addTronWalletToExistingAccount,
+    transferTokensController30trx,
+    gasPriceTrx,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -99,6 +98,44 @@ router.get('/userBalance', verifyAuth, userBalance)
  */
 
 router.get('/Bep20GasPrice', gasPriceBep20)
+
+/**
+ * @swagger
+ * /wallet/BttGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get bnb gas price
+ *     description: get btt gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/BttGasPrice', gasPriceBtt)
+
+/**
+ * @swagger
+ * /wallet/TrxGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get trx gas price
+ *     description: get trx gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/TrxGasPrice', gasPriceTrx)
 
 /**
  * @swagger
@@ -178,115 +215,6 @@ router.get('/Erc20GasPrice', gasPriceErc20)
 
 /**
  * @swagger
- * /wallet/transferErc20:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer erc20.
- *     description: transfer crypto belongs to erc20 network <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               pass:
- *                 type: string
- *               symbole:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transferErc20', verifyAuth, transfertErc20)
-/**
- * @swagger
- * /wallet/transferPolygon:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer Polygon.
- *     description: transfer crypto belongs to polygon network <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               pass:
- *                 type: string
- *               symbole:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transferPolygon', verifyAuth, transferPolygon)
-
-/**
- * @swagger
- * /wallet/transferBep20:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer bep20.
- *     description: transfer crypto belongs to bep20 network <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               token:
- *                 type: string
- *               symbole:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               decimal:
- *                 type: number
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transferBep20', verifyAuth, transfertBep20)
-
-/**
- * @swagger
  * /wallet/checkWalletToken:
  *   post:
  *     tags:
@@ -352,23 +280,31 @@ router.post('/addNewToken', verifyAuth, addNewToken)
 
 /**
  * @swagger
- * /wallet/transfertBtc:
+ * /wallet/transferTokens:
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: transfer BTC.
- *     description: transfer btc <br> with access_token.
+ *     summary: transfer ALL TOKENS.
+ *     description: transfer BTT <br> with access_token.
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               pass:
+ *               from:
  *                 type: string
  *               to:
  *                 type: string
- *               val:
+ *               amount:
+ *                 type: string
+ *               tokenSymbol:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *               network:
+ *                 type: string
+ *               pass:
  *                 type: string
  *     responses:
  *       "200":
@@ -379,72 +315,48 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *          description: code,<br>error:"not_enough_budget" /"wrong password"
  *       "500":
  *          description: code,<br>error:"error"
+ * 
  */
-router.post('/transfertBtc', verifyAuth, transfertBtc)
-
-/**
- * @swagger
- * /wallet/transfertBNB:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer BNB.
- *     description: transfer bnb <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *               to:
- *                 type: string
- *               val:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget" /"wrong password"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transfertBNB', verifyAuth, transfertBNB)
-/**
- * @swagger
- * /wallet/transfertEther:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer ETHER.
- *     description: transfer ETH <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *               to:
- *                 type: string
- *               val:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget" /"wrong password"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/transfertEther', verifyAuth, transfertEther)
 router.post('/transferTokens', verifyAuth, transferTokensController)
+/**
+ * @swagger
+ * /wallet/30-transaction:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: transfer ALL TOKENS.
+ *     description: transfer BTT <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               from:
+ *                 type: string
+ *               to:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               tokenSymbol:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *               network:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "401":
+ *          description: code,<br>error:"not_enough_budget" /"wrong password"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/30-transaction', verifyAuth, transferTokensController30trx)
 /**
  * @swagger
  * /wallet/getQuote:
@@ -533,7 +445,7 @@ router.post('/payementRequest', verifyAuth, payementRequest)
  *       "500":
  *          description: error:error message
  */
-router.post('/bridge', verifyAuth, bridge)
+//router.post('/bridge', verifyAuth, bridge)
 
 /**
  * @swagger
@@ -684,6 +596,32 @@ router.post('/verifyMnemo', verifyAuth, verifyMnemo)
  *          description: code,<br>error:"error"
  */
 router.post('/create', verifyAuth, createNewWallet)
+
+/**
+ * @swagger
+ * /wallet/add-tron-wallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: add TRX wallet to preExisting ETH/BTC Wallet .
+ *     description: add TRX wallet to preExisting ETH/BTC Wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/add-tron-wallet', verifyAuth, addTronWalletToExistingAccount)
 
 /**
  * @swagger

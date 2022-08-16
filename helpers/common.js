@@ -31,11 +31,14 @@ const {
     transferNativeBNB,
     transferEther,
 } = require('../web3/wallets')
-const { campaignStatus } = require('../web3/campaigns')
+const {
+    campaignStatus,
+    getLinkedinLinkInfo,
+    getLinkedinLinkInfoMedia,
+} = require('../web3/campaigns')
 const {
     getPromApplyStats,
     findBountyOracle,
-    answerAbos,
     getTotalToEarn,
     getReward,
     getButtonStatus,
@@ -180,6 +183,20 @@ const { TikTokProfile, FbProfile } = require('../model')
                 delete event.payedAmount
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
+
+            if (event.campaign.ratios.length && socialOracle) {
+                event.totalToEarn = getTotalToEarn(event, event.campaign.ratios)
+            }
+
+            if (event.campaign.bounties.length && socialOracle) {
+                event.totalToEarn = getReward(event, event.campaign.bounties)
+            }
+            // if (campaign.isFinished) event.totalToEarn = 0
+
+            if (event.campaign) event.type = getButtonStatus(event)
+            delete event.campaign
+            delete event.payedAmount
+            await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }
     

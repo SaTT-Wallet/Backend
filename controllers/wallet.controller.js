@@ -7,14 +7,26 @@ const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
 var fs = require('fs')
 
+const Web3 = require('web3')
+const {
+    networkProviders,
+    getWeb3Connection,
+    getHttpProvider,
+} = require('../web3/web3-connection')
+const { transferTokens, transferBTC } = require('../libs/transfer')
+const { unlockAccount } = require('../web3/account')
+
 const {
     getContractByToken,
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,
+    bttConnexion,
+    tronConnexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
 
-const { configSendBox, PolygonApi } = require('../conf/config')
+const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -40,12 +52,15 @@ const {
     sendBep20,
     sendBtc,
     transferNativeBNB,
-    transferTokens,
     sendPolygon,
     transferEther,
     FilterTransactionsByHash,
     getTokenContractByToken,
     exportWalletInfo,
+    sendBtt,
+    createWalletTron,
+    addWalletTron,
+    getWalletTron,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -53,6 +68,7 @@ const { notificationManager } = require('../manager/accounts')
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
+const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -72,8 +88,6 @@ exports.exportBtc = async (req, res) => {
             if (!cred) return
 
             let ret = await exportkeyBtc(req, res)
-
-            console.log('ret', ret)
 
             res.status(200).send({ ret })
         } else {
@@ -208,6 +222,33 @@ exports.gasPriceErc20 = async (req, res) => {
     })
 }
 
+exports.gasPriceBtt = async (req, res) => {
+    let Web3ETH = await bttConnexion()
+
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: (gasPrice * 280) / 1000000000,
+    })
+}
+
+exports.gasPriceTrx = async (req, res) => {
+    let tronWeb = await webTronInstance()
+
+    var gasPrice = await tronWeb.trx.getChainParameters()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
+    })
+}
+
+// exports.gasPriceTron = async (req, res) => {
+//     let Web3TRON = await tronConnexion()
+//     var gasPrice = await Web3TRON.eth.getGasPrice()
+
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice / 1000000000,
+//     })
+// }
+
 exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
     return responseHandler.makeResponseData(res, 200, 'success', prices)
@@ -264,195 +305,89 @@ exports.totalBalances = async (req, res) => {
         }
     }
 }
-exports.transferPolygon = async (req, res) => {
+
+exports.transferTokensController30trx = async () => {
+    let from = req.body.from
+    var to = req.body.to
+    var amount = req.body.amount
+    //TODO: Add a constants enum for different blockchain networks
+    let network = req.body.network
+    let tokenSymbol = req.body.tokenSymbol
+    let pass = req.body.pass
+    let tokenAddress = req.body.tokenAddress
+
+    let result
+
     try {
         if (req.user.hasWallet == true) {
-            var tokenPolygon = req.body.token
-            var to = req.body.to
-            var amount = req.body.amount
-            var tokenName = req.body.symbole
-            var cred = await unlock(req, res)
-
-            if (!cred) {
-                return
-            }
-            var result = await getAccount(req, res)
-            let balance = await getBalance(
-                cred.Web3POLYGON,
-                tokenPolygon,
-                result.address
+            const provider = getHttpProvider(
+                networkProviders[network.toUpperCase()]
             )
 
-            if (new Big(amount).gt(new Big(balance))) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'not_enough_budget'
-                )
-            }
+            // get wallet keystore
+            const accountData = await Wallet.findOne({ UserId: req.user._id })
 
-            var ret = await sendPolygon(tokenPolygon, to, amount, cred)
-            if (ret.error) {
-                return responseHandler.makeResponseError(res, 402, ret.error)
-            }
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
-    } catch (err) {
-        console.log(err)
-    } finally {
-        cred && lock(cred)
-        if (ret && ret.transactionHash) {
-            await notificationManager(req.user._id, 'transfer_event', {
-                amount,
-                currency: tokenName,
-                from: cred.address,
-                to,
-                transactionHash: ret.transactionHash,
-                network: 'POLYGON',
-            })
-            const wallet = await Wallet.findOne({
-                'keystore.address': to.substring(2),
-            }).select('UserId')
-
-            if (wallet) {
-                await notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
+            if (network.toUpperCase() === 'BTC') {
+                //TODO: transferring btc need to be tested locally with testnet
+                result = await transferBTC({
+                    to,
+                    amount,
+                    walletPassword: pass,
+                    account: accountData,
+                })
+            } else {
+                let counter = 0
+                while (counter < 30) {
+                    result = await transferTokens({
+                        fromAddress: from,
+                        toAddress: to,
                         amount,
-                        currency: tokenName,
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                        network: 'POLYGON',
-                    }
+                        tokenSmartContractAddress: tokenAddress,
+                        tokenSmartContractAbi: Constants.token.abi,
+                        provider,
+                        walletPassword: pass,
+                        encryptedPrivateKey: accountData.keystore,
+                    })
+                }
+            }
+
+            if (result.error) {
+                return responseHandler.makeResponseError(res, 402, result.error)
+            }
+
+            if (result.blockHash) {
+                await notificationManager(req.user._id, 'transfer_event', {
+                    amount,
+                    currency: tokenSymbol,
+                    network,
+                    to,
+                    transactionHash: result.transactionHash,
+                })
+                const wallet = await Wallet.findOne(
+                    { 'keystore.address': to.substring(2) },
+                    { UserId: 1 }
                 )
-            }
-        }
-    }
-}
-exports.transfertErc20 = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-            var tokenERC20 = req.body.token
-            var to = req.body.to
-            var amount = req.body.amount
-            var tokenName = req.body.symbole
-            var cred = await unlock(req, res)
+                if (wallet) {
+                    await notificationManager(
+                        wallet.UserId,
+                        'receive_transfer_event',
+                        {
+                            amount,
+                            currency: tokenSymbol,
+                            network,
+                            from,
+                            transactionHash: result.transactionHash,
+                        }
+                    )
+                }
 
-            if (!cred) {
-                return
-            }
-            var result = await getAccount(req, res)
-
-            let balance = await getBalance(
-                cred.Web3ETH,
-                tokenERC20,
-                result.address
-            )
-
-            if (new Big(amount).gt(new Big(balance))) {
-                return responseHandler.makeResponseError(
+                return responseHandler.makeResponseData(
                     res,
-                    401,
-                    'not_enough_budget'
+                    200,
+                    'success',
+                    result
                 )
             }
-
-            var ret = await transfer(tokenERC20, to, amount, cred)
-
-            if (ret.error) {
-                return responseHandler.makeResponseError(res, 402, ret.error)
-            }
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
-    } catch (err) {
-        console.log(err)
-    } finally {
-        cred && lock(cred)
-        if (ret && ret.transactionHash) {
-            await notificationManager(req.user._id, 'transfer_event', {
-                amount,
-                currency: tokenName,
-                from: cred.address,
-                to,
-                transactionHash: ret.transactionHash,
-                network: 'ERC20',
-            })
-            const wallet = await Wallet.findOne({
-                'keystore.address': to.substring(2),
-            }).select('UserId')
-
-            if (wallet) {
-                await notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: tokenName,
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                        network: 'ERC20',
-                    }
-                )
-            }
-        }
-    }
-}
-// exports.getContractPolygon =  async (req, res) => {
-//     try {
-//         let web3MATIC = await polygonConnexion()
-//         let result = await getBalance(web3MATIC,'0x195DC8342D923D3dFe0167Dc902A33Eabd801653','0x359B39B916Bb4df416dbeA5a2De266dfa9B3bcBf')
-//         return result
-//     } catch (err) {
-//         console.log(err)
-//     }
-// }
-
-exports.transfertBep20 = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-            var to = req.body.to
-            var amount = req.body.amount
-            var cred = await unlockBsc(req, res)
-            req.body.token = !req.body.token
-                ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
-                : req.body.token
-
-            var result = await getAccount(req, res)
-
-            let balance = await getBalance(
-                cred.Web3BEP20,
-                req.body.token,
-                result.address
-            )
-
-            if (new Big(amount).gt(new Big(balance))) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'not_enough_budget'
-                )
-            }
-
-            var ret = await sendBep20(req.body.token, to, amount, cred)
-
-            if (ret.error) {
-                return responseHandler.makeResponseError(res, 402, ret.error)
-            }
-
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
                 res,
@@ -461,98 +396,106 @@ exports.transfertBep20 = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
-    } finally {
-        cred && lockBSC(cred)
-        if (ret && ret.transactionHash) {
-            await notificationManager(req.user._id, 'transfer_event', {
-                amount,
-                currency: req.body.symbole,
-                network: 'BEP20',
-                to: req.body.to,
-                transactionHash: ret.transactionHash,
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { UserId: 1 }
-            )
-            if (wallet) {
-                await notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: req.body.symbole,
-                        network: 'BEP20',
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                    }
-                )
-            }
-        }
+        return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
 
 exports.transferTokensController = async (req, res) => {
+    let from = req.body.from
+    var to = req.body.to
+    var amount = req.body.amount
+    //TODO: Add a constants enum for different blockchain networks
+    let network = req.body.network
+    let tokenSymbol = req.body.tokenSymbol
+    let pass = req.body.pass
+    let tokenAddress = req.body.tokenAddress
+    let userId = req.user._id
+    let result
     try {
         if (req.user.hasWallet == true) {
-            var to = req.body.to
-            var amount = req.body.amount
-            let network = req.body.network
-            let tokenSymbol = req.body.tokenSymbol
-            var cred = await unlock(req, res)
-            tokenAddress = !req.body.tokenAddress
-                ? '0x448bee2d93be708b54ee6353a7cc35c4933f1156'
-                : req.body.tokenAddress
-
-            var result = await getAccount(req, res)
-
-            let wallets = {
-                bep20: cred.Web3BEP20,
-                erc20: cred.Web3ETH,
-                polygon: cred.Web3POLYGON,
-            }
-
-            let balance = await getBalance(
-                wallets[network],
-                tokenAddress,
-                result.address
+            const provider = getHttpProvider(
+                networkProviders[network.toUpperCase()]
             )
 
-            if (['BNB', 'ETH', 'BTC'].includes(tokenSymbol.toUpperCase())) {
-                if (tokenSymbol.toUpperCase() === 'BNB') {
-                    balance = result.bnb_balance
-                } else if (tokenSymbol.toUpperCase() === 'ETH') {
-                    balance = result.ether_balance
-                } else {
-                    balance = result.btc_balance
-                }
-            }
-            console.log(balance)
+            // get wallet keystore
+            const accountData = await Wallet.findOne({ UserId: userId })
 
-            if (new Big(amount).gt(new Big(balance))) {
-                return responseHandler.makeResponseError(
+            if (network.toUpperCase() === 'BTC') {
+                //TODO: transferring btc need to be tested locally with testnet
+                result = await transferBTC({
+                    to,
+                    amount,
+                    walletPassword: pass,
+                    account: accountData,
+                })
+            } else if (network.toUpperCase() === 'TRON') {
+                let privateKey = (await getWalletTron(userId, pass)).priv
+                result = await transferTronTokens({
+                    tronAddress: accountData.tronAddress,
+                    toAddress: to,
+                    amount,
+                    privateKey,
+                })
+            } else {
+                result = await transferTokens({
+                    fromAddress: from,
+                    toAddress: to,
+                    amount,
+                    tokenSmartContractAddress: tokenAddress,
+                    tokenSmartContractAbi: Constants.token.abi,
+                    provider,
+                    walletPassword: pass,
+                    encryptedPrivateKey: accountData.keystore,
+                })
+            }
+
+            if (result.error) {
+                return responseHandler.makeResponseError(res, 402, result.error)
+            }
+
+            if (result.blockHash) {
+                await notificationManager(req.user._id, 'transfer_event', {
+                    amount,
+                    currency: tokenSymbol,
+                    network,
+                    to,
+                    transactionHash: result.transactionHash,
+                })
+                const wallet =
+                    (network.toUpperCase() === 'TRON' &&
+                        (await Wallet.findOne(
+                            { tronAddress: to },
+                            { UserId: 1 }
+                        ))) ||
+                    (await Wallet.findOne(
+                        { 'keystore.address': to.substring(2) },
+                        { UserId: 1 }
+                    ))
+
+                if (wallet) {
+                    await notificationManager(
+                        wallet.UserId,
+                        'receive_transfer_event',
+                        {
+                            amount,
+                            currency: tokenSymbol,
+                            network,
+                            from:
+                                (network.toUpperCase() === 'TRON' &&
+                                    accountData.tronAddress) ||
+                                from,
+                            transactionHash: result.transactionHash,
+                        }
+                    )
+                }
+
+                return responseHandler.makeResponseData(
                     res,
-                    401,
-                    'not_enough_budget'
+                    200,
+                    'success',
+                    result
                 )
             }
-
-            var ret = await transferTokens({
-                from: result.address,
-                to,
-                amount,
-                tokenSymbol: tokenSymbol.toUpperCase(),
-                tokenAddress,
-                network: network.toUpperCase(),
-                credentials: cred,
-            })
-
-            if (ret.error) {
-                return responseHandler.makeResponseError(res, 402, ret.error)
-            }
-
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
         } else {
             return responseHandler.makeResponseError(
                 res,
@@ -561,35 +504,7 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err)
-    } finally {
-        cred && lock(cred)
-        if (ret && ret.transactionHash) {
-            await notificationManager(req.user._id, 'transfer_event', {
-                amount,
-                currency: req.body.tokenSymbol,
-                network: req.body.network,
-                to: req.body.to,
-                transactionHash: ret.transactionHash,
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { UserId: 1 }
-            )
-            if (wallet) {
-                await notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: req.body.tokenSymbol,
-                        network: req.body.network,
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                    }
-                )
-            }
-        }
+        return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
 
@@ -668,7 +583,15 @@ exports.addNewToken = async (req, res) => {
                 sn_users: { $in: [req.user._id] },
             })
 
-            if (tokenExist) {
+            defaultAddressList = []
+            for (const crypto in Tokens) {
+                defaultAddressList.push(Tokens[crypto].contract)
+            }
+
+            if (
+                tokenExist ||
+                defaultAddressList.indexOf(req.body.tokenAdress) >= 0
+            ) {
                 return responseHandler.makeResponseError(
                     res,
                     401,
@@ -742,162 +665,6 @@ exports.addNewToken = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
-    }
-}
-
-exports.transfertBtc = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-            var pass = req.body.pass
-            let id = req.user._id
-            var cred = await unlock(req, res)
-            var result = await getAccount(req, res)
-
-            if (new Big(req.body.val).gt(new Big(result.btc_balance))) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'not_enough_budget'
-                )
-            }
-            var hash = await sendBtc(id, pass, req.body.to, req.body.val)
-            if (hash.error) {
-                return responseHandler.makeResponseError(res, 402, hash.error)
-            }
-
-            return responseHandler.makeResponseData(res, 200, 'success', hash)
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
-    } catch (err) {
-        console.log(err.message)
-
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    } finally {
-        if (cred) await lock(cred)
-    }
-}
-
-exports.transfertBNB = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-            var cred = await unlockBsc(req, res)
-            var to = req.body.to
-            var amount = req.body.val
-            var result = await getAccount(req, res)
-
-            if (new Big(amount).gt(new Big(result.bnb_balance))) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'not_enough_budget'
-                )
-            }
-            var ret = await transferNativeBNB(to, amount, cred)
-            if (ret.error) {
-                return responseHandler.makeResponseError(res, 402, ret.error)
-            }
-
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, ' Account not found')
-        }
-    } catch (err) {
-        console.log(err)
-    } finally {
-        cred && lockBSC(cred)
-        if (ret?.transactionHash && ret) {
-            await notificationManager(req.user._id, 'transfer_event', {
-                amount,
-                currency: 'BNB',
-                to,
-                transactionHash: ret.transactionHash,
-                network: 'BEP20',
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { UserId: 1 }
-            )
-            if (wallet) {
-                await notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: 'BNB',
-                        from: cred.address,
-                        transactionHash: ret.transactionHash,
-                        network: 'BEP20',
-                    }
-                )
-            }
-        }
-    }
-}
-
-exports.transfertEther = async (req, res) => {
-    var to = req.body.to
-    var amount = req.body.val
-    try {
-        if (req.user.hasWallet == true) {
-            var result = await getAccount(req, res)
-
-            if (new Big(amount).gt(new Big(result.ether_balance))) {
-                return responseHandler.makeResponseError(
-                    res,
-                    401,
-                    'not_enough_budget'
-                )
-            }
-            var cred = await unlock(req, res)
-
-            var ret = await transferEther(to, amount, cred)
-
-            if (ret.error) {
-                return responseHandler.makeResponseError(res, 402, ret.error)
-            }
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, ' Account not found')
-        }
-    } catch (err) {
-        console.log('err', err)
-    } finally {
-        if (cred) lock(cred)
-        if (ret) {
-            await notificationManager(req.user._id, 'transfer_event', {
-                amount,
-                currency: 'ETH',
-                to,
-                transactionHash: 'ret.transactionHash',
-                network: 'ERC20',
-            })
-            const wallet = await Wallet.findOne(
-                { 'keystore.address': to.substring(2) },
-                { UserId: 1 }
-            )
-            if (wallet) {
-                await notificationManager(
-                    wallet.UserId,
-                    'receive_transfer_event',
-                    {
-                        amount,
-                        currency: 'ETH',
-                        from: cred.address,
-                        transactionHash: 'ret.transactionHash',
-                        network: 'ERC20',
-                    }
-                )
-            }
-        }
     }
 }
 
@@ -1005,7 +772,7 @@ exports.payementRequest = async (req, res) => {
         )
     }
 }
-
+/*
 exports.bridge = async (req, res) => {
     let amount = req.body.amount
     let sattContractErc20 = Constants.token.satt
@@ -1086,7 +853,7 @@ exports.bridge = async (req, res) => {
             })
         }
     }
-}
+}*/
 
 module.exports.getMnemo = async (req, res) => {
     try {
@@ -1189,6 +956,36 @@ exports.createNewWallet = async (req, res) => {
                 }
             )
         }
+    }
+}
+
+exports.addTronWalletToExistingAccount = async (req, res) => {
+    try {
+        let account = await Wallet.findOne({ UserId: req.user._id })
+        let Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.keystore], req.body.pass)
+        var tronWallet = await getWalletTron(req.user._id, req.body.pass)
+        if (!tronWallet.addr) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Invalid password'
+            )
+        } else {
+            var ret = await addWalletTron(req, res)
+
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                tronAddress: ret.addr,
+            })
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
