@@ -123,12 +123,12 @@ const { TikTokProfile, FbProfile } = require('../model')
                     var linkedinProfile = await LinkedinProfile.findOne({
                         userId: userWallet?.UserId,
                     })
-                    // var linkedinInfo = await getLinkedinLinkInfoMedia(
-                    //     linkedinProfile.accessToken,
-                    //     event.idPost
-                    // )
+                     var linkedinInfo = await getLinkedinLinkInfoMedia(
+                         linkedinProfile.accessToken,
+                         event.idPost
+                     )
     
-                    // var media_url = linkedinInfo?.mediaUrl || ''
+                     var media_url = linkedinInfo?.mediaUrl || ''
                 }
     
                 if (event.typeSN == '1') {
