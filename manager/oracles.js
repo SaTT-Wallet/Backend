@@ -17,14 +17,12 @@ const axios = require('axios')
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
 const {
-    getContractByToken,
     getOracleContractByCampaignContract,
-    erc20Connexion,
-    bep20Connexion,
+    webTronInstance,
 } = require('../blockchainConnexion')
-const { log } = require('console')
 const puppeteer = require('puppeteer')
-const { env } = require('twitter/.eslintrc')
+const { TronConstant } = require('../conf/const')
+const { timeout } = require('../helpers/utils')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -480,13 +478,13 @@ exports.tiktokAbos = async (username) => {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(vgmUrl)
-    const scrappedData = await page.$$eval('strong', (elements) =>
-        elements
+    const scrappedData = await page.$$eval('strong', (elements) => {
+        return elements
             .filter((element) => {
                 return element.getAttribute('data-e2e') === 'followers-count'
             })
             .map((element) => element.innerHTML)
-    )
+    })
     let abosNumber
     if (!!scrappedData.length) {
         abosNumber = scrappedData[0]
@@ -536,7 +534,6 @@ exports.getPromApplyStats = async (
         console.log('error from getPromApplyStats', err.message)
     }
 }
-
 
 const facebook = async (pageName, idPost) => {
     try {
@@ -617,7 +614,7 @@ const youtube = async (idPost) => {
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
-                media_url: media.thumbnail_url || "",
+                media_url: media.thumbnail_url || '',
             }
         }
 
@@ -629,9 +626,6 @@ const youtube = async (idPost) => {
 const linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
         let accessToken = linkedinProfile.accessToken
-
-        console.log(idPost, "//////////////////////////////" , accessToken )
-
         var perf = { shares: 0, likes: 0, views: 0 }
         const params = new URLSearchParams()
         params.append('client_id', process.env.LINKEDIN_KEY)
@@ -714,7 +708,7 @@ const instagram = async (UserId, link) => {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].shortcode == idPost) {
                         perf.likes = data[i].like_count
-                        perf.media_url = data[i].media_url || ""
+                        perf.media_url = data[i].media_url || ''
                         var mediaViews =
                             'https://graph.facebook.com/' +
                             oauth.facebook.fbGraphVersion +
@@ -773,7 +767,7 @@ const twitter = async (userName, idPost) => {
                 likes: res.favorite_count,
                 views: 0,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes.media[0].url || 'test',
+                media_url: res.includes.media[0].url || '',
             }
             return perf
         }
@@ -807,7 +801,7 @@ const twitter = async (userName, idPost) => {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
                 date: Math.floor(Date.now() / 1000),
-                //media_url: res.includes.media[0].url,
+                media_url: res.includes.media[0].url || '',
                 views: 'old',
             }
 
@@ -819,7 +813,7 @@ const twitter = async (userName, idPost) => {
             likes: res.data[0].public_metrics.like_count,
             views: res.data[0].non_public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-          //  media_url: res.includes.media[0].url || "",
+            media_url: res.includes.media[0].url || '',
         }
 
         return perf
@@ -856,10 +850,10 @@ const tiktok = async (tiktokProfile, idPost) => {
             likes: videoInfoResponse.data.videos[0].like_count,
             shares: videoInfoResponse.data.videos[0].share_count,
             views: videoInfoResponse.data.videos[0].view_count,
-            media_url: videoInfoResponse.data.videos[0].cover_image_url || "",
+            media_url: videoInfoResponse.data.videos[0].cover_image_url || '',
         }
     } catch (error) {
-        console.log("error tiktok ",error)
+        console.log(error)
     }
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
@@ -992,6 +986,38 @@ exports.getButtonStatus = (link) => {
 
 exports.answerBounty = async function (opts) {
     try {
+        if (!!opts.tronWeb) {
+            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+            let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            let contract = await tronWeb.contract(
+                TronConstant.oracle.abi,
+                TronConstant.oracle.address
+            )
+            let receipt = await contract
+                .answerBounty(
+                    opts.campaignContract,
+                    '0x' + opts.idProm,
+                    opts.nbAbos
+                )
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         let contract = await getOracleContractByCampaignContract(
             opts.campaignContract,
             opts.credentials
@@ -1045,11 +1071,11 @@ exports.answerOne = async (
     try {
         switch (typeSN) {
             case '1':
-                var res = await this.facebook(idUser, idPost)
+                var res = await facebook(idUser, idPost)
 
                 break
             case '2':
-                var res = await this.youtube(idPost)
+                var res = await youtube(idPost)
 
                 break
             case '3':
@@ -1059,24 +1085,19 @@ exports.answerOne = async (
                         .toLowerCase()
                         .substring(2),
                 })
-                var res = await this.instagram(userWallet.UserId, campaign_link)
+                var res = await instagram(userWallet.UserId, campaign_link)
 
                 break
             case '4':
-                var res = await this.twitter(idUser, idPost)
+                var res = await twitter(idUser, idPost)
 
                 break
             case '5':
-                var res = await this.linkedin(
-                    idUser,
-                    idPost,
-                    type,
-                    linkedinProfile
-                )
+                var res = await linkedin(idUser, idPost, type, linkedinProfile)
 
                 break
             case '6':
-                var res = await this.tiktok(tiktokProfile, idPost)
+                var res = await tiktok(tiktokProfile, idPost)
 
                 break
             default:
@@ -1118,6 +1139,40 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
 
 exports.answerCall = async (opts) => {
     try {
+        if (!!opts.tronWeb) {
+            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+            let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            let contract = await tronWeb.contract(
+                TronConstant.oracle.abi,
+                TronConstant.oracle.address
+            )
+            let receipt = await contract
+                .answer(
+                    opts.campaignContract,
+                    '0x' + opts.idRequest,
+                    opts.likes,
+                    opts.shares,
+                    opts.views
+                )
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
         let contract = await getOracleContractByCampaignContract(
             opts.campaignContract,
             opts.credentials
@@ -1138,6 +1193,10 @@ exports.answerCall = async (opts) => {
             process.env.CAMPAIGN_OWNER_PASS
         )
         opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        )
+        opts.credentials.web3UrlBTT.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )

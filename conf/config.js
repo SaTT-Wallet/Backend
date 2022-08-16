@@ -81,24 +81,34 @@ exports.payementRequest = async (payment) => {
 let sattContract,
     sattBEP20CONTRACT,
     sattPOLYGONCONTRACT,
+    sattTRONCONTRACT,
+    sattBTTCONTRACT,
     daiContract,
     busdContract,
-    usdtContract
+    usdtContract,
+    TRON_CONTRACT
 
 if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
-    sattContract = process.env.TOKEN_SATT_CONTRACT_TESTNET
+    sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
     sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT_TESTNET
+    sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
+    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT_TESTNET
+
     daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
     usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
     busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
+    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
 } else {
     sattContract = process.env.TOKEN_SATT_CONTRACT
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
     sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT
+    sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
+    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
     daiContract = process.env.TOKEN_DAI_CONTRACT
     usdtContract = process.env.TOKEN_USDT_CONTRACT
     busdContract = process.env.TOKEN_BUSD_CONTRACT
+    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT
 }
 let Tokens = {
     SATT: {
@@ -217,6 +227,42 @@ let Tokens = {
         contract: process.env.TOKEN_MATIC_CONTRACT,
         dicimal: process.env.TOKEN_MATIC_DICIMAL,
         network: process.env.TOKEN_MATIC_NETWORK,
+    },
+    SATT_BTT: {
+        name: process.env.TOKEN_SATT_BTT_NAME,
+        symbol: process.env.TOKEN_SATT_BTT_SYMBOL,
+        undername: process.env.TOKEN_SATT_BTT_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_BTT_UNDERNAME2,
+        contract: sattBTTCONTRACT,
+        dicimal: process.env.TOKEN_SATT_BTT_DICIMAL,
+        network: process.env.TOKEN_SATT_BTT_NETWORK,
+    },
+    BTT: {
+        name: process.env.TOKEN_BTT_NAME,
+        symbol: process.env.TOKEN_BTT_SYMBOL,
+        undername: process.env.TOKEN_BTT_UNDERNAME,
+        undername2: process.env.TOKEN_BTT_UNDERNAME2,
+        contract: process.env.TOKEN_BTT_CONTRACT,
+        dicimal: process.env.TOKEN_BTT_DICIMAL,
+        network: process.env.TOKEN_BTT_NETWORK,
+    },
+    TRX: {
+        name: process.env.TOKEN_TRON_NAME,
+        symbol: process.env.TOKEN_TRON_SYMBOL,
+        undername: process.env.TOKEN_TRON_UNDERNAME,
+        undername2: process.env.TOKEN_TRON_UNDERNAME2,
+        contract: TRON_CONTRACT,
+        dicimal: process.env.TOKEN_TRON_DICIMAL,
+        network: process.env.TOKEN_TRON_NETWORK,
+    },
+    SATT_TRON: {
+        name: process.env.TOKEN_SATT_TRON_NAME,
+        symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
+        undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
+        undername2: process.env.TOKEN_SATT_TRON_UNDERNAME2,
+        contract: sattTRONCONTRACT,
+        dicimal: process.env.TOKEN_SATT_TRON_DICIMAL,
+        network: process.env.TOKEN_SATT_TRON_NETWORK,
     },
 }
 
@@ -1168,6 +1214,8 @@ let config = {
     symfonySalt: process.env.SYMPHONY_SATT,
     linkedinActivityUrl: (activityURN) =>
         `${process.env.LINKEDIN_FIRST_URL_ADRR_FIRST}${activityURN}${process.env.LINKEDIN_FIRST_URL_ADRR_SECOND}`,
+    linkedinShareUrl: (shareURN) =>
+        `${process.env.LINKEDIN_SHARE_FIRST}${shareURN}`,
     linkedinStatsUrl: (type, idPost, organization) =>
         `${process.env.LINKEDIN_START_URL_FIRST}${type}${process.env.LINKEDIN_START_URL_SECOND}${type}:${idPost}${process.env.LINKEDIN_START_URL_THIRD}${organization}`,
     linkedinUgcPostStats: (idPost) =>
@@ -1183,6 +1231,9 @@ let config = {
             json: true,
         }
     },
+    linkedinMediaUrl: (idPost) =>
+        `${process.env.LINKEDIN_ORIGINAL_ARTICLE}${idPost}`,
+
     bridgeKeystore: {
         version: 3,
         id: '8a6cc367-db49-4fb4-a46b-2a5dd50c90d7',
@@ -1280,6 +1331,7 @@ let pathBtcSegwitCompat = "m/49'/0'/0'/0/0"
 
 let pathBtcSegwit = "m/84'/0'/0'/0/0"
 let pathEth = "m/44'/60'/0'/0/0'"
+let pathTron = "m/44'/195'/0'/0/0"
 
 let persmissionsObjFb = { scope: ['public_profile', 'email'] }
 
@@ -1345,6 +1397,7 @@ module.exports.persmissionsObjFb = persmissionsObjFb
 module.exports.pathBtcSegwit = pathBtcSegwit
 
 module.exports.pathEth = pathEth
+module.exports.pathTron = pathTron
 
 module.exports.networkSegWitCompat = networkSegWitCompat
 module.exports.networkSegWit = networkSegWit
