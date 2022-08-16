@@ -16,6 +16,8 @@ module.exports.transferTronTokens = async function ({
         throw Error('The sender address is not a valid tron address !!')
     if (!tronWeb.isAddress(toAddress))
         throw Error('The recipient address is not a valid tron address !!')
+    if (tronAddress === toAddress)
+        throw Error('you cant send to your own wallet address !!')
     let balance = await tronWeb.trx.getBalance(tronAddress)
     if (balance === 0) throw Error('No enough balance to perform withdraw !!')
     if (new Big(amount).gt(new Big(balance)))
