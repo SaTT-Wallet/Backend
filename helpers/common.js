@@ -81,9 +81,7 @@ const { TikTokProfile, FbProfile } = require('../model')
         var Events = await CampaignLink.find()
         let eventLint = []
         Events.forEach((event) => {
-
-           
-         const result = campaignList.find(
+            const result = campaignList.find(
                 (campaign) =>
                     event.id_campaign === campaign.hash &&
                     campaign.type !== 'finished'
@@ -119,16 +117,15 @@ const { TikTokProfile, FbProfile } = require('../model')
             console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
             if (userWallet) {
                 if (event.typeSN == 5) {
-
                     var linkedinProfile = await LinkedinProfile.findOne({
                         userId: userWallet?.UserId,
                     })
-                     var linkedinInfo = await getLinkedinLinkInfoMedia(
-                         linkedinProfile.accessToken,
-                         event.idPost
-                     )
+                    var linkedinInfo = await getLinkedinLinkInfoMedia(
+                        linkedinProfile?.accessToken,
+                        event.idPost
+                    )
     
-                     var media_url = linkedinInfo?.mediaUrl || ''
+                    var media_url = linkedinInfo?.mediaUrl || ''
                 }
     
                 if (event.typeSN == '1') {
@@ -137,7 +134,7 @@ const { TikTokProfile, FbProfile } = require('../model')
                     })
                     await updateFacebookPages(
                         userWallet?.UserId,
-                        facebookProfile.accessToken,
+                        facebookProfile?.accessToken,
                         false
                     )
                 }
@@ -150,13 +147,16 @@ const { TikTokProfile, FbProfile } = require('../model')
                 let socialOracle = await getPromApplyStats(
                     findBountyOracle(event.typeSN),
                     event,
-                    userWallet.UserId,
+                    userWallet?.UserId,
                     linkedinProfile,
                     tiktokProfile
                 )
     
-                if (socialOracle === 'indisponible') {event.status = 'indisponible'}
-               
+                if (socialOracle === 'indisponible') {
+                    event.status = 'indisponible'
+                } else {
+                    event.status = true
+                }
     
                 if (socialOracle && socialOracle !== 'indisponible') {
                     event.shares = (socialOracle && socialOracle.shares) || '0'
@@ -164,7 +164,7 @@ const { TikTokProfile, FbProfile } = require('../model')
                     let views = (socialOracle && socialOracle.views) || '0'
                     event.views = views === 'old' ? event.views : views
                     event.media_url =
-                        (socialOracle && socialOracle.media_url) 
+                        (socialOracle && socialOracle.media_url) || media_url
                     event.oracle = findBountyOracle(event.typeSN)
                     event.type = getButtonStatus(event)
                 }
@@ -183,20 +183,6 @@ const { TikTokProfile, FbProfile } = require('../model')
                 delete event.payedAmount
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
-
-            if (event.campaign.ratios.length && socialOracle) {
-                event.totalToEarn = getTotalToEarn(event, event.campaign.ratios)
-            }
-
-            if (event.campaign.bounties.length && socialOracle) {
-                event.totalToEarn = getReward(event, event.campaign.bounties)
-            }
-            // if (campaign.isFinished) event.totalToEarn = 0
-
-            if (event.campaign) event.type = getButtonStatus(event)
-            delete event.campaign
-            delete event.payedAmount
-            await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }
     
