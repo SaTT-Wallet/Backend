@@ -1377,6 +1377,7 @@ exports.gains = async (req, res) => {
                 ]
                 if (tronWeb.toDecimal(result.amount._hex) === 0)
                     campaignType.type = 'finished'
+            } else {
                 campaignType.funds = result.funds
                 if (result.funds[1] === '0') campaignType.type = 'finished'
             }
