@@ -1374,6 +1374,7 @@ exports.gains = async (req, res) => {
                 ]
                 if (tronWeb.toDecimal(result.amount._hex) === 0)
                     campaignType.type = 'finished'
+            } else {
                 campaignType.funds = result.funds
                 if (result.funds[1] === '0') campaignType.type = 'finished'
             }
@@ -1597,14 +1598,14 @@ module.exports.linkStats = async (req, res) => {
                     views: info.views,
                 }
                 let reachLimit = getReachLimit(ratio, info.oracle)
-                if (reachLimit)
-                    socialStats = limitStats(
-                        '',
-                        socialStats,
-                        '',
-                        abosNumber,
-                        reachLimit
-                    )
+                // if (reachLimit)
+                //     socialStats = limitStats(
+                //         '',
+                //         socialStats,
+                //         '',
+                //         abosNumber,
+                //         reachLimit
+                //     )
                 ratio.forEach((elem) => {
                     if (elem.oracle === info.oracle) {
                         let view = new Big(elem['view']).times(
