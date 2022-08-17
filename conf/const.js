@@ -4407,6 +4407,8 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_MAINNET_TRON
     TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_TRON
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_MAINNET
+    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
+    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
     Constants.token.wbtt = '0xd6cb96a00b312d5930fc2e8084a98ff2daa5ad2e'
@@ -4444,6 +4446,7 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_COMPAIGN_ADDRESS_TESTNET_TRON
     TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_TESTNET
+    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
 }
 
 let erc20TokenCampaigns = [
@@ -4457,13 +4460,13 @@ let bep20TokenCampaigns = [
     Constants.bep20.address.bnb.toLowerCase(),
 ]
 
-let polygonTokensCampaign = [PolygonConstants.token.satt.toLowerCase()]
+let polygonTokensCampaign = [/*PolygonConstants.token.satt.toLowerCase()*/Constants.token.matic]
 
 let bttTokensCampaign = [
-    BttConstants.token.satt.toLowerCase(),
+    //BttConstants.token.satt.toLowerCase(),
     Constants.token.wbtt.toLowerCase(),
 ]
-let tronTokensCampaign = [TronConstant.token.satt.toLowerCase()]
+let tronTokensCampaign = [TronConstant.token.wtrx.toLowerCase()]
 
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3UrlBTT = process.env.WEB3_URL_BTT
