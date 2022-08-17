@@ -228,7 +228,7 @@ let Tokens = {
         dicimal: process.env.TOKEN_MATIC_DICIMAL,
         network: process.env.TOKEN_MATIC_NETWORK,
     },
-    SATT_BTT: {
+    /*SATT_BTT: {
         name: process.env.TOKEN_SATT_BTT_NAME,
         symbol: process.env.TOKEN_SATT_BTT_SYMBOL,
         undername: process.env.TOKEN_SATT_BTT_UNDERNAME,
@@ -236,7 +236,7 @@ let Tokens = {
         contract: sattBTTCONTRACT,
         dicimal: process.env.TOKEN_SATT_BTT_DICIMAL,
         network: process.env.TOKEN_SATT_BTT_NETWORK,
-    },
+    },*/
     BTT: {
         name: process.env.TOKEN_BTT_NAME,
         symbol: process.env.TOKEN_BTT_SYMBOL,
@@ -255,7 +255,7 @@ let Tokens = {
         dicimal: process.env.TOKEN_TRON_DICIMAL,
         network: process.env.TOKEN_TRON_NETWORK,
     },
-    SATT_TRON: {
+   /* SATT_TRON: {
         name: process.env.TOKEN_SATT_TRON_NAME,
         symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
         undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
@@ -263,7 +263,7 @@ let Tokens = {
         contract: sattTRONCONTRACT,
         dicimal: process.env.TOKEN_SATT_TRON_DICIMAL,
         network: process.env.TOKEN_SATT_TRON_NETWORK,
-    },
+    },*/
 }
 
 let token200 = [

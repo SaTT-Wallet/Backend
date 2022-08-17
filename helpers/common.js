@@ -117,14 +117,11 @@ module.exports.updateStat = async () => {
         console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
         if (userWallet) {
             if (event.typeSN == 5) {
-                if (event.idPost === '6963504592282132480') {
-                    console.log(event)
-                }
                 var linkedinProfile = await LinkedinProfile.findOne({
                     userId: userWallet?.UserId,
                 })
                 var linkedinInfo = await getLinkedinLinkInfoMedia(
-                    linkedinProfile.accessToken,
+                    linkedinProfile?.accessToken,
                     event.idPost
                 )
 
@@ -137,7 +134,7 @@ module.exports.updateStat = async () => {
                 })
                 await updateFacebookPages(
                     userWallet?.UserId,
-                    facebookProfile.accessToken,
+                    facebookProfile?.accessToken,
                     false
                 )
             }
@@ -150,13 +147,16 @@ module.exports.updateStat = async () => {
             let socialOracle = await getPromApplyStats(
                 findBountyOracle(event.typeSN),
                 event,
-                userWallet.UserId,
+                userWallet?.UserId,
                 linkedinProfile,
                 tiktokProfile
             )
 
-            if (socialOracle === 'indisponible') {event.status = 'indisponible'}
-            else {event.status = true }
+            if (socialOracle === 'indisponible') {
+                event.status = 'indisponible'
+            } else {
+                event.status = true
+            }
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = (socialOracle && socialOracle.shares) || '0'
