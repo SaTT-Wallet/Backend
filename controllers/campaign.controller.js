@@ -1597,14 +1597,14 @@ module.exports.linkStats = async (req, res) => {
                     views: info.views,
                 }
                 let reachLimit = getReachLimit(ratio, info.oracle)
-                if (reachLimit)
-                    socialStats = limitStats(
-                        '',
-                        socialStats,
-                        '',
-                        abosNumber,
-                        reachLimit
-                    )
+                // if (reachLimit)
+                //     socialStats = limitStats(
+                //         '',
+                //         socialStats,
+                //         '',
+                //         abosNumber,
+                //         reachLimit
+                //     )
                 ratio.forEach((elem) => {
                     if (elem.oracle === info.oracle) {
                         let view = new Big(elem['view']).times(
