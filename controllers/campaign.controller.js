@@ -1033,6 +1033,7 @@ exports.validateCampaign = async (req, res) => {
                 : getReward(link, campaign.bounties)
             socialOracle.totalToEarn = link.totalToEarn
             socialOracle.type = getButtonStatus(link)
+            socialOracle.acceptedDate = Math.floor(Date.now() / 1000)
             await CampaignLink.updateOne(
                 { id_prom: idApply },
                 { $set: socialOracle }
@@ -1065,13 +1066,10 @@ exports.gains = async (req, res) => {
     var requests = false
     var campaignData
     try {
+        var link = await CampaignLink.findOne({ id_prom: idProm })
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
-
-        if (
-            req.user.lastHarvestDate &&
-            date - Math.floor(req.user.lastHarvestDate / 1000) <= 86400
-        ) {
+        if (link.acceptedDate && date - link.acceptedDate <= 86400) {
             return responseHandler.makeResponseError(
                 res,
                 403,
@@ -1114,7 +1112,6 @@ exports.gains = async (req, res) => {
                     { userId: req.user._id },
                     { accessToken: 1, _id: 0 }
                 ))
-            var link = await CampaignLink.findOne({ id_prom: idProm })
             if (!!campaignData.bounties.length) {
                 if (tronWeb.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
                     var ret = await getGains(idProm, credentials, tronWeb)
