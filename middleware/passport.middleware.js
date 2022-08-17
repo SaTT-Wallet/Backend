@@ -376,7 +376,8 @@ passport.use(
     ) {
         var date = Math.floor(Date.now() / 1000) + 86400
         let user = await User.findOne({ email: username.toLowerCase() })
-        if (user) {
+        let wallet = user && (await Wallet.findOne({ UserId: user._id }))
+        if (user && wallet) {
             return await signinWithEmail(req, username, password, done)
         } else {
             var createdUser = createUser(
