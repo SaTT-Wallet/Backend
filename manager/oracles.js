@@ -23,6 +23,7 @@ const {
 const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
+const { TikTokProfile } = require('../model')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -223,6 +224,14 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
                 fields: ['embed_html', 'embed_link'],
             }
         )
+        let username =
+            videoInfoResponse?.data?.data?.videos?.length &&
+            videoInfoResponse.data.data.videos[0].embed_html.split('/')[3]
+        username &&
+            (await TikTokProfile.updateOne(
+                { _id: tiktokProfile._id },
+                { $set: { username } }
+            ))
 
         if (videoInfoResponse.data.data.videos) {
             return true
@@ -473,8 +482,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (username) => {
-    username = username.split(' ').join('').toLowerCase()
-    const vgmUrl = 'https://www.tiktok.com/@' + username
+    const vgmUrl = 'https://www.tiktok.com/' + username
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(vgmUrl)
