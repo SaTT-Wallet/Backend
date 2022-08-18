@@ -562,7 +562,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         // return cb('account_already_used&idSn=' + user.idSn)
         // let token = generateAccessToken(user)
         // return cb(null, { id: user._id, token: token, expires_in: date })
-        await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
+        await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
     } else {
         let createdUser = createUser(
             1,
