@@ -43,6 +43,7 @@ const {
     getReward,
     getButtonStatus,
     updateFacebookPages,
+    answerAbos,
 } = require('../manager/oracles')
 const { TikTokProfile, FbProfile } = require('../model')
 
@@ -148,6 +149,14 @@ module.exports.updateStat = async () => {
                 findBountyOracle(event.typeSN),
                 event,
                 userWallet?.UserId,
+                linkedinProfile,
+                tiktokProfile
+            )
+
+            event.abosNumber = await answerAbos(
+                event.typeSN.toString(),
+                event.idPost,
+                event.idUser,
                 linkedinProfile,
                 tiktokProfile
             )

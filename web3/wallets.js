@@ -999,7 +999,7 @@ exports.addWalletTron = async (req, res) => {
         let wallet = await Wallet.findOne({ UserId })
         let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
-            { _id: wallet._id },
+            { UserId:UserId },
             {
                 $set: {
                     tronAddress: TronWallet.addr,
@@ -1009,8 +1009,7 @@ exports.addWalletTron = async (req, res) => {
                 new: true,
             }
         )
-        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        sdk.validateaddress({ address: TronWallet.addrHex })
+       
         return TronWallet
     } catch (error) {
         console.log(error)
