@@ -1011,7 +1011,7 @@ exports.answerBounty = async function (opts) {
                 tronCampaignWallet,
                 process.env.CAMPAIGN_TRON_OWNER_PASS
             )
-            tronWeb.setPrivateKey(wallet.privateKey)
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
             let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
            
