@@ -291,12 +291,9 @@ exports.passRecover = async (req, res) => {
         let [newpass, email, code] = [
             req.body.newpass,
             req.body.email,
-            //    req.body.code,
+            req.body.code,
         ]
-        let user = await User.findOne(
-            { email }
-            // , { secureCode: 1 }
-        )
+        let user = await User.findOne({ email }, { secureCode: 1 })
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
@@ -304,21 +301,20 @@ exports.passRecover = async (req, res) => {
                 'user not found',
                 false
             )
-        }
-        //  else if (user.secureCode.code != code)
-        //     return responseHandler.makeResponseError(
-        //         res,
-        //         401,
-        //         'wrong code',
-        //         false
-        //     )
-        // else if (Date.now() >= user.secureCode.expiring)
-        //     return responseHandler.makeResponseError(
-        //         res,
-        //         401,
-        //         'code expired',
-        //         false
-        //     )
+        } else if (user.secureCode.code != code)
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'wrong code',
+                false
+            )
+        else if (Date.now() >= user.secureCode.expiring)
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'code expired',
+                false
+            )
         else {
             await User.updateOne(
                 { _id: user._id },
