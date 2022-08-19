@@ -996,11 +996,25 @@ exports.getButtonStatus = (link) => {
 exports.answerBounty = async function (opts) {
     try {
         if (!!opts.tronWeb) {
-            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+
             let tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(privateKey)
-            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+           
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+
+            let wallet = opts.credentials.Web3ETH.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            )
+            tronWeb.setPrivateKey(wallet.privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
+           
             let contract = await tronWeb.contract(
                 TronConstant.oracle.abi,
                 TronConstant.oracle.address
