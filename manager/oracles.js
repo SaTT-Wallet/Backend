@@ -23,6 +23,7 @@ const {
 const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
+const { TikTokProfile } = require('../model')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -223,6 +224,14 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
                 fields: ['embed_html', 'embed_link'],
             }
         )
+        let username =
+            videoInfoResponse?.data?.data?.videos?.length &&
+            videoInfoResponse.data.data.videos[0].embed_html.split('/')[3]
+        username &&
+            (await TikTokProfile.updateOne(
+                { _id: tiktokProfile._id },
+                { $set: { username } }
+            ))
 
         if (videoInfoResponse.data.data.videos) {
             return true
@@ -473,8 +482,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (username) => {
-    username = username.split(' ').join('').toLowerCase()
-    const vgmUrl = 'https://www.tiktok.com/@' + username
+    const vgmUrl = 'https://www.tiktok.com/' + username
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
     await page.goto(vgmUrl)
@@ -577,7 +585,7 @@ const facebook = async (pageName, idPost) => {
                 likes: likes,
                 views: views,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res2.full_picture || '',
+                media_url: res2?.full_picture || ' ',
             }
 
             return perf
@@ -614,7 +622,7 @@ const youtube = async (idPost) => {
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
-                media_url: media.thumbnail_url || '',
+                media_url: media?.thumbnail_url || ' ',
             }
         }
 
@@ -707,7 +715,7 @@ const instagram = async (UserId, link) => {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].shortcode == idPost) {
                         perf.likes = data[i].like_count
-                        perf.media_url = data[i].media_url || ''
+                        perf.media_url = data[i]?.media_url || ' '
                         var mediaViews =
                             'https://graph.facebook.com/' +
                             oauth.facebook.fbGraphVersion +
@@ -766,7 +774,7 @@ const twitter = async (userName, idPost) => {
                 likes: res.favorite_count,
                 views: 0,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes.media[0].url || '',
+                media_url: res.includes?.media[0]?.url || ' ',
             }
             return perf
         }
@@ -786,6 +794,8 @@ const twitter = async (userName, idPost) => {
                 'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
         })
 
+        console.log(res)
+
         if (res.errors) {
             res = await tweet.get('tweets', {
                 ids: idPost,
@@ -795,13 +805,12 @@ const twitter = async (userName, idPost) => {
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
 
-            console.log('media_url', res.includes.media[0].url && true)
 
             var perf = {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
                 date: Math.floor(Date.now() / 1000),
-                media_url: res.includes.media[0].url || '',
+                media_url: res.includes?.media[0]?.url || ' ',
                 views: 'old',
             }
 
@@ -813,11 +822,12 @@ const twitter = async (userName, idPost) => {
             likes: res.data[0].public_metrics.like_count,
             views: res.data[0].non_public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-            media_url: res.includes.media[0].url || '',
+            media_url: res.includes?.media[0]?.url || ' ',
         }
 
         return perf
     } catch (err) {
+        console.log(err.message)
         return 'indisponible'
     }
 }
@@ -849,7 +859,7 @@ const tiktok = async (tiktokProfile, idPost) => {
             likes: videoInfoResponse.data.videos[0].like_count,
             shares: videoInfoResponse.data.videos[0].share_count,
             views: videoInfoResponse.data.videos[0].view_count,
-            media_url: videoInfoResponse.data.videos[0].cover_image_url || '',
+            media_url: videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
         }
     } catch (error) {
         console.log(error)
@@ -986,11 +996,25 @@ exports.getButtonStatus = (link) => {
 exports.answerBounty = async function (opts) {
     try {
         if (!!opts.tronWeb) {
-            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+
             let tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(privateKey)
-            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+           
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+
+            let wallet = opts.credentials.Web3ETH.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            )
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
+           
             let contract = await tronWeb.contract(
                 TronConstant.oracle.abi,
                 TronConstant.oracle.address
