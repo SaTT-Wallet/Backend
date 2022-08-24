@@ -288,12 +288,12 @@ exports.confirmCode = async (req, res) => {
 
 exports.passRecover = async (req, res) => {
     try {
-        let [newpass, email, code] = [
-            req.body.newpass,
-            req.body.email,
-            req.body.code,
-        ]
+        let newpass = req.body.newpass
+        let email = req.body.email
+        let code = Number(req.body.code)
+
         let user = await User.findOne({ email }, { secureCode: 1 })
+
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
@@ -301,21 +301,11 @@ exports.passRecover = async (req, res) => {
                 'user not found',
                 false
             )
-        } else if (user.secureCode.code != code)
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'wrong code',
-                false
-            )
-        else if (Date.now() >= user.secureCode.expiring)
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'code expired',
-                false
-            )
-        else {
+        } else if (
+            !isNaN(user.secureCode.code) &&
+            !isNaN(code) &&
+            user.secureCode.code === code
+        ) {
             await User.updateOne(
                 { _id: user._id },
                 { $set: { password: synfonyHash(newpass), enabled: 1 } }
@@ -325,6 +315,20 @@ exports.passRecover = async (req, res) => {
                 200,
                 'successfully',
                 true
+            )
+        } else if (Date.now() >= user.secureCode.expiring)
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'code expired',
+                false
+            )
+        else {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'wrong code',
+                false
             )
         }
     } catch (err) {
