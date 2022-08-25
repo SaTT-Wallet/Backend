@@ -169,12 +169,10 @@ module.exports.updateStat = async () => {
             }
 
             if (socialOracle && socialOracle !== 'indisponible') {
-                event.shares = (socialOracle && socialOracle.shares) || '0'
-                event.likes = (socialOracle && socialOracle.likes) || '0'
-                let views = (socialOracle && socialOracle.views) || '0'
-                event.views = views === 'old' ? event.views : views
-                event.media_url =
-                    (socialOracle && socialOracle.media_url) || media_url
+                event.shares = socialOracle?.shares || event.shares
+                event.likes = socialOracle?.likes || event.likes
+                event.views = socialOracle?.views || event.views
+                event.media_url = socialOracle?.media_url || media_url
                 event.oracle = findBountyOracle(event.typeSN)
                 event.type = getButtonStatus(event)
             }
