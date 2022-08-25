@@ -754,12 +754,13 @@ exports.apply = async (req, res) => {
             var linkedinProfile = await LinkedinProfile.findOne({ userId: id })
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
-                idPost.toString()
+                idPost.toString(),
+                linkedinProfile
             )
 
             var media_url = linkedinInfo?.mediaUrl || ''
-            idUser = linkedinInfo.idUser
-            idPost = linkedinInfo.idPost.replace(/\D/g, '')
+            idUser = linkedinInfo?.idUser
+            idPost = linkedinInfo?.idPost.replace(/\D/g, '')
         }
 
         if (typeSN == 6) {
@@ -1598,14 +1599,14 @@ module.exports.linkStats = async (req, res) => {
                     views: info.views,
                 }
                 let reachLimit = getReachLimit(ratio, info.oracle)
-                 if (reachLimit)
-                     socialStats = limitStats(
+                if (reachLimit)
+                    socialStats = limitStats(
                         '',
-                         socialStats,
-                         '',
-                         abosNumber,
-                         reachLimit
-                     )
+                        socialStats,
+                        '',
+                        abosNumber,
+                        reachLimit
+                    )
                 ratio.forEach((elem) => {
                     if (elem.oracle === info.oracle) {
                         let view = new Big(elem['view']).times(
