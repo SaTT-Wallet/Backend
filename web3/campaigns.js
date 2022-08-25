@@ -680,7 +680,7 @@ exports.getLinkedinLinkInfo = async (
             'https://www.linkedin.com/oauth/v2/introspectToken',
             params
         )
-        if (tokenValidityBody.data?.active) {
+        if (!tokenValidityBody.data?.active) {
             let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
             let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
             accessToken = resAccessToken.access_token
@@ -711,7 +711,11 @@ exports.getLinkedinLinkInfo = async (
     }
 }
 
-exports.getLinkedinLinkInfoMedia = async (accessToken, shareURN) => {
+exports.getLinkedinLinkInfoMedia = async (
+    accessToken,
+    shareURN,
+    linkedinProfile
+) => {
     try {
         const params = new URLSearchParams()
         params.append('client_id', process.env.LINKEDIN_KEY)
