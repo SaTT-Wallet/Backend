@@ -123,7 +123,8 @@ module.exports.updateStat = async () => {
                 })
                 var linkedinInfo = await getLinkedinLinkInfoMedia(
                     linkedinProfile?.accessToken,
-                    event.idPost
+                    event.idPost,
+                    linkedinProfile
                 )
 
                 var media_url = linkedinInfo?.mediaUrl || ''
