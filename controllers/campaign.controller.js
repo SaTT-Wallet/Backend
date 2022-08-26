@@ -850,10 +850,10 @@ exports.apply = async (req, res) => {
             )
 
             // if (socialOracle?.views === 'old') socialOracle.views = '0'
-            prom.views = socialOracle.views
-            prom.likes = socialOracle.likes
-            prom.shares = socialOracle.shares || '0'
-            prom.media_url = media_url || socialOracle.media_url
+            prom.views = socialOracle?.views || 0
+            prom.likes = socialOracle?.likes || 0
+            prom.shares = socialOracle?.shares || 0
+            prom.media_url = media_url || socialOracle?.media_url
 
             let event = {
                 id: hash,
