@@ -812,7 +812,7 @@ router.get(
     async (req, response) => {
         try {
             //console.log('response form async /callback/addChannel/t', response)
-
+            console.log('reqqq,', req)
             redirect = req.query.state.split('|')[1]
 
             if (req.authInfo.message) {
