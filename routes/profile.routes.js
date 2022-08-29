@@ -802,6 +802,7 @@ router.get(
         // console.log('res form /callback/addChannel/tikTok', res)
         // console.log('form get c ',res);
         console.log('Authenticatinggg')
+        console.log('reqqqq', req)
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
                 process.env.BASED_URL +
