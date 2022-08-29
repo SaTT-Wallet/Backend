@@ -754,12 +754,13 @@ exports.apply = async (req, res) => {
             var linkedinProfile = await LinkedinProfile.findOne({ userId: id })
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
-                idPost.toString()
+                idPost.toString(),
+                linkedinProfile
             )
 
             var media_url = linkedinInfo?.mediaUrl || ''
-            idUser = linkedinInfo.idUser
-            idPost = linkedinInfo.idPost.replace(/\D/g, '')
+            idUser = linkedinInfo?.idUser
+            idPost = linkedinInfo?.idPost.replace(/\D/g, '')
         }
 
         if (typeSN == 6) {
@@ -849,10 +850,10 @@ exports.apply = async (req, res) => {
             )
 
             // if (socialOracle?.views === 'old') socialOracle.views = '0'
-            prom.views = socialOracle.views
-            prom.likes = socialOracle.likes
-            prom.shares = socialOracle.shares || '0'
-            prom.media_url = media_url || socialOracle.media_url
+            prom.views = socialOracle?.views || 0
+            prom.likes = socialOracle?.likes || 0
+            prom.shares = socialOracle?.shares || 0
+            prom.media_url = media_url || socialOracle?.media_url
 
             let event = {
                 id: hash,
@@ -1598,14 +1599,14 @@ module.exports.linkStats = async (req, res) => {
                     views: info.views,
                 }
                 let reachLimit = getReachLimit(ratio, info.oracle)
-                 if (reachLimit)
-                     socialStats = limitStats(
+                if (reachLimit)
+                    socialStats = limitStats(
                         '',
-                         socialStats,
-                         '',
-                         abosNumber,
-                         reachLimit
-                     )
+                        socialStats,
+                        '',
+                        abosNumber,
+                        reachLimit
+                    )
                 ratio.forEach((elem) => {
                     if (elem.oracle === info.oracle) {
                         let view = new Big(elem['view']).times(
@@ -2454,7 +2455,6 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
                     let tokenName = [
                         'SATTBEP20',
-                        'SATTPOLYGON',
                         'WSATT',
                     ].includes(campaign.token.name)
                         ? 'SATT'

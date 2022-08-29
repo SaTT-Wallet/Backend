@@ -601,7 +601,7 @@ exports.getBalanceByUid = async (req, res) => {
             TRX,
             MATIC,
             SATT_TRON,
-            SATT_POLYGON,
+        
             SATT_BTT,
             ...token_info
         } = Tokens
