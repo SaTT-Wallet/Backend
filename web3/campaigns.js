@@ -665,7 +665,11 @@ exports.getUserIdByWallet = async (wallet) => {
     return user.UserId
 }
 
-exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
+exports.getLinkedinLinkInfo = async (
+    accessToken,
+    activityURN,
+    linkedinProfile
+) => {
     try {
         const params = new URLSearchParams()
         params.append('client_id', process.env.LINKEDIN_KEY)
@@ -707,7 +711,11 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     }
 }
 
-exports.getLinkedinLinkInfoMedia = async (accessToken, shareURN) => {
+exports.getLinkedinLinkInfoMedia = async (
+    accessToken,
+    shareURN,
+    linkedinProfile
+) => {
     try {
         const params = new URLSearchParams()
         params.append('client_id', process.env.LINKEDIN_KEY)
