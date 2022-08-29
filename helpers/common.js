@@ -123,7 +123,8 @@ const { TikTokProfile, FbProfile } = require('../model')
                     })
                     var linkedinInfo = await getLinkedinLinkInfoMedia(
                         linkedinProfile?.accessToken,
-                        event.idPost
+                        event.idPost,
+                        linkedinProfile
                     )
     
                     var media_url = linkedinInfo?.mediaUrl || ''
@@ -153,17 +154,25 @@ const { TikTokProfile, FbProfile } = require('../model')
                     tiktokProfile
                 )
     
+                event.abosNumber = await answerAbos(
+                    event.typeSN.toString(),
+                    event.idPost,
+                    event.idUser,
+                    linkedinProfile,
+                    tiktokProfile
+                )
+    
                 if (socialOracle === 'indisponible') {
                     event.status = 'indisponible'
-                } 
+                } else {
+                    event.status = true
+                }
     
                 if (socialOracle && socialOracle !== 'indisponible') {
-                    event.shares = (socialOracle && socialOracle.shares) || '0'
-                    event.likes = (socialOracle && socialOracle.likes) || '0'
-                    let views = (socialOracle && socialOracle.views) || '0'
-                    event.views = views === 'old' ? event.views : views
-                    event.media_url =
-                        (socialOracle && socialOracle.media_url) || media_url
+                    event.shares = socialOracle?.shares || event.shares
+                    event.likes = socialOracle?.likes || event.likes
+                    event.views = socialOracle?.views || event.views
+                    event.media_url = socialOracle?.media_url || media_url
                     event.oracle = findBountyOracle(event.typeSN)
                     event.type = getButtonStatus(event)
                 }
@@ -182,57 +191,8 @@ const { TikTokProfile, FbProfile } = require('../model')
                 delete event.payedAmount
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
-            if (event.typeSN == '6') {
-                var tiktokProfile = await TikTokProfile.findOne({
-                    userId: userWallet?.UserId,
-                })
-            }
-
-            let socialOracle = await getPromApplyStats(
-                findBountyOracle(event.typeSN),
-                event,
-                userWallet?.UserId,
-                linkedinProfile,
-                tiktokProfile
-            )
-
-            event.abosNumber = await answerAbos(
-                event.typeSN.toString(),
-                event.idPost,
-                event.idUser,
-                linkedinProfile,
-                tiktokProfile
-            )
-
-            if (socialOracle === 'indisponible') {
-                event.status = 'indisponible'
-            } 
-
-            if (socialOracle && socialOracle !== 'indisponible') {
-                event.shares = socialOracle?.shares || event.shares
-                event.likes = socialOracle?.likes || event.likes
-                event.views = socialOracle?.views || event.views
-                event.media_url = socialOracle?.media_url || media_url
-                event.oracle = findBountyOracle(event.typeSN)
-                event.type = getButtonStatus(event)
-            }
-
-            if (event.campaign.ratios.length && socialOracle) {
-                event.totalToEarn = getTotalToEarn(event, event.campaign.ratios)
-            }
-
-            if (event.campaign.bounties.length && socialOracle) {
-                event.totalToEarn = getReward(event, event.campaign.bounties)
-            }
-            // if (campaign.isFinished) event.totalToEarn = 0
-
-            if (event.campaign) event.type = getButtonStatus(event)
-            delete event.campaign
-            delete event.payedAmount
-            await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }
-    
 
 exports.UpdateStats = async (obj, socialOracle) => {
     if (!socialOracle)
