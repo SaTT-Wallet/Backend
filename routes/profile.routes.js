@@ -802,12 +802,7 @@ router.get(
         // console.log('form get c ',res);
         console.log('Authenticatinggg')
         console.log('reqqqq')
-        passport.authenticate('tikTok_strategy_add_channel', {
-            failureRedirect:
-                process.env.BASED_URL +
-                req.query.state.split('|')[1] +
-                '?message=access-denied',
-        })(req, res, next)
+        passport.authenticate('tikTok_strategy_add_channel')(req, res, next)
     },
     async (req, response) => {
         try {
