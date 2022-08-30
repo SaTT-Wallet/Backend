@@ -779,7 +779,7 @@ router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
     // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
     const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
-        scope: ['user.info.basic'],
+        scope: ['user.info.basic', 'video.list'],
         state,
     })(req, res, next)
 })
@@ -795,40 +795,6 @@ passport.use(
     )
 )
 
-router.post(
-    '/callback/addChannel/tikTok',
-    (req, res, next) => {
-        // console.log('res form /callback/addChannel/tikTok', res)
-        // console.log('form get c ',res);
-        console.log('Authenticatinggg')
-        console.log('reqqqq')
-        passport.authenticate('tikTok_strategy_add_channel')(req, res, next)
-    },
-    async (req, response) => {
-        try {
-            //console.log('response form async /callback/addChannel/t', response)
-            console.log('in reqq')
-            redirect = req.query.state.split('|')[1]
-
-            if (req.authInfo.message) {
-                message = req.authInfo.message
-            } else {
-                message = 'account_linked_with_success'
-            }
-            response.redirect(
-                process.env.BASED_URL +
-                    redirect +
-                    '?message=' +
-                    message +
-                    '&sn=tiktok'
-            )
-        } catch (e) {
-            console.log('error form /callback/addChannel/tikTok', e)
-
-            //console.log(e)
-        }
-    }
-)
 router.get(
     '/callback/addChannel/tikTok',
     (req, res, next) => {
@@ -836,7 +802,12 @@ router.get(
         // console.log('form get c ',res);
         console.log('Authenticatinggg')
         console.log('reqqqq')
-        passport.authenticate('tikTok_strategy_add_channel')(req, res, next)
+        passport.authenticate('tikTok_strategy_add_channel', {
+            failureRedirect:
+                process.env.BASED_URL +
+                req.query.state.split('|')[1] +
+                '?message=access-denied',
+        })(req, res, next)
     },
     async (req, response) => {
         try {
