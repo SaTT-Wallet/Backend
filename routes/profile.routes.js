@@ -829,6 +829,40 @@ router.post(
         }
     }
 )
+router.get(
+    '/callback/addChannel/tikTok',
+    (req, res, next) => {
+        // console.log('res form /callback/addChannel/tikTok', res)
+        // console.log('form get c ',res);
+        console.log('Authenticatinggg')
+        console.log('reqqqq')
+        passport.authenticate('tikTok_strategy_add_channel')(req, res, next)
+    },
+    async (req, response) => {
+        try {
+            //console.log('response form async /callback/addChannel/t', response)
+            console.log('in reqq')
+            redirect = req.query.state.split('|')[1]
+
+            if (req.authInfo.message) {
+                message = req.authInfo.message
+            } else {
+                message = 'account_linked_with_success'
+            }
+            response.redirect(
+                process.env.BASED_URL +
+                    redirect +
+                    '?message=' +
+                    message +
+                    '&sn=tiktok'
+            )
+        } catch (e) {
+            console.log('error form /callback/addChannel/tikTok', e)
+
+            //console.log(e)
+        }
+    }
+)
 /**
  * @swagger
  * /profile/addChannel/youtube/{idUser}:
