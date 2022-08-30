@@ -795,7 +795,7 @@ passport.use(
     )
 )
 
-router.get(
+router.post(
     '/callback/addChannel/tikTok',
     (req, res, next) => {
         // console.log('res form /callback/addChannel/tikTok', res)
