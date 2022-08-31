@@ -2455,7 +2455,6 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
                     let tokenName = [
                         'SATTBEP20',
-                        'SATTPOLYGON',
                         'WSATT',
                     ].includes(campaign.token.name)
                         ? 'SATT'
