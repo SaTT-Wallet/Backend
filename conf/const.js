@@ -4494,7 +4494,6 @@ wrapConstants["BTTC"] = {address: process.env.CONST_WMATIC_MAINNET, abi :
 wrapConstants["POLYGON"] = {address: process.env.CONST_WBTT_MAINNET, abi:wrapConstants["BTTC"].abi};
 
 
-let wrapConstants = [];
 
 
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
