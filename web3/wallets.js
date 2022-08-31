@@ -10,7 +10,9 @@ const {
 } = require('../blockchainConnexion')
 const {
     getWeb3Connection,
+    getHttpProvider,
     networkProviders,
+    networkProvidersOptions,
 } = require('./web3-connection')
 var cache = require('memory-cache')
 
@@ -57,7 +59,7 @@ exports.unlock = async (req, res) => {
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
 
-        let WEB3 = getWeb3Connection(networkProviders[ req.body.network])
+        let WEB3 = getWeb3Connection(getHttpProvider(networkProviders[ req.body.network],networkProvidersOptions[ req.body.network]))
 
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
