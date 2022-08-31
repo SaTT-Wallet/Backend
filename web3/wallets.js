@@ -42,6 +42,7 @@ const {
     pathEth,
     pathTron,
     booltestnet,
+    wrapConstants
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 
@@ -51,6 +52,7 @@ exports.unlock = async (req, res) => {
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
+        
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         let Web3BEP20 = await bep20Connexion()
@@ -1034,6 +1036,49 @@ exports.getWalletTron = async (id, pass) => {
     var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
     var tronAddrHex = tronWeb.address.toHex(tronAddr)
     return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
+}
+
+
+exports.wrapNative = async ( amount, credentials) => {
+    try {
+        tokenSmartContract = new credentials.WEB3.eth.Contract(
+            wrapConstants[credentials.network].abi,
+            wrapConstants[credentials.network].adress
+        )
+        let gasPrice = await credentials.WEB3.getGasPrice();
+        let gas = await tokenSmartContract.deposit().estimateGas({from:credentials.address,value:amount,gasPrice})
+        let receipt = await tokenSmartContract.deposit().send({from:credentials.address,value:amount,gas,gasPrice});
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount
+        }
+    
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+exports.unWrapNative = async ( amount, credentials) => {
+    try {
+        tokenSmartContract = new credentials.WEB3.eth.Contract(
+            wrapConstants[credentials.network].abi,
+            wrapConstants[credentials.network].adress
+        )
+        let gasPrice = await credentials.WEB3.getGasPrice();
+        let gas = await tokenSmartContract.withdraw(amount).estimateGas({from:credentials.address,gasPrice})
+        let receipt = await tokenSmartContract.withdraw(amount).send({from:credentials.address,gas,gasPrice});
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount
+        }
+    
+    } catch (err) {
+        return { error: err.message }
+    }
 }
 
 exports.FilterTransactionsByHash = (
