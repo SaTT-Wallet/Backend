@@ -123,9 +123,7 @@ exports.getDecimal = (symbol) => {
         let token_info = Tokens
 
         symbol =
-            symbol === 'SATTPOLYGON'
-                ? 'SATT_POLYGON'
-                : symbol === 'SATTBEP20'
+            symbol === 'SATTBEP20'
                 ? 'SATT_BEP20'
                 : symbol === 'SATTBTT'
                 ? 'SATT_BTT'

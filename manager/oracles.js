@@ -291,14 +291,14 @@ exports.findBountyOracle = (typeSN) => {
         return typeSN == '1'
             ? 'facebook'
             : typeSN == '2'
-            ? 'youtube'
-            : typeSN == '3'
-            ? 'instagram'
-            : typeSN == '4'
-            ? 'twitter'
-            : typeSN == '5'
-            ? 'linkedin'
-            : 'tiktok'
+                ? 'youtube'
+                : typeSN == '3'
+                    ? 'instagram'
+                    : typeSN == '4'
+                        ? 'twitter'
+                        : typeSN == '5'
+                            ? 'linkedin'
+                            : 'tiktok'
     } catch (err) {
         console.log(err.message)
     }
@@ -666,18 +666,18 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
             perf.likes = body.elements[0]?.totalShareStatistics.likeCount
             perf.shares = body.elements[0]?.totalShareStatistics.shareCount
         }
-        if (type !== 'share') {
-            const linkedinVideoData = {
-                url: config.linkedinUgcPostStats(idPost),
-                method: 'GET',
-                headers: {
-                    Authorization: 'Bearer ' + accessToken,
-                },
-                json: true,
-            }
-            var bodyVideo = await rp(linkedinVideoData)
-            perf.views = bodyVideo.elements[0].value
-        }
+        // if (type !== 'share') {
+        //     const linkedinVideoData = {
+        //         url: config.linkedinUgcPostStats(idPost),
+        //         method: 'GET',
+        //         headers: {
+        //             Authorization: 'Bearer ' + accessToken,
+        //         },
+        //         json: true,
+        //     }
+        //     var bodyVideo = await rp(linkedinVideoData)
+        //     perf.views = bodyVideo.elements[0].value
+        // }
         return perf
     } catch (err) {
         console.log(err.message)
@@ -956,38 +956,61 @@ exports.getButtonStatus = (link) => {
         var type = ''
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
-        if (link.totalToEarn) totalToEarn = link.totalToEarn
+        if (link.totalToEarn)
+            totalToEarn = link.totalToEarn
+
         if (link.reward)
             totalToEarn =
                 link.isPayed === false ? link.reward : link.payedAmount
-        if (link.status === 'indisponible') type = 'indisponible'
-        else if (link.status === 'rejected') type = 'rejected'
-        else if (link.status === false && !link.campaign.isFinished)
-            type = 'waiting_for_validation'
-        else if (
+
+        if (link.status === false && !link.campaign.isFinished)
+            return 'waiting_for_validation'
+
+        if (
             link.isPayed === true ||
             (link.payedAmount !== '0' &&
                 new Big(totalToEarn).lte(new Big(link.payedAmount)))
         )
-            type = 'already_recovered'
-        else if (totalToEarn === '0' && link.payedAmount === '0')
-            type = 'no_gains'
-        else if (
+            return 'already_recovered'
+
+        if (totalToEarn === '0' && link.payedAmount === '0')
+            return 'no_gains'
+
+
+        if (
             totalToEarn === '0' &&
             link.campaign.funds[1] === '0' &&
             link.payedAmount === '0'
         )
-            type = 'not_enough_budget'
-        else if (
+            return 'not_enough_budget'
+
+
+        if (
             (new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign?.ratios?.length) ||
             (link.isPayed === false &&
                 new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign.bounties?.length)
-        )
-            type = 'harvest'
-        else type = 'none'
-        return type
+
+        ) {
+            link.status = true
+            return 'harvest'
+        }
+
+
+        if (link.status === 'indisponible')
+            return 'indisponible'
+
+
+        if (link.status === 'rejected')
+            return 'rejected'
+
+
+
+
+
+        return 'none'
+
     } catch (err) {
         console.error(err)
     }
@@ -1003,7 +1026,7 @@ exports.answerBounty = async function (opts) {
                 'utf8'
             )
             tronCampaignWallet = JSON.parse(tronCampaignKeystore)
-           
+
             let ethAddr = tronCampaignWallet.address.slice(2)
             tronCampaignWallet.address = ethAddr
 
@@ -1014,7 +1037,7 @@ exports.answerBounty = async function (opts) {
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
             let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
-           
+
             let contract = await tronWeb.contract(
                 TronConstant.oracle.abi,
                 TronConstant.oracle.address
