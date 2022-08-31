@@ -153,25 +153,6 @@ const storage = new GridFsStorage({
     },
 })
 
-module.exports.wrappedbtt = async (cred, amount) => {
-    try {
-        let web3UrlBTT = cred.web3UrlBTT
-        contractWbtt = new web3UrlBTT.eth.Contract(
-            Constants.wbtt.abi,
-            Constants.token.wbtt
-        )
-        var gas = 200000
-
-        var ret = await contractWbtt.methods.deposit().send({
-            value: amount,
-            from: cred.address,
-            gas: gas,
-        })
-        return ret
-    } catch (error) {
-        console.log(error)
-    }
-}
 exports.swapTrx = async (req, res) => {
     try {
         let privateKey = req.body.privateKey
@@ -255,9 +236,8 @@ module.exports.launchCampaign = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
+            cred.network = network;
+           
 
             if (!cred) return
         }
@@ -360,9 +340,8 @@ module.exports.launchBounty = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
+            cred.network = network;
+           
 
             if (!cred) return
         }
