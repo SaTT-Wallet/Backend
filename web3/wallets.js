@@ -48,7 +48,7 @@ const {
     pathEth,
     pathTron,
     booltestnet,
-    wrapConstants
+    wrapConstants,
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 
@@ -59,7 +59,10 @@ exports.unlock = async (req, res) => {
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
 
-        let WEB3 = getWeb3Connection(getHttpProvider(networkProviders[ req.body.network],networkProvidersOptions[ req.body.network]))
+        let WEB3 = getWeb3Connection(
+            networkProviders[req.body.network],
+            networkProvidersOptions[req.body.network]
+        )
 
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
@@ -78,7 +81,7 @@ exports.unlock = async (req, res) => {
             Web3POLYGON,
             web3UrlBTT,
             tronSdk: sdk,
-            WEB3
+            WEB3,
         }
     } catch (err) {
         res.status(500).send({
@@ -612,7 +615,7 @@ exports.getBalanceByUid = async (req, res) => {
             TRX,
             MATIC,
             SATT_TRON,
-        
+
             SATT_BTT,
             ...token_info
         } = Tokens
@@ -1010,7 +1013,7 @@ exports.addWalletTron = async (req, res) => {
         let wallet = await Wallet.findOne({ UserId })
         let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
-            { UserId:UserId },
+            { UserId: UserId },
             {
                 $set: {
                     tronAddress: TronWallet.addr,
@@ -1020,7 +1023,7 @@ exports.addWalletTron = async (req, res) => {
                 new: true,
             }
         )
-       
+
         return TronWallet
     } catch (error) {
         console.log(error)
@@ -1047,44 +1050,49 @@ exports.getWalletTron = async (id, pass) => {
     return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
 }
 
-
-exports.wrapNative = async ( amount, credentials) => {
+exports.wrapNative = async (amount, credentials) => {
     try {
         tokenSmartContract = new credentials.WEB3.eth.Contract(
             wrapConstants[credentials.network].abi,
             wrapConstants[credentials.network].adress
         )
-        let gasPrice = await credentials.WEB3.getGasPrice();
-        let gas = await tokenSmartContract.deposit().estimateGas({from:credentials.address,value:amount,gasPrice})
-        let receipt = await tokenSmartContract.deposit().send({from:credentials.address,value:amount,gas,gasPrice});
+        let gasPrice = await credentials.WEB3.getGasPrice()
+        let gas = await tokenSmartContract
+            .deposit()
+            .estimateGas({ from: credentials.address, value: amount, gasPrice })
+        let receipt = await tokenSmartContract
+            .deposit()
+            .send({ from: credentials.address, value: amount, gas, gasPrice })
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
             to: to,
-            amount: amount
+            amount: amount,
         }
-    
     } catch (err) {
         return { error: err.message }
     }
 }
 
-exports.unWrapNative = async ( amount, credentials) => {
+exports.unWrapNative = async (amount, credentials) => {
     try {
         tokenSmartContract = new credentials.WEB3.eth.Contract(
             wrapConstants[credentials.network].abi,
             wrapConstants[credentials.network].adress
         )
-        let gasPrice = await credentials.WEB3.getGasPrice();
-        let gas = await tokenSmartContract.withdraw(amount).estimateGas({from:credentials.address,gasPrice})
-        let receipt = await tokenSmartContract.withdraw(amount).send({from:credentials.address,gas,gasPrice});
+        let gasPrice = await credentials.WEB3.getGasPrice()
+        let gas = await tokenSmartContract
+            .withdraw(amount)
+            .estimateGas({ from: credentials.address, gasPrice })
+        let receipt = await tokenSmartContract
+            .withdraw(amount)
+            .send({ from: credentials.address, gas, gasPrice })
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
             to: to,
-            amount: amount
+            amount: amount,
         }
-    
     } catch (err) {
         return { error: err.message }
     }
