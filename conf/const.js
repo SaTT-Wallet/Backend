@@ -4493,6 +4493,10 @@ wrapConstants["BTTC"] = {address: process.env.CONST_WMATIC_MAINNET, abi :
     {"anonymous":false,"inputs":[{"indexed":true,"name":"src","type":"address"},{"indexed":false,"name":"wad","type":"uint256"}],"name":"Withdrawal","type":"event"}]};
 wrapConstants["POLYGON"] = {address: process.env.CONST_WBTT_MAINNET, abi:wrapConstants["BTTC"].abi};
 
+
+let wrapConstants = [];
+
+
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3UrlBTT = process.env.WEB3_URL_BTT
 
