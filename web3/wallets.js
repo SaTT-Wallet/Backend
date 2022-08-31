@@ -8,6 +8,10 @@ const {
     tronConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
+const {
+    getWeb3Connection,
+    networkProviders,
+} = require('./web3-connection')
 var cache = require('memory-cache')
 
 var rp = require('request-promise')
@@ -52,7 +56,9 @@ exports.unlock = async (req, res) => {
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
-        
+
+        let WEB3 = getWeb3Connection(networkProviders[ req.body.network])
+
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         let Web3BEP20 = await bep20Connexion()
@@ -70,6 +76,7 @@ exports.unlock = async (req, res) => {
             Web3POLYGON,
             web3UrlBTT,
             tronSdk: sdk,
+            WEB3
         }
     } catch (err) {
         res.status(500).send({
