@@ -666,18 +666,18 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
             perf.likes = body.elements[0]?.totalShareStatistics.likeCount
             perf.shares = body.elements[0]?.totalShareStatistics.shareCount
         }
-        if (type !== 'share') {
-            const linkedinVideoData = {
-                url: config.linkedinUgcPostStats(idPost),
-                method: 'GET',
-                headers: {
-                    Authorization: 'Bearer ' + accessToken,
-                },
-                json: true,
-            }
-            var bodyVideo = await rp(linkedinVideoData)
-            perf.views = bodyVideo.elements[0].value
-        }
+        // if (type !== 'share') {
+        //     const linkedinVideoData = {
+        //         url: config.linkedinUgcPostStats(idPost),
+        //         method: 'GET',
+        //         headers: {
+        //             Authorization: 'Bearer ' + accessToken,
+        //         },
+        //         json: true,
+        //     }
+        //     var bodyVideo = await rp(linkedinVideoData)
+        //     perf.views = bodyVideo.elements[0].value
+        // }
         return perf
     } catch (err) {
         console.log(err.message)
