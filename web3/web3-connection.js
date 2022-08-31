@@ -36,12 +36,12 @@ const networkProvidersOptions = {
     BTTC: options,
 }
 
-const getWeb3Connection = function (provider) {
-    return new Web3(provider)
+const getWeb3Connection = function (providerUrl, providerOptions) {
+    return new Web3(getHttpProvider(providerUrl, providerOptions))
 }
 
-const getHttpProvider = function (providerUrl) {
-    return new Web3.providers.HttpProvider(providerUrl)
+const getHttpProvider = function (providerUrl, providerOptions) {
+    return new Web3.providers.HttpProvider(providerUrl, providerOptions)
 }
 
 module.exports = {
