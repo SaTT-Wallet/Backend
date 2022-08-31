@@ -469,6 +469,8 @@ exports.campaigns = async (req, res) => {
                 $sort: {
                     sort: 1,
                     sortPriority: -1,
+                    updatedAt: -1,
+                    createdAt: -1,
                     _id: 1,
                 },
             },
@@ -2453,10 +2455,9 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = [
-                        'SATTBEP20',
-                        'WSATT',
-                    ].includes(campaign.token.name)
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
+                        campaign.token.name
+                    )
                         ? 'SATT'
                         : campaign.token.name
                     let payedAmountInCryptoCurrency = new Big(
