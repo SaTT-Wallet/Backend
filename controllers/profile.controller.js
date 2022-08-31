@@ -13,6 +13,8 @@ const {
     TikTokProfile,
 } = require('../model/index')
 
+const contentDisposition = require('content-disposition')
+
 const { responseHandler } = require('../helpers/response-handler')
 const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
@@ -139,7 +141,7 @@ exports.profilePicture = async (req, response) => {
                 response.writeHead(200, {
                     'Content-Type': 'image/png',
                     'Content-Length': file.length,
-                    'Content-Disposition': `attachment; filename=${file.filename}`,
+                    'Content-Disposition': contentDisposition(file.filename),
                 })
                 const readstream = gfsprofilePic.createReadStream(file.filename)
                 readstream.pipe(response)
