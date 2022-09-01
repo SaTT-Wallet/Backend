@@ -291,14 +291,14 @@ exports.findBountyOracle = (typeSN) => {
         return typeSN == '1'
             ? 'facebook'
             : typeSN == '2'
-                ? 'youtube'
-                : typeSN == '3'
-                    ? 'instagram'
-                    : typeSN == '4'
-                        ? 'twitter'
-                        : typeSN == '5'
-                            ? 'linkedin'
-                            : 'tiktok'
+            ? 'youtube'
+            : typeSN == '3'
+            ? 'instagram'
+            : typeSN == '4'
+            ? 'twitter'
+            : typeSN == '5'
+            ? 'linkedin'
+            : 'tiktok'
     } catch (err) {
         console.log(err.message)
     }
@@ -805,7 +805,6 @@ const twitter = async (userName, idPost) => {
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
 
-
             var perf = {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
@@ -859,7 +858,8 @@ const tiktok = async (tiktokProfile, idPost) => {
             likes: videoInfoResponse.data.videos[0].like_count,
             shares: videoInfoResponse.data.videos[0].share_count,
             views: videoInfoResponse.data.videos[0].view_count,
-            media_url: videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
+            media_url:
+                videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
         }
     } catch (error) {
         console.log(error)
@@ -926,7 +926,7 @@ exports.getReward = (result, bounties) => {
                 bounty.oracle === result.oracle ||
                 bounty.oracle == this.findBountyOracle(result.typeSN)
             ) {
-                bounty = bounty.toObject()
+                // bounty = bounty.toObject()
                 bounty.categories.forEach((category) => {
                     if (
                         +category.minFollowers <= +result.abosNumber &&
@@ -956,8 +956,7 @@ exports.getButtonStatus = (link) => {
         var type = ''
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
-        if (link.totalToEarn)
-            totalToEarn = link.totalToEarn
+        if (link.totalToEarn) totalToEarn = link.totalToEarn
 
         if (link.reward)
             totalToEarn =
@@ -973,9 +972,7 @@ exports.getButtonStatus = (link) => {
         )
             return 'already_recovered'
 
-        if (totalToEarn === '0' && link.payedAmount === '0')
-            return 'no_gains'
-
+        if (totalToEarn === '0' && link.payedAmount === '0') return 'no_gains'
 
         if (
             totalToEarn === '0' &&
@@ -984,33 +981,22 @@ exports.getButtonStatus = (link) => {
         )
             return 'not_enough_budget'
 
-
         if (
             (new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign?.ratios?.length) ||
             (link.isPayed === false &&
                 new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign.bounties?.length)
-
         ) {
             link.status = true
             return 'harvest'
         }
 
+        if (link.status === 'indisponible') return 'indisponible'
 
-        if (link.status === 'indisponible')
-            return 'indisponible'
-
-
-        if (link.status === 'rejected')
-            return 'rejected'
-
-
-
-
+        if (link.status === 'rejected') return 'rejected'
 
         return 'none'
-
     } catch (err) {
         console.error(err)
     }
@@ -1019,7 +1005,6 @@ exports.getButtonStatus = (link) => {
 exports.answerBounty = async function (opts) {
     try {
         if (!!opts.tronWeb) {
-
             let tronWeb = await webTronInstance()
             var tronCampaignKeystore = fs.readFileSync(
                 process.env.CAMPAIGN_TRON_WALLET_PATH,
@@ -1035,7 +1020,9 @@ exports.answerBounty = async function (opts) {
                 process.env.CAMPAIGN_TRON_OWNER_PASS
             )
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(
+                wallet.privateKey.slice(2)
+            )
             tronWeb.setAddress(walletAddr)
 
             let contract = await tronWeb.contract(
