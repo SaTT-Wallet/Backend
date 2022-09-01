@@ -482,7 +482,7 @@ exports.campaigns = async (req, res) => {
                     coverSrc: 0,
                 },
             },
-        ])
+        ]).allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2104,7 +2104,7 @@ exports.getLinks = async (req, res) => {
                     _id: 1,
                 },
             },
-        ])
+        ]).allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2128,7 +2128,7 @@ exports.getLinks = async (req, res) => {
                             _id: 1,
                         },
                     },
-                ])
+                ]).allowDiskUse(true)
                     .skip(skip)
                     .limit(limit))) ||
             []
@@ -2427,7 +2427,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     hash: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true);
 
         let linkProms = CampaignLink.aggregate([
             {
@@ -2435,7 +2435,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     id_campaign: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true);
         let data = await Promise.all([campaignProms, linkProms])
 
         let pools = data[0]
@@ -2623,7 +2623,7 @@ module.exports.totalInvested = async (req, res) => {
                     idNode: '0' + req.user._id,
                 },
             },
-        ])
+        ]).allowDiskUse(true);
         userCampaigns.forEach((elem) => {
             totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
         })
