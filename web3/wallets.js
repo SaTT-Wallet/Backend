@@ -249,9 +249,9 @@ exports.getAccount = async (req, res) => {
             }
         }
         return result
-    } else {
+    } else if(Object.keys(res).length !== 0)
         return res.status(401).end('Account not found')
-    }
+
 }
 
 exports.getPrices = async () => {
