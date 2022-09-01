@@ -32,6 +32,8 @@ const {
     lockPolygon,
     tronApprove,
     tronAllowance,
+    unlockNetwork,
+    approve,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -1739,6 +1741,59 @@ exports.getFunds = async (req, res) => {
         }
     }
 }
+exports.approveCampaign = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let token = req.body.tokenAddress
+        console.log(campaignAddress, 'camapign alllow  adress')
+        console.log(token, 'tokenn adress')
+
+        var cred = await unlockNetwork(req, res)
+        if (!cred) return
+
+        let ret = await approve(token, cred, campaignAddress, amount, res)
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lock(cred)
+    }
+}
+exports.campaignAllowance = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res)
+        let allowance = await allow(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
 
 exports.bttApproval = async (req, res) => {
     try {
@@ -2453,10 +2508,9 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = [
-                        'SATTBEP20',
-                        'WSATT',
-                    ].includes(campaign.token.name)
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
+                        campaign.token.name
+                    )
                         ? 'SATT'
                         : campaign.token.name
                     let payedAmountInCryptoCurrency = new Big(
