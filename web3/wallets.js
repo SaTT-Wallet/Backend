@@ -1084,10 +1084,10 @@ exports.unWrapNative = async (amount, credentials) => {
             wrapConstants[credentials.network].address
         )
         let gasPrice = await credentials.WEB3.eth.getGasPrice()
-        let gas = await tokenSmartContract
+        let gas = await tokenSmartContract.methods
             .withdraw(amount)
             .estimateGas({ from: credentials.address, gasPrice })
-        let receipt = await tokenSmartContract
+        let receipt = await tokenSmartContract.methods
             .withdraw(amount)
             .send({ from: credentials.address, gas, gasPrice })
         return {
