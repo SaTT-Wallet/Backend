@@ -1241,11 +1241,11 @@ exports.campaignStatus = (campaign) => {
         campaign.startDate =
             typeof campaign.startDate == 'number'
                 ? campaign.startDate
-                : Math.floor(new Date(campaign.startDate).getTime() / 1000)
+                : Math.floor(campaign.startDate.getTime() / 1000)
         campaign.endDate =
             typeof campaign.endDate == 'number'
                 ? campaign.endDate
-                : Math.floor(new Date(campaign.endDate).getTime() / 1000)
+                : Math.floor(campaign.endDate.getTime() / 1000)
 
         let isFinished =
             dateNow > campaign.endDate ||
