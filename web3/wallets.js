@@ -586,7 +586,7 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.price = CryptoPrices[tokenSymbol].price
 
             crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
-            console.log('1', ret, decimal, CryptoPrices[tokenSymbol])
+
             crypto.total_balance =
                 this.filterAmount(
                     new Big(await ret[Amount])
@@ -739,7 +739,6 @@ exports.getBalanceByUid = async (req, res) => {
 
         delete ret.address
         for (const Amount in ret) {
-            console.log(ret)
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
 
@@ -747,7 +746,7 @@ exports.getBalanceByUid = async (req, res) => {
                 (tokenSymbol === 'BTC' && 8) ||
                 (tokenSymbol === 'TRX' && 6) ||
                 18
-            console.log(tokenSymbol, ret[Amount])
+
             Total_balance +=
                 this.filterAmount(
                     new Big((await ret[Amount]) * 1)
