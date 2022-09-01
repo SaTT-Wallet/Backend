@@ -8,6 +8,12 @@ const {
     tronConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
+const {
+    getWeb3Connection,
+    getHttpProvider,
+    networkProviders,
+    networkProvidersOptions,
+} = require('./web3-connection')
 var cache = require('memory-cache')
 
 var rp = require('request-promise')
@@ -28,6 +34,7 @@ const {
     PolygonConstants,
     BttConstants,
     TronConstant,
+    wrapConstants,
 } = require('../conf/const')
 
 var child = require('child_process')
@@ -51,6 +58,14 @@ exports.unlock = async (req, res) => {
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
+        let WEB3 = null
+        if (req.body && req.body.network) {
+            WEB3 = getWeb3Connection(
+                networkProviders[req.body.network],
+                networkProvidersOptions[req.body.network]
+            )
+        }
+
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         let Web3BEP20 = await bep20Connexion()
@@ -68,6 +83,8 @@ exports.unlock = async (req, res) => {
             Web3POLYGON,
             web3UrlBTT,
             tronSdk: sdk,
+            WEB3,
+            network: req.body.network,
         }
     } catch (err) {
         res.status(500).send({
@@ -601,7 +618,7 @@ exports.getBalanceByUid = async (req, res) => {
             TRX,
             MATIC,
             SATT_TRON,
-        
+
             SATT_BTT,
             ...token_info
         } = Tokens
@@ -999,7 +1016,7 @@ exports.addWalletTron = async (req, res) => {
         let wallet = await Wallet.findOne({ UserId })
         let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
-            { UserId:UserId },
+            { UserId: UserId },
             {
                 $set: {
                     tronAddress: TronWallet.addr,
@@ -1009,7 +1026,7 @@ exports.addWalletTron = async (req, res) => {
                 new: true,
             }
         )
-       
+
         return TronWallet
     } catch (error) {
         console.log(error)
@@ -1034,6 +1051,54 @@ exports.getWalletTron = async (id, pass) => {
     var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
     var tronAddrHex = tronWeb.address.toHex(tronAddr)
     return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
+}
+
+exports.wrapNative = async (amount, credentials) => {
+    try {
+        tokenSmartContract = new credentials.WEB3.eth.Contract(
+            wrapConstants[credentials.network].abi,
+            wrapConstants[credentials.network].address
+        )
+        let gasPrice = await credentials.WEB3.eth.getGasPrice()
+        let gas = await tokenSmartContract.methods
+            .deposit()
+            .estimateGas({ from: credentials.address, value: amount, gasPrice })
+        let receipt = await tokenSmartContract.methods
+            .deposit()
+            .send({ from: credentials.address, value: amount, gas, gasPrice })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+exports.unWrapNative = async (amount, credentials) => {
+    try {
+        tokenSmartContract = new credentials.WEB3.eth.Contract(
+            wrapConstants[credentials.network].abi,
+            wrapConstants[credentials.network].address
+        )
+        let gasPrice = await credentials.WEB3.eth.getGasPrice()
+        let gas = await tokenSmartContract.methods
+            .withdraw(amount)
+            .estimateGas({ from: credentials.address, gasPrice })
+        let receipt = await tokenSmartContract.methods
+            .withdraw(amount)
+            .send({ from: credentials.address, gas, gasPrice })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
 }
 
 exports.FilterTransactionsByHash = (
