@@ -19,6 +19,12 @@ const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
 const { async } = require('hasha')
+const {
+    getHttpProvider,
+    networkProviders,
+    getWeb3Connection,
+} = require('../web3/web3-connection')
+const Web3 = require('web3')
 
 exports.unlock = async (req, res) => {
     try {
@@ -45,6 +51,60 @@ exports.unlock = async (req, res) => {
             code: 500,
             error: err.message ? err.message : err.error,
         })
+    }
+}
+exports.unlockNetwork = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let network = req.params.network
+        let wallet = await Wallet.findOne({ UserId })
+        console.log(wallet, 'walllleeeeeeeet')
+        const provider = getHttpProvider(
+            networkProviders[network.toUpperCase()]
+        )
+        let web3 = await new Web3(provider)
+        web3.eth.accounts.wallet.decrypt([wallet.keystore], pass)
+        console.log(
+            web3.eth.accounts.wallet.decrypt([wallet.keystore], pass),
+            'accunt'
+        )
+        return {
+            address: '0x' + wallet.keystore.address,
+            web3,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+exports.approve = async (token, address, spender) => {
+    try {
+        let network = req.body.network
+        const provider = getHttpProvider(
+            networkProviders[network.toUpperCase()]
+        )
+        let web3 = await new Web3(provider)
+
+        var contract = new web3.eth.Contract(Constants.token.abi, token)
+
+        var amount = await contract.methods.allowance(address, spender).call()
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
+    }
+}
+exports.bttApprove = async (token, address, spender) => {
+    try {
+        let Web3Btt = await bttConnexion()
+        var contract = new Web3Btt.eth.Contract(Constants.token.abi, token)
+
+        var amount = await contract.methods.allowance(address, spender).call()
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
     }
 }
 
@@ -407,6 +467,35 @@ exports.bep20Allow = async (token, credentials, spender, amount, res) => {
                 console.log('approve transactionHash', transactionHash)
             })
 
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
+exports.approve = async (token, credentials, spender, amount, res) => {
+    try {
+        var contract = new credentials.web3.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        var gasPrice = await credentials.web3.eth.getGasPrice()
+        var gas = await contract.methods
+            .approve(spender, amount)
+            .estimateGas({ from: credentials.address })
+        var receipt = await contract.methods
+            .approve(spender, amount)
+            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
+            .once('transactionHash', function (transactionHash) {
+                console.log('approve transactionHash', transactionHash)
+            })
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
