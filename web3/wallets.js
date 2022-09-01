@@ -34,6 +34,7 @@ const {
     PolygonConstants,
     BttConstants,
     TronConstant,
+    wrapConstants,
 } = require('../conf/const')
 
 var child = require('child_process')
@@ -48,7 +49,6 @@ const {
     pathEth,
     pathTron,
     booltestnet,
-    wrapConstants,
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 
@@ -84,6 +84,7 @@ exports.unlock = async (req, res) => {
             web3UrlBTT,
             tronSdk: sdk,
             WEB3,
+            network: req.body.network,
         }
     } catch (err) {
         res.status(500).send({
@@ -1056,13 +1057,13 @@ exports.wrapNative = async (amount, credentials) => {
     try {
         tokenSmartContract = new credentials.WEB3.eth.Contract(
             wrapConstants[credentials.network].abi,
-            wrapConstants[credentials.network].adress
+            wrapConstants[credentials.network].address
         )
-        let gasPrice = await credentials.WEB3.getGasPrice()
-        let gas = await tokenSmartContract
+        let gasPrice = await credentials.WEB3.eth.getGasPrice()
+        let gas = await tokenSmartContract.methods
             .deposit()
             .estimateGas({ from: credentials.address, value: amount, gasPrice })
-        let receipt = await tokenSmartContract
+        let receipt = await tokenSmartContract.methods
             .deposit()
             .send({ from: credentials.address, value: amount, gas, gasPrice })
         return {
@@ -1080,9 +1081,9 @@ exports.unWrapNative = async (amount, credentials) => {
     try {
         tokenSmartContract = new credentials.WEB3.eth.Contract(
             wrapConstants[credentials.network].abi,
-            wrapConstants[credentials.network].adress
+            wrapConstants[credentials.network].address
         )
-        let gasPrice = await credentials.WEB3.getGasPrice()
+        let gasPrice = await credentials.WEB3.eth.getGasPrice()
         let gas = await tokenSmartContract
             .withdraw(amount)
             .estimateGas({ from: credentials.address, gasPrice })
