@@ -630,11 +630,11 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['BTT']
 
         let ret = await this.getAccount(req, res)
-        let tronAddress = ret.tronAddress
-        delete ret.btc
-        delete ret.tronAddress
-        delete ret.tronValue
-        delete ret.version
+        let tronAddress = ret?.tronAddress
+        delete ret?.btc
+        delete ret?.tronAddress
+        delete ret?.tronValue
+        delete ret?.version
 
         let userTokens = await CustomToken.find({
             sn_users: { $in: [userId] },
@@ -672,25 +672,25 @@ exports.getBalanceByUid = async (req, res) => {
                 balance.amount = await this.getBalance(
                     Web3ETH,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'BEP20') {
                 balance.amount = await this.getBalance(
                     Web3BEP20,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'POLYGON') {
                 balance.amount = await this.getBalance(
                     Web3POLYGON,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'BTT') {
                 balance.amount = await this.getBalance(
                     web3UrlBTT,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'TRON') {
                 balance.amount = await this.getTronBalance(
@@ -737,7 +737,7 @@ exports.getBalanceByUid = async (req, res) => {
             }
         }
 
-        delete ret.address
+        delete ret?.address
         for (const Amount in ret) {
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
