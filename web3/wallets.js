@@ -58,11 +58,13 @@ exports.unlock = async (req, res) => {
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
-
-        let WEB3 = getWeb3Connection(
-            networkProviders[req.body.network],
-            networkProvidersOptions[req.body.network]
-        )
+        let WEB3 = null
+        if (req.body && req.body.network) {
+            WEB3 = getWeb3Connection(
+                networkProviders[req.body.network],
+                networkProvidersOptions[req.body.network]
+            )
+        }
 
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
