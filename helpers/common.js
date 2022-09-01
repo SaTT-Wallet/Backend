@@ -167,7 +167,7 @@ module.exports.updateStat = async () => {
 
             if (socialOracle === 'indisponible') {
                 event.status = 'indisponible'
-            } 
+            }
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
@@ -178,7 +178,6 @@ module.exports.updateStat = async () => {
                         : socialOracle?.views
                 event.media_url = socialOracle?.media_url || media_url
                 event.oracle = findBountyOracle(event.typeSN)
-                event.type = getButtonStatus(event)
             }
 
             if (event.campaign.ratios.length && socialOracle) {
@@ -188,7 +187,8 @@ module.exports.updateStat = async () => {
             if (event.campaign.bounties.length && socialOracle) {
                 event.totalToEarn = getReward(event, event.campaign.bounties)
             }
-            // if (campaign.isFinished) event.totalToEarn = 0
+
+            event.type = getButtonStatus(event)
 
             if (event.campaign) event.type = getButtonStatus(event)
             delete event.campaign
