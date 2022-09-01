@@ -569,7 +569,7 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.price = CryptoPrices[tokenSymbol].price
 
             crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
-            console.log('1', ret, decimal, CryptoPrices[tokenSymbol])
+
             crypto.total_balance =
                 this.filterAmount(
                     new Big(await ret[Amount])
@@ -601,7 +601,7 @@ exports.getBalanceByUid = async (req, res) => {
             TRX,
             MATIC,
             SATT_TRON,
-        
+
             SATT_BTT,
             ...token_info
         } = Tokens
@@ -722,7 +722,6 @@ exports.getBalanceByUid = async (req, res) => {
 
         delete ret.address
         for (const Amount in ret) {
-            console.log(ret)
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
 
@@ -730,7 +729,7 @@ exports.getBalanceByUid = async (req, res) => {
                 (tokenSymbol === 'BTC' && 8) ||
                 (tokenSymbol === 'TRX' && 6) ||
                 18
-            console.log(tokenSymbol, ret[Amount])
+
             Total_balance +=
                 this.filterAmount(
                     new Big((await ret[Amount]) * 1)
@@ -999,7 +998,7 @@ exports.addWalletTron = async (req, res) => {
         let wallet = await Wallet.findOne({ UserId })
         let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
-            { UserId:UserId },
+            { UserId: UserId },
             {
                 $set: {
                     tronAddress: TronWallet.addr,
@@ -1009,7 +1008,7 @@ exports.addWalletTron = async (req, res) => {
                 new: true,
             }
         )
-       
+
         return TronWallet
     } catch (error) {
         console.log(error)
