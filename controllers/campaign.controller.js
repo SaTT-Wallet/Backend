@@ -236,8 +236,6 @@ module.exports.launchCampaign = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            cred.network = network;
-           
 
             if (!cred) return
         }
@@ -340,8 +338,6 @@ module.exports.launchBounty = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            cred.network = network;
-           
 
             if (!cred) return
         }
@@ -2432,10 +2428,9 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = [
-                        'SATTBEP20',
-                        'WSATT',
-                    ].includes(campaign.token.name)
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
+                        campaign.token.name
+                    )
                         ? 'SATT'
                         : campaign.token.name
                     let payedAmountInCryptoCurrency = new Big(
