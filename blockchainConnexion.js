@@ -38,35 +38,55 @@ const options = {
 exports.bep20Connexion = async () => {
     try {
         let Web3 = require('web3')
-        return new Web3(new Web3.providers.HttpProvider(web3UrlBep20, options))
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(web3UrlBep20, options)
+        )
+        await web3.eth.getNodeInfo()
+        return web3
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
+        console.log('bsc web3 error', err.message ? err.message : err.error)
+        return null
     }
 }
 
 exports.erc20Connexion = async () => {
     try {
         let Web3 = require('web3')
-        return await new Web3(new Web3.providers.HttpProvider(web3Url, options))
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(web3Url, options)
+        )
+        await web3.eth.getNodeInfo()
+        return web3
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
+        console.log('eth web3 error', err.message ? err.message : err.error)
+        return null
     }
 }
 
 exports.polygonConnexion = async () => {
     try {
         let Web3 = require('web3')
-        return await new Web3(new Web3.providers.HttpProvider(web3PolygonUrl))
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(web3PolygonUrl, options)
+        )
+        await web3.eth.getNodeInfo()
+        return web3
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
+        console.log('polygon web3 error', err.message ? err.message : err.error)
+        return null
     }
 }
 exports.bttConnexion = async () => {
     try {
         let Web3 = require('web3')
-        return new Web3(new Web3.providers.HttpProvider(web3UrlBTT, options))
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(web3UrlBTT, options)
+        )
+        await web3.eth.getNodeInfo()
+        return web3
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
+        console.log('bttc web3 error', err.message ? err.message : err.error)
+        return null
     }
 }
 
@@ -79,7 +99,7 @@ exports.webTronInstance = async () => {
         })
         return tronWeb
     } catch (err) {
-        console.log(err.message ? err.message : err.error)
+        console.log('tron rpc error', err.message ? err.message : err.error)
     }
 }
 
