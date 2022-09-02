@@ -187,22 +187,25 @@ exports.getAccount = async (req, res) => {
         let web3UrlBTT = await bttConnexion()
         let tronWeb = await webTronInstance()
 
-        var ether_balance = await Web3ETH.eth.getBalance(address)
-        var bnb_balance = await Web3BEP20.eth.getBalance(address)
-        var polygon_balance = await Web3POLYGON.eth.getBalance(address)
-        var btt_balance = await web3UrlBTT.eth.getBalance(address)
+        var ether_balance = await Web3ETH?.eth.getBalance(address)
+        var bnb_balance = await Web3BEP20?.eth.getBalance(address)
+        var polygon_balance = await Web3POLYGON?.eth.getBalance(address)
+        var btt_balance = await web3UrlBTT?.eth.getBalance(address)
         var trx_balance =
             (!!tronAddress &&
-                (await tronWeb.trx.getBalance(tronAddress)).toString()) ||
+                (await tronWeb?.trx.getBalance(tronAddress))?.toString()) ||
             null
-
+        let contractSatt = null
         // var tron_balance = await Web3TRON.eth.getBalance(address)
-        contractSatt = new Web3ETH.eth.Contract(
-            Constants.token.abi,
-            Constants.token.satt
-        )
-
-        var satt_balance = await contractSatt.methods.balanceOf(address).call()
+        if (Web3ETH) {
+            contractSatt = new Web3ETH.eth.Contract(
+                Constants.token.abi,
+                Constants.token.satt
+            )
+            var satt_balance = await contractSatt.methods
+                .balanceOf(address)
+                .call()
+        }
 
         var result = {
             btc: account.btc.addressSegWitCompat,
@@ -213,7 +216,7 @@ exports.getAccount = async (req, res) => {
             bnb_balance: bnb_balance,
             matic_balance: polygon_balance,
             // tron_balance:tron_balance,
-            satt_balance: satt_balance ? satt_balance.toString() : 0,
+            satt_balance: satt_balance,
             btt_balance: btt_balance,
             trx_balance: trx_balance,
             version: account.mnemo ? 2 : 1,
@@ -245,13 +248,13 @@ exports.getAccount = async (req, res) => {
                     result.btc_balance = Math.floor(red.amount * 100000000)
                 }
             } catch (e) {
+                console.log('btc node error')
                 result.btc_balance = 0
             }
         }
         return result
-    } else if(Object.keys(res).length !== 0)
+    } else if (Object.keys(res).length !== 0)
         return res.status(401).end('Account not found')
-
 }
 
 exports.getPrices = async () => {
