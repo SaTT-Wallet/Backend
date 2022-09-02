@@ -11,9 +11,14 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const {wrapNative} = require('./wallets')
+const { wrapNative } = require('./wallets')
 
-const { Constants, tronTokensCampaign, TronConstant,wrapConstants } = require('../conf/const')
+const {
+    Constants,
+    tronTokensCampaign,
+    TronConstant,
+    wrapConstants,
+} = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
 const { isTronNetwork } = require('./campaigns')
@@ -233,9 +238,9 @@ exports.createPerformanceCampaign = async (
             }
         }
 
-        if(this.isNativeAddr(token)) {
+        if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
-            wrapNative(amount,credentials)
+            wrapNative(amount, credentials)
         }
 
         var ctr = await getContractByToken(token, credentials)
@@ -286,7 +291,6 @@ exports.createBountiesCampaign = async (
     res
 ) => {
     if (!!tronWeb) {
-
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
             TronConstant.campaign.address
@@ -336,9 +340,9 @@ exports.createBountiesCampaign = async (
         }
     }
 
-    if(this.isNativeAddr(token)) {
+    if (this.isNativeAddr(token)) {
         token = wrapConstants[credentials.network].address
-        wrapNative(amount,credentials)
+        wrapNative(amount, credentials)
     }
 
     var ctr = await getContractByToken(token, credentials)
@@ -381,8 +385,7 @@ exports.createBountiesCampaign = async (
 
 exports.bttApprove = async (token, address, spender) => {
     try {
-        if(this.isNativeAddr(token))
-            token = wrapConstants["BTTC"].address
+        if (this.isNativeAddr(token)) token = wrapConstants['BTTC'].address
         let Web3Btt = await bttConnexion()
         var contract = new Web3Btt.eth.Contract(Constants.token.abi, token)
 
@@ -454,8 +457,7 @@ exports.bep20Approve = async (token, address, spender) => {
 
 exports.polygonAllow = async (token, credentials, spender, amount, res) => {
     try {
-        if(this.isNativeAddr(token))
-        token = wrapConstants["POLYGON"].address
+        if (this.isNativeAddr(token)) token = wrapConstants['POLYGON'].address
         var contract = new credentials.Web3POLYGON.eth.Contract(
             Constants.token.abi,
             token
@@ -486,8 +488,7 @@ exports.polygonAllow = async (token, credentials, spender, amount, res) => {
 
 exports.bttAllow = async (token, credentials, spender, amount, res) => {
     try {
-        if(this.isNativeAddr(token))
-        token = wrapConstants["BTTC"].address
+        if (this.isNativeAddr(token)) token = wrapConstants['BTTC'].address
         var contract = new credentials.web3UrlBTT.eth.Contract(
             Constants.token.abi,
             token
@@ -552,8 +553,7 @@ exports.tronAllowance = async (tronWeb, token, amount, res) => {
 
 exports.polygonApprove = async (token, address, spender) => {
     try {
-        if(this.isNativeAddr(token))
-        token = wrapConstants["POLYGON"].address
+        if (this.isNativeAddr(token)) token = wrapConstants['POLYGON'].address
         let Web3POLYGON = await polygonConnexion()
         var contract = new Web3POLYGON.eth.Contract(Constants.token.abi, token)
         var amount = await contract.methods.allowance(address, spender).call()
@@ -1268,11 +1268,11 @@ exports.campaignStatus = (campaign) => {
         campaign.startDate =
             typeof campaign.startDate == 'number'
                 ? campaign.startDate
-                : Math.floor(campaign.startDate.getTime() / 1000)
+                : Math.floor(new Date(campaign.startDate).getTime() / 1000)
         campaign.endDate =
             typeof campaign.endDate == 'number'
                 ? campaign.endDate
-                : Math.floor(campaign.endDate.getTime() / 1000)
+                : Math.floor(new Date(campaign.endDate).getTime() / 1000)
 
         let isFinished =
             dateNow > campaign.endDate ||
