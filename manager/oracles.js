@@ -508,7 +508,9 @@ exports.tiktokAbos = async (username) => {
             abosNumber = parseFloat(abosNumber)
         }
     }
-    await browser.close()
+    await page.close();
+    console.log('page closed.');
+    await browser.close();
     return abosNumber
 }
 
