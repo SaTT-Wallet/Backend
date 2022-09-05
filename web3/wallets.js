@@ -8,6 +8,12 @@ const {
     tronConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
+const {
+    getWeb3Connection,
+    getHttpProvider,
+    networkProviders,
+    networkProvidersOptions,
+} = require('./web3-connection')
 var cache = require('memory-cache')
 
 var rp = require('request-promise')
@@ -28,6 +34,7 @@ const {
     PolygonConstants,
     BttConstants,
     TronConstant,
+    wrapConstants,
 } = require('../conf/const')
 
 var child = require('child_process')
@@ -51,6 +58,14 @@ exports.unlock = async (req, res) => {
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
+        let WEB3 = null
+        if (req.body && req.body.network) {
+            WEB3 = getWeb3Connection(
+                networkProviders[req.body.network],
+                networkProvidersOptions[req.body.network]
+            )
+        }
+
         let Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
         let Web3BEP20 = await bep20Connexion()
@@ -68,6 +83,8 @@ exports.unlock = async (req, res) => {
             Web3POLYGON,
             web3UrlBTT,
             tronSdk: sdk,
+            WEB3,
+            network: req.body.network,
         }
     } catch (err) {
         res.status(500).send({
@@ -170,22 +187,25 @@ exports.getAccount = async (req, res) => {
         let web3UrlBTT = await bttConnexion()
         let tronWeb = await webTronInstance()
 
-        var ether_balance = await Web3ETH.eth.getBalance(address)
-        var bnb_balance = await Web3BEP20.eth.getBalance(address)
-        var polygon_balance = await Web3POLYGON.eth.getBalance(address)
-        var btt_balance = await web3UrlBTT.eth.getBalance(address)
+        var ether_balance = await Web3ETH?.eth.getBalance(address)
+        var bnb_balance = await Web3BEP20?.eth.getBalance(address)
+        var polygon_balance = await Web3POLYGON?.eth.getBalance(address)
+        var btt_balance = await web3UrlBTT?.eth.getBalance(address)
         var trx_balance =
             (!!tronAddress &&
-                (await tronWeb.trx.getBalance(tronAddress)).toString()) ||
+                (await tronWeb?.trx.getBalance(tronAddress))?.toString()) ||
             null
-
+        let contractSatt = null
         // var tron_balance = await Web3TRON.eth.getBalance(address)
-        contractSatt = new Web3ETH.eth.Contract(
-            Constants.token.abi,
-            Constants.token.satt
-        )
-
-        var satt_balance = await contractSatt.methods.balanceOf(address).call()
+        if (Web3ETH) {
+            contractSatt = new Web3ETH.eth.Contract(
+                Constants.token.abi,
+                Constants.token.satt
+            )
+            var satt_balance = await contractSatt.methods
+                .balanceOf(address)
+                .call()
+        }
 
         var result = {
             btc: account.btc.addressSegWitCompat,
@@ -196,7 +216,7 @@ exports.getAccount = async (req, res) => {
             bnb_balance: bnb_balance,
             matic_balance: polygon_balance,
             // tron_balance:tron_balance,
-            satt_balance: satt_balance ? satt_balance.toString() : 0,
+            satt_balance: satt_balance,
             btt_balance: btt_balance,
             trx_balance: trx_balance,
             version: account.mnemo ? 2 : 1,
@@ -228,13 +248,13 @@ exports.getAccount = async (req, res) => {
                     result.btc_balance = Math.floor(red.amount * 100000000)
                 }
             } catch (e) {
+                console.log('btc node error')
                 result.btc_balance = 0
             }
         }
         return result
-    } else {
+    } else if (Object.keys(res).length !== 0)
         return res.status(401).end('Account not found')
-    }
 }
 
 exports.getPrices = async () => {
@@ -569,7 +589,7 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.price = CryptoPrices[tokenSymbol].price
 
             crypto.variation = CryptoPrices[tokenSymbol].percent_change_24h
-            console.log('1', ret, decimal, CryptoPrices[tokenSymbol])
+
             crypto.total_balance =
                 this.filterAmount(
                     new Big(await ret[Amount])
@@ -601,7 +621,7 @@ exports.getBalanceByUid = async (req, res) => {
             TRX,
             MATIC,
             SATT_TRON,
-        
+
             SATT_BTT,
             ...token_info
         } = Tokens
@@ -613,11 +633,11 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['BTT']
 
         let ret = await this.getAccount(req, res)
-        let tronAddress = ret.tronAddress
-        delete ret.btc
-        delete ret.tronAddress
-        delete ret.tronValue
-        delete ret.version
+        let tronAddress = ret?.tronAddress
+        delete ret?.btc
+        delete ret?.tronAddress
+        delete ret?.tronValue
+        delete ret?.version
 
         let userTokens = await CustomToken.find({
             sn_users: { $in: [userId] },
@@ -655,25 +675,25 @@ exports.getBalanceByUid = async (req, res) => {
                 balance.amount = await this.getBalance(
                     Web3ETH,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'BEP20') {
                 balance.amount = await this.getBalance(
                     Web3BEP20,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'POLYGON') {
                 balance.amount = await this.getBalance(
                     Web3POLYGON,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'BTT') {
                 balance.amount = await this.getBalance(
                     web3UrlBTT,
                     token_info[T_name].contract,
-                    ret.address
+                    ret?.address
                 )
             } else if (network == 'TRON') {
                 balance.amount = await this.getTronBalance(
@@ -720,9 +740,8 @@ exports.getBalanceByUid = async (req, res) => {
             }
         }
 
-        delete ret.address
+        delete ret?.address
         for (const Amount in ret) {
-            console.log(ret)
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
 
@@ -730,7 +749,7 @@ exports.getBalanceByUid = async (req, res) => {
                 (tokenSymbol === 'BTC' && 8) ||
                 (tokenSymbol === 'TRX' && 6) ||
                 18
-            console.log(tokenSymbol, ret[Amount])
+
             Total_balance +=
                 this.filterAmount(
                     new Big((await ret[Amount]) * 1)
@@ -999,7 +1018,7 @@ exports.addWalletTron = async (req, res) => {
         let wallet = await Wallet.findOne({ UserId })
         let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
-            { UserId:UserId },
+            { UserId: UserId },
             {
                 $set: {
                     tronAddress: TronWallet.addr,
@@ -1009,7 +1028,7 @@ exports.addWalletTron = async (req, res) => {
                 new: true,
             }
         )
-       
+
         return TronWallet
     } catch (error) {
         console.log(error)
@@ -1034,6 +1053,54 @@ exports.getWalletTron = async (id, pass) => {
     var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
     var tronAddrHex = tronWeb.address.toHex(tronAddr)
     return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
+}
+
+exports.wrapNative = async (amount, credentials) => {
+    try {
+        tokenSmartContract = new credentials.WEB3.eth.Contract(
+            wrapConstants[credentials.network].abi,
+            wrapConstants[credentials.network].address
+        )
+        let gasPrice = await credentials.WEB3.eth.getGasPrice()
+        let gas = await tokenSmartContract.methods
+            .deposit()
+            .estimateGas({ from: credentials.address, value: amount, gasPrice })
+        let receipt = await tokenSmartContract.methods
+            .deposit()
+            .send({ from: credentials.address, value: amount, gas, gasPrice })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
+}
+
+exports.unWrapNative = async (amount, credentials) => {
+    try {
+        tokenSmartContract = new credentials.WEB3.eth.Contract(
+            wrapConstants[credentials.network].abi,
+            wrapConstants[credentials.network].address
+        )
+        let gasPrice = await credentials.WEB3.eth.getGasPrice()
+        let gas = await tokenSmartContract.methods
+            .withdraw(amount)
+            .estimateGas({ from: credentials.address, gasPrice })
+        let receipt = await tokenSmartContract.methods
+            .withdraw(amount)
+            .send({ from: credentials.address, gas, gasPrice })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            to: to,
+            amount: amount,
+        }
+    } catch (err) {
+        return { error: err.message }
+    }
 }
 
 exports.FilterTransactionsByHash = (

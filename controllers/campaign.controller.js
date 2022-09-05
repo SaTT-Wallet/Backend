@@ -157,25 +157,6 @@ const storage = new GridFsStorage({
     },
 })
 
-module.exports.wrappedbtt = async (cred, amount) => {
-    try {
-        let web3UrlBTT = cred.web3UrlBTT
-        contractWbtt = new web3UrlBTT.eth.Contract(
-            Constants.wbtt.abi,
-            Constants.token.wbtt
-        )
-        var gas = 200000
-
-        var ret = await contractWbtt.methods.deposit().send({
-            value: amount,
-            from: cred.address,
-            gas: gas,
-        })
-        return ret
-    } catch (error) {
-        console.log(error)
-    }
-}
 exports.swapTrx = async (req, res) => {
     try {
         let privateKey = req.body.privateKey
@@ -259,9 +240,6 @@ module.exports.launchCampaign = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
 
             if (!cred) return
         }
@@ -364,9 +342,6 @@ module.exports.launchBounty = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
 
             if (!cred) return
         }
@@ -473,6 +448,8 @@ exports.campaigns = async (req, res) => {
                 $sort: {
                     sort: 1,
                     sortPriority: -1,
+                    updatedAt: -1,
+                    createdAt: -1,
                     _id: 1,
                 },
             },
@@ -485,6 +462,7 @@ exports.campaigns = async (req, res) => {
                 },
             },
         ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2161,6 +2139,7 @@ exports.getLinks = async (req, res) => {
                 },
             },
         ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2185,6 +2164,7 @@ exports.getLinks = async (req, res) => {
                         },
                     },
                 ])
+                    .allowDiskUse(true)
                     .skip(skip)
                     .limit(limit))) ||
             []
@@ -2483,7 +2463,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     hash: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true)
 
         let linkProms = CampaignLink.aggregate([
             {
@@ -2491,7 +2471,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     id_campaign: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true)
         let data = await Promise.all([campaignProms, linkProms])
 
         let pools = data[0]
@@ -2679,7 +2659,7 @@ module.exports.totalInvested = async (req, res) => {
                     idNode: '0' + req.user._id,
                 },
             },
-        ])
+        ]).allowDiskUse(true)
         userCampaigns.forEach((elem) => {
             totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
         })
