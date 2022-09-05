@@ -39,8 +39,81 @@ const {
     tronApproval,
     tronAllow,
     swapTrx,
+    campaignApproval,
+    approveCampaign,
+    campaignAllowance,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
+
+/**
+ * @swagger
+ * /campaign/approve/{network}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: approve
+ *     description: Approve the smart contract to interact with user wallet
+ *     parameters:
+ *       - name: network
+ *         description: network.
+ *         in: path
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaignAddress:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/approve/:network', verifyAuth, approveCampaign)
+
+/**
+ * @swagger
+ * /campaign/allow/{network}:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: allow
+ *     description: Allow user wallet to interact the smart contract
+ *     parameters:
+ *       - name: network
+ *         description: network
+ *         in: path
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaignAddress:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/allow/:network', verifyAuth, campaignAllowance)
 
 /**
  * @swagger
