@@ -36,6 +36,7 @@ const {
     verifyAuth,
     verifyAuthGetQuote,
 } = require('../middleware/passport.middleware')
+
 /**
  * @swagger
  * /wallet/mywallet:

@@ -146,14 +146,17 @@ module.exports.updateStat = async () => {
                 })
             }
 
-            let socialOracle = await getPromApplyStats(
-                findBountyOracle(event.typeSN),
-                event,
-                userWallet?.UserId,
-                linkedinProfile,
-                tiktokProfile
-            )
-
+            try {
+                var socialOracle = await getPromApplyStats(
+                    findBountyOracle(event.typeSN),
+                    event,
+                    userWallet?.UserId,
+                    linkedinProfile,
+                    tiktokProfile
+                )
+            } catch (e) {
+                continue
+            }
             event.abosNumber = await answerAbos(
                 event.typeSN.toString(),
                 event.idPost,
@@ -164,15 +167,17 @@ module.exports.updateStat = async () => {
 
             if (socialOracle === 'indisponible') {
                 event.status = 'indisponible'
-            } 
+            }
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
                 event.likes = socialOracle?.likes || event.likes
-                event.views = socialOracle?.views || event.views
+                event.views =
+                    socialOracle?.views === 'old'
+                        ? event.views
+                        : socialOracle?.views
                 event.media_url = socialOracle?.media_url || media_url
                 event.oracle = findBountyOracle(event.typeSN)
-                event.type = getButtonStatus(event)
             }
 
             if (event.campaign.ratios.length && socialOracle) {
@@ -182,7 +187,8 @@ module.exports.updateStat = async () => {
             if (event.campaign.bounties.length && socialOracle) {
                 event.totalToEarn = getReward(event, event.campaign.bounties)
             }
-            // if (campaign.isFinished) event.totalToEarn = 0
+
+            event.type = getButtonStatus(event)
 
             if (event.campaign) event.type = getButtonStatus(event)
             delete event.campaign

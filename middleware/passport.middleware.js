@@ -156,23 +156,14 @@ const signinWithEmail = async (
                     blockedDate: validAuth.blockedDate,
                 })
             }
-            return (
-                (!fromSignup &&
-                    done(null, false, {
-                        error: true,
-                        message: 'invalid_credentials',
-                        blockedDate: validAuth.blockedDate,
-                    })) ||
-                (user.idSn == 2 &&
-                    done(null, false, {
-                        error: true,
-                        message: 'account_already_used',
-                    })) ||
-                done(null, false, {
-                    error: true,
-                    message: 'account_exists',
-                })
-            )
+            return done(null, false, {
+                error: true,
+                message:
+                    (!fromSignup && 'invalid_credentials') ||
+                    (user.idSn == 2 && 'account_already_used') ||
+                    'account_exists',
+                ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
+            })
         }
     } else {
         return done(null, false, {
