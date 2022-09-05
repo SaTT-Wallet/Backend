@@ -59,7 +59,6 @@ exports.unlockNetwork = async (req, res) => {
         let pass = req.body.pass
         let network = req.params.network
         let wallet = await Wallet.findOne({ UserId })
-        console.log(wallet, 'walllleeeeeeeet')
         const provider = getHttpProvider(
             networkProviders[network.toUpperCase()]
         )
