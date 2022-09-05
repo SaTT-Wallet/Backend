@@ -47,19 +47,16 @@ const { verifyAuth } = require('../middleware/passport.middleware')
 
 /**
  * @swagger
-/**
- * @swagger
  * /campaign/approve/{network}:
  *   post:
  *     tags:
  *     - "campaign"
  *     summary: approve
- *     description: approve user wallet to interact the smart contract BTT
+ *     description: Approve the smart contract to interact with user wallet
  *     parameters:
- *       - network: network
- *         description: network
+ *       - name: network
+ *         description: network.
  *         in: path
- *         required: true
  *     requestBody:
  *       required: true
  *       content:
@@ -68,6 +65,10 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *             type: object
  *             properties:
  *               campaignAddress:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
  *                 type: string
  *               tokenAddress:
  *                 type: string
@@ -83,17 +84,16 @@ router.post('/approve/:network', verifyAuth, approveCampaign)
 
 /**
  * @swagger
- * /campaign/approval/{network}:
+ * /campaign/allow/{network}:
  *   post:
  *     tags:
  *     - "campaign"
  *     summary: allow
- *     description: Allow user wallet to interact the smart contract BTT
+ *     description: Allow user wallet to interact the smart contract
  *     parameters:
- *       - network: network
+ *       - name: network
  *         description: network
  *         in: path
- *         required: true
  *     requestBody:
  *       required: true
  *       content:
