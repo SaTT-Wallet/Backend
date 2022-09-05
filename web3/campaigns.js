@@ -176,6 +176,9 @@ exports.lock = async (credentials) => {
     credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
     credentials.web3UrlBTT.eth.accounts.wallet.remove(credentials.address)
 }
+exports.lockNetwork = async (credentials) => {
+    credentials.web3.eth.accounts.wallet.remove(credentials.address)
+}
 
 exports.lockERC20 = async (credentials) => {
     credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)

@@ -35,6 +35,7 @@ const {
     unlockNetwork,
     approve,
     allow,
+    lockNetwork,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -1766,7 +1767,7 @@ exports.approveCampaign = async (req, res) => {
             false
         )
     } finally {
-        if (cred) lock(cred)
+        if (cred) lockNetwork(cred)
     }
 }
 exports.campaignAllowance = async (req, res) => {
