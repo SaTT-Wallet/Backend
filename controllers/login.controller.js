@@ -22,7 +22,7 @@ const {
 } = require('../manager/accounts.js')
 
 const { loginSettings } = require('../conf/config')
-
+const maxAttempts = 3
 exports.changePassword = async (req, res) => {
     try {
         var newpass = req.body.newpass
@@ -236,7 +236,7 @@ exports.confirmCode = async (req, res) => {
     try {
         let [email, code] = [req.body.email.toLowerCase(), req.body.code]
         let user = await User.findOne({ email }, { secureCode: 1 })
-
+        let dateNow = Math.floor(Date.now() / 1000)
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
@@ -244,35 +244,95 @@ exports.confirmCode = async (req, res) => {
                 'user not found',
                 false
             )
-        } else if (user.secureCode.code != code)
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'wrong code',
-                false
-            )
-        else if (Date.now() >= user.secureCode.expiring)
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'code expired',
-                false
-            )
-        else if (user.secureCode.code == req.body.code) {
-            let authMethod = { message: 'code is matched' }
-            let date = Math.floor(Date.now() / 1000) + 86400
-            let userAuth = cloneUser(user)
-            let token = generateAccessToken(userAuth)
-            ;(authMethod.token = token),
-                (authMethod.expires_in = date),
-                (authMethod.idUser = user._id)
-            await User.updateOne({ _id: user._id }, { $set: { enabled: 1 } })
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                authMethod.message,
-                true
-            )
+        } else {
+            if (
+                differenceBetweenDates(user.secureCode.lastTry, dateNow) >
+                    loginSettings.lockedPeriod ||
+                !user.secureCode.lastTry
+            ) {
+                await User.updateOne(
+                    { _id: user._id },
+                    { $set: { 'secureCode.attempts': 0 } }
+                )
+                    .then((data) => {
+                        user.secureCode.attempts = 0
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
+            }
+            if (user.secureCode.attempts >= maxAttempts) {
+                return responseHandler.makeResponseError(
+                    res,
+                    429,
+                    'Too Many Attempts',
+                    false
+                )
+            } else if (user.secureCode.code != code) {
+                await User.updateOne(
+                    { _id: user._id },
+                    { $set: { 'secureCode.lastTry': dateNow } }
+                )
+                user.secureCode.attempts++
+                User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts,
+                        },
+                    }
+                )
+                    .then((data) => {
+                        return responseHandler.makeResponseError(
+                            res,
+                            401,
+                            'wrong code',
+                            false
+                        )
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
+            } else if (Date.now() >= user.secureCode.expiring)
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'code expired',
+                    false
+                )
+            else if (user.secureCode.code == req.body.code) {
+                let authMethod = { message: 'code is matched' }
+                let date = Math.floor(Date.now() / 1000) + 86400
+                let userAuth = cloneUser(user)
+                let token = generateAccessToken(userAuth)
+                ;(authMethod.token = token),
+                    (authMethod.expires_in = date),
+                    (authMethod.idUser = user._id)
+                await User.updateOne(
+                    { _id: user._id },
+                    { $set: { enabled: 1 } }
+                )
+                user.secureCode.attempts = 0
+                User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts,
+                        },
+                    }
+                )
+                    .then((data) => {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            authMethod.message,
+                            true
+                        )
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
+            }
         }
     } catch (err) {
         console.log(err.message)
@@ -291,7 +351,7 @@ exports.passRecover = async (req, res) => {
         let newpass = req.body.newpass
         let email = req.body.email
         let code = Number(req.body.code)
-
+        let dateNow = Math.floor(Date.now() / 1000)
         let user = await User.findOne({ email }, { secureCode: 1 })
 
         if (!user) {
@@ -301,35 +361,92 @@ exports.passRecover = async (req, res) => {
                 'user not found',
                 false
             )
-        } else if (
-            !isNaN(user.secureCode.code) &&
-            !isNaN(code) &&
-            user.secureCode.code === code
-        ) {
-            await User.updateOne(
-                { _id: user._id },
-                { $set: { password: synfonyHash(newpass), enabled: 1 } }
-            )
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'successfully',
-                true
-            )
-        } else if (Date.now() >= user.secureCode.expiring)
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'code expired',
-                false
-            )
-        else {
-            return responseHandler.makeResponseError(
-                res,
-                401,
-                'wrong code',
-                false
-            )
+        } else {
+            if (
+                differenceBetweenDates(user.secureCode.lastTry, dateNow) >
+                    loginSettings.lockedPeriod ||
+                !user.secureCode.lastTry
+            ) {
+                await User.updateOne(
+                    { _id: user._id },
+                    { $set: { 'secureCode.attempts': 0 } }
+                )
+                    .then((data) => {
+                        user.secureCode.attempts = 0
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
+            }
+            if (user.secureCode.attempts >= maxAttempts) {
+                return responseHandler.makeResponseError(
+                    res,
+                    429,
+                    'Too Many Attempts',
+                    false
+                )
+            } else if (
+                !isNaN(user.secureCode.code) &&
+                !isNaN(code) &&
+                user.secureCode.code === code
+            ) {
+                await User.updateOne(
+                    { _id: user._id },
+                    { $set: { password: synfonyHash(newpass), enabled: 1 } }
+                )
+                user.secureCode.attempts = 0
+                User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts,
+                        },
+                    }
+                )
+                    .then((data) => {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'successfully',
+                            true
+                        )
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
+            } else if (Date.now() >= user.secureCode.expiring)
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'code expired',
+                    false
+                )
+            else {
+                await User.updateOne(
+                    { _id: user._id },
+                    { $set: { 'secureCode.lastTry': dateNow } }
+                )
+                user.secureCode.attempts++
+                User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts,
+                        },
+                    }
+                )
+                    .then((data) => {
+                        return responseHandler.makeResponseError(
+                            res,
+                            401,
+                            'wrong code',
+                            false
+                        )
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
+            }
         }
     } catch (err) {
         console.log(err.message)
