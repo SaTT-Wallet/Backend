@@ -114,7 +114,13 @@ let createUser = (
  * begin signin with email and password
  */
 
-const signinWithEmail = async (req, username, password, done) => {
+const signinWithEmail = async (
+    req,
+    username,
+    password,
+    done,
+    fromSignup = false
+) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ email: username.toLowerCase() })
     if (user) {
@@ -152,8 +158,11 @@ const signinWithEmail = async (req, username, password, done) => {
             }
             return done(null, false, {
                 error: true,
-                message: 'invalid_credentials',
-                blockedDate: validAuth.blockedDate,
+                message:
+                    (!fromSignup && 'invalid_credentials') ||
+                    (user.idSn == 2 && 'account_already_used') ||
+                    'account_exists',
+                ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
             })
         }
     } else {
@@ -377,8 +386,8 @@ passport.use(
         var date = Math.floor(Date.now() / 1000) + 86400
         let user = await User.findOne({ email: username.toLowerCase() })
         let wallet = user && (await Wallet.findOne({ UserId: user._id }))
-        if (user && wallet) {
-            return await signinWithEmail(req, username, password, done)
+        if (user) {
+            return await signinWithEmail(req, username, password, done, true)
         } else {
             var createdUser = createUser(
                 0,
@@ -507,7 +516,9 @@ exports.googleAuthSignup = async (
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn2: profile.id })
-    if (user) {
+    let wallet = user && (await Wallet.findOne({ UserId: user._id }))
+
+    if (user && wallet) {
         // return cb('account_already_used&idSn=' + user.idSn)
         await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
     } else {
@@ -860,14 +871,7 @@ exports.addTikTokChannel = async (
     // console.log('from addTikTokChannel',profile,accessToken);
 
     let userId = +req.query.state.split('|')[0]
-    console.log(
-        '\n////////////////',
-        req,
-        accessToken,
-        refreshToken,
-        profile,
-        '\n/////////////////'
-    )
+
     try {
         let profileData = await TikTokProfile.findOne({
             userTiktokId: profile.id,
