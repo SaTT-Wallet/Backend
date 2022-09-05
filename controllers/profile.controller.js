@@ -13,6 +13,8 @@ const {
     TikTokProfile,
 } = require('../model/index')
 
+const contentDisposition = require('content-disposition')
+
 const { responseHandler } = require('../helpers/response-handler')
 const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
@@ -31,6 +33,7 @@ const {
     verifyLinkedin,
     verifytiktok,
     updateFacebookPages,
+    tiktokAbos,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -139,7 +142,7 @@ exports.profilePicture = async (req, response) => {
                 response.writeHead(200, {
                     'Content-Type': 'image/png',
                     'Content-Length': file.length,
-                    'Content-Disposition': `attachment; filename=${file.filename}`,
+                    'Content-Disposition': contentDisposition(file.filename),
                 })
                 const readstream = gfsprofilePic.createReadStream(file.filename)
                 readstream.pipe(response)
@@ -596,6 +599,19 @@ exports.UpdateIntersts = async (req, res) => {
     } catch (err) {
         console.log(err.message)
 
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+exports.tiktokApiAbos = async (req, res) => {
+    try {
+        let abos = await tiktokAbos(req.params.idPost)
+        return makeResponseData(res, 200, 'success', abos)
+    } catch (err) {
+        console.log(err.message)
         return makeResponseError(
             res,
             500,
