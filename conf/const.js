@@ -27,6 +27,22 @@ let BttConstants = {
     campaign: { abi: [], address: '' },
 }
 
+let TokenConstants = []
+TokenConstants['ETH'] = {}
+TokenConstants['BSC'] = {}
+TokenConstants['POLYGON'] = {}
+TokenConstants['BTTC'] = {}
+let CampaignConstants = []
+CampaignConstants['ETH'] = {}
+CampaignConstants['BSC'] = {}
+CampaignConstants['POLYGON'] = {}
+CampaignConstants['BTTC'] = {}
+let OracleConstants = []
+OracleConstants['ETH'] = {}
+OracleConstants['BSC'] = {}
+OracleConstants['POLYGON'] = {}
+OracleConstants['BTTC'] = {}
+
 BttConstants.token.abi = [
     {
         inputs: [],
@@ -4411,7 +4427,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
-    Constants.token.wbtt = '0xd6cb96a00b312d5930fc2e8084a98ff2daa5ad2e'
+    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
 
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET
     Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAITESTNET
