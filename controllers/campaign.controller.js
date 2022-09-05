@@ -32,6 +32,10 @@ const {
     lockPolygon,
     tronApprove,
     tronAllowance,
+    unlockNetwork,
+    approve,
+    allow,
+    lockNetwork,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -457,7 +461,8 @@ exports.campaigns = async (req, res) => {
                     coverSrc: 0,
                 },
             },
-        ]).allowDiskUse(true)
+        ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -1716,6 +1721,60 @@ exports.getFunds = async (req, res) => {
         }
     }
 }
+exports.approveCampaign = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let token = req.body.tokenAddress
+        console.log(campaignAddress, 'camapign alllow  adress')
+        console.log(token, 'tokenn adress')
+
+        var cred = await unlockNetwork(req, res)
+        if (!cred) return
+
+        let ret = await approve(token, cred, campaignAddress, amount, res)
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lockNetwork(cred)
+    }
+}
+exports.campaignAllowance = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res)
+        let allowance = await allow(
+            tokenAddress,
+            account.address,
+            campaignAddress,
+            req
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
 
 exports.bttApproval = async (req, res) => {
     try {
@@ -2079,7 +2138,8 @@ exports.getLinks = async (req, res) => {
                     _id: 1,
                 },
             },
-        ]).allowDiskUse(true)
+        ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2103,7 +2163,8 @@ exports.getLinks = async (req, res) => {
                             _id: 1,
                         },
                     },
-                ]).allowDiskUse(true)
+                ])
+                    .allowDiskUse(true)
                     .skip(skip)
                     .limit(limit))) ||
             []
@@ -2402,7 +2463,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     hash: { $exists: true },
                 },
             },
-        ]).allowDiskUse(true);
+        ]).allowDiskUse(true)
 
         let linkProms = CampaignLink.aggregate([
             {
@@ -2410,7 +2471,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     id_campaign: { $exists: true },
                 },
             },
-        ]).allowDiskUse(true);
+        ]).allowDiskUse(true)
         let data = await Promise.all([campaignProms, linkProms])
 
         let pools = data[0]
@@ -2598,7 +2659,7 @@ module.exports.totalInvested = async (req, res) => {
                     idNode: '0' + req.user._id,
                 },
             },
-        ]).allowDiskUse(true);
+        ]).allowDiskUse(true)
         userCampaigns.forEach((elem) => {
             totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
         })
