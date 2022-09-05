@@ -42,6 +42,8 @@ const userSchema = mongoose.Schema(
             code: { type: Number },
             expiring: { type: Number },
             type: { type: String },
+            attempts: { type: Number, default: 0 },
+            lastTry: { type: Number },
         },
         newEmail: {
             email: { type: String },
