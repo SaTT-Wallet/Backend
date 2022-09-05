@@ -483,7 +483,9 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 
 exports.tiktokAbos = async (username) => {
     const vgmUrl = 'https://www.tiktok.com/' + username
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch( {args: ['--single-process', '--no-zygote',"--no-sandbox",'--disable-setuid-sandbox']})
+
+
     const page = await browser.newPage()
     await page.goto(vgmUrl)
     const scrappedData = await page.$$eval('strong', (elements) => {
