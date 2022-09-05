@@ -313,12 +313,25 @@ exports.confirmCode = async (req, res) => {
                     { $set: { enabled: 1 } }
                 )
                 user.secureCode.attempts = 0
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    authMethod.message,
-                    true
+                User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts,
+                        },
+                    }
                 )
+                    .then((data) => {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            authMethod.message,
+                            true
+                        )
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
             }
         }
     } catch (err) {
@@ -381,12 +394,26 @@ exports.passRecover = async (req, res) => {
                     { _id: user._id },
                     { $set: { password: synfonyHash(newpass), enabled: 1 } }
                 )
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'successfully',
-                    true
+                user.secureCode.attempts = 0
+                User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts,
+                        },
+                    }
                 )
+                    .then((data) => {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'successfully',
+                            true
+                        )
+                    })
+                    .catch((err) => {
+                        console.log('eee', err)
+                    })
             } else if (Date.now() >= user.secureCode.expiring)
                 return responseHandler.makeResponseError(
                     res,
