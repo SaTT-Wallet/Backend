@@ -53,6 +53,7 @@ exports.unlock = async (req, res) => {
         })
     }
 }
+//unlock networks
 exports.unlockNetwork = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -79,9 +80,39 @@ exports.unlockNetwork = async (req, res) => {
         })
     }
 }
-exports.approve = async (token, address, spender) => {
+//approve camapaign
+exports.approve = async (token, credentials, spender, amount, res) => {
     try {
-        let network = req.body.network
+        var contract = new credentials.web3.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        var gasPrice = await credentials.web3.eth.getGasPrice()
+        var gas = await contract.methods
+            .approve(spender, amount)
+            .estimateGas({ from: credentials.address })
+        var receipt = await contract.methods
+            .approve(spender, amount)
+            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
+            .once('transactionHash', function (transactionHash) {
+                console.log('approve transactionHash', transactionHash)
+            })
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+//allow campaign
+exports.allow = async (token, address, spender, req) => {
+    try {
+        let network = req.params.network
         const provider = getHttpProvider(
             networkProviders[network.toUpperCase()]
         )
@@ -466,35 +497,6 @@ exports.bep20Allow = async (token, credentials, spender, amount, res) => {
                 console.log('approve transactionHash', transactionHash)
             })
 
-        return {
-            transactionHash: receipt.transactionHash,
-            address: credentials.address,
-            spender: spender,
-        }
-    } catch (err) {
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
-    }
-}
-
-exports.approve = async (token, credentials, spender, amount, res) => {
-    try {
-        var contract = new credentials.web3.eth.Contract(
-            Constants.token.abi,
-            token
-        )
-        var gasPrice = await credentials.web3.eth.getGasPrice()
-        var gas = await contract.methods
-            .approve(spender, amount)
-            .estimateGas({ from: credentials.address })
-        var receipt = await contract.methods
-            .approve(spender, amount)
-            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
-            .once('transactionHash', function (transactionHash) {
-                console.log('approve transactionHash', transactionHash)
-            })
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
