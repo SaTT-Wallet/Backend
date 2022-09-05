@@ -31,6 +31,7 @@ const {
     verifyLinkedin,
     verifytiktok,
     updateFacebookPages,
+    tiktokAbos,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -596,6 +597,20 @@ exports.UpdateIntersts = async (req, res) => {
     } catch (err) {
         console.log(err.message)
 
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.tiktokApiAbos = async (req, res) => {
+    try {
+        let abos = await tiktokAbos(req.params.idPost)
+        return makeResponseData(res, 200, 'success', abos)
+    } catch (err) {
+        console.log(err.message)
         return makeResponseError(
             res,
             500,
