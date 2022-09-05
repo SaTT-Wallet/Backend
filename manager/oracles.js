@@ -483,11 +483,19 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 
 exports.tiktokAbos = async (username) => {
     const vgmUrl = 'https://www.tiktok.com/' + username
-    const browser = await puppeteer.launch( {args: ['--single-process', '--no-zygote',"--no-sandbox",'--disable-setuid-sandbox']})
-
+    const browser = await puppeteer.launch({
+        args: [
+            '--single-process',
+            '--no-zygote',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+        ],
+    })
 
     const page = await browser.newPage()
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36')
+    await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
+    )
     await page.goto(vgmUrl)
     const scrappedData = await page.$$eval('strong', (elements) => {
         return elements
@@ -508,9 +516,9 @@ exports.tiktokAbos = async (username) => {
             abosNumber = parseFloat(abosNumber)
         }
     }
-    await page.close();
-    console.log('page closed.');
-    await browser.close();
+    await page.close()
+    console.log('page closed.')
+    await browser.close()
     return abosNumber
 }
 
