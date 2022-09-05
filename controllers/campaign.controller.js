@@ -34,6 +34,7 @@ const {
     tronAllowance,
     unlockNetwork,
     approve,
+    allow,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -1776,7 +1777,8 @@ exports.campaignAllowance = async (req, res) => {
         let allowance = await allow(
             tokenAddress,
             account.address,
-            campaignAddress
+            campaignAddress,
+            req
         )
         return responseHandler.makeResponseData(res, 200, 'success', {
             token: tokenAddress,
