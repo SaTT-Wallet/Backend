@@ -30,6 +30,7 @@ const {
     addTronWalletToExistingAccount,
     transferTokensController30trx,
     gasPriceTrx,
+    getGasPrice,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -80,6 +81,25 @@ router.get('/userBalance', verifyAuth, userBalance)
 
 // router.get('/polygonCnx', testPolygon.polygonConnexion)
 // router.get('/polygonContract', getContractPolygon)
+
+/**
+ * @swagger
+ * /wallet/gasPrice/{network}:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get gas price
+ *     description: get gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/gasPrice/:network', getGasPrice)
 
 /**
  * @swagger
