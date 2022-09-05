@@ -80,7 +80,6 @@ exports.payementRequest = async (payment) => {
 
 let sattContract,
     sattBEP20CONTRACT,
-    sattPOLYGONCONTRACT,
     sattTRONCONTRACT,
     sattBTTCONTRACT,
     daiContract,
@@ -91,7 +90,6 @@ let sattContract,
 if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
-    sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT_TESTNET
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
     sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT_TESTNET
 
@@ -102,7 +100,6 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
 } else {
     sattContract = process.env.TOKEN_SATT_CONTRACT
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
-    sattPOLYGONCONTRACT = process.env.TOKEN_SATT_POLYGON_CONTRACT
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
     sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
     daiContract = process.env.TOKEN_DAI_CONTRACT
@@ -210,15 +207,7 @@ let Tokens = {
         dicimal: process.env.TOKEN_BUSD_DICIMAL,
         network: process.env.TOKEN_BUSD_NETWORK,
     },
-    SATT_POLYGON: {
-        name: process.env.TOKEN_SATT_POLYGON_NAME,
-        symbol: process.env.TOKEN_SATT_POLYGON_SYMBOL,
-        undername: process.env.TOKEN_SATT_POLYGON_UNDERNAME,
-        undername2: process.env.TOKEN_SATT_POLYGON_UNDERNAME2,
-        contract: sattPOLYGONCONTRACT,
-        dicimal: process.env.TOKEN_SATT_POLYGON_DICIMAL,
-        network: process.env.TOKEN_SATT_POLYGON_NETWORK,
-    },
+
     MATIC: {
         name: process.env.TOKEN_MATIC_NAME,
         symbol: process.env.TOKEN_MATIC_SYMBOL,
@@ -255,7 +244,7 @@ let Tokens = {
         dicimal: process.env.TOKEN_TRON_DICIMAL,
         network: process.env.TOKEN_TRON_NETWORK,
     },
-   /* SATT_TRON: {
+    /* SATT_TRON: {
         name: process.env.TOKEN_SATT_TRON_NAME,
         symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
         undername: process.env.TOKEN_SATT_TRON_UNDERNAME,

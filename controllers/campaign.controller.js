@@ -32,6 +32,10 @@ const {
     lockPolygon,
     tronApprove,
     tronAllowance,
+    unlockNetwork,
+    approve,
+    allow,
+    lockNetwork,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -153,25 +157,6 @@ const storage = new GridFsStorage({
     },
 })
 
-module.exports.wrappedbtt = async (cred, amount) => {
-    try {
-        let web3UrlBTT = cred.web3UrlBTT
-        contractWbtt = new web3UrlBTT.eth.Contract(
-            Constants.wbtt.abi,
-            Constants.token.wbtt
-        )
-        var gas = 200000
-
-        var ret = await contractWbtt.methods.deposit().send({
-            value: amount,
-            from: cred.address,
-            gas: gas,
-        })
-        return ret
-    } catch (error) {
-        console.log(error)
-    }
-}
 exports.swapTrx = async (req, res) => {
     try {
         let privateKey = req.body.privateKey
@@ -255,9 +240,6 @@ module.exports.launchCampaign = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
 
             if (!cred) return
         }
@@ -360,9 +342,6 @@ module.exports.launchBounty = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
 
             if (!cred) return
         }
@@ -469,6 +448,8 @@ exports.campaigns = async (req, res) => {
                 $sort: {
                     sort: 1,
                     sortPriority: -1,
+                    updatedAt: -1,
+                    createdAt: -1,
                     _id: 1,
                 },
             },
@@ -481,6 +462,7 @@ exports.campaigns = async (req, res) => {
                 },
             },
         ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -850,10 +832,10 @@ exports.apply = async (req, res) => {
             )
 
             // if (socialOracle?.views === 'old') socialOracle.views = '0'
-            prom.views = socialOracle.views
-            prom.likes = socialOracle.likes
-            prom.shares = socialOracle.shares || '0'
-            prom.media_url = media_url || socialOracle.media_url
+            prom.views = socialOracle?.views || 0
+            prom.likes = socialOracle?.likes || 0
+            prom.shares = socialOracle?.shares || 0
+            prom.media_url = media_url || socialOracle?.media_url
 
             let event = {
                 id: hash,
@@ -1739,6 +1721,60 @@ exports.getFunds = async (req, res) => {
         }
     }
 }
+exports.approveCampaign = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let token = req.body.tokenAddress
+        console.log(campaignAddress, 'camapign alllow  adress')
+        console.log(token, 'tokenn adress')
+
+        var cred = await unlockNetwork(req, res)
+        if (!cred) return
+
+        let ret = await approve(token, cred, campaignAddress, amount, res)
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lockNetwork(cred)
+    }
+}
+exports.campaignAllowance = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res)
+        let allowance = await allow(
+            tokenAddress,
+            account.address,
+            campaignAddress,
+            req
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
 
 exports.bttApproval = async (req, res) => {
     try {
@@ -2103,6 +2139,7 @@ exports.getLinks = async (req, res) => {
                 },
             },
         ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2127,6 +2164,7 @@ exports.getLinks = async (req, res) => {
                         },
                     },
                 ])
+                    .allowDiskUse(true)
                     .skip(skip)
                     .limit(limit))) ||
             []
@@ -2425,7 +2463,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     hash: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true)
 
         let linkProms = CampaignLink.aggregate([
             {
@@ -2433,7 +2471,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     id_campaign: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true)
         let data = await Promise.all([campaignProms, linkProms])
 
         let pools = data[0]
@@ -2453,11 +2491,9 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = [
-                        'SATTBEP20',
-                        'SATTPOLYGON',
-                        'WSATT',
-                    ].includes(campaign.token.name)
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
+                        campaign.token.name
+                    )
                         ? 'SATT'
                         : campaign.token.name
                     let payedAmountInCryptoCurrency = new Big(
@@ -2623,7 +2659,7 @@ module.exports.totalInvested = async (req, res) => {
                     idNode: '0' + req.user._id,
                 },
             },
-        ])
+        ]).allowDiskUse(true)
         userCampaigns.forEach((elem) => {
             totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
         })

@@ -80,6 +80,7 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
 )
+
 exports.exportBtc = async (req, res) => {
     try {
         res.attachment()
@@ -196,6 +197,22 @@ exports.userBalance = async (req, res) => {
     } catch (err) {
         console.log(err)
     }
+}
+
+exports.getGasPrice = async (req, res) => {
+    let network = req.params.network
+
+    const provider = getHttpProvider(networkProviders[network.toUpperCase()])
+    let web3 = await new Web3(provider)
+    var gasPrice = await web3.eth.getGasPrice()
+    if (network === 'bttc') {
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            gasPrice: (gasPrice * 280) / 1000000000,
+        })
+    }
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
 }
 exports.gasPricePolygon = async (req, res) => {
     let Web3ETH = await polygonConnexion()
