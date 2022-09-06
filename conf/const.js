@@ -27,21 +27,26 @@ let BttConstants = {
     campaign: { abi: [], address: '' },
 }
 
+let Erc20NetworkConstant = 'ERC20'
+let Bep20NetworkConstant = 'BEP20'
+let PolygonNetworkConstant = 'POLYGON'
+let BttNetworkConstant = 'BTTC'
+
 let TokenConstants = []
-TokenConstants['ETH'] = {}
-TokenConstants['BSC'] = {}
-TokenConstants['POLYGON'] = {}
-TokenConstants['BTTC'] = {}
+TokenConstants[Erc20NetworkConstant] = {}
+TokenConstants[Bep20NetworkConstant] = {}
+TokenConstants[PolygonNetworkConstant] = {}
+TokenConstants[BttNetworkConstant] = {}
 let CampaignConstants = []
-CampaignConstants['ETH'] = {}
-CampaignConstants['BSC'] = {}
-CampaignConstants['POLYGON'] = {}
-CampaignConstants['BTTC'] = {}
+CampaignConstants[Erc20NetworkConstant] = {}
+CampaignConstants[Bep20NetworkConstant] = {}
+CampaignConstants[PolygonNetworkConstant] = {}
+CampaignConstants[BttNetworkConstant] = {}
 let OracleConstants = []
-OracleConstants['ETH'] = {}
-OracleConstants['BSC'] = {}
-OracleConstants['POLYGON'] = {}
-OracleConstants['BTTC'] = {}
+OracleConstants[Erc20NetworkConstant] = {}
+OracleConstants[Bep20NetworkConstant] = {}
+OracleConstants[PolygonNetworkConstant] = {}
+OracleConstants[BttNetworkConstant] = {}
 
 BttConstants.token.abi = [
     {
@@ -4387,109 +4392,9 @@ PolygonConstants.campaign.abi = [
     ],
 ]
 
-if (process.env.NODE_ENV === 'mainnet') {
-    Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_MAINNET
-    Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET
-    Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAIMAINNET
-    Constants.campaign.address.campaignErc20 =
-        process.env.CONST_COMPAIGN_ADDRESS_MAINNET
-    Constants.campaign.address.campaignBep20 =
-        process.env.CONST_COMPAIGN_ADDRESS_MAINNETBEP20
-    Constants.campaign.address.campaignPolygon =
-        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
-    Constants.oracle.address.oracleErc20 =
-        process.env.CONST_ORACLE_ADDRESS_MAINNET
-    Constants.oracle.address.oracleBep20 =
-        process.env.CONST_ORACLE_ADDRESS_MAINNETBEP20
-    Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS_MAINNET
-    Constants.priceGap.address.token =
-        process.env.CONST_PRICEGAP_ADDRESS_MAINNET
-    Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_MAINNET
-    Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
-    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
-
-    PolygonConstants.token.satt =
-        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_MAINNET
-    PolygonConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
-    PolygonConstants.oracle.address =
-        process.env.CONST_ORACLE_ADDRESS_MAINNET_POLYGON
-    BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_MAINNET
-    BttConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_BTT
-    BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_BTT
-    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_MAINNET
-    TronConstant.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_TRON
-    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_TRON
-    TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_MAINNET
-    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
-    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
-} else {
-    Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
-    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
-
-    Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET
-    Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAITESTNET
-    Constants.campaign.address.campaignErc20 =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET
-    Constants.campaign.address.campaignBep20 =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNETBEP20
-    Constants.campaign.address.campaignPolygon =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
-    Constants.oracle.address.oracleErc20 =
-        process.env.CONST_ORACLE_ADDRESS_TESTNET
-    Constants.oracle.address.oracleBep20 =
-        process.env.CONST_ORACLE_ADDRESS_TESTNETBEP20
-    Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS_MAINNET
-    Constants.priceGap.address.token =
-        process.env.CONST_PRICEGAP_ADDRESS_MAINNET
-    Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_TESTNET
-    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
-    Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDTESTNET
-    PolygonConstants.token.satt =
-        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
-    PolygonConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
-    PolygonConstants.oracle.address =
-        process.env.CONST_ORACLE_ADDRESS_TESTNET_POLYGON
-    BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_TESTNET
-    BttConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_BTT
-    BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_BTT
-    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_TESTNET
-    TronConstant.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_TRON
-    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
-    TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_TESTNET
-    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
-}
-
-let erc20TokenCampaigns = [
-    Constants.token.satt.toLowerCase(),
-    Constants.token.tether.toLowerCase(),
-    Constants.token.dai.toLowerCase(),
-]
-let bep20TokenCampaigns = [
-    Constants.bep20.address.busd.toLowerCase(),
-    Constants.bep20.address.sattBep20.toLowerCase(),
-    Constants.bep20.address.bnb.toLowerCase(),
-]
-
-let polygonTokensCampaign = [
-    /*PolygonConstants.token.satt.toLowerCase()*/ Constants.token.matic,
-]
-
-let bttTokensCampaign = [
-    //BttConstants.token.satt.toLowerCase(),
-    Constants.token.wbtt.toLowerCase(),
-]
-let tronTokensCampaign = [TronConstant.token.wtrx.toLowerCase()]
-
 let wrapConstants = []
 
-wrapConstants['BTTC'] = {
-    address: process.env.CONST_WMATIC_MAINNET,
+wrapConstants[BttNetworkConstant] = {
     abi: [
         {
             constant: true,
@@ -4644,10 +4549,116 @@ wrapConstants['BTTC'] = {
         },
     ],
 }
-wrapConstants['POLYGON'] = {
-    address: process.env.CONST_WBTT_MAINNET,
-    abi: wrapConstants['BTTC'].abi,
+wrapConstants[PolygonNetworkConstant] = {
+    abi: wrapConstants[BttNetworkConstant].abi,
 }
+
+if (process.env.NODE_ENV === 'mainnet') {
+    Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_MAINNET
+    Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET
+    Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAIMAINNET
+    Constants.campaign.address.campaignErc20 =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET
+    Constants.campaign.address.campaignBep20 =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNETBEP20
+    Constants.campaign.address.campaignPolygon =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
+    Constants.oracle.address.oracleErc20 =
+        process.env.CONST_ORACLE_ADDRESS_MAINNET
+    Constants.oracle.address.oracleBep20 =
+        process.env.CONST_ORACLE_ADDRESS_MAINNETBEP20
+    Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS_MAINNET
+    Constants.priceGap.address.token =
+        process.env.CONST_PRICEGAP_ADDRESS_MAINNET
+    Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_MAINNET
+    Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
+    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
+
+    PolygonConstants.token.satt =
+        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_MAINNET
+    PolygonConstants.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_POLYGON
+    PolygonConstants.oracle.address =
+        process.env.CONST_ORACLE_ADDRESS_MAINNET_POLYGON
+    BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_MAINNET
+    BttConstants.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_BTT
+    BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_BTT
+    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_MAINNET
+    TronConstant.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_MAINNET_TRON
+    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_MAINNET_TRON
+    TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_MAINNET
+    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
+    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
+
+    wrapConstants[PolygonNetworkConstant].address =
+        process.env.CONST_WMATIC_MAINNET
+    wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_MAINNET
+} else {
+    Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
+    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
+
+    Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET
+    Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAITESTNET
+    Constants.campaign.address.campaignErc20 =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET
+    Constants.campaign.address.campaignBep20 =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNETBEP20
+    Constants.campaign.address.campaignPolygon =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
+    Constants.oracle.address.oracleErc20 =
+        process.env.CONST_ORACLE_ADDRESS_TESTNET
+    Constants.oracle.address.oracleBep20 =
+        process.env.CONST_ORACLE_ADDRESS_TESTNETBEP20
+    Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS_MAINNET
+    Constants.priceGap.address.token =
+        process.env.CONST_PRICEGAP_ADDRESS_MAINNET
+    Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_TESTNET
+    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
+    Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDTESTNET
+    PolygonConstants.token.satt =
+        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
+    PolygonConstants.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
+    PolygonConstants.oracle.address =
+        process.env.CONST_ORACLE_ADDRESS_TESTNET_POLYGON
+    BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_TESTNET
+    BttConstants.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_BTT
+    BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_BTT
+    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_TESTNET
+    TronConstant.campaign.address =
+        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_TRON
+    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
+    TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_TESTNET
+    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
+
+    wrapConstants[PolygonNetworkConstant].address =
+        process.env.CONST_WMATIC_TESTNET
+    wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_TESTNET
+}
+
+let erc20TokenCampaigns = [
+    Constants.token.satt.toLowerCase(),
+    Constants.token.tether.toLowerCase(),
+    Constants.token.dai.toLowerCase(),
+]
+let bep20TokenCampaigns = [
+    Constants.bep20.address.busd.toLowerCase(),
+    Constants.bep20.address.sattBep20.toLowerCase(),
+    Constants.bep20.address.bnb.toLowerCase(),
+]
+
+let polygonTokensCampaign = [
+    /*PolygonConstants.token.satt.toLowerCase()*/ Constants.token.matic,
+]
+
+let bttTokensCampaign = [
+    //BttConstants.token.satt.toLowerCase(),
+    Constants.token.wbtt.toLowerCase(),
+]
+let tronTokensCampaign = [TronConstant.token.wtrx.toLowerCase()]
 
 exports.web3UrlBep20 = process.env.WEB3_URL_BEP20
 exports.web3UrlBTT = process.env.WEB3_URL_BTT
@@ -4661,6 +4672,11 @@ module.exports.PolygonConstants = PolygonConstants
 module.exports.TronConstant = TronConstant
 module.exports.BttConstants = BttConstants
 module.exports.wrapConstants = wrapConstants
+
+module.exports.Erc20NetworkConstant = Erc20NetworkConstant
+module.exports.Bep20NetworkConstant = Bep20NetworkConstant
+module.exports.PolygonNetworkConstant = PolygonNetworkConstant
+module.exports.BttNetworkConstant = BttNetworkConstant
 
 module.exports.erc20TokenCampaigns = erc20TokenCampaigns
 module.exports.bep20TokenCampaigns = bep20TokenCampaigns
