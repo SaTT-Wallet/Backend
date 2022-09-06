@@ -61,9 +61,10 @@ exports.unlock = async (req, res) => {
         let WEB3 = null
         if (req.body && req.body.network) {
             WEB3 = getWeb3Connection(
-                networkProviders[req.body.network],
-                networkProvidersOptions[req.body.network]
+                networkProviders[req.body.network.toUpperCase()],
+                networkProvidersOptions[req.body.network.toUpperCase()]
             )
+            WEB3.eth.accounts.wallet.decrypt([account.keystore], pass)
         }
 
         let Web3ETH = await erc20Connexion()
@@ -1061,20 +1062,24 @@ exports.wrapNative = async (amount, credentials) => {
             wrapConstants[credentials.network].abi,
             wrapConstants[credentials.network].address
         )
+
         let gasPrice = await credentials.WEB3.eth.getGasPrice()
         let gas = await tokenSmartContract.methods
             .deposit()
             .estimateGas({ from: credentials.address, value: amount, gasPrice })
+
         let receipt = await tokenSmartContract.methods
             .deposit()
             .send({ from: credentials.address, value: amount, gas, gasPrice })
+
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
-            to: to,
+            to: wrapConstants[credentials.network].address,
             amount: amount,
         }
     } catch (err) {
+        console.log(err)
         return { error: err.message }
     }
 }
@@ -1095,7 +1100,7 @@ exports.unWrapNative = async (amount, credentials) => {
         return {
             transactionHash: receipt.transactionHash,
             address: credentials.address,
-            to: to,
+            to: wrapConstants[credentials.network].address,
             amount: amount,
         }
     } catch (err) {

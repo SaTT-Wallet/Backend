@@ -264,7 +264,7 @@ exports.getAccount = async (req, res) => {
 }
 
 exports.isNativeAddr = (addr) => {
-    return addr == Constants.wbtt.matic
+    return addr == Constants.token.matic
 }
 
 exports.createPerformanceCampaign = async (
@@ -332,10 +332,12 @@ exports.createPerformanceCampaign = async (
 
         if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
-            wrapNative(amount, credentials)
+            console.log(token)
+            await wrapNative(amount, credentials)
         }
 
         var ctr = await getContractByToken(token, credentials)
+
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
         var receipt = await ctr.methods
@@ -434,7 +436,7 @@ exports.createBountiesCampaign = async (
 
     if (this.isNativeAddr(token)) {
         token = wrapConstants[credentials.network].address
-        wrapNative(amount, credentials)
+        await wrapNative(amount, credentials)
     }
 
     var ctr = await getContractByToken(token, credentials)
