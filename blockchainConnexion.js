@@ -11,6 +11,11 @@ const {
     PolygonConstants,
     bttTokensCampaign,
     BttConstants,
+    Erc20NetworkConstant,
+    Bep20NetworkConstant,
+    PolygonNetworkConstant,
+    BttNetworkConstant,
+    CampaignConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const { TronConstant } = require('./conf/const')
@@ -114,33 +119,11 @@ exports.webTronInstance = async () => {
 
 exports.getContractByToken = async (token, credentials) => {
     try {
-        let abiCampaign = Constants.campaign.abi
-        if (erc20TokenCampaigns.includes(token.toLowerCase())) {
-            var contract = new credentials.Web3ETH.eth.Contract(
-                abiCampaign,
-                Constants.campaign.address.campaignErc20
-            )
-            contract.getGasPrice = credentials.Web3ETH.eth.getGasPrice
-        } else if (bep20TokenCampaigns.includes(token.toLowerCase())) {
-            var contract = new credentials.Web3BEP20.eth.Contract(
-                abiCampaign,
-                Constants.campaign.address.campaignBep20
-            )
-            contract.getGasPrice = credentials.Web3BEP20.eth.getGasPrice
-        } else if (polygonTokensCampaign.includes(token.toLowerCase())) {
-            var contract = new credentials.Web3POLYGON.eth.Contract(
-                abiCampaign,
-                PolygonConstants.campaign.address
-            )
-            contract.getGasPrice = credentials.Web3POLYGON.eth.getGasPrice
-        } else if (bttTokensCampaign.includes(token.toLowerCase())) {
-            console.log('token', token)
-            var contract = new credentials.web3UrlBTT.eth.Contract(
-                abiCampaign,
-                BttConstants.campaign.address
-            )
-            contract.getGasPrice = credentials.web3UrlBTT.eth.getGasPrice
-        }
+        var contract = new credentials.WEB3.eth.Contract(
+            CampaignConstants[credentials.network.toUpperCase()].abi,
+            CampaignConstants[credentials.network.toUpperCase()].address
+        )
+        contract.getGasPrice = credentials.WEB3.eth.getGasPrice
 
         return contract
     } catch (err) {

@@ -48,13 +48,14 @@
                 width: 48%;
             }
 
-            .content .top img {
+            .content .mail-header .top img {
                 width: 150px;
                 height: 50px;
             }
-            .content img {
-                width: 150px;
-                height: 50px;
+
+            .content .mail-header img {
+                width: 120px;
+                height: 120px;
             }
 
             .content .top .col a {
@@ -217,6 +218,8 @@
                 font-size: 15px;
             }
 
+            
+
             .content .mail-footer a {
                 font-family: system-ui;
                 font-style: normal;
@@ -269,11 +272,11 @@
             <div class="mail-header">
                 <div class="top">
                     <div align="left">
-                        <img src="<%= SaTT.imageUrl%>/satt-logo12.png" alt="" />
+                        <img src="{{SaTT.imageUrl}}/satt-logo12.png" alt="" />
                     </div>
                 </div>
                 
-                <img src="<%= SaTT.imageUrl%>/moonboy12.png" alt="" />
+                <img src="{{SaTT.imageUrl}}/moonboy12.png" alt="" />
                 <h2>Request Payment</h2>
                 <p>
                     <span class="name">{{notification.name}}</span> {{{__
@@ -297,13 +300,36 @@
             </p>
 
             <div class="apply-btn">
-                <a href="<%= SaTT.imageUrl%>">Connect</a>
+                <a href="{{SaTT.Url}}">Connect</a>
             </div>
         </div>
         <div class="mail-footer">
             <span>Follow us</span>
             <div>
-                <img src="<%= SaTT.imageUrl%>/facebook-icone.png" alt="" />
+                <table align="center" >
+                    <tr align="center">
+                        <td style="padding: 20px 0">
+                            <a
+                        href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"
+                        ><img src="{{SaTT.imageUrl}}/facebook-icone.png" alt="" /></a>
+                            <a
+                        href="https://www.instagram.com/mwf_io/"
+                        ><img src="{{SaTT.imageUrl}}/instagram-icon.png" alt="" /></a>
+                            <a
+                        href="https://t.me/satttoken"
+                        ><img src="{{SaTT.imageUrl}}/telegram-icon.png" alt="" /></a>
+                            <a
+                        href="https://twitter.com/SaTT_Token"
+                        ><img src="{{SaTT.imageUrl}}/twitter-icon.png" alt="" /></a>
+                            <a
+                        href="https://www.youtube.com/channel/UCNSq8P6ZmrhF0Ft3fouqOTw"
+                        ><img src="{{SaTT.imageUrl}}/youtube-icon.png" alt="" /></a>
+                            
+                        </td>
+
+                    </tr>
+                </table>
+                
             </div>
             <p
                 style="
