@@ -171,17 +171,39 @@ exports.approve = async (token, credentials, spender, amount, res) => {
 //allow campaign
 exports.allow = async (token, address, spender, req) => {
     try {
-        let network = req.params.network
-        const provider = getHttpProvider(
-            networkProviders[network.toUpperCase()]
-        )
-        let web3 = await new Web3(provider)
+        let network = req.params.network.toUpperCase()
+        if (network === 'TRON') {
+            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
+                .priv
+            let tronWeb = await webTronInstance(privateKey)
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
 
-        var contract = new web3.eth.Contract(Constants.token.abi, token)
+            let ctr = await tronWeb.contract(
+                (!!token === TronConstant.token.wtrx &&
+                    TronConstant.token.wtrxAbi) ||
+                    TronConstant.token.abi,
+                token
+            )
+            let amount = await ctr
+                .allowance(walletAddr, TronConstant.campaign.address)
+                .call()
 
-        var amount = await contract.methods.allowance(address, spender).call()
-        return { amount: amount.toString() }
+            return { amount: tronWeb.BigNumber(amount._hex).toString() }
+        } else {
+            const provider = getHttpProvider(networkProviders[network])
+            let web3 = await new Web3(provider)
+
+            var contract = new web3.eth.Contract(Constants.token.abi, token)
+
+            var amount = await contract.methods
+                .allowance(address, spender)
+                .call()
+            return { amount: amount.toString() }
+        }
     } catch (err) {
+        console.log(err, 'err')
         return { amount: '0' }
     }
 }
