@@ -200,19 +200,28 @@ exports.userBalance = async (req, res) => {
 }
 
 exports.getGasPrice = async (req, res) => {
-    let network = req.params.network
+    let network = req.params.network.toUpperCase()
+    if (network === 'TRON') {
+        let tronWeb = await webTronInstance()
 
-    const provider = getHttpProvider(networkProviders[network.toUpperCase()])
-    let web3 = await new Web3(provider)
-    var gasPrice = await web3.eth.getGasPrice()
-    if (network === 'bttc') {
+        var gasPrice = await tronWeb.trx.getChainParameters()
         return responseHandler.makeResponseData(res, 200, 'success', {
-            gasPrice: (gasPrice * 280) / 1000000000,
+            gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee')
+                .value,
+        })
+    } else {
+        const provider = getHttpProvider(networkProviders[network])
+        let web3 = await new Web3(provider)
+        var gasPrice = await web3.eth.getGasPrice()
+        if (network === 'bttc') {
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                gasPrice: (gasPrice * 280) / 1000000000,
+            })
+        }
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            gasPrice: gasPrice / 1000000000,
         })
     }
-    return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
-    })
 }
 exports.gasPricePolygon = async (req, res) => {
     let Web3ETH = await polygonConnexion()
