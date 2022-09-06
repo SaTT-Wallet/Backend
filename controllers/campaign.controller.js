@@ -1738,7 +1738,7 @@ exports.approveCampaign = async (req, res) => {
             false
         )
     } finally {
-        if (cred) lockNetwork(cred)
+        !!cred.web3 && lockNetwork(cred)
     }
 }
 exports.campaignAllowance = async (req, res) => {
