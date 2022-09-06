@@ -15,6 +15,7 @@ const {
     Bep20NetworkConstant,
     PolygonNetworkConstant,
     BttNetworkConstant,
+    CampaignConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const { TronConstant } = require('./conf/const')
@@ -118,35 +119,11 @@ exports.webTronInstance = async () => {
 
 exports.getContractByToken = async (token, credentials) => {
     try {
-        let abiCampaign = Constants.campaign.abi
-        if (credentials.network.toUpperCase() == Erc20NetworkConstant) {
-            var contract = new credentials.WEB3.eth.Contract(
-                abiCampaign,
-                Constants.campaign.address.campaignErc20
-            )
-            contract.getGasPrice = credentials.WEB3.eth.getGasPrice
-        } else if (credentials.network.toUpperCase() == Bep20NetworkConstant) {
-            var contract = new credentials.WEB3.eth.Contract(
-                abiCampaign,
-                Constants.campaign.address.campaignBep20
-            )
-            contract.getGasPrice = credentials.WEB3.eth.getGasPrice
-        } else if (
-            credentials.network.toUpperCase() == PolygonNetworkConstant
-        ) {
-            var contract = new credentials.WEB3.eth.Contract(
-                abiCampaign,
-                PolygonConstants.campaign.address
-            )
-            contract.getGasPrice = credentials.WEB3.eth.getGasPrice
-        } else if (credentials.network.toUpperCase() == BttNetworkConstant) {
-            console.log('token', token)
-            var contract = new credentials.WEB3.eth.Contract(
-                abiCampaign,
-                BttConstants.campaign.address
-            )
-            contract.getGasPrice = credentials.WEB3.eth.getGasPrice
-        }
+        var contract = new credentials.WEB3.eth.Contract(
+            CampaignConstants[credentials.network.toUpperCase()].abi,
+            CampaignConstants[credentials.network.toUpperCase()].address
+        )
+        contract.getGasPrice = credentials.WEB3.eth.getGasPrice
 
         return contract
     } catch (err) {

@@ -4639,6 +4639,23 @@ if (process.env.NODE_ENV === 'mainnet') {
     wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_TESTNET
 }
 
+CampaignConstants[Erc20NetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: Constants.campaign.address.campaignErc20,
+}
+CampaignConstants[Bep20NetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: Constants.campaign.address.campaignBep20,
+}
+CampaignConstants[PolygonNetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: Constants.campaign.address.campaignPolygon,
+}
+CampaignConstants[BttNetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: BttConstants.campaign.address,
+}
+
 let erc20TokenCampaigns = [
     Constants.token.satt.toLowerCase(),
     Constants.token.tether.toLowerCase(),
@@ -4677,6 +4694,8 @@ module.exports.Erc20NetworkConstant = Erc20NetworkConstant
 module.exports.Bep20NetworkConstant = Bep20NetworkConstant
 module.exports.PolygonNetworkConstant = PolygonNetworkConstant
 module.exports.BttNetworkConstant = BttNetworkConstant
+
+module.exports.CampaignConstants = CampaignConstants
 
 module.exports.erc20TokenCampaigns = erc20TokenCampaigns
 module.exports.bep20TokenCampaigns = bep20TokenCampaigns
