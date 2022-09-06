@@ -72,10 +72,7 @@ exports.unlockNetwork = async (req, res) => {
         )
         let web3 = await new Web3(provider)
         web3.eth.accounts.wallet.decrypt([wallet.keystore], pass)
-        console.log(
-            web3.eth.accounts.wallet.decrypt([wallet.keystore], pass),
-            'accunt'
-        )
+
         return {
             address: '0x' + wallet.keystore.address,
             web3,
