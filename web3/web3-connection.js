@@ -5,7 +5,7 @@ const {
     Bep20NetworkConstant,
     PolygonNetworkConstant,
     BttNetworkConstant,
-} = require('../cons/const')
+} = require('../conf/const')
 
 const options = {
     timeout: 30000,
