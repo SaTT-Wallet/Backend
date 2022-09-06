@@ -1,3 +1,8 @@
+let Erc20NetworkConstant = 'ERC20'
+let Bep20NetworkConstant = 'BEP20'
+let PolygonNetworkConstant = 'POLYGON'
+let BttNetworkConstant = 'BTTC'
+
 let Constants = {
     token: { abi: [], satt: '', tether: '', dai: '', wbtt: '' },
     wbtt: { abi: [] },
@@ -27,26 +32,8 @@ let BttConstants = {
     campaign: { abi: [], address: '' },
 }
 
-let Erc20NetworkConstant = 'ERC20'
-let Bep20NetworkConstant = 'BEP20'
-let PolygonNetworkConstant = 'POLYGON'
-let BttNetworkConstant = 'BTTC'
-
-let TokenConstants = []
-TokenConstants[Erc20NetworkConstant] = {}
-TokenConstants[Bep20NetworkConstant] = {}
-TokenConstants[PolygonNetworkConstant] = {}
-TokenConstants[BttNetworkConstant] = {}
 let CampaignConstants = []
-CampaignConstants[Erc20NetworkConstant] = {}
-CampaignConstants[Bep20NetworkConstant] = {}
-CampaignConstants[PolygonNetworkConstant] = {}
-CampaignConstants[BttNetworkConstant] = {}
 let OracleConstants = []
-OracleConstants[Erc20NetworkConstant] = {}
-OracleConstants[Bep20NetworkConstant] = {}
-OracleConstants[PolygonNetworkConstant] = {}
-OracleConstants[BttNetworkConstant] = {}
 
 BttConstants.token.abi = [
     {
@@ -4656,6 +4643,23 @@ CampaignConstants[BttNetworkConstant] = {
     address: BttConstants.campaign.address,
 }
 
+OracleConstants[Erc20NetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: Constants.oracle.address.oracleErc20,
+}
+OracleConstants[Bep20NetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: Constants.oracle.address.oracleBep20,
+}
+OracleConstants[PolygonNetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: PolygonConstants.oracle.address,
+}
+OracleConstants[BttNetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: BttConstants.oracle.address,
+}
+
 let erc20TokenCampaigns = [
     Constants.token.satt.toLowerCase(),
     Constants.token.tether.toLowerCase(),
@@ -4696,6 +4700,7 @@ module.exports.PolygonNetworkConstant = PolygonNetworkConstant
 module.exports.BttNetworkConstant = BttNetworkConstant
 
 module.exports.CampaignConstants = CampaignConstants
+module.exports.OracleConstants = OracleConstants
 
 module.exports.erc20TokenCampaigns = erc20TokenCampaigns
 module.exports.bep20TokenCampaigns = bep20TokenCampaigns
