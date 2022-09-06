@@ -244,7 +244,7 @@ let Tokens = {
         dicimal: process.env.TOKEN_TRON_DICIMAL,
         network: process.env.TOKEN_TRON_NETWORK,
     },
-   /* SATT_TRON: {
+    /* SATT_TRON: {
         name: process.env.TOKEN_SATT_TRON_NAME,
         symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
         undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
