@@ -109,6 +109,10 @@ router.get('/gasPrice/:network', getGasPrice)
  *     - "wallets"
  *     summary: get bnb gas price
  *     description: get bnb gas price <br> without access_token
+ *     parameters:
+ *       - name: network
+ *         description: network
+ *         in: path
  *     produces:
  *       - application/json
  *     responses:
