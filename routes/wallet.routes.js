@@ -90,6 +90,10 @@ router.get('/userBalance', verifyAuth, userBalance)
  *     - "wallets"
  *     summary: get gas price
  *     description: get gas price <br> without access_token
+ *     parameters:
+ *       - name: network
+ *         description: network
+ *         in: path
  *     produces:
  *       - application/json
  *     responses:
@@ -109,10 +113,6 @@ router.get('/gasPrice/:network', getGasPrice)
  *     - "wallets"
  *     summary: get bnb gas price
  *     description: get bnb gas price <br> without access_token
- *     parameters:
- *       - name: network
- *         description: network
- *         in: path
  *     produces:
  *       - application/json
  *     responses:
