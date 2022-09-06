@@ -233,10 +233,9 @@ module.exports.launchCampaign = async (req, res) => {
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
-            var hexadd = tronWeb.address.toHex(tokenAddress)
 
             if (tokenAddress === TronConstant.token.wtrx) {
-                let wrapped = await wrappedtrx(tronWeb, amount)
+                await wrappedtrx(tronWeb, amount)
             }
         } else {
             cred = await unlock(req, res)
@@ -258,7 +257,6 @@ module.exports.launchCampaign = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -335,10 +333,9 @@ module.exports.launchBounty = async (req, res) => {
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
-            var hexadd = tronWeb.address.toHex(tokenAddress)
 
             if (tokenAddress === TronConstant.token.wtrx) {
-                let wrapped = await wrappedtrx(tronWeb, amount)
+                await wrappedtrx(tronWeb, amount)
             }
         } else {
             cred = await unlock(req, res)
@@ -359,8 +356,6 @@ module.exports.launchBounty = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1726,8 +1721,6 @@ exports.approveCampaign = async (req, res) => {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let token = req.body.tokenAddress
-        console.log(campaignAddress, 'camapign alllow  adress')
-        console.log(token, 'tokenn adress')
 
         var cred = await unlockNetwork(req, res)
         if (!cred) return
@@ -1765,8 +1758,6 @@ exports.campaignAllowance = async (req, res) => {
             spender: campaignAddress,
         })
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
