@@ -10,6 +10,7 @@ var fs = require('fs')
 const Web3 = require('web3')
 const {
     networkProviders,
+    networkProvidersOptions,
     getWeb3Connection,
     getHttpProvider,
 } = require('../web3/web3-connection')
@@ -210,7 +211,10 @@ exports.getGasPrice = async (req, res) => {
                 .value,
         })
     } else {
-        const provider = getHttpProvider(networkProviders[network])
+        const provider = getHttpProvider(
+            networkProviders[network],
+            networkProvidersOptions[network]
+        )
         let web3 = await new Web3(provider)
         var gasPrice = await web3.eth.getGasPrice()
         if (network === 'bttc') {
@@ -347,7 +351,8 @@ exports.transferTokensController30trx = async () => {
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
-                networkProviders[network.toUpperCase()]
+                networkProviders[network.toUpperCase()],
+                networkProvidersOptions[network.toUpperCase()]
             )
 
             // get wallet keystore
@@ -440,7 +445,8 @@ exports.transferTokensController = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
-                networkProviders[network.toUpperCase()]
+                networkProviders[network.toUpperCase()],
+                networkProvidersOptions[network.toUpperCase()]
             )
 
             // get wallet keystore
