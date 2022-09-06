@@ -233,9 +233,10 @@ module.exports.launchCampaign = async (req, res) => {
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
+            var hexadd = tronWeb.address.toHex(tokenAddress)
 
             if (tokenAddress === TronConstant.token.wtrx) {
-                await wrappedtrx(tronWeb, amount)
+                let wrapped = await wrappedtrx(tronWeb, amount)
             }
         } else {
             cred = await unlock(req, res)
