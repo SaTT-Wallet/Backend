@@ -1220,22 +1220,11 @@ exports.answerCall = async (opts) => {
 
         campaignWallet = JSON.parse(campaignKeystore)
 
-        opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
+        opts.credentials.WEB3.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
-        opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.web3UrlBTT.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
+
         var gasPrice = await contract.getGasPrice()
         var receipt = await contract.methods
             .answer(
