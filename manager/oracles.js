@@ -1074,15 +1074,7 @@ exports.answerBounty = async function (opts) {
 
         campaignWallet = JSON.parse(campaignKeystore)
 
-        opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
+        opts.credentials.WEB3.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
