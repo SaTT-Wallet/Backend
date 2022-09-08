@@ -1065,7 +1065,6 @@ exports.answerBounty = async function (opts) {
             }
         }
         let contract = await getOracleContractByCampaignContract(
-            opts.campaignContract,
             opts.credentials
         )
         var campaignKeystore = fs.readFileSync(
@@ -1220,7 +1219,6 @@ exports.answerCall = async (opts) => {
             }
         }
         let contract = await getOracleContractByCampaignContract(
-            opts.campaignContract,
             opts.credentials
         )
         var campaignKeystore = fs.readFileSync(
