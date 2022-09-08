@@ -1098,7 +1098,7 @@ exports.gains = async (req, res) => {
                     { accessToken: 1, _id: 0 }
                 ))
             if (!!campaignData.bounties.length) {
-                if (tronWeb.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
+                if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
                     var ret = await getGains(idProm, credentials, tronWeb)
                     return responseHandler.makeResponseData(
                         res,
