@@ -72,11 +72,8 @@ const {
 
 const {
     getCampaignContractByHashCampaign,
-    getContractByToken,
-    getContractCampaigns,
     getPromContract,
     getCampaignOwnerAddr,
-    bttConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
 
@@ -541,10 +538,15 @@ exports.campaignPromp = async (req, res) => {
             let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
         }
+        var cred
+        cred.WEB3 = getWeb3Connection(
+            networkProviders[campaign.token.type.toUpperCase()],
+            networkProvidersOptions[rcampaign.token.typetoUpperCase()]
+        )
 
         let ctr = await getCampaignContractByHashCampaign(
             campaign.hash,
-            false,
+            cred,
             tronWeb
         )
 
@@ -716,6 +718,7 @@ exports.apply = async (req, res) => {
         }
         var cred
         var tronWeb
+        req.body.network = campaignDetails.token.type
         if (campaignDetails.token.type === 'TRON') {
             let privateKey = (await getWalletTron(id, pass)).priv
             tronWeb = await webTronInstance()
@@ -944,6 +947,7 @@ exports.validateCampaign = async (req, res) => {
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
                 tronWeb.setAddress(walletAddr)
             } else {
+                req.body.network = campaign.token.type
                 cred = await unlock(req, res)
             }
 
@@ -1062,6 +1066,8 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             var wrappedBtt
             campaignData = await Campaigns.findOne({ hash: hash })
+            req.body.network = campaignData.token.type
+
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
                     await getWalletTron(req.user._id, req.body.pass)
@@ -1293,25 +1299,8 @@ exports.gains = async (req, res) => {
                 { token: 1, _id: 0 }
             )
             let campaignType = {}
-            let network
-            switch (campaign?.token?.type?.toLowerCase()) {
-                case 'erc20': {
-                    network = credentials.Web3ETH
-                    break
-                }
-                case 'bep20': {
-                    network = credentials.Web3BEP20
-                    break
-                }
-                case 'polygon': {
-                    network = credentials.Web3POLYGON
-                    break
-                }
-                case 'btt': {
-                    network = credentials.web3UrlBTT
-                    break
-                }
-            }
+
+            let network = credentials.WEB3
 
             let amount = await getTransactionAmount(
                 credentials,
@@ -1661,7 +1650,7 @@ module.exports.increaseBudget = async (req, res) => {
     } finally {
         cred && lock(cred)
         if (ret?.transactionHash) {
-            const ctr = await getCampaignContractByHashCampaign(hash)
+            const ctr = await getCampaignContractByHashCampaign(hash, cred)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
             await Campaigns.findOne({ hash: hash }, async (err, result) => {
                 let budget = new Big(result.cost)

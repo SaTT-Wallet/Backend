@@ -18,7 +18,6 @@ const { transferTokens, transferBTC } = require('../libs/transfer')
 const { unlockAccount } = require('../web3/account')
 
 const {
-    getContractByToken,
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,

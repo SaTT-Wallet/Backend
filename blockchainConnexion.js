@@ -1,21 +1,11 @@
 var Web3 = require('web3')
 const {
-    Constants,
-    erc20TokenCampaigns,
-    bep20TokenCampaigns,
-    polygonTokensCampaign,
     web3UrlBep20,
     web3UrlBTT,
     web3Url,
     web3PolygonUrl,
-    PolygonConstants,
-    bttTokensCampaign,
-    BttConstants,
-    Erc20NetworkConstant,
-    Bep20NetworkConstant,
-    PolygonNetworkConstant,
-    BttNetworkConstant,
     CampaignConstants,
+    OracleConstants,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const { TronConstant } = require('./conf/const')
@@ -108,16 +98,7 @@ exports.webTronInstance = async () => {
     }
 }
 
-// exports.tronConnexion = async () => {
-//       try {
-//         let Web3 = require('web3')
-//    return await new Web3(new Web3.providers.HttpProvider(web3Tron))
-//     } catch (err) {
-//      console.log(err.message ? err.message : err.error)
-//    }
-//     }
-
-exports.getContractByToken = async (token, credentials) => {
+exports.getContractByNetwork = async (credentials) => {
     try {
         var contract = new credentials.WEB3.eth.Contract(
             CampaignConstants[credentials.network.toUpperCase()].abi,
@@ -146,7 +127,8 @@ exports.getCampaignContractByHashCampaign = async (
                 )
                 return ctr
             }
-            return this.getContractCampaigns(campaign.contract, credentials)
+            credentials.network = campaign.token.type
+            return this.getContractByNetwork(credentials)
         }
     } catch (err) {
         console.log(err.message)
@@ -160,50 +142,9 @@ exports.getPromContract = async (idProm, credentials = false) => {
             { contract: 1, _id: 0 }
         )
 
-        return this.getContractCampaigns(prom.contract, credentials)
+        return this.getContractByNetwork(credentials)
     } catch (err) {
         console.log('err prom', err.message)
-    }
-}
-
-exports.getContractCampaigns = async (contract, credentials = false) => {
-    try {
-        let abi = Constants.campaign.abi
-        let Web3ETH = credentials?.Web3ETH
-            ? credentials?.Web3ETH
-            : await this.erc20Connexion()
-        let Web3BEP20 = credentials?.Web3BEP20
-            ? credentials.Web3BEP20
-            : await this.bep20Connexion()
-        let Web3POLYGON = credentials?.Web3POLYGON
-            ? credentials.Web3POLYGON
-            : await this.polygonConnexion()
-        let web3UrlBTT = credentials?.web3UrlBTT
-            ? credentials.web3UrlBTT
-            : await this.bttConnexion()
-        if (
-            contract.toLowerCase() ===
-            Constants.campaign.address.campaignErc20.toLowerCase()
-        ) {
-            Web3 = Web3ETH
-        } else if (
-            contract.toLowerCase() ===
-            Constants.campaign.address.campaignPolygon.toLowerCase()
-        ) {
-            Web3 = Web3POLYGON
-        } else if (
-            contract.toLowerCase() ===
-            BttConstants.campaign.address.toLowerCase()
-        ) {
-            Web3 = web3UrlBTT
-        } else {
-            Web3 = Web3BEP20
-        }
-        let ctr = new Web3.eth.Contract(abi, contract)
-        ctr.getGasPrice = await Web3.eth.getGasPrice
-        return ctr
-    } catch (err) {
-        console.log('err cmp', err.message)
     }
 }
 
@@ -214,90 +155,23 @@ exports.getCampaignOwnerAddr = async (idProm) => {
             { contract: 1, _id: 0 }
         )
         if (!prom.contract) return
-        // if (
-        //     prom.contract.toLowerCase() ===
-        //         Constants.campaign.address.campaignErc20.toLowerCase() ||
-        //     prom.contract.toLowerCase() ===
-        //         Constants.campaign.address.campaignBep20.toLowerCase()
-        // ) {
-        //     campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
-        // } else if (
-        //     prom.contract.toLowerCase() ===
-        //     PolygonConstants.campaign.address.toLowerCase()
-        // ) {
-        //     campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER_POLYGON
-        // }
+
         return process.env.CAMPAIGN_OWNER
     } catch (err) {
         console.log(err)
     }
 }
 
-exports.getContract = async (address) => {
-    if (address) {
-        let abi = Constants.campaign.abi
-        let Web3 =
-            address.toLowerCase() ===
-            Constants.campaign.address.campaignErc20.toLowerCase()
-                ? await this.erc20Connexion()
-                : await this.bep20Connexion()
-        let ctr = new Web3.eth.Contract(abi, address)
-        ctr.getGasPrice = Web3.eth.getGasPrice
-        return ctr
-    }
-}
-
-exports.getOracleContractByCampaignContract = async (
-    campaignContract,
-    credentials = false
-) => {
+exports.getOracleContractByCampaignContract = async (credentials = false) => {
     try {
-        let abi = Constants.oracle.abi
-        if (
-            credentials.Web3ETH &&
-            credentials.Web3BEP20 &&
-            credentials.Web3POLYGON &&
-            credentials.web3UrlBTT
-        ) {
-            var Web3ETH = credentials?.Web3ETH
-            var Web3BEP20 = credentials.Web3BEP20
-            var Web3POLYGON = credentials.Web3POLYGON
-            var web3UrlBTT = credentials.web3UrlBTT
-        } else {
-            var Web3ETH = await this.erc20Connexion()
-            var Web3BEP20 = await this.bep20Connexion()
-            var Web3POLYGON = await this.polygonConnexion()
-            var web3UrlBTT = await this.bttConnexion()
-        }
+        var contract = new credentials.WEB3.eth.Contract(
+            OracleConstants[credentials.network.toUpperCase()].abi,
+            OracleConstants[credentials.network.toUpperCase()].address
+        )
+        contract.getGasPrice = credentials.WEB3.eth.getGasPrice
 
-        if (
-            campaignContract.toLowerCase() ===
-            Constants.campaign.address.campaignErc20.toLowerCase()
-        ) {
-            Web3 = Web3ETH
-            address = Constants.oracle.address.oracleErc20
-        } else if (
-            campaignContract.toLowerCase() ===
-            PolygonConstants.campaign.address.toLowerCase()
-        ) {
-            Web3 = Web3POLYGON
-            address = PolygonConstants.oracle.address
-        } else if (
-            campaignContract.toLowerCase() ===
-            BttConstants.campaign.address.toLowerCase()
-        ) {
-            Web3 = web3UrlBTT
-            address = BttConstants.oracle.address
-        } else {
-            Web3 = Web3BEP20
-            address = Constants.oracle.address.oracleBep20
-        }
-
-        let ctr = new Web3.eth.Contract(abi, address)
-        ctr.getGasPrice = await Web3.eth.getGasPrice
-        console.log('gazzzz', await ctr.getGasPrice())
-        return ctr
+        return contract
     } catch (err) {
-        console.log(err.message)
+        console.log(err.message ? err.message : err.error)
     }
 }

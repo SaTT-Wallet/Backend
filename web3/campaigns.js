@@ -3,9 +3,8 @@ const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
     bep20Connexion,
-    getContractByToken,
+    getContractByNetwork,
     getPromContract,
-    getContractCampaigns,
     polygonConnexion,
     bttConnexion,
     webTronInstance,
@@ -410,7 +409,7 @@ exports.createPerformanceCampaign = async (
             await wrapNative(amount, credentials)
         }
 
-        var ctr = await getContractByToken(token, credentials)
+        var ctr = await getContractByNetwork(credentials)
 
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
@@ -513,7 +512,7 @@ exports.createBountiesCampaign = async (
         await wrapNative(amount, credentials)
     }
 
-    var ctr = await getContractByToken(token, credentials)
+    var ctr = await getContractByNetwork(credentials)
     var gasPrice = await ctr.getGasPrice()
     var gas = 5000000
 
@@ -1010,7 +1009,7 @@ exports.applyCampaign = async (
                 })
             }
         }
-        let web3 = await getContractByToken(token.addr, credentials)
+        let web3 = await getContractByNetwork(credentials)
 
         var gas = 400000
         var gasPrice = await web3.getGasPrice()
@@ -1047,7 +1046,7 @@ exports.applyCampaign = async (
 exports.getRemainingFunds = async (token, hash, credentials) => {
     try {
         var gas = 200000
-        var ctr = await getContractByToken(token.addr, credentials)
+        var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.getRemainingFunds(hash).send({
             from: credentials.address,
@@ -1071,7 +1070,7 @@ exports.getReachLimit = async (campaignRatio, oracle) => {
 
 exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     try {
-        var ctr = await getContractByToken(token, credentials)
+        var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 200000
 
