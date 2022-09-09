@@ -1392,6 +1392,7 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
         }
     } catch (err) {
         console.log('err update prom', err)
+        
     }
 }
 

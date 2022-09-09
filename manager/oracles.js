@@ -24,6 +24,7 @@ const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
 const { TikTokProfile } = require('../model')
+const { getWeb3Connection, networkProviders, networkProvidersOptions } = require('../web3/web3-connection')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -1185,14 +1186,21 @@ exports.answerCall = async (opts) => {
 
             let ethAddr = tronCampaignWallet.address.slice(2)
             tronCampaignWallet.address = ethAddr
+            
+                
+            let webTron = getWeb3Connection(
+                networkProviders['ERC20'],
+                networkProvidersOptions['ERC20']
+            )
 
-            let wallet = opts.credentials.Web3ETH.eth.accounts.decrypt(
+            let wallet = webTron.eth.accounts.decrypt(
                 tronCampaignWallet,
                 process.env.CAMPAIGN_TRON_OWNER_PASS
             );
-                        let tronWeb = await webTronInstance()
+                
+              let tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
             let contract = await tronWeb.contract(
                 TronConstant.oracle.abi,
