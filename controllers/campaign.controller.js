@@ -7,6 +7,7 @@ const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
 var mongoose = require('mongoose')
+var fs = require('fs')
 const cron = require('node-cron')
 
 const {
@@ -538,12 +539,41 @@ exports.campaignPromp = async (req, res) => {
             }
         )
         var tronWeb
+        var webTron
         if (campaign.token.type === 'TRON') {
-            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+
+
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+            
+            webTron = getWeb3Connection(
+                networkProviders['ERC20'],
+                networkProvidersOptions['ERC20']
+            )
+
+            let wallet = webTron.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            );
+                   
+
+
+
+
             tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(privateKey)
-            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
+
+            
+
+            
         }
         var cred =[]
     
