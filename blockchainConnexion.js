@@ -118,7 +118,7 @@ exports.getCampaignContractByHashCampaign = async (
     tronWeb = null
 ) => {
     try {
-        var campaign = await Campaigns.findOne({ hash }, { contract: 1 })
+        var campaign = await Campaigns.findOne({ hash })
         if (campaign?.contract) {
             if (!!tronWeb) {
                 let ctr = await tronWeb.contract(
@@ -127,7 +127,7 @@ exports.getCampaignContractByHashCampaign = async (
                 )
                 return ctr
             }
-            credentials.network = campaign.token.type
+            credentials.network =  campaign.token.type
             return this.getContractByNetwork(credentials)
         }
     } catch (err) {

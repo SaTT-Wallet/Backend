@@ -77,6 +77,13 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
+const {
+    getWeb3Connection,
+    getHttpProvider,
+    networkProviders,
+    networkProvidersOptions,
+} = require('../web3/web3-connection')
+
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
 
 let calcSNStat = (objNw, link) => {
@@ -538,10 +545,11 @@ exports.campaignPromp = async (req, res) => {
             let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
         }
-        var cred
+        var cred =[]
+    
         cred.WEB3 = getWeb3Connection(
             networkProviders[campaign.token.type.toUpperCase()],
-            networkProvidersOptions[rcampaign.token.typetoUpperCase()]
+            networkProvidersOptions[campaign.token.type.toUpperCase()]
         )
 
         let ctr = await getCampaignContractByHashCampaign(
