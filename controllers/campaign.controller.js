@@ -7,6 +7,7 @@ const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
 var mongoose = require('mongoose')
+var fs = require('fs')
 const cron = require('node-cron')
 
 const {
@@ -32,6 +33,10 @@ const {
     lockPolygon,
     tronApprove,
     tronAllowance,
+    unlockNetwork,
+    approve,
+    allow,
+    lockNetwork,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -68,13 +73,17 @@ const {
 
 const {
     getCampaignContractByHashCampaign,
-    getContractByToken,
-    getContractCampaigns,
     getPromContract,
     getCampaignOwnerAddr,
-    bttConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
+
+const {
+    getWeb3Connection,
+    getHttpProvider,
+    networkProviders,
+    networkProvidersOptions,
+} = require('../web3/web3-connection')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
 
@@ -153,25 +162,6 @@ const storage = new GridFsStorage({
     },
 })
 
-module.exports.wrappedbtt = async (cred, amount) => {
-    try {
-        let web3UrlBTT = cred.web3UrlBTT
-        contractWbtt = new web3UrlBTT.eth.Contract(
-            Constants.wbtt.abi,
-            Constants.token.wbtt
-        )
-        var gas = 200000
-
-        var ret = await contractWbtt.methods.deposit().send({
-            value: amount,
-            from: cred.address,
-            gas: gas,
-        })
-        return ret
-    } catch (error) {
-        console.log(error)
-    }
-}
 exports.swapTrx = async (req, res) => {
     try {
         let privateKey = req.body.privateKey
@@ -255,9 +245,6 @@ module.exports.launchCampaign = async (req, res) => {
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
 
             if (!cred) return
         }
@@ -276,7 +263,6 @@ module.exports.launchCampaign = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -353,16 +339,12 @@ module.exports.launchBounty = async (req, res) => {
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
-            var hexadd = tronWeb.address.toHex(tokenAddress)
 
             if (tokenAddress === TronConstant.token.wtrx) {
-                let wrapped = await wrappedtrx(tronWeb, amount)
+                await wrappedtrx(tronWeb, amount)
             }
         } else {
             cred = await unlock(req, res)
-            if (tokenAddress === '0xD6Cb96a00b312D5930FC2E8084A98ff2Daa5aD2e') {
-                let wrapped = await this.wrappedbtt(cred, amount)
-            }
 
             if (!cred) return
         }
@@ -380,8 +362,6 @@ module.exports.launchBounty = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -469,6 +449,8 @@ exports.campaigns = async (req, res) => {
                 $sort: {
                     sort: 1,
                     sortPriority: -1,
+                    updatedAt: -1,
+                    createdAt: -1,
                     _id: 1,
                 },
             },
@@ -481,6 +463,7 @@ exports.campaigns = async (req, res) => {
                 },
             },
         ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -556,17 +539,52 @@ exports.campaignPromp = async (req, res) => {
             }
         )
         var tronWeb
+        var webTron
         if (campaign.token.type === 'TRON') {
-            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
+
+
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+            
+            webTron = getWeb3Connection(
+                networkProviders['ERC20'],
+                networkProvidersOptions['ERC20']
+            )
+
+            let wallet = webTron.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            );
+                   
+
+
+
+
             tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(privateKey)
-            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
+
+            
+
+            
         }
+        var cred =[]
+    
+        cred.WEB3 = getWeb3Connection(
+            networkProviders[campaign.token.type.toUpperCase()],
+            networkProvidersOptions[campaign.token.type.toUpperCase()]
+        )
 
         let ctr = await getCampaignContractByHashCampaign(
             campaign.hash,
-            false,
+            cred,
             tronWeb
         )
 
@@ -738,6 +756,7 @@ exports.apply = async (req, res) => {
         }
         var cred
         var tronWeb
+        req.body.network = campaignDetails.token.type
         if (campaignDetails.token.type === 'TRON') {
             let privateKey = (await getWalletTron(id, pass)).priv
             tronWeb = await webTronInstance()
@@ -966,6 +985,7 @@ exports.validateCampaign = async (req, res) => {
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
                 tronWeb.setAddress(walletAddr)
             } else {
+                req.body.network = campaign.token.type
                 cred = await unlock(req, res)
             }
 
@@ -1084,6 +1104,8 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             var wrappedBtt
             campaignData = await Campaigns.findOne({ hash: hash })
+            req.body.network = campaignData.token.type
+
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
                     await getWalletTron(req.user._id, req.body.pass)
@@ -1114,7 +1136,7 @@ exports.gains = async (req, res) => {
                     { accessToken: 1, _id: 0 }
                 ))
             if (!!campaignData.bounties.length) {
-                if (tronWeb.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
+                if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
                     var ret = await getGains(idProm, credentials, tronWeb)
                     return responseHandler.makeResponseData(
                         res,
@@ -1315,25 +1337,8 @@ exports.gains = async (req, res) => {
                 { token: 1, _id: 0 }
             )
             let campaignType = {}
-            let network
-            switch (campaign?.token?.type?.toLowerCase()) {
-                case 'erc20': {
-                    network = credentials.Web3ETH
-                    break
-                }
-                case 'bep20': {
-                    network = credentials.Web3BEP20
-                    break
-                }
-                case 'polygon': {
-                    network = credentials.Web3POLYGON
-                    break
-                }
-                case 'btt': {
-                    network = credentials.web3UrlBTT
-                    break
-                }
-            }
+
+            let network = !!credentials && credentials.WEB3
 
             let amount = await getTransactionAmount(
                 credentials,
@@ -1683,7 +1688,7 @@ module.exports.increaseBudget = async (req, res) => {
     } finally {
         cred && lock(cred)
         if (ret?.transactionHash) {
-            const ctr = await getCampaignContractByHashCampaign(hash)
+            const ctr = await getCampaignContractByHashCampaign(hash, cred)
             let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
             await Campaigns.findOne({ hash: hash }, async (err, result) => {
                 let budget = new Big(result.cost)
@@ -1737,6 +1742,56 @@ exports.getFunds = async (req, res) => {
                 }
             )
         }
+    }
+}
+exports.approveCampaign = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let token = req.body.tokenAddress
+
+        var cred = await unlockNetwork(req, res)
+        if (!cred) return
+
+        let ret = await approve(token, cred, campaignAddress, amount, res)
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        !!cred.web3 && lockNetwork(cred)
+    }
+}
+exports.campaignAllowance = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res)
+        let allowance = await allow(
+            tokenAddress,
+            account.address,
+            campaignAddress,
+            req
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
     }
 }
 
@@ -2103,6 +2158,7 @@ exports.getLinks = async (req, res) => {
                 },
             },
         ])
+            .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
 
@@ -2127,6 +2183,7 @@ exports.getLinks = async (req, res) => {
                         },
                     },
                 ])
+                    .allowDiskUse(true)
                     .skip(skip)
                     .limit(limit))) ||
             []
@@ -2425,7 +2482,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     hash: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true)
 
         let linkProms = CampaignLink.aggregate([
             {
@@ -2433,7 +2490,7 @@ module.exports.campaignsStatistics = async (req, res) => {
                     id_campaign: { $exists: true },
                 },
             },
-        ])
+        ]).allowDiskUse(true)
         let data = await Promise.all([campaignProms, linkProms])
 
         let pools = data[0]
@@ -2453,10 +2510,9 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = [
-                        'SATTBEP20',
-                        'WSATT',
-                    ].includes(campaign.token.name)
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
+                        campaign.token.name
+                    )
                         ? 'SATT'
                         : campaign.token.name
                     let payedAmountInCryptoCurrency = new Big(
@@ -2622,7 +2678,7 @@ module.exports.totalInvested = async (req, res) => {
                     idNode: '0' + req.user._id,
                 },
             },
-        ])
+        ]).allowDiskUse(true)
         userCampaigns.forEach((elem) => {
             totalInvested = new Big(totalInvested).plus(new Big(elem.cost))
         })

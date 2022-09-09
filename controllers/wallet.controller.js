@@ -10,6 +10,7 @@ var fs = require('fs')
 const Web3 = require('web3')
 const {
     networkProviders,
+    networkProvidersOptions,
     getWeb3Connection,
     getHttpProvider,
 } = require('../web3/web3-connection')
@@ -17,7 +18,6 @@ const { transferTokens, transferBTC } = require('../libs/transfer')
 const { unlockAccount } = require('../web3/account')
 
 const {
-    getContractByToken,
     erc20Connexion,
     bep20Connexion,
     polygonConnexion,
@@ -80,6 +80,7 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
 )
+
 exports.exportBtc = async (req, res) => {
     try {
         res.attachment()
@@ -195,6 +196,34 @@ exports.userBalance = async (req, res) => {
         }
     } catch (err) {
         console.log(err)
+    }
+}
+
+exports.getGasPrice = async (req, res) => {
+    let network = req.params.network.toUpperCase()
+    if (network === 'TRON') {
+        let tronWeb = await webTronInstance()
+
+        var gasPrice = await tronWeb.trx.getChainParameters()
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee')
+                .value,
+        })
+    } else {
+        const provider = getHttpProvider(
+            networkProviders[network],
+            networkProvidersOptions[network]
+        )
+        let web3 = await new Web3(provider)
+        var gasPrice = await web3.eth.getGasPrice()
+        if (network === 'bttc') {
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                gasPrice: (gasPrice * 280) / 1000000000,
+            })
+        }
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            gasPrice: gasPrice / 1000000000,
+        })
     }
 }
 exports.gasPricePolygon = async (req, res) => {
@@ -321,7 +350,8 @@ exports.transferTokensController30trx = async () => {
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
-                networkProviders[network.toUpperCase()]
+                networkProviders[network.toUpperCase()],
+                networkProvidersOptions[network.toUpperCase()]
             )
 
             // get wallet keystore
@@ -414,7 +444,8 @@ exports.transferTokensController = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
-                networkProviders[network.toUpperCase()]
+                networkProviders[network.toUpperCase()],
+                networkProvidersOptions[network.toUpperCase()]
             )
 
             // get wallet keystore

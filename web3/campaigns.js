@@ -3,15 +3,21 @@ const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
     bep20Connexion,
-    getContractByToken,
+    getContractByNetwork,
     getPromContract,
-    getContractCampaigns,
     polygonConnexion,
     bttConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const { Constants, tronTokensCampaign, TronConstant } = require('../conf/const')
+const { wrapNative, getWalletTron } = require('./wallets')
+
+const {
+    Constants,
+    tronTokensCampaign,
+    TronConstant,
+    wrapConstants,
+} = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
 const { isTronNetwork } = require('./campaigns')
@@ -19,6 +25,12 @@ const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
 const { async } = require('hasha')
+const {
+    getHttpProvider,
+    networkProviders,
+    getWeb3Connection,
+} = require('../web3/web3-connection')
+const Web3 = require('web3')
 
 exports.unlock = async (req, res) => {
     try {
@@ -45,6 +57,164 @@ exports.unlock = async (req, res) => {
             code: 500,
             error: err.message ? err.message : err.error,
         })
+    }
+}
+//unlock networks
+exports.unlockNetwork = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let network = req.params.network?.toUpperCase()
+        let wallet = await Wallet.findOne({ UserId })
+        var web3
+        var tronWeb
+        if (network === 'TRON') {
+            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
+                .priv
+            tronWeb = await webTronInstance(privateKey)
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+            return {
+                tronAddress: wallet.tronAddress,
+                tronWeb,
+            }
+        } else {
+            const provider = getHttpProvider(networkProviders[network])
+            web3 = await new Web3(provider)
+            web3.eth.accounts.wallet.decrypt([wallet.keystore], pass)
+            console.log(
+                web3.eth.accounts.wallet.decrypt([wallet.keystore], pass),
+                'accunt'
+            )
+            return {
+                address: '0x' + wallet.keystore.address,
+                web3,
+            }
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+//approve camapaign
+exports.approve = async (token, credentials, spender, amount, res) => {
+    try {
+        var contract =
+            (!!credentials.tronWeb &&
+                (await credentials.tronWeb.contract(
+                    (!!token === TronConstant.token.wtrx &&
+                        TronConstant.token.wtrxAbi) ||
+                        TronConstant.token.abi,
+                    token
+                ))) ||
+            new credentials.web3.eth.Contract(Constants.token.abi, token)
+
+        var gasPrice =
+            !credentials.tronWeb && (await credentials.web3.eth.getGasPrice())
+        var gas =
+            !credentials.tronWeb &&
+            (await contract.methods
+                .approve(spender, amount)
+                .estimateGas({ from: credentials.address }))
+        var receipt =
+            (!!credentials.tronWeb &&
+                (await contract
+                    .approve(TronConstant.campaign.address, amount)
+                    .send({
+                        feeLimit: 100_000_000,
+                        callValue: 0,
+                        shouldPollResponse: false,
+                    }))) ||
+            (await contract.methods
+                .approve(spender, amount)
+                .send({
+                    from: credentials.address,
+                    gas: gas,
+                    gasPrice: gasPrice,
+                })
+                .once('transactionHash', function (transactionHash) {
+                    console.log('approve transactionHash', transactionHash)
+                }))
+        if (!!credentials.tronWeb) {
+            await timeout(10000)
+            let result = await credentials.tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    address: credentials.tronAddress,
+                    spender: spender,
+                }
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        } else {
+            return {
+                transactionHash: receipt.transactionHash,
+                address: credentials.address,
+                spender: spender,
+            }
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+//allow campaign
+exports.allow = async (token, address, spender, req) => {
+    try {
+        let network = req.params.network.toUpperCase()
+        if (network === 'TRON') {
+            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
+                .priv
+            let tronWeb = await webTronInstance(privateKey)
+            tronWeb.setPrivateKey(privateKey)
+            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            tronWeb.setAddress(walletAddr)
+
+            let ctr = await tronWeb.contract(
+                (!!token === TronConstant.token.wtrx &&
+                    TronConstant.token.wtrxAbi) ||
+                    TronConstant.token.abi,
+                token
+            )
+            let amount = await ctr
+                .allowance(walletAddr, TronConstant.campaign.address)
+                .call()
+
+            return { amount: tronWeb.BigNumber(amount._hex).toString() }
+        } else {
+            const provider = getHttpProvider(networkProviders[network])
+            let web3 = await new Web3(provider)
+
+            var contract = new web3.eth.Contract(Constants.token.abi, token)
+
+            var amount = await contract.methods
+                .allowance(address, spender)
+                .call()
+            return { amount: amount.toString() }
+        }
+    } catch (err) {
+        console.log(err, 'err')
+        return { amount: '0' }
+    }
+}
+exports.bttApprove = async (token, address, spender) => {
+    try {
+        let Web3Btt = await bttConnexion()
+        var contract = new Web3Btt.eth.Contract(Constants.token.abi, token)
+
+        var amount = await contract.methods.allowance(address, spender).call()
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
     }
 }
 
@@ -85,6 +255,9 @@ exports.lock = async (credentials) => {
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
     credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
     credentials.web3UrlBTT.eth.accounts.wallet.remove(credentials.address)
+}
+exports.lockNetwork = async (credentials) => {
+    credentials.web3.eth.accounts.wallet.remove(credentials.address)
 }
 
 exports.lockERC20 = async (credentials) => {
@@ -163,6 +336,10 @@ exports.getAccount = async (req, res) => {
     }
 }
 
+exports.isNativeAddr = (addr) => {
+    return addr == Constants.token.matic
+}
+
 exports.createPerformanceCampaign = async (
     dataUrl,
     startDate,
@@ -226,7 +403,14 @@ exports.createPerformanceCampaign = async (
             }
         }
 
-        var ctr = await getContractByToken(token, credentials)
+        if (this.isNativeAddr(token)) {
+            token = wrapConstants[credentials.network].address
+            console.log(token)
+            await wrapNative(amount, credentials)
+        }
+
+        var ctr = await getContractByNetwork(credentials)
+
         var gasPrice = await ctr.getGasPrice()
         var gas = 5000000
         var receipt = await ctr.methods
@@ -322,7 +506,13 @@ exports.createBountiesCampaign = async (
             })
         }
     }
-    var ctr = await getContractByToken(token, credentials)
+
+    if (this.isNativeAddr(token)) {
+        token = wrapConstants[credentials.network].address
+        await wrapNative(amount, credentials)
+    }
+
+    var ctr = await getContractByNetwork(credentials)
     var gasPrice = await ctr.getGasPrice()
     var gas = 5000000
 
@@ -362,6 +552,7 @@ exports.createBountiesCampaign = async (
 
 exports.bttApprove = async (token, address, spender) => {
     try {
+        if (this.isNativeAddr(token)) token = wrapConstants['BTTC'].address
         let Web3Btt = await bttConnexion()
         var contract = new Web3Btt.eth.Contract(Constants.token.abi, token)
 
@@ -433,6 +624,7 @@ exports.bep20Approve = async (token, address, spender) => {
 
 exports.polygonAllow = async (token, credentials, spender, amount, res) => {
     try {
+        if (this.isNativeAddr(token)) token = wrapConstants['POLYGON'].address
         var contract = new credentials.Web3POLYGON.eth.Contract(
             Constants.token.abi,
             token
@@ -463,6 +655,7 @@ exports.polygonAllow = async (token, credentials, spender, amount, res) => {
 
 exports.bttAllow = async (token, credentials, spender, amount, res) => {
     try {
+        if (this.isNativeAddr(token)) token = wrapConstants['BTTC'].address
         var contract = new credentials.web3UrlBTT.eth.Contract(
             Constants.token.abi,
             token
@@ -527,6 +720,7 @@ exports.tronAllowance = async (tronWeb, token, amount, res) => {
 
 exports.polygonApprove = async (token, address, spender) => {
     try {
+        if (this.isNativeAddr(token)) token = wrapConstants['POLYGON'].address
         let Web3POLYGON = await polygonConnexion()
         var contract = new Web3POLYGON.eth.Contract(Constants.token.abi, token)
         var amount = await contract.methods.allowance(address, spender).call()
@@ -815,7 +1009,7 @@ exports.applyCampaign = async (
                 })
             }
         }
-        let web3 = await getContractByToken(token.addr, credentials)
+        let web3 = await getContractByNetwork(credentials)
 
         var gas = 400000
         var gasPrice = await web3.getGasPrice()
@@ -852,7 +1046,7 @@ exports.applyCampaign = async (
 exports.getRemainingFunds = async (token, hash, credentials) => {
     try {
         var gas = 200000
-        var ctr = await getContractByToken(token.addr, credentials)
+        var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.getRemainingFunds(hash).send({
             from: credentials.address,
@@ -876,7 +1070,7 @@ exports.getReachLimit = async (campaignRatio, oracle) => {
 
 exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     try {
-        var ctr = await getContractByToken(token, credentials)
+        var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var gas = 200000
 
@@ -1198,6 +1392,7 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
         }
     } catch (err) {
         console.log('err update prom', err)
+        
     }
 }
 
@@ -1225,7 +1420,7 @@ exports.getTransactionAmount = async (
             return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)
-        let amount = type === 'BTT' ? data.logs[1].data : data.logs[0].data
+        let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
         let hex = network.utils.hexToNumberString(amount)
         return hex
     } catch (e) {

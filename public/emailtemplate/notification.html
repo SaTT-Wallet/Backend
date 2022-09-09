@@ -3,262 +3,366 @@
 <html lang="en" class="ie8"> <![endif]-->
 <!--[if !IE]><!-->
 <html lang="en">
-<!--<![endif]-->
-<head>
-    <meta charset="utf-8">
-    <title>Atayen</title>
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">    <style>
-        .main {
-            width: 100%;
-            text-align: center;
-        }
+    <!--<![endif]-->
+    <head>
+        <meta charset="utf-8" />
+        <title>Atayen</title>
+        <meta
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            name="viewport"
+        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            .main {
+                width: 100%;
+                text-align: center;
+            }
 
-        a {
-            text-decoration: none;
-        }
-        .icon {
-            width: 15px;
-        }
-        .content {
-            width: 720px;
-            font-style: normal;
-            font-weight: normal;
-            color: #FFFFFF;
-            display: inline-table;
-            border: 1px solid #D6D6E8;
-        }
+            a {
+                text-decoration: none;
+            }
+            .icon {
+                width: 15px;
+            }
+            .content {
+                width: 720px;
+                font-style: normal;
+                font-weight: normal;
+                color: #ffffff;
+                display: inline-table;
+                border: 1px solid #d6d6e8;
+            }
 
-        .content .top {
-            color: #FFF;
-            padding: 15px 10px;
-            margin-bottom: 20px;
-        }
+            .content .top {
+                color: #4048ff;
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
 
-        .content .top .col {
-            display: inline-block;
-            width: 48%;
-        }
+            .content .top .col {
+                display: inline-block;
+                width: 48%;
+            }
 
-        .content .top .col a {
-            font-family: system-ui;
-            font-size: 14px;
-            line-height: 16px;
-            letter-spacing: 0.03em;
-            color: #F6F6FF;
-        }
+            .content .mail-header .top img {
+                width: 150px;
+                height: 50px;
+            }
 
-        .content .mail-header {
-            background-image: url("https://satt.atayen.us/assets/Images/mail/changeEmail-bg.png");
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-            padding-bottom: 35px;
-        }
+            .content .mail-header img {
+                width: 120px;
+                height: 120px;
+            }
 
-        .content .mail-header h2 {
-            font-family: system-ui;
-            font-style: normal;
-            font-weight: bold;
-            font-size: 40px;
-            line-height: 50px;
-            letter-spacing: 1px;
-            color: #FFF;
-            margin-bottom: 20px;
-            margin-top: 25px;
-        }
+            .content .top .col a {
+                font-family: system-ui;
+                font-size: 14px;
+                line-height: 16px;
+                letter-spacing: 0.03em;
+                color: #4048ff;
+            }
 
-        .content .mail-header a.btn {
-            font-family: system-ui;
-            font-style: normal;
-            font-weight: 900;
-            font-size: 18px;
-            line-height: 22px;
-            letter-spacing: 0.03em;
-            color: #F6F6FF;
-            background: #00CC9E;
-            border-radius: 30px;
-        }
+            .content .mail-header {
+                /* background-image: url("https://satt.atayen.us/assets/Images/mail/changeEmail-bg.png"); */
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                align-items: center;
+                text-align: center;
+                width: 100%;
+                /* padding-bottom: 35px; */
+            }
 
-     
+            .content .mail-header h2 {
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: bold;
+                font-size: 40px;
+                line-height: 50px;
+                letter-spacing: 1px;
+                color: #4048ff;
+                margin-bottom: 20px;
+                margin-top: 25px;
+            }
 
-        .content .mail-header p {
-            font-family: system-ui;
-            font-size: 14px;
-            line-height: 16px;
-            letter-spacing: 0.03em;
-            color: white;
-        }
+            .content .mail-header a.btn {
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 18px;
+                line-height: 22px;
+                letter-spacing: 0.03em;
+                color: #4048ff;
+                background: #00cc9e;
+                border-radius: 30px;
+            }
 
-        .content .mail-body {
-            color: #1F2337;
-            font-style: normal;
-            font-family: system-ui;
-            padding: 8px 0;
-        }
-        .content .mail-body .subtitle{
-            margin: 25px 0;
-        }
-        .content .mail-body .subtitle span{
-            padding:10px 30px;
-            background: #F6F6FF;
-            border-radius: 20px;
-            font-family: system-ui;
-            font-weight: bold;
-            font-size: 18px;
-         
-            /* justify-content: center; */
-            line-height: 22px;
-            text-align: center;
-            letter-spacing: 0.02em;
-        }
+            .content .mail-header p {
+                font-family: system-ui;
+                font-size: 20px;
+                line-height: 120%;
+                letter-spacing: 0.03em;
+                color: #1f2337;
+            }
 
-        .content .mail-body p {
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 16px;
-            text-align: center;
-        }
+            .content .mail-header p .name {
+                color: #4048ff;
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 700;
+                font-size: 20px;
+                line-height: 120%;
+            }
 
-        .content .mail-body a.contact {
-            color: #2048FF;
-        }
+            .content .mail-body p .name-wallet {
+                color: #323754;
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 700;
+                font-size: 16px;
+                line-height: 130%;
+            }
+            .content .mail-header p .price {
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 700;
+                font-size: 20px;
+                line-height: 120%;
+            }
 
-        .content .mail-body .actions {
-            margin-top: 30px;
-            margin-bottom: 30px;
-            text-align: center;
-            margin-top: 25px;
-            margin-bottom: 40px;
-        }
+            .content .mail-body {
+                color: #1f2337;
+                font-style: normal;
+                font-family: system-ui;
+                padding: 8px 0;
+            }
+            .content .mail-header .subtitle {
+                margin: 25px 0;
+            }
+            .content .mail-header .subtitle span {
+                padding: 10px 30px;
+                background: #f6f6ff;
+                color: #323754;
+                border-radius: 20px;
+                font-family: system-ui;
+                font-weight: bold;
+                font-size: 18px;
+                /* justify-content: center; */
+                line-height: 22px;
+                text-align: center;
+                letter-spacing: 0.02em;
+            }
 
-        .content .mail-body .actions a {
-            width: auto;
-            min-width: 245px;
-            margin-top: 10px;
-            font-family: system-ui;
-            font-style: normal;
-            font-weight: 900;
-            font-size: 18px;
-            line-height: 22px;
-            padding: 15px 35px;
-            align-items: center;
-            text-align: center;
-            letter-spacing: 0.03em;
-            border-radius: 30px;
-            display: inline-block;
-            margin-left: 10px;
-            margin-right: 10px;
-        }
+            .content .mail-body p {
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 16px;
+                text-align: center;
+            }
 
-        .content .mail-body .actions a.primary {
-            color: #F6F6FF;
-            background: #2048FF;
-        }
+            .content .mail-body a.contact {
+                color: #2048ff;
+            }
 
-        .content .mail-body .actions a.secondary {
-            color: #2048FF;
-            background: #FFFFFF;
-            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-        }
+            .content .mail-body .actions {
+                margin-top: 30px;
+                margin-bottom: 30px;
+                text-align: center;
+                margin-top: 25px;
+                margin-bottom: 40px;
+            }
 
-        .content .mail-footer {
-            border-top: 1px solid #D6D6E8;
-            text-align: center;
-            color: #2048FF;
-            padding: 25px 0;
-            text-transform: uppercase;
+            .content .mail-body .actions a {
+                width: auto;
+                min-width: 245px;
+                margin-top: 10px;
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 18px;
+                line-height: 22px;
+                padding: 15px 35px;
+                align-items: center;
+                text-align: center;
+                letter-spacing: 0.03em;
+                border-radius: 30px;
+                display: inline-block;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
 
-        }
+            .content .mail-body .actions a.primary {
+                color: #f6f6ff;
+                background: #2048ff;
+            }
 
-        .content .mail-footer a {
-            font-family: system-ui;
-            font-style: normal;
-            font-weight: normal;
-            font-size: 14px;
-            line-height: 16px;
-            text-align: center;
-            letter-spacing: 0.03em;
-            padding: 1px 10px;
-        }
+            .content .mail-body .actions a.secondary {
+                color: #2048ff;
+                background: #ffffff;
+                box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+            }
 
-        .content .mail-footer a.border-l {
-            border-left: solid 1px;
-        }
-        .apply-btn{
-            margin-bottom: 27px;
-            margin-top: 21px;
-        }
-        .apply-btn a{
-    border:none !important;
-    border-radius: 30px;
-    background: #2048FF;
-    font-family: system-ui;
-    cursor:pointer;
-    font-size: 18px;
-    padding: 10px 20px;
-    font-style: normal;
-    font-weight: 600;
-    letter-spacing: 0.01em;
+            .content .mail-footer {
+                border-top: 1px solid #d6d6e8;
+                background-color: #1f2337;
+                text-align: center;
+                color: #ffff;
+                padding: 25px 0;
+                text-transform: uppercase;
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 600;
+                font-size: 15px;
+            }
 
-    color: #F6F6FF;
+            
 
-        }
-        .text-btn{
-    padding-left:9%;
-    font-family: system-ui;
-    font-style: normal;
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 27px;
-    display: flex;
-    align-items: center;
-    /* text-align: center; */
-    letter-spacing: 0.01em;
-    color: #F6F6FF!important;
-        }
-    </style>
-</head>
-<body class="main" align="center">
-    <div class="content">
-        <div class="mail-header">
-            <div class="top">
-                <div align="left">
-                    <img src="{{SaTT.imageUrl}}/Satt_log_mail.png" alt="" width="100px;">
+            .content .mail-footer a {
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: normal;
+                font-size: 14px;
+                line-height: 16px;
+                text-align: center;
+                letter-spacing: 0.03em;
+                padding: 1px 10px;
+            }
+
+            .content .mail-footer a.border-l {
+                border-left: solid 1px;
+            }
+            .apply-btn {
+                margin-bottom: 27px;
+                margin-top: 21px;
+            }
+            .apply-btn a {
+                border: none !important;
+                border-radius: 30px;
+                background: #2048ff;
+                font-family: system-ui;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 11px 53px;
+                font-style: normal;
+                font-weight: 600;
+                letter-spacing: 0.01em;
+
+                color: #f6f6ff;
+            }
+            .text-btn {
+                padding-left: 9%;
+                font-family: system-ui;
+                font-style: normal;
+                font-weight: 600;
+                font-size: 18px;
+                line-height: 27px;
+                display: flex;
+                align-items: center;
+                /* text-align: center; */
+                letter-spacing: 0.01em;
+                color: #f6f6ff !important;
+            }
+        </style>
+    </head>
+    <body class="main" align="center">
+        <div class="content">
+            <div class="mail-header">
+                <div class="top">
+                    <div align="left">
+                        <img src="{{SaTT.imageUrl}}/satt-logo12.png" alt="satt-logo" />
+                    </div>
                 </div>
+                
+                <img src="{{SaTT.imageUrl}}/moonboy12.png" alt="moon-boy" />
+                <h2>Request Payment</h2>
+                <p>
+                    <span class="name">{{notification.name}}</span> {{{__
+                    "ask_to_send"}}}
+                    <span class="price"
+                        >{{notification.price}} {{notification.currency }}</span
+                    >
+                </p>
+                <p>{{{__ "here_is_the_message"}}}</p>
+                <div class="subtitle">
+                <span class="message"> {{notification.message}} </span>
             </div>
-                <img src="https://web-preprod.iframe-apps.com/images/img_mail/link-accepted.png" alt="">
-                <h2>{{notification.name}}...</h2>
-                <p>{{{__ "ask_to_send"}}} </p>
-                <p>{{notification.price}}  {{notification.currency }}</p>
-                <p> {{notification.name}}'s {{{__ "wallet_of"}}} : </p>
-                <p><strong>{{notification.wallet}}</strong></p>
         </div>
         <div class="mail-body">
-        <p>{{notification.name}}'s {{{__ "here_is_message"}}}</p>
-    <div class="subtitle"">
-        <span>
-        {{notification.message}}
-    </span>
-    </div>
-   
-        
-   <div class="apply-btn">
-        <a href="{{SaTT.Url}}"  >{{__ "send-money"}}</a>
-   </div>
-   
-   <p>Does something look incorrect? If so, we recommend holding off from fulfilling the
-    request.</p>
-  
- 
-</div>
-        <div class="mail-footer">
-            <a href="{{SaTT.faq}}">{{{__ "about"}}}</a>
-            <a class="border-l" href="mailto:contact@satt-token.com?subject=I%20contact%20you%20from%20Satt-token.com">{{__ "contact"}}</a>
+            <p>
+                <span class="name-wallet">{{notification.name}}</span>'s {{{__
+                "wallet_of"}}} :
+            </p>
+            <p>
+                <strong style="color: #4048ff">{{notification.wallet}}</strong>
+            </p>
+
+            <div class="apply-btn">
+                <a href="{{SaTT.Url}}">Connect</a>
+            </div>
         </div>
-    </div>
-</body>
+        <div class="mail-footer">
+            <span>Follow us</span>
+            <div>
+                <table align="center" >
+                    <tr align="center">
+                        <td style="padding: 20px 0" >
+                            <a
+                        href="https://www.facebook.com/SaTT.Token/?hc_location=ufi"
+                        ><img src="{{SaTT.imageUrl}}/facebook-icone.png" alt="facebook-icon" /></a>
+                            <a
+                        href="https://www.instagram.com/mwf_io/"
+                        ><img src="{{SaTT.imageUrl}}/instagram-icon.png" alt="instagram-icon" /></a>
+                            <a
+                        href="https://t.me/satttoken"
+                        ><img src="{{SaTT.imageUrl}}/telegram-icon.png" alt="telegram-icon" style="margin-bottom: 7px;" /></a>
+                            <a
+                        href="https://twitter.com/SaTT_Token"
+                        ><img src="{{SaTT.imageUrl}}/twitter-icon.png" alt="twitter-icon" /></a>
+                            <a
+                        href="https://www.youtube.com/channel/UCNSq8P6ZmrhF0Ft3fouqOTw"
+                        ><img src="{{SaTT.imageUrl}}/youtube-icon.png" alt="youtube-icon" /></a>
+                            
+                        </td>
+
+                    </tr>
+                </table>
+                
+            </div>
+            <p
+                style="
+                    font-size: 8px;
+                    font-weight: 500;
+                    color: #fff;
+                    font-family: system-ui;
+                    margin: 0 144px;
+                "
+            >
+                By using the website and services offered by ATAYEN, Inc. the
+                user acknowledges the risks involved in making purchases on the
+                crypto-asset market. Crypto-asset markets are decentralized and
+                unregulated. The services delivered by ATAYEN, Inc. and in
+                particular the SaTT wallet, therefore relate to unregulated
+                markets that are not governed by any specific European
+                regulatory framework. Read more Read our Privacy Policy and
+                Terms of Use if you have any other questions.
+            </p>
+
+            <span
+                style="
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: #fff;
+                    font-family: system-ui;
+                    font-style: normal;
+                    padding-top: 10px;
+                    display: block;
+                "
+                >Copyright © 2022 Atayen, Inc. <br />
+                All right reserved
+            </span>
+        </div>
+    </body>
 </html>

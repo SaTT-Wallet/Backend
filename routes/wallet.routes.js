@@ -30,11 +30,13 @@ const {
     addTronWalletToExistingAccount,
     transferTokensController30trx,
     gasPriceTrx,
+    getGasPrice,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
     verifyAuthGetQuote,
 } = require('../middleware/passport.middleware')
+
 /**
  * @swagger
  * /wallet/mywallet:
@@ -79,6 +81,29 @@ router.get('/userBalance', verifyAuth, userBalance)
 
 // router.get('/polygonCnx', testPolygon.polygonConnexion)
 // router.get('/polygonContract', getContractPolygon)
+
+/**
+ * @swagger
+ * /wallet/gasPrice/{network}:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get gas price
+ *     description: get gas price <br> without access_token
+ *     parameters:
+ *       - name: network
+ *         description: network
+ *         in: path
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/gasPrice/:network', getGasPrice)
 
 /**
  * @swagger
@@ -315,7 +340,7 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *          description: code,<br>error:"not_enough_budget" /"wrong password"
  *       "500":
  *          description: code,<br>error:"error"
- * 
+ *
  */
 router.post('/transferTokens', verifyAuth, transferTokensController)
 /**

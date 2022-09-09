@@ -1,3 +1,8 @@
+let Erc20NetworkConstant = 'ERC20'
+let Bep20NetworkConstant = 'BEP20'
+let PolygonNetworkConstant = 'POLYGON'
+let BttNetworkConstant = 'BTTC'
+
 let Constants = {
     token: { abi: [], satt: '', tether: '', dai: '', wbtt: '' },
     wbtt: { abi: [] },
@@ -26,6 +31,9 @@ let BttConstants = {
     oracle: { abi: [], address: '' },
     campaign: { abi: [], address: '' },
 }
+
+let CampaignConstants = []
+let OracleConstants = []
 
 BttConstants.token.abi = [
     {
@@ -4371,6 +4379,167 @@ PolygonConstants.campaign.abi = [
     ],
 ]
 
+let wrapConstants = []
+
+wrapConstants[BttNetworkConstant] = {
+    abi: [
+        {
+            constant: true,
+            inputs: [],
+            name: 'name',
+            outputs: [{ name: '', type: 'string' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        },
+        {
+            constant: false,
+            inputs: [
+                { name: 'guy', type: 'address' },
+                { name: 'wad', type: 'uint256' },
+            ],
+            name: 'approve',
+            outputs: [{ name: '', type: 'bool' }],
+            payable: false,
+            stateMutability: 'nonpayable',
+            type: 'function',
+        },
+        {
+            constant: true,
+            inputs: [],
+            name: 'totalSupply',
+            outputs: [{ name: '', type: 'uint256' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        },
+        {
+            constant: false,
+            inputs: [
+                { name: 'src', type: 'address' },
+                { name: 'dst', type: 'address' },
+                { name: 'wad', type: 'uint256' },
+            ],
+            name: 'transferFrom',
+            outputs: [{ name: '', type: 'bool' }],
+            payable: false,
+            stateMutability: 'nonpayable',
+            type: 'function',
+        },
+        {
+            constant: false,
+            inputs: [{ name: 'wad', type: 'uint256' }],
+            name: 'withdraw',
+            outputs: [],
+            payable: false,
+            stateMutability: 'nonpayable',
+            type: 'function',
+        },
+        {
+            constant: true,
+            inputs: [],
+            name: 'decimals',
+            outputs: [{ name: '', type: 'uint8' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        },
+        {
+            constant: true,
+            inputs: [{ name: '', type: 'address' }],
+            name: 'balanceOf',
+            outputs: [{ name: '', type: 'uint256' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        },
+        {
+            constant: true,
+            inputs: [],
+            name: 'symbol',
+            outputs: [{ name: '', type: 'string' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        },
+        {
+            constant: false,
+            inputs: [
+                { name: 'dst', type: 'address' },
+                { name: 'wad', type: 'uint256' },
+            ],
+            name: 'transfer',
+            outputs: [{ name: '', type: 'bool' }],
+            payable: false,
+            stateMutability: 'nonpayable',
+            type: 'function',
+        },
+        {
+            constant: false,
+            inputs: [],
+            name: 'deposit',
+            outputs: [],
+            payable: true,
+            stateMutability: 'payable',
+            type: 'function',
+        },
+        {
+            constant: true,
+            inputs: [
+                { name: '', type: 'address' },
+                { name: '', type: 'address' },
+            ],
+            name: 'allowance',
+            outputs: [{ name: '', type: 'uint256' }],
+            payable: false,
+            stateMutability: 'view',
+            type: 'function',
+        },
+        { payable: true, stateMutability: 'payable', type: 'fallback' },
+        {
+            anonymous: false,
+            inputs: [
+                { indexed: true, name: 'src', type: 'address' },
+                { indexed: true, name: 'guy', type: 'address' },
+                { indexed: false, name: 'wad', type: 'uint256' },
+            ],
+            name: 'Approval',
+            type: 'event',
+        },
+        {
+            anonymous: false,
+            inputs: [
+                { indexed: true, name: 'src', type: 'address' },
+                { indexed: true, name: 'dst', type: 'address' },
+                { indexed: false, name: 'wad', type: 'uint256' },
+            ],
+            name: 'Transfer',
+            type: 'event',
+        },
+        {
+            anonymous: false,
+            inputs: [
+                { indexed: true, name: 'dst', type: 'address' },
+                { indexed: false, name: 'wad', type: 'uint256' },
+            ],
+            name: 'Deposit',
+            type: 'event',
+        },
+        {
+            anonymous: false,
+            inputs: [
+                { indexed: true, name: 'src', type: 'address' },
+                { indexed: false, name: 'wad', type: 'uint256' },
+            ],
+            name: 'Withdrawal',
+            type: 'event',
+        },
+    ],
+}
+wrapConstants[PolygonNetworkConstant] = {
+    abi: wrapConstants[BttNetworkConstant].abi,
+}
+
 if (process.env.NODE_ENV === 'mainnet') {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_MAINNET
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET
@@ -4409,9 +4578,13 @@ if (process.env.NODE_ENV === 'mainnet') {
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_MAINNET
     Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
     Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
+
+    wrapConstants[PolygonNetworkConstant].address =
+        process.env.CONST_WMATIC_MAINNET
+    wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_MAINNET
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
-    Constants.token.wbtt = '0xd6cb96a00b312d5930fc2e8084a98ff2daa5ad2e'
+    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
 
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET
     Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAITESTNET
@@ -4447,6 +4620,44 @@ if (process.env.NODE_ENV === 'mainnet') {
     TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_TESTNET
     Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
+
+    wrapConstants[PolygonNetworkConstant].address =
+        process.env.CONST_WMATIC_TESTNET
+    wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_TESTNET
+}
+
+CampaignConstants[Erc20NetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: Constants.campaign.address.campaignErc20,
+}
+CampaignConstants[Bep20NetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: Constants.campaign.address.campaignBep20,
+}
+CampaignConstants[PolygonNetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: Constants.campaign.address.campaignPolygon,
+}
+CampaignConstants[BttNetworkConstant] = {
+    abi: Constants.campaign.abi,
+    address: BttConstants.campaign.address,
+}
+
+OracleConstants[Erc20NetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: Constants.oracle.address.oracleErc20,
+}
+OracleConstants[Bep20NetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: Constants.oracle.address.oracleBep20,
+}
+OracleConstants[PolygonNetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: PolygonConstants.oracle.address,
+}
+OracleConstants[BttNetworkConstant] = {
+    abi: Constants.oracle.abi,
+    address: BttConstants.oracle.address,
 }
 
 let erc20TokenCampaigns = [
@@ -4460,7 +4671,9 @@ let bep20TokenCampaigns = [
     Constants.bep20.address.bnb.toLowerCase(),
 ]
 
-let polygonTokensCampaign = [/*PolygonConstants.token.satt.toLowerCase()*/Constants.token.matic]
+let polygonTokensCampaign = [
+    /*PolygonConstants.token.satt.toLowerCase()*/ Constants.token.matic,
+]
 
 let bttTokensCampaign = [
     //BttConstants.token.satt.toLowerCase(),
@@ -4479,6 +4692,15 @@ module.exports.Constants = Constants
 module.exports.PolygonConstants = PolygonConstants
 module.exports.TronConstant = TronConstant
 module.exports.BttConstants = BttConstants
+module.exports.wrapConstants = wrapConstants
+
+module.exports.Erc20NetworkConstant = Erc20NetworkConstant
+module.exports.Bep20NetworkConstant = Bep20NetworkConstant
+module.exports.PolygonNetworkConstant = PolygonNetworkConstant
+module.exports.BttNetworkConstant = BttNetworkConstant
+
+module.exports.CampaignConstants = CampaignConstants
+module.exports.OracleConstants = OracleConstants
 
 module.exports.erc20TokenCampaigns = erc20TokenCampaigns
 module.exports.bep20TokenCampaigns = bep20TokenCampaigns

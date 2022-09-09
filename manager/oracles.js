@@ -24,6 +24,7 @@ const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
 const { TikTokProfile } = require('../model')
+const { getWeb3Connection, networkProviders, networkProvidersOptions } = require('../web3/web3-connection')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -291,14 +292,14 @@ exports.findBountyOracle = (typeSN) => {
         return typeSN == '1'
             ? 'facebook'
             : typeSN == '2'
-                ? 'youtube'
-                : typeSN == '3'
-                    ? 'instagram'
-                    : typeSN == '4'
-                        ? 'twitter'
-                        : typeSN == '5'
-                            ? 'linkedin'
-                            : 'tiktok'
+            ? 'youtube'
+            : typeSN == '3'
+            ? 'instagram'
+            : typeSN == '4'
+            ? 'twitter'
+            : typeSN == '5'
+            ? 'linkedin'
+            : 'tiktok'
     } catch (err) {
         console.log(err.message)
     }
@@ -483,8 +484,19 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 
 exports.tiktokAbos = async (username) => {
     const vgmUrl = 'https://www.tiktok.com/' + username
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch({
+        args: [
+            '--single-process',
+            '--no-zygote',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+        ],
+    })
+
     const page = await browser.newPage()
+    await page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
+    )
     await page.goto(vgmUrl)
     const scrappedData = await page.$$eval('strong', (elements) => {
         return elements
@@ -505,6 +517,8 @@ exports.tiktokAbos = async (username) => {
             abosNumber = parseFloat(abosNumber)
         }
     }
+    await page.close()
+    console.log('page closed.')
     await browser.close()
     return abosNumber
 }
@@ -666,18 +680,18 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
             perf.likes = body.elements[0]?.totalShareStatistics.likeCount
             perf.shares = body.elements[0]?.totalShareStatistics.shareCount
         }
-        if (type !== 'share') {
-            const linkedinVideoData = {
-                url: config.linkedinUgcPostStats(idPost),
-                method: 'GET',
-                headers: {
-                    Authorization: 'Bearer ' + accessToken,
-                },
-                json: true,
-            }
-            var bodyVideo = await rp(linkedinVideoData)
-            perf.views = bodyVideo.elements[0].value
-        }
+        // if (type !== 'share') {
+        //     const linkedinVideoData = {
+        //         url: config.linkedinUgcPostStats(idPost),
+        //         method: 'GET',
+        //         headers: {
+        //             Authorization: 'Bearer ' + accessToken,
+        //         },
+        //         json: true,
+        //     }
+        //     var bodyVideo = await rp(linkedinVideoData)
+        //     perf.views = bodyVideo.elements[0].value
+        // }
         return perf
     } catch (err) {
         console.log("error from linkedin" ,err.message)
@@ -759,7 +773,7 @@ const twitter = async (userName, idPost) => {
         })
 
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
-        var twitterProfile = await TwitterProfile.findOne({
+        var twitterProfile = await TwitterProfile.find({
             username: tweet_res.user.screen_name,
         })
 
@@ -805,7 +819,6 @@ const twitter = async (userName, idPost) => {
                 'media.fields':
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
-
 
             var perf = {
                 shares: res.data[0].public_metrics.retweet_count,
@@ -860,7 +873,8 @@ const tiktok = async (tiktokProfile, idPost) => {
             likes: videoInfoResponse.data.videos[0].like_count,
             shares: videoInfoResponse.data.videos[0].share_count,
             views: videoInfoResponse.data.videos[0].view_count,
-            media_url: videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
+            media_url:
+                videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
         }
     } catch (error) {
         console.log(error)
@@ -927,7 +941,7 @@ exports.getReward = (result, bounties) => {
                 bounty.oracle === result.oracle ||
                 bounty.oracle == this.findBountyOracle(result.typeSN)
             ) {
-                bounty = bounty.toObject()
+                // bounty = bounty.toObject()
                 bounty.categories.forEach((category) => {
                     if (
                         +category.minFollowers <= +result.abosNumber &&
@@ -957,8 +971,7 @@ exports.getButtonStatus = (link) => {
         var type = ''
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
-        if (link.totalToEarn)
-            totalToEarn = link.totalToEarn
+        if (link.totalToEarn) totalToEarn = link.totalToEarn
 
         if (link.reward)
             totalToEarn =
@@ -974,9 +987,7 @@ exports.getButtonStatus = (link) => {
         )
             return 'already_recovered'
 
-        if (totalToEarn === '0' && link.payedAmount === '0')
-            return 'no_gains'
-
+        if (totalToEarn === '0' && link.payedAmount === '0') return 'no_gains'
 
         if (
             totalToEarn === '0' &&
@@ -985,33 +996,22 @@ exports.getButtonStatus = (link) => {
         )
             return 'not_enough_budget'
 
-
         if (
             (new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign?.ratios?.length) ||
             (link.isPayed === false &&
                 new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign.bounties?.length)
-
         ) {
             link.status = true
             return 'harvest'
         }
 
+        if (link.status === 'indisponible') return 'indisponible'
 
-        if (link.status === 'indisponible')
-            return 'indisponible'
-
-
-        if (link.status === 'rejected')
-            return 'rejected'
-
-
-
-
+        if (link.status === 'rejected') return 'rejected'
 
         return 'none'
-
     } catch (err) {
         console.error(err)
     }
@@ -1020,7 +1020,6 @@ exports.getButtonStatus = (link) => {
 exports.answerBounty = async function (opts) {
     try {
         if (!!opts.tronWeb) {
-
             let tronWeb = await webTronInstance()
             var tronCampaignKeystore = fs.readFileSync(
                 process.env.CAMPAIGN_TRON_WALLET_PATH,
@@ -1036,7 +1035,9 @@ exports.answerBounty = async function (opts) {
                 process.env.CAMPAIGN_TRON_OWNER_PASS
             )
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(
+                wallet.privateKey.slice(2)
+            )
             tronWeb.setAddress(walletAddr)
 
             let contract = await tronWeb.contract(
@@ -1066,7 +1067,6 @@ exports.answerBounty = async function (opts) {
             }
         }
         let contract = await getOracleContractByCampaignContract(
-            opts.campaignContract,
             opts.credentials
         )
         var campaignKeystore = fs.readFileSync(
@@ -1076,15 +1076,7 @@ exports.answerBounty = async function (opts) {
 
         campaignWallet = JSON.parse(campaignKeystore)
 
-        opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
+        opts.credentials.WEB3.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
@@ -1187,10 +1179,29 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
 exports.answerCall = async (opts) => {
     try {
         if (!!opts.tronWeb) {
-            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
-            let tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(privateKey)
-            let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+            
+                
+            let webTron = getWeb3Connection(
+                networkProviders['ERC20'],
+                networkProvidersOptions['ERC20']
+            )
+
+            let wallet = webTron.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            );
+                
+              let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
             let contract = await tronWeb.contract(
                 TronConstant.oracle.abi,
@@ -1221,7 +1232,6 @@ exports.answerCall = async (opts) => {
             }
         }
         let contract = await getOracleContractByCampaignContract(
-            opts.campaignContract,
             opts.credentials
         )
         var campaignKeystore = fs.readFileSync(
@@ -1231,22 +1241,11 @@ exports.answerCall = async (opts) => {
 
         campaignWallet = JSON.parse(campaignKeystore)
 
-        opts.credentials.Web3ETH.eth.accounts.wallet.decrypt(
+        opts.credentials.WEB3.eth.accounts.wallet.decrypt(
             [campaignWallet],
             process.env.CAMPAIGN_OWNER_PASS
         )
-        opts.credentials.Web3BEP20.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.Web3POLYGON.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
-        opts.credentials.web3UrlBTT.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
+
         var gasPrice = await contract.getGasPrice()
         var receipt = await contract.methods
             .answer(

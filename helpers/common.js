@@ -189,6 +189,60 @@ const { TikTokProfile, FbProfile } = require('../model')
                 delete event.payedAmount
                 await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
             }
+            if (event.typeSN == '6') {
+                var tiktokProfile = await TikTokProfile.findOne({
+                    userId: userWallet?.UserId,
+                })
+            }
+
+            try {
+                var socialOracle = await getPromApplyStats(
+                    findBountyOracle(event.typeSN),
+                    event,
+                    userWallet?.UserId,
+                    linkedinProfile,
+                    tiktokProfile
+                )
+            } catch (e) {
+                continue
+            }
+            event.abosNumber = await answerAbos(
+                event.typeSN.toString(),
+                event.idPost,
+                event.idUser,
+                linkedinProfile,
+                tiktokProfile
+            )
+
+            if (socialOracle === 'indisponible') {
+                event.status = 'indisponible'
+            }
+
+            if (socialOracle && socialOracle !== 'indisponible') {
+                event.shares = socialOracle?.shares || event.shares
+                event.likes = socialOracle?.likes || event.likes
+                event.views =
+                    socialOracle?.views === 'old'
+                        ? event.views
+                        : socialOracle?.views
+                event.media_url = socialOracle?.media_url || media_url
+                event.oracle = findBountyOracle(event.typeSN)
+            }
+
+            if (event.campaign.ratios.length && socialOracle) {
+                event.totalToEarn = getTotalToEarn(event, event.campaign.ratios)
+            }
+
+            if (event.campaign.bounties.length && socialOracle) {
+                event.totalToEarn = getReward(event, event.campaign.bounties)
+            }
+
+            event.type = getButtonStatus(event)
+
+            if (event.campaign) event.type = getButtonStatus(event)
+            delete event.campaign
+            delete event.payedAmount
+            await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }
 
