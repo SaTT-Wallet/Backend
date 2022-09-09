@@ -1419,7 +1419,7 @@ exports.getTransactionAmount = async (
             return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)
-        let amount = type === 'BTT' ? data.logs[1].data : data.logs[0].data
+        let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
         let hex = network.utils.hexToNumberString(amount)
         return hex
     } catch (e) {
