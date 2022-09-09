@@ -48,8 +48,8 @@ jspm_packages/
 
 #config files
 conf/wallets/bep20.json
-conf/wallets/campaing.json
-conf/wallets/campaing.polygon.json
+conf/wallets/campaign.json
+conf/wallets/campaign.polygon.json
 conf/ssl/fullchain.pem
 conf/ssl/privkey.pem
 
