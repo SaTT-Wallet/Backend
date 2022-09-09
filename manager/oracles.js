@@ -1177,9 +1177,21 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
 exports.answerCall = async (opts) => {
     try {
         if (!!opts.tronWeb) {
-            let privateKey = process.env.CAMPAIGN_TRON_OWNER_PRIVATE_KEY
-            let tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(privateKey)
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+
+            let wallet = opts.credentials.Web3ETH.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            );
+                        let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
             let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
             let contract = await tronWeb.contract(
