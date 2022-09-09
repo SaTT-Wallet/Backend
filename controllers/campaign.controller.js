@@ -1338,7 +1338,7 @@ exports.gains = async (req, res) => {
             )
             let campaignType = {}
 
-            let network = credentials.WEB3
+            let network = !!credentials && credentials.WEB3
 
             let amount = await getTransactionAmount(
                 credentials,
