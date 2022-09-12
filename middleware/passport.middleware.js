@@ -874,32 +874,26 @@ exports.addTikTokChannel = async (
 
     try {
         let profileData = await TikTokProfile.findOne({
-            userTiktokId: profile.id,
+            userId: userId,
         })
-        console.log('profile', profileData)
-        if (profileData) {
-            await TikTokProfile.updateOne({ userId }, { $set: { accessToken } })
-        }
-        // return cb(null, profile, {
-        //     status: false,
-        //     message: 'account exist',
-        // })
-        // } else {
-        ;[
-            profile.accessToken,
-            profile.userId,
-            profile.userTiktokId,
-            profile.refreshToken,
-        ] = [accessToken, userId, profile.id, refreshToken]
 
-        //	console.log('profile ===>', profile)
-        await TikTokProfile.create(profile)
-        // }
+        if (profileData) {
+            return cb(null, profile, {
+                status: false,
+                message: 'account exist',
+            })
+        } else {
+            await TikTokProfile.create(profile)
+            return cb(null, profile, {
+                status: true,
+                message: 'account_linked_with_success',
+            })
+        }
     } catch (error) {
         console.log('Error ===> ', error)
     }
 
-    return cb(null, { id: userId, token: accessToken })
+    // return cb(null, { id: userId, token: accessToken })
 }
 
 /*
