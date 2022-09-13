@@ -873,8 +873,12 @@ exports.addTikTokChannel = async (
     console.log('from addTikTokChannel', userId)
     try {
         let profileData = await TikTokProfile.findOne({
-            userId: userId,
-            userTiktokId: profile.userTiktokId,
+            $and: [
+                { userId: userId },
+                {
+                    userTiktokId: profile.userTiktokId,
+                },
+            ],
         })
 
         if (profileData) {
