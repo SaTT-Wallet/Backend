@@ -868,10 +868,9 @@ exports.addTikTokChannel = async (
     console.log('refreshToken', refreshToken)
     //    console.log('6')
 
-    // console.log('from addTikTokChannel',profile,accessToken);
-
     let userId = +req.query.state.split('|')[0]
 
+    console.log('from addTikTokChannel', userId)
     try {
         let profileData = await TikTokProfile.findOne({
             userId: userId,
