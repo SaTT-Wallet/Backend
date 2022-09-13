@@ -292,14 +292,14 @@ exports.findBountyOracle = (typeSN) => {
         return typeSN == '1'
             ? 'facebook'
             : typeSN == '2'
-            ? 'youtube'
-            : typeSN == '3'
-            ? 'instagram'
-            : typeSN == '4'
-            ? 'twitter'
-            : typeSN == '5'
-            ? 'linkedin'
-            : 'tiktok'
+                ? 'youtube'
+                : typeSN == '3'
+                    ? 'instagram'
+                    : typeSN == '4'
+                        ? 'twitter'
+                        : typeSN == '5'
+                            ? 'linkedin'
+                            : 'tiktok'
     } catch (err) {
         console.log(err.message)
     }
@@ -772,9 +772,9 @@ const twitter = async (userName, idPost) => {
         })
 
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
-        var twitterProfile = await TwitterProfile.find({
+        var twitterProfile = (await TwitterProfile.find({
             username: tweet_res.user.screen_name,
-        })
+        }))[0]
 
         if (!twitterProfile) {
             var res = await tweet.get('statuses/show', {
@@ -1186,8 +1186,8 @@ exports.answerCall = async (opts) => {
 
             let ethAddr = tronCampaignWallet.address.slice(2)
             tronCampaignWallet.address = ethAddr
-            
-                
+
+
             let webTron = getWeb3Connection(
                 networkProviders['ERC20'],
                 networkProvidersOptions['ERC20']
@@ -1197,8 +1197,8 @@ exports.answerCall = async (opts) => {
                 tronCampaignWallet,
                 process.env.CAMPAIGN_TRON_OWNER_PASS
             );
-                
-              let tronWeb = await webTronInstance()
+
+            let tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
             let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
             tronWeb.setAddress(walletAddr)
