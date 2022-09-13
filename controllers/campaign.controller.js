@@ -541,8 +541,6 @@ exports.campaignPromp = async (req, res) => {
         var tronWeb
         var webTron
         if (campaign.token.type === 'TRON') {
-
-
             var tronCampaignKeystore = fs.readFileSync(
                 process.env.CAMPAIGN_TRON_WALLET_PATH,
                 'utf8'
@@ -551,7 +549,7 @@ exports.campaignPromp = async (req, res) => {
 
             let ethAddr = tronCampaignWallet.address.slice(2)
             tronCampaignWallet.address = ethAddr
-            
+
             webTron = getWeb3Connection(
                 networkProviders['ERC20'],
                 networkProvidersOptions['ERC20']
@@ -560,23 +558,17 @@ exports.campaignPromp = async (req, res) => {
             let wallet = webTron.eth.accounts.decrypt(
                 tronCampaignWallet,
                 process.env.CAMPAIGN_TRON_OWNER_PASS
-            );
-                   
-
-
-
+            )
 
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(
+                wallet.privateKey.slice(2)
+            )
             tronWeb.setAddress(walletAddr)
-
-            
-
-            
         }
-        var cred =[]
-    
+        var cred = []
+
         cred.WEB3 = getWeb3Connection(
             networkProviders[campaign.token.type.toUpperCase()],
             networkProvidersOptions[campaign.token.type.toUpperCase()]
@@ -2501,6 +2493,7 @@ module.exports.campaignsStatistics = async (req, res) => {
 
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
+
             if (campaign) {
                 if (
                     links[j].abosNumber &&
@@ -2510,11 +2503,15 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
-                        campaign.token.name
-                    )
+                    let tokenName = [
+                        'SATTBEP20',
+                        'WSATT',
+                        'SATTPOLYGON',
+                    ].includes(campaign.token.name)
                         ? 'SATT'
                         : campaign.token.name
+
+                    console.log(tokenName)
                     let payedAmountInCryptoCurrency = new Big(
                         links[j].payedAmount
                     ).div(new Big(10).pow(getDecimal(tokenName)))
@@ -2528,23 +2525,19 @@ module.exports.campaignsStatistics = async (req, res) => {
         }
 
         while (i < pools.length) {
+            console.log(pools[i]?.token.name)
             if (pools[i].type === 'apply') {
-                let key =
-                    pools[i]?.token.name === 'SATTBEP20' ||
-                    pools[i]?.token.name === 'SATTPOLYGON'
-                        ? 'SATT'
-                        : pools[i]?.token.name
-                pools[i]?.token.name === 'SAT' && console.log(pools[i])
+                let tokenName = ['SATTBEP20', 'WSATT', 'SATTPOLYGON'].includes(
+                    pools[i]?.token.name
+                )
+                    ? 'SATT'
+                    : pools[i]?.token.name
 
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1])
-                            .div(
-                                new Big(10).pow(
-                                    getDecimal(pools[i]?.token.name)
-                                )
-                            )
-                            .times(Crypto[key].price)
+                            .div(new Big(10).pow(getDecimal(tokenName)))
+                            .times(Crypto[tokenName].price)
                     )
                     .toFixed(2)
             }

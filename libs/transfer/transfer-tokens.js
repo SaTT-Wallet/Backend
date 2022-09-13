@@ -28,6 +28,10 @@ module.exports.transferTokens = async function ({
             tokenSmartContractAddress
         )
     }
+    // const senderBalance = tokenSmartContractAddress
+    // ? await tokenSmartContract.methods.balanceOf(fromAddress).call()
+
+    //         : await web3.eth.getBalance(fromAddress)
 
     const senderBalance =
         tokenSmartContractAddress === null
@@ -49,7 +53,6 @@ module.exports.transferTokens = async function ({
 
     web3.eth.accounts.wallet.decrypt([encryptedPrivateKey], walletPassword)
 
-    
     try {
         let result
 
