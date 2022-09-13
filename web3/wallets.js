@@ -277,7 +277,7 @@ exports.getPrices = async () => {
             var options2 = {
                 method: 'GET',
                 uri:
-                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET&convert=USD&CMC_PRO_API_KEY=' +
+                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET%2CBTT&convert=USD&CMC_PRO_API_KEY=' +
                     process.env.CMCAPIKEY,
 
                 json: true,
@@ -287,6 +287,7 @@ exports.getPrices = async () => {
             var responseSattJet = result[1]
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
+            response.data.push(responseSattJet.data.BTT)
 
             var priceMap = response.data.map((elem) => {
                 var obj = {}
