@@ -865,18 +865,14 @@ exports.addTikTokChannel = async (
     profile,
     cb
 ) => {
-    console.log('refreshToken', refreshToken)
-    //    console.log('6')
-
     let userId = +req.query.state.split('|')[0]
 
-    console.log('from addTikTokChannel', userId)
     try {
         let profileData = await TikTokProfile.findOne({
             $and: [
                 { userId: userId },
                 {
-                    userTiktokId: profile.userTiktokId,
+                    userTiktokId: profile.id,
                 },
             ],
         })
@@ -887,6 +883,13 @@ exports.addTikTokChannel = async (
                 message: 'account exist',
             })
         } else {
+            ;[
+                profile.accessToken,
+                profile.userId,
+                profile.userTiktokId,
+                profile.refreshToken,
+            ] = [accessToken, userId, profile.id, refreshToken]
+
             await TikTokProfile.create(profile)
             return cb(null, profile, {
                 status: true,
@@ -896,8 +899,6 @@ exports.addTikTokChannel = async (
     } catch (error) {
         console.log('Error ===> ', error)
     }
-
-    // return cb(null, { id: userId, token: accessToken })
 }
 
 /*
