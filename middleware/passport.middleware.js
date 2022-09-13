@@ -875,6 +875,7 @@ exports.addTikTokChannel = async (
     try {
         let profileData = await TikTokProfile.findOne({
             userId: userId,
+            userTiktokId: profile.userTiktokId,
         })
 
         if (profileData) {
