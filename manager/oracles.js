@@ -497,30 +497,40 @@ exports.tiktokAbos = async (username) => {
     await page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
     )
-    await page.goto(vgmUrl)
-    const scrappedData = await page.$$eval('strong', (elements) => {
-        return elements
-            .filter((element) => {
-                return element.getAttribute('data-e2e') === 'followers-count'
-            })
-            .map((element) => element.innerHTML)
-    })
-    let abosNumber
-    if (!!scrappedData.length) {
-        abosNumber = scrappedData[0]
+    try {
+        await page.goto(vgmUrl)
+        const scrappedData = await page.$$eval('strong', (elements) => {
+            return elements
+                .filter((element) => {
+                    return element.getAttribute('data-e2e') === 'followers-count'
+                })
+                .map((element) => element.innerHTML)
+        })
+        let abosNumber
+        if (!!scrappedData.length) {
+            abosNumber = scrappedData[0]
 
-        if (abosNumber.indexOf('M') > 0) {
-            abosNumber = parseFloat(abosNumber.split('M')[0]) * 1000000
-        } else if (abosNumber.indexOf('K') > 0) {
-            abosNumber = parseFloat(abosNumber.split('k')[0]) * 1000
-        } else {
-            abosNumber = parseFloat(abosNumber)
+            if (abosNumber.indexOf('M') > 0) {
+                abosNumber = parseFloat(abosNumber.split('M')[0]) * 1000000
+            } else if (abosNumber.indexOf('K') > 0) {
+                abosNumber = parseFloat(abosNumber.split('k')[0]) * 1000
+            } else {
+                abosNumber = parseFloat(abosNumber)
+            }
         }
+        await page.close()
+        console.log('page closed.')
+        await browser.disconnect()
+        return abosNumber
+    } catch (e) {
+        console.error(e)
+    } finally {
+        const pid = -browser.process().pid
+        
+        try {
+            process.kill(pid, 'SIGKILL')
+        } catch (e) { }
     }
-    await page.close()
-    console.log('page closed.')
-    await browser.close()
-    return abosNumber
 }
 
 exports.getPromApplyStats = async (
