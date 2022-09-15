@@ -10,13 +10,15 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const { wrapNative, getWalletTron } = require('./wallets')
+const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
 const {
     Constants,
     tronTokensCampaign,
     TronConstant,
     wrapConstants,
+    PolygonNetworkConstant,
+    BttNetworkConstant,
 } = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
@@ -338,6 +340,13 @@ exports.getAccount = async (req, res) => {
 
 exports.isNativeAddr = (addr) => {
     return addr == Constants.token.matic
+}
+
+exports.isWrappedAddr = (addr) => {
+    return (
+        addr == wrapConstants[BttNetworkConstant].address ||
+        addr == wrapConstants[PolygonNetworkConstant].address
+    )
 }
 
 exports.createPerformanceCampaign = async (
@@ -1098,7 +1107,7 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     }
 }
 
-exports.getGains = async (idProm, credentials, tronWeb) => {
+exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
@@ -1113,6 +1122,7 @@ exports.getGains = async (idProm, credentials, tronWeb) => {
             })
         await timeout(10000)
         let result = await tronWeb.trx.getTransaction(receipt)
+
         if (result.ret[0].contractRet === 'SUCCESS') {
             return {
                 transactionHash: receipt,
@@ -1129,6 +1139,10 @@ exports.getGains = async (idProm, credentials, tronWeb) => {
         gas: gas,
         gasPrice: gasPrice,
     })
+
+    if (isWrappedAddr(token)) {
+        await unWrapNative(credentials)
+    }
 
     return {
         transactionHash: receipt.transactionHash,
@@ -1392,7 +1406,6 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
         }
     } catch (err) {
         console.log('err update prom', err)
-        
     }
 }
 
