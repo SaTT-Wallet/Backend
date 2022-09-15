@@ -877,12 +877,7 @@ exports.addTikTokChannel = async (
             ],
         })
 
-        if (profileData) {
-            return cb(null, profile, {
-                status: false,
-                message: 'account exist',
-            })
-        } else {
+        if (!profileData) {
             ;[
                 profile.accessToken,
                 profile.userId,
@@ -891,9 +886,16 @@ exports.addTikTokChannel = async (
             ] = [accessToken, userId, profile.id, refreshToken]
 
             await TikTokProfile.create(profile)
+            console.log('account_linked_with_success')
             return cb(null, profile, {
                 status: true,
                 message: 'account_linked_with_success',
+            })
+        } else {
+            console.log('account exist')
+            return cb(null, profile, {
+                status: false,
+                message: 'account exist',
             })
         }
     } catch (error) {
