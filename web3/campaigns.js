@@ -345,7 +345,7 @@ exports.isNativeAddr = (addr) => {
 exports.isWrappedAddr = (addr) => {
     return (
         addr == wrapConstants[BttNetworkConstant].address ||
-        wrapConstants[PolygonNetworkConstant].address
+        addr == wrapConstants[PolygonNetworkConstant].address
     )
 }
 
