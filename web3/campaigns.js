@@ -10,7 +10,7 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const { wrapNative, getWalletTron } = require('./wallets')
+const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
 const {
     Constants,
@@ -1098,7 +1098,7 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     }
 }
 
-exports.getGains = async (idProm, credentials, tronWeb) => {
+exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
@@ -1113,6 +1113,7 @@ exports.getGains = async (idProm, credentials, tronWeb) => {
             })
         await timeout(10000)
         let result = await tronWeb.trx.getTransaction(receipt)
+
         if (result.ret[0].contractRet === 'SUCCESS') {
             return {
                 transactionHash: receipt,
@@ -1129,6 +1130,10 @@ exports.getGains = async (idProm, credentials, tronWeb) => {
         gas: gas,
         gasPrice: gasPrice,
     })
+
+    if (this.isNativeAddr(token)) {
+        await unWrapNative(credentials)
+    }
 
     return {
         transactionHash: receipt.transactionHash,
@@ -1392,7 +1397,6 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
         }
     } catch (err) {
         console.log('err update prom', err)
-        
     }
 }
 

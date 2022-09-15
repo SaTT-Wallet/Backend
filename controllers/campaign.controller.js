@@ -541,8 +541,6 @@ exports.campaignPromp = async (req, res) => {
         var tronWeb
         var webTron
         if (campaign.token.type === 'TRON') {
-
-
             var tronCampaignKeystore = fs.readFileSync(
                 process.env.CAMPAIGN_TRON_WALLET_PATH,
                 'utf8'
@@ -551,7 +549,7 @@ exports.campaignPromp = async (req, res) => {
 
             let ethAddr = tronCampaignWallet.address.slice(2)
             tronCampaignWallet.address = ethAddr
-            
+
             webTron = getWeb3Connection(
                 networkProviders['ERC20'],
                 networkProvidersOptions['ERC20']
@@ -560,23 +558,17 @@ exports.campaignPromp = async (req, res) => {
             let wallet = webTron.eth.accounts.decrypt(
                 tronCampaignWallet,
                 process.env.CAMPAIGN_TRON_OWNER_PASS
-            );
-                   
-
-
-
+            )
 
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(
+                wallet.privateKey.slice(2)
+            )
             tronWeb.setAddress(walletAddr)
-
-            
-
-            
         }
-        var cred =[]
-    
+        var cred = []
+
         cred.WEB3 = getWeb3Connection(
             networkProviders[campaign.token.type.toUpperCase()],
             networkProvidersOptions[campaign.token.type.toUpperCase()]
@@ -1137,7 +1129,12 @@ exports.gains = async (req, res) => {
                 ))
             if (!!campaignData.bounties.length) {
                 if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
-                    var ret = await getGains(idProm, credentials, tronWeb)
+                    var ret = await getGains(
+                        idProm,
+                        credentials,
+                        tronWeb,
+                        campaignData.token.addr
+                    )
                     return responseHandler.makeResponseData(
                         res,
                         200,
@@ -1189,7 +1186,12 @@ exports.gains = async (req, res) => {
                         nbAbos: stats,
                     })
                 } finally {
-                    var ret = await getGains(idProm, credentials, tronWeb)
+                    var ret = await getGains(
+                        idProm,
+                        credentials,
+                        tronWeb,
+                        campaignData.token.addr
+                    )
 
                     if (ret) {
                         await User.updateOne(
@@ -1307,7 +1309,12 @@ exports.gains = async (req, res) => {
                 })
             }
 
-            var ret = await getGains(idProm, credentials, tronWeb)
+            var ret = await getGains(
+                idProm,
+                credentials,
+                tronWeb,
+                campaignData.token.addr
+            )
 
             if (ret) {
                 await User.updateOne(
