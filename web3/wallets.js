@@ -1150,9 +1150,9 @@ exports.unWrapNative = async (credentials) => {
             wrapConstants[credentials.network].abi,
             wrapConstants[credentials.network].address
         )
-        var amount = await tokenSmartContract.methods.balanceOf(
-            credentials.address
-        )
+        var amount = await tokenSmartContract.methods
+            .balanceOf(credentials.address)
+            .call()
         let gasPrice = await credentials.WEB3.eth.getGasPrice()
         let gas = await tokenSmartContract.methods
             .withdraw(amount)
