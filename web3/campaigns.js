@@ -1140,7 +1140,7 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
         gasPrice: gasPrice,
     })
 
-    if (isWrappedAddr(token)) {
+    if (this.isWrappedAddr(token)) {
         await unWrapNative(credentials)
     }
 
