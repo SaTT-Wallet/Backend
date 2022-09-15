@@ -265,7 +265,10 @@ exports.confirmCode = async (req, res) => {
                 return responseHandler.makeResponseError(
                     res,
                     429,
-                    'Too Many Attempts',
+                    {
+                        message: 'Too Many Attempts',
+                        lastTimeAttempt: user.secureCode.lastTry,
+                    },
                     false
                 )
             } else if (user.secureCode.code != code) {
