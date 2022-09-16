@@ -1129,7 +1129,12 @@ exports.gains = async (req, res) => {
                 ))
             if (!!campaignData.bounties.length) {
                 if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
-                    var ret = await getGains(idProm, credentials, tronWeb)
+                    var ret = await getGains(
+                        idProm,
+                        credentials,
+                        tronWeb,
+                        campaignData.token.addr
+                    )
                     return responseHandler.makeResponseData(
                         res,
                         200,
@@ -1181,7 +1186,12 @@ exports.gains = async (req, res) => {
                         nbAbos: stats,
                     })
                 } finally {
-                    var ret = await getGains(idProm, credentials, tronWeb)
+                    var ret = await getGains(
+                        idProm,
+                        credentials,
+                        tronWeb,
+                        campaignData.token.addr
+                    )
 
                     if (ret) {
                         await User.updateOne(
@@ -1299,7 +1309,12 @@ exports.gains = async (req, res) => {
                 })
             }
 
-            var ret = await getGains(idProm, credentials, tronWeb)
+            var ret = await getGains(
+                idProm,
+                credentials,
+                tronWeb,
+                campaignData.token.addr
+            )
 
             if (ret) {
                 await User.updateOne(
@@ -1328,6 +1343,7 @@ exports.gains = async (req, res) => {
                 { hash: hash },
                 { token: 1, _id: 0 }
             )
+
             let campaignType = {}
 
             let network = !!credentials && credentials.WEB3
@@ -2493,7 +2509,6 @@ module.exports.campaignsStatistics = async (req, res) => {
 
         while (j < links.length) {
             let campaign = pools.find((e) => e.hash === links[j].id_campaign)
-
             if (campaign) {
                 if (
                     links[j].abosNumber &&
@@ -2503,41 +2518,44 @@ module.exports.campaignsStatistics = async (req, res) => {
                 if (links[j].views) totalViews += +links[j].views
 
                 if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = [
-                        'SATTBEP20',
-                        'WSATT',
-                        'SATTPOLYGON',
-                    ].includes(campaign.token.name)
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
+                        campaign.token.name
+                    )
                         ? 'SATT'
                         : campaign.token.name
-
-                    console.log(tokenName)
                     let payedAmountInCryptoCurrency = new Big(
                         links[j].payedAmount
                     ).div(new Big(10).pow(getDecimal(tokenName)))
                     let cryptoUnitPriceInUSD = new Big(Crypto[tokenName].price)
                     let tokenPriceInUSD =
                         payedAmountInCryptoCurrency.times(cryptoUnitPriceInUSD)
+
                     totalPayed = totalPayed.plus(tokenPriceInUSD)
+                    if (totalPayed.toFixed() > 10 ** 8) {
+                        await Campaigns.deleteOne({ hash: campaign.hash })
+                    }
                 }
             }
             j++
         }
 
         while (i < pools.length) {
-            console.log(pools[i]?.token.name)
             if (pools[i].type === 'apply') {
-                let tokenName = ['SATTBEP20', 'WSATT', 'SATTPOLYGON'].includes(
-                    pools[i]?.token.name
-                )
-                    ? 'SATT'
-                    : pools[i]?.token.name
+                let key =
+                    pools[i]?.token.name === 'SATTBEP20'
+                        ? 'SATT'
+                        : pools[i]?.token.name
+                pools[i]?.token.name === 'SAT' && console.log(pools[i])
 
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1])
-                            .div(new Big(10).pow(getDecimal(tokenName)))
-                            .times(Crypto[tokenName].price)
+                            .div(
+                                new Big(10).pow(
+                                    getDecimal(pools[i]?.token.name)
+                                )
+                            )
+                            .times(Crypto[key].price)
                     )
                     .toFixed(2)
             }
