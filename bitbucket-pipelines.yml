@@ -1,0 +1,9 @@
+image: atayen/atayen:v2
+clone:
+  depth: full
+pipelines:
+   default:
+      - step:
+          name: mirroring github with bitbucket 
+          script:
+            - git push  git@github.com:SaTT-Wallet/Backend.git mainnet --force
