@@ -197,7 +197,24 @@ exports.codeRecover = async (req, res) => {
                 'account_locked',
                 { blockedDate: user.date_locked }
             )
-        } else if (user.secureCode.attempts >= maxAttempts) {
+        }
+        if (
+            differenceBetweenDates(user.secureCode.lastTry, dateNow) >
+                loginSettings.lockedPeriod ||
+            !user.secureCode.lastTry
+        ) {
+            await User.updateOne(
+                { _id: user._id },
+                { $set: { 'secureCode.attempts': 0 } }
+            )
+                .then((data) => {
+                    user.secureCode.attempts = 0
+                })
+                .catch((err) => {
+                    console.log('eee', err)
+                })
+        }
+        if (user.secureCode.attempts >= maxAttempts) {
             return responseHandler.makeResponseError(
                 res,
                 429,
