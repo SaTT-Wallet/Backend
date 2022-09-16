@@ -66,7 +66,10 @@ exports.unlockNetwork = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        let network = req.params.network?.toUpperCase()
+        var network = req.params.network?.toUpperCase()
+        if( network === 'BTT'){
+            network = 'BTTC'
+        }
         let wallet = await Wallet.findOne({ UserId })
         var web3
         var tronWeb
@@ -116,6 +119,7 @@ exports.approve = async (token, credentials, spender, amount, res) => {
 
         var gasPrice =
             !credentials.tronWeb && (await credentials.web3.eth.getGasPrice())
+            console
         var gas =
             !credentials.tronWeb &&
             (await contract.methods
@@ -384,22 +388,23 @@ exports.createPerformanceCampaign = async (
 
             await timeout(10000)
             let result = await tronWeb.trx.getTransaction(receipt)
-            const payload = {
-                url:
-                    process.env.TRON_NETWORK_URL +
-                    '/v1/transactions/' +
-                    receipt +
-                    '/events',
-                method: 'GET',
-                json: true,
-            }
-            let events = await rp(payload)
-            const hash =
-                !!events &&
-                events.data.find(
-                    (elem) => elem.event_name === 'CampaignCreated'
-                ).result['0']
+         
             if (result.ret[0].contractRet === 'SUCCESS') {
+                const payload = {
+                    url:
+                        process.env.TRON_NETWORK_URL +
+                        '/v1/transactions/' +
+                        receipt +
+                        '/events',
+                    method: 'GET',
+                    json: true,
+                }
+                let events = await rp(payload)
+                const hash =
+                    !!events &&
+                    events.data.find(
+                        (elem) => elem.event_name === 'CampaignCreated'
+                    ).result['0']
                 return {
                     transactionHash: receipt,
                     hash: hash,
