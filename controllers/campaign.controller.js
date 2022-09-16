@@ -2538,8 +2538,7 @@ module.exports.campaignsStatistics = async (req, res) => {
         while (i < pools.length) {
             if (pools[i].type === 'apply') {
                 let key =
-                    pools[i]?.token.name === 'SATTBEP20' ||
-                    pools[i]?.token.name === 'SATTPOLYGON'
+                    pools[i]?.token.name === 'SATTBEP20'
                         ? 'SATT'
                         : pools[i]?.token.name
                 pools[i]?.token.name === 'SAT' && console.log(pools[i])
