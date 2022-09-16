@@ -198,28 +198,55 @@ exports.codeRecover = async (req, res) => {
                 { blockedDate: user.date_locked }
             )
         }
+        if (
+            differenceBetweenDates(user.secureCode.lastTry, dateNow) >
+                loginSettings.lockedPeriod ||
+            !user.secureCode.lastTry
+        ) {
+            await User.updateOne(
+                { _id: user._id },
+                { $set: { 'secureCode.attempts': 0 } }
+            )
+                .then((data) => {
+                    user.secureCode.attempts = 0
+                })
+                .catch((err) => {
+                    console.log('eee', err)
+                })
+        }
+        if (user.secureCode.attempts >= maxAttempts) {
+            return responseHandler.makeResponseError(
+                res,
+                429,
+                {
+                    message: 'Too Many Attempts',
+                    lastTimeAttempt: user.secureCode.lastTry,
+                },
+                false
+            )
+        } else {
+            let requestDate = manageTime()
+            let ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+            // if (ip) ip = ip.split(':')[3]
 
-        let requestDate = manageTime()
-        let ip =
-            req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-        // if (ip) ip = ip.split(':')[3]
+            let code = await updateAndGenerateCode(user._id, 'reset')
 
-        let code = await updateAndGenerateCode(user._id, 'reset')
-
-        readHTMLFileLogin(
-            __dirname + '/../public/emails/reset_password_code.html',
-            'codeRecover',
-            ip,
-            requestDate,
-            code,
-            user
-        )
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'Email was sent to ' + user.email,
-            user.email
-        )
+            readHTMLFileLogin(
+                __dirname + '/../public/emails/reset_password_code.html',
+                'codeRecover',
+                ip,
+                requestDate,
+                code,
+                user
+            )
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'Email was sent to ' + user.email,
+                user.email
+            )
+        }
     } catch (err) {
         console.log(err.message)
 
