@@ -197,29 +197,39 @@ exports.codeRecover = async (req, res) => {
                 'account_locked',
                 { blockedDate: user.date_locked }
             )
+        } else if (user.secureCode.attempts >= maxAttempts) {
+            return responseHandler.makeResponseError(
+                res,
+                429,
+                {
+                    message: 'Too Many Attempts',
+                    lastTimeAttempt: user.secureCode.lastTry,
+                },
+                false
+            )
+        } else {
+            let requestDate = manageTime()
+            let ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+            // if (ip) ip = ip.split(':')[3]
+
+            let code = await updateAndGenerateCode(user._id, 'reset')
+
+            readHTMLFileLogin(
+                __dirname + '/../public/emails/reset_password_code.html',
+                'codeRecover',
+                ip,
+                requestDate,
+                code,
+                user
+            )
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'Email was sent to ' + user.email,
+                user.email
+            )
         }
-
-        let requestDate = manageTime()
-        let ip =
-            req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-        // if (ip) ip = ip.split(':')[3]
-
-        let code = await updateAndGenerateCode(user._id, 'reset')
-
-        readHTMLFileLogin(
-            __dirname + '/../public/emails/reset_password_code.html',
-            'codeRecover',
-            ip,
-            requestDate,
-            code,
-            user
-        )
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'Email was sent to ' + user.email,
-            user.email
-        )
     } catch (err) {
         console.log(err.message)
 
