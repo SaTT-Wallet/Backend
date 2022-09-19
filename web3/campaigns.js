@@ -22,7 +22,6 @@ const {
 } = require('../conf/const')
 const { config } = require('../conf/config')
 const rp = require('request-promise')
-const { isTronNetwork } = require('./campaigns')
 const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
