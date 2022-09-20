@@ -813,6 +813,23 @@ exports.addlinkedinChannel = async (
     let userId = Number(req.query.state.split('|')[0])
     let redirect = req.query.state.split('|')[1]
     let linkedinId = profile.id
+
+    let profileData = await LinkedinProfile.findOne({
+        $and: [
+            { userId: userId },
+            {
+                linkedinId: profile.id,
+            },
+        ],
+    })
+
+    if (profileData) {
+        return done(null, profile, {
+            status: false,
+            message: 'account exist',
+        })
+    }
+
     const linkedinData = config.linkedinPages(accessToken)
     let linkedinPages = await rp(linkedinData)
     var linkedinProfile = { accessToken, refreshToken, userId, linkedinId }
@@ -886,13 +903,11 @@ exports.addTikTokChannel = async (
             ] = [accessToken, userId, profile.id, refreshToken]
 
             await TikTokProfile.create(profile)
-            console.log('account_linked_with_success')
             return cb(null, profile, {
                 status: true,
                 message: 'account_linked_with_success',
             })
         } else {
-            console.log('account exist')
             return cb(null, profile, {
                 status: false,
                 message: 'account exist',
