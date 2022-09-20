@@ -1177,9 +1177,10 @@ exports.exportkeyTron = async (req, res) => {
 
     let wallet = await Wallet.findOne({ UserId: id })
 
+    let Web3ETH = await erc20Connexion()
+
     if (wallet.keystore) {
         try {
-            let Web3ETH = await erc20Connexion()
             Web3ETH.eth.accounts.wallet.decrypt([wallet.keystore], pass)
         } catch (error) {
             return { error: 'Invalid Tron password' }
@@ -1193,7 +1194,7 @@ exports.exportkeyTron = async (req, res) => {
     var keystore = Web3ETH.eth.accounts
         .privateKeyToAccount(tronPriv)
         .encrypt(pass)
-    let ethAddr = keystore.address.slice(2)
+    let ethAddr = '41' + keystore.address.slice(2)
     keystore.address = ethAddr
     return keystore
 }
