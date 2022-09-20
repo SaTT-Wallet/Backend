@@ -24,7 +24,11 @@ const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
 const { TikTokProfile } = require('../model')
-const { getWeb3Connection, networkProviders, networkProvidersOptions } = require('../web3/web3-connection')
+const {
+    getWeb3Connection,
+    networkProviders,
+    networkProvidersOptions,
+} = require('../web3/web3-connection')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -292,14 +296,14 @@ exports.findBountyOracle = (typeSN) => {
         return typeSN == '1'
             ? 'facebook'
             : typeSN == '2'
-                ? 'youtube'
-                : typeSN == '3'
-                    ? 'instagram'
-                    : typeSN == '4'
-                        ? 'twitter'
-                        : typeSN == '5'
-                            ? 'linkedin'
-                            : 'tiktok'
+            ? 'youtube'
+            : typeSN == '3'
+            ? 'instagram'
+            : typeSN == '4'
+            ? 'twitter'
+            : typeSN == '5'
+            ? 'linkedin'
+            : 'tiktok'
     } catch (err) {
         console.log(err.message)
     }
@@ -502,7 +506,9 @@ exports.tiktokAbos = async (username) => {
         const scrappedData = await page.$$eval('strong', (elements) => {
             return elements
                 .filter((element) => {
-                    return element.getAttribute('data-e2e') === 'followers-count'
+                    return (
+                        element.getAttribute('data-e2e') === 'followers-count'
+                    )
                 })
                 .map((element) => element.innerHTML)
         })
@@ -526,10 +532,10 @@ exports.tiktokAbos = async (username) => {
         console.error(e)
     } finally {
         const pid = -browser.process().pid
-        
+
         try {
             process.kill(pid, 'SIGKILL')
-        } catch (e) { }
+        } catch (e) {}
     }
 }
 
@@ -782,9 +788,11 @@ const twitter = async (userName, idPost) => {
         })
 
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
-        var twitterProfile = (await TwitterProfile.find({
-            username: tweet_res.user.screen_name,
-        }))[0]
+        var twitterProfile = (
+            await TwitterProfile.find({
+                username: tweet_res.user.screen_name,
+            })
+        )[0]
 
         if (!twitterProfile) {
             var res = await tweet.get('statuses/show', {
@@ -1056,7 +1064,7 @@ exports.answerBounty = async function (opts) {
             let receipt = await contract
                 .answerBounty(
                     opts.campaignContract,
-                    '0x' + opts.idProm,
+                    /*'0x' +*/ opts.idProm,
                     opts.nbAbos
                 )
                 .send({
@@ -1197,7 +1205,6 @@ exports.answerCall = async (opts) => {
             let ethAddr = tronCampaignWallet.address.slice(2)
             tronCampaignWallet.address = ethAddr
 
-
             let webTron = getWeb3Connection(
                 networkProviders['ERC20'],
                 networkProvidersOptions['ERC20']
@@ -1206,11 +1213,13 @@ exports.answerCall = async (opts) => {
             let wallet = webTron.eth.accounts.decrypt(
                 tronCampaignWallet,
                 process.env.CAMPAIGN_TRON_OWNER_PASS
-            );
+            )
 
             let tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(
+                wallet.privateKey.slice(2)
+            )
             tronWeb.setAddress(walletAddr)
             let contract = await tronWeb.contract(
                 TronConstant.oracle.abi,
@@ -1219,7 +1228,7 @@ exports.answerCall = async (opts) => {
             let receipt = await contract
                 .answer(
                     opts.campaignContract,
-                    '0x' + opts.idRequest,
+                    /*'0x' +*/ opts.idRequest,
                     opts.likes,
                     opts.shares,
                     opts.views
