@@ -1093,7 +1093,6 @@ exports.gains = async (req, res) => {
             var ctr
             var gasPrice
             var wrappedTrx = false
-            var wrappedBtt
             campaignData = await Campaigns.findOne({ hash: hash })
             req.body.network = campaignData.token.type
 
