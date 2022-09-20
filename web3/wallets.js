@@ -1194,7 +1194,7 @@ exports.exportkeyTron = async (req, res) => {
     var keystore = Web3ETH.eth.accounts
         .privateKeyToAccount(tronPriv)
         .encrypt(pass)
-    let ethAddr = '41' + keystore.address.slice(2)
+    let ethAddr = '41' + keystore.address
     keystore.address = ethAddr
     return keystore
 }
