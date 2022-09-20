@@ -964,7 +964,7 @@ exports.applyCampaign = async (
                 TronConstant.campaign.address
             )
             let receipt = await ctr
-                .applyCampaign('0x' + idCampaign, typeSN, idPost, idUser)
+                .applyCampaign(/*'0x' + */ idCampaign, typeSN, idPost, idUser)
                 .send({
                     feeLimit: 100_000_000,
                     callValue: 0,
@@ -1105,7 +1105,7 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
             TronConstant.campaign.address
         )
         let receipt = await ctr
-            .getGains('0x' + idProm, !!tronWeb.wrappedTrx)
+            .getGains(/*'0x' + */ idProm, !!tronWeb.wrappedTrx)
             .send({
                 feeLimit: 100_000_000,
                 callValue: 0,
@@ -1245,7 +1245,7 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
                 TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
-            let receipt = await ctr.updateBounty('0x' + idProm).send({
+            let receipt = await ctr.updateBounty(/*'0x' + */ idProm).send({
                 feeLimit: 100_000_000,
                 callValue: 0,
                 shouldPollResponse: false,
@@ -1301,7 +1301,7 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
             TronConstant.campaign.abi,
             TronConstant.campaign.address
         )
-        let receipt = await ctr.validateProm('0x' + idProm).send({
+        let receipt = await ctr.validateProm(/*'0x' + */ idProm).send({
             feeLimit: 100_000_000,
             callValue: 0,
             shouldPollResponse: false,
@@ -1347,7 +1347,7 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
                 TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
-            let receipt = await ctr.updatePromStats('0x' + idProm).send({
+            let receipt = await ctr.updatePromStats(/*'0x' + */ idProm).send({
                 feeLimit: 100_000_000,
                 callValue: 0,
                 shouldPollResponse: false,
