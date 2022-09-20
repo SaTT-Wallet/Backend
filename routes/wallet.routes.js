@@ -528,7 +528,7 @@ router.post('/exportETH', verifyAuth, exportEth)
 
 /**
  * @swagger
- * /wallet/exportETH:
+ * /wallet/exportTron:
  *   post:
  *     tags:
  *     - "wallets"
