@@ -139,7 +139,7 @@ exports.approve = async (token, credentials, spender, amount, res) => {
                     console.log('approve transactionHash', transactionHash)
                 }))
         if (!!credentials.tronWeb) {
-            await timeout(10000)
+            await timeout(100000)
             let result = await credentials.tronWeb.trx.getTransaction(receipt)
             if (result.ret[0].contractRet === 'SUCCESS') {
                 return {
@@ -373,7 +373,7 @@ exports.createPerformanceCampaign = async (
                     shouldPollResponse: false,
                 })
 
-            await timeout(10000)
+            await timeout(100000)
             let result = await tronWeb.trx.getTransactionInfo(receipt)
 
             if (result.receipt.result === 'SUCCESS') {
@@ -464,7 +464,7 @@ exports.createBountiesCampaign = async (
                 shouldPollResponse: false,
             })
 
-        await timeout(10000)
+        await timeout(100000)
 
         let result = await tronWeb.trx.getTransactionInfo(receipt)
 
@@ -672,7 +672,7 @@ exports.tronAllowance = async (tronWeb, token, amount, res) => {
                 callValue: 0,
                 shouldPollResponse: false,
             })
-        await timeout(10000)
+        await timeout(100000)
         let result = await tronWeb.trx.getTransaction(receipt)
         if (result.ret[0].contractRet === 'SUCCESS') {
             return {
@@ -945,7 +945,7 @@ exports.applyCampaign = async (
                     shouldPollResponse: false,
                 })
 
-            await timeout(10000)
+            await timeout(100000)
             let result = await tronWeb.trx.getTransactionInfo(receipt)
 
             if (result.receipt.result === 'SUCCESS') {
@@ -1071,7 +1071,7 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
                 callValue: 0,
                 shouldPollResponse: false,
             })
-        await timeout(10000)
+        await timeout(100000)
         let result = await tronWeb.trx.getTransaction(receipt)
 
         if (result.ret[0].contractRet === 'SUCCESS') {
@@ -1211,7 +1211,7 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
                 shouldPollResponse: false,
             })
 
-            await timeout(10000)
+            await timeout(100000)
             let result = await tronWeb.trx.getTransactionInfo(receipt)
 
             if (result.receipt.result === 'SUCCESS') {
@@ -1263,7 +1263,7 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
             callValue: 0,
             shouldPollResponse: false,
         })
-        await timeout(10000)
+        await timeout(100000)
         let result = await tronWeb.trx.getTransaction(receipt)
         if (result.ret[0].contractRet === 'SUCCESS') {
             return {
@@ -1310,7 +1310,7 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
                 shouldPollResponse: false,
             })
 
-            await timeout(10000)
+            await timeout(100000)
             let result = await tronWeb.trx.getTransactionInfo(receipt)
 
             if (result.receipt.result === 'SUCCESS') {
@@ -1362,7 +1362,7 @@ exports.getTransactionAmount = async (
 ) => {
     try {
         if (type === 'TRON') {
-            await timeout(5000)
+            await timeout(100000)
 
             let result = await tronWeb.trx.getTransactionInfo(transactionHash)
             let amount = tronWeb.toDecimal('0x' + result.log[1].data)

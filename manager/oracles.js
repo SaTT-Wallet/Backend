@@ -1077,7 +1077,7 @@ exports.answerBounty = async function (opts) {
                     callValue: 0,
                     shouldPollResponse: false,
                 })
-            await timeout(10000)
+            await timeout(100000)
             let result = await tronWeb.trx.getTransaction(receipt)
             if (result.ret[0].contractRet === 'SUCCESS') {
                 return { result: 'OK', hash: receipt }
@@ -1243,7 +1243,7 @@ exports.answerCall = async (opts) => {
                     callValue: 0,
                     shouldPollResponse: false,
                 })
-            await timeout(10000)
+            await timeout(100000)
             let result = await tronWeb.trx.getTransaction(receipt)
             if (result.ret[0].contractRet === 'SUCCESS') {
                 return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
