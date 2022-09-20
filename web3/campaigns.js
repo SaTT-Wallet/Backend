@@ -374,26 +374,12 @@ exports.createPerformanceCampaign = async (
                 })
 
             await timeout(10000)
-            let result = await tronWeb.trx.getTransaction(receipt)
-            const payload = {
-                url:
-                    process.env.TRON_NETWORK_URL +
-                    '/v1/transactions/' +
-                    receipt +
-                    '/events',
-                method: 'GET',
-                json: true,
-            }
-            let events = await rp(payload)
-            const hash =
-                !!events &&
-                events.data.find(
-                    (elem) => elem.event_name === 'CampaignCreated'
-                ).result['0']
-            if (result.ret[0].contractRet === 'SUCCESS') {
+            let result = await tronWeb.trx.getTransactionInfo(receipt)
+
+            if (result.receipt.result === 'SUCCESS') {
                 return {
                     transactionHash: receipt,
-                    hash: hash,
+                    hash: '0x' + result.log[0].topics[1],
                 }
             } else {
                 res.status(500).send({
@@ -479,25 +465,13 @@ exports.createBountiesCampaign = async (
             })
 
         await timeout(10000)
-        let result = await tronWeb.trx.getTransaction(receipt)
-        const payload = {
-            url:
-                process.env.TRON_NETWORK_URL +
-                '/v1/transactions/' +
-                receipt +
-                '/events',
-            method: 'GET',
-            json: true,
-        }
-        let events = await rp(payload)
-        const hash =
-            !!events &&
-            events.data.find((elem) => elem.event_name === 'CampaignCreated')
-                .result['id']
-        if (result.ret[0].contractRet === 'SUCCESS') {
+
+        let result = await tronWeb.trx.getTransactionInfo(receipt)
+
+        if (result.receipt.result === 'SUCCESS') {
             return {
                 transactionHash: receipt,
-                hash: hash,
+                hash: '0x' + result.log[0].topics[1],
             }
         } else {
             res.status(500).send({
@@ -972,32 +946,18 @@ exports.applyCampaign = async (
                 })
 
             await timeout(10000)
-            let result = await tronWeb.trx.getTransaction(receipt)
-            const payload = {
-                url:
-                    process.env.TRON_NETWORK_URL +
-                    '/v1/transactions/' +
-                    receipt +
-                    '/events',
-                method: 'GET',
-                json: true,
-            }
-            let events = await rp(payload)
-            const prom =
-                !!events &&
-                events.data.find(
-                    (elem) => elem.event_name === 'CampaignApplied'
-                ).result['prom']
-            if (result.ret[0].contractRet === 'SUCCESS') {
+            let result = await tronWeb.trx.getTransactionInfo(receipt)
+
+            if (result.receipt.result === 'SUCCESS') {
                 return {
                     transactionHash: receipt,
                     idCampaign: idCampaign,
                     typeSN: typeSN,
                     idPost: idPost,
                     idUser: idUser,
-                    idProm: prom,
+                    idProm: '0x' + result.log[0].topics[2],
                 }
-            } else if (result.ret[0].contractRet === 'OUT_OF_ENERGY') {
+            } else if (result.receipt.result === 'OUT_OF_ENERGY') {
                 res.status(401).send({
                     code: 401,
                     error: 'OUT_OF_ENERGY',
@@ -1250,24 +1210,21 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
                 callValue: 0,
                 shouldPollResponse: false,
             })
-            await timeout(10000)
-            let result = await tronWeb.trx.getTransaction(receipt)
-            const payload = {
-                url:
-                    process.env.TRON_NETWORK_URL +
-                    '/v1/transactions/' +
-                    receipt +
-                    '/events',
-                method: 'GET',
-                json: true,
-            }
-            let events = await rp(payload)
 
-            if (result.ret[0].contractRet === 'SUCCESS') {
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransactionInfo(receipt)
+
+            if (result.receipt.result === 'SUCCESS') {
                 return {
                     transactionHash: receipt,
                     idProm: idProm,
-                    events: events, //TODO add events to returned value
+                    events: [
+                        {
+                            result: {
+                                idRequest: '0x' + result.log[0].topics[1],
+                            },
+                        },
+                    ], //TODO add events to returned value
                 }
             } else {
                 res.status(500).send({
@@ -1352,24 +1309,21 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
                 callValue: 0,
                 shouldPollResponse: false,
             })
+
             await timeout(10000)
-            let result = await tronWeb.trx.getTransaction(receipt)
-            const payload = {
-                url:
-                    process.env.TRON_NETWORK_URL +
-                    '/v1/transactions/' +
-                    receipt +
-                    '/events',
-                method: 'GET',
-                json: true,
-            }
-            let eventsRes = await rp(payload)
-            const events = !!eventsRes && eventsRes.data
-            if (result.ret[0].contractRet === 'SUCCESS') {
+            let result = await tronWeb.trx.getTransactionInfo(receipt)
+
+            if (result.receipt.result === 'SUCCESS') {
                 return {
                     transactionHash: receipt,
                     idProm: idProm,
-                    events: events, //TODO add events to retuned value
+                    events: [
+                        {
+                            result: {
+                                idRequest: '0x' + result.log[0].topics[1],
+                            },
+                        },
+                    ], //TODO add events to returned value
                 }
             } else {
                 res.status(500).send({
@@ -1409,18 +1363,8 @@ exports.getTransactionAmount = async (
     try {
         if (type === 'TRON') {
             await timeout(5000)
-            const payload = {
-                url:
-                    process.env.TRON_NETWORK_URL +
-                    '/v1/transactions/' +
-                    transactionHash +
-                    '/events',
-                method: 'GET',
-                json: true,
-            }
-            let eventsRes = await rp(payload)
-            const events = !!eventsRes && eventsRes.data
-            let amount = events[0].result['amount']
+            let result = await tronWeb.trx.getTransaction(transactionHash)
+            let amount = result.raw_data.contract[0].parameter.value.amount
             return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)

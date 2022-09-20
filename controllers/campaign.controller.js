@@ -1119,7 +1119,7 @@ exports.gains = async (req, res) => {
             }
 
             let prom =
-                (!!tronWeb && (await ctr.proms('0x' + idProm).call())) ||
+                (!!tronWeb && (await ctr.proms(/*'0x' +*/ idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
@@ -1378,7 +1378,8 @@ exports.gains = async (req, res) => {
                 tronWeb
             )
             var result =
-                (!!tronWeb && (await contract.campaigns('0x' + hash).call())) ||
+                (!!tronWeb &&
+                    (await contract.campaigns(/*'0x' +*/ hash).call())) ||
                 (await contract.methods.campaigns(hash).call())
             if (!!tronWeb) {
                 campaignType.funds = [
