@@ -41,6 +41,7 @@ const {
     createSeed,
     exportkeyBtc,
     exportkey,
+    exportkeyTron,
     getAccount,
     getPrices,
     getListCryptoByUid,
@@ -108,6 +109,29 @@ exports.exportEth = async (req, res) => {
         res.attachment()
         if (req.user.hasWallet == true) {
             let ret = await exportkey(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        console.log(err.message)
+
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportTron = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyTron(req, res)
             if (!ret) {
                 return
             }

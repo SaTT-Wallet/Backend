@@ -1171,6 +1171,34 @@ exports.unWrapNative = async (credentials) => {
     }
 }
 
+exports.exportkeyTron = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+
+    let wallet = await Wallet.findOne({ UserId: id })
+
+    let Web3ETH = await erc20Connexion()
+
+    if (wallet.keystore) {
+        try {
+            Web3ETH.eth.accounts.wallet.decrypt([wallet.keystore], pass)
+        } catch (error) {
+            return { error: 'Invalid Tron password' }
+        }
+    }
+    const seed = bip39.mnemonicToSeedSync(wallet.mnemo, pass)
+    const root = bip32.fromSeed(seed)
+    const childTron = root.derivePath(pathTron)
+    var tronPriv = childTron.privateKey.toString('hex')
+
+    var keystore = Web3ETH.eth.accounts
+        .privateKeyToAccount(tronPriv)
+        .encrypt(pass)
+    let ethAddr = '41' + keystore.address
+    keystore.address = ethAddr
+    return keystore
+}
+
 exports.FilterTransactionsByHash = (
     All_Transactions,
     Erc20_OR_BEP20_Transactions,
