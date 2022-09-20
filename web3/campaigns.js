@@ -1363,8 +1363,9 @@ exports.getTransactionAmount = async (
     try {
         if (type === 'TRON') {
             await timeout(5000)
-            let result = await tronWeb.trx.getTransaction(transactionHash)
-            let amount = result.raw_data.contract[0].parameter.value.amount
+
+            let result = await tronWeb.trx.getTransactionInfo(transactionHash)
+            let amount = tronWeb.toDecimal('0x' + result.log[1].data)
             return amount
         }
         let data = await network.eth.getTransactionReceipt(transactionHash)
