@@ -118,6 +118,7 @@ exports.isBlocked = async (user, auth = false) => {
     return { res, blockedDate: dateNow, auth }
 }
 
+
 exports.getDecimal = (symbol) => {
     try {
         let token_info = Tokens
