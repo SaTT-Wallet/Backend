@@ -119,7 +119,6 @@ exports.approve = async (token, credentials, spender, amount, res) => {
 
         var gasPrice =
             !credentials.tronWeb && (await credentials.web3.eth.getGasPrice())
-        console
         var gas =
             !credentials.tronWeb &&
             (await contract.methods
