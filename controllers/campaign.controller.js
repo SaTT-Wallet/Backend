@@ -129,7 +129,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
-const { Constants, TronConstant } = require('../conf/const')
+const { Constants, TronConstant, CryptoSymbols } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 
@@ -2534,23 +2534,19 @@ module.exports.campaignsStatistics = async (req, res) => {
         }
 
         while (i < pools.length) {
-            if (pools[i].type === 'apply') {
-                let key =
-                    pools[i]?.token.name === 'SATTBEP20' ||
-                    pools[i]?.token.name === 'SATTPOLYGON'
+            if (pools[i].type === 'apply' && pools[i]) {
+                let cryptoSymbol =
+                    pools[i].token.name === CryptoSymbols.SATTBEP20
                         ? 'SATT'
-                        : pools[i]?.token.name
-                pools[i]?.token.name === 'SAT' && console.log(pools[i])
+                        : pools[i].token.name
 
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1])
                             .div(
-                                new Big(10).pow(
-                                    getDecimal(pools[i]?.token.name)
-                                )
+                                new Big(10).pow(getDecimal(pools[i].token.name))
                             )
-                            .times(Crypto[key].price)
+                            .times(Crypto[cryptoSymbol].price)
                     )
                     .toFixed(2)
             }
