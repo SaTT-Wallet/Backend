@@ -67,13 +67,13 @@ exports.unlockNetwork = async (req, res) => {
         let UserId = req.user._id
         let pass = req.body.pass
         var network = req.params.network?.toUpperCase()
-        if( network === 'BTT'){
+        if (network && network === 'BTT') {
             network = 'BTTC'
         }
         let wallet = await Wallet.findOne({ UserId })
         var web3
         var tronWeb
-        if (network === 'TRON') {
+        if (network && network === 'TRON') {
             let privateKey = (await getWalletTron(req.user._id, req.body.pass))
                 .priv
             tronWeb = await webTronInstance(privateKey)
@@ -84,7 +84,7 @@ exports.unlockNetwork = async (req, res) => {
                 tronAddress: wallet.tronAddress,
                 tronWeb,
             }
-        } else {
+        } else if (network) {
             const provider = getHttpProvider(networkProviders[network])
             web3 = await new Web3(provider)
             web3.eth.accounts.wallet.decrypt([wallet.keystore], pass)
@@ -119,7 +119,7 @@ exports.approve = async (token, credentials, spender, amount, res) => {
 
         var gasPrice =
             !credentials.tronWeb && (await credentials.web3.eth.getGasPrice())
-            console
+        console
         var gas =
             !credentials.tronWeb &&
             (await contract.methods
@@ -388,7 +388,7 @@ exports.createPerformanceCampaign = async (
 
             await timeout(10000)
             let result = await tronWeb.trx.getTransaction(receipt)
-         
+
             if (result.ret[0].contractRet === 'SUCCESS') {
                 const payload = {
                     url:
