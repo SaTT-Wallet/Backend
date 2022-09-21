@@ -3,6 +3,12 @@ let Bep20NetworkConstant = 'BEP20'
 let PolygonNetworkConstant = 'POLYGON'
 let BttNetworkConstant = 'BTTC'
 
+const CryptoSymbols = {
+    SATTBEP20: 'SATTBEP20',
+    SATT: 'SATT',
+    ETH: 'ETH',
+}
+
 let Constants = {
     token: { abi: [], satt: '', tether: '', dai: '', wbtt: '' },
     wbtt: { abi: [] },
@@ -4707,3 +4713,4 @@ module.exports.bep20TokenCampaigns = bep20TokenCampaigns
 module.exports.polygonTokensCampaign = polygonTokensCampaign
 module.exports.bttTokensCampaign = bttTokensCampaign
 module.exports.tronTokensCampaign = tronTokensCampaign
+module.exports.CryptoSymbols = CryptoSymbols
