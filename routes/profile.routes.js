@@ -71,6 +71,7 @@ const {
     deleteTwitterChannel,
     ShareByActivity,
     tiktokApiAbos,
+    ProfilPrivacy,
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -1379,6 +1380,23 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
  *          description: error:<br> server error
  */
 router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
+
+/**
+ * @swagger
+ * /profile/Tiktok/ProfilPrivacy:
+ *   post:
+ *     tags:
+ *     - "profile"
+ *     summary: get the privacy of the Tiktok account.
+ *     responses:
+ *       "200":
+ *          description: data:{"code":"200","message":"success","data":"sharedId"}
+ *       "401":
+ *          description: error:<br> Invalid Access Token
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.post('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
 
 router.get('/sendNotificationMobile', sendNotificationTest)
 module.exports = router
