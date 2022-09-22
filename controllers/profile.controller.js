@@ -12,6 +12,7 @@ const {
     FbPage,
     TikTokProfile,
 } = require('../model/index')
+const axios = require('axios')
 
 const contentDisposition = require('content-disposition')
 
@@ -1098,6 +1099,46 @@ module.exports.ShareByActivity = async (req, res) => {
         console.log(postData)
         let sharedId = postData.results[urn]['domainEntity']
         return makeResponseData(res, 200, 'success', sharedId)
+    } catch (err) {
+        console.log(err.message)
+
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.ProfilPrivacy = async (req, res) => {
+    try {
+        let privacy = ''
+        let userId = req.user._id
+        let tiktokProfile = await TikTokProfile.findOne({ userId })
+        console.log(tiktokProfile.accessToken)
+
+        const linkedinData = {
+            url: 'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
+            method: 'POST',
+            body: {
+                max_count: 20,
+            },
+            headers: {
+                Authorization: 'Bearer ' + tiktokProfile.accessToken,
+            },
+            json: true,
+        }
+        let postData = await rp(linkedinData)
+        if (postData.data.videos.length === 0) {
+            privacy = 'private'
+        } else {
+            privacy = 'public'
+        }
+
+        console.log(postData)
+        console.log(privacy)
+
+        return makeResponseData(res, 200, 'success', privacy)
     } catch (err) {
         console.log(err.message)
 
