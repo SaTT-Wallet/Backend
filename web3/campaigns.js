@@ -958,7 +958,7 @@ exports.applyCampaign = async (
                     shouldPollResponse: false,
                 })
 
-                await timeout(100000)
+                await timeout(10000)
 		
                 let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
             
