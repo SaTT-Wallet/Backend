@@ -4540,6 +4540,9 @@ wrapConstants[PolygonNetworkConstant] = {
     abi: wrapConstants[BttNetworkConstant].abi,
 }
 
+
+
+
 if (process.env.NODE_ENV === 'mainnet') {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_MAINNET
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET
@@ -4578,6 +4581,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_MAINNET
     Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
     Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
+    Constants.token.native= process.env.TOKEN_NATIVE_CONTRACT
 
     wrapConstants[PolygonNetworkConstant].address =
         process.env.CONST_WMATIC_MAINNET
@@ -4620,6 +4624,7 @@ if (process.env.NODE_ENV === 'mainnet') {
     TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_TESTNET
     Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
+    Constants.token.native= process.env.TOKEN_NATIVE_CONTRACT
 
     wrapConstants[PolygonNetworkConstant].address =
         process.env.CONST_WMATIC_TESTNET
@@ -4693,6 +4698,10 @@ module.exports.PolygonConstants = PolygonConstants
 module.exports.TronConstant = TronConstant
 module.exports.BttConstants = BttConstants
 module.exports.wrapConstants = wrapConstants
+module.exports.WrappedNettwork ={
+    "BTTC" : wrapConstants[BttNetworkConstant].address,
+    "TRON" : TronConstant.token.wtrx,
+}
 
 module.exports.Erc20NetworkConstant = Erc20NetworkConstant
 module.exports.Bep20NetworkConstant = Bep20NetworkConstant

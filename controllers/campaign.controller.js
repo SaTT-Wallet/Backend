@@ -129,7 +129,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
-const { Constants, TronConstant } = require('../conf/const')
+const { Constants, TronConstant, WrappedNettwork } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 
@@ -253,7 +253,7 @@ module.exports.launchCampaign = async (req, res) => {
             startDate,
             endDate,
             ratios,
-            tokenAddress,
+            tokenAddress ?  tokenAddress : Constants.token.native ,            
             amount,
             cred,
             tronWeb,
@@ -352,7 +352,7 @@ module.exports.launchBounty = async (req, res) => {
             startDate,
             endDate,
             bounties,
-            tokenAddress,
+            tokenAddress ?  tokenAddress : Constants.token.native , 
             amount,
             cred,
             tronWeb,
@@ -1311,7 +1311,7 @@ exports.gains = async (req, res) => {
                 idProm,
                 credentials,
                 tronWeb,
-                campaignData.token.addr
+                campaignData.token.addr ? campaignData.token.addr : Constants.token.native
             )
 
             if (ret) {
@@ -1750,16 +1750,19 @@ exports.getFunds = async (req, res) => {
         }
     }
 }
+
 exports.approveCampaign = async (req, res) => {
     try {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
         let token = req.body.tokenAddress
 
+     
+
         var cred = await unlockNetwork(req, res)
         if (!cred) return
 
-        let ret = await approve(token, cred, campaignAddress, amount, res)
+        let ret = await approve(token ?  token : WrappedNettwork[cred.network], cred, campaignAddress, amount, res)
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
