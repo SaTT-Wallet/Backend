@@ -1117,7 +1117,7 @@ exports.gains = async (req, res) => {
             }
 
             let prom =
-                (!!tronWeb && (await ctr.proms('0x' + idProm).call())) ||
+                (!!tronWeb && (await ctr.proms( idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
