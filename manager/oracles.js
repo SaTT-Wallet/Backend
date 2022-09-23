@@ -1064,7 +1064,7 @@ exports.answerBounty = async function (opts) {
             let receipt = await contract
                 .answerBounty(
                     opts.campaignContract,
-                    /*'0x' +*/ opts.idProm,
+                    opts.idProm,
                     opts.nbAbos
                 )
                 .send({
@@ -1228,7 +1228,7 @@ exports.answerCall = async (opts) => {
             let receipt = await contract
                 .answer(
                     opts.campaignContract,
-                    /*'0x' +*/ opts.idRequest,
+                    opts.idRequest,
                     opts.likes,
                     opts.shares,
                     opts.views
