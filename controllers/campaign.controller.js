@@ -1188,7 +1188,7 @@ exports.gains = async (req, res) => {
                         idProm,
                         credentials,
                         tronWeb,
-                        campaignData.token.addr
+                        campaignData.token.addr ? campaignData.token.addr :  Constants.token.native
                     )
 
                     if (ret) {
