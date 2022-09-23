@@ -1095,6 +1095,7 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             campaignData = await Campaigns.findOne({ hash: hash })
             req.body.network = campaignData.token.type
+            credentials = await unlock(req, res)
 
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
@@ -1111,7 +1112,6 @@ exports.gains = async (req, res) => {
                 wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
                 tronWeb.wrappedTrx = wrappedTrx
             } else {
-                credentials = await unlock(req, res)
                 ctr = await getPromContract(idProm, credentials)
                 gasPrice = await ctr.getGasPrice()
             }
