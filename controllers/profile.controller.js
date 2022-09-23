@@ -1115,7 +1115,6 @@ module.exports.ProfilPrivacy = async (req, res) => {
         let privacy = ''
         let userId = req.user._id
         let tiktokProfile = await TikTokProfile.findOne({ userId })
-        console.log(tiktokProfile.accessToken)
 
         const linkedinData = {
             url: 'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
@@ -1134,9 +1133,6 @@ module.exports.ProfilPrivacy = async (req, res) => {
         } else {
             privacy = 'public'
         }
-
-        console.log(postData)
-        console.log(privacy)
 
         return makeResponseData(res, 200, 'success', privacy)
     } catch (err) {
