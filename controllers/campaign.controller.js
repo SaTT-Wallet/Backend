@@ -253,7 +253,7 @@ module.exports.launchCampaign = async (req, res) => {
             startDate,
             endDate,
             ratios,
-            tokenAddress ?  tokenAddress : Constants.token.native ,            
+            tokenAddress ? tokenAddress : Constants.token.native,
             amount,
             cred,
             tronWeb,
@@ -352,7 +352,7 @@ module.exports.launchBounty = async (req, res) => {
             startDate,
             endDate,
             bounties,
-            tokenAddress ?  tokenAddress : Constants.token.native , 
+            tokenAddress ? tokenAddress : Constants.token.native,
             amount,
             cred,
             tronWeb,
@@ -962,7 +962,7 @@ exports.validateCampaign = async (req, res) => {
             tags: 0,
             cover: 0,
         }
-    )
+    ).lean()
     try {
         if (idUser === campaign?.idNode) {
             const lang = 'en'
@@ -1041,7 +1041,7 @@ exports.validateCampaign = async (req, res) => {
             link.shares = socialOracle.shares
             link.campaign = campaign
             link.totalToEarn = campaign.ratios.length
-                ? getTotalToEarn(link, campaign.ratios)
+                ? getReward(link, campaign.bounties)
                 : getReward(link, campaign.bounties)
             socialOracle.totalToEarn = link.totalToEarn
             socialOracle.type = getButtonStatus(link)
@@ -1117,7 +1117,7 @@ exports.gains = async (req, res) => {
             }
 
             let prom =
-                (!!tronWeb && (await ctr.proms( idProm).call())) ||
+                (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
@@ -1188,7 +1188,9 @@ exports.gains = async (req, res) => {
                         idProm,
                         credentials,
                         tronWeb,
-                        campaignData.token.addr ? campaignData.token.addr :  Constants.token.native
+                        campaignData.token.addr
+                            ? campaignData.token.addr
+                            : Constants.token.native
                     )
 
                     if (ret) {
@@ -1311,7 +1313,9 @@ exports.gains = async (req, res) => {
                 idProm,
                 credentials,
                 tronWeb,
-                campaignData.token.addr ? campaignData.token.addr : Constants.token.native
+                campaignData.token.addr
+                    ? campaignData.token.addr
+                    : Constants.token.native
             )
 
             if (ret) {
@@ -1757,12 +1761,16 @@ exports.approveCampaign = async (req, res) => {
         let amount = req.body.amount
         let token = req.body.tokenAddress
 
-     
-
         var cred = await unlockNetwork(req, res)
         if (!cred) return
 
-        let ret = await approve(token ?  token : WrappedNettwork[cred.network], cred, campaignAddress, amount, res)
+        let ret = await approve(
+            token ? token : WrappedNettwork[cred.network],
+            cred,
+            campaignAddress,
+            amount,
+            res
+        )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
