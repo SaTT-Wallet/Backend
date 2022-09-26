@@ -1041,7 +1041,7 @@ exports.validateCampaign = async (req, res) => {
             link.shares = socialOracle.shares
             link.campaign = campaign
             link.totalToEarn = campaign.ratios.length
-                ? getReward(link, campaign.bounties)
+                ? getTotalToEarn(link, campaign.ratios)
                 : getReward(link, campaign.bounties)
             socialOracle.totalToEarn = link.totalToEarn
             socialOracle.type = getButtonStatus(link)
