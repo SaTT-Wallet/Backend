@@ -1,11 +1,15 @@
 {
   "name": "@atayen-org/transfer",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SaTT-Wallet/Backend/tree/mainnet/libs/transfer"
+  }
 }

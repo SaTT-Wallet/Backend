@@ -129,7 +129,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
-const { Constants, TronConstant, WrappedNettwork } = require('../conf/const')
+const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 
@@ -1095,6 +1095,7 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             campaignData = await Campaigns.findOne({ hash: hash })
             req.body.network = campaignData.token.type
+            credentials = await unlock(req, res)
 
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
@@ -1111,7 +1112,6 @@ exports.gains = async (req, res) => {
                 wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
                 tronWeb.wrappedTrx = wrappedTrx
             } else {
-                credentials = await unlock(req, res)
                 ctr = await getPromContract(idProm, credentials)
                 gasPrice = await ctr.getGasPrice()
             }
@@ -1765,7 +1765,7 @@ exports.approveCampaign = async (req, res) => {
         if (!cred) return
 
         let ret = await approve(
-            token ? token : WrappedNettwork[cred.network],
+            token ? token : wrapConstants[cred.network].address,
             cred,
             campaignAddress,
             amount,
