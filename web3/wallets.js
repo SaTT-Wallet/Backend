@@ -1,5 +1,7 @@
 const { Wallet, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
+const TronWeb = require('tronweb')
+
 const {
     erc20Connexion,
     bep20Connexion,
@@ -7,7 +9,34 @@ const {
     bttConnexion,
     tronConnexion,
     webTronInstance,
+    web3UrlBep20,
+    web3UrlBTT,
+    web3Url,
+    web3PolygonUrl,
 } = require('../blockchainConnexion')
+const options = {
+    timeout: 30000,
+
+    clientConfig: {
+        // Useful if requests are large
+        maxReceivedFrameSize: 100000000, // bytes - default: 1MiB
+        maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+
+        // Useful to keep a connection alive
+        keepalive: true,
+        keepaliveInterval: 60000, // ms
+    },
+
+    // Enable auto reconnection
+    reconnect: {
+        auto: true,
+        delay: 5000, // ms
+        maxAttempts: 5,
+        onTimeout: false,
+    },
+}
+
+
 const {
     getWeb3Connection,
     getHttpProvider,
@@ -210,15 +239,15 @@ exports.getAccount = async (req, res) => {
             !!tronAddress
                 ? tronWeb?.trx.getBalance(tronAddress)
                 : new Promise((resolve, reject) => {
-                      resolve(null)
-                  })
+                    resolve(null)
+                })
         )
         listBalancesPromises.push(
             !!contractSatt
                 ? contractSatt.methods.balanceOf(address).call()
                 : new Promise((resolve, reject) => {
-                      resolve(null)
-                  })
+                    resolve(null)
+                })
         )
 
         let [
@@ -258,9 +287,9 @@ exports.getAccount = async (req, res) => {
                 var utxo = JSON.parse(
                     child.execSync(
                         process.env.BTC_CMD +
-                            ' listunspent 1 1000000 \'["' +
-                            account.btc.addressSegWitCompat +
-                            '"]\''
+                        ' listunspent 1 1000000 \'["' +
+                        account.btc.addressSegWitCompat +
+                        '"]\''
                     )
                 )
 
@@ -282,8 +311,68 @@ exports.getAccount = async (req, res) => {
         return res.status(401).end('Account not found')
 }
 
+
+exports.getTokenDecimals = async (tokenAdress, network) => {
+    let Web3BEP20 = await bep20Connexion()
+    let Web3ETH = await erc20Connexion()
+    let web3MATIC = await polygonConnexion()
+    let Web3Btt = await bttConnexion()
+    let Web3TRON = await webTronInstance()
+    let code = '0x';
+    console.log(tokenAdress)
+    if (tokenAdress) {
+        if (network === "TRON") {
+
+
+
+            Web3TRON.setAddress('TBkkXXq3jPNznsuJKCKxo3C4yV31bqcjgc');
+
+            let contract = await Web3TRON.contract(
+                TronConstant.token.abi,
+                tokenAdress
+            )
+
+            // let contract = await Web3TRON.contract(tokenAdress);
+            let result = await contract.decimals().call();
+            console.log('result: ', result);
+            return result
+        }
+        let abi =
+            network === 'BNB Smart Chain (BEP20)' ? Constants.bep20.abi : Constants.token.abi
+        let networkToken =
+            network === 'BNB Smart Chain (BEP20)'
+                ? Web3BEP20.eth
+                : network === 'POLYGON'
+                    ? web3MATIC.eth
+                    : network === 'BTTC'
+                        ? Web3Btt.eth
+
+                        : network === 'ERC20'
+                            ? Web3ETH.eth
+                            : null
+        if (networkToken) {
+            code = await networkToken.getCode(tokenAdress)
+        }
+
+
+    }
+    if (code === '0x') {
+        return 18
+
+    } else {
+        let contract = new networkToken.Contract(abi, tokenAdress)
+        decimal = await contract.methods.decimals().call()
+    }
+
+    return decimal
+};
+
+
 exports.getPrices = async () => {
     try {
+
+        // let decimals = await this.getTokenDecimals('TQQg4EL8o1BSeKJY4MJ8TB8XK7xufxFBvK', "TRON")
+        // console.log(decimals)
         if (
             cache.get('prices') &&
             Date.now() - new Date(cache.get('prices')?.date).getTime() < 1200000
@@ -313,7 +402,7 @@ exports.getPrices = async () => {
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
             response.data.push(responseSattJet.data.BTT)
-            var str =""
+            var str = ""
 
             var priceMap = response.data.map((elem) => {
                 var obj = {}
@@ -362,10 +451,13 @@ exports.getPrices = async () => {
 
             var finalMap = {}
             for (var i = 0; i < priceMap.length; i++) {
-                priceMap[i].contract_address= rest.data[priceMap[i].symbol][0].contract_address
+                priceMap[i].contract_address = rest.data[priceMap[i].symbol][0].contract_address
 
                 finalMap[priceMap[i].symbol] = priceMap[i]
-                delete finalMap[priceMap[i].symbol].symbol
+                if (finalMap[priceMap[i].symbol].contract_address.length != 0) {
+                    for (var j = 0; j <= finalMap[priceMap[i].symbol].contract_address.length; j++) { finalMap[priceMap[i].symbol].contract_address[j]["decimal"] = await this.getTokenDecimals(finalMap[priceMap[i].symbol].contract_address[j]?.contract_address, finalMap[priceMap[i].symbol].contract_address[j]?.platform.name )  }
+
+                } delete finalMap[priceMap[i].symbol].symbol
             }
 
             for (var i = 0; i < token200.length; i++) {
@@ -591,7 +683,7 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.network = network
             crypto.undername = token_info[T_name].undername
             crypto.undername2 = token_info[T_name].undername2
-            ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
+                ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
             let balance = {}
             balance.amount = resBalances[counter].value
             counter++
@@ -600,7 +692,7 @@ exports.getListCryptoByUid = async (req, res) => {
 
             if (
                 token_info[T_name]?.contract ==
-                    token_info['SATT_BEP20']?.contract ||
+                token_info['SATT_BEP20']?.contract ||
                 token_info[T_name]?.contract == token_info['WSATT']?.contract
                 // T_name === 'SATT_POLYGON' ||
                 // T_name === 'SATT_TRON'
@@ -809,7 +901,7 @@ exports.getBalanceByUid = async (req, res) => {
                             new Big(
                                 (!!(balance['amount'] * 1) &&
                                     balance['amount'] * 1) ||
-                                    0
+                                0
                             )
                                 .div(
                                     (
@@ -980,7 +1072,7 @@ exports.transferNative = async (to, amount, credentials, WEB3) => {
                 to: to,
                 gasPrice: gasPrice,
             })
-            .once('transactionHash', function (hash) {})
+            .once('transactionHash', function (hash) { })
 
         return {
             transactionHash: receipt.transactionHash,
