@@ -65,10 +65,8 @@ exports.unlockNetwork = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        var network = req.params.network?.toUpperCase()
-        if (network && network === 'BTT') {
-            network = 'BTTC'
-        }
+        let network = req.params.network?.toUpperCase()
+
         let wallet = await Wallet.findOne({ UserId })
         var web3
         var tronWeb
@@ -82,6 +80,7 @@ exports.unlockNetwork = async (req, res) => {
             return {
                 tronAddress: wallet.tronAddress,
                 tronWeb,
+                network,
             }
         } else if (network) {
             const provider = getHttpProvider(networkProviders[network])
@@ -94,6 +93,7 @@ exports.unlockNetwork = async (req, res) => {
             return {
                 address: '0x' + wallet.keystore.address,
                 web3,
+                network,
             }
         }
     } catch (err) {
@@ -117,7 +117,7 @@ exports.approve = async (token, credentials, spender, amount, res) => {
             new credentials.web3.eth.Contract(Constants.token.abi, token)
 
         var gasPrice =
-            !credentials.tronWeb && (await credentials.web3.eth.getGasPrice())
+            !credentials.   tronWeb && (await credentials.web3.eth.getGasPrice())
         var gas =
             !credentials.tronWeb &&
             (await contract.methods
