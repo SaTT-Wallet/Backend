@@ -313,10 +313,12 @@ exports.getPrices = async () => {
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
             response.data.push(responseSattJet.data.BTT)
+            var str =""
 
             var priceMap = response.data.map((elem) => {
                 var obj = {}
                 let tokenAddress = null
+                str += elem.symbol + ","
                 if (elem.platform?.name === 'BNB') {
                     tokenAddress = elem.platform?.token_address
                 }
@@ -331,6 +333,7 @@ exports.getPrices = async () => {
                     market_cap: elem.quote.USD.market_cap,
                     volume_24h: elem.quote.USD.volume_24h,
                     circulating_supply: elem.circulating_supply,
+                    contract_address: null,
                     total_supply: elem.total_supply,
                     max_supply: elem.max_supply,
                     logo:
@@ -341,8 +344,26 @@ exports.getPrices = async () => {
 
                 return obj
             })
+            var options3 = {
+                method: 'GET',
+                uri:
+                    'https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?symbol=' + str.substring(0, str.length - 1) + '&CMC_PRO_API_KEY=' +
+                    process.env.CMCAPIKEY,
+                json: true,
+            }
+
+            try {
+                rest = await rp(options3)
+            } catch (e) {
+                console.log(e.message)
+
+            }
+
+
             var finalMap = {}
             for (var i = 0; i < priceMap.length; i++) {
+                priceMap[i].contract_address= rest.data[priceMap[i].symbol][0].contract_address
+
                 finalMap[priceMap[i].symbol] = priceMap[i]
                 delete finalMap[priceMap[i].symbol].symbol
             }
