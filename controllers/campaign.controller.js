@@ -129,7 +129,7 @@ const {
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
-const { Constants, TronConstant, CryptoSymbols } = require('../conf/const')
+const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 
@@ -253,7 +253,7 @@ module.exports.launchCampaign = async (req, res) => {
             startDate,
             endDate,
             ratios,
-            tokenAddress,
+            tokenAddress ? tokenAddress : Constants.token.native,
             amount,
             cred,
             tronWeb,
@@ -352,7 +352,7 @@ module.exports.launchBounty = async (req, res) => {
             startDate,
             endDate,
             bounties,
-            tokenAddress,
+            tokenAddress ? tokenAddress : Constants.token.native,
             amount,
             cred,
             tronWeb,
@@ -1095,6 +1095,7 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             campaignData = await Campaigns.findOne({ hash: hash })
             req.body.network = campaignData.token.type
+            credentials = await unlock(req, res)
 
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
@@ -1111,13 +1112,12 @@ exports.gains = async (req, res) => {
                 wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
                 tronWeb.wrappedTrx = wrappedTrx
             } else {
-                credentials = await unlock(req, res)
                 ctr = await getPromContract(idProm, credentials)
                 gasPrice = await ctr.getGasPrice()
             }
 
             let prom =
-                (!!tronWeb && (await ctr.proms('0x' + idProm).call())) ||
+                (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
             var linkedinData =
                 prom.typeSN == '5' &&
@@ -1189,6 +1189,8 @@ exports.gains = async (req, res) => {
                         credentials,
                         tronWeb,
                         campaignData.token.addr
+                            ? campaignData.token.addr
+                            : Constants.token.native
                     )
 
                     if (ret) {
@@ -1312,6 +1314,8 @@ exports.gains = async (req, res) => {
                 credentials,
                 tronWeb,
                 campaignData.token.addr
+                    ? campaignData.token.addr
+                    : Constants.token.native
             )
 
             if (ret) {
@@ -1750,6 +1754,7 @@ exports.getFunds = async (req, res) => {
         }
     }
 }
+
 exports.approveCampaign = async (req, res) => {
     try {
         let campaignAddress = req.body.campaignAddress
@@ -1759,7 +1764,13 @@ exports.approveCampaign = async (req, res) => {
         var cred = await unlockNetwork(req, res)
         if (!cred) return
 
-        let ret = await approve(token, cred, campaignAddress, amount, res)
+        let ret = await approve(
+            token ? token : wrapConstants[cred.network].address,
+            cred,
+            campaignAddress,
+            amount,
+            res
+        )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
