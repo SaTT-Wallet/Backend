@@ -117,7 +117,7 @@ exports.approve = async (token, credentials, spender, amount, res) => {
             new credentials.web3.eth.Contract(Constants.token.abi, token)
 
         var gasPrice =
-            !credentials.   tronWeb && (await credentials.web3.eth.getGasPrice())
+            !credentials.tronWeb && (await credentials.web3.eth.getGasPrice())
         var gas =
             !credentials.tronWeb &&
             (await contract.methods
@@ -385,7 +385,9 @@ exports.createPerformanceCampaign = async (
                 })
 
             await timeout(10000)
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
+            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                receipt
+            )
 
             if (result.receipt.result === 'SUCCESS') {
                 return {
@@ -399,8 +401,6 @@ exports.createPerformanceCampaign = async (
                 })
             }
         }
-
-        
 
         if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
@@ -477,21 +477,21 @@ exports.createBountiesCampaign = async (
                 shouldPollResponse: false,
             })
 
-            await timeout(10000)
+        await timeout(10000)
 
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
-    
-            if (result.receipt.result === 'SUCCESS') {
-                return {
-                    transactionHash: receipt,
-                    hash: '0x' + result.log[0].topics[1],
-                }
-            } else {
-                res.status(500).send({
-                    code: 500,
-                    error: result,
-                })
+        let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
+
+        if (result.receipt.result === 'SUCCESS') {
+            return {
+                transactionHash: receipt,
+                hash: '0x' + result.log[0].topics[1],
             }
+        } else {
+            res.status(500).send({
+                code: 500,
+                error: result,
+            })
+        }
     }
 
     if (this.isNativeAddr(token)) {
@@ -951,37 +951,39 @@ exports.applyCampaign = async (
                 TronConstant.campaign.address
             )
             let receipt = await ctr
-                .applyCampaign( idCampaign, typeSN, idPost, idUser)
+                .applyCampaign(idCampaign, typeSN, idPost, idUser)
                 .send({
                     feeLimit: 100_000_000,
                     callValue: 0,
                     shouldPollResponse: false,
                 })
 
-                await timeout(10000)
-		
-                let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
-            
-                if (result.receipt.result === 'SUCCESS') {
-                    return {
-                        transactionHash: receipt,
-                        idCampaign: idCampaign,
-                        typeSN: typeSN,
-                        idPost: idPost,
-                        idUser: idUser,
-                        idProm: '0x' + result.log[0].topics[2],
-                    }
-                } else if (result.receipt.result === 'OUT_OF_ENERGY') {
-                    res.status(401).send({
-                        code: 401,
-                        error: 'OUT_OF_ENERGY',
-                    })
-                } else {
-                    res.status(500).send({
-                        code: 500,
-                        error: result,
-                    })
+            await timeout(10000)
+
+            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                receipt
+            )
+
+            if (result.receipt.result === 'SUCCESS') {
+                return {
+                    transactionHash: receipt,
+                    idCampaign: idCampaign,
+                    typeSN: typeSN,
+                    idPost: idPost,
+                    idUser: idUser,
+                    idProm: '0x' + result.log[0].topics[2],
                 }
+            } else if (result.receipt.result === 'OUT_OF_ENERGY') {
+                return {
+                    code: 401,
+                    error: 'OUT_OF_ENERGY',
+                }
+            } else {
+                return {
+                    code: 500,
+                    error: result,
+                }
+            }
         }
         let web3 = await getContractByNetwork(credentials)
 
@@ -1078,13 +1080,11 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
             TronConstant.campaign.abi,
             TronConstant.campaign.address
         )
-        let receipt = await ctr
-            .getGains( idProm, !!tronWeb.wrappedTrx)
-            .send({
-                feeLimit: 100_000_000,
-                callValue: 0,
-                shouldPollResponse: false,
-            })
+        let receipt = await ctr.getGains(idProm, !!tronWeb.wrappedTrx).send({
+            feeLimit: 100_000_000,
+            callValue: 0,
+            shouldPollResponse: false,
+        })
         await timeout(10000)
         let result = await tronWeb.trx.getTransaction(receipt)
 
@@ -1219,14 +1219,16 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
                 TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
-            let receipt = await ctr.updateBounty( idProm).send({
+            let receipt = await ctr.updateBounty(idProm).send({
                 feeLimit: 100_000_000,
                 callValue: 0,
                 shouldPollResponse: false,
             })
 
-           await timeout(10000)
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
+            await timeout(10000)
+            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                receipt
+            )
 
             if (result.receipt.result === 'SUCCESS') {
                 return {
@@ -1323,9 +1325,11 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
                 callValue: 0,
                 shouldPollResponse: false,
             })
-           
+
             await timeout(10000)
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(receipt)
+            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                receipt
+            )
 
             if (result.receipt.result === 'SUCCESS') {
                 return {
@@ -1376,7 +1380,9 @@ exports.getTransactionAmount = async (
 ) => {
     try {
         if (type === 'TRON') {
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(transactionHash)
+            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                transactionHash
+            )
             let amount = tronWeb.toDecimal('0x' + result.log[1].data)
             return amount
         }
