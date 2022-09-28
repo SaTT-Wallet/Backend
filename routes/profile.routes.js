@@ -1384,7 +1384,7 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
 /**
  * @swagger
  * /profile/Tiktok/ProfilPrivacy:
- *   post:
+ *   get:
  *     tags:
  *     - "profile"
  *     summary: get the privacy of the Tiktok account.
@@ -1396,7 +1396,7 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
+router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
 
 router.get('/sendNotificationMobile', sendNotificationTest)
 module.exports = router
