@@ -962,7 +962,7 @@ exports.validateCampaign = async (req, res) => {
             tags: 0,
             cover: 0,
         }
-    )
+    ).lean()
     try {
         if (idUser === campaign?.idNode) {
             const lang = 'en'
