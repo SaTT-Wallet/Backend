@@ -16,7 +16,7 @@ module.exports.twitter = async function ({
         })
 
         var res = await tweet.get('tweets', {
-            ids: '1566707450832736256',
+            ids: idPost,
             'tweet.fields': 'public_metrics,non_public_metrics',
             expansions: 'attachments.media_keys',
             'media.fields':
