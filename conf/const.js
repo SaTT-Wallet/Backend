@@ -4773,6 +4773,7 @@ module.exports.Erc20NetworkConstant = Erc20NetworkConstant
 module.exports.Bep20NetworkConstant = Bep20NetworkConstant
 module.exports.PolygonNetworkConstant = PolygonNetworkConstant
 module.exports.BttNetworkConstant = BttNetworkConstant
+module.exports.TronNetworkConstant = TronNetworkConstant
 
 module.exports.CampaignConstants = CampaignConstants
 module.exports.OracleConstants = OracleConstants

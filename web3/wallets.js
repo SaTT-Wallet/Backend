@@ -36,6 +36,11 @@ const {
     TronConstant,
     wrapConstants,
     multicallConstants,
+    Erc20NetworkConstant,
+    Bep20NetworkConstant,
+    PolygonNetworkConstant,
+    BttNetworkConstant,
+    TronNetworkConstant,
 } = require('../conf/const')
 
 var child = require('child_process')
@@ -439,7 +444,7 @@ exports.multicall = async (tokens, addresses, network, web3) => {
             .call()
         return amounts
     } catch (err) {
-        return '0'
+        return []
     }
 }
 
@@ -504,54 +509,41 @@ exports.getListCryptoByUid = async (req, res) => {
             }
             // we have updated tokens env by custom tokens
         }
-        let Web3ETH = await erc20Connexion()
-        let Web3BEP20 = await bep20Connexion()
-        let Web3POLYGON = await polygonConnexion()
-        let web3UrlBTT = await bttConnexion()
-        let Web3TRON = await webTronInstance()
+
+        let web3s = []
+        let addressesByNetwork = []
+        let tokensByNetwork = []
+        let balancesBynetwork = []
+
+        let networks = [
+            Erc20NetworkConstant,
+            Bep20NetworkConstant,
+            PolygonNetworkConstant,
+            BttNetworkConstant,
+            TronNetworkConstant,
+        ]
+
         const listPromisesOfBalances = []
         for (let T_name in token_info) {
             let network = token_info[T_name].network
-            if (network == 'ERC20') {
-                listPromisesOfBalances.push(
-                    this.getBalance(
-                        Web3ETH,
-                        token_info[T_name].contract,
-                        ret.address
-                    )
+            if (!web3s[network]) {
+                web3s[network] = getWeb3Connection(
+                    networkProviders[network],
+                    networkProvidersOptions[network]
                 )
-            } else if (network == 'BEP20') {
-                listPromisesOfBalances.push(
-                    this.getBalance(
-                        Web3BEP20,
-                        token_info[T_name].contract,
-                        ret.address
-                    )
-                )
-            } else if (network == 'POLYGON') {
-                listPromisesOfBalances.push(
-                    this.getBalance(
-                        Web3POLYGON,
-                        token_info[T_name].contract,
-                        ret.address
-                    )
-                )
-            } else if (network == 'BTT') {
-                listPromisesOfBalances.push(
-                    this.getBalance(
-                        web3UrlBTT,
-                        token_info[T_name].contract,
-                        ret.address
-                    )
-                )
-            } else if (network == 'TRON') {
-                listPromisesOfBalances.push(
-                    this.getTronBalance(
-                        Web3TRON,
-                        token_info[T_name].contract,
-                        tronAddress,
-                        T_name === 'TRX'
-                    )
+                addressesByNetwork[network] = []
+                tokensByNetwork[network] = []
+            }
+            tokensByNetwork[network].push(token_info[T_name].contract)
+            addressesByNetwork[network].push(ret.address)
+        }
+        for (var i = 0; i < networks.length; i++) {
+            if (web3s[networks[i]]) {
+                balancesBynetwork[networks[i]] = await this.multicall(
+                    tokensByNetwork[networks[i]],
+                    addressesByNetwork[networks[i]],
+                    networks[i],
+                    web3s[networks[i]]
                 )
             }
         }
