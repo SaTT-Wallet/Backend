@@ -1062,11 +1062,7 @@ exports.answerBounty = async function (opts) {
                 TronConstant.oracle.address
             )
             let receipt = await contract
-                .answerBounty(
-                    opts.campaignContract,
-                    opts.idProm,
-                    opts.nbAbos
-                )
+                .answerBounty(opts.campaignContract, opts.idProm, opts.nbAbos)
                 .send({
                     feeLimit: 100_000_000,
                     callValue: 0,

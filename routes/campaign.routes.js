@@ -44,7 +44,8 @@ const {
     campaignAllowance,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
-
+const { twitter } = require('../libs/statistic-social-network')
+const { async } = require('hasha')
 /**
  * @swagger
  * /campaign/approve/{network}:
@@ -1361,4 +1362,27 @@ router.get('/statistics', campaignsStatistics)
 
 router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
 router.post('/updateStat', updateStatistics)
+router.post('/test-stats-network', async (req, res) => {
+    const {
+        idPost,
+        access_token_key,
+        twitter_consumer_key,
+        twitter_consumer_secret,
+        twitter_access_token_secret,
+    } = req.body
+
+    try {
+        const result = await twitter({
+            idPost,
+            access_token_key,
+            twitter_consumer_secret,
+            twitter_consumer_key,
+            twitter_access_token_secret,
+        })
+
+        console.log('result', result)
+    } catch (error) {
+        console.log('error', error)
+    }
+})
 module.exports = router
