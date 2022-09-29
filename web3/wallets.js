@@ -35,6 +35,7 @@ const {
     BttConstants,
     TronConstant,
     wrapConstants,
+    multicallConstants,
 } = require('../conf/const')
 
 var child = require('child_process')
@@ -406,24 +407,11 @@ exports.filterAmount = function (input, nbre = 10) {
         return '-'
     }
 }
-// exports.getBalancePolygon = async (Web3, token, address) => {
-//     try {
-//         console.log('in function')
-//         let contract =  new Web3.eth.Contract(PolygonConstants.token.abi, token)
-//         // console.log('METHODS', contract.methods)
-//         amount = await contract.methods.balanceOf(address).call()
-//         console.log("amount", amount.toString())
-//         return amount.toString()
-//     } catch (err) {
-//         console.error(err)
-//         return '0'
-//     }
-// }
 
 exports.getBalance = async (Web3, token, address) => {
     try {
         let contract = new Web3.eth.Contract(Constants.token.abi, token)
-
+        W
         amount = await contract.methods.balanceOf(address).call()
         return amount.toString()
     } catch (err) {
@@ -431,12 +419,25 @@ exports.getBalance = async (Web3, token, address) => {
     }
 }
 
-exports.getBalance = async (Web3, token, address) => {
+exports.multicall = async (tokens, addresses, network, web3) => {
     try {
-        let contract = new Web3.eth.Contract(Constants.token.abi, token)
+        let contract = new web3.eth.Contract(
+            multicallConstants[network].abi,
+            multicallConstants[network].address
+        )
+        var adressesEncoded = []
+        for (var i = 0; i < adresses.length; i++) {
+            adressesEncoded.push(
+                web3.eth.abi.encodeFunctionCall(Constants.token.abi[6], [
+                    addresses[i],
+                ])
+            )
+        }
 
-        amount = await contract.methods.balanceOf(address).call()
-        return amount.toString()
+        amounts = await contract.methods
+            .multiCall(tokens, adressesEncoded)
+            .call()
+        return amounts
     } catch (err) {
         return '0'
     }
