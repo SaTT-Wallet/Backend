@@ -54,5 +54,6 @@ module.exports.twitter = async function ({
         return perf
     } catch (err) {
         console.log(err.message)
+        return err.message
     }
 }
