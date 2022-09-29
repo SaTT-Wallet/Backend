@@ -42,6 +42,7 @@ const {
     campaignApproval,
     approveCampaign,
     campaignAllowance,
+    expandUrl,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -1358,7 +1359,23 @@ router.get('/statistics', campaignsStatistics)
  *       "500":
  *          description: error:<br> server error
  */
-
 router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
+
+/**
+ * @swagger
+ * /campaign/expandUrl:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: expand short url.
+ *     description: expand short url to normal url.
+ *     responses:
+ *       "200":
+ *          description: expanded successfully, {"code":"status code","message":"expanded successfully"}
+ *       "500":
+ *          description: error:error message
+ */
+router.get('/expandUrl', expandUrl)
+
 router.post('/updateStat', updateStatistics)
 module.exports = router
