@@ -559,12 +559,30 @@ exports.getListCryptoByUid = async (req, res) => {
         }
         for (let T_network in web3s) {
             if (web3s[T_network]) {
-                balancesBynetwork[T_network] = await this.multicall(
-                    tokensByNetwork[T_network],
-                    addressesByNetwork[T_network],
-                    T_network,
-                    web3s[T_network]
-                )
+                if (T_network == 'TRON') {
+                    balancesBynetwork[T_network] = [
+                        await this.getTronBalance(
+                            await webTronInstance(),
+                            false,
+                            tronAddress,
+                            true
+                        ),
+                    ]
+                    /*  balancesBynetwork[T_network] = balancesBynetwork[T_network].concat(balancesBynetwork[T_network],await this.multicall(
+                        tokensByNetwork[T_network],
+                        addressesByNetwork[T_network],
+                        T_network,
+                        web3s[T_network]
+                    ))
+                    console.log(balancesBynetwork[T_network])*/
+                } else {
+                    balancesBynetwork[T_network] = await this.multicall(
+                        tokensByNetwork[T_network],
+                        addressesByNetwork[T_network],
+                        T_network,
+                        web3s[T_network]
+                    )
+                }
 
                 for (var i = 0; i < balancesBynetwork[T_network].length; i++) {
                     let crypto = tokensInfosByNetwork[T_network][i]
