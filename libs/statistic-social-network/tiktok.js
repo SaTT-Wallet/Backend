@@ -5,6 +5,7 @@ module.exports.tiktok = async ({
     idPost,
     tiktok_key,
     tiktok_refresh_token,
+    user_tiktok_id,
 }) => {
     try {
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${tiktok_key}&grant_type=refresh_token&refresh_token=${tiktok_refresh_token}`
@@ -12,7 +13,7 @@ module.exports.tiktok = async ({
         let videoInfoResponse = await axios
             .post('https://open-api.tiktok.com/video/query/', {
                 access_token: resMedia?.data.access_token,
-                open_id: tiktokProfile.userTiktokId,
+                open_id: user_tiktok_id,
                 filters: {
                     video_ids: [idPost],
                 },

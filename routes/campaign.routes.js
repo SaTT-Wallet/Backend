@@ -1380,13 +1380,15 @@ router.get('/expandUrl', expandUrl)
 
 router.post('/updateStat', updateStatistics)
 router.post('/test-stats-network', async (req, res) => {
-    const { idPost, tiktok_key, tiktok_refresh_token } = req.body
+    const { idPost, tiktok_key, tiktok_refresh_token, user_tiktok_id } =
+        req.body
 
     try {
-        const result = await twitter({
+        const result = await tiktok({
             idPost,
             tiktok_key,
             tiktok_refresh_token,
+            user_tiktok_id,
         })
 
         console.log('result', result)
