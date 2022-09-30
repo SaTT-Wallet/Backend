@@ -2273,8 +2273,7 @@ exports.getLinks = async (req, res) => {
             req.query.campaign && req.query.state
                 ? await influencersLinks(arrayOfTronLinks, true)
                 : arrayOfTronLinks
-        console.log(allProms)
-        console.log(allTronProms)
+
         var Links = {
             Links: [
                 ...allProms,
@@ -2284,7 +2283,6 @@ exports.getLinks = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
-        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
