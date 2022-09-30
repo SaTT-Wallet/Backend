@@ -132,6 +132,7 @@ const { ObjectId } = require('mongodb')
 const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
+const { request } = require('http')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -2272,8 +2273,7 @@ exports.getLinks = async (req, res) => {
             req.query.campaign && req.query.state
                 ? await influencersLinks(arrayOfTronLinks, true)
                 : arrayOfTronLinks
-        console.log(allProms)
-        console.log(allTronProms)
+
         var Links = {
             Links: [
                 ...allProms,
@@ -2283,7 +2283,6 @@ exports.getLinks = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
-        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -2626,6 +2625,34 @@ module.exports.initStat = () => {
         rejected: 0,
     }
 }
+module.exports.expandUrl = (req, res) => {
+    try {
+        var child_process = require('child_process')
+        let { shortUrl } = req.query
+
+        function runCmd(cmd) {
+            var resp = child_process.execSync(cmd)
+            var result = resp.toString('UTF8')
+            return result
+        }
+        var cmd = `curl -sLI ${shortUrl} | grep -i Location`
+        var result = runCmd(cmd)
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'shorted successfully',
+            result.split('Location: ')[1]
+        )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 module.exports.statLinkCampaign = async (req, res) => {
     try {
         let id_campaign = req.params.hash
