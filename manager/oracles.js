@@ -885,14 +885,16 @@ const tiktok = async (tiktokProfile, idPost) => {
                 ],
             })
             .then((response) => response.data)
-
-        return {
-            likes: videoInfoResponse.data.videos[0].like_count,
-            shares: videoInfoResponse.data.videos[0].share_count,
-            views: videoInfoResponse.data.videos[0].view_count,
-            media_url:
-                videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
+        if (videoInfoResponse.data?.videos) {
+            return {
+                likes: videoInfoResponse.data.videos[0].like_count,
+                shares: videoInfoResponse.data.videos[0].share_count,
+                views: videoInfoResponse.data.videos[0].view_count,
+                media_url:
+                    videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
+            }
         }
+        return videoInfoResponse.data
     } catch (error) {
         console.log(error)
     }
