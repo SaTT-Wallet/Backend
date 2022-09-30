@@ -529,8 +529,6 @@ exports.getListCryptoByUid = async (req, res) => {
 
             let crypto = {}
 
-            crypto.key = T_name.split('_')[0]
-
             crypto.picUrl = token_info[T_name].picUrl || false
             crypto.symbol = token_info[T_name].symbol.split('_')[0]
             crypto.name = token_info[T_name].name
@@ -543,7 +541,6 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.balance = 0
             crypto.undername = token_info[T_name].undername
             crypto.undername2 = token_info[T_name].undername2
-
             ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
 
             let key = T_name.split('_')[0]
@@ -556,6 +553,7 @@ exports.getListCryptoByUid = async (req, res) => {
                 key = 'SATT'
             }
             if (key == 'WBNB') key = 'BNB'
+            crypto.key = key
 
             tokensInfosByNetwork[network].push(crypto)
         }
@@ -570,7 +568,7 @@ exports.getListCryptoByUid = async (req, res) => {
 
                 for (var i = 0; i < balancesBynetwork[T_network].length; i++) {
                     let crypto = tokensInfosByNetwork[T_network][i]
-                    console.log(balancesBynetwork[T_network][i])
+
                     crypto.balance = balancesBynetwork[T_network][i]
                         ? web3s[Erc20NetworkConstant].utils
                               .toBN(balancesBynetwork[T_network][i])
@@ -713,80 +711,96 @@ exports.getBalanceByUid = async (req, res) => {
                 }
             }
         }
-        let Web3ETH = await erc20Connexion()
-        let Web3BEP20 = await bep20Connexion()
-        let Web3POLYGON = await polygonConnexion()
-        let web3UrlBTT = await bttConnexion()
-        let tronWeb = await webTronInstance()
 
-        for (const T_name in token_info) {
-            var network = token_info[T_name].network
-            let balance = {}
-            if (network == 'ERC20') {
-                balance.amount = await this.getBalance(
-                    Web3ETH,
-                    token_info[T_name].contract,
-                    ret?.address
+        let web3s = []
+        let addressesByNetwork = []
+        let tokensByNetwork = []
+        let tokensInfosByNetwork = []
+        let balancesBynetwork = []
+
+        for (let T_name in token_info) {
+            let network = token_info[T_name].network
+            if (!web3s[network]) {
+                web3s[network] = getWeb3Connection(
+                    networkProviders[network],
+                    networkProvidersOptions[network]
                 )
-            } else if (network == 'BEP20') {
-                balance.amount = await this.getBalance(
-                    Web3BEP20,
-                    token_info[T_name].contract,
-                    ret?.address
-                )
-            } else if (network == 'POLYGON') {
-                balance.amount = await this.getBalance(
-                    Web3POLYGON,
-                    token_info[T_name].contract,
-                    ret?.address
-                )
-            } else if (network == 'BTT') {
-                balance.amount = await this.getBalance(
-                    web3UrlBTT,
-                    token_info[T_name].contract,
-                    ret?.address
-                )
-            } else if (network == 'TRON') {
-                balance.amount = await this.getTronBalance(
-                    tronWeb,
-                    token_info[T_name].contract,
-                    tronAddress,
-                    T_name === 'TRX'
-                )
+                addressesByNetwork[network] = []
+                tokensByNetwork[network] = []
+                tokensInfosByNetwork[network] = []
             }
+            tokensByNetwork[network].push(token_info[T_name].contract)
+            addressesByNetwork[network].push(ret.address)
+
+            let crypto = {}
+
+            crypto.picUrl = token_info[T_name].picUrl || false
+            crypto.symbol = token_info[T_name].symbol.split('_')[0]
+            crypto.name = token_info[T_name].name
+            crypto.AddedToken = token_info[T_name].addedToken
+                ? token_info[T_name].contract
+                : false
+            crypto.contract = token_info[T_name].contract
+            crypto.decimal = +token_info[T_name].dicimal
+            crypto.network = network
+            crypto.balance = 0
+            crypto.undername = token_info[T_name].undername
+            crypto.undername2 = token_info[T_name].undername2
+            ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
 
             let key = T_name.split('_')[0]
+
             if (
-                token_info[T_name].contract == token_info['SATT_BEP20'].contract
-                // ||
-                //  token_info[T_name].contract == token_info['WSATT'].contract
-                //||
-                //  T_name === 'SATT_TRON' ||
-                //T_name === 'SATT_POLYGON'
-                //  ||
-                // T_name === 'SATT_BTT'
+                token_info[T_name]?.contract ==
+                    token_info['SATT_BEP20']?.contract ||
+                token_info[T_name]?.contract == token_info['WSATT']?.contract
             ) {
                 key = 'SATT'
             }
-            // console.log("CryptoPrices",CryptoPrices)
+            if (key == 'WBNB') key = 'BNB'
 
-            // console.log("balance",balance)
-            if (CryptoPrices) {
-                if (CryptoPrices.hasOwnProperty(key)) {
-                    Total_balance +=
-                        this.filterAmount(
-                            new Big(
-                                (!!(balance['amount'] * 1) &&
-                                    balance['amount'] * 1) ||
-                                    0
-                            )
-                                .div(
-                                    (
-                                        10 ** +token_info[T_name].dicimal
-                                    ).toString()
-                                )
-                                .toNumber() + ''
-                        ) * CryptoPrices[key].price
+            crypto.key = key
+
+            tokensInfosByNetwork[network].push(crypto)
+        }
+        for (let T_network in web3s) {
+            if (web3s[T_network]) {
+                balancesBynetwork[T_network] = await this.multicall(
+                    tokensByNetwork[T_network],
+                    addressesByNetwork[T_network],
+                    T_network,
+                    web3s[T_network]
+                )
+
+                for (var i = 0; i < balancesBynetwork[T_network].length; i++) {
+                    let crypto = tokensInfosByNetwork[T_network][i]
+
+                    crypto.balance = balancesBynetwork[T_network][i]
+                        ? web3s[Erc20NetworkConstant].utils
+                              .toBN(balancesBynetwork[T_network][i])
+                              .toString()
+                        : '0'
+
+                    if (CryptoPrices) {
+                        if (CryptoPrices.hasOwnProperty(crypto.key)) {
+                            Total_balance +=
+                                this.filterAmount(
+                                    new Big(
+                                        (!!(crypto.balance * 1) &&
+                                            crypto.balance * 1) ||
+                                            0
+                                    )
+                                        .div((10 ** +crypto.decimal).toString())
+                                        .toNumber() + ''
+                                ) * CryptoPrices[crypto.key].price
+                        }
+                    }
+
+                    crypto.quantity = this.filterAmount(
+                        new Big(crypto.balance * 1)
+                            .div((10 ** +crypto.decimal).toString())
+                            .toNumber()
+                    )
                 }
             }
         }
