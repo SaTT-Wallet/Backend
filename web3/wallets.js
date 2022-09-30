@@ -313,6 +313,7 @@ exports.getAccount = async (req, res) => {
 
 
 exports.getTokenDecimals = async (tokenAdress, network) => {
+
     let Web3BEP20 = await bep20Connexion()
     let Web3ETH = await erc20Connexion()
     let web3MATIC = await polygonConnexion()
@@ -321,7 +322,7 @@ exports.getTokenDecimals = async (tokenAdress, network) => {
     let code = '0x';
     console.log(tokenAdress)
     if (tokenAdress) {
-        if (network === "TRON") {
+        if (network === "Tron20") {
 
 
 
@@ -342,12 +343,12 @@ exports.getTokenDecimals = async (tokenAdress, network) => {
         let networkToken =
             network === 'BNB Smart Chain (BEP20)'
                 ? Web3BEP20.eth
-                : network === 'POLYGON'
+                : network === 'Polygon'
                     ? web3MATIC.eth
                     : network === 'BTTC'
                         ? Web3Btt.eth
 
-                        : network === 'ERC20'
+                        : network === 'Ethereum'
                             ? Web3ETH.eth
                             : null
         if (networkToken) {
@@ -454,8 +455,14 @@ exports.getPrices = async () => {
                 priceMap[i].contract_address = rest.data[priceMap[i].symbol][0].contract_address
 
                 finalMap[priceMap[i].symbol] = priceMap[i]
+                const array = ["BNB Smart Chain (BEP20)", "Ethereum", "Tron20","Polygon"];
                 if (finalMap[priceMap[i].symbol].contract_address.length != 0) {
-                    for (var j = 0; j <= finalMap[priceMap[i].symbol].contract_address.length; j++) { finalMap[priceMap[i].symbol].contract_address[j]["decimal"] = await this.getTokenDecimals(finalMap[priceMap[i].symbol].contract_address[j]?.contract_address, finalMap[priceMap[i].symbol].contract_address[j]?.platform.name )  }
+                    
+                    
+                    for (var j = 0; j <= finalMap[priceMap[i].symbol].contract_address.length; j++) { 
+                        
+                        if(array.includes(finalMap[priceMap[i].symbol].contract_address[j]?.platform.name))
+                        finalMap[priceMap[i].symbol].contract_address[j]["decimal"] = await this.getTokenDecimals(finalMap[priceMap[i].symbol].contract_address[j]?.contract_address, finalMap[priceMap[i].symbol].contract_address[j]?.platform.name )  }
 
                 } delete finalMap[priceMap[i].symbol].symbol
             }
