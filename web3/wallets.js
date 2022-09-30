@@ -36,6 +36,7 @@ const {
     TronConstant,
     wrapConstants,
     multicallConstants,
+    Erc20NetworkConstant,
 } = require('../conf/const')
 
 var child = require('child_process')
@@ -541,9 +542,9 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.network = network
             crypto.balance = 0
             crypto.undername = token_info[T_name].undername
-            crypto.undername2 = token_info[T_name].undername2[
-                (crypto.price, crypto.total_balance)
-            ] = Array(2).fill(0.0)
+            crypto.undername2 = token_info[T_name].undername2
+
+            ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
 
             let key = T_name.split('_')[0]
 
@@ -569,10 +570,11 @@ exports.getListCryptoByUid = async (req, res) => {
 
                 for (var i = 0; i < balancesBynetwork[T_network].length; i++) {
                     let crypto = tokensInfosByNetwork[T_network][i]
+                    console.log(balancesBynetwork[T_network][i])
                     crypto.balance = balancesBynetwork[T_network][i]
-                        ? web3s[T_network].utils.hexToNumber(
-                              balancesBynetwork[T_network][i]
-                          )
+                        ? web3s[Erc20NetworkConstant].utils
+                              .toBN(balancesBynetwork[T_network][i])
+                              .toString()
                         : '0'
 
                     if (CryptoPrices) {
@@ -583,15 +585,12 @@ exports.getListCryptoByUid = async (req, res) => {
                                     : CryptoPrices[crypto.key].price
                             crypto.variation =
                                 CryptoPrices[crypto.key].percent_change_24h
-                            crypto.total_balance = console.log(
-                                balancesBynetwork[T_network][i],
-                                crypto.balance
-                            )
-                            this.filterAmount(
-                                new Big(crypto.balance)
-                                    .div((10 ** +crypto.decimal).toString())
-                                    .toNumber() + ''
-                            ) *
+                            crypto.total_balance =
+                                this.filterAmount(
+                                    new Big(crypto.balance)
+                                        .div((10 ** +crypto.decimal).toString())
+                                        .toNumber() + ''
+                                ) *
                                 CryptoPrices[crypto.key].price *
                                 1
                         }
