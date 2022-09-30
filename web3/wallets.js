@@ -313,14 +313,13 @@ exports.getAccount = async (req, res) => {
 
 
 exports.getTokenDecimals = async (tokenAdress, network) => {
-
+console.log(tokenAdress)
     let Web3BEP20 = await bep20Connexion()
     let Web3ETH = await erc20Connexion()
     let web3MATIC = await polygonConnexion()
     let Web3Btt = await bttConnexion()
     let Web3TRON = await webTronInstance()
     let code = '0x';
-    console.log(tokenAdress)
     if (tokenAdress) {
         if (network === "Tron20") {
 
@@ -334,13 +333,13 @@ exports.getTokenDecimals = async (tokenAdress, network) => {
             )
 
             // let contract = await Web3TRON.contract(tokenAdress);
-            let result = await contract.decimals().call();
-            console.log('result: ', result);
-            return result
+          //  let result = await contract.decimals().call();
+            //console.log('result: ', result);
+            return 6
         }
-        let abi =
+        var abi =
             network === 'BNB Smart Chain (BEP20)' ? Constants.bep20.abi : Constants.token.abi
-        let networkToken =
+        var networkToken =
             network === 'BNB Smart Chain (BEP20)'
                 ? Web3BEP20.eth
                 : network === 'Polygon'
@@ -450,22 +449,25 @@ exports.getPrices = async () => {
             }
 
 
+            var tokenarray = ['SATT','WSATT','BNB','ETH','BTC','TRX','BTT','MATIC','BUSD','CAKE','SAND','MKR','ZRX','USDT','DAI','OMG']
+
             var finalMap = {}
-            for (var i = 0; i < priceMap.length; i++) {
-                priceMap[i].contract_address = rest.data[priceMap[i].symbol][0].contract_address
+            // for (var i = 0; i < priceMap.length; i++) {
+                for(var i in tokenarray){
+                priceMap[1].contract_address = rest.data[tokenarray[i]][0].contract_address
 
-                finalMap[priceMap[i].symbol] = priceMap[i]
+                finalMap[i] = priceMap[1]
                 const array = ["BNB Smart Chain (BEP20)", "Ethereum", "Tron20","Polygon"];
-                if (finalMap[priceMap[i].symbol].contract_address.length != 0) {
+                if (finalMap[i].contract_address.length != 0) {
                     
                     
-                    for (var j = 0; j <= finalMap[priceMap[i].symbol].contract_address.length; j++) { 
+                    for (var j = 0; j <= finalMap[i].contract_address.length; j++) { 
                         
-                        if(array.includes(finalMap[priceMap[i].symbol].contract_address[j]?.platform.name))
-                        finalMap[priceMap[i].symbol].contract_address[j]["decimal"] = await this.getTokenDecimals(finalMap[priceMap[i].symbol].contract_address[j]?.contract_address, finalMap[priceMap[i].symbol].contract_address[j]?.platform.name )  }
+                        if(array.includes(finalMap[i].contract_address[j]?.platform.name))
+                        finalMap[i].contract_address[j]["decimal"] = await this.getTokenDecimals(finalMap[i].contract_address[j]?.contract_address, finalMap[i].contract_address[j]?.platform.name )  }
 
-                } delete finalMap[priceMap[i].symbol].symbol
-            }
+                } delete finalMap[i].symbol
+             }
 
             for (var i = 0; i < token200.length; i++) {
                 var token = token200[i]
