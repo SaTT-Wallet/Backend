@@ -2273,8 +2273,7 @@ exports.getLinks = async (req, res) => {
             req.query.campaign && req.query.state
                 ? await influencersLinks(arrayOfTronLinks, true)
                 : arrayOfTronLinks
-        console.log(allProms)
-        console.log(allTronProms)
+
         var Links = {
             Links: [
                 ...allProms,
