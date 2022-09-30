@@ -513,17 +513,9 @@ exports.getListCryptoByUid = async (req, res) => {
         let web3s = []
         let addressesByNetwork = []
         let tokensByNetwork = []
+        let tokensInfosByNetwork = []
         let balancesBynetwork = []
 
-        let networks = [
-            Erc20NetworkConstant,
-            Bep20NetworkConstant,
-            PolygonNetworkConstant,
-            BttNetworkConstant,
-            TronNetworkConstant,
-        ]
-
-        const listPromisesOfBalances = []
         for (let T_name in token_info) {
             let network = token_info[T_name].network
             if (!web3s[network]) {
@@ -533,25 +525,15 @@ exports.getListCryptoByUid = async (req, res) => {
                 )
                 addressesByNetwork[network] = []
                 tokensByNetwork[network] = []
+                tokensInfosByNetwork[network] = []
             }
             tokensByNetwork[network].push(token_info[T_name].contract)
             addressesByNetwork[network].push(ret.address)
-        }
-        for (var i = 0; i < networks.length; i++) {
-            if (web3s[networks[i]]) {
-                balancesBynetwork[networks[i]] = await this.multicall(
-                    tokensByNetwork[networks[i]],
-                    addressesByNetwork[networks[i]],
-                    networks[i],
-                    web3s[networks[i]]
-                )
-            }
-        }
-        let resBalances = await Promise.allSettled(listPromisesOfBalances)
-        let counter = 0
-        for (let T_name in token_info) {
-            let network = token_info[T_name].network
+
             let crypto = {}
+
+            crypto.key = _name.split('_')[0]
+
             crypto.picUrl = token_info[T_name].picUrl || false
             crypto.symbol = token_info[T_name].symbol.split('_')[0]
             crypto.name = token_info[T_name].name
@@ -562,11 +544,9 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.decimal = +token_info[T_name].dicimal
             crypto.network = network
             crypto.undername = token_info[T_name].undername
-            crypto.undername2 = token_info[T_name].undername2
-            ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
-            let balance = {}
-            balance.amount = resBalances[counter].value
-            counter++
+            crypto.undername2 = token_info[T_name].undername2[
+                (crypto.price, crypto.total_balance)
+            ] = Array(2).fill(0.0)
 
             let key = T_name.split('_')[0]
 
@@ -574,43 +554,58 @@ exports.getListCryptoByUid = async (req, res) => {
                 token_info[T_name]?.contract ==
                     token_info['SATT_BEP20']?.contract ||
                 token_info[T_name]?.contract == token_info['WSATT']?.contract
-                // T_name === 'SATT_POLYGON' ||
-                // T_name === 'SATT_TRON'
-                //  ||
-                // T_name === 'SATT_BTT'
             ) {
                 key = 'SATT'
             }
             if (key == 'WBNB') key = 'BNB'
 
-            if (CryptoPrices) {
-                if (CryptoPrices.hasOwnProperty(key)) {
-                    crypto.price =
-                        crypto.symbol === 'BTT'
-                            ? CryptoPrices[key].price.toFixed(10)
-                            : CryptoPrices[key].price
-                    crypto.variation = CryptoPrices[key].percent_change_24h
-                    crypto.total_balance =
-                        this.filterAmount(
-                            new Big(balance['amount'])
-                                .div(
-                                    (
-                                        10 ** +token_info[T_name].dicimal
-                                    ).toString()
-                                )
-                                .toNumber() + ''
-                        ) *
-                        CryptoPrices[key].price *
-                        1
+            tokensInfosByNetwork[network].push(crypto)
+        }
+        for (let T_network in web3s) {
+            if (web3s[T_network]) {
+                balancesBynetwork[T_network] = await this.multicall(
+                    tokensByNetwork[T_network],
+                    addressesByNetwork[T_network],
+                    T_network,
+                    web3s[T_network]
+                ).call()
+                for (var i = 0; i < balancesBynetwork[T_network]; i++) {
+                    let crypto = tokensInfosByNetwork[T_network][i]
+                    crypto.balance = web3s[T_network].utils.hexToNumber(
+                        balancesBynetwork[T_network]
+                    )
+
+                    if (CryptoPrices) {
+                        if (CryptoPrices.hasOwnProperty(key)) {
+                            crypto.price =
+                                crypto.symbol === 'BTT'
+                                    ? CryptoPrices[crypto.key].price.toFixed(10)
+                                    : CryptoPrices[crypto.key].price
+                            crypto.variation =
+                                CryptoPrices[crypto.key].percent_change_24h
+                            crypto.total_balance =
+                                this.filterAmount(
+                                    new Big(crypto.balance)
+                                        .div((10 ** +crypto.decimal).toString())
+                                        .toNumber() + ''
+                                ) *
+                                CryptoPrices[crypto.key].price *
+                                1
+                        }
+                    }
+
+                    crypto.quantity = this.filterAmount(
+                        new Big(crypto.balance * 1)
+                            .div((10 ** +crypto.decimal).toString())
+                            .toNumber()
+                    )
+                    tokensInfosByNetwork[T_network][i] = crypto
                 }
             }
+        }
 
-            crypto.quantity = this.filterAmount(
-                new Big(balance['amount'] * 1)
-                    .div((10 ** +token_info[T_name].dicimal).toString())
-                    .toNumber()
-            )
-            listOfCrypto.push(crypto)
+        for (let T_network in tokensInfosByNetwork) {
+            listOfCrypto = listOfCrypto.concat(tokensInfosByNetwork[T_network])
         }
         delete ret.address
         delete ret.matic_balance
