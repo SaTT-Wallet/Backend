@@ -2283,7 +2283,6 @@ exports.getLinks = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'success', Links)
     } catch (err) {
-        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
