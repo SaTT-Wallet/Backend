@@ -1,5 +1,3 @@
-const { bep20Connexion } = require('../blockchainConnexion')
-
 let Erc20NetworkConstant = 'ERC20'
 let Bep20NetworkConstant = 'BEP20'
 let PolygonNetworkConstant = 'POLYGON'
@@ -4552,7 +4550,6 @@ wrapConstants[PolygonNetworkConstant] = {
 let multicallConstants = []
 
 multicallConstants[Erc20NetworkConstant] = {
-    address: '',
     abi: [
         {
             inputs: [
@@ -4634,16 +4631,26 @@ if (process.env.NODE_ENV === 'mainnet') {
     wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_MAINNET
     wrapConstants[TronNetworkConstant] = { address: TronConstant.token.wtrx }
 
-    multicallConstants[Erc20NetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_MAINNET
-    multicallConstants[Bep20NetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_MAINNETBEP20
-    multicallConstants[PolygonNetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_MAINNET_POLYGON
-    multicallConstants[BttNetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_MAINNET_BTT
-    multicallConstants[TronNetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_MAINNET_TRON
+    multicallConstants[Erc20NetworkConstant] = {
+        abi: multicallConstants[Erc20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET,
+    }
+    multicallConstants[Bep20NetworkConstant] = {
+        abi: multicallConstants[Bep20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNETBEP20,
+    }
+    multicallConstants[PolygonNetworkConstant] = {
+        abi: multicallConstants[PolygonNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET_POLYGON,
+    }
+    multicallConstants[BttNetworkConstant] = {
+        abi: multicallConstants[BttNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET_BTT,
+    }
+    multicallConstants[TronNetworkConstant] = {
+        abi: multicallConstants[TronNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET_TRON,
+    }
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
     Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
@@ -4689,16 +4696,26 @@ if (process.env.NODE_ENV === 'mainnet') {
     wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_TESTNET
     wrapConstants[TronNetworkConstant] = { address: TronConstant.token.wtrx }
 
-    multicallConstants[Erc20NetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_TESTNET
-    multicallConstants[Bep20NetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_TESTNETBEP20
-    multicallConstants[PolygonNetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_TESTNET_POLYGON
-    multicallConstants[BttNetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_TESTNET_BTT
-    multicallConstants[TronNetworkConstant].address =
-        process.env.CONST_MULTICALL_ADDRESS_TESTNET_TRON
+    multicallConstants[Erc20NetworkConstant] = {
+        abi: multicallConstants[Erc20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET,
+    }
+    multicallConstants[Bep20NetworkConstant] = {
+        abi: multicallConstants[Bep20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNETBEP20,
+    }
+    multicallConstants[PolygonNetworkConstant] = {
+        abi: multicallConstants[PolygonNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_POLYGON,
+    }
+    multicallConstants[BttNetworkConstant] = {
+        abi: multicallConstants[BttNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_BTT,
+    }
+    multicallConstants[TronNetworkConstant] = {
+        abi: multicallConstants[TronNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_TRON,
+    }
 }
 
 CampaignConstants[Erc20NetworkConstant] = {
