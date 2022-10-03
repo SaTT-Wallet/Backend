@@ -824,6 +824,7 @@ exports.getBalanceByUid = async (req, res) => {
         }
 
         delete ret?.address
+
         for (const Amount in ret) {
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
