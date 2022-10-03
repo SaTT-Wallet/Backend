@@ -451,7 +451,7 @@ exports.getPrices = async () => {
 
           
           
-            var tokenarray = ['SATT','BNB','ETH','BTC','TRX','BTT','MATIC','BUSD']//,'CAKE','SAND','MKR','ZRX','USDT','DAI','OMG']
+            var tokenarray = ['SATT','BNB','ETH','BTC','TRX','BTT','MATIC','BUSD','MKR','ZRX','USDT','DAI','OMG']
 
            
 
@@ -604,60 +604,63 @@ exports.getListCryptoByUid = async (req, res) => {
         delete ret.tronAddress
         delete ret.tronValue
         // => userTokens : token ajoutés manuellemnt
-        let userTokens = await CustomToken.find({
-            sn_users: { $in: [id] },
-        })
+        // let userTokens = await CustomToken.find({
+        //     sn_users: { $in: [id] },
+        // })
 
-        if (userTokens.length) {
-            for (let i = 0; i < userTokens.length; i++) {
-                let symbol = userTokens[i].symbol
-                // if added token exists in env tokens
-                if (token_info[symbol])
-                    symbol = `${symbol}_${userTokens[i].network}`
-                token_info[symbol] = {
-                    dicimal:
-                        (!!Number(userTokens[i].decimal) &&
-                            Number(userTokens[i].decimal)) ||
-                        18,
-                    symbol: userTokens[i].symbol,
-                    network: userTokens[i].network,
-                    contract: userTokens[i].tokenAdress,
-                    name: userTokens[i].tokenName,
-                    picUrl: userTokens[i].picUrl,
-                    addedToken: true,
-                }
-            }
-            // we have updated tokens env by custom tokens
-        }
+        // if (userTokens.length) {
+        //     for (let i = 0; i < userTokens.length; i++) {
+        //         let symbol = userTokens[i].symbol
+        //         // if added token exists in env tokens
+        //         if (token_info[symbol])
+        //             symbol = `${symbol}_${userTokens[i].network}`
+        //         token_info[symbol] = {
+        //             dicimal:
+        //                 (!!Number(userTokens[i].decimal) &&
+        //                     Number(userTokens[i].decimal)) ||
+        //                 18,
+        //             symbol: userTokens[i].symbol,
+        //             network: userTokens[i].network,
+        //             contract: userTokens[i].tokenAdress,
+        //             name: userTokens[i].tokenName,
+        //             picUrl: userTokens[i].picUrl,
+        //             addedToken: true,
+        //         }
+        //     }
+        //     // we have updated tokens env by custom tokens
+        // }
         let Web3ETH = await erc20Connexion()
         let Web3BEP20 = await bep20Connexion()
         let Web3POLYGON = await polygonConnexion()
         let web3UrlBTT = await bttConnexion()
         let Web3TRON = await webTronInstance()
         const listPromisesOfBalances = []
-        for (let T_name in token_info) {
-            let network = token_info[T_name].network
-            if (network == 'ERC20') {
+        for (let T_name in CryptoPrices) {
+
+          for(var j = 0 ; j<CryptoPrices[T_name].contract_address.length; j++) {
+            let network = CryptoPrices[T_name].contract_address[j].platform.name
+            
+            if (network == 'Ethereum') {
                 listPromisesOfBalances.push(
                     this.getBalance(
                         Web3ETH,
-                        token_info[T_name].contract,
+                        CryptoPrices[T_name].contract_address[j].contract_address,
                         ret.address
                     )
                 )
-            } else if (network == 'BEP20') {
+            } else if (network == 'BNB Smart Chain (BEP20)') {
                 listPromisesOfBalances.push(
                     this.getBalance(
                         Web3BEP20,
-                        token_info[T_name].contract,
+                        CryptoPrices[T_name].contract_address[j].contract_address,
                         ret.address
                     )
                 )
-            } else if (network == 'POLYGON') {
+            } else if (network == 'Polygon') {
                 listPromisesOfBalances.push(
                     this.getBalance(
                         Web3POLYGON,
-                        token_info[T_name].contract,
+                        CryptoPrices[T_name].contract_address[j].contract_address,
                         ret.address
                     )
                 )
@@ -665,37 +668,43 @@ exports.getListCryptoByUid = async (req, res) => {
                 listPromisesOfBalances.push(
                     this.getBalance(
                         web3UrlBTT,
-                        token_info[T_name].contract,
+                        CryptoPrices[T_name].contract_address[j].contract_address,
                         ret.address
                     )
                 )
-            } else if (network == 'TRON') {
+            } else if (network == 'Tron20') {
                 listPromisesOfBalances.push(
                     this.getTronBalance(
                         Web3TRON,
-                        token_info[T_name].contract,
+                        CryptoPrices[T_name].contract_address[j].contract_address,
                         tronAddress,
                         T_name === 'TRX'
-                    )
+                    ),
+       
+
+
                 )
-            }
+            }}
         }
         let resBalances = await Promise.allSettled(listPromisesOfBalances)
         let counter = 0
-        for (let T_name in token_info) {
-            let network = token_info[T_name].network
+        for (let T_name in CryptoPrices) {
+            for(var j = 0 ; j<CryptoPrices[T_name].contract_address.length; j++) {
+
+            let network = CryptoPrices[T_name].contract_address[j].platform.name
             let crypto = {}
-            crypto.picUrl = token_info[T_name].picUrl || false
-            crypto.symbol = token_info[T_name].symbol.split('_')[0]
-            crypto.name = token_info[T_name].name
-            crypto.AddedToken = token_info[T_name].addedToken
-                ? token_info[T_name].contract
-                : false
-            crypto.contract = token_info[T_name].contract
-            crypto.decimal = +token_info[T_name].dicimal
+            crypto.picUrl = CryptoPrices[T_name].logo || false
+            crypto.symbol = T_name
+            crypto.name = CryptoPrices[T_name].name
+            // crypto.AddedToken = CryptoPrices[T_name].addedToken
+            //     ? CryptoPrices[T_name].contract_address[j].contract_address
+            //     : false
+            crypto.contract = CryptoPrices[T_name].contract_address[j].contract_address
+            crypto.decimal = +CryptoPrices[T_name].contract_address[j].decimal
             crypto.network = network
-            crypto.undername = token_info[T_name].undername
-            crypto.undername2 = token_info[T_name].undername2
+            crypto.price = CryptoPrices[T_name].price
+            // crypto.undername = token_info[T_name].undername
+            // crypto.undername2 = token_info[T_name].undername2
                 ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
             let balance = {}
             balance.amount = resBalances[counter].value
@@ -703,32 +712,34 @@ exports.getListCryptoByUid = async (req, res) => {
 
             let key = T_name.split('_')[0]
 
-            if (
-                token_info[T_name]?.contract ==
-                token_info['SATT_BEP20']?.contract ||
-                token_info[T_name]?.contract == token_info['WSATT']?.contract
-                // T_name === 'SATT_POLYGON' ||
-                // T_name === 'SATT_TRON'
-                //  ||
-                // T_name === 'SATT_BTT'
-            ) {
-                key = 'SATT'
-            }
-            if (key == 'WBNB') key = 'BNB'
+            console.log(crypto)
+
+            // if (
+            //     token_info[T_name]?.contract ==
+            //     token_info['SATT_BEP20']?.contract ||
+            //     token_info[T_name]?.contract == token_info['WSATT']?.contract
+            //     // T_name === 'SATT_POLYGON' ||
+            //     // T_name === 'SATT_TRON'
+            //     //  ||
+            //     // T_name === 'SATT_BTT'
+            // ) {
+            //     key = 'SATT'
+            // }
+            // if (key == 'WBNB') key = 'BNB'
 
             if (CryptoPrices) {
                 if (CryptoPrices.hasOwnProperty(key)) {
-                    crypto.price =
-                        crypto.symbol === 'BTT'
-                            ? CryptoPrices[key].price.toFixed(10)
-                            : CryptoPrices[key].price
+                    // crypto.price =
+                    //     crypto.symbol === 'BTT'
+                    //         ? CryptoPrices[key].price.toFixed(10)
+                    //         : CryptoPrices[key].price
                     crypto.variation = CryptoPrices[key].percent_change_24h
                     crypto.total_balance =
                         this.filterAmount(
                             new Big(balance['amount'])
                                 .div(
                                     (
-                                        10 ** +token_info[T_name].dicimal
+                                        10 ** +CryptoPrices[T_name].contract_address[j].dicimal
                                     ).toString()
                                 )
                                 .toNumber() + ''
@@ -740,10 +751,10 @@ exports.getListCryptoByUid = async (req, res) => {
 
             crypto.quantity = this.filterAmount(
                 new Big(balance['amount'] * 1)
-                    .div((10 ** +token_info[T_name].dicimal).toString())
+                    .div((10 ** +CryptoPrices[T_name].contract_address[j].dicimal).toString())
                     .toNumber()
             )
-            listOfCrypto.push(crypto)
+            listOfCrypto.push(crypto)}
         }
         delete ret.address
         delete ret.matic_balance
