@@ -449,38 +449,42 @@ exports.getPrices = async () => {
             }
 
 
-            var tokenarray = ['SATT','WSATT','BNB','ETH','BTC','TRX','BTT','MATIC','BUSD','CAKE','SAND','MKR','ZRX','USDT','DAI','OMG']
+          
+          
+            var tokenarray = ['SATT','BNB','ETH','BTC','TRX','BTT','MATIC','BUSD']//,'CAKE','SAND','MKR','ZRX','USDT','DAI','OMG']
+
+           
 
             var finalMap = {}
             // for (var i = 0; i < priceMap.length; i++) {
-                for(var i in tokenarray){
-                priceMap[1].contract_address = rest.data[tokenarray[i]][0].contract_address
+                for(var i of tokenarray){
+                    let symbole = priceMap.find(el => el.symbol === i);
+                    console.log(symbole)
+                    symbole.contract_address = rest.data[i][0].contract_address
 
-                finalMap[i] = priceMap[1]
+                finalMap[i] = symbole
                 const array = ["BNB Smart Chain (BEP20)", "Ethereum", "Tron20","Polygon"];
-                if (finalMap[i].contract_address.length != 0) {
-                    
-                    
+                if (finalMap[i].contract_address.length != 0) {                
                     for (var j = 0; j <= finalMap[i].contract_address.length; j++) { 
                         
-                        if(array.includes(finalMap[i].contract_address[j]?.platform.name))
+                        if(array.includes(finalMap[i].contract_address[j]?.platform.name) && finalMap[i].contract_address[j]?.contract_address != 0 )
                         finalMap[i].contract_address[j]["decimal"] = await this.getTokenDecimals(finalMap[i].contract_address[j]?.contract_address, finalMap[i].contract_address[j]?.platform.name )  }
 
                 } delete finalMap[i].symbol
              }
 
-            for (var i = 0; i < token200.length; i++) {
-                var token = token200[i]
-                if (finalMap[token.symbol]) {
-                    finalMap[token.symbol].network =
-                        (finalMap[token.symbol].network &&
-                            finalMap[token.symbol].network) ||
-                        token.platform.network
-                    finalMap[token.symbol].tokenAddress =
-                        token.platform.token_address
-                    finalMap[token.symbol].decimals = token.platform.decimals
-                }
-            }
+            // for (var i = 0; i < token200.length; i++) {
+            //     var token = token200[i]
+            //     if (finalMap[token.symbol]) {
+            //         finalMap[token.symbol].network =
+            //             (finalMap[token.symbol].network &&
+            //                 finalMap[token.symbol].network) ||
+            //             token.platform.network
+            //         finalMap[token.symbol].tokenAddress =
+            //             token.platform.token_address
+            //         finalMap[token.symbol].decimals = token.platform.decimals
+            //     }
+            // }
             prices = { data: finalMap, date: Date.now() }
             cache.put('prices', prices)
             return finalMap
