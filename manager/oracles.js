@@ -745,7 +745,7 @@ const instagram = async (UserId, link) => {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].shortcode == idPost) {
                         perf.likes = data[i].like_count
-                        perf.media_url = data[i]?.media_url || ' '
+                        perf.media_url = data[i]?.media_url || ''
                         var mediaViews =
                             'https://graph.facebook.com/' +
                             oauth.facebook.fbGraphVersion +

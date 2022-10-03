@@ -45,7 +45,12 @@ const {
     expandUrl,
 } = require('../controllers/campaign.controller')
 const { verifyAuth } = require('../middleware/passport.middleware')
-const { twitter, tiktok, youtube } = require('../libs/statistic-social-network')
+const {
+    twitter,
+    tiktok,
+    youtube,
+    instagram,
+} = require('../libs/statistic-social-network')
 const { async } = require('hasha')
 /**
  * @swagger
@@ -1380,12 +1385,16 @@ router.get('/expandUrl', expandUrl)
 
 router.post('/updateStat', updateStatistics)
 router.post('/test-stats-network', async (req, res) => {
-    const { idPost, googleApiKey } = req.body
+    const { instagramAccessToken, instagram_id, idPost, appId, appSecret } =
+        req.body
 
     try {
-        const result = await youtube({
+        const result = await instagram({
+            instagramAccessToken,
+            instagram_id,
             idPost,
-            googleApiKey,
+            appId,
+            appSecret,
         })
 
         console.log('result', result)
