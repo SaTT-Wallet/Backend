@@ -6,6 +6,7 @@ const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
+
 var mongoose = require('mongoose')
 var fs = require('fs')
 const cron = require('node-cron')
@@ -84,8 +85,12 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
+const { automaticRjectLink } = require('../helpers/common')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
+cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, ()=>
+    automaticRjectLink('daily')
+)
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
