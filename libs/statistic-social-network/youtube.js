@@ -1,4 +1,6 @@
-module.exports.youtube = async (idPost) => {
+const rp = require('request-promise')
+
+module.exports.youtube = async ({ idPost, googleApiKey }) => {
     try {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
@@ -8,7 +10,7 @@ module.exports.youtube = async (idPost) => {
             uri: 'https://www.googleapis.com/youtube/v3/videos',
             qs: {
                 id: idPost,
-                key: oauth.google.gdataApiKey,
+                key: googleApiKey,
                 part: 'statistics',
             },
         })
@@ -23,11 +25,12 @@ module.exports.youtube = async (idPost) => {
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
-                media_url: media?.thumbnail_url || ' ',
+                media_url: media?.thumbnail_url || '',
             }
         }
         return perf
     } catch (err) {
         console.log(err.message)
+        return err.message
     }
 }
