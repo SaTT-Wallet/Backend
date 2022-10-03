@@ -197,7 +197,7 @@ module.exports.updateStat = async () => {
     }
 }
 
-exports.automaticRjectLink = async () => {
+exports.automaticRjectLink = async (condition) => {
     var campaignList = await Campaigns.find({
         hash: { $exists: true },
         type: { $eq: 'finished' },
