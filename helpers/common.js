@@ -46,7 +46,6 @@ const {
     answerAbos,
 } = require('../manager/oracles')
 const { TikTokProfile, FbProfile } = require('../model')
-
 /*
 	@description: Script that change campaign and links statistics
 	*/
@@ -195,6 +194,33 @@ module.exports.updateStat = async () => {
             delete event.payedAmount
             await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
+    }
+}
+
+exports.automaticRjectLink = async () => {
+    var campaignList = await Campaigns.find({
+        hash: { $exists: true },
+        type: { $eq: 'finished' },
+    })
+    var links = await CampaignLink.find({
+        type: { $eq: 'waiting_for_validation' },
+    })
+    let linksList = []
+    links.forEach((link) => {
+        const result = campaignList.find(
+            (campaign) => link.id_campaign === campaign.hash
+        )
+        if (!!result && result.toObject()) {
+            linksList.push({ ...link.toObject(), campaign: result.toObject() })
+        }
+    })
+
+    for (const link of linksList) {
+        const result = await CampaignLink.updateOne(
+            { id_prom: link.id_prom },
+            { $set: { type: 'rejected' } }
+        )
+        console.log(result)
     }
 }
 
