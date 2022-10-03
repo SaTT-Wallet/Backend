@@ -4547,6 +4547,45 @@ wrapConstants[PolygonNetworkConstant] = {
     abi: wrapConstants[BttNetworkConstant].abi,
 }
 
+let multicallConstants = []
+
+multicallConstants[Erc20NetworkConstant] = {
+    abi: [
+        {
+            inputs: [
+                {
+                    internalType: 'address[]',
+                    name: 'targets',
+                    type: 'address[]',
+                },
+                {
+                    internalType: 'bytes[]',
+                    name: 'data',
+                    type: 'bytes[]',
+                },
+            ],
+            name: 'multiCall',
+            outputs: [
+                {
+                    internalType: 'bytes[]',
+                    name: '',
+                    type: 'bytes[]',
+                },
+            ],
+            stateMutability: 'view',
+            type: 'function',
+        },
+    ],
+}
+multicallConstants[Bep20NetworkConstant] =
+    multicallConstants[Erc20NetworkConstant]
+multicallConstants[PolygonNetworkConstant] =
+    multicallConstants[Erc20NetworkConstant]
+multicallConstants[BttNetworkConstant] =
+    multicallConstants[Erc20NetworkConstant]
+multicallConstants[TronNetworkConstant] =
+    multicallConstants[Erc20NetworkConstant]
+
 if (process.env.NODE_ENV === 'mainnet') {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_MAINNET
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERMAINNET
@@ -4591,6 +4630,27 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_WMATIC_MAINNET
     wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_MAINNET
     wrapConstants[TronNetworkConstant] = { address: TronConstant.token.wtrx }
+
+    multicallConstants[Erc20NetworkConstant] = {
+        abi: multicallConstants[Erc20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET,
+    }
+    multicallConstants[Bep20NetworkConstant] = {
+        abi: multicallConstants[Bep20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNETBEP20,
+    }
+    multicallConstants[PolygonNetworkConstant] = {
+        abi: multicallConstants[PolygonNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET_POLYGON,
+    }
+    multicallConstants[BttNetworkConstant] = {
+        abi: multicallConstants[BttNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET_BTT,
+    }
+    multicallConstants[TronNetworkConstant] = {
+        abi: multicallConstants[TronNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_MAINNET_TRON,
+    }
 } else {
     Constants.token.satt = process.env.CONST_TOKEN_ADDRESS_TESTNET
     Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
@@ -4635,6 +4695,27 @@ if (process.env.NODE_ENV === 'mainnet') {
         process.env.CONST_WMATIC_TESTNET
     wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_TESTNET
     wrapConstants[TronNetworkConstant] = { address: TronConstant.token.wtrx }
+
+    multicallConstants[Erc20NetworkConstant] = {
+        abi: multicallConstants[Erc20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET,
+    }
+    multicallConstants[Bep20NetworkConstant] = {
+        abi: multicallConstants[Bep20NetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNETBEP20,
+    }
+    multicallConstants[PolygonNetworkConstant] = {
+        abi: multicallConstants[PolygonNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_POLYGON,
+    }
+    multicallConstants[BttNetworkConstant] = {
+        abi: multicallConstants[BttNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_BTT,
+    }
+    multicallConstants[TronNetworkConstant] = {
+        abi: multicallConstants[TronNetworkConstant].abi,
+        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_TRON,
+    }
 }
 
 CampaignConstants[Erc20NetworkConstant] = {
@@ -4709,6 +4790,7 @@ module.exports.Erc20NetworkConstant = Erc20NetworkConstant
 module.exports.Bep20NetworkConstant = Bep20NetworkConstant
 module.exports.PolygonNetworkConstant = PolygonNetworkConstant
 module.exports.BttNetworkConstant = BttNetworkConstant
+module.exports.TronNetworkConstant = TronNetworkConstant
 
 module.exports.CampaignConstants = CampaignConstants
 module.exports.OracleConstants = OracleConstants
@@ -4719,3 +4801,4 @@ module.exports.polygonTokensCampaign = polygonTokensCampaign
 module.exports.bttTokensCampaign = bttTokensCampaign
 module.exports.tronTokensCampaign = tronTokensCampaign
 module.exports.CryptoSymbols = CryptoSymbols
+module.exports.multicallConstants = multicallConstants
