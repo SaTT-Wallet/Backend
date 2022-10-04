@@ -3,6 +3,7 @@ const { tiktok } = require('./tiktok')
 const { youtube } = require('./youtube')
 const { instagram } = require('./instagram')
 const { facebook } = require('./facebook')
+const { linkedin } = require('./linkedin')
 
 module.exports = {
     twitter,
@@ -10,4 +11,5 @@ module.exports = {
     youtube,
     instagram,
     facebook,
+    linkedin,
 }
