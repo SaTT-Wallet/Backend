@@ -201,9 +201,9 @@ exports.mywallet = async (req, res) => {
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            const balance = await getListCryptoByUid(req, res)
+            const listOfCrypto = await getListCryptoByUid(req, res)
 
-            let listOfCrypto = [...new Set(balance.listOfCrypto)]
+            // let listOfCrypto = [...new Set(balance[listOfCrypto])]
 
             return responseHandler.makeResponseData(
                 res,
