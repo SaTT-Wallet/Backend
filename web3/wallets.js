@@ -89,10 +89,12 @@ exports.unlock = async (req, res) => {
             network: req.body.network,
         }
     } catch (err) {
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
+        if (!!res && res.length > 0) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
     }
 }
 
@@ -105,10 +107,12 @@ exports.unlockBsc = async (req, res) => {
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         return { address: '0x' + account.keystore.address, Web3BEP20 }
     } catch (err) {
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
+        if (!!res && res.length > 0) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
     }
 }
 
