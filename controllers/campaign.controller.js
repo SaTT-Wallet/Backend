@@ -87,8 +87,9 @@ const {
 } = require('../web3/web3-connection')
 const { automaticRjectLink } = require('../helpers/common')
 
-cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
-cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, ()=>
+cron.schedule(
+    process.env.CRON_UPDATE_STAT,
+    () => updateStat(),
     automaticRjectLink('daily')
 )
 
