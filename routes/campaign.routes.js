@@ -44,6 +44,7 @@ const {
     campaignAllowance,
     expandUrl,
 } = require('../controllers/campaign.controller')
+const { automaticRjectLink } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
 const {
     twitter,
@@ -1139,6 +1140,8 @@ router.put('/update/:idCampaign', verifyAuth, update)
  */
 
 router.get('/prom/stats/:idProm', linkStats)
+
+router.get('/upadte-rejected-links', automaticRjectLink)
 
 /**
  * @swagger
