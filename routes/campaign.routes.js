@@ -52,6 +52,7 @@ const {
     youtube,
     instagram,
     facebook,
+    linkedin,
 } = require('../libs/statistic-social-network')
 const { async } = require('hasha')
 /**
@@ -1389,13 +1390,25 @@ router.get('/expandUrl', expandUrl)
 
 router.post('/updateStat', updateStatistics)
 router.post('/test-stats-network', async (req, res) => {
-    const { accessToken, idPage, idPost } = req.body
+    const {
+        organization,
+        idPost,
+        type,
+        linkedinKey,
+        linkedinSecret,
+        accessToken,
+        refreshToken,
+    } = req.body
 
     try {
-        const result = await facebook({
-            accessToken,
-            idPage,
+        const result = await linkedin({
+            organization,
             idPost,
+            type,
+            linkedinKey,
+            linkedinSecret,
+            accessToken,
+            refreshToken,
         })
 
         console.log('result', result)
