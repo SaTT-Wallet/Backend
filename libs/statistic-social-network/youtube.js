@@ -6,8 +6,8 @@ module.exports.youtube = async ({ idPost, googleApiKey }) => {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
         }
-        var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
-        var body = await rp({
+        let perf = { shares: 0, likes: 0, views: 0, media_url: '' }
+        const body = await rp({
             uri: config.YOUTUBE_VIDEO_URL,
             qs: {
                 id: idPost,
@@ -15,8 +15,8 @@ module.exports.youtube = async ({ idPost, googleApiKey }) => {
                 part: 'statistics',
             },
         })
-        var res = JSON.parse(body)
-        var media = await rp({
+        const res = JSON.parse(body)
+        const media = await rp({
             uri: `${config.YOUTUBE_OEMBED_URL}${idPost}&format=json`,
             json: true,
         })

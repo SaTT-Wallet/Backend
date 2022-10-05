@@ -8,14 +8,14 @@ module.exports.twitter = async function ({
     twitter_access_token_secret,
 }) {
     try {
-        var tweet = new Twitter2({
+        const tweet = new Twitter2({
             consumer_key: twitter_consumer_key,
             consumer_secret: twitter_consumer_secret,
             access_token_key: access_token_key,
             access_token_secret: twitter_access_token_secret,
         })
 
-        var res = await tweet.get('tweets', {
+        const res = await tweet.get('tweets', {
             ids: idPost,
             'tweet.fields': 'public_metrics,non_public_metrics',
             expansions: 'attachments.media_keys',
@@ -32,7 +32,7 @@ module.exports.twitter = async function ({
                     'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
             })
 
-            var perf = {
+            let perf = {
                 shares: res.data[0].public_metrics.retweet_count,
                 likes: res.data[0].public_metrics.like_count,
                 date: Math.floor(Date.now() / 1000),
@@ -43,7 +43,7 @@ module.exports.twitter = async function ({
             return perf
         }
 
-        var perf = {
+        let perf = {
             shares: res.data[0].public_metrics.retweet_count,
             likes: res.data[0].public_metrics.like_count,
             views: res.data[0].non_public_metrics.impression_count,
