@@ -1,4 +1,5 @@
 const rp = require('request-promise')
+const { config } = require('./config')
 
 module.exports.instagram = async ({
     instagramAccessToken,
@@ -8,35 +9,35 @@ module.exports.instagram = async ({
     appSecret,
 }) => {
     try {
-        var accessToken = instagramAccessToken
-        var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
-        var mediaGetNewAccessToken = `https://graph.facebook.com/v11.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${accessToken}`
-        var resMediaAccessToken = await rp({
+        const accessToken = instagramAccessToken
+        let perf = { shares: 0, likes: 0, views: 0, media_url: '' }
+        let mediaGetNewAccessToken = `${config.FACEBOOK_GRAPH_OAUTH_URL}&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${accessToken}`
+        let resMediaAccessToken = await rp({
             uri: mediaGetNewAccessToken,
             json: true,
         })
-        var media =
-            'https://graph.facebook.com/' +
+        let media =
+            config.FACEBOOK_GRAPH_FIRST_URL +
             'v11.0' +
             '/' +
             instagram_id +
-            '/media?fields=like_count,shortcode,media_url&limit=50&access_token=' +
+            config.FACEBOOK_GRAPH_MEDIA_URL +
             resMediaAccessToken.access_token
-        var resMedia = await rp({ uri: media, json: true })
-        var data = resMedia.data
+        let resMedia = await rp({ uri: media, json: true })
+        let data = resMedia.data
         for (let i = 0; i < data.length; i++) {
             if (data[i].shortcode == idPost) {
                 perf.likes = data[i].like_count
                 perf.media_url = data[i]?.media_url || ''
-                var mediaViews =
-                    'https://graph.facebook.com/' +
+                const mediaViews =
+                    config.FACEBOOK_GRAPH_FIRST_URL +
                     'v11.0' +
                     '/' +
                     data[i].id +
                     '/insights?metric=impressions&access_token=' +
                     resMediaAccessToken.access_token
                 try {
-                    var resMediaViews = await rp({
+                    const resMediaViews = await rp({
                         uri: mediaViews,
                         json: true,
                     })
