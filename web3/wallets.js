@@ -833,10 +833,10 @@ exports.getBalanceByUid = async (req, res) => {
                 (tokenSymbol === 'BTC' && 8) ||
                 (tokenSymbol === 'TRX' && 6) ||
                 18
-
+            let amount = ret[Amount] ? ret[Amount] : 0
             Total_balance +=
                 this.filterAmount(
-                    new Big((await ret[Amount]) * 1)
+                    new Big(amount * 1)
                         .div(new Big(10).pow(decimal))
                         .toNumber() + ''
                 ) * CryptoPrices[tokenSymbol].price
