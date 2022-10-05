@@ -271,8 +271,8 @@ exports.BalanceUsersStats = async (condition) => {
         } catch (err) {
             console.error(err)
         }
-
-        result.Balance = balance['Total_balance']
+        // !balance['Total_balance'] && counter++
+        result.Balance = balance?.Total_balance
 
         if (
             !result.Balance ||
