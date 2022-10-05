@@ -1,5 +1,6 @@
 const rp = require('request-promise')
 const axios = require('axios')
+const { config } = require('./config')
 
 module.exports.tiktok = async ({
     idPost,
@@ -8,10 +9,10 @@ module.exports.tiktok = async ({
     user_tiktok_id,
 }) => {
     try {
-        let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${tiktok_key}&grant_type=refresh_token&refresh_token=${tiktok_refresh_token}`
+        let getUrl = `${config.TIKTOK_OAUTH_URL}client_key=${tiktok_key}&grant_type=refresh_token&refresh_token=${tiktok_refresh_token}`
         let resMedia = await rp({ uri: getUrl, json: true })
         let videoInfoResponse = await axios
-            .post('https://open-api.tiktok.com/video/query/', {
+            .post(config.TIKTOK_VIDEO_URL, {
                 access_token: resMedia?.data.access_token,
                 open_id: user_tiktok_id,
                 filters: {
@@ -33,7 +34,7 @@ module.exports.tiktok = async ({
                 shares: videoInfoResponse.data.videos[0].share_count,
                 views: videoInfoResponse.data.videos[0].view_count,
                 media_url:
-                    videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
+                    videoInfoResponse.data?.videos[0]?.cover_image_url || '',
             }
         }
         return videoInfoResponse.data

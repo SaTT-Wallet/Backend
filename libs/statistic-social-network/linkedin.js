@@ -1,6 +1,7 @@
 const rp = require('request-promise')
 const axios = require('axios')
 const { linkedinStatsUrl, linkedinShareUrl } = require('./helpers')
+const { config } = require('./config')
 
 module.exports.linkedin = async ({
     organization,
@@ -19,12 +20,12 @@ module.exports.linkedin = async ({
         params.append('token', accessToken)
 
         let tokenValidityBody = await axios.post(
-            'https://www.linkedin.com/oauth/v2/introspectToken',
+            config.LINKEDIN_OAUTH_URL,
             params
         )
 
         if (!tokenValidityBody.data?.active) {
-            let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${refreshToken}&client_id=${linkedinKey}&client_secret=${linkedinSecret}`
+            let accessTokenUrl = `${config.LINKEDIN_SECOND_OAUTH_URL}${refreshToken}&client_id=${linkedinKey}&client_secret=${linkedinSecret}`
             let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
             accessToken = resAccessToken.access_token
         }

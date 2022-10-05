@@ -1,4 +1,5 @@
 const rp = require('request-promise')
+const { config } = require('./config')
 
 module.exports.youtube = async ({ idPost, googleApiKey }) => {
     try {
@@ -7,7 +8,7 @@ module.exports.youtube = async ({ idPost, googleApiKey }) => {
         }
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
         var body = await rp({
-            uri: 'https://www.googleapis.com/youtube/v3/videos',
+            uri: config.YOUTUBE_VIDEO_URL,
             qs: {
                 id: idPost,
                 key: googleApiKey,
@@ -16,7 +17,7 @@ module.exports.youtube = async ({ idPost, googleApiKey }) => {
         })
         var res = JSON.parse(body)
         var media = await rp({
-            uri: `https://www.youtube.com/oembed?url=https%3A//youtube.com/watch%3Fv%3D${idPost}&format=json`,
+            uri: `${config.YOUTUBE_OEMBED_URL}${idPost}&format=json`,
             json: true,
         })
         if (res.items && res.items[0]) {
