@@ -39,7 +39,6 @@ exports.bep20Connexion = async () => {
         await web3.eth.getNodeInfo()
         return web3
     } catch (err) {
-        console.log('bsc web3 error', err.message ? err.message : err.error)
         return null
     }
 }
@@ -53,7 +52,6 @@ exports.erc20Connexion = async () => {
         await web3.eth.getNodeInfo()
         return web3
     } catch (err) {
-        console.log('eth web3 error', err.message ? err.message : err.error)
         return null
     }
 }
@@ -67,7 +65,6 @@ exports.polygonConnexion = async () => {
         await web3.eth.getNodeInfo()
         return web3
     } catch (err) {
-        console.log('polygon web3 error', err.message ? err.message : err.error)
         return null
     }
 }
@@ -80,7 +77,6 @@ exports.bttConnexion = async () => {
         await web3.eth.getNodeInfo()
         return web3
     } catch (err) {
-        console.log('bttc web3 error', err.message ? err.message : err.error)
         return null
     }
 }
@@ -93,9 +89,7 @@ exports.webTronInstance = async () => {
             headers: { 'TRON-PRO-API-KEY': process.env.TRON_PRO_API_KEY },
         })
         return tronWeb
-    } catch (err) {
-        console.log('tron rpc error', err.message ? err.message : err.error)
-    }
+    } catch (err) {}
 }
 
 exports.getContractByNetwork = async (credentials) => {
@@ -107,9 +101,7 @@ exports.getContractByNetwork = async (credentials) => {
         contract.getGasPrice = credentials.WEB3.eth.getGasPrice
 
         return contract
-    } catch (err) {
-        console.log(err.message ? err.message : err.error)
-    }
+    } catch (err) {}
 }
 
 exports.getCampaignContractByHashCampaign = async (
@@ -127,12 +119,10 @@ exports.getCampaignContractByHashCampaign = async (
                 )
                 return ctr
             }
-            credentials.network =  campaign.token.type
+            credentials.network = campaign.token.type
             return this.getContractByNetwork(credentials)
         }
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.getPromContract = async (idProm, credentials = false) => {
@@ -143,9 +133,7 @@ exports.getPromContract = async (idProm, credentials = false) => {
         )
 
         return this.getContractByNetwork(credentials)
-    } catch (err) {
-        console.log('err prom', err.message)
-    }
+    } catch (err) {}
 }
 
 exports.getCampaignOwnerAddr = async (idProm) => {
@@ -157,9 +145,7 @@ exports.getCampaignOwnerAddr = async (idProm) => {
         if (!prom.contract) return
 
         return process.env.CAMPAIGN_OWNER
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.getOracleContractByCampaignContract = async (credentials = false) => {
@@ -171,7 +157,5 @@ exports.getOracleContractByCampaignContract = async (credentials = false) => {
         contract.getGasPrice = credentials.WEB3.eth.getGasPrice
 
         return contract
-    } catch (err) {
-        console.log(err.message ? err.message : err.error)
-    }
+    } catch (err) {}
 }

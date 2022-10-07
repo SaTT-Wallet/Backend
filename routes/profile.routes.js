@@ -34,9 +34,7 @@ try {
         })
     )
     router.use(passport.session())
-} catch (e) {
-    console.log(e)
-}
+} catch (e) {}
 const {
     support,
     FindUserLegalProfile,
@@ -624,9 +622,7 @@ router.get(
                     message +
                     '&sn=fb'
             )
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) {}
     }
 )
 
@@ -712,9 +708,7 @@ router.get(
                     message +
                     '&sn=twitter'
             )
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) {}
     }
 )
 
@@ -793,8 +787,6 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
-    console.log('res form /addChannel/tikTok/:idUser')
-    // console.log('from get /addChannel',res)//+ '|' + req.query.redirect
     const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic', 'video.list'],
@@ -807,7 +799,6 @@ passport.use(
     new tikTokStrategy(
         tikTokCredentials('profile/callback/addChannel/tikTok'),
         (req, accessToken, refreshToken, profile, cb) => {
-            console.log('in callbackk')
             addTikTokChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
@@ -816,10 +807,6 @@ passport.use(
 router.get(
     '/callback/addChannel/tikTok',
     (req, res, next) => {
-        // console.log('res form /callback/addChannel/tikTok', res)
-        // console.log('form get c ',res);
-        console.log('Authenticatinggg')
-        console.log('reqqqq')
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
                 process.env.BASED_URL +
@@ -829,8 +816,6 @@ router.get(
     },
     async (req, response) => {
         try {
-            //console.log('response form async /callback/addChannel/t', response)
-            console.log('in reqq')
             redirect = req.query.state.split('|')[1]
 
             if (req.authInfo.message) {
@@ -845,11 +830,7 @@ router.get(
                     message +
                     '&sn=tiktok'
             )
-        } catch (e) {
-            console.log('error form /callback/addChannel/tikTok', e)
-
-            //console.log(e)
-        }
+        } catch (e) {}
     }
 )
 /**
@@ -1206,9 +1187,7 @@ router.get(
             response.redirect(
                 process.env.BASED_URL + url + '?message=' + req.authInfo.message
             )
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) {}
     }
 )
 
@@ -1255,9 +1234,7 @@ router.get(
             let url = state[1]
             let message = req.authInfo.message
             res.redirect(process.env.BASED_URL + url + '?message=' + message)
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) {}
     }
 )
 

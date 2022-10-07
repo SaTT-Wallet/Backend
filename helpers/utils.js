@@ -123,7 +123,6 @@ exports.readHTMLFileProfile = (
 
         await transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                console.log(error)
             } else {
                 res.end(JSON.stringify(info.response))
                 res.end(JSON.stringify({ message: 'Email sent' }))
@@ -189,9 +188,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
         }
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                console.log(error.message)
             } else {
-                console.log(info.response)
             }
         })
     })
@@ -265,9 +262,7 @@ exports.readHTMLFileCampaign = (
 
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                console.log(error.message)
             } else {
-                console.log(info.response)
             }
         })
     })
@@ -276,7 +271,6 @@ exports.readHTMLFileCampaign = (
 const readHTMLFile = (path, callback) => {
     fs.readFile(path, { encoding: 'utf-8' }, function (err, html) {
         if (err) {
-            console.log(err)
             throw err
             callback(err)
         } else {
@@ -321,9 +315,7 @@ exports.configureTranslation = function (lang) {
         handlebars.registerHelper('__n', function () {
             return i18n.__n.apply(this, arguments)
         })
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) {}
 }
 
 exports.cloneUser = (user) => {
@@ -364,12 +356,10 @@ exports.encodeParams = async (inputs) => {
         types.push(type)
         values.push(value)
     }
-    console.log(types, values)
+
     try {
         parameters = abiCoder.encode(types, values).replace(/^(0x)/, '')
-    } catch (ex) {
-        console.log(ex)
-    }
+    } catch (ex) {}
     return parameters
 
     /*

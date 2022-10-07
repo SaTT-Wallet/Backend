@@ -114,8 +114,7 @@ module.exports.updateStat = async () => {
                 },
                 { UserId: 1, _id: 0 }
             ))
-        console.log('event user wallet ', event.id_wallet)
-        console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
+
         if (userWallet) {
             if (event.typeSN == 5) {
                 var linkedinProfile = await LinkedinProfile.findOne({
