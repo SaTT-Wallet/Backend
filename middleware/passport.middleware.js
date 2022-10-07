@@ -45,9 +45,7 @@ try {
         })
     ) // session secret
     app.use(passport.session())
-} catch (e) {
-    console.log(e)
-}
+} catch (e) {}
 passport.serializeUser(function (user, cb) {
     cb(null, user)
 })
@@ -561,9 +559,7 @@ exports.telegramSignup = async (req, res) => {
         res.redirect(
             process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
-    } catch (e) {
-        console.log(e)
-    }
+    } catch (e) {}
 }
 
 exports.signup_telegram_function = async (req, profile, cb) => {
@@ -615,9 +611,7 @@ exports.telegramConnection = (req, res) => {
         res.redirect(
             process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
-    } catch (e) {
-        console.log(e)
-    }
+    } catch (e) {}
 }
 /*
  *end signin with telegram strategy
@@ -701,9 +695,7 @@ exports.connectTelegramAccount = async (req, res) => {
         res.redirect(
             process.env.BASED_URL + url + '?message=' + req.authInfo.message
         )
-    } catch (e) {
-        console.log(e)
-    }
+    } catch (e) {}
 }
 exports.telegram_connect_function = async (req, profile, cb) => {
     let user_id = +req.params.idUser
@@ -913,9 +905,7 @@ exports.addTikTokChannel = async (
                 message: 'account exist',
             })
         }
-    } catch (error) {
-        console.log('Error ===> ', error)
-    }
+    } catch (error) {}
 }
 
 /*

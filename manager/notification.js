@@ -35,7 +35,7 @@ exports.sendNotification = async (data) => {
         },
     }
     request(clientServerOptions, (error, response) => {
-        error && console.log(error)
+        error
         return
     })
 }
@@ -77,11 +77,9 @@ exports.sendNotificationTest = async (req, res) => {
     }
     request(clientServerOptions, (error, response) => {
         if (response) {
-            console.log('response')
             res.send(response)
         }
         if (error) {
-            console.log('error')
         }
         // console.log("response new",response);
         // error && console.log("new error",error)

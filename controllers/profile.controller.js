@@ -123,8 +123,6 @@ exports.account = async (req, res) => {
             return makeResponseError(res, 204, 'user not found')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -150,8 +148,6 @@ exports.profilePicture = async (req, response) => {
             }
         })
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             response,
             500,
@@ -182,8 +178,6 @@ module.exports.addProfilePicture = async (req, res) => {
         }
         return makeResponseData(res, 204, 'Only images allowed')
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -217,8 +211,6 @@ exports.updateProfile = async (req, res) => {
 
         return makeResponseData(res, 201, 'profile updated', updatedProfile)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -240,8 +232,6 @@ exports.UserLegalProfile = async (req, res) => {
         }
         return makeResponseData(res, 200, 'success', userLegal)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -286,8 +276,6 @@ exports.addUserLegalProfile = async (req, res) => {
         }
         return makeResponseError(res, 204, 'Only images allowed')
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -318,8 +306,6 @@ exports.FindUserLegalProfile = async (req, res) => {
             }
         })
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -337,8 +323,6 @@ exports.deleteTwitterChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -359,8 +343,6 @@ exports.deleteTwitterChannel = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -379,8 +361,6 @@ exports.deleteGoogleChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -401,8 +381,6 @@ exports.deleteGoogleChannel = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -421,8 +399,6 @@ exports.deleteFacebookChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -443,8 +419,6 @@ exports.deleteFacebookChannel = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -465,8 +439,6 @@ exports.deleteLinkedinChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -493,8 +465,6 @@ exports.deleteLinkedinChannel = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -506,7 +476,6 @@ exports.deleteLinkedinChannel = async (req, res) => {
 exports.deleteTiktokChannel = async (req, res) => {
     try {
         let userId = req.user._id
-        console.log({ userId })
 
         let tiktokProfile = await TikTokProfile.findOne({
             _id: ObjectId(req.params.id),
@@ -518,8 +487,6 @@ exports.deleteTiktokChannel = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -531,10 +498,9 @@ exports.deleteTiktokChannel = async (req, res) => {
 exports.deleteTiktokChannels = async (req, res) => {
     try {
         let userId = req.user._id
-        console.log({ userId })
 
         let tiktokProfiles = await TikTokProfile.find({ userId })
-        console.log({ tiktokProfiles })
+
         if (tiktokProfiles.length === 0)
             return makeResponseError(res, 204, 'No channel found')
         else {
@@ -542,8 +508,6 @@ exports.deleteTiktokChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -570,8 +534,6 @@ exports.UserInterstes = async (req, res) => {
 
         return makeResponseData(res, 200, 'success', allInterests)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -598,8 +560,6 @@ exports.UpdateIntersts = async (req, res) => {
         }
         return makeResponseData(res, 201, 'success', interests)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -612,7 +572,6 @@ exports.tiktokApiAbos = async (req, res) => {
         let abos = await tiktokAbos(req.params.idPost)
         return makeResponseData(res, 200, 'success', abos)
     } catch (err) {
-        console.log(err.message)
         return makeResponseError(
             res,
             500,
@@ -647,8 +606,6 @@ exports.socialAccounts = async (req, res) => {
         }
         return makeResponseData(res, 200, 'success', networks)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -681,8 +638,6 @@ module.exports.checkOnBoarding = async (req, res) => {
         ])
         return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -728,8 +683,6 @@ module.exports.requestMoney = async (req, res) => {
 
         return makeResponseData(res, 202, 'Email was sent to ' + req.body.to)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -755,8 +708,6 @@ exports.support = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -781,8 +732,6 @@ module.exports.notificationUpdate = async (req, res) => {
         }
         return makeResponseData(res, 201, 'notification seen')
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -804,8 +753,6 @@ module.exports.changeNotificationsStatus = async (req, res) => {
         }
         return makeResponseData(res, 200, 'Notification clicked')
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -854,8 +801,6 @@ module.exports.getNotifications = async (req, res) => {
         )
         return makeResponseData(res, 200, 'success', notifications)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -910,8 +855,6 @@ module.exports.changeEmail = async (req, res) => {
             return makeResponseData(res, 200, 'Email was sent to ' + email)
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -940,8 +883,6 @@ module.exports.confrimChangeMail = async (req, res) => {
             return makeResponseData(res, 200, 'email changed')
         }
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
@@ -1070,8 +1011,6 @@ module.exports.verifyLink = async (req, response) => {
                 res ? 'true' : 'false'
             )
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             response,
             500,
@@ -1096,12 +1035,10 @@ module.exports.ShareByActivity = async (req, res) => {
         }
         let postData = await rp(linkedinData)
         let urn = `urn:li:activity:${activityURN}`
-        console.log(postData)
+
         let sharedId = postData.results[urn]['domainEntity']
         return makeResponseData(res, 200, 'success', sharedId)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
