@@ -31,9 +31,7 @@ try {
         })
     )
     router.use(passport.session())
-} catch (e) {
-    console.log(e)
-}
+} catch (e) {}
 const {
     walletConnection,
     changePassword,
@@ -422,9 +420,7 @@ router.get(
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) {}
     },
     authErrorHandler
 )
@@ -470,9 +466,7 @@ router.get(
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
-        } catch (e) {
-            console.log(e)
-        }
+        } catch (e) {}
     },
     authSignInErrorHandler
 )
@@ -546,8 +540,6 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            console.log('\n///////////////////////////////////////////::::::')
-            console.log('profile', profile)
             googleAuthSignin(req, accessToken, refreshToken, profile, cb)
         }
     )

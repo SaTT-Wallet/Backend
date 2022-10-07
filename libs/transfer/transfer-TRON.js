@@ -33,7 +33,6 @@ module.exports.transferTronTokens = async function ({
             amount: amount,
         }
     } catch (error) {
-        console.log('error', error)
         return { error: error.message }
     }
 }

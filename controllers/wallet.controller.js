@@ -99,9 +99,7 @@ exports.exportBtc = async (req, res) => {
                 'Wallet not found'
             )
         }
-    } catch (err) {
-        console.log('errrrr', err)
-    }
+    } catch (err) {}
 }
 
 exports.exportEth = async (req, res) => {
@@ -117,8 +115,6 @@ exports.exportEth = async (req, res) => {
             responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -140,8 +136,6 @@ exports.exportTron = async (req, res) => {
             responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -163,7 +157,6 @@ exports.exportWalletInfos = async (req, res) => {
             responseHandler.makeResponseError(res, 204, 'Account not found')
         }
     } catch (err) {
-        console.log(err.message)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -188,8 +181,6 @@ exports.mywallet = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -218,9 +209,7 @@ exports.userBalance = async (req, res) => {
                 'Wallet not found'
             )
         }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.getGasPrice = async (req, res) => {
@@ -323,8 +312,6 @@ exports.totalBalances = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -609,8 +596,6 @@ exports.checkWalletToken = async (req, res) => {
             })
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -677,11 +662,6 @@ exports.addNewToken = async (req, res) => {
                         gzip: true,
                     }
 
-                    console.log(
-                        'here we are calling CMC api with this link : ' +
-                            process.env.CMR_URL +
-                            symbol
-                    )
                     let metaData = await rp(cryptoMetaData)
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }
@@ -713,8 +693,6 @@ exports.addNewToken = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -818,8 +796,6 @@ exports.payementRequest = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -930,8 +906,6 @@ module.exports.getMnemo = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -960,8 +934,6 @@ module.exports.verifyMnemo = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -988,8 +960,6 @@ exports.createNewWallet = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success', ret)
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1034,8 +1004,6 @@ exports.addTronWalletToExistingAccount = async (req, res) => {
             })
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1076,8 +1044,6 @@ module.exports.removeToken = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1167,8 +1133,6 @@ module.exports.getTransactionHistory = async (req, res) => {
             All_Transactions,
         })
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1193,8 +1157,6 @@ exports.balanceStat = async (req, res) => {
         }
         return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
-        console.log(err.message)
-
         return responseHandler.makeResponseError(
             res,
             500,
