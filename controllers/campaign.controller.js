@@ -6,6 +6,7 @@ const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
+
 var mongoose = require('mongoose')
 var fs = require('fs')
 const cron = require('node-cron')
@@ -84,8 +85,13 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
+const { automaticRjectLink } = require('../helpers/common')
 
-cron.schedule(process.env.CRON_UPDATE_STAT, () => updateStat())
+cron.schedule(
+    process.env.CRON_UPDATE_STAT,
+    () => updateStat(),
+    automaticRjectLink('daily')
+)
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -132,6 +138,7 @@ const { ObjectId } = require('mongodb')
 const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
+const { request } = require('http')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -2558,6 +2565,34 @@ module.exports.initStat = () => {
         rejected: 0,
     }
 }
+module.exports.expandUrl = (req, res) => {
+    try {
+        var child_process = require('child_process')
+        let { shortUrl } = req.query
+
+        function runCmd(cmd) {
+            var resp = child_process.execSync(cmd)
+            var result = resp.toString('UTF8')
+            return result
+        }
+        var cmd = `curl -sLI ${shortUrl} | grep -i Location`
+        var result = runCmd(cmd)
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'shorted successfully',
+            result.split('Location: ')[1]
+        )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 module.exports.statLinkCampaign = async (req, res) => {
     try {
         let id_campaign = req.params.hash
