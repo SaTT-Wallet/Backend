@@ -277,7 +277,6 @@ exports.getAccount = async (req, res) => {
                     result.btc_balance = Math.floor(red.amount * 100000000)
                 }
             } catch (e) {
-                console.log('btc node error')
                 result.btc_balance = 0
             }
         }
@@ -367,9 +366,7 @@ exports.getPrices = async () => {
             cache.put('prices', prices)
             return finalMap
         }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.filterAmount = function (input, nbre = 10) {
@@ -668,9 +665,7 @@ exports.getListCryptoByUid = async (req, res) => {
             listOfCrypto.push(crypto)
         }
         return { listOfCrypto }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.getBalanceByUid = async (req, res) => {
@@ -827,7 +822,6 @@ exports.getBalanceByUid = async (req, res) => {
 
         return { Total_balance }
     } catch (err) {
-        console.log(err)
         //    return responseHandler.makeResponseError(
         // 		 res,
         // 		 500,
@@ -980,9 +974,7 @@ exports.getCount = async function () {
     try {
         var count = await Wallet.countDocuments()
         return count + 1
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.createSeed = async (req, res) => {
@@ -1071,9 +1063,7 @@ exports.createSeed = async (req, res) => {
             btcAddress: btcWallet.addressSegWitCompat,
             tronAddress: TronWallet.addr,
         }
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) {}
 }
 
 exports.addWalletTron = async (req, res) => {
@@ -1095,9 +1085,7 @@ exports.addWalletTron = async (req, res) => {
         )
 
         return TronWallet
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) {}
 }
 
 exports.getWalletTron = async (id, pass) => {
@@ -1143,7 +1131,6 @@ exports.wrapNative = async (amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
         return { error: err.message }
     }
 }
