@@ -1,12 +1,20 @@
 {
-    "name": "@atayen-org/statistic-social-network",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC"
+  "name": "@atayen-org/statistic-social-network",
+  "version": "1.0.0",
+  "description": "This package for getting post data from social media",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "@atayen-org",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SaTT-Wallet/Backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SaTT-Wallet/Backend/issues"
+  },
+  "homepage": "https://github.com/SaTT-Wallet/Backend#readme"
 }
