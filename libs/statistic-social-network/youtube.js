@@ -1,7 +1,7 @@
 const rp = require('request-promise')
 const { config } = require('./config')
 
-module.exports.youtube = async ({ idPost, googleApiKey }) => {
+module.exports.youtube = async (idPost, googleApiKey) => {
     try {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
@@ -31,7 +31,7 @@ module.exports.youtube = async ({ idPost, googleApiKey }) => {
         }
         return perf
     } catch (err) {
-        console.log(err.message)
+        // console.log(err.message)
         return err.message
     }
 }

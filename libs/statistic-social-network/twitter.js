@@ -1,12 +1,12 @@
 const Twitter2 = require('twitter-v2')
 
-module.exports.twitter = async function ({
+module.exports.twitter = async function (
     idPost,
     access_token_key,
     twitter_consumer_secret,
     twitter_consumer_key,
-    twitter_access_token_secret,
-}) {
+    twitter_access_token_secret
+) {
     try {
         const tweet = new Twitter2({
             consumer_key: twitter_consumer_key,

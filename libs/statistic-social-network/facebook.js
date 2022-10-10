@@ -1,7 +1,7 @@
 const rp = require('request-promise')
 const { config } = require('./config')
 
-module.exports.facebook = async ({ accessToken, idPage, idPost }) => {
+module.exports.facebook = async (accessToken, idPage, idPost) => {
     try {
         const token = accessToken
         const res2 = await rp({
@@ -43,7 +43,7 @@ module.exports.facebook = async ({ accessToken, idPage, idPost }) => {
 
         return perf
     } catch (err) {
-        console.log('error', err.message)
+        // console.log('error', err.message)
         return err.message
     }
 }

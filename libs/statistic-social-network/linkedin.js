@@ -3,15 +3,15 @@ const axios = require('axios')
 const { linkedinStatsUrl, linkedinShareUrl } = require('./helpers')
 const { config } = require('./config')
 
-module.exports.linkedin = async ({
+module.exports.linkedin = async (
     organization,
     idPost,
     type,
     linkedinKey,
     linkedinSecret,
     accessToken,
-    refreshToken,
-}) => {
+    refreshToken
+) => {
     try {
         var perf = { shares: 0, likes: 0, views: 0, mediaUrl: '' }
         const params = new URLSearchParams()
@@ -64,7 +64,7 @@ module.exports.linkedin = async ({
 
         return perf
     } catch (err) {
-        console.log(err.message)
+        // console.log(err.message)
         return err.message
     }
 }

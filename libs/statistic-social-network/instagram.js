@@ -1,13 +1,13 @@
 const rp = require('request-promise')
 const { config } = require('./config')
 
-module.exports.instagram = async ({
+module.exports.instagram = async (
     instagramAccessToken,
     instagram_id,
     idPost,
     appId,
-    appSecret,
-}) => {
+    appSecret
+) => {
     try {
         const accessToken = instagramAccessToken
         let perf = { shares: 0, likes: 0, views: 0, media_url: '' }
@@ -52,7 +52,7 @@ module.exports.instagram = async ({
         }
         return perf
     } catch (err) {
-        console.log('error', err.message)
+        // console.log('error', err.message)
         return err.message
     }
 }
