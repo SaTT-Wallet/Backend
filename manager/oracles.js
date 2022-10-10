@@ -30,6 +30,8 @@ const {
     networkProvidersOptions,
 } = require('../web3/web3-connection')
 
+const { facebook, tiktok } = require('@atayen-org/statistic-social-network')
+
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
         let linkInfo = {}
@@ -525,7 +527,7 @@ exports.getPromApplyStats = async (
     try {
         let socialOracle = {}
         if (oracles == 'facebook')
-            socialOracle = await facebook(link.idUser, link.idPost)
+            socialOracle = await facebookStats(link.idUser, link.idPost)
         else if (oracles == 'twitter')
             socialOracle = await twitter(link.idUser, link.idPost)
         else if (oracles == 'youtube') socialOracle = await youtube(link.idPost)
@@ -539,7 +541,7 @@ exports.getPromApplyStats = async (
                 linkedinProfile
             )
         } else {
-            socialOracle = await tiktok(tiktokProfile, link.idPost)
+            socialOracle = await tiktokStats(tiktokProfile, link.idPost)
         }
 
         delete socialOracle.date
@@ -547,52 +549,18 @@ exports.getPromApplyStats = async (
     } catch (err) {}
 }
 
-const facebook = async (pageName, idPost) => {
+const facebookStats = async (pageName, idPost) => {
     try {
         var page = await FbPage.findOne({ username: pageName })
-        if (page) {
-            var token = page.token
-            var idPage = page.id
-            var res2 = await rp({
-                uri:
-                    'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    idPage +
-                    '_' +
-                    idPost +
-                    '?fields=shares,full_picture&access_token=' +
-                    token,
-                json: true,
-            })
-            var res3 = await rp({
-                uri:
-                    'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    idPage +
-                    '_' +
-                    idPost +
-                    '/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token=' +
-                    token,
-                json: true,
+        if (page.id) {
+            const { token, id } = page
+            const result = await facebook({
+                accessToken: token,
+                idPage: id,
+                idPost,
             })
 
-            var shares = 0
-            if (res2.shares) {
-                shares = res2.shares.count
-            }
-            var likes = res3.data[0].values[0].value.like || 0
-            var views = res3.data[1].values[0].value || 0
-            var perf = {
-                shares: shares,
-                likes: likes,
-                views: views,
-                date: Math.floor(Date.now() / 1000),
-                media_url: res2?.full_picture || ' ',
-            }
-
-            return perf
+            return result
         } else {
             return { shares: 0, likes: 0, views: 0 }
         }
@@ -826,36 +794,19 @@ const twitter = async (userName, idPost) => {
     }
 }
 
-const tiktok = async (tiktokProfile, idPost) => {
+const tiktokStats = async (tiktokProfile, idPost) => {
     try {
         if (!tiktokProfile) return 'indisponible'
 
-        let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
-        let resMedia = await rp({ uri: getUrl, json: true })
-        let videoInfoResponse = await axios
-            .post('https://open-api.tiktok.com/video/query/', {
-                access_token: resMedia?.data.access_token,
-                open_id: tiktokProfile.userTiktokId,
-                filters: {
-                    video_ids: [idPost],
-                },
-                fields: [
-                    'like_count',
-                    'comment_count',
-                    'share_count',
-                    'view_count',
-                    'cover_image_url',
-                ],
-            })
-            .then((response) => response.data)
+        const { refreshToken, userTiktokId } = tiktokProfile
+        const result = await tiktok(
+            idPost,
+            process.env.TIKTOK_KEY,
+            refreshToken,
+            userTiktokId
+        )
 
-        return {
-            likes: videoInfoResponse.data.videos[0].like_count,
-            shares: videoInfoResponse.data.videos[0].share_count,
-            views: videoInfoResponse.data.videos[0].view_count,
-            media_url:
-                videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
-        }
+        return result
     } catch (error) {}
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
