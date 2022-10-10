@@ -53,9 +53,7 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
                     'domainEntity~'
                 ].content.contentEntities[0].entityLocaion
         return linkInfo
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.verifyFacebook = async function (userId, pageName, idPost) {
@@ -113,9 +111,7 @@ exports.verifyYoutube = async function (userId, idPost) {
         } else {
             return false
         }
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.verifyInsta = async function (userId, idPost) {
@@ -179,7 +175,6 @@ exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
         }).select('access_token_key access_token_secret id')
         return twitterProfile ? true : false
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }
@@ -209,9 +204,7 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
                 return 'deactivate'
         })
         return res
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
@@ -244,7 +237,6 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
             return false
         }
     } catch (err) {
-        console.log(err.message)
         return 'lien_invalid'
     }
 }
@@ -286,9 +278,7 @@ exports.getInstagramUserName = async (shortcode, id) => {
         // var resMedia = await rp({ uri: media, json: true })
         // console.log('resMedia', resMedia)
         return userName
-    } catch (err) {
-        console.log('instagram username errr', err)
-    }
+    } catch (err) {}
 }
 
 exports.findBountyOracle = (typeSN) => {
@@ -304,9 +294,7 @@ exports.findBountyOracle = (typeSN) => {
             : typeSN == '5'
             ? 'linkedin'
             : 'tiktok'
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.answerAbos = async (
@@ -348,9 +336,7 @@ exports.answerAbos = async (
         }
 
         return res
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (error) {}
 }
 
 exports.facebookAbos = async function (pageName) {
@@ -375,9 +361,7 @@ exports.facebookAbos = async function (pageName) {
         } else {
             return null
         }
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.youtubeAbos = async function (idPost) {
@@ -406,9 +390,7 @@ exports.youtubeAbos = async function (idPost) {
         } else {
             return null
         }
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.instagramAbos = async (idPost) => {
@@ -449,9 +431,7 @@ exports.instagramAbos = async (idPost) => {
             else return null
         }
         return followers
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.twitterAbos = async function (pageName, idPost) {
@@ -464,9 +444,7 @@ exports.twitterAbos = async function (pageName, idPost) {
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
         return twitterDetails.user.followers_count
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.linkedinAbos = async (linkedinProfile, organization) => {
@@ -481,9 +459,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
         }
         let postData = await rp(linkedinData)
         return postData.firstDegreeSize
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.tiktokAbos = async (username) => {
@@ -525,7 +501,7 @@ exports.tiktokAbos = async (username) => {
             }
         }
         await page.close()
-        console.log('page closed.')
+
         await browser.disconnect()
         return abosNumber
     } catch (e) {
@@ -568,9 +544,7 @@ exports.getPromApplyStats = async (
 
         delete socialOracle.date
         return socialOracle
-    } catch (err) {
-        console.log('error from getPromApplyStats', err.message)
-    }
+    } catch (err) {}
 }
 
 const facebook = async (pageName, idPost) => {
@@ -622,9 +596,7 @@ const facebook = async (pageName, idPost) => {
         } else {
             return { shares: 0, likes: 0, views: 0 }
         }
-    } catch (err) {
-        console.log('error form facebook', err.message)
-    }
+    } catch (err) {}
 }
 
 const youtube = async (idPost) => {
@@ -657,9 +629,7 @@ const youtube = async (idPost) => {
         }
 
         return perf
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 const linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
@@ -689,7 +659,7 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
             },
             json: true,
         }
-        console.log('linkedinData', linkedinData)
+
         var body = await rp(linkedinData)
         if (body.elements.length) {
             perf.views = body.elements[0]?.totalShareStatistics.impressionCount
@@ -709,9 +679,7 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         //     perf.views = bodyVideo.elements[0].value
         // }
         return perf
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 const instagram = async (UserId, link) => {
@@ -773,9 +741,7 @@ const instagram = async (UserId, link) => {
                 return 'indisponible'
             }
         }
-    } catch (err) {
-        console.log('this.instagram', err.message)
-    }
+    } catch (err) {}
 }
 
 const twitter = async (userName, idPost) => {
@@ -826,8 +792,6 @@ const twitter = async (userName, idPost) => {
                 'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
         })
 
-        console.log(res)
-
         if (res.errors) {
             res = await tweet.get('tweets', {
                 ids: idPost,
@@ -858,7 +822,6 @@ const twitter = async (userName, idPost) => {
 
         return perf
     } catch (err) {
-        console.log(err.message)
         return 'indisponible'
     }
 }
@@ -894,18 +857,13 @@ const tiktok = async (tiktokProfile, idPost) => {
                     videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
             }
         }
-        return videoInfoResponse.data
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) {}
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
     try {
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
         if (ratio) return ratio.reachLimit
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (error) {}
 }
 
 exports.getTotalToEarn = (socialStats, ratio) => {
@@ -1105,13 +1063,9 @@ exports.answerBounty = async function (opts) {
                 gas: 500000,
                 gasPrice: gasPrice,
             })
-            .once('transactionHash', function (hash) {
-                console.log('oracle answerBounty transactionHash', hash)
-            })
+            .once('transactionHash', function (hash) {})
         return { result: 'OK', hash: receipt.hash }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.answerOne = async (
@@ -1160,9 +1114,7 @@ exports.answerOne = async (
         }
 
         return res
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (error) {}
 }
 
 exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
@@ -1186,9 +1138,7 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
         }
 
         return stats
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (error) {}
 }
 
 exports.answerCall = async (opts) => {
@@ -1276,13 +1226,9 @@ exports.answerCall = async (opts) => {
                 gas: 500000,
                 gasPrice: gasPrice,
             })
-            .once('transactionHash', function (hash) {
-                console.log('oracle answerCall transactionHash', hash)
-            })
+            .once('transactionHash', function (hash) {})
         return { result: 'OK', hash: receipt.hash }
-    } catch (error) {
-        console.log(error.message)
-    }
+    } catch (error) {}
 }
 exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
     try {
@@ -1336,9 +1282,7 @@ exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
                 res = await rp({ uri: res.paging.next, json: true })
             }
         }
-    } catch (e) {
-        console.log({ message: e.message })
-    }
+    } catch (e) {}
 }
 exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
     try {
@@ -1400,9 +1344,7 @@ exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
             message = 'page already exists'
         }
         return message
-    } catch (e) {
-        console.log({ message: e.message })
-    }
+    } catch (e) {}
 }
 exports.isDefferent = (data, pages) => {
     try {
