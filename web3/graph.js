@@ -83,9 +83,7 @@ module.exports = async function (app) {
                 .then((data) => {
                     resolve(data.data.proms)
                 })
-                .catch((err) => {
-                    console.log('Error fetching data: ', err)
-                })
+                .catch((err) => {})
         })
     }
 
@@ -98,9 +96,7 @@ module.exports = async function (app) {
                 .then((data) => {
                     resolve(data.data.campaigns)
                 })
-                .catch((err) => {
-                    console.log('Error fetching data: ', err)
-                })
+                .catch((err) => {})
         })
     }
 
@@ -113,9 +109,7 @@ module.exports = async function (app) {
                 .then((data) => {
                     resolve(data.data.campaigns)
                 })
-                .catch((err) => {
-                    console.log('Error fetching data: ', err)
-                })
+                .catch((err) => {})
         })
     }
 
@@ -154,9 +148,7 @@ module.exports = async function (app) {
                 .then((data) => {
                     resolve(data.data.proms)
                 })
-                .catch((err) => {
-                    console.log('Error fetching data: ', err)
-                })
+                .catch((err) => {})
         })
     }
 
@@ -185,9 +177,7 @@ module.exports = async function (app) {
                 .then((data) => {
                     resolve(data.data.proms)
                 })
-                .catch((err) => {
-                    console.log('Error fetching data: ', err)
-                })
+                .catch((err) => {})
         })
     }
 
@@ -216,9 +206,7 @@ module.exports = async function (app) {
                 .then((data) => {
                     resolve(data.data.proms)
                 })
-                .catch((err) => {
-                    console.log('Error fetching data: ', err)
-                })
+                .catch((err) => {})
         })
     }
 

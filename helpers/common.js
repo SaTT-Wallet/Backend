@@ -46,7 +46,6 @@ const {
     answerAbos,
 } = require('../manager/oracles')
 const { TikTokProfile, FbProfile } = require('../model')
-
 /*
 	@description: Script that change campaign and links statistics
 	*/
@@ -114,8 +113,7 @@ module.exports.updateStat = async () => {
                 },
                 { UserId: 1, _id: 0 }
             ))
-        console.log('event user wallet ', event.id_wallet)
-        console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
+
         if (userWallet) {
             if (event.typeSN == 5) {
                 var linkedinProfile = await LinkedinProfile.findOne({
@@ -198,6 +196,33 @@ module.exports.updateStat = async () => {
     }
 }
 
+exports.automaticRjectLink = async (condition) => {
+    var campaignList = await Campaigns.find({
+        hash: { $exists: true },
+        type: { $eq: 'finished' },
+    })
+    var links = await CampaignLink.find({
+        type: { $eq: 'waiting_for_validation' },
+    })
+    let linksList = []
+    links.forEach((link) => {
+        const result = campaignList.find(
+            (campaign) => link.id_campaign === campaign.hash
+        )
+        if (!!result && result.toObject()) {
+            linksList.push({ ...link.toObject(), campaign: result.toObject() })
+        }
+    })
+
+    for (const link of linksList) {
+        const result = await CampaignLink.updateOne(
+            { id_prom: link.id_prom },
+            { $set: { type: 'rejected' } }
+        )
+        console.log(result)
+    }
+}
+
 exports.UpdateStats = async (obj, socialOracle) => {
     if (!socialOracle)
         delete obj.views,
@@ -271,8 +296,8 @@ exports.BalanceUsersStats = async (condition) => {
         } catch (err) {
             console.error(err)
         }
-
-        result.Balance = balance['Total_balance']
+        // !balance['Total_balance'] && counter++
+        result.Balance = balance?.Total_balance
 
         if (
             !result.Balance ||

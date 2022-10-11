@@ -86,10 +86,6 @@ exports.unlockNetwork = async (req, res) => {
             const provider = getHttpProvider(networkProviders[network])
             web3 = await new Web3(provider)
             web3.eth.accounts.wallet.decrypt([wallet.keystore], pass)
-            console.log(
-                web3.eth.accounts.wallet.decrypt([wallet.keystore], pass),
-                'accunt'
-            )
             return {
                 address: '0x' + wallet.keystore.address,
                 web3,
@@ -139,9 +135,7 @@ exports.approve = async (token, credentials, spender, amount, res) => {
                     gas: gas,
                     gasPrice: gasPrice,
                 })
-                .once('transactionHash', function (transactionHash) {
-                    console.log('approve transactionHash', transactionHash)
-                }))
+                .once('transactionHash', function (transactionHash) {}))
         if (!!credentials.tronWeb) {
             await timeout(10000)
             let result = await credentials.tronWeb.trx.getTransaction(receipt)
@@ -206,7 +200,6 @@ exports.allow = async (token, address, spender, req) => {
             return { amount: amount.toString() }
         }
     } catch (err) {
-        console.log(err, 'err')
         return { amount: '0' }
     }
 }
@@ -404,7 +397,7 @@ exports.createPerformanceCampaign = async (
 
         if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
-            console.log(token)
+
             await wrapNative(amount, credentials)
         }
 
@@ -427,12 +420,7 @@ exports.createPerformanceCampaign = async (
                 gasPrice: gasPrice,
             })
 
-        receipt.transactionHash &&
-            console.log(
-                'createCampaignAll',
-                credentials.address,
-                `${receipt.events.CampaignCreated.transactionHash} confirmed campaign ${receipt.events.CampaignCreated.returnValues.id} launched`
-            )
+        receipt.transactionHash
         return {
             hash: receipt.events.CampaignCreated.returnValues.id,
             transactionHash: receipt.events.CampaignCreated.transactionHash,
@@ -519,12 +507,7 @@ exports.createBountiesCampaign = async (
                 gasPrice: gasPrice,
             })
         let transactionHash = receipt.events.CampaignCreated.transactionHash
-        transactionHash &&
-            console.log(
-                'createCampaignBounties',
-                credentials.address,
-                `${transactionHash} confirmed campaignBounty ${receipt.events.CampaignCreated.returnValues.id} launched`
-            )
+        transactionHash
         return {
             hash: receipt.events.CampaignCreated.returnValues.id,
             transactionHash,
@@ -581,9 +564,7 @@ exports.bep20Allow = async (token, credentials, spender, amount, res) => {
         var receipt = await contract.methods
             .approve(spender, amount)
             .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
-            .once('transactionHash', function (transactionHash) {
-                console.log('approve transactionHash', transactionHash)
-            })
+            .once('transactionHash', function (transactionHash) {})
 
         return {
             transactionHash: receipt.transactionHash,
@@ -623,9 +604,7 @@ exports.polygonAllow = async (token, credentials, spender, amount, res) => {
         var receipt = await contract.methods
             .approve(spender, amount)
             .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
-            .once('transactionHash', function (transactionHash) {
-                console.log('approve transactionHash', transactionHash)
-            })
+            .once('transactionHash', function (transactionHash) {})
 
         return {
             transactionHash: receipt.transactionHash,
@@ -654,9 +633,7 @@ exports.bttAllow = async (token, credentials, spender, amount, res) => {
         var receipt = await contract.methods
             .approve(spender, amount)
             .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
-            .once('transactionHash', function (transactionHash) {
-                console.log('approve transactionHash', transactionHash)
-            })
+            .once('transactionHash', function (transactionHash) {})
 
         return {
             transactionHash: receipt.transactionHash,
@@ -711,11 +688,9 @@ exports.polygonApprove = async (token, address, spender) => {
         let Web3POLYGON = await polygonConnexion()
         var contract = new Web3POLYGON.eth.Contract(Constants.token.abi, token)
         var amount = await contract.methods.allowance(address, spender).call()
-        console.log('amount', amount)
 
         return { amount: amount.toString() }
     } catch (err) {
-        console.log(err)
         return { amount: '0' }
     }
 }
@@ -733,9 +708,7 @@ exports.erc20Allow = async (token, credentials, spender, amount, res) => {
         var receipt = await contract.methods
             .approve(spender, amount)
             .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
-            .once('transactionHash', (transactionHash) => {
-                console.log('approve transactionHash', transactionHash)
-            })
+            .once('transactionHash', (transactionHash) => {})
 
         return {
             transactionHash: receipt.transactionHash,
@@ -755,7 +728,7 @@ exports.erc20Approve = async (token, address, spender) => {
         let Web3ETH = await erc20Connexion()
         var contract = new Web3ETH.eth.Contract(Constants.token.abi, token)
         var amount = await contract.methods.allowance(address, spender).call()
-        console.log('approval', address, 'for', spender, amount.toString())
+
         return { amount: amount.toString() }
     } catch (err) {
         return { amount: '0' }
@@ -887,9 +860,7 @@ exports.getLinkedinLinkInfo = async (
                     'domainEntity~'
                 ].content.contentEntities[0].entityLocation
         return linkInfo
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.getLinkedinLinkInfoMedia = async (
@@ -930,9 +901,7 @@ exports.getLinkedinLinkInfoMedia = async (
             linkInfo.mediaUrl =
                 postData.results[urn].content.contentEntities[0].entityLocation
         return linkInfo
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.applyCampaign = async (
@@ -999,12 +968,7 @@ exports.applyCampaign = async (
             })
 
         let prom = receipt.events.CampaignApplied.returnValues.prom
-        receipt.events.CampaignApplied.transactionHash &&
-            console.log(
-                'applyCampaign',
-                credentials.address,
-                `${receipt.events.CampaignApplied.transactionHash} confirmed apply prom ${prom} ${idCampaign}`
-            )
+        receipt.events.CampaignApplied.transactionHash
 
         return {
             transactionHash: receipt.events.CampaignApplied.transactionHash,
@@ -1033,9 +997,7 @@ exports.getRemainingFunds = async (token, hash, credentials) => {
             transactionHash: receipt.transactionHash,
             hash: hash,
         }
-    } catch (err) {
-        console.log(err.message)
-    }
+    } catch (err) {}
 }
 
 exports.getReachLimit = async (campaignRatio, oracle) => {
@@ -1057,21 +1019,14 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
                 gas: gas,
                 gasPrice: gasPrice,
             })
-        receipt.transactionHash &&
-            console.log(
-                'fundCampaign',
-                credentials.address,
-                `${receipt.transactionHash} confirmed campaign ${idCampaign} funded`
-            )
+        receipt.transactionHash
         return {
             transactionHash: receipt.transactionHash,
             idCampaign: idCampaign,
             token: token,
             amount: amount,
         }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
@@ -1207,9 +1162,7 @@ exports.influencersLinks = async (links, tronWeb = null) => {
             }
         }
         return proms
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.updateBounty = async (idProm, credentials, tronWeb) => {
@@ -1263,9 +1216,7 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
             idProm: idProm,
             events: receipt.events,
         }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.validateProm = async (idProm, credentials, tronWeb) => {
@@ -1301,12 +1252,8 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
         gas: gas,
         gasPrice: gasPrice,
     })
-    receipt.transactionHash &&
-        console.log(
-            'validateProm',
-            credentials.address,
-            `${receipt.transactionHash} confirmed validated prom ${idProm}`
-        )
+    receipt.transactionHash
+
     return {
         transactionHash: receipt.transactionHash,
         idProm: idProm,
@@ -1360,16 +1307,12 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
             gasPrice: gasPrice,
         })
 
-        console.log('receipt', receipt)
-
         return {
             transactionHash: receipt.transactionHash,
             idProm: idProm,
             events: receipt.events,
         }
-    } catch (err) {
-        console.log('err update prom', err)
-    }
+    } catch (err) {}
 }
 
 exports.getTransactionAmount = async (
@@ -1390,9 +1333,7 @@ exports.getTransactionAmount = async (
         let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
         let hex = network.utils.hexToNumberString(amount)
         return hex
-    } catch (e) {
-        console.log(e.message)
-    }
+    } catch (e) {}
 }
 
 exports.campaignStatus = (campaign) => {
