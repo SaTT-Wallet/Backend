@@ -1372,6 +1372,12 @@ router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
  *     - "campaign"
  *     summary: expand short url.
  *     description: expand short url to normal url.
+ *     parameters:
+ *       - in: query
+ *         name: shortUrl
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       "200":
  *          description: expanded successfully, {"code":"status code","message":"expanded successfully"}
