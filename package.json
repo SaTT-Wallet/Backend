@@ -14,7 +14,7 @@
     },
     "dependencies": {
         "@apollo/client": "^3.4.17",
-        "@atayen-org/statistic-social-network": "^1.0.0",
+        "@atayen-org/statistic-social-network": "^1.1.0",
         "@atayen-org/transfer": "^2.3.8",
         "ansi-regex": ">=5.0.1",
         "api": "^4.5.1",
