@@ -148,7 +148,6 @@ module.exports.updateStat = async () => {
                 var socialOracle = await getPromApplyStats(
                     findBountyOracle(event.typeSN),
                     event,
-                    userWallet?.UserId,
                     linkedinProfile,
                     tiktokProfile
                 )

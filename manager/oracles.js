@@ -527,7 +527,6 @@ exports.tiktokAbos = async (username) => {
 exports.getPromApplyStats = async (
     oracles,
     link,
-    id,
     linkedinProfile = null,
     tiktokProfile = null
 ) => {
@@ -540,7 +539,7 @@ exports.getPromApplyStats = async (
         else if (oracles == 'youtube')
             socialOracle = await youtubeStats(link.idPost)
         else if (oracles == 'instagram')
-            socialOracle = await instagramStats(id, link)
+            socialOracle = await instagramStats(link)
         else if (oracles == 'linkedin') {
             socialOracle = await linkedinStats(
                 link.idUser,
@@ -580,56 +579,21 @@ const youtubeStats = async (idPost) => {
 }
 const linkedinStats = async (organization, idPost, type, linkedinProfile) => {
     try {
-        let accessToken = linkedinProfile.accessToken
-        var perf = { shares: 0, likes: 0, views: 0 }
-        const params = new URLSearchParams()
-        params.append('client_id', process.env.LINKEDIN_KEY)
-        params.append('client_secret', process.env.LINKEDIN_SECRET)
-        params.append('token', accessToken)
-        let tokenValidityBody = await axios.post(
-            'https://www.linkedin.com/oauth/v2/introspectToken',
-            params
+        const result = await linkedin(
+            organization,
+            idPost,
+            type,
+            process.env.LINKEDIN_KEY,
+            process.env.LINKEDIN_SECRET,
+            linkedinProfile.accessToken,
+            linkedinProfile.refreshToken
         )
-        if (!tokenValidityBody.data?.active) {
-            let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
-            accessToken = resAccessToken.access_token
-        }
-
-        let url = config.linkedinStatsUrl(type, idPost, organization)
-
-        const linkedinData = {
-            url: url,
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-
-        var body = await rp(linkedinData)
-        if (body.elements.length) {
-            perf.views = body.elements[0]?.totalShareStatistics.impressionCount
-            perf.likes = body.elements[0]?.totalShareStatistics.likeCount
-            perf.shares = body.elements[0]?.totalShareStatistics.shareCount
-        }
-        // if (type !== 'share') {
-        //     const linkedinVideoData = {
-        //         url: config.linkedinUgcPostStats(idPost),
-        //         method: 'GET',
-        //         headers: {
-        //             Authorization: 'Bearer ' + accessToken,
-        //         },
-        //         json: true,
-        //     }
-        //     var bodyVideo = await rp(linkedinVideoData)
-        //     perf.views = bodyVideo.elements[0].value
-        // }
-        return perf
+        // console.log(result)
+        return result
     } catch (err) {}
 }
 
-const instagramStats = async (UserId, link) => {
+const instagramStats = async (link) => {
     try {
         let idPost = link.idPost
         let instagramUserName = link.instagramUserName
