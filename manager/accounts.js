@@ -130,7 +130,5 @@ exports.getDecimal = (symbol) => {
                 : symbol
 
         return +token_info[symbol].dicimal
-    } catch (err) {
-        console.log({ message: err.message })
-    }
+    } catch (err) {}
 }

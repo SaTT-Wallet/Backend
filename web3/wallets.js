@@ -91,10 +91,12 @@ exports.unlock = async (req, res) => {
             network: req.body.network,
         }
     } catch (err) {
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
+        if (!!res && res.length > 0) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
     }
 }
 
@@ -107,10 +109,12 @@ exports.unlockBsc = async (req, res) => {
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         return { address: '0x' + account.keystore.address, Web3BEP20 }
     } catch (err) {
-        res.status(500).send({
-            code: 500,
-            error: err.message ? err.message : err.error,
-        })
+        if (!!res && res.length > 0) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
     }
 }
 
@@ -275,7 +279,6 @@ exports.getAccount = async (req, res) => {
                     result.btc_balance = Math.floor(red.amount * 100000000)
                 }
             } catch (e) {
-                console.log('btc node error')
                 result.btc_balance = 0
             }
         }
@@ -365,9 +368,7 @@ exports.getPrices = async () => {
             cache.put('prices', prices)
             return finalMap
         }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.filterAmount = function (input, nbre = 10) {
@@ -670,9 +671,7 @@ exports.getListCryptoByUid = async (req, res) => {
             listOfCrypto.push(crypto)
         }
         return { listOfCrypto }
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.getBalanceByUid = async (req, res) => {
@@ -833,10 +832,10 @@ exports.getBalanceByUid = async (req, res) => {
                 (tokenSymbol === 'BTC' && 8) ||
                 (tokenSymbol === 'TRX' && 6) ||
                 18
-
+            let amount = ret[Amount] ? ret[Amount] : 0
             Total_balance +=
                 this.filterAmount(
-                    new Big((await ret[Amount]) * 1)
+                    new Big(amount * 1)
                         .div(new Big(10).pow(decimal))
                         .toNumber() + ''
                 ) * CryptoPrices[tokenSymbol].price
@@ -846,7 +845,6 @@ exports.getBalanceByUid = async (req, res) => {
 
         return { Total_balance }
     } catch (err) {
-        console.log(err)
         //    return responseHandler.makeResponseError(
         // 		 res,
         // 		 500,
@@ -999,9 +997,7 @@ exports.getCount = async function () {
     try {
         var count = await Wallet.countDocuments()
         return count + 1
-    } catch (err) {
-        console.log(err)
-    }
+    } catch (err) {}
 }
 
 exports.createSeed = async (req, res) => {
@@ -1090,9 +1086,7 @@ exports.createSeed = async (req, res) => {
             btcAddress: btcWallet.addressSegWitCompat,
             tronAddress: TronWallet.addr,
         }
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) {}
 }
 
 exports.addWalletTron = async (req, res) => {
@@ -1114,9 +1108,7 @@ exports.addWalletTron = async (req, res) => {
         )
 
         return TronWallet
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) {}
 }
 
 exports.getWalletTron = async (id, pass) => {
@@ -1162,7 +1154,6 @@ exports.wrapNative = async (amount, credentials) => {
             amount: amount,
         }
     } catch (err) {
-        console.log(err)
         return { error: err.message }
     }
 }
