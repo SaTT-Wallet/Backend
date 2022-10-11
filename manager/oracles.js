@@ -532,25 +532,31 @@ exports.getPromApplyStats = async (
 ) => {
     try {
         let socialOracle = {}
-        if (oracles == 'facebook')
-            socialOracle = await facebookStats(link.idUser, link.idPost)
-        else if (oracles == 'twitter')
-            socialOracle = await twitterStats(link.idUser, link.idPost)
-        else if (oracles == 'youtube')
-            socialOracle = await youtubeStats(link.idPost)
-        else if (oracles == 'instagram')
-            socialOracle = await instagramStats(link)
-        else if (oracles == 'linkedin') {
-            socialOracle = await linkedinStats(
-                link.idUser,
-                link.idPost,
-                link.typeURL,
-                linkedinProfile
-            )
-        } else {
-            socialOracle = await tiktokStats(tiktokProfile, link.idPost)
+        switch (oracles) {
+            case 'facebook':
+                socialOracle = await facebookStats(link.idUser, link.idPost)
+                break
+            case 'twitter':
+                socialOracle = await twitterStats(link.idUser, link.idPost)
+                break
+            case 'tiktok':
+                socialOracle = await tiktokStats(tiktokProfile, link.idPost)
+                break
+            case 'youtube':
+                socialOracle = await youtubeStats(link.idPost)
+                break
+            case 'instagram':
+                socialOracle = await instagramStats(link)
+                break
+            default:
+                socialOracle = await linkedinStats(
+                    link.idUser,
+                    link.idPost,
+                    link.typeURL,
+                    linkedinProfile
+                )
+                break
         }
-
         delete socialOracle.date
         return socialOracle
     } catch (err) {}
@@ -565,7 +571,7 @@ const facebookStats = async (pageName, idPost) => {
 
             return result
         } else {
-            return { shares: 0, likes: 0, views: 0 }
+            return 'indisponible'
         }
     } catch (err) {}
 }
@@ -575,10 +581,13 @@ const youtubeStats = async (idPost) => {
         const result = await youtube(idPost, oauth.google.gdataApiKey)
 
         return result
-    } catch (err) {}
+    } catch (err) {
+        return 'indisponible'
+    }
 }
 const linkedinStats = async (organization, idPost, type, linkedinProfile) => {
     try {
+        if (!linkedinProfile) return 'indisponible'
         const result = await linkedin(
             organization,
             idPost,
@@ -588,7 +597,6 @@ const linkedinStats = async (organization, idPost, type, linkedinProfile) => {
             linkedinProfile.accessToken,
             linkedinProfile.refreshToken
         )
-        // console.log(result)
         return result
     } catch (err) {}
 }
@@ -612,7 +620,7 @@ const instagramStats = async (link) => {
 
             return result
         } else {
-            return { shares: 0, likes: 0, views: 0 }
+            return 'indisponible'
         }
     } catch (err) {}
 }
@@ -637,7 +645,7 @@ const twitterStats = async (userName, idPost) => {
 
             return result
         } else {
-            return { shares: 0, likes: 0, views: 0 }
+            return 'indisponible'
         }
     } catch (err) {
         return 'indisponible'
