@@ -806,14 +806,7 @@ exports.addlinkedinChannel = async (
     let redirect = req.query.state.split('|')[1]
     let linkedinId = profile.id
 
-    let profileData = await LinkedinProfile.findOne({
-        $and: [
-            { userId: userId },
-            {
-                linkedinId: profile.id,
-            },
-        ],
-    })
+    let profileData = await LinkedinProfile.findOne({userId,linkedinId })
 
     if (profileData) {
         return done(null, profile, {
@@ -845,17 +838,11 @@ exports.addlinkedinChannel = async (
         }
     }
     if (!linkedinProfile.pages.length)
-        return res.redirect(
-            process.env.BASED_URL +
-                redirect +
-                '?message=channel obligatoire&sn=linkd'
-        )
+    return done(null, profile, {
+        message: 'channel obligatoire',
+    })
 
-    await LinkedinProfile.updateOne(
-        { userId },
-        { $set: linkedinProfile },
-        { upsert: true }
-    )
+    await LinkedinProfile.create(linkedinProfile)
     return done(null, profile, {
         status: true,
         message: 'account_linked_with_success',
