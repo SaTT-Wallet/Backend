@@ -2577,12 +2577,13 @@ module.exports.expandUrl = (req, res) => {
         }
         var cmd = `curl -sLI ${shortUrl} | grep -i Location`
         var result = runCmd(cmd)
+        console.log(result)
 
         return responseHandler.makeResponseData(
             res,
             200,
             'shorted successfully',
-            result.split('Location: ')[1]
+            result.split('Location: ')[1] || result.split('location: ')[1]
         )
     } catch (err) {
         return responseHandler.makeResponseError(
