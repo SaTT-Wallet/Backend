@@ -584,16 +584,14 @@ exports.socialAccounts = async (req, res) => {
     try {
         let UserId = req.user._id
         let networks = {}
-        let channelsGoogle = await GoogleProfile.find({ UserId })
-        let channelsTwitter = await TwitterProfile.find({ UserId })
+        let [channelsGoogle,channelsTwitter] = await Promise.all([GoogleProfile.find({ UserId }),TwitterProfile.find({ UserId })])
         let channelsFacebook = await FbPage.find({ UserId })
-        let channelsLinkedin = await LinkedinProfile.findOne({ userId: UserId })
+        let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
         let channelsTiktok = await TikTokProfile.find({ userId: UserId })
-
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin?.pages || []
+        networks.linkedin = channelsLinkedin?.flatMap(item => item?.pages)
         networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
@@ -977,11 +975,14 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '5':
-                var linkedinProfile = await LinkedinProfile.findOne({ userId })
-                if (linkedinProfile && linkedinProfile.pages.length > 0) {
+                var linkedinProfile = await LinkedinProfile.find({ userId })
+                if (linkedinProfile.length) {
                     linked = true
-                    res = await verifyLinkedin(linkedinProfile, idPost)
-                    if (res === 'deactivate') deactivate = true
+                    for(let profile of linkedinProfile){
+                        res = await verifyLinkedin(profile, idPost)
+                        if(res === true) break;
+                        if (res === 'deactivate') deactivate = true
+                    } 
                 }
 
                 break
