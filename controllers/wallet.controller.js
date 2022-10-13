@@ -572,6 +572,7 @@ exports.checkWalletToken = async (req, res) => {
                 : network === 'polygon'
                 ? web3MATIC.eth
                 : Web3ETH.eth
+                
         let code = await networkToken.getCode(tokenAdress)
 
         if (code === '0x') {
