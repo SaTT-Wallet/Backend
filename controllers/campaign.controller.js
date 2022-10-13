@@ -430,7 +430,6 @@ exports.campaigns = async (req, res) => {
         let limit = +req.query.limit || 10
         let page = +req.query.page || 1
         let skip = limit * (page - 1)
-        let id_wallet = req.query.idWallet
         let query = sortOutPublic(req, idNode, strangerDraft)
 
         let count = await Campaigns.countDocuments()
@@ -472,17 +471,6 @@ exports.campaigns = async (req, res) => {
             .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
-
-        // if (req.query.idWallet) {
-        //     for (var i = 0; i < campaigns.length; i++) {
-        //         if(!campaigns[i].hash || campaigns[i]?.idNode === idNode) continue;
-        //         proms = await CampaignLink.find({
-        //             id_campaign: campaigns[i].hash,
-        //             id_wallet,
-        //         })
-        //         if (proms.length) campaigns[i].proms = proms
-        //     }
-        // }
 
         return responseHandler.makeResponseData(res, 200, 'success', {
             campaigns,
