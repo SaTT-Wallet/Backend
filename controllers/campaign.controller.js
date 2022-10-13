@@ -2433,6 +2433,7 @@ module.exports.campaignsStatistics = async (req, res) => {
         let Crypto = await getPrices()
         let SATT = Crypto['SATT']
         let SATTBEP20 = Crypto['OMG']
+
         let campaignProms = Campaigns.aggregate([
             {
                 $project: basicAtt,
@@ -2486,21 +2487,18 @@ module.exports.campaignsStatistics = async (req, res) => {
             }
             j++
         }
-
+         
         while (i < pools.length) {
             if (pools[i].type === 'apply' && pools[i]) {
-                let cryptoSymbol =
-                    pools[i].token.name === CryptoSymbols.SATTBEP20
-                        ? 'SATT'
-                        : pools[i].token.name
-
+                let campaignToken = pools[i].token.name
+               if(campaignToken === 'SATTBEP20' || campaignToken === 'SATTBTT') campaignToken = 'SATT'
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1])
                             .div(
                                 new Big(10).pow(getDecimal(pools[i].token.name))
                             )
-                            .times(Crypto[cryptoSymbol].price)
+                            .times(Crypto[campaignToken].price)
                     )
                     .toFixed(2)
             }
