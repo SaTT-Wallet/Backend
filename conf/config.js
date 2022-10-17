@@ -97,6 +97,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
     busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
     TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
+    cakeContract = process.env.TOKEN_CAKE_CONTRACT_TESTNET
 } else {
     sattContract = process.env.TOKEN_SATT_CONTRACT
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
@@ -106,6 +107,7 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     usdtContract = process.env.TOKEN_USDT_CONTRACT
     busdContract = process.env.TOKEN_BUSD_CONTRACT
     TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT
+    cakeContract = process.env.TOKEN_CAKE_CONTRACT
 }
 let Tokens = {
     SATT: {
@@ -194,7 +196,7 @@ let Tokens = {
         symbol: process.env.TOKEN_CAKE_SYMBOL,
         undername: process.env.TOKEN_CAKE_UNDERNAME,
         undername2: process.env.TOKEN_CAKE_UNDERNAME2,
-        contract: process.env.TOKEN_CAKE_CONTRACT,
+        contract: cakeContract,
         dicimal: process.env.TOKEN_CAKE_DICIMAL,
         network: process.env.TOKEN_CAKE_NETWORK,
     },
