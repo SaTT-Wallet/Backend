@@ -29,6 +29,7 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
+const { responseHandler } = require('../helpers/response-handler')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
@@ -327,7 +328,7 @@ exports.answerAbos = async (
 
                 break
             case '6':
-                var res = await this.tiktokAbos(tiktokProfile.username)
+                var res = await this.tiktokAbos(tiktokProfile.userId)
 
                 break
             default:
@@ -462,56 +463,30 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
     } catch (err) {}
 }
 
-exports.tiktokAbos = async (username) => {
-    const vgmUrl = 'https://www.tiktok.com/' + username
-    const browser = await puppeteer.launch({
-        args: [
-            '--single-process',
-            '--no-zygote',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-        ],
-    })
+exports.tiktokAbos = async (userId) => {
+    console.log(userId)
+    const user = await TikTokProfile.findOne({ userId: +userId })
+    console.log(user)
+    const accessToken = user.accessToken
 
-    const page = await browser.newPage()
-    await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'
-    )
     try {
-        await page.goto(vgmUrl)
-        const scrappedData = await page.$$eval('strong', (elements) => {
-            return elements
-                .filter((element) => {
-                    return (
-                        element.getAttribute('data-e2e') === 'followers-count'
-                    )
-                })
-                .map((element) => element.innerHTML)
-        })
-        let abosNumber
-        if (!!scrappedData.length) {
-            abosNumber = scrappedData[0]
+        var child_process = require('child_process')
 
-            if (abosNumber.indexOf('M') > 0) {
-                abosNumber = parseFloat(abosNumber.split('M')[0]) * 1000000
-            } else if (abosNumber.indexOf('K') > 0) {
-                abosNumber = parseFloat(abosNumber.split('k')[0]) * 1000
-            } else {
-                abosNumber = parseFloat(abosNumber)
-            }
+        function runCmd(cmd) {
+            var resp = child_process.execSync(cmd)
+            var result = resp.toString('UTF8')
+            return result
         }
-        await page.close()
-
-        await browser.disconnect()
-        return abosNumber
-    } catch (e) {
-        console.error(e)
-    } finally {
-        const pid = -browser.process().pid
-
-        try {
-            process.kill(pid, 'SIGKILL')
-        } catch (e) {}
+        var cmd = `curl -L -X GET 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count' \
+        -H 'Authorization: Bearer ${accessToken}'`
+        var result = JSON.parse(runCmd(cmd))
+        return result.data.user.follower_count
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            result,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
