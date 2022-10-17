@@ -131,6 +131,7 @@ const {
     answerOne,
     limitStats,
     answerCall,
+    tiktokAbos,
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
@@ -460,9 +461,9 @@ exports.campaigns = async (req, res) => {
                 $project: {
                     coverSrc: 0,
                     description: 0,
-                    logo:0,
-                    tags :0,
-                    dataUrl:0,
+                    logo: 0,
+                    tags: 0,
+                    dataUrl: 0,
                     countries: 0,
                     resume: 0,
                 },
@@ -1557,7 +1558,11 @@ module.exports.linkStats = async (req, res) => {
         const idProm = req.params.idProm
 
         const info = await CampaignLink.findOne({ id_prom: idProm })
+        info.oracle === 'tiktok' &&
+            (info.abosNumber = await tiktokAbos(+info.idUser))
+
         if (info) {
+            console.log(info)
             const payedAmount = info.payedAmount || '0'
             const campaign = (
                 await Campaigns.findOne(
@@ -2479,11 +2484,15 @@ module.exports.campaignsStatistics = async (req, res) => {
             }
             j++
         }
-         
+
         while (i < pools.length) {
             if (pools[i].type === 'apply' && pools[i]) {
                 let campaignToken = pools[i].token.name
-               if(campaignToken === 'SATTBEP20' || campaignToken === 'SATTBTT') campaignToken = 'SATT'
+                if (
+                    campaignToken === 'SATTBEP20' ||
+                    campaignToken === 'SATTBTT'
+                )
+                    campaignToken = 'SATT'
                 tvl = new Big(tvl)
                     .plus(
                         new Big(pools[i].funds[1])

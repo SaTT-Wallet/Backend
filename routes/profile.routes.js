@@ -629,21 +629,21 @@ router.get(
 
 /**
  * @swagger
- * /profile/tiktokAbos/{idPost}:
+ * /profile/tiktokAbos/{userId}:
  *   get:
  *     tags:
  *     - "profile"
  *     summary: signin with twitter.
  *     description: user asked for signin with twitter, system redirect him to signin with twitter account <br> without access_token.
  *     parameters:
- *       - name: idPost
+ *       - name: userId
  *         description: organization of linkedin channel.
  *         in: path
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/tiktokAbos/:idPost', tiktokApiAbos)
+router.get('/tiktokAbos/:userId', tiktokApiAbos)
 /**
  * @swagger
  * /profile/addChannel/twitter/{idUser}:
