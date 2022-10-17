@@ -569,7 +569,7 @@ exports.UpdateIntersts = async (req, res) => {
 }
 exports.tiktokApiAbos = async (req, res) => {
     try {
-        let abos = await tiktokAbos(req.params.idPost)
+        let abos = await tiktokAbos(req.params.userId)
         return makeResponseData(res, 200, 'success', abos)
     } catch (err) {
         return makeResponseError(
@@ -584,14 +584,17 @@ exports.socialAccounts = async (req, res) => {
     try {
         let UserId = req.user._id
         let networks = {}
-        let [channelsGoogle,channelsTwitter] = await Promise.all([GoogleProfile.find({ UserId }),TwitterProfile.find({ UserId })])
+        let [channelsGoogle, channelsTwitter] = await Promise.all([
+            GoogleProfile.find({ UserId }),
+            TwitterProfile.find({ UserId }),
+        ])
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
         let channelsTiktok = await TikTokProfile.find({ userId: UserId })
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin?.flatMap(item => item?.pages)
+        networks.linkedin = channelsLinkedin?.flatMap((item) => item?.pages)
         networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
@@ -978,11 +981,11 @@ module.exports.verifyLink = async (req, response) => {
                 var linkedinProfile = await LinkedinProfile.find({ userId })
                 if (linkedinProfile.length) {
                     linked = true
-                    for(let profile of linkedinProfile){
+                    for (let profile of linkedinProfile) {
                         res = await verifyLinkedin(profile, idPost)
-                        if(res === true) break;
+                        if (res === true) break
                         if (res === 'deactivate') deactivate = true
-                    } 
+                    }
                 }
 
                 break
