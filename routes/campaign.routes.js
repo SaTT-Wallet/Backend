@@ -1121,7 +1121,7 @@ router.put('/update/:idCampaign', verifyAuth, update)
  *     summary: link stats
  *     description: return to user the link info and statistics
  *     parameters:
- *       - in: path
+ *       - in: path/campaign/prom/stats
  *         name: idProm
  *         description: the idProm.
  *         required: true
