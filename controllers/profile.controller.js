@@ -1077,8 +1077,6 @@ module.exports.ProfilPrivacy = async (req, res) => {
 
         return makeResponseData(res, 200, 'success', privacy)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,

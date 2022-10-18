@@ -464,9 +464,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (userId) => {
-    console.log(userId)
     const user = await TikTokProfile.findOne({ userId: +userId })
-    console.log(user)
     const accessToken = user.accessToken
 
     try {
