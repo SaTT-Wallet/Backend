@@ -9,6 +9,7 @@ const tikTokProfileSchema = mongoose.Schema(
         username: { type: String },
         displayName: { type: String },
         profileImage: { type: String },
+        followers: Number,
     },
 
     {

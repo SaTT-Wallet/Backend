@@ -329,7 +329,8 @@ exports.answerAbos = async (
                 break
             case '6':
                 var res = await this.tiktokAbos(tiktokProfile.userId)
-
+                tiktokProfile.followers = res ?? 0
+                await tiktokProfile.save()
                 break
             default:
                 var res = 0
