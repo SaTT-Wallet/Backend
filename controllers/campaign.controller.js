@@ -1562,7 +1562,6 @@ module.exports.linkStats = async (req, res) => {
             (info.abosNumber = await tiktokAbos(+info.idUser))
 
         if (info) {
-            console.log(info)
             const payedAmount = info.payedAmount || '0'
             const campaign = (
                 await Campaigns.findOne(
@@ -2576,7 +2575,6 @@ module.exports.expandUrl = (req, res) => {
         }
         var cmd = `curl -sLI ${shortUrl} | grep -i Location`
         var result = runCmd(cmd)
-        console.log(result)
 
         return responseHandler.makeResponseData(
             res,

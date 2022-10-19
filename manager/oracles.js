@@ -329,7 +329,8 @@ exports.answerAbos = async (
                 break
             case '6':
                 var res = await this.tiktokAbos(tiktokProfile.userId)
-
+                tiktokProfile.followers = res ?? 0
+                await tiktokProfile.save()
                 break
             default:
                 var res = 0
@@ -464,9 +465,7 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
 }
 
 exports.tiktokAbos = async (userId) => {
-    console.log(userId)
     const user = await TikTokProfile.findOne({ userId: +userId })
-    console.log(user)
     const accessToken = user.accessToken
 
     try {
