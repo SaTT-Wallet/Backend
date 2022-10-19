@@ -475,17 +475,10 @@ exports.deleteLinkedinChannel = async (req, res) => {
 
 exports.deleteTiktokChannel = async (req, res) => {
     try {
-        let userId = req.user._id
-
-        let tiktokProfile = await TikTokProfile.findOne({
-            _id: ObjectId(req.params.id),
-        })
-        if (tiktokProfile.userId !== userId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await tiktokProfile.deleteOne({ _id: ObjectId(req.params.id) })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
+      let userId = +req.user._id
+      let tiktokProfile =  await TikTokProfile.findOneAndDelete({userId});
+      if(!tiktokProfile) return makeResponseError(res, 401, 'unauthorized')
+      return makeResponseData(res, 200, 'deleted successfully')
     } catch (err) {
         return makeResponseError(
             res,
@@ -1077,8 +1070,6 @@ module.exports.ProfilPrivacy = async (req, res) => {
 
         return makeResponseData(res, 200, 'success', privacy)
     } catch (err) {
-        console.log(err.message)
-
         return makeResponseError(
             res,
             500,
