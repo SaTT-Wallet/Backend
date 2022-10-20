@@ -143,6 +143,7 @@ module.exports.updateStat = async () => {
                     userId: userWallet?.UserId,
                 })
             }
+            
             let oracle = findBountyOracle(event.typeSN)
             try {
                 var socialOracle = await getPromApplyStats(
