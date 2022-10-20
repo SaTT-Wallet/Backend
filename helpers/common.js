@@ -70,7 +70,7 @@ module.exports.updateStat = async () => {
         campaign &&
             (await Campaigns.updateOne(
                 { _id: campaign._id },
-                { $set: { type: campaignStatus(campaign) } }
+                { $set: { type: campaignStatus(campaign),launchDate : new Date(campaign.startDate * 1000).toISOString() } }
             ))
         campaign = campaign._doc
     })
