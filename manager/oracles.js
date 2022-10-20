@@ -282,9 +282,8 @@ exports.getInstagramUserName = async (shortcode, id) => {
     } catch (err) {}
 }
 
-exports.findBountyOracle = (typeSN) => {
-    try {
-        return typeSN == '1'
+exports.findBountyOracle = typeSN =>     
+            typeSN == '1'
             ? 'facebook'
             : typeSN == '2'
             ? 'youtube'
@@ -295,8 +294,8 @@ exports.findBountyOracle = (typeSN) => {
             : typeSN == '5'
             ? 'linkedin'
             : 'tiktok'
-    } catch (err) {}
-}
+
+
 
 exports.answerAbos = async (
     typeSN,
