@@ -1071,15 +1071,16 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
+        let TronWallet = await this.getWalletTron(UserId, pass)
+
         await Wallet.create({
             UserId: parseInt(UserId),
             keystore: account,
             num: count,
             btc: btcWallet,
             mnemo: mnemonic,
+            tronAddress: TronWallet.addr
         })
-
-        let TronWallet = await this.addWalletTron(req, res)
 
         return {
             address: '0x' + account.address,
