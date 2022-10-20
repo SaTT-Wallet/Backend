@@ -50,7 +50,7 @@ const { TikTokProfile, FbProfile } = require('../model')
 	@description: Script that change campaign and links statistics
 	*/
 module.exports.updateStat = async () => {
-    let dateNow = new Date()
+
     let campaigns = await Campaigns.find(
         { hash: { $exists: true } },
         {
@@ -143,10 +143,10 @@ module.exports.updateStat = async () => {
                     userId: userWallet?.UserId,
                 })
             }
-
+            let oracle = findBountyOracle(event.typeSN)
             try {
                 var socialOracle = await getPromApplyStats(
-                    findBountyOracle(event.typeSN),
+                    oracle,
                     event,
                     userWallet?.UserId,
                     linkedinProfile,
@@ -155,17 +155,9 @@ module.exports.updateStat = async () => {
             } catch (e) {
                 continue
             }
-            event.abosNumber = await answerAbos(
-                event.typeSN.toString(),
-                event.idPost,
-                event.idUser,
-                linkedinProfile,
-                tiktokProfile
-            )
 
-            if (socialOracle === 'indisponible') {
-                event.status = 'indisponible'
-            }
+            socialOracle === 'indisponible' && (event.status = 'indisponible');
+            
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
@@ -175,7 +167,7 @@ module.exports.updateStat = async () => {
                         ? event.views
                         : socialOracle?.views
                 event.media_url = socialOracle?.media_url || media_url
-                event.oracle = findBountyOracle(event.typeSN)
+                event.oracle = oracle
             }
 
             if (event.campaign.ratios.length && socialOracle) {
