@@ -68,6 +68,7 @@ const campaignsSchema = mongoose.Schema(
         hash: { type: String },
         transactionHash: { type: String },
         walletId: { type: String },
+        launchDate    : { type: Date }
     },
     { timestamps: true, collection: 'campaigns' }
 )
