@@ -114,8 +114,6 @@ const { TikTokProfile, FbProfile } = require('../model')
                     },
                     { UserId: 1, _id: 0 }
                 ))
-            console.log('event user wallet ', event.id_wallet)
-            console.log(('userId  ' + !!userWallet && userWallet) || '-NOTFOUND')
             if (userWallet) {
                 if (event.typeSN == 5) {
                     var linkedinProfile = await LinkedinProfile.findOne({
@@ -157,14 +155,7 @@ const { TikTokProfile, FbProfile } = require('../model')
                 } catch (e) {
                     continue
                 }
-                event.abosNumber = await answerAbos(
-                    event.typeSN.toString(),
-                    event.idPost,
-                    event.idUser,
-                    linkedinProfile,
-                    tiktokProfile
-                )
-    
+                
                 if (socialOracle === 'indisponible') {
                     event.status = 'indisponible'
                 }
