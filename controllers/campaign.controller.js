@@ -452,8 +452,7 @@ exports.campaigns = async (req, res) => {
                 $sort: {
                     sort: 1,
                     sortPriority: -1,
-                    updatedAt: -1,
-                    createdAt: -1,
+                    launchDate: -1,
                     _id: 1,
                 },
             },
