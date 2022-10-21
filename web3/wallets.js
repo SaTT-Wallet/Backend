@@ -1002,7 +1002,7 @@ exports.getCount = async function () {
 
 exports.createSeed = async (req, res) => {
     try {
-        var UserId = req.user._id
+        var UserId = +req.user._id
         var pass = req.body.pass
 
         var escpass = pass.replace(/'/g, "\\'")
@@ -1071,10 +1071,10 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
-        let TronWallet = await this.getWalletTron(UserId, pass)
+        let TronWallet = await this.getWalletTron(UserId, pass,account,mnemonic)
 
         await Wallet.create({
-            UserId: parseInt(UserId),
+            UserId,
             keystore: account,
             num: count,
             btc: btcWallet,
@@ -1087,14 +1087,15 @@ exports.createSeed = async (req, res) => {
             btcAddress: btcWallet.addressSegWitCompat,
             tronAddress: TronWallet.addr,
         }
-    } catch (error) {}
+    } catch (error) {
+        return { error: error.message }
+    }
 }
 
 exports.addWalletTron = async (req, res) => {
     try {
         var UserId = req.user._id
         var pass = req.body.pass
-        let wallet = await Wallet.findOne({ UserId })
         let TronWallet = await this.getWalletTron(UserId, pass)
         let updatedWallet = await Wallet.findOneAndUpdate(
             { UserId: UserId },
@@ -1112,18 +1113,21 @@ exports.addWalletTron = async (req, res) => {
     } catch (error) {}
 }
 
-exports.getWalletTron = async (id, pass) => {
-    let wallet = await Wallet.findOne({ UserId: id })
+exports.getWalletTron = async (id, pass,keystore=false,mnemonic=null) => {
+    let wallet = await Wallet.findOne({ UserId: id },{keystore:1,menmo:1}).lean();
+    let walletKeyStore = wallet?.keystore ||keystore;
+    const mnemo =  wallet?.mnemo ||mnemonic;
 
-    if (wallet.keystore) {
+
+    if (walletKeyStore) {
         try {
             let Web3ETH = await erc20Connexion()
-            Web3ETH.eth.accounts.wallet.decrypt([wallet.keystore], pass)
+            Web3ETH.eth.accounts.wallet.decrypt([walletKeyStore], pass)
         } catch (error) {
             return { error: 'Invalid Tron password' }
         }
     }
-    const seed = bip39.mnemonicToSeedSync(wallet.mnemo, pass)
+    const seed = bip39.mnemonicToSeedSync(mnemo, pass)
     const root = bip32.fromSeed(seed)
     const childTron = root.derivePath(pathTron)
     var tronPriv = childTron.privateKey.toString('hex')
