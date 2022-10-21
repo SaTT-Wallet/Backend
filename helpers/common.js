@@ -189,31 +189,26 @@ module.exports.updateStat = async () => {
     }
 }
 
-exports.automaticRjectLink = async (condition) => {
+exports.automaticRjectLink = async _ => {
     var campaignList = await Campaigns.find({
         hash: { $exists: true },
-        type: { $eq: 'finished' },
+        type: 'finished',
     })
     var links = await CampaignLink.find({
-        type: { $eq: 'waiting_for_validation' },
+        type:'waiting_for_validation',
     })
-    let linksList = []
-    links.forEach((link) => {
+    
+    links.forEach(async (link) => {
         const result = campaignList.find(
             (campaign) => link.id_campaign === campaign.hash
         )
-        if (!!result && result.toObject()) {
-            linksList.push({ ...link.toObject(), campaign: result.toObject() })
-        }
+        result && await CampaignLink.updateOne(
+                 { id_prom: link.id_prom },
+                 { $set: { type: 'rejected' } }
+               )
+
     })
 
-    for (const link of linksList) {
-        const result = await CampaignLink.updateOne(
-            { id_prom: link.id_prom },
-            { $set: { type: 'rejected' } }
-        )
-        console.log(result)
-    }
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
