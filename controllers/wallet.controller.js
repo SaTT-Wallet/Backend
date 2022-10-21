@@ -968,11 +968,6 @@ exports.createNewWallet = async (req, res) => {
         )
     } finally {
         if (ret) {
-            await Wallet.create({
-                wallet: ret.address,
-                idUser: id,
-            })
-
             await User.updateOne(
                 { _id: id },
                 {
