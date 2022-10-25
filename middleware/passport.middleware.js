@@ -382,7 +382,7 @@ passport.use(
         done
     ) {
         var date = Math.floor(Date.now() / 1000) + 86400
-        let user = await User.findOne({ email: username.toLowerCase() }).lean();
+        let user = await User.findOne({ email: username.toLowerCase() }).lean()
         if (user) {
             return await signinWithEmail(req, username, password, done, true)
         } else {
@@ -616,6 +616,32 @@ exports.telegramConnection = (req, res) => {
  *end signin with telegram strategy
  */
 
+//  twitter signup
+
+exports.twitterAuthSignup = async (
+    req,
+    accessToken,
+    refreshToken,
+    profile,
+    cb
+) => {
+    var date = Math.floor(Date.now() / 1000) + 86400
+    var user = await User.findOne({ idOnSn: profile.id })
+
+    console.log('user', user)
+    if (user) {
+        await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
+    } else {
+        console.log('no user')
+        //should create a user
+        let createdUser = createUser()
+        let user = await new User(createdUser).save()
+        createdUser._id = user._id
+        let token = generateAccessToken(createdUser)
+        return cb(null, { id: createdUser._id, token: token, expires_in: date })
+    }
+}
+
 /*
  * begin connect account with facebook strategy
  */
@@ -805,7 +831,7 @@ exports.addlinkedinChannel = async (
     let redirect = req.query.state.split('|')[1]
     let linkedinId = profile.id
 
-    let profileData = await LinkedinProfile.findOne({userId,linkedinId })
+    let profileData = await LinkedinProfile.findOne({ userId, linkedinId })
 
     if (profileData) {
         return done(null, profile, {
@@ -837,9 +863,9 @@ exports.addlinkedinChannel = async (
         }
     }
     if (!linkedinProfile.pages.length)
-    return done(null, profile, {
-        message: 'channel obligatoire',
-    })
+        return done(null, profile, {
+            message: 'channel obligatoire',
+        })
 
     await LinkedinProfile.create(linkedinProfile)
     return done(null, profile, {
