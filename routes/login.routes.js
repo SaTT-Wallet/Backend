@@ -408,13 +408,6 @@ passport.use(
     )
 )
 
-// twitterConnect
-
-router.get('/signup/twitter', async (req, res, next) => {
-    console.log('loool')
-    passport.authenticate('twitter')(req, res, next)
-})
-
 passport.use(
     new TwitterStrategy(
         {
@@ -471,6 +464,13 @@ router.get(
     },
     authErrorHandler
 )
+
+// twitterConnect
+
+router.get('/signup/twitter', async (req, res, next) => {
+    console.log('loool')
+    passport.authenticate('twitter')(req, res, next)
+})
 
 /**
  * @swagger
