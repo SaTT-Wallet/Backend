@@ -429,10 +429,7 @@ exports.deleteFacebookChannel = async (req, res) => {
 exports.deleteLinkedinChannels = async (req, res) => {
     try {
         const userId = req.user._id
-        const result = await LinkedinProfile.deleteMany(
-            { userId },
-            { $set: { pages: [] } }
-        )
+        const result = await LinkedinProfile.deleteMany({ userId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
         } else {
@@ -450,20 +447,20 @@ exports.deleteLinkedinChannels = async (req, res) => {
 exports.deleteLinkedinChannel = async (req, res) => {
     try {
         let userId = req.user._id
-        let organization = req.params.organization
-        let linkedinProfile = await LinkedinProfile.aggregate([
-            { $unwind: { path: '$pages' } },
-            { $match: { 'pages.organization': organization } },
-        ])
-        if (linkedinProfile[0]?.userId !== userId)
+        let {organization,linkedinId} = req.params;
+        let linkedinProfile = await LinkedinProfile.findOne({userId,linkedinId},{pages:1}).lean();
+        if (!linkedinProfile)
             return makeResponseError(res, 401, 'unauthorized')
-        else {
+        if(linkedinProfile.pages.lengh <=1 ){
+            await LinkedinProfile.deleteOne({userId,linkedinId})
+        }else{
             await LinkedinProfile.updateOne(
-                { userId },
+                { userId,linkedinId },
                 { $pull: { pages: { organization } } }
             )
-            return makeResponseData(res, 200, 'deleted successfully')
         }
+        return makeResponseData(res, 200, 'deleted successfully')
+     
     } catch (err) {
         return makeResponseError(
             res,
