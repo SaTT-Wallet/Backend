@@ -575,16 +575,22 @@ exports.socialAccounts = async (req, res) => {
         let UserId = req.user._id
         let networks = {}
         let [channelsGoogle, channelsTwitter] = await Promise.all([
-            GoogleProfile.find({ UserId }),
-            TwitterProfile.find({ UserId }),
+            GoogleProfile.find({ UserId },{accessToken:0}),
+            TwitterProfile.find({ UserId },{_raw:0,access_token_key:0,access_token_secret:0}),
         ])
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.find({ userId: UserId })
+        let channelsTiktok = await TikTokProfile.find({ userId: UserId },{accessToken:0,refreshToken:0})
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin?.flatMap((item) => item?.pages)
+        networks.linkedin = channelsLinkedin?.flatMap((item) => item?.pages.map(elem => {
+            elem = elem.toJSON()
+            elem.linkedinId = item.linkedinId
+            return elem
+
+        }));
+        
         networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
