@@ -31,7 +31,7 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
-const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
+const { getFacebookPages, linkedinAbos,tiktokAbos } = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
 const { profile } = require('winston')
@@ -870,7 +870,7 @@ exports.addTikTokChannel = async (
                     userTiktokId: profile.id,
                 },
             ],
-        })
+        }).lean();
 
         if (!profileData) {
             ;[
@@ -879,7 +879,7 @@ exports.addTikTokChannel = async (
                 profile.userTiktokId,
                 profile.refreshToken,
             ] = [accessToken, userId, profile.id, refreshToken]
-
+            profile.followers = await tiktokAbos(userId,accessToken)
             await TikTokProfile.create(profile)
             return cb(null, profile, {
                 status: true,
