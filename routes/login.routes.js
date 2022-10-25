@@ -411,6 +411,7 @@ passport.use(
 // twitterConnect
 
 router.get('/signup/twitter', async (req, res, next) => {
+    console.log('loool')
     passport.authenticate('twitter')(req, res, next)
 })
 
@@ -420,9 +421,15 @@ passport.use(
             consumerKey: process.env.TWITTER_CONSUMER_KEY,
             consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
             callbackURL: process.env.BASEURL + 'auth/twitter/callback',
+            profileFields: ['id', 'displayName', 'photos', 'email'],
+            includeEmail: true,
         },
         async (accessToken, refreshToken, profile, done) => {
-            console.log('profile', profile)
+            console.log('profile00000', profile)
+
+            let user = await User.findOne({ idOnSn: profile.id })
+
+            console.log('user', user)
 
             twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
 

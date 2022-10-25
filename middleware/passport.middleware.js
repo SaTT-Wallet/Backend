@@ -625,21 +625,15 @@ exports.twitterAuthSignup = async (
     profile,
     cb
 ) => {
-    var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({ idOnSn: profile.id })
+    console.log('hello twitter signup')
+
+    console.log('profile..................;', profile)
+    //var date = Math.floor(Date.now() / 1000) + 86400
+    let user = await User.findOne({ idOnSn: profile.id })
 
     console.log('user', user)
-    if (user) {
-        await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
-    } else {
-        console.log('no user')
-        //should create a user
-        let createdUser = createUser()
-        let user = await new User(createdUser).save()
-        createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
-        return cb(null, { id: createdUser._id, token: token, expires_in: date })
-    }
+
+    return user
 }
 
 /*
