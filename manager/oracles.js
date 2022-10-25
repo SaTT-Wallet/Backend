@@ -1,5 +1,6 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
 var rp = require('request-promise')
+const child_process = require('child_process')
 const {
     FbPage,
     FbProfile,
@@ -463,13 +464,10 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
     } catch (err) {}
 }
 
-exports.tiktokAbos = async (userId) => {
-    const user = await TikTokProfile.findOne({ userId: +userId })
-    const accessToken = user.accessToken
+exports.tiktokAbos = async (userId,access_token=null) => {
+    const accessToken = access_token && access_token || (await TikTokProfile.findOne({ userId: +userId },{accessToken:1}).lean()).accessToken
 
     try {
-        var child_process = require('child_process')
-
         function runCmd(cmd) {
             var resp = child_process.execSync(cmd)
             var result = resp.toString('UTF8')
@@ -478,7 +476,7 @@ exports.tiktokAbos = async (userId) => {
         var cmd = `curl -L -X GET 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count' \
         -H 'Authorization: Bearer ${accessToken}'`
         var result = JSON.parse(runCmd(cmd))
-        return result.data.user.follower_count
+        return result?.data?.user?.follower_count ?? 0;
     } catch (err) {
         return responseHandler.makeResponseError(
             result,
