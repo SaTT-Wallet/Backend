@@ -1,4 +1,4 @@
-const { User, Wallet, CustomToken } = require('../model/index')
+const { User, Wallet, CustomToken,WalletUserNode } = require('../model/index')
 
 const rp = require('request-promise')
 const path = require('path')
@@ -945,8 +945,8 @@ module.exports.verifyMnemo = async (req, res) => {
 
 exports.createNewWallet = async (req, res) => {
     try {
-        var id = req.user._id
-        let user = await User.findOne({ _id: id }, { password: 1 })
+        const {_id} = req.user
+        let user = await User.findOne({ _id}, { password: 1 }).lean()
         if (user.password === synfonyHash(req.body.pass)) {
             return responseHandler.makeResponseError(res, 401, 'same password')
         } else if (req.user.hasWallet) {
@@ -968,14 +968,7 @@ exports.createNewWallet = async (req, res) => {
         )
     } finally {
         if (ret) {
-            await User.updateOne(
-                { _id: id },
-                {
-                    $set: {
-                        hasWallet: true,
-                    },
-                }
-            )
+            await Promise.allSettled([User.updateOne({ _id},{hasWallet: true}),WalletUserNode.create({wallet:ret.address,idUser:_id})])
         }
     }
 }
