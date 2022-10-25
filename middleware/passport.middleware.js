@@ -46,14 +46,10 @@ try {
             secret: 'fe3fF4FFGTSCSHT57UI8I8',
             resave: true,
             saveUninitialized: true,
-        })
-    ) // session secret
-    app.use(
-        passport.session({
-            secret: 'Shhh.. This is a secret',
             cookie: { secure: true },
         })
-    )
+    ) // session secret
+    app.use(passport.session())
 } catch (e) {}
 passport.serializeUser(function (user, cb) {
     cb(null, user)
