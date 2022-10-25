@@ -31,7 +31,11 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
-const { getFacebookPages, linkedinAbos,tiktokAbos } = require('../manager/oracles')
+const {
+    getFacebookPages,
+    linkedinAbos,
+    tiktokAbos,
+} = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
 const { profile } = require('winston')
@@ -44,7 +48,12 @@ try {
             saveUninitialized: true,
         })
     ) // session secret
-    app.use(passport.session())
+    app.use(
+        passport.session({
+            secret: 'Shhh.. This is a secret',
+            cookie: { secure: true },
+        })
+    )
 } catch (e) {}
 passport.serializeUser(function (user, cb) {
     cb(null, user)
@@ -890,7 +899,7 @@ exports.addTikTokChannel = async (
                     userTiktokId: profile.id,
                 },
             ],
-        }).lean();
+        }).lean()
 
         if (!profileData) {
             ;[
@@ -899,7 +908,7 @@ exports.addTikTokChannel = async (
                 profile.userTiktokId,
                 profile.refreshToken,
             ] = [accessToken, userId, profile.id, refreshToken]
-            profile.followers = await tiktokAbos(userId,accessToken)
+            profile.followers = await tiktokAbos(userId, accessToken)
             await TikTokProfile.create(profile)
             return cb(null, profile, {
                 status: true,
@@ -912,7 +921,7 @@ exports.addTikTokChannel = async (
             })
         }
     } catch (error) {
-        console.error(error,'addTikTokChannel')
+        console.error(error, 'addTikTokChannel')
     }
 }
 
