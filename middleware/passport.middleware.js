@@ -917,7 +917,9 @@ exports.addTikTokChannel = async (
                 message: 'account exist',
             })
         }
-    } catch (error) {}
+    } catch (error) {
+        console.error(error,'addTikTokChannel')
+    }
 }
 
 /*
