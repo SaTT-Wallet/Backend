@@ -845,11 +845,11 @@ exports.getBalanceByUid = async (req, res) => {
 
         return { Total_balance }
     } catch (err) {
-        //    return responseHandler.makeResponseError(
-        // 		 res,
-        // 		 500,
-        // 		 err.message ? err.message : err.error
-        // 		 )
+           return responseHandler.makeResponseError(
+        		 res,
+        		 500,
+        		 err.message ? err.message : err.error
+        		 )
     }
 }
 
@@ -1121,7 +1121,7 @@ exports.getWalletTron = async (id, pass,keystore=false,mnemonic=null) => {
 
     if (walletKeyStore) {
         try {
-            let Web3ETH = await erc20Connexion()
+            let Web3ETH = await erc20Connexion();
             Web3ETH.eth.accounts.wallet.decrypt([walletKeyStore], pass)
         } catch (error) {
             return { error: 'Invalid Tron password' }
