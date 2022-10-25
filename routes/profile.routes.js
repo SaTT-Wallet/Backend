@@ -489,6 +489,7 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
  *       - name: organization
  *         description: organization of linkedin channel.
  *         in: path
+ *         required: true
  *       - name: linkedinId 
  *         description: id of linkedin account.
  *         in: path
