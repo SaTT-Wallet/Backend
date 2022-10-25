@@ -634,7 +634,7 @@ exports.twitterAuthSignup = async (
 
     console.log('profile..................;', profile)
     //var date = Math.floor(Date.now() / 1000) + 86400
-    let user = await User.findOneOrCreate({ idOnSn: profile.id })
+    let user = await User.findOne({ idOnSn: profile.id })
 
     if (user) {
         await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
