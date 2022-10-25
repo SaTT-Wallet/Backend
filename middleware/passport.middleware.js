@@ -31,7 +31,11 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
-const { getFacebookPages, linkedinAbos,tiktokAbos } = require('../manager/oracles')
+const {
+    getFacebookPages,
+    linkedinAbos,
+    tiktokAbos,
+} = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
 const { profile } = require('winston')
@@ -42,6 +46,7 @@ try {
             secret: 'fe3fF4FFGTSCSHT57UI8I8',
             resave: true,
             saveUninitialized: true,
+            cookie: { secure: true },
         })
     ) // session secret
     app.use(passport.session())
@@ -625,21 +630,15 @@ exports.twitterAuthSignup = async (
     profile,
     cb
 ) => {
-    var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({ idOnSn: profile.id })
+    console.log('hello twitter signup')
+
+    console.log('profile..................;', profile)
+    //var date = Math.floor(Date.now() / 1000) + 86400
+    let user = await User.findOne({ idOnSn: profile.id })
 
     console.log('user', user)
-    if (user) {
-        await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
-    } else {
-        console.log('no user')
-        //should create a user
-        let createdUser = createUser()
-        let user = await new User(createdUser).save()
-        createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
-        return cb(null, { id: createdUser._id, token: token, expires_in: date })
-    }
+
+    return user
 }
 
 /*
@@ -896,7 +895,7 @@ exports.addTikTokChannel = async (
                     userTiktokId: profile.id,
                 },
             ],
-        }).lean();
+        }).lean()
 
         if (!profileData) {
             ;[
@@ -905,7 +904,7 @@ exports.addTikTokChannel = async (
                 profile.userTiktokId,
                 profile.refreshToken,
             ] = [accessToken, userId, profile.id, refreshToken]
-            profile.followers = await tiktokAbos(userId,accessToken)
+            profile.followers = await tiktokAbos(userId, accessToken)
             await TikTokProfile.create(profile)
             return cb(null, profile, {
                 status: true,
@@ -918,7 +917,7 @@ exports.addTikTokChannel = async (
             })
         }
     } catch (error) {
-        console.error(error,'addTikTokChannel')
+        console.error(error, 'addTikTokChannel')
     }
 }
 
