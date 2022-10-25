@@ -69,6 +69,7 @@ const {
     signin_telegram_function,
     verifyAuth,
     sattConnect,
+    twitterAuthSignup,
 } = require('../middleware/passport.middleware')
 const {
     persmissionsObjFb,
@@ -396,6 +397,7 @@ router.get('/signup/facebook', async (req, res, next) => {
         next
     )
 })
+
 passport.use(
     'auth_signup_facebookStrategy',
     new FbStrategy(
@@ -408,18 +410,23 @@ passport.use(
 
 // twitterConnect
 
+router.get('/signup/twitter', async (req, res, next) => {
+    passport.authenticate('twitter')(req, res, next)
+})
+
 passport.use(
     new TwitterStrategy(
         {
-            consumerKey: 'SGVncHVqaERuZFBrQXVPR2NodVM6MTpjaQ',
-            consumerSecret:
-                '633hzJ-vCKO7REAH8ANIi4mOKDL_wgkea551GZUV7pJKidcG3i',
-            callbackURL:
-                'https://api-preprod2.satt-token.com/auth/twitter/callback',
+            consumerKey: process.env.TWITTER_CONSUMER_KEY,
+            consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+            callbackURL: process.env.BASEURL + 'auth/twitter/callback',
         },
-        function (accessToken, refreshToken, profile, done) {
+        async (accessToken, refreshToken, profile, done) => {
             console.log('profile', profile)
-            return done(null, profile)
+
+            twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
+
+            //  return done(null, profile)
         }
     )
 )
