@@ -418,10 +418,6 @@ passport.use(
             includeEmail: true,
         },
         async (accessToken, refreshToken, profile, done) => {
-            console.log('profile00000', profile)
-
-            console.log('user', user)
-
             twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
     )
