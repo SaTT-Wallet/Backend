@@ -6,6 +6,7 @@ let router = express.Router()
 router.use(passport.initialize())
 var session = require('express-session')
 var GoogleStrategy = require('passport-google-oauth20').Strategy
+const TwitterStrategy = require('passport-twitter').Strategy
 var FbStrategy = require('passport-facebook').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
@@ -403,6 +404,31 @@ passport.use(
             facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
     )
+)
+
+// twitterConnect
+
+passport.use(
+    new TwitterStrategy(
+        {
+            consumerKey: 'SGVncHVqaERuZFBrQXVPR2NodVM6MTpjaQ',
+            consumerSecret:
+                '633hzJ-vCKO7REAH8ANIi4mOKDL_wgkea551GZUV7pJKidcG3i',
+            callbackURL: process.env.BASED_URL + '/auth/twitter/callback',
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            return done(null, profile)
+        }
+    )
+)
+
+router.get('/twitter', passport.authenticate('twitter'))
+router.get(
+    '/twitter/callback',
+    passport.authenticate('twitter', { failureRedirect: '/error' }),
+    function (req, res) {
+        res.redirect('/')
+    }
 )
 router.get(
     '/callback/facebook/signup',
