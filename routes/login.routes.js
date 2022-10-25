@@ -414,20 +414,27 @@ passport.use(
             consumerKey: 'SGVncHVqaERuZFBrQXVPR2NodVM6MTpjaQ',
             consumerSecret:
                 '633hzJ-vCKO7REAH8ANIi4mOKDL_wgkea551GZUV7pJKidcG3i',
-            callbackURL: process.env.BASED_URL + '/auth/twitter/callback',
+            callbackURL:
+                'https://api-preprod2.satt-token.com/auth/twitter/callback',
         },
-        async (accessToken, refreshToken, profile, done) => {
+        function (accessToken, refreshToken, profile, done) {
+            console.log('profile', profile)
             return done(null, profile)
         }
     )
 )
 
-router.get('/twitter', passport.authenticate('twitter'))
+router.get('/auth/twitter', passport.authenticate('twitter'))
+
 router.get(
     '/twitter/callback',
-    passport.authenticate('twitter', { failureRedirect: '/error' }),
+    passport.authenticate('twitter', {
+        failureRedirect: '/login',
+        scope: ['tweet.read', 'tweet.write', 'users.read'],
+    }),
     function (req, res) {
-        res.redirect('/')
+        // Successful authentication, redirect home.
+        res.redirect(process.env.BASED_URL + '/auth/login')
     }
 )
 router.get(
