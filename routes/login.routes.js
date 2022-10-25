@@ -420,13 +420,9 @@ passport.use(
         async (accessToken, refreshToken, profile, done) => {
             console.log('profile00000', profile)
 
-            let user = await User.findOne({ idOnSn: profile.id })
-
             console.log('user', user)
 
             twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
-
-            //  return done(null, profile)
         }
     )
 )
