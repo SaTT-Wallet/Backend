@@ -15,6 +15,7 @@ var Event = require('../model/event.model')
 var Request = require('../model/request.model')
 var Captcha = require('../model/captcha.model')
 var UserArchived = require('../model/UserArchive.model')
+const WalletUserNode = require('../model/walletUserNode.model')
 
 module.exports = {
     UserArchived,
@@ -34,5 +35,6 @@ module.exports = {
     Notification,
     FbPage,
     Wallet,
-    CustomToken
+    CustomToken,
+    WalletUserNode
 }
