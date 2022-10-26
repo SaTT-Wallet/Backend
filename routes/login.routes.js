@@ -418,7 +418,7 @@ passport.use(
             includeEmail: true,
         },
         async (accessToken, refreshToken, profile, done) => {
-            twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
+            twitterAuthSignup(accessToken, refreshToken, profile, cb)
         }
     )
 )
