@@ -1097,7 +1097,7 @@ exports.addWalletTron = async (req, res) => {
         var UserId = req.user._id
         var pass = req.body.pass
         let TronWallet = await this.getWalletTron(UserId, pass)
-        let updatedWallet = await Wallet.findOneAndUpdate(
+        await Wallet.findOneAndUpdate(
             { UserId: UserId },
             {
                 $set: {
