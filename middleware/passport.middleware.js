@@ -623,13 +623,7 @@ exports.telegramConnection = (req, res) => {
 
 //  twitter signup
 
-exports.twitterAuthSignup = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
+exports.twitterAuthSignup = async (accessToken, refreshToken, profile, cb) => {
     console.log('hello twitter signup')
 
     console.log('profile..................;', profile)
