@@ -642,7 +642,7 @@ exports.twitterAuthSignup = async (
         let createdUser = createUser(
             1,
             7,
-            req.body.lang,
+            req.body.lang || 'en',
             '',
             profile.photos[0],
             profile.emails[0],
