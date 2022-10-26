@@ -95,20 +95,16 @@ let createUser = (
     lastName = null,
     password = null
 ) => {
-    const userObject = {}
-    ;(userObject.enabled = enabled),
-        (userObject.userSatt = true),
-        (userObject.failed_count = 0)
-    ;(userObject.onBoarding = false), (userObject.account_locked = false)
-    ;(userObject.idSn = idSn), (userObject.newsLetter = newsLetter ?? false)
-    userObject.locale = 'en'
+    const userObject = {};
+    userObject.enabled = enabled
+    userObject.idSn = idSn
+    userObject.newsLetter = newsLetter ?? false
     if (picLink) userObject.picLink = picLink
     ;(userObject.username = username), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
     if (lang) userObject.lang = lang
     if (lastName) userObject.lastName = lastName
-    if (lang) userObject.lang = lang
 
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
