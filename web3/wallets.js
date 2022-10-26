@@ -1113,10 +1113,9 @@ exports.addWalletTron = async (req, res) => {
     } catch (error) {}
 }
 
-exports.getWalletTron = async (id, pass,keystore=false,mnemonic=null) => {
-    let wallet = await Wallet.findOne({ UserId: id },{keystore:1,menmo:1}).lean();
-    let walletKeyStore = wallet?.keystore ||keystore;
-    const mnemo =  wallet?.mnemo ||mnemonic;
+exports.getWalletTron = async (id, pass,keystoreWallet=false,mnemonic=null) => {
+    console.log(arguments)
+    const {keystore,walletKeyStore = keystore || keystoreWallet,mnemo,mnemos = mnemo || mnemonic } = await Wallet.findOne({ UserId: id },{keystore:1,mnemo:1}).lean();
 
 
     if (walletKeyStore) {
@@ -1127,13 +1126,18 @@ exports.getWalletTron = async (id, pass,keystore=false,mnemonic=null) => {
             return { error: 'Invalid Tron password' }
         }
     }
-    const seed = bip39.mnemonicToSeedSync(mnemo, pass)
-    const root = bip32.fromSeed(seed)
-    const childTron = root.derivePath(pathTron)
-    var tronPriv = childTron.privateKey.toString('hex')
-    var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
-    var tronAddrHex = tronWeb.address.toHex(tronAddr)
-    return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
+    try{
+        const seed = bip39.mnemonicToSeedSync(mnemos, pass)
+        const root = bip32.fromSeed(seed)
+        const childTron = root.derivePath(pathTron)
+        var tronPriv = childTron.privateKey.toString('hex')
+        var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
+        var tronAddrHex = tronWeb.address.toHex(tronAddr)
+        return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
+    } catch(err){
+        return {err: err.message ? err.message : err.error}
+    }
+   
 }
 
 exports.wrapNative = async (amount, credentials) => {
