@@ -95,7 +95,7 @@ let createUser = (
     lastName = null,
     password = null
 ) => {
-    const userObject = {};
+    const userObject = {}
     userObject.enabled = enabled
     userObject.idSn = idSn
     userObject.newsLetter = newsLetter ?? false
@@ -638,8 +638,8 @@ exports.twitterAuthSignup = async (
             7,
             'en',
             false,
-            profile.photos[0],
-            profile.emails[0],
+            '',
+            '',
             '',
             'idOnSn3',
             profile.id,
