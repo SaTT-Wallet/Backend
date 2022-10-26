@@ -1110,7 +1110,9 @@ exports.addWalletTron = async (req, res) => {
         )
 
         return TronWallet
-    } catch (error) {}
+    } catch (error) {
+        return {error: error.message ? error.message : error.error}
+    }
 }
 
 exports.getWalletTron = async (id, pass,keystoreWallet=false,mnemonic=null) => {
