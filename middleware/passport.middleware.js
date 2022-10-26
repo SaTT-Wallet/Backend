@@ -632,8 +632,6 @@ exports.twitterAuthSignup = async (
 ) => {
     console.log('hello twitter signup')
 
-    console.log('profile..................;', profile)
-    //var date = Math.floor(Date.now() / 1000) + 86400
     let user = await User.findOne({ idOnSn: profile.id })
 
     if (user) {
@@ -643,7 +641,7 @@ exports.twitterAuthSignup = async (
             1,
             7,
             'en',
-            '',
+            false,
             profile.photos[0],
             profile.emails[0],
             '',
