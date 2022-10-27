@@ -70,6 +70,7 @@ const {
     verifyAuth,
     sattConnect,
     twitterAuthSignup,
+    twitterAuthSignin,
 } = require('../middleware/passport.middleware')
 const {
     persmissionsObjFb,
@@ -408,6 +409,22 @@ passport.use(
     )
 )
 
+/**
+ * @swagger
+ * /auth/signup/twitter:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: signup with twitter.
+ *     description: user asked for signup with twitter, system redirect him to signup twitter page <br> without access_token.
+ *     responses:
+ *       "redirection":
+ *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/signup/twitter', async (req, res, next) => {
+    passport.authenticate('twitter')(req, res, next)
+})
+
 passport.use(
     new TwitterStrategy(
         {
@@ -457,12 +474,60 @@ router.get(
     authErrorHandler
 )
 
-// twitterConnect
+//start signin twitter
 
-router.get('/signup/twitter', async (req, res, next) => {
-    console.log('loool')
-    passport.authenticate('twitter')(req, res, next)
+/**
+ * @swagger
+ * /auth/signin/twitter:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: signin with twitter.
+ *     description: user asked for signin with twitter, system redirect him to signin twitter page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/signin/twitter', async (req, res, next) => {
+    passport.authenticate('twitter-signin')(req, res, next)
 })
+
+passport.use(
+    'twitter-signin',
+    new TwitterStrategy(
+        {
+            consumerKey: process.env.TWITTER_CONSUMER_KEY,
+            consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+            callbackURL: process.env.BASEURL + '/auth/twitter/signin/callback',
+            profileFields: ['id', 'displayName', 'photos', 'email'],
+            includeEmail: true,
+        },
+        async function (req, accessToken, refreshToken, profile, cb) {
+            twitterAuthSignin(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+router.get(
+    '/twitter/signin/callback',
+    passport.authenticate('twitter-signin'),
+    async function (req, response) {
+        try {
+            var param = {
+                access_token: req.user.token,
+                expires_in: req.user.expires_in,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+            response.redirect(
+                process.env.BASED_URL +
+                    '/auth/login?token=' +
+                    JSON.stringify(param)
+            )
+        } catch (e) {}
+    },
+    authSignInErrorHandler
+)
+//end twitter
 
 /**
  * @swagger
