@@ -179,7 +179,10 @@ module.exports.updateStat = async () => {
             }
 
             if (event.campaign.ratios.length && socialOracle) {
-                event.totalToEarn = getTotalToEarn(event, event.campaign.ratios)
+                event.totalToEarn =
+                    event.campaign.funds[1] !== '0'
+                        ? getTotalToEarn(event, event.campaign.ratios)
+                        : 0
             }
 
             if (event.campaign.bounties.length && socialOracle) {
