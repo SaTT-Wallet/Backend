@@ -452,8 +452,7 @@ exports.campaigns = async (req, res) => {
                 $sort: {
                     sort: 1,
                     sortPriority: -1,
-                    updatedAt: -1,
-                    createdAt: -1,
+                    launchDate: -1,
                     _id: 1,
                 },
             },
@@ -721,7 +720,7 @@ exports.apply = async (req, res) => {
     var id = req.user._id
     var pass = req.body.pass
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-    var campaignDetails = await Campaigns.findOne({ hash })
+    var campaignDetails = await Campaigns.findOne({ hash }).lean();
 
     try {
         let promExist = await CampaignLink.findOne({

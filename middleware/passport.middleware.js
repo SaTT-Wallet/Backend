@@ -31,7 +31,11 @@ var express = require('express')
 var app = express()
 
 var session = require('express-session')
-const { getFacebookPages, linkedinAbos } = require('../manager/oracles')
+const {
+    getFacebookPages,
+    linkedinAbos,
+    tiktokAbos,
+} = require('../manager/oracles')
 const { config } = require('../conf/config')
 const { Wallet } = require('../model')
 const { profile } = require('winston')
@@ -42,6 +46,7 @@ try {
             secret: 'fe3fF4FFGTSCSHT57UI8I8',
             resave: true,
             saveUninitialized: true,
+            cookie: { secure: true },
         })
     ) // session secret
     app.use(passport.session())
@@ -91,19 +96,15 @@ let createUser = (
     password = null
 ) => {
     const userObject = {}
-    ;(userObject.enabled = enabled),
-        (userObject.userSatt = true),
-        (userObject.failed_count = 0)
-    ;(userObject.onBoarding = false), (userObject.account_locked = false)
-    ;(userObject.idSn = idSn), (userObject.newsLetter = newsLetter ?? false)
-    userObject.locale = 'en'
+    userObject.enabled = enabled
+    userObject.idSn = idSn
+    userObject.newsLetter = newsLetter ?? false
     if (picLink) userObject.picLink = picLink
     ;(userObject.username = username), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
     if (lang) userObject.lang = lang
     if (lastName) userObject.lastName = lastName
-    if (lang) userObject.lang = lang
 
     userObject.password = password ?? synfonyHash(crypto.randomUUID())
     return userObject
@@ -319,17 +320,14 @@ exports.sattConnect = async (req, res, next) => {
 /*
  * begin signin with facebook strategy
  */
-exports.facebookAuthSignin = async (
+exports.twitterAuthSignin = async (
     req,
     accessToken,
     refreshToken,
     profile,
     cb
 ) => {
-    await handleSocialMediaSignin(
-        { idOnSn: profile._json.token_for_business },
-        cb
-    )
+    await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
 }
 /*
  * end signin with email and password
@@ -382,8 +380,7 @@ passport.use(
         done
     ) {
         var date = Math.floor(Date.now() / 1000) + 86400
-        let user = await User.findOne({ email: username.toLowerCase() })
-        let wallet = user && (await Wallet.findOne({ UserId: user._id }))
+        let user = await User.findOne({ email: username.toLowerCase() }).lean()
         if (user) {
             return await signinWithEmail(req, username, password, done, true)
         } else {
@@ -617,6 +614,48 @@ exports.telegramConnection = (req, res) => {
  *end signin with telegram strategy
  */
 
+//  twitter signup
+
+exports.twitterAuthSignup = async (
+    req,
+    accessToken,
+    refreshToken,
+    profile,
+    cb
+) => {
+    console.log('hello twitter signup')
+    var date = Math.floor(Date.now() / 1000) + 86400
+
+    let user = await User.findOne({ idOnSn: profile.id })
+
+    if (user) {
+        await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
+    } else {
+        let createdUser = createUser(
+            1,
+            7,
+            'en',
+            false,
+            '',
+            '',
+            '',
+            'idOnSn3',
+            profile.id,
+            profile.username,
+            ''
+        )
+        let user = await new User(createdUser).save()
+        createdUser._id = user._id
+        let token = generateAccessToken(createdUser)
+
+        return cb(null, { id: createdUser._id, token: token, expires_in: date })
+    }
+
+    console.log('user', user)
+
+    return user
+}
+
 /*
  * begin connect account with facebook strategy
  */
@@ -806,7 +845,7 @@ exports.addlinkedinChannel = async (
     let redirect = req.query.state.split('|')[1]
     let linkedinId = profile.id
 
-    let profileData = await LinkedinProfile.findOne({userId,linkedinId })
+    let profileData = await LinkedinProfile.findOne({ userId, linkedinId })
 
     if (profileData) {
         return done(null, profile, {
@@ -838,9 +877,9 @@ exports.addlinkedinChannel = async (
         }
     }
     if (!linkedinProfile.pages.length)
-    return done(null, profile, {
-        message: 'channel obligatoire',
-    })
+        return done(null, profile, {
+            message: 'channel obligatoire',
+        })
 
     await LinkedinProfile.create(linkedinProfile)
     return done(null, profile, {
@@ -871,7 +910,7 @@ exports.addTikTokChannel = async (
                     userTiktokId: profile.id,
                 },
             ],
-        })
+        }).lean()
 
         if (!profileData) {
             ;[
@@ -880,7 +919,7 @@ exports.addTikTokChannel = async (
                 profile.userTiktokId,
                 profile.refreshToken,
             ] = [accessToken, userId, profile.id, refreshToken]
-
+            profile.followers = await tiktokAbos(userId, accessToken)
             await TikTokProfile.create(profile)
             return cb(null, profile, {
                 status: true,
@@ -892,7 +931,9 @@ exports.addTikTokChannel = async (
                 message: 'account exist',
             })
         }
-    } catch (error) {}
+    } catch (error) {
+        console.error(error, 'addTikTokChannel')
+    }
 }
 
 /*
