@@ -275,7 +275,7 @@ exports.lockPolygon = async (credentials) => {
 exports.getAccount = async (req, res) => {
     let UserId = req.user._id
 
-    let account = await Wallet.findOne({ UserId })
+    let account = await Wallet.findOne({ UserId }).lean();
 
     if (account) {
         var address = '0x' + account.keystore.address
