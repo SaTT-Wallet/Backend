@@ -183,23 +183,16 @@ exports.exportWalletInfo = async (req, res) => {
 exports.getAccount = async (req, res) => {
     let UserId = req.user._id
 
-    let account = await Wallet.findOne({ UserId })
+    let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
         var address = '0x' + account.keystore.address
         let tronAddress = account.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
-        let listWeb3Promises = []
-        listWeb3Promises.push(erc20Connexion())
-        listWeb3Promises.push(bep20Connexion())
-        listWeb3Promises.push(polygonConnexion())
-        listWeb3Promises.push(bttConnexion())
-        listWeb3Promises.push(webTronInstance())
+        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] = await Promise.all([erc20Connexion(),bep20Connexion(),polygonConnexion(),bttConnexion(),webTronInstance()])
+    
 
-        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] = (
-            await Promise.allSettled(listWeb3Promises)
-        ).map((element) => element.value)
         let contractSatt = null
         if (Web3ETH) {
             contractSatt = new Web3ETH.eth.Contract(
@@ -207,25 +200,19 @@ exports.getAccount = async (req, res) => {
                 Constants.token.satt
             )
         }
-        let listBalancesPromises = []
-        listBalancesPromises.push(Web3ETH?.eth.getBalance(address))
-        listBalancesPromises.push(Web3BEP20?.eth.getBalance(address))
-        listBalancesPromises.push(Web3POLYGON?.eth.getBalance(address))
-        listBalancesPromises.push(web3UrlBTT?.eth.getBalance(address))
-        listBalancesPromises.push(
-            !!tronAddress
+
+            let tronPromise = !!tronAddress
                 ? tronWeb?.trx.getBalance(tronAddress)
                 : new Promise((resolve, reject) => {
                       resolve(null)
                   })
-        )
-        listBalancesPromises.push(
-            !!contractSatt
+        
+           let sattPromise = !!contractSatt
                 ? contractSatt.methods.balanceOf(address).call()
                 : new Promise((resolve, reject) => {
                       resolve(null)
                   })
-        )
+    
 
         let [
             ether_balance,
@@ -234,9 +221,7 @@ exports.getAccount = async (req, res) => {
             btt_balance,
             trx_balance,
             satt_balance,
-        ] = (await Promise.allSettled(listBalancesPromises)).map((element) =>
-            element.value?.toString()
-        )
+        ] = await Promise.all([Web3ETH?.eth.getBalance(address),Web3BEP20?.eth.getBalance(address),Web3POLYGON?.eth.getBalance(address),web3UrlBTT?.eth.getBalance(address),tronPromise,sattPromise])
 
         var result = {
             btc: account.btc.addressSegWitCompat,
@@ -1116,9 +1101,9 @@ exports.addWalletTron = async (req, res) => {
 }
 
 exports.getWalletTron = async (id, pass,keystoreWallet=false,mnemonic=null) => {
-    console.log(arguments)
-    const {keystore,walletKeyStore = keystore || keystoreWallet,mnemo,mnemos = mnemo || mnemonic } = await Wallet.findOne({ UserId: id },{keystore:1,mnemo:1}).lean();
-
+    let wallet = await Wallet.findOne({ UserId: id },{keystore:1,mnemo:1}).lean();
+    const mnemos = wallet?.mnemo || mnemonic
+    const walletKeyStore = wallet?.keystore || keystoreWallet
 
     if (walletKeyStore) {
         try {
