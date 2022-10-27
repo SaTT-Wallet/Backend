@@ -320,17 +320,14 @@ exports.sattConnect = async (req, res, next) => {
 /*
  * begin signin with facebook strategy
  */
-exports.facebookAuthSignin = async (
+exports.twitterAuthSignin = async (
     req,
     accessToken,
     refreshToken,
     profile,
     cb
 ) => {
-    await handleSocialMediaSignin(
-        { idOnSn: profile._json.token_for_business },
-        cb
-    )
+    await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
 }
 /*
  * end signin with email and password
