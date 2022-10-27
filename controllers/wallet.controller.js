@@ -945,7 +945,7 @@ module.exports.verifyMnemo = async (req, res) => {
 
 exports.createNewWallet = async (req, res) => {
     try {
-        const {_id} = req.user
+        var {_id} = req.user
         let user = await User.findOne({ _id}, { password: 1 }).lean()
         if (user.password === synfonyHash(req.body.pass)) {
             return responseHandler.makeResponseError(res, 401, 'same password')
@@ -968,7 +968,7 @@ exports.createNewWallet = async (req, res) => {
         )
     } finally {
         if (ret) {
-            await Promise.allSettled([User.updateOne({ _id},{hasWallet: true}),WalletUserNode.create({wallet:ret.address,idUser:_id})])
+            await User.updateOne({ _id},{hasWallet: true})
         }
     }
 }
