@@ -479,7 +479,7 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
 
 /**
  * @swagger
- * /profile/RemoveLinkedInChannel/{organization}:
+ * /profile/remove/{linkedinId}/linkedInChannel/{organization}:
  *   delete:
  *     tags:
  *     - "profile"
@@ -488,6 +488,10 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
  *     parameters:
  *       - name: organization
  *         description: organization of linkedin channel.
+ *         in: path
+ *         required: true
+ *       - name: linkedinId 
+ *         description: id of linkedin account.
  *         in: path
  *     responses:
  *       "200":
@@ -499,7 +503,7 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
  */
 
 router.delete(
-    '/RemoveLinkedInChannel/:organization',
+    '/remove/:linkedinId/linkedInChannel/:organization',
     verifyAuth,
     deleteLinkedinChannel
 )

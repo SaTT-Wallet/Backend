@@ -50,7 +50,7 @@ const { TikTokProfile, FbProfile } = require('../model')
 	@description: Script that change campaign and links statistics
 	*/
 module.exports.updateStat = async () => {
-    let dateNow = new Date()
+
     let campaigns = await Campaigns.find(
         { hash: { $exists: true } },
         {
@@ -70,7 +70,7 @@ module.exports.updateStat = async () => {
         campaign &&
             (await Campaigns.updateOne(
                 { _id: campaign._id },
-                { $set: { type: campaignStatus(campaign) } }
+                { $set: { type: campaignStatus(campaign),launchDate : new Date(campaign.startDate * 1000).toISOString() } }
             ))
         campaign = campaign._doc
     })
@@ -143,10 +143,11 @@ module.exports.updateStat = async () => {
                     userId: userWallet?.UserId,
                 })
             }
-
+            
+            let oracle = findBountyOracle(event.typeSN)
             try {
                 var socialOracle = await getPromApplyStats(
-                    findBountyOracle(event.typeSN),
+                    oracle,
                     event,
                     userWallet?.UserId,
                     linkedinProfile,
@@ -155,17 +156,9 @@ module.exports.updateStat = async () => {
             } catch (e) {
                 continue
             }
-            event.abosNumber = await answerAbos(
-                event.typeSN.toString(),
-                event.idPost,
-                event.idUser,
-                linkedinProfile,
-                tiktokProfile
-            )
 
-            if (socialOracle === 'indisponible') {
-                event.status = 'indisponible'
-            }
+            socialOracle === 'indisponible' && (event.status = 'indisponible');
+            
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
@@ -175,7 +168,7 @@ module.exports.updateStat = async () => {
                         ? event.views
                         : socialOracle?.views
                 event.media_url = socialOracle?.media_url || media_url
-                event.oracle = findBountyOracle(event.typeSN)
+                event.oracle = oracle
             }
 
             if (event.campaign.ratios.length && socialOracle) {
@@ -199,31 +192,26 @@ module.exports.updateStat = async () => {
     }
 }
 
-exports.automaticRjectLink = async (condition) => {
+exports.automaticRjectLink = async _ => {
     var campaignList = await Campaigns.find({
         hash: { $exists: true },
-        type: { $eq: 'finished' },
+        type: 'finished',
     })
     var links = await CampaignLink.find({
-        type: { $eq: 'waiting_for_validation' },
+        type:'waiting_for_validation',
     })
-    let linksList = []
-    links.forEach((link) => {
+    
+    links.forEach(async (link) => {
         const result = campaignList.find(
             (campaign) => link.id_campaign === campaign.hash
         )
-        if (!!result && result.toObject()) {
-            linksList.push({ ...link.toObject(), campaign: result.toObject() })
-        }
+        result && await CampaignLink.updateOne(
+                 { id_prom: link.id_prom },
+                 { $set: { type: 'rejected' } }
+               )
+
     })
 
-    for (const link of linksList) {
-        const result = await CampaignLink.updateOne(
-            { id_prom: link.id_prom },
-            { $set: { type: 'rejected' } }
-        )
-        console.log(result)
-    }
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
