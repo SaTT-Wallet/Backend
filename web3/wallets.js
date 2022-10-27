@@ -1116,9 +1116,9 @@ exports.addWalletTron = async (req, res) => {
 }
 
 exports.getWalletTron = async (id, pass,keystoreWallet=false,mnemonic=null) => {
-    console.log(arguments)
-    const {keystore,walletKeyStore = keystore || keystoreWallet,mnemo,mnemos = mnemo || mnemonic } = await Wallet.findOne({ UserId: id },{keystore:1,mnemo:1}).lean();
-
+    let wallet = await Wallet.findOne({ UserId: id },{keystore:1,mnemo:1}).lean();
+    const mnemos = wallet?.mnemo || mnemonic
+    const walletKeyStore = wallet?.keystore || keystoreWallet
 
     if (walletKeyStore) {
         try {
