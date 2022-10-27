@@ -176,37 +176,45 @@ exports.exportWalletInfo = async (req, res) => {
 exports.getAccount = async (req, res) => {
     let UserId = req.user._id
 
-    let account = await Wallet.findOne({ UserId })
+    let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
         var address = '0x' + account.keystore.address
         let tronAddress = account.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
-        let Web3ETH = await erc20Connexion()
-        let Web3BEP20 = await bep20Connexion()
-        let Web3POLYGON = await polygonConnexion()
-        let web3UrlBTT = await bttConnexion()
-        let tronWeb = await webTronInstance()
 
-        var ether_balance = await Web3ETH?.eth.getBalance(address)
-        var bnb_balance = await Web3BEP20?.eth.getBalance(address)
-        var polygon_balance = await Web3POLYGON?.eth.getBalance(address)
-        var btt_balance = await web3UrlBTT?.eth.getBalance(address)
-        var trx_balance =
-            (!!tronAddress &&
-                (await tronWeb?.trx.getBalance(tronAddress))?.toString()) ||
-            null
+        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] = await Promise.all([erc20Connexion(),bep20Connexion(),polygonConnexion(),bttConnexion(),webTronInstance()])
+    
+
         let contractSatt = null
-        // var tron_balance = await Web3TRON.eth.getBalance(address)
         if (Web3ETH) {
             contractSatt = new Web3ETH.eth.Contract(
                 Constants.token.abi,
                 Constants.token.satt
             )
-            var satt_balance = await contractSatt.methods
-                .balanceOf(address)
-                .call()
         }
+
+            let tronPromise = !!tronAddress
+                ? tronWeb?.trx.getBalance(tronAddress)
+                : new Promise((resolve, reject) => {
+                      resolve(null)
+                  })
+        
+           let sattPromise = !!contractSatt
+                ? contractSatt.methods.balanceOf(address).call()
+                : new Promise((resolve, reject) => {
+                      resolve(null)
+                  })
+    
+
+        let [
+            ether_balance,
+            bnb_balance,
+            polygon_balance,
+            btt_balance,
+            trx_balance,
+            satt_balance,
+        ] = await Promise.all([Web3ETH?.eth.getBalance(address),Web3BEP20?.eth.getBalance(address),Web3POLYGON?.eth.getBalance(address),web3UrlBTT?.eth.getBalance(address),tronPromise,sattPromise])
 
         var result = {
             btc: account.btc.addressSegWitCompat,
@@ -249,7 +257,6 @@ exports.getAccount = async (req, res) => {
                     result.btc_balance = Math.floor(red.amount * 100000000)
                 }
             } catch (e) {
-                console.log('btc node error')
                 result.btc_balance = 0
             }
         }
@@ -475,38 +482,38 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.undername = token_info[T_name].undername
             crypto.undername2 = token_info[T_name].undername2
             ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
-            let Web3ETH = await erc20Connexion()
-            let Web3BEP20 = await bep20Connexion()
-            let Web3POLYGON = await polygonConnexion()
-            let web3UrlBTT = await bttConnexion()
-            let Web3TRON = await webTronInstance()
 
             let balance = {}
             if (network == 'ERC20') {
+                let Web3ETH = await erc20Connexion()
                 balance.amount = await this.getBalance(
                     Web3ETH,
                     token_info[T_name].contract,
                     ret.address
                 )
             } else if (network == 'BEP20') {
+                let Web3BEP20 = await bep20Connexion()
                 balance.amount = await this.getBalance(
                     Web3BEP20,
                     token_info[T_name].contract,
                     ret.address
                 )
             } else if (network == 'POLYGON') {
+                let Web3POLYGON = await polygonConnexion()
                 balance.amount = await this.getBalance(
                     Web3POLYGON,
                     token_info[T_name].contract,
                     ret.address
                 )
             } else if (network == 'BTT') {
+                let web3UrlBTT = await bttConnexion()
                 balance.amount = await this.getBalance(
                     web3UrlBTT,
                     token_info[T_name].contract,
                     ret.address
                 )
             } else if (network == 'TRON') {
+                let Web3TRON = await webTronInstance()
                 balance.amount = await this.getTronBalance(
                     Web3TRON,
                     token_info[T_name].contract,
