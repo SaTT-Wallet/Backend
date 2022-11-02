@@ -720,7 +720,7 @@ exports.apply = async (req, res) => {
     var id = req.user._id
     var pass = req.body.pass
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
-    var campaignDetails = await Campaigns.findOne({ hash }).lean();
+    var campaignDetails = await Campaigns.findOne({ hash }).lean()
 
     try {
         let promExist = await CampaignLink.findOne({
@@ -1668,7 +1668,7 @@ module.exports.increaseBudget = async (req, res) => {
         cred && lock(cred)
         if (ret?.transactionHash) {
             const ctr = await getCampaignContractByHashCampaign(hash, cred)
-            let fundsInfo = await ctr.methods.campaigns(idCampaign).call()
+            let fundsInfo = await ctr.methods.campaigns(hash).call()
             await Campaigns.findOne({ hash: hash }, async (err, result) => {
                 let budget = new Big(result.cost)
                     .plus(new Big(amount))

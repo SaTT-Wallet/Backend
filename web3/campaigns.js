@@ -1312,7 +1312,10 @@ exports.updatePromStats = async (idProm, credentials, tronWeb) => {
             idProm: idProm,
             events: receipt.events,
         }
-    } catch (err) {}
+    } catch (err) {
+       console.log(err)
+       return {error :err}
+    }
 }
 
 exports.getTransactionAmount = async (
@@ -1336,7 +1339,7 @@ exports.getTransactionAmount = async (
     } catch (e) {}
 }
 
-exports.campaignStatus = (campaign) => {
+exports.campaignStatus = campaign => {
     try {
         let type = ''
         let dateNow = Math.floor(new Date().getTime() / 1000)
