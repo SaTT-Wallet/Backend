@@ -215,11 +215,13 @@ exports.automaticRjectLink = async _ => {
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
-    if (!socialOracle)
+    if (!socialOracle){
         delete obj.views,
-            delete obj.likes,
-            delete obj.shares,
-            delete obj.totalToEarn
+        delete obj.likes,
+        delete obj.shares,
+        delete obj.totalToEarn
+    }
+        
     await CampaignLink.findOne(
         { id_prom: obj.id_prom },
         async (err, result) => {
