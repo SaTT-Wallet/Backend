@@ -13,28 +13,87 @@ var debug = require('debug')('myapp:server')
 var https = require('https');
 const packagejson = require('../package.json');
 
+const os = require("os");
+const cluster = require("cluster");
+
+const clusterWorkerSize = os.cpus().length;
+
 /**
  * Get port from environment and store in Express.
  */
 
+ const start = async () => {
 
-var port = normalizePort(process.env.LISTEN_PORT || '3015');
-app.set('port', port);
+    var port = normalizePort(process.env.LISTEN_PORT || '3015');
+    app.set('port', port);
 
-/**
- * Create HTTP server.
- */
+    /**
+     * Create HTTP server.
+     */
 
-var server = https.createServer( {
-    key: fs.readFileSync(process.env.SSL_KEY, 'utf8'),
-    cert: fs.readFileSync(process.env.SSL_CER, 'utf8'),
-},app);
+    var server = https.createServer( {
+        key: fs.readFileSync(process.env.SSL_KEY, 'utf8'),
+        cert: fs.readFileSync(process.env.SSL_CER, 'utf8'),
+    },app);
 
-server.listen(port);
-console.log(`******** ${packagejson.name} ${packagejson.version} Listening on port ${server.address().port} ********`);
-//server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+    server.listen(port);
+    console.log(`******** ${packagejson.name} ${packagejson.version} Listening on port ${process.env.LISTEN_PORT} ********`);
+    //server.listen(port);
+    server.on('error', onError);
+    server.on('listening', onListening);
+
+    function onError(error) {
+        if (error.syscall !== 'listen') {
+            throw error;
+        }
+    
+        var bind = typeof port === 'string' ?
+            'Pipe ' + port :
+            'Port ' + port;
+    
+        // handle specific listen errors with friendly messages
+        switch (error.code) {
+            case 'EACCES':
+                console.error(bind + ' requires elevated privileges');
+                process.exit(1);
+                break;
+            case 'EADDRINUSE':
+                console.error(bind + ' is already in use');
+                process.exit(1);
+                break;
+            default:
+                throw error;
+        }
+    }
+    
+    /**
+     * Event listener for HTTP server "listening" event.
+     */
+    
+    function onListening() {
+        var addr = server.address();
+        var bind = typeof addr === 'string' ?
+            'pipe ' + addr :
+            'port ' + addr.port;
+        debug('Listening on ' + bind);
+    }
+ }
+
+ if (clusterWorkerSize > 1) {
+    if (cluster.isMaster) {
+        for (let i=0; i < clusterWorkerSize; i++) {
+            cluster.fork();
+        }
+
+        cluster.on("exit", function(worker) {
+            console.log("Worker", worker.id, " has exited.")
+        })
+    } else {
+        start();
+    }
+} else {
+    start();
+}
 
 /**
  * Normalize a port into a number, string, or false.
@@ -60,38 +119,4 @@ function normalizePort(val) {
  * Event listener for HTTP server "error" event.
  */
 
-function onError(error) {
-    if (error.syscall !== 'listen') {
-        throw error;
-    }
 
-    var bind = typeof port === 'string' ?
-        'Pipe ' + port :
-        'Port ' + port;
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-        case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
-        case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
-        default:
-            throw error;
-    }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string' ?
-        'pipe ' + addr :
-        'port ' + addr.port;
-    debug('Listening on ' + bind);
-}
