@@ -1,4 +1,4 @@
-const { User, Wallet, CustomToken,WalletUserNode } = require('../model/index')
+const { User, Wallet, CustomToken, WalletUserNode } = require('../model/index')
 
 const rp = require('request-promise')
 const path = require('path')
@@ -572,7 +572,7 @@ exports.checkWalletToken = async (req, res) => {
                 : network === 'polygon'
                 ? web3MATIC.eth
                 : Web3ETH.eth
-                
+
         let code = await networkToken.getCode(tokenAdress)
 
         if (code === '0x') {
@@ -945,8 +945,8 @@ module.exports.verifyMnemo = async (req, res) => {
 
 exports.createNewWallet = async (req, res) => {
     try {
-        var {_id} = req.user
-        let user = await User.findOne({ _id}, { password: 1 }).lean()
+        var { _id } = req.user
+        let user = await User.findOne({ _id }, { password: 1 }).lean()
         if (user.password === synfonyHash(req.body.pass)) {
             return responseHandler.makeResponseError(res, 401, 'same password')
         } else if (req.user.hasWallet) {
@@ -968,7 +968,7 @@ exports.createNewWallet = async (req, res) => {
         )
     } finally {
         if (ret) {
-            await User.updateOne({ _id},{hasWallet: true})
+            await User.updateOne({ _id }, { hasWallet: true })
         }
     }
 }
@@ -1152,4 +1152,42 @@ exports.balanceStat = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
+}
+
+const { request } = require('http')
+
+exports.nbrHolder = async (req, res) => {
+    let address = '0xED9AB4198fEda48d5ED918a27b3f378D304dBb42'
+
+    const etherscanOPtion = {
+        method: 'GET',
+        uri: process.env.ETHERSCAN_APIURL_ + address + '&action=txlistinternal',
+        json: true,
+        gzip: true,
+    }
+
+    var result = await rp(etherscanOPtion)
+
+    //  let  Web3ETH  = await erc20Connexion()
+
+    // let Web3BEP20 = await bep20Connexion()
+
+    // let add= "0xED9AB4198fEda48d5ED918a27b3f378D304dBb42"
+
+    // let TransactionCountEth= await Web3BEP20.eth.getTransactionCount(add,  function(error, txCount) {
+
+    //     console.log("txCount", txCount);
+    //     // your code
+    //  });
+    // console.log("TransactionCountEth", TransactionCountEth);
+
+    console.log('result', result)
+
+    return responseHandler.makeResponseData(res, 200, 'success', result)
+}
+
+exports.countWallets = async (req, res) => {
+    let countWallets = await Wallet.count()
+
+    return responseHandler.makeResponseData(res, 200, 'success', countWallets)
 }
