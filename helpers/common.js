@@ -46,6 +46,7 @@ const {
     answerAbos,
 } = require('../manager/oracles')
 const { TikTokProfile, FbProfile } = require('../model')
+const { ConnectionCheckedOutEvent } = require('mongodb')
 /*
 	@description: Script that change campaign and links statistics
 	*/
@@ -66,28 +67,26 @@ module.exports.updateStat = async () => {
         }
     )
 
-    campaigns.forEach(async (campaign) => {
-        campaign &&
-            (await Campaigns.updateOne(
-                { _id: campaign._id },
-                { $set: { type: campaignStatus(campaign),launchDate : new Date(campaign.startDate * 1000).toISOString() } }
-            ))
-        campaign = campaign._doc
-    })
-    var campaignList = await Campaigns.find({
-        hash: { $exists: true },
-        type: { $ne: 'finished' },
-    })
+
+   for(let campaign of campaigns){
+    if(!campaign) continue;
+    let type = campaignStatus(campaign)
+    await Campaigns.updateOne(
+        { _id: campaign._id },
+        { $set: { type,launchDate : new Date(campaign.startDate * 1000).toISOString() } }
+    )
+    campaign.type = type;
+   }
+
     var Events = await CampaignLink.find()
     let eventLint = []
     Events.forEach((event) => {
-        const result = campaignList.find(
+        const result = campaigns.find(
             (campaign) =>
-                event.id_campaign === campaign.hash &&
-                campaign.type !== 'finished'
+                event.id_campaign === campaign.hash 
         )
 
-        if (result && result.toObject()) {
+        if (result?.toObject()) {
             eventLint.push({ ...event.toObject(), campaign: result.toObject() })
         }
     })
@@ -215,11 +214,13 @@ exports.automaticRjectLink = async _ => {
 }
 
 exports.UpdateStats = async (obj, socialOracle) => {
-    if (!socialOracle)
+    if (!socialOracle){
         delete obj.views,
-            delete obj.likes,
-            delete obj.shares,
-            delete obj.totalToEarn
+        delete obj.likes,
+        delete obj.shares,
+        delete obj.totalToEarn
+    }
+        
     await CampaignLink.findOne(
         { id_prom: obj.id_prom },
         async (err, result) => {
