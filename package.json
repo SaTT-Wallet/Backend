@@ -33,6 +33,7 @@
         "chai": "^4.3.6",
         "chai-as-promised": "^7.1.1",
         "child_process": "^1.0.2",
+        "cluster": "^0.7.7",
         "coinselect": "^3.1.11",
         "connect": "^3.7.0",
         "content-disposition": "^0.5.4",
