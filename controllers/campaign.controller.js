@@ -2426,6 +2426,7 @@ module.exports.campaignsStatistics = async (req, res) => {
         let totalPayed = new Big(0)
         let tvl = 0
         let Crypto = await getPrices()
+
         let SATT = Crypto['SATT']
         let SATTBEP20 = Crypto['OMG']
 
@@ -2506,6 +2507,7 @@ module.exports.campaignsStatistics = async (req, res) => {
         }
 
         let result = {
+            volume_24h: SATT.volume_24h,
             marketCap: SATT.market_cap,
             sattPrice: SATT.price,
             percentChange: SATT.percent_change_24h,
