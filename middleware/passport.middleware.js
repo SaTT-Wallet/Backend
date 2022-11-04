@@ -628,9 +628,14 @@ exports.twitterAuthSignup = async (
 
     let user = await User.findOne({ idOnSn: profile.id })
 
+    console.log('user', user)
+
+    console.log('profile', profile)
+
     if (user) {
         await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
     } else {
+        console.log('not exist', profile)
         let createdUser = createUser(
             1,
             7,
@@ -641,7 +646,7 @@ exports.twitterAuthSignup = async (
             '',
             'idOnSn3',
             profile.id,
-            profile.username,
+            profile.displayName,
             ''
         )
         let user = await new User(createdUser).save()
