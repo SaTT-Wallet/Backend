@@ -190,8 +190,14 @@ exports.getAccount = async (req, res) => {
         let tronAddress = account.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
-        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] = await Promise.all([erc20Connexion(),bep20Connexion(),polygonConnexion(),bttConnexion(),webTronInstance()])
-    
+        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
+            await Promise.all([
+                erc20Connexion(),
+                bep20Connexion(),
+                polygonConnexion(),
+                bttConnexion(),
+                webTronInstance(),
+            ])
 
         let contractSatt = null
         if (Web3ETH) {
@@ -201,18 +207,17 @@ exports.getAccount = async (req, res) => {
             )
         }
 
-            let tronPromise = !!tronAddress
-                ? tronWeb?.trx.getBalance(tronAddress)
-                : new Promise((resolve, reject) => {
-                      resolve(null)
-                  })
-        
-           let sattPromise = !!contractSatt
-                ? contractSatt.methods.balanceOf(address).call()
-                : new Promise((resolve, reject) => {
-                      resolve(null)
-                  })
-    
+        let tronPromise = !!tronAddress
+            ? tronWeb?.trx.getBalance(tronAddress)
+            : new Promise((resolve, reject) => {
+                  resolve(null)
+              })
+
+        let sattPromise = !!contractSatt
+            ? contractSatt.methods.balanceOf(address).call()
+            : new Promise((resolve, reject) => {
+                  resolve(null)
+              })
 
         let [
             ether_balance,
@@ -221,7 +226,14 @@ exports.getAccount = async (req, res) => {
             btt_balance,
             trx_balance,
             satt_balance,
-        ] = await Promise.all([Web3ETH?.eth.getBalance(address),Web3BEP20?.eth.getBalance(address),Web3POLYGON?.eth.getBalance(address),web3UrlBTT?.eth.getBalance(address),tronPromise,sattPromise])
+        ] = await Promise.all([
+            Web3ETH?.eth.getBalance(address),
+            Web3BEP20?.eth.getBalance(address),
+            Web3POLYGON?.eth.getBalance(address),
+            web3UrlBTT?.eth.getBalance(address),
+            tronPromise,
+            sattPromise,
+        ])
 
         var result = {
             btc: account.btc.addressSegWitCompat,
@@ -299,6 +311,7 @@ exports.getPrices = async () => {
             }
             let result = await Promise.all([rp(options), rp(options2)])
             var response = result[0]
+
             var responseSattJet = result[1]
             response.data.push(responseSattJet.data.SATT)
             response.data.push(responseSattJet.data.JET)
@@ -310,24 +323,48 @@ exports.getPrices = async () => {
                 if (elem.platform?.name === 'BNB') {
                     tokenAddress = elem.platform?.token_address
                 }
+                if (elem.name === 'SaTT') {
+                    obj = {
+                        network:
+                            (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                        tokenAddress: tokenAddress,
+                        symbol: elem.symbol,
+                        name: elem.name,
+                        price: elem.quote.USD.price,
+                        percent_change_24h: elem.quote.USD.percent_change_24h,
+                        market_cap: elem.quote.USD.market_cap,
+                        volume_24h: elem.quote.USD.volume_24h,
+                        circulating_supply: elem.circulating_supply,
+                        total_supply: elem.total_supply,
+                        max_supply: elem.max_supply,
 
-                obj = {
-                    network: (elem.platform?.name === 'BNB' && 'BEP20') || null,
-                    tokenAddress: tokenAddress,
-                    symbol: elem.symbol,
-                    name: elem.name,
-                    price: elem.quote.USD.price,
-                    percent_change_24h: elem.quote.USD.percent_change_24h,
-                    market_cap: elem.quote.USD.market_cap,
-                    volume_24h: elem.quote.USD.volume_24h,
-                    circulating_supply: elem.circulating_supply,
-                    total_supply: elem.total_supply,
-                    max_supply: elem.max_supply,
-                    logo:
-                        'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-                        elem.id +
-                        '.png',
-                }
+                        fully_diluted:
+                            responseSattJet.data.SATT.quote.USD
+                                .fully_diluted_market_cap,
+                        logo:
+                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                            elem.id +
+                            '.png',
+                    }
+                } else
+                    obj = {
+                        network:
+                            (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                        tokenAddress: tokenAddress,
+                        symbol: elem.symbol,
+                        name: elem.name,
+                        price: elem.quote.USD.price,
+                        percent_change_24h: elem.quote.USD.percent_change_24h,
+                        market_cap: elem.quote.USD.market_cap,
+                        volume_24h: elem.quote.USD.volume_24h,
+                        circulating_supply: elem.circulating_supply,
+                        total_supply: elem.total_supply,
+                        max_supply: elem.max_supply,
+                        logo:
+                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                            elem.id +
+                            '.png',
+                    }
 
                 return obj
             })
@@ -830,11 +867,11 @@ exports.getBalanceByUid = async (req, res) => {
 
         return { Total_balance }
     } catch (err) {
-           return responseHandler.makeResponseError(
-        		 res,
-        		 500,
-        		 err.message ? err.message : err.error
-        		 )
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1056,7 +1093,12 @@ exports.createSeed = async (req, res) => {
         }
         var count = await this.getCount()
 
-        let TronWallet = await this.getWalletTron(UserId, pass,account,mnemonic)
+        let TronWallet = await this.getWalletTron(
+            UserId,
+            pass,
+            account,
+            mnemonic
+        )
 
         await Wallet.create({
             UserId,
@@ -1064,7 +1106,7 @@ exports.createSeed = async (req, res) => {
             num: count,
             btc: btcWallet,
             mnemo: mnemonic,
-            tronAddress: TronWallet.addr
+            tronAddress: TronWallet.addr,
         })
 
         return {
@@ -1096,24 +1138,32 @@ exports.addWalletTron = async (req, res) => {
 
         return TronWallet
     } catch (error) {
-        return {error: error.message ? error.message : error.error}
+        return { error: error.message ? error.message : error.error }
     }
 }
 
-exports.getWalletTron = async (id, pass,keystoreWallet=false,mnemonic=null) => {
-    let wallet = await Wallet.findOne({ UserId: id },{keystore:1,mnemo:1}).lean();
+exports.getWalletTron = async (
+    id,
+    pass,
+    keystoreWallet = false,
+    mnemonic = null
+) => {
+    let wallet = await Wallet.findOne(
+        { UserId: id },
+        { keystore: 1, mnemo: 1 }
+    ).lean()
     const mnemos = wallet?.mnemo || mnemonic
     const walletKeyStore = wallet?.keystore || keystoreWallet
 
     if (walletKeyStore) {
         try {
-            let Web3ETH = await erc20Connexion();
+            let Web3ETH = await erc20Connexion()
             Web3ETH.eth.accounts.wallet.decrypt([walletKeyStore], pass)
         } catch (error) {
             return { error: 'Invalid Tron password' }
         }
     }
-    try{
+    try {
         const seed = bip39.mnemonicToSeedSync(mnemos, pass)
         const root = bip32.fromSeed(seed)
         const childTron = root.derivePath(pathTron)
@@ -1121,10 +1171,9 @@ exports.getWalletTron = async (id, pass,keystoreWallet=false,mnemonic=null) => {
         var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
         var tronAddrHex = tronWeb.address.toHex(tronAddr)
         return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
-    } catch(err){
-        return {err: err.message ? err.message : err.error}
+    } catch (err) {
+        return { err: err.message ? err.message : err.error }
     }
-   
 }
 
 exports.wrapNative = async (amount, credentials) => {

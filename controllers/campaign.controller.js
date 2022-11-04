@@ -2507,6 +2507,7 @@ module.exports.campaignsStatistics = async (req, res) => {
         }
 
         let result = {
+            fully_diluted: SATT.fully_diluted,
             volume_24h: SATT.volume_24h,
             marketCap: SATT.market_cap,
             sattPrice: SATT.price,
