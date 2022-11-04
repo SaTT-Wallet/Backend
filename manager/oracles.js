@@ -846,7 +846,7 @@ exports.getTotalToEarn = (socialStats, ratio) => {
             )
         let totalToEarn = '0'
         let payedAmount = socialStats.payedAmount || '0'
-        ratio.forEach((num) => {
+        ratio?.forEach((num) => {
             if (
                 num.oracle === socialStats.oracle ||
                 num.typeSN === socialStats.typeSN
@@ -855,7 +855,7 @@ exports.getTotalToEarn = (socialStats, ratio) => {
                     ? new Big(num['view']).times(socialStats.views)
                     : '0'
                 let like = socialStats.likes
-                    ? new Big(num['like']).times(socialStats.likes)
+                    ? new Big(num['like'] || '0').times(socialStats.likes || '0')
                     : '0'
                 let share = socialStats.shares
                     ? new Big(num['share']).times(socialStats.shares.toString())
