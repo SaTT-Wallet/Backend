@@ -913,7 +913,7 @@ exports.getReward = (result, bounties) => {
 
 exports.getButtonStatus = (link) => {
     try {
-        var type = ''
+      
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
 
