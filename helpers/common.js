@@ -186,6 +186,7 @@ module.exports.updateStat = async () => {
             if (event.campaign) event.type = getButtonStatus(event)
             delete event.campaign
             delete event.payedAmount
+            delete event._id
             await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }
