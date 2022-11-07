@@ -79,7 +79,7 @@ module.exports.updateStat = async () => {
    }
 
     var Events = await CampaignLink.find()
-    console.log("Eventsss",Events)
+  
     let eventLint = []
     Events.forEach((event) => {
         const result = campaigns.find(
@@ -94,7 +94,7 @@ module.exports.updateStat = async () => {
 
     let userWallet
     for (const event of eventLint) {
-        if (event.status === 'rejected') continue
+        if (event.status === 'rejected' || event.campaign?.type === "finished") continue
 
         userWallet =
             (event.id_wallet.indexOf('0x') >= 0 &&
@@ -160,7 +160,6 @@ module.exports.updateStat = async () => {
             }
 
             socialOracle === 'indisponible' && (event.status = 'indisponible');
-            
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
@@ -183,9 +182,9 @@ module.exports.updateStat = async () => {
             if (event.campaign.bounties.length && socialOracle) {
                 event.totalToEarn = getReward(event, event.campaign.bounties)
             }
-            console.log("befoooooore",event)
+           
           event.type = getButtonStatus(event)
-          console.log('afteeeer',event)
+         
            
             delete event.campaign
             delete event.payedAmount
