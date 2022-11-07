@@ -954,7 +954,7 @@ exports.addyoutubeChannel = async (
     var user_id = +req.query.state.split('|')[0]
     var res = await rp({
         uri: 'https://www.googleapis.com/youtube/v3/channels',
-        qs: { access_token: accessToken, part: 'snippet', mine: true },
+        qs: { access_token: accessToken, part: 'snippet,statistics', mine: true },
         json: true,
     })
     if (res.pageInfo.totalResults == 0) {
@@ -963,32 +963,24 @@ exports.addyoutubeChannel = async (
         })
     }
     var channelId = res.items[0].id
-    var channelGoogle = await GoogleProfile.find({
+    var channelGoogle = await GoogleProfile.findOne({
         channelId: channelId,
         UserId: user_id,
-    })
-    if (channelGoogle.length > 0) {
+    }).lean();
+    
+    if (channelGoogle) {
         return cb(null, profile, {
             message: 'account exist',
         })
     } else {
-        var result = await rp({
-            uri: 'https://www.googleapis.com/youtube/v3/channels',
-            qs: {
-                id: channelId,
-                key: process.env.GDA_TAP_API_KEY,
-                part: 'statistics,snippet',
-            },
-            json: true,
-        })
         user_google = {}
         user_google.refreshToken = refreshToken
         user_google.accessToken = accessToken
         user_google.UserId = user_id
         user_google.google_id = profile.id
-        user_google.channelTitle = result.items[0].snippet.title
-        user_google.channelImage = result.items[0].snippet.thumbnails
-        user_google.channelStatistics = result.items[0].statistics
+        user_google.channelTitle = res?.items[0]?.snippet.title
+        user_google.channelImage = res?.items[0]?.snippet.thumbnails
+        user_google.channelStatistics = res?.items[0]?.statistics
         user_google.channelId = channelId
         await GoogleProfile.create(user_google)
 
