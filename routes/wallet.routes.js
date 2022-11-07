@@ -28,7 +28,6 @@ const {
     balanceStat,
     exportWalletInfos,
     addTronWalletToExistingAccount,
-    transferTokensController30trx,
     gasPriceTrx,
     getGasPrice,
     exportTron,
@@ -344,45 +343,7 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *
  */
 router.post('/transferTokens', verifyAuth, transferTokensController)
-/**
- * @swagger
- * /wallet/30-transaction:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: transfer ALL TOKENS.
- *     description: transfer BTT <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               from:
- *                 type: string
- *               to:
- *                 type: string
- *               amount:
- *                 type: string
- *               tokenSymbol:
- *                 type: string
- *               tokenAddress:
- *                 type: string
- *               network:
- *                 type: string
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "401":
- *          description: code,<br>error:"not_enough_budget" /"wrong password"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/30-transaction', verifyAuth, transferTokensController30trx)
+
 /**
  * @swagger
  * /wallet/getQuote:

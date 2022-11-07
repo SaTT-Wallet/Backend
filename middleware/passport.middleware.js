@@ -963,11 +963,12 @@ exports.addyoutubeChannel = async (
         })
     }
     var channelId = res.items[0].id
-    var channelGoogle = await GoogleProfile.find({
+    var channelGoogle = await GoogleProfile.findOne({
         channelId: channelId,
         UserId: user_id,
-    })
-    if (channelGoogle.length > 0) {
+    }).lean();
+    
+    if (channelGoogle) {
         return cb(null, profile, {
             message: 'account exist',
         })
