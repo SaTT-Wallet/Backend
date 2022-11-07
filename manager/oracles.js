@@ -915,14 +915,17 @@ exports.getButtonStatus = (link) => {
         var type = ''
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
+
+        if (link.status === false)
+            return 'waiting_for_validation'
+
         if (link.totalToEarn) totalToEarn = link.totalToEarn
 
         if (link.reward)
             totalToEarn =
                 link.isPayed === false ? link.reward : link.payedAmount
 
-        if (link.status === false && !link.campaign.isFinished)
-            return 'waiting_for_validation'
+        
 
         if (
             link.isPayed === true ||
@@ -947,7 +950,7 @@ exports.getButtonStatus = (link) => {
                 new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign.bounties?.length)
         ) {
-            link.status = true
+            // link.status = true
             return 'harvest'
         }
 
