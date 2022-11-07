@@ -916,8 +916,11 @@ exports.getButtonStatus = (link) => {
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
 
-        if (link.status === false)
+        if (link.status === false){
+            console.log("false")
             return 'waiting_for_validation'
+        }
+            
 
         if (link.totalToEarn) totalToEarn = link.totalToEarn
 

@@ -78,7 +78,8 @@ module.exports.updateStat = async () => {
     campaign.type = type;
    }
 
-    var Events = await CampaignLink.find()
+    var Events = await CampaignLink.find({ id_prom: "0x6b2aae542d90eb6fb88b86addc5d92eb8467f1aa03a664c7a0601a8a7ad593d9" })
+    console.log("Eventsss",Events)
     let eventLint = []
     Events.forEach((event) => {
         const result = campaigns.find(
@@ -130,7 +131,8 @@ module.exports.updateStat = async () => {
             if (event.typeSN == '1') {
                 var facebookProfile = await FbProfile.findOne({
                     UserId: userWallet?.UserId,
-                })
+                },{accessToken:1}).lean();
+
                 await updateFacebookPages(
                     userWallet?.UserId,
                     facebookProfile?.accessToken,
@@ -180,9 +182,9 @@ module.exports.updateStat = async () => {
             if (event.campaign.bounties.length && socialOracle) {
                 event.totalToEarn = getReward(event, event.campaign.bounties)
             }
-
-            event.type = getButtonStatus(event)
-
+            console.log("befoooooore",event)
+          event.type = getButtonStatus(event)
+          console.log('afteeeer',event)
            
             delete event.campaign
             delete event.payedAmount
