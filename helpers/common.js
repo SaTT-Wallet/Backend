@@ -183,7 +183,7 @@ module.exports.updateStat = async () => {
 
             event.type = getButtonStatus(event)
 
-            if (event.campaign) event.type = getButtonStatus(event)
+           
             delete event.campaign
             delete event.payedAmount
             delete event._id
