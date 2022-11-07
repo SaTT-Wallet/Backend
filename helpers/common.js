@@ -187,6 +187,7 @@ module.exports.updateStat = async () => {
             delete event.campaign
             delete event.payedAmount
             delete event._id
+            delete event.status
             await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }
