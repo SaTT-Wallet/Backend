@@ -922,7 +922,7 @@ exports.getButtonStatus = (link) => {
             return 'waiting_for_validation'
         }
             
-        if (link.status === 'indisponible') return 'indisponible'
+      
 
         if (link.totalToEarn) totalToEarn = link.totalToEarn
 
@@ -958,6 +958,8 @@ exports.getButtonStatus = (link) => {
             // link.status = true
             return 'harvest'
         }
+
+        if (link.status === 'indisponible') return 'indisponible'
 
 
         if (link.status === 'rejected') return 'rejected'
