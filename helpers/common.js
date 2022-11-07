@@ -78,14 +78,7 @@ module.exports.updateStat = async () => {
     campaign.type = type;
    }
 
-    var Events = await CampaignLink.find({
-        $or: [
-            { id_prom: "0x6b2aae542d90eb6fb88b86addc5d92eb8467f1aa03a664c7a0601a8a7ad593d9" },
-            { id_prom: "0xed0b4dbcdd67570b6a4f03dfcc8249a46acf86787053f45cfe727464c239ebe7"},
-            { id_prom: "0x490a8ae5887217c223393e179a4f3cebb3dc67014fedb5d55614698f2d5ab0c0"},
-            { id_prom: "0xb0dbb4f6a7c7be7bdc163eca4a3510ec9296cc225a9e3200bde1783ef2e947d1"},
-        ],
-    })
+    var Events = await CampaignLink.find()
     console.log("Eventsss",Events)
     let eventLint = []
     Events.forEach((event) => {
