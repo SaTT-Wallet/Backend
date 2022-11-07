@@ -93,7 +93,7 @@ module.exports.updateStat = async () => {
 
     let userWallet
     for (const event of eventLint) {
-        if (event.status == 'rejected') continue
+        if (event.status === 'rejected') continue
 
         userWallet =
             (event.id_wallet.indexOf('0x') >= 0 &&
