@@ -1260,7 +1260,7 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
     }
 }
 
-exports.updatePromStats = async (idProm, credentials, tronWeb) => {
+exports.updatePromStats = async (idProm, credentials, tronWeb,res=null) => {
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(

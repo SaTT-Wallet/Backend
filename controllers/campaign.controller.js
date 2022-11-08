@@ -1245,7 +1245,13 @@ exports.gains = async (req, res) => {
                     var evts = await updatePromStats(
                         idProm,
                         credentials,
-                        tronWeb
+                        tronWeb,
+                        res
+                    )
+                    if(evts?.error)  return responseHandler.makeResponseError(
+                        res,
+                        500,
+                        evts.error.message ? evts.error.message : evts.error.error
                     )
 
                     var evt = evts.events[0]
