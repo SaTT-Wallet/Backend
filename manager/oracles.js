@@ -710,7 +710,7 @@ const instagram = async (UserId, link) => {
             }
         }
     } catch (err) {
-        console.err("instagram manager oracle",err)
+        console.error("instagram manager oracle",err)
     }
 }
 
