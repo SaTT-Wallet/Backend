@@ -791,7 +791,7 @@ const twitter = async (userName, idPost) => {
         return perf
     } catch (err) {
         console.error("error twitter oracles",err)
-        return err[0]?.message ==="Rate limit exceeded" ? "Rate limit exceeded'" :'indisponible'
+        return err[0]?.message ==="Rate limit exceeded" ? "Rate limit exceeded" :'indisponible'
     }
 }
 
