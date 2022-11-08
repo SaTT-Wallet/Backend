@@ -31,6 +31,8 @@ const {
     gasPriceTrx,
     getGasPrice,
     exportTron,
+    nbrHolder,
+    countWallets,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -682,6 +684,24 @@ router.delete('/removeToken/:tokenAddress', verifyAuth, removeToken)
  *          description: code,<br>error:"error"
  */
 router.get('/transaction_history/:address', getTransactionHistory)
+
+/**
+ * @swagger
+ * /wallet/countWallets:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: total wallets.
+ *     description: render satt total wallets.
+
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+
+router.get('/countWallets', countWallets)
 
 /**
  * @swagger
