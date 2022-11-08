@@ -695,10 +695,10 @@ const instagram = async (UserId, link) => {
                                 json: true,
                             })
                             let nbviews = JSON.stringify(resMediaViews)
-                            perf?.views =
-                                JSON.parse(nbviews).data[0].values[0].value
+                            perf.views =
+                                JSON.parse(nbviews).data[0].values[0].value || 0
                         } catch (error) {
-                            perf?.views = 0
+                            perf.views = 0
                             return perf
                         }
                         break
