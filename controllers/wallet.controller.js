@@ -1059,38 +1059,6 @@ exports.balanceStat = async (req, res) => {
     }
 }
 
-const { request } = require('http')
-
-exports.nbrHolder = async (req, res) => {
-    let address = '0xED9AB4198fEda48d5ED918a27b3f378D304dBb42'
-
-    const etherscanOPtion = {
-        method: 'GET',
-        uri: process.env.ETHERSCAN_APIURL_ + address + '&action=txlistinternal',
-        json: true,
-        gzip: true,
-    }
-
-    var result = await rp(etherscanOPtion)
-
-    //  let  Web3ETH  = await erc20Connexion()
-
-    // let Web3BEP20 = await bep20Connexion()
-
-    // let add= "0xED9AB4198fEda48d5ED918a27b3f378D304dBb42"
-
-    // let TransactionCountEth= await Web3BEP20.eth.getTransactionCount(add,  function(error, txCount) {
-
-    //     console.log("txCount", txCount);
-    //     // your code
-    //  });
-    // console.log("TransactionCountEth", TransactionCountEth);
-
-    console.log('result', result)
-
-    return responseHandler.makeResponseData(res, 200, 'success', result)
-}
-
 exports.countWallets = async (req, res) => {
     let countWallets = await Wallet.count()
 

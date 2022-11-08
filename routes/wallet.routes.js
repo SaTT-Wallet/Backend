@@ -687,25 +687,6 @@ router.get('/transaction_history/:address', getTransactionHistory)
 
 /**
  * @swagger
- * /wallet/stats:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: status balance.
- *     description: user get his hitorics of balance.
-
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.get('/stats', verifyAuth, balanceStat)
-
-router.get('/nbrHolder', nbrHolder)
-
-/**
- * @swagger
  * /wallet/countWallets:
  *   get:
  *     tags:
@@ -721,5 +702,22 @@ router.get('/nbrHolder', nbrHolder)
  */
 
 router.get('/countWallets', countWallets)
+
+/**
+ * @swagger
+ * /wallet/stats:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: status balance.
+ *     description: user get his hitorics of balance.
+
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.get('/stats', verifyAuth, balanceStat)
 
 module.exports = router
