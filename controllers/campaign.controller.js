@@ -1225,10 +1225,10 @@ exports.gains = async (req, res) => {
 
             var abos = link.abosNumber
             if (stats) stats = limitStats(prom.typeSN, stats, ratios, abos, '')
-            stats?.views = stats?.views || 0
-            if (stats?.views === 'old') stats?.views = link?.views
-            stats?.shares = stats?.shares || 0
-            stats?.likes = stats?.likes || 0
+            stats.views = stats?.views || 0
+            if (stats.views === 'old') stats.views = link?.views
+            stats.shares = stats?.shares || 0
+            stats.likes = stats?.likes || 0
 
             requests = await Request.find({
                 new: true,
