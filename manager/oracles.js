@@ -695,10 +695,10 @@ const instagram = async (UserId, link) => {
                                 json: true,
                             })
                             let nbviews = JSON.stringify(resMediaViews)
-                            perf.views =
+                            perf?.views =
                                 JSON.parse(nbviews).data[0].values[0].value
                         } catch (error) {
-                            perf.views = 0
+                            perf?.views = 0
                             return perf
                         }
                         break
@@ -791,7 +791,7 @@ const twitter = async (userName, idPost) => {
         return perf
     } catch (err) {
         console.error("error twitter oracles",err)
-        return 'indisponible'
+        return err[0]?.message ==="Rate limit exceeded" ? "Rate limit exceeded" :'indisponible'
     }
 }
 
@@ -1155,7 +1155,7 @@ exports.answerCall = async (opts) => {
                     opts.idRequest,
                     opts.likes,
                     opts.shares,
-                    opts.views
+                    opts?.views
                 )
                 .send({
                     feeLimit: 100_000_000,
@@ -1204,7 +1204,9 @@ exports.answerCall = async (opts) => {
             })
             .once('transactionHash', function (hash) {})
         return { result: 'OK', hash: receipt.hash }
-    } catch (error) {}
+    } catch (error) {
+        console.error("answerCall",error)
+    }
 }
 exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
     try {

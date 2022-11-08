@@ -1225,10 +1225,10 @@ exports.gains = async (req, res) => {
 
             var abos = link.abosNumber
             if (stats) stats = limitStats(prom.typeSN, stats, ratios, abos, '')
-            stats.views = stats.views || 0
-            if (stats.views === 'old') stats.views = link.views
-            stats.shares = stats.shares || 0
-            stats.likes = stats.likes || 0
+            stats?.views = stats?.views || 0
+            if (stats?.views === 'old') stats?.views = link?.views
+            stats?.shares = stats?.shares || 0
+            stats?.likes = stats?.likes || 0
 
             requests = await Request.find({
                 new: true,
@@ -1241,9 +1241,9 @@ exports.gains = async (req, res) => {
             if (!requests.length) {
                 if (
                     !prevstat.length ||
-                    stats.likes != prevstat[0].likes ||
-                    stats.shares != prevstat[0].shares ||
-                    stats.views != prevstat[0].views
+                    stats?.likes != prevstat[0]?.likes ||
+                    stats?.shares != prevstat[0]?.shares ||
+                    stats?.views != prevstat[0]?.views
                 ) {
                     var evts = await updatePromStats(
                         idProm,
@@ -1265,7 +1265,7 @@ exports.gains = async (req, res) => {
                             id: requests[0].id,
                             likes: stats.likes,
                             shares: stats.shares,
-                            views: stats.views,
+                            views: stats?.views,
                             new: false,
                             date: Date.now(),
                             typeSN: prom.typeSN,
@@ -1289,7 +1289,7 @@ exports.gains = async (req, res) => {
                     idRequest: requests[0].id,
                     likes: stats.likes,
                     shares: stats.shares,
-                    views: stats.views,
+                    views: stats?.views,
                 })
             }
 
