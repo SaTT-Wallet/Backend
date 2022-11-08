@@ -709,7 +709,9 @@ const instagram = async (UserId, link) => {
                 return 'indisponible'
             }
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error("instagram manager oracle",err)
+    }
 }
 
 const twitter = async (userName, idPost) => {
