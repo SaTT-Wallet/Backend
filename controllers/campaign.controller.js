@@ -801,17 +801,14 @@ exports.apply = async (req, res) => {
             prom.id_prom = ret.idProm
             prom.typeSN = typeSN.toString()
             prom.idUser = idUser
-            prom.status = false
             if (media_url) prom.media_url = media_url
             if (prom.typeSN == 5) {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
             }
-            prom.type = 'waiting_for_validation'
             prom.id_wallet =
                 (!!tronWeb && walletAddr) || cred.address.toLowerCase()
             prom.idPost = idPost
             prom.id_campaign = hash
-            prom.isPayed = false
             prom.appliedDate = date
             prom.oracle = findBountyOracle(prom.typeSN)
             var insert = await CampaignLink.create(prom)
