@@ -159,11 +159,10 @@ module.exports.updateStat = async () => {
                 continue
             }
             
-              console.log(socialOracle)
             if(socialOracle === "Rate limit exceeded") continue;
 
             socialOracle === 'indisponible' && (event.status = 'indisponible');
-            if(socialOracle === 'indisponible') continue
+
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
                 event.likes = socialOracle?.likes || event.likes
