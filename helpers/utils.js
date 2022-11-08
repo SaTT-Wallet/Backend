@@ -153,6 +153,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             }
         }
 
+        
         if (event === 'emailValidation') {
             var replacements = {
                 satt_faq: process.env.SATT_FAQ,

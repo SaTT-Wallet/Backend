@@ -490,7 +490,7 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
  *         description: organization of linkedin channel.
  *         in: path
  *         required: true
- *       - name: linkedinId 
+ *       - name: linkedinId
  *         description: id of linkedin account.
  *         in: path
  *     responses:
@@ -684,7 +684,7 @@ passport.use(
 router.get(
     '/callback/addChannel/twitter',
     (req, res, next) => {
-        let redirect = req.session.state.split('|')[1]
+        let redirect = req.session?.state?.split('|')[1]
         if (!req.query.denied) next()
         else
             res.redirect(

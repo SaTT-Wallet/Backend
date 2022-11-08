@@ -299,7 +299,7 @@ exports.FindUserLegalProfile = async (req, res) => {
                 res.writeHead(200, {
                     'Content-type': contentType,
                     'Content-Length': file.length,
-                    'Content-Disposition': `attachment; filename=${file.filename}`,
+                    'Content-Disposition': contentDisposition(file.filename),
                 })
                 const readstream = gfsUserLegal.createReadStream(file.filename)
                 readstream.pipe(res)

@@ -79,6 +79,7 @@ module.exports.updateStat = async () => {
    }
 
     var Events = await CampaignLink.find()
+  
     let eventLint = []
     Events.forEach((event) => {
         const result = campaigns.find(
@@ -93,7 +94,7 @@ module.exports.updateStat = async () => {
 
     let userWallet
     for (const event of eventLint) {
-        if (event.status == 'rejected') continue
+        if (event.status === 'rejected' || event.campaign?.type === "finished") continue
 
         userWallet =
             (event.id_wallet.indexOf('0x') >= 0 &&
@@ -130,7 +131,8 @@ module.exports.updateStat = async () => {
             if (event.typeSN == '1') {
                 var facebookProfile = await FbProfile.findOne({
                     UserId: userWallet?.UserId,
-                })
+                },{accessToken:1}).lean();
+
                 await updateFacebookPages(
                     userWallet?.UserId,
                     facebookProfile?.accessToken,
@@ -153,11 +155,11 @@ module.exports.updateStat = async () => {
                     tiktokProfile
                 )
             } catch (e) {
+                console.error(e)
                 continue
             }
 
             socialOracle === 'indisponible' && (event.status = 'indisponible');
-            
 
             if (socialOracle && socialOracle !== 'indisponible') {
                 event.shares = socialOracle?.shares || event.shares
@@ -180,12 +182,14 @@ module.exports.updateStat = async () => {
             if (event.campaign.bounties.length && socialOracle) {
                 event.totalToEarn = getReward(event, event.campaign.bounties)
             }
-
-            event.type = getButtonStatus(event)
-
-            if (event.campaign) event.type = getButtonStatus(event)
+           
+          event.type = getButtonStatus(event)
+         
+           
             delete event.campaign
             delete event.payedAmount
+            delete event._id
+            delete event.status
             await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
         }
     }

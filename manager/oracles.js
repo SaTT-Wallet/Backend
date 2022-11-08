@@ -570,7 +570,7 @@ const facebook = async (pageName, idPost) => {
     } catch (err) {}
 }
 
-const youtube = async (idPost) => {
+const youtube = async idPost => {
     try {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
@@ -581,21 +581,18 @@ const youtube = async (idPost) => {
             qs: {
                 id: idPost,
                 key: oauth.google.gdataApiKey,
-                part: 'statistics',
+                part: 'statistics,snippet',
             },
         })
         var res = JSON.parse(body)
-        var media = await rp({
-            uri: `https://www.youtube.com/oembed?url=https%3A//youtube.com/watch%3Fv%3D${idPost}&format=json`,
-            json: true,
-        })
+        
         if (res.items && res.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
-                media_url: media?.thumbnail_url || ' ',
+                media_url: res.items[0]?.snippet?.thumbnails?.default?.url|| ' ',
             }
         }
 
@@ -793,6 +790,7 @@ const twitter = async (userName, idPost) => {
 
         return perf
     } catch (err) {
+        console.error("error twitter oracles",err)
         return 'indisponible'
     }
 }
@@ -849,7 +847,7 @@ exports.getTotalToEarn = (socialStats, ratio) => {
             )
         let totalToEarn = '0'
         let payedAmount = socialStats.payedAmount || '0'
-        ratio.forEach((num) => {
+        ratio?.forEach((num) => {
             if (
                 num.oracle === socialStats.oracle ||
                 num.typeSN === socialStats.typeSN
@@ -858,7 +856,7 @@ exports.getTotalToEarn = (socialStats, ratio) => {
                     ? new Big(num['view']).times(socialStats.views)
                     : '0'
                 let like = socialStats.likes
-                    ? new Big(num['like']).times(socialStats.likes)
+                    ? new Big(num['like'] || '0').times(socialStats.likes || '0')
                     : '0'
                 let share = socialStats.shares
                     ? new Big(num['share']).times(socialStats.shares.toString())
@@ -915,17 +913,24 @@ exports.getReward = (result, bounties) => {
 
 exports.getButtonStatus = (link) => {
     try {
-        var type = ''
+      
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
+
+        if (link.status === false){
+            console.log("false")
+            return 'waiting_for_validation'
+        }
+            
+      
+
         if (link.totalToEarn) totalToEarn = link.totalToEarn
 
         if (link.reward)
             totalToEarn =
                 link.isPayed === false ? link.reward : link.payedAmount
 
-        if (link.status === false && !link.campaign.isFinished)
-            return 'waiting_for_validation'
+        
 
         if (
             link.isPayed === true ||
@@ -950,11 +955,12 @@ exports.getButtonStatus = (link) => {
                 new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
                 link.campaign.bounties?.length)
         ) {
-            link.status = true
+            // link.status = true
             return 'harvest'
         }
 
         if (link.status === 'indisponible') return 'indisponible'
+
 
         if (link.status === 'rejected') return 'rejected'
 
