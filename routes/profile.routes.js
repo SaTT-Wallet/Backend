@@ -1,6 +1,6 @@
 var express = require('express')
 var app = express()
-
+const Twitter = require('twitter-lite');
 const passport = require('passport')
 var FbStrategy = require('passport-facebook').Strategy
 var TwitterStrategy = require('passport-twitter').Strategy
@@ -9,20 +9,29 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 var tikTokStrategy = require('passport-tiktok-auth').Strategy
 var session = require('express-session')
+const { config } = require('../conf/config')
 
 let router = express.Router()
 router.use(passport.initialize())
+
+const client = new Twitter({
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET
+  });
+
 
 var Long = require('mongodb').Long
 
 const { User } = require('../model/index')
 
 passport.serializeUser(function (user, cb) {
+
     cb(null, user)
 })
 
 passport.deserializeUser(async function (id, cb) {
     var user = await User.find({ _id: Long.fromNumber(id) })
+
     cb(null, user)
 })
 try {
@@ -660,17 +669,33 @@ router.get('/tiktokAbos/:userId', tiktokApiAbos)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/twitter/:idUser', (req, res, next) => {
-    var state = req.params.idUser + '|' + req.query.redirect
-    req.session.state = state
-    passport.authenticate('twitter_strategy_add_channel', {
-        scope: ['profile', 'email'],
-        accessType: 'offline',
-        prompt: 'consent',
-        state: state,
-    })(req, res, next)
+router.get('/addChannel/twitter/:idUser', async (req, res) => {
+    // var state = req.params.idUser + '|' + req.query.redirect
+    // // req.session.state = state
+    // passport.authenticate('twitter_strategy_add_channel', {
+    //     scope: ['profile', 'email'],
+    //     accessType: 'offline',
+    //     prompt: 'consent',
+    //     state: state,
+    // })(req, res, next)
+    const requestedData = await client.getRequestToken("https://api-preprod2.satt-token.com/profile/callback/addChannel/twitter" +`?u=${req.params.idUser }&r=${req.query.redirect}`);
+    res.redirect(config.twitterAuthUrl(requestedData.oauth_token));
+
 })
 
+// module.exports.requestTokenTwitter = async (request, reply) => {
+//     try {
+//       const {auth_type} = request.query;
+//       let user_id = request.query.u ??"";
+//       let influenceId = request.query.i ??"";
+//       const r = request.query?.r; 
+//      // This is the first step in the OAuth 1.0a 3-legged OAuth flow oauth/request_token
+//      const requestedData = await client.getRequestToken(" https://api-preprod2.satt-token.com/profile/callback/addChannel/twitter" +`?i=${influenceId}&u=${user_id}&r=${r}`);
+//       reply.redirect(config.twitterAuthUrl(requestedData.oauth_token));
+//     }catch(e){
+//      reply.send(e);
+//    }
+//   }
 passport.use(
     'twitter_strategy_add_channel',
     new TwitterStrategy(
@@ -681,7 +706,7 @@ passport.use(
     )
 )
 
-router.get(
+/*router.get(
     '/callback/addChannel/twitter',
     (req, res, next) => {
         let redirect = req.session?.state?.split('|')[1]
@@ -715,7 +740,10 @@ router.get(
             )
         } catch (e) {}
     }
-)
+)*/
+router.get(
+    '/callback/addChannel/twitter',addTwitterChannel)
+
 
 /**
  * @swagger
