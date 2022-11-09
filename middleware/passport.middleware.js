@@ -17,7 +17,7 @@ const { responseHandler } = require('../helpers/response-handler')
 const Tweeter = require('twitter-lite');
 const { config,twitterAuth } = require('../conf/config')
 
-const client = new Twitter({
+const client = new Tweeter({
     consumer_key: process.env.TWITTER_CONSUMER_KEY,
     consumer_secret: process.env.TWITTER_CONSUMER_SECRET
   });
@@ -825,6 +825,7 @@ exports.addTwitterChannel = async (
     res
 ) => {
     let user_id = +req.query.u
+    let redirect = req.query.r
 console.log('add twitter channel',req.query)
     // var tweet = new Twitter({
     //     consumer_key: process.env.TWITTER_CONSUMER_KEY,
