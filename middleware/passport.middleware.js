@@ -858,13 +858,16 @@ console.log('add twitter channel',req.query)
                 '&sn=twitter'
         )
     } else {
+        let profile = {}
         profile.access_token_key = twitterAccount.oauth_token
         profile.access_token_secret = twitterAccount.oauth_token_secret
         profile.UserId = user_id
         profile.username = userData.screen_name
         profile.subscibers = userData.followers_count
         profile.twitter_id = userData.id
-
+        profile.displayName = userData.name
+        profile.photos = [{value : userData.profile_image_url}]
+        profile._json.followers_count = userData.followers_count
         await TwitterProfile.create(profile)
     }
     // return cb(null, { id: user_id })
