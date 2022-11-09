@@ -5,7 +5,7 @@ var LocalStrategy = require('passport-local').Strategy
 var Long = require('mongodb').Long
 const crypto = require('crypto')
 const hasha = require('hasha')
-var rp = require('request-promise')
+var rp = require('req-promise')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 var FbProfile = require('../model/fbProfile.model')
@@ -14,6 +14,29 @@ var GoogleProfile = require('../model/googleProfile.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
 var TikTokProfile = require('../model/tikTokProfile.model')
 const { responseHandler } = require('../helpers/response-handler')
+const Tweeter = require('twitter-lite');
+const { config } = require('../conf/config')
+
+const client = new Twitter({
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET
+  });
+  
+  
+  const twitterOauth = (oauth_verifier,oauth_token)=>{
+    return new Promise(async(resolve, reject) => {
+      try{
+        const twitterAccount = await client.getAccessToken({
+          oauth_verifier,
+          oauth_token
+        });
+        resolve(twitterAccount);
+      }catch (e) {
+        reject({message:e.message});
+      }      
+    }) 
+  }
+
 
 var requirement = require('../helpers/utils')
 
@@ -36,7 +59,6 @@ const {
     linkedinAbos,
     tiktokAbos,
 } = require('../manager/oracles')
-const { config } = require('../conf/config')
 const { Wallet } = require('../model')
 const { profile } = require('winston')
 
@@ -100,7 +122,7 @@ let createUser = (
     userObject.idSn = idSn
     userObject.newsLetter = newsLetter ?? false
     if (picLink) userObject.picLink = picLink
-    ;(userObject.username = username), (userObject.email = email)
+    ;(userObject.username = username || '' ), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
     if (lang) userObject.lang = lang
@@ -796,41 +818,62 @@ exports.addFacebookChannel = async (
  */
 exports.addTwitterChannel = async (
     req,
-    accessToken,
-    tokenSecret,
-    profile,
-    cb
+    // accessToken,
+    // tokenSecret,
+    // profile,
+    // cb
+    res
 ) => {
-    let user_id = +req.session.state.split('|')[0]
+    let user_id = +req.query.u
+console.log('add twitter channel',req.query)
+    // var tweet = new Twitter({
+    //     consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    //     consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+    //     access_token_key: accessToken,
+    //     access_token_secret: tokenSecret,
+    // })
+    // var res = await tweet.get('account/verify_credentials', {
+    //     include_email: true,
+    // })
+       const {oauth_verifier,oauth_token} =  req.query;
+        var twitterAccount = await twitterOauth(oauth_verifier,oauth_token);
+        const userAuth = new Twitter(config.twitterAuth(twitterAccount.oauth_token,twitterAccount.oauth_token_secret));
+        var userData = await userAuth.get("account/verify_credentials",{include_email :true});
 
-    var tweet = new Twitter({
-        consumer_key: process.env.TWITTER_CONSUMER_KEY,
-        consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-        access_token_key: accessToken,
-        access_token_secret: tokenSecret,
-    })
-    var res = await tweet.get('account/verify_credentials', {
-        include_email: true,
-    })
     var twitterProfile = await TwitterProfile.findOne({
-        $and: [{ UserId: user_id }, { twitter_id: res.id }],
-    })
+        $and: [{ UserId: user_id }, { twitter_id: userData.id }],
+    }).lean();
+
     if (twitterProfile) {
-        return cb(null, profile, {
-            status: false,
-            message: 'account exist',
-        })
+        // return cb(null, profile, {
+        //     status: false,
+        //     message: 'account exist',
+        // })
+     return  res.redirect(
+            process.env.BASED_URL +
+                redirect +
+                '?message=' +
+                'account exist' +
+                '&sn=twitter'
+        )
     } else {
-        profile.access_token_key = accessToken
-        profile.access_token_secret = tokenSecret
+        profile.access_token_key = twitterAccount.oauth_token
+        profile.access_token_secret = twitterAccount.oauth_token_secret
         profile.UserId = user_id
-        profile.username = res.screen_name
-        profile.subscibers = res.followers_count
-        profile.twitter_id = res.id
+        profile.username = userData.screen_name
+        profile.subscibers = userData.followers_count
+        profile.twitter_id = userData.id
 
         await TwitterProfile.create(profile)
     }
-    return cb(null, { id: user_id })
+    // return cb(null, { id: user_id })
+    res.redirect(
+        process.env.BASED_URL +
+            redirect +
+            '?message=' +
+            'account_linked_with_success' +
+            '&sn=twitter'
+    )
 }
 /*
  * end add twitter channel strategy
