@@ -1246,17 +1246,7 @@ let config = {
             },
             mac: 'f96ff770a448732ff6abee63caefd3e93ce88c79b3a9d31e74d2d49029f13639',
         },
-    },
-    twitterAuthUrl:"https://api.twitter.com/oauth/authenticate?oauth_token=",
-
-twitterAuth : (oauth_token,oauth_token_secret)=> {
-    return {
-        consumer_key: process.env.TWITTER_CONSUMER_KEY, // from Twitter.
-        consumer_secret: process.env.TWITTER_CONSUMER_SECRET, // from Twitter.
-        access_token_key: oauth_token, // from our User (oauth_token)
-        access_token_secret: oauth_token_secret // from our User (oauth_token_secret)
-      }
-}
+    }
 }
 
 let oauth = {
@@ -1350,6 +1340,17 @@ exports.facebookCredentials = (callback) => {
         ],
         passReqToCallback: true,
     }
+}
+
+exports.twitterAuthUrl="https://api.twitter.com/oauth/authenticate?oauth_token=",
+
+exports.twitterAuth = (oauth_token,oauth_token_secret)=> {
+    return {
+        consumer_key: process.env.TWITTER_CONSUMER_KEY, // from Twitter.
+        consumer_secret: process.env.TWITTER_CONSUMER_SECRET, // from Twitter.
+        access_token_key: oauth_token, // from our User (oauth_token)
+        access_token_secret: oauth_token_secret // from our User (oauth_token_secret)
+      }
 }
 
 exports.googleCredentials = (callback) => {
