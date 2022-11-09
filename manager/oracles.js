@@ -515,7 +515,9 @@ exports.getPromApplyStats = async (
 
         delete socialOracle.date
         return socialOracle
-    } catch (err) {}
+    } catch (err) {
+        console.error("getPromApplyStats",err)
+    }
 }
 
 const facebook = async (pageName, idPost) => {
@@ -828,7 +830,9 @@ const tiktok = async (tiktokProfile, idPost) => {
             media_url:
                 videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
         }
-    } catch (error) {}
+    } catch (error) {
+        console.error("tiktok fetch stats",error)
+    }
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
     try {
