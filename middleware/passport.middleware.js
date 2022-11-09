@@ -858,7 +858,7 @@ console.log('add twitter channel',req.query)
                 '&sn=twitter'
         )
     } else {
-        let profile = {}
+        let profile = {_json:{}}
         profile.access_token_key = twitterAccount.oauth_token
         profile.access_token_secret = twitterAccount.oauth_token_secret
         profile.UserId = user_id
