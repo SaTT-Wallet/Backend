@@ -1342,7 +1342,7 @@ exports.facebookCredentials = (callback) => {
     }
 }
 
-exports.twitterAuthUrl="https://api.twitter.com/oauth/authenticate?oauth_token=",
+exports.twitterAuthUrl = oauth_token=>`https://api.twitter.com/oauth/authenticate?oauth_token=${oauth_token}`;
 
 exports.twitterAuth = (oauth_token,oauth_token_secret)=> {
     return {
