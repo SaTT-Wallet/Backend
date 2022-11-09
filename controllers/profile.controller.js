@@ -904,7 +904,7 @@ module.exports.verifyLink = async (req, response) => {
         var res = false
         switch (typeSN) {
             case '1':
-                let fbProfile = await FbProfile.findOne({ UserId: userId })
+                let fbProfile = await FbProfile.findOne({ UserId: userId },{accessToken:1}).lean()
                 await updateFacebookPages(userId, fbProfile.accessToken, false)
                 let fbPage = await FbPage.findOne({
                     UserId: userId,
