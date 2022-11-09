@@ -683,19 +683,6 @@ router.get('/addChannel/twitter/:idUser', async (req, res) => {
 
 })
 
-// module.exports.requestTokenTwitter = async (request, reply) => {
-//     try {
-//       const {auth_type} = request.query;
-//       let user_id = request.query.u ??"";
-//       let influenceId = request.query.i ??"";
-//       const r = request.query?.r; 
-//      // This is the first step in the OAuth 1.0a 3-legged OAuth flow oauth/request_token
-//      const requestedData = await client.getRequestToken(" https://api-preprod2.satt-token.com/profile/callback/addChannel/twitter" +`?i=${influenceId}&u=${user_id}&r=${r}`);
-//       reply.redirect(config.twitterAuthUrl(requestedData.oauth_token));
-//     }catch(e){
-//      reply.send(e);
-//    }
-//   }
 passport.use(
     'twitter_strategy_add_channel',
     new TwitterStrategy(
