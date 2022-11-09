@@ -9,7 +9,7 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 var tikTokStrategy = require('passport-tiktok-auth').Strategy
 var session = require('express-session')
-const { config } = require('../conf/config')
+const { config,twitterAuthUrl } = require('../conf/config')
 
 let router = express.Router()
 router.use(passport.initialize())
@@ -679,7 +679,7 @@ router.get('/addChannel/twitter/:idUser', async (req, res) => {
     //     state: state,
     // })(req, res, next)
     const requestedData = await client.getRequestToken("https://api-preprod2.satt-token.com/profile/callback/addChannel/twitter" +`?u=${req.params.idUser }&r=${req.query.redirect}`);
-    res.redirect(config.twitterAuthUrl(requestedData.oauth_token));
+    res.redirect(twitterAuthUrl(requestedData.oauth_token));
 
 })
 

@@ -15,7 +15,7 @@ var LinkedinProfile = require('../model/linkedinProfile.model')
 var TikTokProfile = require('../model/tikTokProfile.model')
 const { responseHandler } = require('../helpers/response-handler')
 const Tweeter = require('twitter-lite');
-const { config } = require('../conf/config')
+const { config,twitterAuth } = require('../conf/config')
 
 const client = new Twitter({
     consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -837,7 +837,7 @@ console.log('add twitter channel',req.query)
     // })
        const {oauth_verifier,oauth_token} =  req.query;
         var twitterAccount = await twitterOauth(oauth_verifier,oauth_token);
-        const userAuth = new Twitter(config.twitterAuth(twitterAccount.oauth_token,twitterAccount.oauth_token_secret));
+        const userAuth = new Twitter(twitterAuth(twitterAccount.oauth_token,twitterAccount.oauth_token_secret));
         var userData = await userAuth.get("account/verify_credentials",{include_email :true});
 
     var twitterProfile = await TwitterProfile.findOne({
