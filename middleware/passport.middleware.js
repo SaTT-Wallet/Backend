@@ -100,7 +100,7 @@ let createUser = (
     userObject.idSn = idSn
     userObject.newsLetter = newsLetter ?? false
     if (picLink) userObject.picLink = picLink
-    ;(userObject.username = username), (userObject.email = email)
+    ;(userObject.username = username || ''), (userObject.email = email)
     if (idOnSn && socialId) userObject[idOnSn] = socialId
     if (firstName) userObject.firstName = firstName
     if (lang) userObject.lang = lang
@@ -954,7 +954,11 @@ exports.addyoutubeChannel = async (
     var user_id = +req.query.state.split('|')[0]
     var res = await rp({
         uri: 'https://www.googleapis.com/youtube/v3/channels',
-        qs: { access_token: accessToken, part: 'snippet,statistics', mine: true },
+        qs: {
+            access_token: accessToken,
+            part: 'snippet,statistics',
+            mine: true,
+        },
         json: true,
     })
     if (res.pageInfo.totalResults == 0) {
@@ -966,8 +970,8 @@ exports.addyoutubeChannel = async (
     var channelGoogle = await GoogleProfile.findOne({
         channelId: channelId,
         UserId: user_id,
-    }).lean();
-    
+    }).lean()
+
     if (channelGoogle) {
         return cb(null, profile, {
             message: 'account exist',
