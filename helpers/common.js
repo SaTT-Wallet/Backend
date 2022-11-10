@@ -78,7 +78,7 @@ module.exports.updateStat = async () => {
     campaign.type = type;
    }
 
-    var Events = await CampaignLink.find()
+    var Events = await CampaignLink.find({ deleted: { $ne: true } })
   
     let eventLint = []
     Events.forEach((event) => {
@@ -160,10 +160,10 @@ module.exports.updateStat = async () => {
             }
             
             if(socialOracle === "Rate limit exceeded") continue;
-
+            socialOracle === "No found" && (event.deleted = true);
             socialOracle === 'indisponible' && (event.status = 'indisponible');
 
-            if (socialOracle && socialOracle !== 'indisponible') {
+            if (socialOracle && (typeof socialOracle !== 'string')) {
                 event.shares = socialOracle?.shares || event.shares
                 event.likes = socialOracle?.likes || event.likes
                 event.views =
