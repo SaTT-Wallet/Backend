@@ -1,4 +1,27 @@
 ;(async function () {
+    require('dotenv').config()
+    const mongoose = require('mongoose')
+
+    const { mongoConnection } = require('./conf/config')
+
+    let connect
+    try {
+        connect = mongoose.connect(mongoConnection().mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useCreateIndex: true,
+            useFindAndModify: false,
+        })
+        console.log(mongoConnection().mongoURI)
+
+        console.log(mongoConnection().mongoBase)
+        console.log('******connection establed to MongoServer*******')
+    } catch (error) {
+        console.log('there is no connection')
+        console.log(error)
+    }
+    module.exports.connect = connect
+
     const { CampaignLink } = require('./model/index')
 
     const {
@@ -46,7 +69,7 @@
         link != null;
         link = await cursor.next()
     ) {
-        var ctrLink = await ctr.proms(link.id_prom).call()
+        var ctrLink = await ctr.methods.proms(link.id_prom).call()
         if (!ctrLink.isAccepted && link.status) {
             link.status = false
             link.type = 'waiting_for_validation'
