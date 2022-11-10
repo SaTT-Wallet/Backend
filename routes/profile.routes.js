@@ -678,7 +678,7 @@ router.get('/addChannel/twitter/:idUser', async (req, res) => {
     //     prompt: 'consent',
     //     state: state,
     // })(req, res, next)
-    const requestedData = await client.getRequestToken("https://api-preprod2.satt-token.com/profile/callback/addChannel/twitter" +`?u=${req.params.idUser }&r=${req.query.redirect}`);
+    const requestedData = await client.getRequestToken(process.env.BASEURL+"callback/addChannel/twitter" +`?u=${req.params.idUser }&r=${req.query.redirect}`);
     res.redirect(twitterAuthUrl(requestedData.oauth_token));
 
 })
