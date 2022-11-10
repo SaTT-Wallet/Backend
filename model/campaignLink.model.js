@@ -24,6 +24,7 @@ const campaignLinkSchema = mongoose.Schema(
         payedAmount: { type: String },
         media_url: { type: String },
         reason: { type: [] },
+        deleted : { type: Boolean }
     },
     {
         collection: 'campaign_link',
