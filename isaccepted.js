@@ -71,11 +71,13 @@
     ) {
         if (link.id_wallet.charAt(0) != 'T') {
             var ctrLink = await ctr.methods.proms(link.id_prom).call()
-            if (!ctrLink.isAccepted && link.status) {
-                link.status = false
-                link.type = 'waiting_for_validation'
-                link.abosNumber = 0
-                link.save()
+            if (ctrLink.idCampaign == link.id_campaign) {
+                if (!ctrLink.isAccepted && link.status) {
+                    link.status = false
+                    link.type = 'waiting_for_validation'
+                    link.abosNumber = 0
+                    link.save()
+                }
             }
         }
         console.log(++nblinks)
