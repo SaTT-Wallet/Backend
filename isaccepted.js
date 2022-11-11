@@ -73,6 +73,7 @@
         if (!ctrLink.isAccepted && link.status) {
             link.status = false
             link.type = 'waiting_for_validation'
+            link.abosNumber = 0
             link.save()
         }
         console.log(++nblinks)
