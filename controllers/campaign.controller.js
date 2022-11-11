@@ -726,7 +726,7 @@ exports.apply = async (req, res) => {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
             idPost,
-        })
+        }).lean();
 
         if (promExist) {
             return responseHandler.makeResponseError(

@@ -513,7 +513,7 @@ exports.getPromApplyStats = async (
             socialOracle = await tiktok(tiktokProfile, link.idPost)
         }
 
-        delete socialOracle.date
+        delete socialOracle?.date
         return socialOracle
     } catch (err) {
         console.error("getPromApplyStats",err)
@@ -961,10 +961,10 @@ exports.getButtonStatus = (link) => {
             return 'not_enough_budget'
 
         if (
-            (new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
+            (new Big(totalToEarn).gt(new Big(link.payedAmount)) && link.status === true &&
                 link.campaign?.ratios?.length) ||
             (link.isPayed === false &&
-                new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
+                new Big(totalToEarn).gt(new Big(link.payedAmount)) && link.status === true &&
                 link.campaign.bounties?.length)
         ) {
             // link.status = true
