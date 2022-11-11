@@ -494,7 +494,7 @@ exports.facebookAuthSignup = async (
     cb
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({ idOnSn: profile._json.token_for_business })
+    var user = await User.findOne({ idOnSn: profile._json.token_for_business },{idOnSn:1}).lean();
     if (user) {
         await handleSocialMediaSignin(
             { idOnSn: profile._json.token_for_business },
@@ -532,8 +532,8 @@ exports.googleAuthSignup = async (
     cb
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({ idOnSn2: profile.id })
-    let wallet = user && (await Wallet.findOne({ UserId: user._id }))
+    var user = await User.findOne({ idOnSn2: profile.id }).lean()
+    let wallet = user && (await Wallet.findOne({ UserId: user._id }).lean())
 
     if (user && wallet) {
         // return cb('account_already_used&idSn=' + user.idSn)
@@ -546,7 +546,7 @@ exports.googleAuthSignup = async (
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile.displayName,
-            profile.emails.length ? profile.emails[0].value : false,
+            "",
             'idOnSn2',
             profile.id,
             profile.name.givenName,
