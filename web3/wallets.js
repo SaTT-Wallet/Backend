@@ -236,7 +236,7 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account.btc.addressSegWitCompat,
+            btc: account.btc ? account.btc.addressSegWitCompat : '',
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
