@@ -80,7 +80,7 @@ exports.readHTMLFileProfile = (
             var mailOptions = {
                 from: process.env.NOTIFICATION_MAIL,
                 to: process.env.CONTACT_MAIL,
-                subject: 'Customer service',
+                subject: body.subject || '',
                 html: htmlToSend,
             }
         }

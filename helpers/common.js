@@ -78,7 +78,7 @@ module.exports.updateStat = async () => {
     campaign.type = type;
    }
 
-    var Events = await CampaignLink.find({ deleted: { $ne: true } })
+    var Events = await CampaignLink.find({$or: [{ deleted: { $ne: true } }, { status: { $ne: 'indisponible' } }]})
   
     let eventLint = []
     Events.forEach((event) => {
