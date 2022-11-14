@@ -92,12 +92,12 @@ exports.unlock = async (req, res) => {
         }
     } catch (err) {
         // if (!!res && res.length > 0) {
-        //     res.status(500).send({
-        //         code: 500,
-        //         error: err.message ? err.message : err.error,
-        //     })
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
         // }
-        return { error: err.message ? err.message : err.error }
+        //return { error: err.message ? err.message : err.error }
     }
 }
 
