@@ -91,12 +91,13 @@ exports.unlock = async (req, res) => {
             network: req.body.network,
         }
     } catch (err) {
-        if (!!res && res.length > 0) {
+        if (!!res) {
             res.status(500).send({
                 code: 500,
                 error: err.message ? err.message : err.error,
             })
         }
+        //return { error: err.message ? err.message : err.error }
     }
 }
 
