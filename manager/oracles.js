@@ -500,21 +500,21 @@ exports.getPromApplyStats = async (
 ) => {
     try {
         let socialOracle = {}
-        if (oracles == 'facebook')
+        if (oracles === 'facebook')
             socialOracle = await facebook(link.idUser, link.idPost)
-        else if (oracles == 'twitter')
+        else if (oracles === 'twitter')
             socialOracle = await twitter(link.idUser, link.idPost)
-        else if (oracles == 'youtube') socialOracle = await youtube(link.idPost)
-        else if (oracles == 'instagram')
+        else if (oracles === 'youtube') socialOracle = await youtube(link.idPost)
+        else if (oracles === 'instagram')
             socialOracle = await instagram(id, link)
-        else if (oracles == 'linkedin') {
+        else if (oracles === 'linkedin') {
             socialOracle = await linkedin(
                 link.idUser,
                 link.idPost,
                 link.typeURL,
                 linkedinProfile
             )
-        } else {
+        } else if(oracles === 'tiktok') {
             socialOracle = await tiktok(tiktokProfile, link.idPost)
         }
 

@@ -90,7 +90,7 @@ const { automaticRjectLink } = require('../helpers/common')
 cron.schedule(
     process.env.CRON_UPDATE_STAT,
     () => updateStat(),
-    automaticRjectLink('daily')
+    automaticRjectLink()
 )
 
 let calcSNStat = (objNw, link) => {
