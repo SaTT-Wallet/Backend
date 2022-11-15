@@ -909,7 +909,7 @@ exports.applyCampaign = async (
     typeSN,
     idPost,
     idUser,
-    credentials,
+    cred,
     tronWeb,
     token
 ) => {
@@ -954,15 +954,25 @@ exports.applyCampaign = async (
                 }
             }
         }
-        let web3 = await getContractByNetwork(credentials)
 
-        var gas = 400000
+        let web3 = await getContractByNetwork(cred)
+
+        // var gas = 400000
+        var gas = await web3.methods
+            .applyCampaign(idCampaign, typeSN, idPost, idUser)
+            .estimateGas({
+                from: cred.address,
+                gasPrice: gasPrice,
+            })
+
+        console.log('gas: ', gas)
+
         var gasPrice = await web3.getGasPrice()
 
         var receipt = await web3.methods
             .applyCampaign(idCampaign, typeSN, idPost, idUser)
             .send({
-                from: credentials.address,
+                from: cred.address,
                 gas: gas,
                 gasPrice: gasPrice,
             })
@@ -979,6 +989,7 @@ exports.applyCampaign = async (
             idProm: prom,
         }
     } catch (err) {
+        console.log('err: ', err)
         return { error: err.message }
     }
 }
@@ -1260,7 +1271,7 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
     }
 }
 
-exports.updatePromStats = async (idProm, credentials, tronWeb,res=null) => {
+exports.updatePromStats = async (idProm, credentials, tronWeb, res = null) => {
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
@@ -1313,8 +1324,8 @@ exports.updatePromStats = async (idProm, credentials, tronWeb,res=null) => {
             events: receipt.events,
         }
     } catch (err) {
-       console.log(err)
-       return {error :err}
+        console.log(err)
+        return { error: err }
     }
 }
 
@@ -1339,7 +1350,7 @@ exports.getTransactionAmount = async (
     } catch (e) {}
 }
 
-exports.campaignStatus = campaign => {
+exports.campaignStatus = (campaign) => {
     try {
         let type = ''
         let dateNow = Math.floor(new Date().getTime() / 1000)
