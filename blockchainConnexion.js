@@ -39,6 +39,7 @@ exports.bep20Connexion = async () => {
         await web3.eth.getNodeInfo()
         return web3
     } catch (err) {
+        console.log('error', err)
         return null
     }
 }
@@ -49,7 +50,13 @@ exports.erc20Connexion = async () => {
         let web3 = await new Web3(
             new Web3.providers.HttpProvider(web3Url, options)
         )
-        await web3.eth.getNodeInfo()
+        try {
+            await web3.eth.getNodeInfo()
+            // .then((result) => console.log('result: ', result))
+        } catch (error) {
+            console.log('error: ', error)
+        }
+
         return web3
     } catch (err) {
         return null
