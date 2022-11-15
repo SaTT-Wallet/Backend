@@ -746,7 +746,7 @@ exports.apply = async (req, res) => {
             tronWeb.setAddress(walletAddr)
         } else {
             cred = await unlock(req, res)
-
+            // console.log('cred: ', cred)
             if (!cred) return
         }
 
@@ -776,6 +776,7 @@ exports.apply = async (req, res) => {
             tronWeb,
             campaignDetails.token
         )
+
         if (ret.error) {
             return responseHandler.makeResponseError(res, 402, ret.error)
         }
