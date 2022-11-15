@@ -726,7 +726,7 @@ exports.apply = async (req, res) => {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
             idPost,
-        }).lean();
+        }).lean()
 
         if (promExist) {
             return responseHandler.makeResponseError(
@@ -1248,11 +1248,14 @@ exports.gains = async (req, res) => {
                         tronWeb,
                         res
                     )
-                    if(evts?.error)  return responseHandler.makeResponseError(
-                        res,
-                        500,
-                        evts.error.message ? evts.error.message : evts.error.error
-                    )
+                    if (evts?.error)
+                        return responseHandler.makeResponseError(
+                            res,
+                            500,
+                            evts.error.message
+                                ? evts.error.message
+                                : evts.error.error
+                        )
 
                     var evt = evts.events[0]
                     var idRequest =
@@ -1560,8 +1563,6 @@ module.exports.linkStats = async (req, res) => {
         const idProm = req.params.idProm
 
         const info = await CampaignLink.findOne({ id_prom: idProm })
-        info.oracle === 'tiktok' &&
-            (info.abosNumber = await tiktokAbos(+info.idUser))
 
         if (info) {
             const payedAmount = info.payedAmount || '0'
