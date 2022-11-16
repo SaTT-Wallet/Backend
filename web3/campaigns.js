@@ -1248,12 +1248,9 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
                 transactionHash: receipt,
                 idProm: idProm,
             }
-        } else {
-            res.status(500).send({
-                code: 500,
-                error: result,
-            })
-        }
+        } else return result
+         
+        
     }
     var gas = 100000
     let ctr = await getPromContract(idProm, credentials)
