@@ -718,36 +718,12 @@ const instagram = async (UserId, link) => {
 
 const twitter = async (userName, idPost) => {
     try {
-        var tweet = new Twitter({
-            consumer_key: oauth.twitter.consumer_key_alt,
-            consumer_secret: oauth.twitter.consumer_secret_alt,
-            access_token_key: oauth.access_token_key,
-            access_token_secret: oauth.access_token_secret,
-        })
-
-        var tweet_res = await tweet.get('statuses/show', { id: idPost })
+        // var tweet_res = await tweet.get('statuses/show', { id: idPost })
         var twitterProfile = (
             await TwitterProfile.find({
-                id: tweet_res.user.id_str,
+               username:userName,
             })
         )[0]
-
-        if (!twitterProfile) {
-            var res = await tweet.get('statuses/show', {
-                id: idPost,
-                expansions: 'attachments.media_keys',
-                'media.fields':
-                    'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
-            })
-            var perf = {
-                shares: res.retweet_count,
-                likes: res.favorite_count,
-                views: 0,
-                date: Math.floor(Date.now() / 1000),
-                media_url: res.includes?.media[0]?.url || ' ',
-            }
-            return perf
-        }
 
         var tweet = new Twitter2({
             consumer_key: oauth.twitter.consumer_key,
@@ -785,9 +761,9 @@ const twitter = async (userName, idPost) => {
         }
 
         var perf = {
-            shares: res.data[0].public_metrics.retweet_count,
-            likes: res.data[0].public_metrics.like_count,
-            views: res.data[0].non_public_metrics.impression_count,
+            shares: res.data[0]?.public_metrics.retweet_count,
+            likes: res.data[0]?.public_metrics.like_count,
+            views: res.data[0]?.non_public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
             media_url: res.includes?.media[0]?.url || ' ',
         }
