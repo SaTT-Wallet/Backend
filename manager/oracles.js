@@ -725,12 +725,18 @@ const instagram = async (UserId, link) => {
 
 const twitter = async (userName, idPost) => {
     try {
-        // var tweet_res = await tweet.get('statuses/show', { id: idPost })
+        var tweet = new Twitter({
+            consumer_key: oauth.twitter.consumer_key_alt,
+            consumer_secret: oauth.twitter.consumer_secret_alt,
+            access_token_key: oauth.access_token_key,
+            access_token_secret: oauth.access_token_secret,
+        })
+        var tweet_res = await tweet.get('statuses/show', { id: idPost })
 
         console.log('userName', userName)
         var twitterProfile = (
             await TwitterProfile.find({
-                username: userName,
+                id: tweet_res.user.id_str,
             })
         )[0]
 
