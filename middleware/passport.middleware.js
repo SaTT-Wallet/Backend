@@ -150,7 +150,7 @@ const signinWithEmail = async (
 ) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
-        var user = await User.findOne({ email: username.toLowerCase() })
+        var user = await User.findOne({ email: username.toLowerCase() }).lean()
         if (user) {
             if (user.password == synfonyHash(password)) {
                 var validAuth = await isBlocked(user, true)
