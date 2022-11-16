@@ -140,6 +140,7 @@ const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 const { request } = require('http')
+const { Console } = require('console')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -975,80 +976,85 @@ exports.validateCampaign = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        if (cred) {
-            lock(cred)
-        }
-        if (ret && ret.transactionHash) {
-            let link = await CampaignLink.findOne({ id_prom: idApply })
-            let userWallet =
-                (!!tronWeb &&
+        try {
+            if (cred) {
+                lock(cred)
+            }
+            if (ret && ret.transactionHash) {
+                let link = await CampaignLink.findOne({ id_prom: idApply })
+                let userWallet =
+                    (!!tronWeb &&
+                        (await Wallet.findOne(
+                            {
+                                tronAddress: link.id_wallet,
+                            },
+                            { UserId: 1, _id: 0 }
+                        ))) ||
                     (await Wallet.findOne(
                         {
-                            tronAddress: link.id_wallet,
+                            'keystore.address': link.id_wallet
+                                .toLowerCase()
+                                .substring(2),
                         },
                         { UserId: 1, _id: 0 }
-                    ))) ||
-                (await Wallet.findOne(
-                    {
-                        'keystore.address': link.id_wallet
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { UserId: 1, _id: 0 }
-                ))
-            let user = await User.findOne({ _id: userWallet.UserId })
-            const id = user._id
-            const email = user.email
-            let linkedinProfile =
-                link.oracle == 'linkedin' &&
-                (await LinkedinProfile.findOne({ userId: id }))
-            let tiktokProfile =
-                link.oracle == 'tiktok' &&
-                (await TikTokProfile.findOne({ userId: id }))
-            let userId = link.oracle === 'instagram' ? id : null
-            let socialOracle = await getPromApplyStats(
-                link.oracle,
-                link,
-                userId,
-                linkedinProfile,
-                tiktokProfile
-            )
-            socialOracle.status = true
-            link.status = true
-            if (socialOracle.views === 'old')
-                socialOracle.views = link.views || '0'
-            link.likes = socialOracle.likes
-            link.views = socialOracle.views
-            link.shares = socialOracle.shares
-            link.campaign = campaign
-            link.totalToEarn = campaign.ratios.length
-                ? getTotalToEarn(link, campaign.ratios)
-                : getReward(link, campaign.bounties)
-            socialOracle.totalToEarn = link.totalToEarn
-            socialOracle.type = getButtonStatus(link)
-            socialOracle.acceptedDate = Math.floor(Date.now() / 1000)
-            await CampaignLink.updateOne(
-                { id_prom: idApply },
-                { $set: socialOracle }
-            )
-
-            await notificationManager(id, 'cmp_candidate_accept_link', {
-                cmp_name: campaign.title,
-                action: 'link_accepted',
-                cmp_link: linkProm,
-                cmp_hash: _id,
-                hash: ret.transactionHash,
-                promHash: idApply,
-            })
-            readHTMLFileCampaign(
-                __dirname +
-                    '/../public/emailtemplate/email_validated_link.html',
-                'campaignValidation',
-                campaign.title,
-                email,
-                _id
-            )
+                    ))
+                let user = await User.findOne({ _id: userWallet.UserId })
+                const id = user._id
+                const email = user.email
+                let linkedinProfile =
+                    link.oracle == 'linkedin' &&
+                    (await LinkedinProfile.findOne({ userId: id }))
+                let tiktokProfile =
+                    link.oracle == 'tiktok' &&
+                    (await TikTokProfile.findOne({ userId: id }))
+                let userId = link.oracle === 'instagram' ? id : null
+                let socialOracle = await getPromApplyStats(
+                    link.oracle,
+                    link,
+                    userId,
+                    linkedinProfile,
+                    tiktokProfile
+                )
+                socialOracle.status = true
+                link.status = true
+                if (socialOracle.views === 'old')
+                    socialOracle.views = link.views || '0'
+                link.likes = socialOracle.likes
+                link.views = socialOracle.views
+                link.shares = socialOracle.shares
+                link.campaign = campaign
+                link.totalToEarn = campaign.ratios.length
+                    ? getTotalToEarn(link, campaign.ratios)
+                    : getReward(link, campaign.bounties)
+                socialOracle.totalToEarn = link.totalToEarn
+                socialOracle.type = getButtonStatus(link)
+                socialOracle.acceptedDate = Math.floor(Date.now() / 1000)
+                await CampaignLink.updateOne(
+                    { id_prom: idApply },
+                    { $set: socialOracle }
+                )
+    
+                await notificationManager(id, 'cmp_candidate_accept_link', {
+                    cmp_name: campaign.title,
+                    action: 'link_accepted',
+                    cmp_link: linkProm,
+                    cmp_hash: _id,
+                    hash: ret.transactionHash,
+                    promHash: idApply,
+                })
+                readHTMLFileCampaign(
+                    __dirname +
+                        '/../public/emailtemplate/email_validated_link.html',
+                    'campaignValidation',
+                    campaign.title,
+                    email,
+                    _id
+                )
+            }
+        }catch(err){
+          console.log(err)
         }
+   
     }
 }
 

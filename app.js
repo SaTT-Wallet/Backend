@@ -12,7 +12,8 @@ let cookieParser = require('cookie-parser')
 let path = require('path')
 
 const package = require('./package.json')
-var bodyParser = require('body-parser')
+app.use(require('body-parser').json()); 
+app.use(require('body-parser').urlencoded({ extended: true }));
 
 app.use(express.json({ limit: '50mb' }))
 app.use(
