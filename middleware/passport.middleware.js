@@ -155,7 +155,7 @@ const signinWithEmail = async (
             if (user.password == synfonyHash(password)) {
                 var validAuth = await isBlocked(user, true)
                 if (!validAuth.res && validAuth.auth == true) {
-                    let userAuth = cloneUser(user.toObject())
+                    let userAuth = cloneUser(user)
                     let token = generateAccessToken(userAuth)
                     await User.updateOne(
                         { _id: Long.fromNumber(user._id) },
