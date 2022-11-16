@@ -153,7 +153,6 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             }
         }
 
-        
         if (event === 'emailValidation') {
             var replacements = {
                 satt_faq: process.env.SATT_FAQ,
@@ -407,4 +406,4 @@ exports.timeout = async (ms) =>
 
 //global function that generates user acessToken
 exports.generateAccessToken = (user) =>
-    jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '24h' })
+    jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '3h' })
