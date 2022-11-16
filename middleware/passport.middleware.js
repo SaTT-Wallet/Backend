@@ -192,8 +192,11 @@ const signinWithEmail = async (
                 message: 'user not found',
             })
         }
+    }
+    catch(err){
+        console.error("singin catch", err)
     } finally {
-        await updateStatforUser(userId)
+        await updateStatforUser(user._id)
     }
 }
 passport.use(
