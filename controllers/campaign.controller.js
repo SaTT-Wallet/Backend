@@ -87,11 +87,11 @@ const {
 } = require('../web3/web3-connection')
 const { automaticRjectLink } = require('../helpers/common')
 
-// cron.schedule(
-//     process.env.CRON_UPDATE_STAT,
-//     () => updateStat(),
-//     automaticRjectLink()
-// )
+cron.schedule(
+    process.env.CRON_UPDATE_STAT,
+    () => /*updateStat(),*/
+    automaticRjectLink()
+)
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
