@@ -726,6 +726,8 @@ const instagram = async (UserId, link) => {
 const twitter = async (userName, idPost) => {
     try {
         // var tweet_res = await tweet.get('statuses/show', { id: idPost })
+
+        console.log('userName', userName)
         var twitterProfile = (
             await TwitterProfile.find({
                 username: userName,
