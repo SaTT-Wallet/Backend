@@ -734,6 +734,8 @@ const twitter = async (userName, idPost) => {
             })
         )[0]
 
+        console.log('twitterProfile', twitterProfile)
+
         var tweet = new Twitter2({
             consumer_key: oauth.twitter.consumer_key,
             consumer_secret: oauth.twitter.consumer_secret,
