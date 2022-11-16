@@ -108,7 +108,7 @@ exports.verifyYoutube = async function (userId, idPost) {
             var googleProfile = await GoogleProfile.findOne({
                 UserId: userId,
                 channelId: channelId,
-            })
+            }).lean()
             return googleProfile
         } else {
             return false
@@ -283,18 +283,20 @@ exports.getInstagramUserName = async (shortcode, id) => {
     } catch (err) {}
 }
 
-exports.findBountyOracle = (typeSN) =>
-    typeSN == '1'
-        ? 'facebook'
-        : typeSN == '2'
-        ? 'youtube'
-        : typeSN == '3'
-        ? 'instagram'
-        : typeSN == '4'
-        ? 'twitter'
-        : typeSN == '5'
-        ? 'linkedin'
-        : 'tiktok'
+exports.findBountyOracle = typeSN =>     
+            typeSN == '1'
+            ? 'facebook'
+            : typeSN == '2'
+            ? 'youtube'
+            : typeSN == '3'
+            ? 'instagram'
+            : typeSN == '4'
+            ? 'twitter'
+            : typeSN == '5'
+            ? 'linkedin'
+            : 'tiktok'
+
+
 
 exports.answerAbos = async (
     typeSN,
@@ -462,15 +464,8 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
     } catch (err) {}
 }
 
-exports.tiktokAbos = async (userId, access_token = null) => {
-    const accessToken =
-        (access_token && access_token) ||
-        (
-            await TikTokProfile.findOne(
-                { userId: +userId },
-                { accessToken: 1 }
-            ).lean()
-        ).accessToken
+exports.tiktokAbos = async (userId,access_token=null) => {
+    const accessToken = access_token && access_token || (await TikTokProfile.findOne({ userId: +userId },{accessToken:1}).lean()).accessToken
 
     try {
         function runCmd(cmd) {
@@ -481,7 +476,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         var cmd = `curl -L -X GET 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count' \
         -H 'Authorization: Bearer ${accessToken}'`
         var result = JSON.parse(runCmd(cmd))
-        return result?.data?.user?.follower_count ?? 0
+        return result?.data?.user?.follower_count ?? 0;
     } catch (err) {
         return responseHandler.makeResponseError(
             result,
@@ -521,7 +516,7 @@ exports.getPromApplyStats = async (
         delete socialOracle?.date
         return socialOracle
     } catch (err) {
-        console.error('getPromApplyStats', err)
+        console.error("getPromApplyStats",err)
     }
 }
 
@@ -577,7 +572,7 @@ const facebook = async (pageName, idPost) => {
     } catch (err) {}
 }
 
-const youtube = async (idPost) => {
+const youtube = async idPost => {
     try {
         if (idPost.indexOf('&') !== -1) {
             idPost = idPost.split('&')[0]
@@ -592,15 +587,14 @@ const youtube = async (idPost) => {
             },
         })
         var res = JSON.parse(body)
-
+        
         if (res.items && res.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
                 likes: res.items[0].statistics.likeCount,
                 views: res.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
-                media_url:
-                    res.items[0]?.snippet?.thumbnails?.default?.url || ' ',
+                media_url: res.items[0]?.snippet?.thumbnails?.default?.url|| ' ',
             }
         }
 
@@ -718,7 +712,7 @@ const instagram = async (UserId, link) => {
             }
         }
     } catch (err) {
-        console.error('instagram manager oracle', err)
+        console.error("instagram manager oracle",err)
     }
 }
 
@@ -800,13 +794,13 @@ const twitter = async (userName, idPost) => {
 
         return perf
     } catch (err) {
-        console.error('error twittRate limit exceededer oracles', err)
-        return err[0]?.message === 'Rate limit exceeded'
-            ? 'Rate limit exceeded'
-            : err[0]?.message === 'No status found with that ID.'
-            ? 'No found'
-            : 'indisponible'
-
+        console.error("error twittRate limit exceededer oracles",err)
+        return   err[0]?.message  === 'Rate limit exceeded'
+        ? 'Rate limit exceeded'
+        : err[0]?.message  === 'No status found with that ID.'
+        ? 'No found'
+        : 'indisponible'
+        
         //err[0]?.message ==="Rate limit exceeded" ? "Rate limit exceeded" :'indisponible'
     }
 }
@@ -842,7 +836,7 @@ const tiktok = async (tiktokProfile, idPost) => {
                 videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
         }
     } catch (error) {
-        console.error('tiktok fetch stats', error)
+        console.error("tiktok fetch stats",error)
     }
 }
 exports.getReachLimit = (campaignRatio, oracle) => {
@@ -874,9 +868,7 @@ exports.getTotalToEarn = (socialStats, ratio) => {
                     ? new Big(num['view']).times(socialStats.views)
                     : '0'
                 let like = socialStats.likes
-                    ? new Big(num['like'] || '0').times(
-                          socialStats.likes || '0'
-                      )
+                    ? new Big(num['like'] || '0').times(socialStats.likes || '0')
                     : '0'
                 let share = socialStats.shares
                     ? new Big(num['share']).times(socialStats.shares.toString())
@@ -933,19 +925,24 @@ exports.getReward = (result, bounties) => {
 
 exports.getButtonStatus = (link) => {
     try {
+      
         var totalToEarn = '0'
         link.payedAmount = link.payedAmount || '0'
 
-        if (link.status === false) {
-            console.log('false')
+        if (link.status === false){
+            console.log("false")
             return 'waiting_for_validation'
         }
+            
+      
 
         if (link.totalToEarn) totalToEarn = link.totalToEarn
 
         if (link.reward)
             totalToEarn =
                 link.isPayed === false ? link.reward : link.payedAmount
+
+        
 
         if (
             link.isPayed === true ||
@@ -964,12 +961,10 @@ exports.getButtonStatus = (link) => {
             return 'not_enough_budget'
 
         if (
-            (new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
-                link.status === true &&
+            (new Big(totalToEarn).gt(new Big(link.payedAmount)) && link.status === true &&
                 link.campaign?.ratios?.length) ||
             (link.isPayed === false &&
-                new Big(totalToEarn).gt(new Big(link.payedAmount)) &&
-                link.status === true &&
+                new Big(totalToEarn).gt(new Big(link.payedAmount)) && link.status === true &&
                 link.campaign.bounties?.length)
         ) {
             // link.status = true
@@ -977,6 +972,7 @@ exports.getButtonStatus = (link) => {
         }
 
         if (link.status === 'indisponible') return 'indisponible'
+
 
         if (link.status === 'rejected') return 'rejected'
 
@@ -1221,7 +1217,7 @@ exports.answerCall = async (opts) => {
             .once('transactionHash', function (hash) {})
         return { result: 'OK', hash: receipt.hash }
     } catch (error) {
-        console.error('answerCall', error)
+        console.error("answerCall",error)
     }
 }
 exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
