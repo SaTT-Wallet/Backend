@@ -82,24 +82,31 @@ passport.deserializeUser(async function (id, cb) {
 })
 
 const handleSocialMediaSignin = async (query, cb) => {
-    var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne(query)
-    if (user) {
-        let validAuth = await isBlocked(user, true)
-        if (!validAuth.res && validAuth.auth == true) {
-            let token = generateAccessToken({ _id: user._id })
-            await User.updateOne(
-                { _id: Long.fromNumber(user._id) },
-                { $set: { failed_count: 0 } }
-            )
-            return cb(null, { id: user._id, token, expires_in: date })
+    try{
+        var date = Math.floor(Date.now() / 1000) + 86400
+        var user = await User.findOne(query).lean()
+        if (user) {
+            var validAuth = await isBlocked(user, true)
+            if (!validAuth.res && validAuth.auth == true) {
+                let token = generateAccessToken({ _id: user._id })
+                await User.updateOne(
+                    { _id: Long.fromNumber(user._id) },
+                    { $set: { failed_count: 0 } }
+                )
+                return cb(null, { id: user._id, token, expires_in: date })
+            } else {
+                let message = `account_locked:${user.date_locked}`
+                return cb({ error: true, message, blockedDate: user.date_locked })
+            }
         } else {
-            let message = `account_locked:${user.date_locked}`
-            return cb({ error: true, message, blockedDate: user.date_locked })
+            return cb('Register First')
         }
-    } else {
-        return cb('Register First')
+    } catch(err){
+        console.error("handleSocialMediaSignin", err)
+    } finally{
+       user && !validAuth?.res && validAuth?.auth == true && await updateStatforUser(user._id)
     }
+    
 }
 
 let createUser = (
@@ -143,10 +150,10 @@ const signinWithEmail = async (
 ) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
-        var user = await User.findOne({ email: username.toLowerCase() })
+        var user = await User.findOne({ email: username.toLowerCase() }).lean()
         if (user) {
             if (user.password == synfonyHash(password)) {
-                let validAuth = await isBlocked(user, true)
+                var validAuth = await isBlocked(user, true)
                 if (!validAuth.res && validAuth.auth == true) {
                     let userAuth = cloneUser(user.toObject())
                     let token = generateAccessToken(userAuth)
@@ -196,7 +203,7 @@ const signinWithEmail = async (
     catch(err){
         console.error("singin catch", err)
     } finally {
-        await updateStatforUser(user._id)
+       user && !validAuth?.res && validAuth?.auth == true && await updateStatforUser(user._id)
     }
 }
 passport.use(
