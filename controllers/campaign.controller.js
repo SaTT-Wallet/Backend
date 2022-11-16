@@ -89,7 +89,7 @@ const { automaticRjectLink } = require('../helpers/common')
 
 cron.schedule(
     process.env.CRON_UPDATE_STAT,
-    () => updateStat(),
+    () => /*updateStat(),*/
     automaticRjectLink()
 )
 

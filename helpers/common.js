@@ -207,7 +207,7 @@ module.exports.updateStat = async () => {
     }
 }
 
-exports.updateStatforUser = async (userId) => {
+exports.updateStatforUser = async UserId => {
     let campaigns = await Campaigns.find(
         { hash: { $exists: true } },
         {
@@ -243,11 +243,10 @@ exports.updateStatforUser = async (userId) => {
     let myWallet = await Wallet.findOne({
         UserId,
     })
-
-    console.log('mywallet :....', myWallet)
+ 
+    if(!myWallet)return
 
     let MyLinksCampaign = await CampaignLink.find({
-        id_wallet: myWallet.keystore.address,
         $or: [
             { id_wallet: '0x' + myWallet.keystore.address },
             { id_wallet: myWallet.tronAddress },
@@ -267,7 +266,7 @@ exports.updateStatforUser = async (userId) => {
         }
     })
 
-    let userWallet
+
     for (const event of eventLint) {
         if (
             event.status === 'rejected' ||
@@ -277,28 +276,9 @@ exports.updateStatforUser = async (userId) => {
         )
             continue
 
-        userWallet =
-            (event.id_wallet.indexOf('0x') >= 0 &&
-                // !campaign.isFinished &&
-                (await Wallet.findOne(
-                    {
-                        'keystore.address': event.id_wallet
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { UserId: 1, _id: 0 }
-                ))) ||
-            (await Wallet.findOne(
-                {
-                    tronAddress: event.id_wallet,
-                },
-                { UserId: 1, _id: 0 }
-            ))
-
-        if (userWallet) {
             if (event.typeSN == 5) {
                 var linkedinProfile = await LinkedinProfile.findOne({
-                    userId: userWallet?.UserId,
+                    userId: UserId,
                 })
                 var linkedinInfo = await getLinkedinLinkInfoMedia(
                     linkedinProfile?.accessToken,
@@ -312,20 +292,20 @@ exports.updateStatforUser = async (userId) => {
             if (event.typeSN == '1') {
                 var facebookProfile = await FbProfile.findOne(
                     {
-                        UserId: userWallet?.UserId,
+                        UserId: UserId,
                     },
                     { accessToken: 1 }
                 ).lean()
 
                 await updateFacebookPages(
-                    userWallet?.UserId,
+                    UserId,
                     facebookProfile?.accessToken,
                     false
                 )
             }
             if (event.typeSN == '6') {
                 var tiktokProfile = await TikTokProfile.findOne({
-                    userId: userWallet?.UserId,
+                    userId: UserId,
                 })
             }
 
@@ -334,7 +314,7 @@ exports.updateStatforUser = async (userId) => {
                 var socialOracle = await getPromApplyStats(
                     oracle,
                     event,
-                    userWallet?.UserId,
+                    UserId,
                     linkedinProfile,
                     tiktokProfile
                 )
@@ -376,7 +356,7 @@ exports.updateStatforUser = async (userId) => {
             delete event._id
             delete event.status
             await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
-        }
+        
     }
 }
 
