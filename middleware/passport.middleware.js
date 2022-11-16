@@ -14,29 +14,27 @@ var GoogleProfile = require('../model/googleProfile.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
 var TikTokProfile = require('../model/tikTokProfile.model')
 const { responseHandler } = require('../helpers/response-handler')
-const Tweeter = require('twitter-lite');
-const { config,twitterAuth } = require('../conf/config')
+const Tweeter = require('twitter-lite')
+const { config, twitterAuth } = require('../conf/config')
 
 const client = new Tweeter({
     consumer_key: process.env.TWITTER_CONSUMER_KEY,
-    consumer_secret: process.env.TWITTER_CONSUMER_SECRET
-  });
-  
-  
-  const twitterOauth = (oauth_verifier,oauth_token)=>{
-    return new Promise(async(resolve, reject) => {
-      try{
-        const twitterAccount = await client.getAccessToken({
-          oauth_verifier,
-          oauth_token
-        });
-        resolve(twitterAccount);
-      }catch (e) {
-        reject({message:e.message});
-      }      
-    }) 
-  }
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+})
 
+const twitterOauth = (oauth_verifier, oauth_token) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const twitterAccount = await client.getAccessToken({
+                oauth_verifier,
+                oauth_token,
+            })
+            resolve(twitterAccount)
+        } catch (e) {
+            reject({ message: e.message })
+        }
+    })
+}
 
 var requirement = require('../helpers/utils')
 
@@ -61,6 +59,7 @@ const {
 } = require('../manager/oracles')
 const { Wallet } = require('../model')
 const { profile } = require('winston')
+const { updateStatforUser } = require('../helpers/common')
 
 try {
     app.use(
@@ -142,55 +141,59 @@ const signinWithEmail = async (
     done,
     fromSignup = false
 ) => {
-    var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({ email: username.toLowerCase() })
-    if (user) {
-        if (user.password == synfonyHash(password)) {
-            let validAuth = await isBlocked(user, true)
-            if (!validAuth.res && validAuth.auth == true) {
-                let userAuth = cloneUser(user.toObject())
-                let token = generateAccessToken(userAuth)
-                await User.updateOne(
-                    { _id: Long.fromNumber(user._id) },
-                    { $set: { failed_count: 0 } }
-                )
-                return done(null, {
-                    id: user._id,
-                    token,
-                    expires_in: date,
-                    noredirect: req.body.noredirect,
-                    loggedIn: true,
-                })
+    try {
+        var date = Math.floor(Date.now() / 1000) + 86400
+        var user = await User.findOne({ email: username.toLowerCase() })
+        if (user) {
+            if (user.password == synfonyHash(password)) {
+                let validAuth = await isBlocked(user, true)
+                if (!validAuth.res && validAuth.auth == true) {
+                    let userAuth = cloneUser(user.toObject())
+                    let token = generateAccessToken(userAuth)
+                    await User.updateOne(
+                        { _id: Long.fromNumber(user._id) },
+                        { $set: { failed_count: 0 } }
+                    )
+                    return done(null, {
+                        id: user._id,
+                        token,
+                        expires_in: date,
+                        noredirect: req.body.noredirect,
+                        loggedIn: true,
+                    })
+                } else {
+                    return done(null, false, {
+                        error: true,
+                        message: 'account_locked',
+                        blockedDate: validAuth.blockedDate,
+                    })
+                }
             } else {
+                let validAuth = await isBlocked(user, false)
+                if (validAuth.res) {
+                    return done(null, false, {
+                        error: true,
+                        message: 'account_locked',
+                        blockedDate: validAuth.blockedDate,
+                    })
+                }
                 return done(null, false, {
                     error: true,
-                    message: 'account_locked',
-                    blockedDate: validAuth.blockedDate,
+                    message:
+                        (!fromSignup && 'invalid_credentials') ||
+                        (user.idSn == 2 && 'account_already_used') ||
+                        'account_exists',
+                    ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
                 })
             }
         } else {
-            let validAuth = await isBlocked(user, false)
-            if (validAuth.res) {
-                return done(null, false, {
-                    error: true,
-                    message: 'account_locked',
-                    blockedDate: validAuth.blockedDate,
-                })
-            }
             return done(null, false, {
                 error: true,
-                message:
-                    (!fromSignup && 'invalid_credentials') ||
-                    (user.idSn == 2 && 'account_already_used') ||
-                    'account_exists',
-                ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
+                message: 'user not found',
             })
         }
-    } else {
-        return done(null, false, {
-            error: true,
-            message: 'user not found',
-        })
+    } finally {
+        await updateStatforUser(userId)
     }
 }
 passport.use(
@@ -494,7 +497,10 @@ exports.facebookAuthSignup = async (
     cb
 ) => {
     var date = Math.floor(Date.now() / 1000) + 86400
-    var user = await User.findOne({ idOnSn: profile._json.token_for_business },{idOnSn:1}).lean();
+    var user = await User.findOne(
+        { idOnSn: profile._json.token_for_business },
+        { idOnSn: 1 }
+    ).lean()
     if (user) {
         await handleSocialMediaSignin(
             { idOnSn: profile._json.token_for_business },
@@ -546,7 +552,7 @@ exports.googleAuthSignup = async (
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile.displayName,
-            "",
+            '',
             'idOnSn2',
             profile.id,
             profile.name.givenName,
@@ -816,10 +822,7 @@ exports.addFacebookChannel = async (
 /*
  * begin add twitter channel strategy
  */
-exports.addTwitterChannel = async (
-    req,
-    res
-) => {
+exports.addTwitterChannel = async (req, res) => {
     let user_id = +req.query.u
     let redirect = req.query.r
     // var tweet = new Twitter({
@@ -831,21 +834,28 @@ exports.addTwitterChannel = async (
     // var res = await tweet.get('account/verify_credentials', {
     //     include_email: true,
     // })
-       const {oauth_verifier,oauth_token} =  req.query;
-        var twitterAccount = await twitterOauth(oauth_verifier,oauth_token);
-        const userAuth = new Twitter(twitterAuth(twitterAccount.oauth_token,twitterAccount.oauth_token_secret));
-        var userData = await userAuth.get("account/verify_credentials",{include_email :true});
+    const { oauth_verifier, oauth_token } = req.query
+    var twitterAccount = await twitterOauth(oauth_verifier, oauth_token)
+    const userAuth = new Twitter(
+        twitterAuth(
+            twitterAccount.oauth_token,
+            twitterAccount.oauth_token_secret
+        )
+    )
+    var userData = await userAuth.get('account/verify_credentials', {
+        include_email: true,
+    })
 
     var twitterProfile = await TwitterProfile.findOne({
         $and: [{ UserId: user_id }, { twitter_id: userData.id }],
-    }).lean();
+    }).lean()
 
     if (twitterProfile) {
         // return cb(null, profile, {
         //     status: false,
         //     message: 'account exist',
         // })
-     return  res.redirect(
+        return res.redirect(
             process.env.BASED_URL +
                 redirect +
                 '?message=' +
@@ -853,7 +863,7 @@ exports.addTwitterChannel = async (
                 '&sn=twitter'
         )
     } else {
-        let profile = {_json:{}}
+        let profile = { _json: {} }
         profile.access_token_key = twitterAccount.oauth_token
         profile.access_token_secret = twitterAccount.oauth_token_secret
         profile.UserId = user_id
@@ -862,7 +872,7 @@ exports.addTwitterChannel = async (
         profile.twitter_id = userData.id
         profile.id = userData.id_str
         profile.displayName = userData.name
-        profile.photos = [{value : userData.profile_image_url}]
+        profile.photos = [{ value: userData.profile_image_url }]
         profile._json.followers_count = userData.followers_count
         await TwitterProfile.create(profile)
     }
