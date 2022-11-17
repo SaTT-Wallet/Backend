@@ -845,15 +845,6 @@ exports.addFacebookChannel = async (
 exports.addTwitterChannel = async (req, res) => {
     let user_id = +req.query.u
     let redirect = req.query.r
-    // var tweet = new Twitter({
-    //     consumer_key: process.env.TWITTER_CONSUMER_KEY,
-    //     consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-    //     access_token_key: accessToken,
-    //     access_token_secret: tokenSecret,
-    // })
-    // var res = await tweet.get('account/verify_credentials', {
-    //     include_email: true,
-    // })
     const { oauth_verifier, oauth_token } = req.query
     var twitterAccount = await twitterOauth(oauth_verifier, oauth_token)
     const userAuth = new Twitter(
@@ -871,10 +862,6 @@ exports.addTwitterChannel = async (req, res) => {
     }).lean()
 
     if (twitterProfile) {
-        // return cb(null, profile, {
-        //     status: false,
-        //     message: 'account exist',
-        // })
         return res.redirect(
             process.env.BASED_URL +
                 redirect +
@@ -959,7 +946,10 @@ exports.addlinkedinChannel = async (
             message: 'channel obligatoire',
         })
 
-    await LinkedinProfile.create(linkedinProfile)
+    await LinkedinProfile.updateOne({ userId }, linkedinProfile, {
+        upsert: true,
+    })
+    // await LinkedinProfile.create(linkedinProfile)
     return done(null, profile, {
         status: true,
         message: 'account_linked_with_success',
