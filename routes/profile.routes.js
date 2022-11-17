@@ -670,64 +670,12 @@ router.get('/tiktokAbos/:userId', tiktokApiAbos)
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/addChannel/twitter/:idUser', async (req, res) => {
-    // var state = req.params.idUser + '|' + req.query.redirect
-    // // req.session.state = state
-    // passport.authenticate('twitter_strategy_add_channel', {
-    //     scope: ['profile', 'email'],
-    //     accessType: 'offline',
-    //     prompt: 'consent',
-    //     state: state,
-    // })(req, res, next)
     const requestedData = await client.getRequestToken(process.env.BASEURL+"profile/callback/addChannel/twitter" +`?u=${req.params.idUser }&r=${req.query.redirect}`);
     res.redirect(twitterAuthUrl(requestedData.oauth_token));
 
 })
 
-passport.use(
-    'twitter_strategy_add_channel',
-    new TwitterStrategy(
-        twitterCredentials('profile/callback/addChannel/twitter'),
-        async (req, accessToken, tokenSecret, profile, cb) => {
-            addTwitterChannel(req, accessToken, tokenSecret, profile, cb)
-        }
-    )
-)
 
-/*router.get(
-    '/callback/addChannel/twitter',
-    (req, res, next) => {
-        let redirect = req.session?.state?.split('|')[1]
-        if (!req.query.denied) next()
-        else
-            res.redirect(
-                process.env.BASED_URL +
-                    redirect +
-                    '?message=access-denied&sn=twitter'
-            )
-    },
-    passport.authenticate('twitter_strategy_add_channel', {
-        failureRedirect:
-            process.env.BASED_URL +
-            '/home/settings/social-networks?message=access-denied',
-    }),
-    async function (req, response) {
-        try {
-            redirect = req.session.state.split('|')[1]
-            if (req.authInfo.message) {
-                message = req.authInfo.message
-            } else {
-                message = 'account_linked_with_success'
-            }
-            response.redirect(
-                process.env.BASED_URL +
-                    redirect +
-                    '?message=' +
-                    message +
-                    '&sn=twitter'
-            )
-        } catch (e) {}
-    }
-)*/
 router.get(
     '/callback/addChannel/twitter',addTwitterChannel)
 
