@@ -1388,5 +1388,4 @@ router.get('/expandUrl', expandUrl)
 
 router.post('/updateStat', updateStatistics)
 
-router.get('/mystat/', updateStatforUser)
 module.exports = router
