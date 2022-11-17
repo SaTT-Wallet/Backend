@@ -65,9 +65,11 @@ try {
     app.use(
         session({
             secret: 'fe3fF4FFGTSCSHT57UI8I8',
-            resave: true,
+            resave: false,
             saveUninitialized: true,
-            cookie: { secure: true },
+            httpOnly: true, // dont let browser javascript access cookie ever
+            secure: true, // only use cookie over https
+            ephemeral: true, // delete this cookie while browser close
         })
     ) // session secret
     app.use(passport.session())
@@ -82,7 +84,7 @@ passport.deserializeUser(async function (id, cb) {
 })
 
 const handleSocialMediaSignin = async (query, cb) => {
-    try{
+    try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne(query).lean()
         if (user) {
@@ -96,17 +98,23 @@ const handleSocialMediaSignin = async (query, cb) => {
                 return cb(null, { id: user._id, token, expires_in: date })
             } else {
                 let message = `account_locked:${user.date_locked}`
-                return cb({ error: true, message, blockedDate: user.date_locked })
+                return cb({
+                    error: true,
+                    message,
+                    blockedDate: user.date_locked,
+                })
             }
         } else {
             return cb('Register First')
         }
-    } catch(err){
-        console.error("handleSocialMediaSignin", err)
-    } finally{
-       user && !validAuth?.res && validAuth?.auth == true && await updateStatforUser(user._id)
+    } catch (err) {
+        console.error('handleSocialMediaSignin', err)
+    } finally {
+        user &&
+            !validAuth?.res &&
+            validAuth?.auth == true &&
+            (await updateStatforUser(user._id))
     }
-    
 }
 
 let createUser = (
@@ -199,11 +207,13 @@ const signinWithEmail = async (
                 message: 'user not found',
             })
         }
-    }
-    catch(err){
-        console.error("singin catch", err)
+    } catch (err) {
+        console.error('singin catch', err)
     } finally {
-       user && !validAuth?.res && validAuth?.auth == true && await updateStatforUser(user._id)
+        user &&
+            !validAuth?.res &&
+            validAuth?.auth == true &&
+            (await updateStatforUser(user._id))
     }
 }
 passport.use(
@@ -668,7 +678,7 @@ exports.twitterAuthSignup = async (
 
     console.log('user', user)
 
-    console.log('profile', profile)
+    console.log('profile..........', profile)
 
     if (user) {
         await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
@@ -1034,12 +1044,12 @@ exports.addyoutubeChannel = async (
         channelId: channelId,
         UserId: user_id,
     })
-  
-   
 
     if (channelGoogle) {
-        refreshToken && (channelGoogle.refreshToken = refreshToken) && await channelGoogle.save();
-         return cb(null, profile, {
+        refreshToken &&
+            (channelGoogle.refreshToken = refreshToken) &&
+            (await channelGoogle.save())
+        return cb(null, profile, {
             message: 'account exist',
         })
     } else {
