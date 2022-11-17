@@ -1038,11 +1038,12 @@ exports.addyoutubeChannel = async (
    
 
     if (channelGoogle) {
-        if(refreshToken){
-            channelGoogle.refreshToken = refreshToken
-            await channelGoogle.save();
-        } 
-        return cb(null, profile, {
+        // if(refreshToken){
+        //     channelGoogle.refreshToken = refreshToken
+        //     await channelGoogle.save();
+        // } 
+        refreshToken && (channelGoogle.refreshToken = refreshToken) && await channelGoogle.save();
+         return cb(null, profile, {
             message: 'account exist',
         })
     } else {
