@@ -589,7 +589,7 @@ router.get(
  */
 router.get('/signup/google', async (req, res, next) => {
     passport.authenticate('auth_signup_googleStrategy', {
-        scope: ['profile', 'email'],
+        scope: ['profile', 'email',"https://www.googleapis.com/auth/youtube.readonly"],
     })(req, res, next)
 })
 
@@ -635,7 +635,7 @@ router.get(
  */
 router.get('/signin/google', async (req, res, next) => {
     passport.authenticate('google_strategy_connection', {
-        scope: ['profile', 'email'],
+        scope: ['profile', 'email',"https://www.googleapis.com/auth/youtube.readonly"],
     })(req, res, next)
 })
 
