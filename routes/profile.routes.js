@@ -1,6 +1,6 @@
 var express = require('express')
 var app = express()
-const Twitter = require('twitter-lite');
+const Twitter = require('twitter-lite')
 const passport = require('passport')
 var FbStrategy = require('passport-facebook').Strategy
 var TwitterStrategy = require('passport-twitter').Strategy
@@ -9,23 +9,21 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 var tikTokStrategy = require('passport-tiktok-auth').Strategy
 var session = require('express-session')
-const { config,twitterAuthUrl } = require('../conf/config')
+const { config, twitterAuthUrl } = require('../conf/config')
 
 let router = express.Router()
 router.use(passport.initialize())
 
 const client = new Twitter({
     consumer_key: process.env.TWITTER_CONSUMER_KEY,
-    consumer_secret: process.env.TWITTER_CONSUMER_SECRET
-  });
-
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+})
 
 var Long = require('mongodb').Long
 
 const { User } = require('../model/index')
 
 passport.serializeUser(function (user, cb) {
-
     cb(null, user)
 })
 
@@ -670,67 +668,15 @@ router.get('/tiktokAbos/:userId', tiktokApiAbos)
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/addChannel/twitter/:idUser', async (req, res) => {
-    // var state = req.params.idUser + '|' + req.query.redirect
-    // // req.session.state = state
-    // passport.authenticate('twitter_strategy_add_channel', {
-    //     scope: ['profile', 'email'],
-    //     accessType: 'offline',
-    //     prompt: 'consent',
-    //     state: state,
-    // })(req, res, next)
-    const requestedData = await client.getRequestToken(process.env.BASEURL+"profile/callback/addChannel/twitter" +`?u=${req.params.idUser }&r=${req.query.redirect}`);
-    res.redirect(twitterAuthUrl(requestedData.oauth_token));
-
+    const requestedData = await client.getRequestToken(
+        process.env.BASEURL +
+            'profile/callback/addChannel/twitter' +
+            `?u=${req.params.idUser}&r=${req.query.redirect}`
+    )
+    res.redirect(twitterAuthUrl(requestedData.oauth_token))
 })
 
-passport.use(
-    'twitter_strategy_add_channel',
-    new TwitterStrategy(
-        twitterCredentials('profile/callback/addChannel/twitter'),
-        async (req, accessToken, tokenSecret, profile, cb) => {
-            addTwitterChannel(req, accessToken, tokenSecret, profile, cb)
-        }
-    )
-)
-
-/*router.get(
-    '/callback/addChannel/twitter',
-    (req, res, next) => {
-        let redirect = req.session?.state?.split('|')[1]
-        if (!req.query.denied) next()
-        else
-            res.redirect(
-                process.env.BASED_URL +
-                    redirect +
-                    '?message=access-denied&sn=twitter'
-            )
-    },
-    passport.authenticate('twitter_strategy_add_channel', {
-        failureRedirect:
-            process.env.BASED_URL +
-            '/home/settings/social-networks?message=access-denied',
-    }),
-    async function (req, response) {
-        try {
-            redirect = req.session.state.split('|')[1]
-            if (req.authInfo.message) {
-                message = req.authInfo.message
-            } else {
-                message = 'account_linked_with_success'
-            }
-            response.redirect(
-                process.env.BASED_URL +
-                    redirect +
-                    '?message=' +
-                    message +
-                    '&sn=twitter'
-            )
-        } catch (e) {}
-    }
-)*/
-router.get(
-    '/callback/addChannel/twitter',addTwitterChannel)
-
+router.get('/callback/addChannel/twitter', addTwitterChannel)
 
 /**
  * @swagger

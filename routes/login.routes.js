@@ -448,9 +448,21 @@ router.get(
         failureRedirect: '/login',
         scope: ['tweet.read', 'tweet.write', 'users.read'],
     }),
-    function (req, res) {
+    async function (req, res) {
         // Successful authentication, redirect home.
-        res.redirect(process.env.BASED_URL + '/auth/login')
+        try {
+            var param = {
+                access_token: req.user.token,
+                expires_in: req.user.expires_in,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+            response.redirect(
+                process.env.BASED_URL +
+                    '/auth/login?token=' +
+                    JSON.stringify(param)
+            )
+        } catch (e) {}
     }
 )
 router.get(
@@ -469,7 +481,9 @@ router.get(
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
-        } catch (e) {}
+        } catch (e) {
+            console.log(e)
+        }
     },
     authErrorHandler
 )
@@ -523,7 +537,9 @@ router.get(
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
-        } catch (e) {}
+        } catch (e) {
+            console.log(e)
+        }
     },
     authSignInErrorHandler
 )

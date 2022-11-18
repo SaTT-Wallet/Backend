@@ -447,20 +447,21 @@ exports.deleteLinkedinChannels = async (req, res) => {
 exports.deleteLinkedinChannel = async (req, res) => {
     try {
         let userId = req.user._id
-        let {organization,linkedinId} = req.params;
-        let linkedinProfile = await LinkedinProfile.findOne({userId,linkedinId},{pages:1}).lean();
-        if (!linkedinProfile)
-            return makeResponseError(res, 401, 'unauthorized')
-        if(linkedinProfile.pages.lengh <=1 ){
-            await LinkedinProfile.deleteOne({userId,linkedinId})
-        }else{
+        let { organization, linkedinId } = req.params
+        let linkedinProfile = await LinkedinProfile.findOne(
+            { userId, linkedinId },
+            { pages: 1 }
+        ).lean()
+        if (!linkedinProfile) return makeResponseError(res, 401, 'unauthorized')
+        if (linkedinProfile.pages.length === 1) {
+            await LinkedinProfile.deleteOne({ userId, linkedinId })
+        } else {
             await LinkedinProfile.updateOne(
-                { userId,linkedinId },
+                { userId, linkedinId },
                 { $pull: { pages: { organization } } }
             )
         }
         return makeResponseData(res, 200, 'deleted successfully')
-     
     } catch (err) {
         return makeResponseError(
             res,
@@ -472,10 +473,10 @@ exports.deleteLinkedinChannel = async (req, res) => {
 
 exports.deleteTiktokChannel = async (req, res) => {
     try {
-      let userId = +req.user._id
-      let tiktokProfile =  await TikTokProfile.findOneAndDelete({userId});
-      if(!tiktokProfile) return makeResponseError(res, 401, 'unauthorized')
-      return makeResponseData(res, 200, 'deleted successfully')
+        let userId = +req.user._id
+        let tiktokProfile = await TikTokProfile.findOneAndDelete({ userId })
+        if (!tiktokProfile) return makeResponseError(res, 401, 'unauthorized')
+        return makeResponseData(res, 200, 'deleted successfully')
     } catch (err) {
         return makeResponseError(
             res,
@@ -575,22 +576,29 @@ exports.socialAccounts = async (req, res) => {
         let UserId = req.user._id
         let networks = {}
         let [channelsGoogle, channelsTwitter] = await Promise.all([
-            GoogleProfile.find({ UserId },{accessToken:0}),
-            TwitterProfile.find({ UserId },{_raw:0,access_token_key:0,access_token_secret:0}),
+            GoogleProfile.find({ UserId }, { accessToken: 0 }),
+            TwitterProfile.find(
+                { UserId },
+                { _raw: 0, access_token_key: 0, access_token_secret: 0 }
+            ),
         ])
         let channelsFacebook = await FbPage.find({ UserId })
         let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.find({ userId: UserId },{accessToken:0,refreshToken:0})
+        let channelsTiktok = await TikTokProfile.find(
+            { userId: UserId },
+            { accessToken: 0, refreshToken: 0 }
+        )
         networks.google = channelsGoogle
         networks.twitter = channelsTwitter
         networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin?.flatMap((item) => item?.pages.map(elem => {
-            elem = elem.toJSON()
-            elem.linkedinId = item.linkedinId
-            return elem
+        networks.linkedin = channelsLinkedin?.flatMap((item) =>
+            item?.pages.map((elem) => {
+                elem = elem.toJSON()
+                elem.linkedinId = item.linkedinId
+                return elem
+            })
+        )
 
-        }));
-        
         networks.tikTok = channelsTiktok || []
         if (
             !channelsGoogle?.length &&
@@ -904,7 +912,10 @@ module.exports.verifyLink = async (req, response) => {
         var res = false
         switch (typeSN) {
             case '1':
-                let fbProfile = await FbProfile.findOne({ UserId: userId },{accessToken:1}).lean()
+                let fbProfile = await FbProfile.findOne(
+                    { UserId: userId },
+                    { accessToken: 1 }
+                ).lean()
                 await updateFacebookPages(userId, fbProfile.accessToken, false)
                 let fbPage = await FbPage.findOne({
                     UserId: userId,
