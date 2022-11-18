@@ -10,9 +10,6 @@ const TwitterStrategy = require('passport-twitter').Strategy
 var FbStrategy = require('passport-facebook').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
-var OAuth2Strategy = require('passport-oauth2').Strategy
-var passOAuth = require('passport-oauth2')
-
 var Long = require('mongodb').Long
 const { User } = require('../model/index')
 
@@ -35,9 +32,7 @@ try {
         })
     )
     router.use(passport.session())
-} catch (e) {
-    console.log(e)
-}
+} catch (e) {}
 const {
     walletConnection,
     changePassword,
@@ -414,8 +409,6 @@ passport.use(
     )
 )
 
-//twiter signup
-
 /**
  * @swagger
  * /auth/signup/twitter:
@@ -429,98 +422,49 @@ passport.use(
  *          description: param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get('/signup/twitter', async (req, res, next) => {
-    passport.authenticate('oauth2-signup')(req, res, next)
+    passport.authenticate('twitter')(req, res, next)
 })
+
 passport.use(
-    'oauth2-signup',
-    new OAuth2Strategy(
+    new TwitterStrategy(
         {
-            authorizationURL: 'https://twitter.com/oauth2/authorize',
-            tokenURL: 'https://api.twitter.com/2/oauth2/token',
-            clientID: process.env.TWITTER_CONSUMER_KEY,
-            clientSecret: process.env.TWITTER_CONSUMER_SECRET,
+            consumerKey: process.env.TWITTER_CONSUMER_KEY,
+            consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
             callbackURL: process.env.BASEURL + 'auth/twitter/callback',
+            profileFields: ['id', 'displayName', 'photos', 'email'],
+            includeEmail: true,
         },
         async (req, accessToken, refreshToken, profile, cb) => {
-            console.log(' profile tiwtter signup', profile)
             twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
     )
 )
 
+router.get('/auth/twitter', passport.authenticate('twitter'))
+
 router.get(
     '/twitter/callback',
-    passport.authenticate('oauth2-signup', {
-        scope: ['profile', 'email'],
-    }),
-    async (req, response) => {
-        var param = {
-            access_token: req.user.token,
-            expires_in: req.user.expires_in,
-            token_type: 'bearer',
-            scope: 'user',
-        }
-        response.redirect(
-            process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
-        )
-    },
-    authErrorHandler
-)
-
-// signin twitter
-passport.use(
-    'oauth2',
-    new OAuth2Strategy(
-        {
-            authorizationURL: 'https://twitter.com/oauth2/authorize',
-            tokenURL: 'https://api.twitter.com/2/oauth2/token',
-            clientID: process.env.TWITTER_CONSUMER_KEY,
-            clientSecret: process.env.TWITTER_CONSUMER_SECRET,
-            callbackURL: process.env.BASEURL + 'auth/twitter/signin/callback',
-        },
-        async (req, accessToken, refreshToken, profile, cb) => {
-            console.log(' profile tiwtter signin', profile)
-            twitterAuthSignin(req, accessToken, refreshToken, profile, cb)
-        }
-    )
-)
-
-/**
- * @swagger
- * /auth/twitterLogin:
- *   get:
- *     tags:
- *     - "auth"
- *     summary: signin with twitter.
- *     description: user asked for signin with twitter, system redirect him to signin twitter page <br> without access_token.
- *     responses:
- *       "200":
- *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
- */
-
-router.get('/auth/twitterLogin', passport.authenticate('oauth2'))
-
-router.get(
-    '/twitter/signin/callback',
-    passport.authenticate('oauth2', {
-        failureRedirect: '/',
+    passport.authenticate('twitter', {
+        failureRedirect: '/login',
         scope: ['tweet.read', 'tweet.write', 'users.read'],
     }),
-    function (req, res) {
-        console.log('im success')
+    async function (req, res) {
         // Successful authentication, redirect home.
-        var param = {
-            access_token: req.user.token,
-            expires_in: req.user.expires_in,
-            token_type: 'bearer',
-            scope: 'user',
-        }
-        res.redirect(
-            process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
-        )
+        try {
+            var param = {
+                access_token: req.user.token,
+                expires_in: req.user.expires_in,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+            response.redirect(
+                process.env.BASED_URL +
+                    '/auth/login?token=' +
+                    JSON.stringify(param)
+            )
+        } catch (e) {}
     }
 )
-
 router.get(
     '/callback/facebook/signup',
     passport.authenticate('auth_signup_facebookStrategy'),
@@ -537,11 +481,68 @@ router.get(
                     '/auth/login?token=' +
                     JSON.stringify(param)
             )
-        } catch (e) {}
+        } catch (e) {
+            console.log(e)
+        }
     },
     authErrorHandler
 )
 
+//start signin twitter
+
+/**
+ * @swagger
+ * /auth/signin/twitter:
+ *   get:
+ *     tags:
+ *     - "auth"
+ *     summary: signin with twitter.
+ *     description: user asked for signin with twitter, system redirect him to signin twitter page <br> without access_token.
+ *     responses:
+ *       "200":
+ *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ */
+router.get('/signin/twitter', async (req, res, next) => {
+    passport.authenticate('twitter-signin')(req, res, next)
+})
+
+passport.use(
+    'twitter-signin',
+    new TwitterStrategy(
+        {
+            consumerKey: process.env.TWITTER_CONSUMER_KEY,
+            consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+            callbackURL: process.env.BASEURL + '/auth/twitter/signin/callback',
+            profileFields: ['id', 'displayName', 'photos', 'email'],
+            includeEmail: true,
+        },
+        async function (req, accessToken, refreshToken, profile, cb) {
+            twitterAuthSignin(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+router.get(
+    '/twitter/signin/callback',
+    passport.authenticate('twitter-signin'),
+    async function (req, response) {
+        try {
+            var param = {
+                access_token: req.user.token,
+                expires_in: req.user.expires_in,
+                token_type: 'bearer',
+                scope: 'user',
+            }
+            response.redirect(
+                process.env.BASED_URL +
+                    '/auth/login?token=' +
+                    JSON.stringify(param)
+            )
+        } catch (e) {
+            console.log(e)
+        }
+    },
+    authSignInErrorHandler
+)
 //end twitter
 
 /**
@@ -604,7 +605,11 @@ router.get(
  */
 router.get('/signup/google', async (req, res, next) => {
     passport.authenticate('auth_signup_googleStrategy', {
-        scope: ['profile', 'email'],
+        scope: [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/youtube.readonly',
+        ],
     })(req, res, next)
 })
 
@@ -650,7 +655,11 @@ router.get(
  */
 router.get('/signin/google', async (req, res, next) => {
     passport.authenticate('google_strategy_connection', {
-        scope: ['profile', 'email'],
+        scope: [
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/youtube.readonly',
+        ],
     })(req, res, next)
 })
 
