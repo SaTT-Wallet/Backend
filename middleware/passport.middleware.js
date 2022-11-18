@@ -372,6 +372,7 @@ exports.twitterAuthSignin = async (
     profile,
     cb
 ) => {
+    console.log('profilleeee in sigin,', profile)
     await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
 }
 /*

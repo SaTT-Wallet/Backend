@@ -484,7 +484,9 @@ router.get(
         failureRedirect: '/login',
         scope: ['tweet.read', 'tweet.write', 'users.read'],
     }),
+
     function (req, res) {
+        console.log('im sucess')
         // Successful authentication, redirect home.
         res.redirect(process.env.BASED_URL + '/auth/login')
     }
