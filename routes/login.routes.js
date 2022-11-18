@@ -10,6 +10,9 @@ const TwitterStrategy = require('passport-twitter').Strategy
 var FbStrategy = require('passport-facebook').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
+var OAuth2Strategy = require('passport-oauth2').Strategy
+var passOAuth = require('passport-oauth2')
+
 var Long = require('mongodb').Long
 const { User } = require('../model/index')
 
@@ -32,7 +35,9 @@ try {
         })
     )
     router.use(passport.session())
-} catch (e) {}
+} catch (e) {
+    console.log(e)
+}
 const {
     walletConnection,
     changePassword,
@@ -439,6 +444,36 @@ passport.use(
             twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
         }
     )
+)
+
+passport.use(
+    new OAuth2Strategy(
+        {
+            authorizationURL: 'https://twitter.com/i/oauth2/authorize',
+            tokenURL: 'https://api.twitter.com/2/oauth2/token',
+            clientID: process.env.TWITTER_CONSUMER_KEY,
+            clientSecret: process.env.TWITTER_CONSUMER_SECRET,
+            callbackURL: process.env.BASEURL + '/auth/twitter/signin/callback',
+        },
+        async (req, accessToken, refreshToken, profile, cb) => {
+            console.log(' profile tiwtter signup', profile)
+            twitterAuthSignin(req, accessToken, refreshToken, profile, cb)
+        }
+    )
+)
+
+router.get('/auth/twitterLogin', passport.authenticate('oauth2'))
+
+router.get(
+    '/twitter/signin/callback',
+    passport.authenticate('oauth2', {
+        failureRedirect: '/',
+        scope: ['tweet.read', 'tweet.write', 'users.read'],
+    }),
+    function (req, res) {
+        // Successful authentication, redirect home.
+        res.redirect(process.env.BASED_URL + '/auth/login')
+    }
 )
 
 router.get('/auth/twitter', passport.authenticate('twitter'))
