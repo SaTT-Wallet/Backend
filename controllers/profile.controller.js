@@ -451,7 +451,7 @@ exports.deleteLinkedinChannel = async (req, res) => {
         let linkedinProfile = await LinkedinProfile.findOne({userId,linkedinId},{pages:1}).lean();
         if (!linkedinProfile)
             return makeResponseError(res, 401, 'unauthorized')
-        if(linkedinProfile.pages.lengh <=1 ){
+        if(linkedinProfile.pages.length ===1){
             await LinkedinProfile.deleteOne({userId,linkedinId})
         }else{
             await LinkedinProfile.updateOne(
