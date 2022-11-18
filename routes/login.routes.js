@@ -449,7 +449,7 @@ passport.use(
 passport.use(
     new OAuth2Strategy(
         {
-            authorizationURL: 'https://twitter.com/i/oauth2/authorize',
+            authorizationURL: 'https://twitter.com/oauth2/authorize',
             tokenURL: 'https://api.twitter.com/2/oauth2/token',
             clientID: process.env.TWITTER_CONSUMER_KEY,
             clientSecret: process.env.TWITTER_CONSUMER_SECRET,
