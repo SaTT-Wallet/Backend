@@ -87,9 +87,8 @@ const {
 } = require('../web3/web3-connection')
 const { automaticRjectLink } = require('../helpers/common')
 
-cron.schedule(
-    process.env.CRON_UPDATE_STAT,
-    () => /*updateStat(),*/
+cron.schedule(process.env.CRON_UPDATE_STAT, () =>
+    /*updateStat(),*/
     automaticRjectLink()
 )
 
@@ -416,6 +415,44 @@ module.exports.launchBounty = async (req, res) => {
     }
 }
 
+module.exports.coverByCampaign = async (id, width, heigth) => {
+    try {
+        let _id = id
+        let campaign = await Campaigns.findOne({ _id })
+        width = 440
+        heigth = 250
+        let image = Buffer.from(campaign.cover, 'base64')
+        if (width && heigth) {
+            sharp(image)
+                .resize(+heigth, +width)
+                .toBuffer()
+                .then((resizedImageBuffer) => {
+                    console.log('with demenssion')
+
+                    //   console.log("resizedImageBuffer", resizedImageBuffer);
+
+                    return {
+                        topic: 'test-channel-data-topic',
+                        messages: [
+                            {
+                                value: Buffer.from(
+                                    JSON.stringify(resizedImageBuffer)
+                                ),
+                            },
+                        ],
+                    }
+                })
+        } else {
+            console.log('without dimenssions')
+
+            return image
+        }
+    } catch (error) {
+        console.log(error)
+        console.log('error catch cover', error)
+    }
+}
+
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
@@ -472,6 +509,13 @@ exports.campaigns = async (req, res) => {
             .allowDiskUse(true)
             .skip(skip)
             .limit(limit)
+        for (const campaign of campaigns) {
+            campaign.cover = await this.coverByCampaign(
+                campaign._id,
+                req.query.width,
+                req.query.heigth
+            )
+        }
 
         return responseHandler.makeResponseData(res, 200, 'success', {
             campaigns,
@@ -1034,7 +1078,7 @@ exports.validateCampaign = async (req, res) => {
                     { id_prom: idApply },
                     { $set: socialOracle }
                 )
-    
+
                 await notificationManager(id, 'cmp_candidate_accept_link', {
                     cmp_name: campaign.title,
                     action: 'link_accepted',
@@ -1052,10 +1096,9 @@ exports.validateCampaign = async (req, res) => {
                     _id
                 )
             }
-        }catch(err){
-          console.log(err)
+        } catch (err) {
+            console.log(err)
         }
-   
     }
 }
 
@@ -2387,40 +2430,6 @@ module.exports.updateStatistics = async (req, res) => {
     try {
         await updateStat()
         return responseHandler.makeResponseData(res, 200, 'success', false)
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-module.exports.coverByCampaign = async (req, res) => {
-    try {
-        let _id = req.params.id
-        let campaign = await Campaigns.findOne({ _id })
-        let image = Buffer.from(campaign.cover, 'base64')
-        if (req.query.width && req.query.heigth)
-            sharp(image)
-                .resize(+req.query.heigth, +req.query.width)
-                .toBuffer()
-                .then((resizedImageBuffer) => {
-                    res.writeHead(200, {
-                        'Content-Type': 'image/png',
-                        'Content-Length': resizedImageBuffer.length,
-                    })
-                    res.end(resizedImageBuffer)
-                })
-        else {
-            res.writeHead(200, {
-                'Content-Type': 'image/png',
-
-                'Content-Length': image.length,
-            })
-
-            res.end(image)
-        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,

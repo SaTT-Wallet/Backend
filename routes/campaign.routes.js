@@ -573,6 +573,11 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  *       - name: idWallet
  *         description: idWallet
  *         in: query
+ *       - name: width
+ *         description: width
+ *         in: query
+ *       - name: heigth
+ *         description: heigth
  *     responses:
  *       "200":
  *          description: code,<br>message:"success"
