@@ -902,7 +902,7 @@ module.exports.verifyLink = async (req, response) => {
         var typeSN = req.params.typeSN
         var idUser = req.params.idUser
         var idPost = req.params.idPost
-
+        let profileLinedin = null;
         if (!typeSN || !idUser || !idPost) {
             return makeResponseError(response, 400, 'please provide all fields')
         }
@@ -990,7 +990,10 @@ module.exports.verifyLink = async (req, response) => {
                     linked = true
                     for (let profile of linkedinProfile) {
                         res = await verifyLinkedin(profile, idPost)
-                        if (res === true) break
+                        if (res === true){
+                            profileLinedin = profile
+                            break;
+                        } 
                         if (res === 'deactivate') deactivate = true
                     }
                 }
@@ -1020,7 +1023,7 @@ module.exports.verifyLink = async (req, response) => {
                 200,
                 'success',
                 res ? 'true' : 'false',
-                res === true && typeSN == "5" && linkedinProfile?.linkedinId
+                res === true && typeSN == "5" && profileLinedin?.linkedinId
             )
     } catch (err) {
         return makeResponseError(
