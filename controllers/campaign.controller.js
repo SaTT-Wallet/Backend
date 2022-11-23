@@ -713,13 +713,14 @@ exports.campaignPromp = async (req, res) => {
 }
 
 exports.apply = async (req, res) => {
-    var idCampaign = req.body.idCampaign
-    var typeSN = req.body.typeSN
-    var idPost = req.body.idPost
-    var idUser = req.body.idUser
-    let title = req.body.title
+    // var idCampaign = req.body.idCampaign
+    // var typeSN = req.body.typeSN
+    // var idPost = req.body.idPost
+    // var idUser = req.body.idUser
+    // let title = req.body.title
     var id = req.user._id
-    var pass = req.body.pass
+    // var pass = req.body.pass
+    var {linkedinId,idCampaign,typeSN,idPost,idUser,title,pass}  = req.body;
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
 
@@ -752,7 +753,7 @@ exports.apply = async (req, res) => {
         }
 
         if (typeSN == 5) {
-            var linkedinProfile = await LinkedinProfile.findOne({ userId: id })
+            var linkedinProfile = await LinkedinProfile.findOne({ userId: id, ...linkedinId && {linkedinId} }).lean()
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString(),
@@ -791,7 +792,7 @@ exports.apply = async (req, res) => {
         )
     } finally {
         cred && lock(cred)
-        if (ret && ret.transactionHash) {
+        if (ret?.transactionHash) {
             if (typeSN == 3)
                 prom.instagramUserName = await getInstagramUserName(idPost, id)
 
@@ -806,6 +807,7 @@ exports.apply = async (req, res) => {
             if (media_url) prom.media_url = media_url
             if (prom.typeSN == 5) {
                 prom.typeURL = linkedinInfo.idPost.split(':')[2]
+                prom.linkedinId = linkedinId
             }
             prom.id_wallet =
                 (!!tronWeb && walletAddr) || cred.address.toLowerCase()
@@ -821,32 +823,15 @@ exports.apply = async (req, res) => {
                 linkedinProfile,
                 tiktokProfile
             )
-            let userWallet =
-                (!!tronWeb &&
-                    (await Wallet.findOne(
-                        {
-                            tronAddress: prom.id_wallet,
-                        },
-                        { UserId: 1, _id: 0 }
-                    ))) ||
-                (await Wallet.findOne(
-                    {
-                        'keystore.address': prom.id_wallet
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { UserId: 1, _id: 0 }
-                ))
-            let userId = prom.oracle === 'instagram' ? userWallet.UserId : null
+
             let socialOracle = await getPromApplyStats(
                 prom.oracle,
                 prom,
-                userId,
+                id,
                 linkedinProfile,
                 tiktokProfile
             )
 
-            // if (socialOracle?.views === 'old') socialOracle.views = '0'
             prom.views = socialOracle?.views || 0
             prom.likes = socialOracle?.likes || 0
             prom.shares = socialOracle?.shares || 0
@@ -1110,9 +1095,9 @@ exports.gains = async (req, res) => {
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
-                    { userId: req.user._id },
+                    { userId: req.user._id,linkedinId:link.linkedinId },
                     { accessToken: 1, _id: 0 }
-                ))
+                ).lean())
             if (!!campaignData.bounties.length) {
                 if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
                     var ret = await getGains(
