@@ -206,7 +206,9 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
                 return 'deactivate'
         })
         return res
-    } catch (err) {}
+    } catch (err) {
+        console.error("verifyLinkedin",err);
+    }
 }
 
 exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
@@ -670,7 +672,7 @@ const instagram = async (UserId, link) => {
 
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
-            var fbProfile = await FbProfile.findOne({ UserId: UserId })
+            var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean();
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`

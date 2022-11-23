@@ -4,7 +4,7 @@ const linkedinProfileSchema = mongoose.Schema(
     {
         accessToken: { type: String },
         userId: { type: Number, required: true, ref: 'user' },
-        linkedinId: { type: String },
+        linkedinId: { type: String, required },
         pages: [
             {
                 'organization~': {
