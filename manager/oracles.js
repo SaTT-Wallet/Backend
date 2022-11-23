@@ -447,8 +447,8 @@ exports.twitterAbos = async function (pageName, idPost) {
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
         await TwitterProfile.updateOne({
             id: twitterDetails.user.id_str
-        },{subscibers : twitterDetails.user.followers_count });
-        
+        },{"_json.followers_count" : twitterDetails.user.followers_count });
+
         return twitterDetails.user.followers_count
     } catch (err) {}
 }
