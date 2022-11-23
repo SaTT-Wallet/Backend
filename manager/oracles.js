@@ -445,7 +445,7 @@ exports.twitterAbos = async function (pageName, idPost) {
             access_token_secret: oauth.twitter.access_token_secret,
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
-        await TwitterProfile.updateOne({
+        await TwitterProfile.updateMany({
             id: twitterDetails.user.id_str
         },{"_json.followers_count" : twitterDetails.user.followers_count });
 
