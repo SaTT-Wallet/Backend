@@ -206,7 +206,9 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
                 return 'deactivate'
         })
         return res
-    } catch (err) {}
+    } catch (err) {
+        console.error("verifyLinkedin",err);
+    }
 }
 
 exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
@@ -443,6 +445,10 @@ exports.twitterAbos = async function (pageName, idPost) {
             access_token_secret: oauth.twitter.access_token_secret,
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
+        await TwitterProfile.updateOne({
+            id: twitterDetails.user.id_str
+        },{"_json.followers_count" : twitterDetails.user.followers_count });
+
         return twitterDetails.user.followers_count
     } catch (err) {}
 }
@@ -670,7 +676,7 @@ const instagram = async (UserId, link) => {
 
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
-            var fbProfile = await FbProfile.findOne({ UserId: UserId })
+            var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean();
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`

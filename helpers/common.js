@@ -277,8 +277,8 @@ exports.updateStatforUser = async (UserId) => {
 
         if (event.typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne({
-                userId: UserId,
-            })
+                userId: UserId, ...event.linkedinId && {linkedinId: event.linkedinId} 
+            }).lean()
             var linkedinInfo = await getLinkedinLinkInfoMedia(
                 linkedinProfile?.accessToken,
                 event.idPost,
