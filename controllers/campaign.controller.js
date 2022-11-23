@@ -1095,7 +1095,7 @@ exports.gains = async (req, res) => {
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
-                    { userId: req.user._id,linkedinId:link.linkedinId },
+                    { userId: req.user._id,...link.linkedinId && {linkedinId:link.linkedinId} },
                     { accessToken: 1, _id: 0 }
                 ).lean())
             if (!!campaignData.bounties.length) {
