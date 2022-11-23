@@ -576,13 +576,13 @@ exports.socialAccounts = async (req, res) => {
         let UserId = req.user._id
         let networks = {}
         let [channelsGoogle, channelsTwitter] = await Promise.all([
-            GoogleProfile.find({ UserId }, { accessToken: 0 }),
+            GoogleProfile.find({ UserId }, { accessToken: 0,refreshToken:0 }),
             TwitterProfile.find(
                 { UserId },
                 { _raw: 0, access_token_key: 0, access_token_secret: 0 }
             ),
         ])
-        let channelsFacebook = await FbPage.find({ UserId })
+        let channelsFacebook = await FbPage.find({ UserId },{token:0})
         let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
         let channelsTiktok = await TikTokProfile.find(
             { userId: UserId },
@@ -933,7 +933,7 @@ module.exports.verifyLink = async (req, response) => {
             case '2':
                 var googleProfile = await GoogleProfile.findOne({
                     UserId: userId,
-                })
+                },{refreshToken:1}).lean()
 
                 if (googleProfile) {
                     var options = {
@@ -985,7 +985,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '5':
-                var linkedinProfile = await LinkedinProfile.find({ userId })
+                var linkedinProfile = await LinkedinProfile.find({ userId },{accessToken:1,pages:1,linkedinId:1})
                 if (linkedinProfile.length) {
                     linked = true
                     for (let profile of linkedinProfile) {
@@ -1019,7 +1019,8 @@ module.exports.verifyLink = async (req, response) => {
                 response,
                 200,
                 'success',
-                res ? 'true' : 'false'
+                res ? 'true' : 'false',
+                res === true && typeSN == "5" && linkedinProfile?.linkedinId
             )
     } catch (err) {
         return makeResponseError(
@@ -1063,7 +1064,8 @@ module.exports.ProfilPrivacy = async (req, res) => {
         let privacy = ''
         let userId = req.user._id
         let tiktokProfile = await TikTokProfile.findOne({ userId })
-
+        let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
+        let resMedia = await rp({ uri: getUrl, json: true })
         const linkedinData = {
             url: 'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
             method: 'POST',
@@ -1071,7 +1073,7 @@ module.exports.ProfilPrivacy = async (req, res) => {
                 max_count: 20,
             },
             headers: {
-                Authorization: 'Bearer ' + tiktokProfile.accessToken,
+                Authorization: 'Bearer ' + resMedia?.data.access_token,
             },
             json: true,
         }
