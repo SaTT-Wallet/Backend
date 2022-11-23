@@ -1096,7 +1096,7 @@ exports.gains = async (req, res) => {
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
                     { userId: req.user._id,...link.linkedinId && {linkedinId:link.linkedinId} },
-                    { accessToken: 1, _id: 0 }
+                    { accessToken: 1, _id: 0,refreshToken:1 }
                 ).lean())
             if (!!campaignData.bounties.length) {
                 if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
