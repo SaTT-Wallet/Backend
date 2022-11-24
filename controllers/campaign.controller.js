@@ -429,18 +429,9 @@ module.exports.coverByCampaign = async (id, width, heigth) => {
                 .then((resizedImageBuffer) => {
                     console.log('with demenssion')
 
-                    //   console.log("resizedImageBuffer", resizedImageBuffer);
+                    //  console.log("resizedImageBuffer", resizedImageBuffer);
 
-                    return {
-                        topic: 'test-channel-data-topic',
-                        messages: [
-                            {
-                                value: Buffer.from(
-                                    JSON.stringify(resizedImageBuffer)
-                                ),
-                            },
-                        ],
-                    }
+                    return resizedImageBuffer
                 })
         } else {
             console.log('without dimenssions')
@@ -510,11 +501,33 @@ exports.campaigns = async (req, res) => {
             .skip(skip)
             .limit(limit)
         for (const campaign of campaigns) {
-            campaign.cover = await this.coverByCampaign(
-                campaign._id,
-                req.query.width,
-                req.query.heigth
-            )
+            // campaign.cover = await this.coverByCampaign(
+            //     campaign._id,
+            //     req.query.width,
+            //     req.query.heigth
+            // )
+
+            let width = req.query.width
+            let heigth = req.query.heigth
+
+            let image = Buffer.from(campaign.cover, 'base64')
+            console.log('image', image)
+            if (width && heigth) {
+                sharp(image)
+                    .resize(+heigth, +width)
+                    .toBuffer()
+                    .then((resizedImageBuffer) => {
+                        console.log('with demenssion')
+
+                        //  console.log("resizedImageBuffer", resizedImageBuffer);
+
+                        console.log(typeof resizedImageBuffer)
+
+                        campaign.cover = resizedImageBuffer
+                    })
+            }
+
+            console.log('cover ', campaign.cover)
         }
 
         return responseHandler.makeResponseData(res, 200, 'success', {
