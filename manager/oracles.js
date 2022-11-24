@@ -324,8 +324,7 @@ exports.answerAbos = async (
 
                 break
             case '5':
-                var res = await this.linkedinAbos(linkedinProfile, idUser)
-
+                var res = await this.linkedinAbos(linkedinProfile, idUser)     
                 break
             case '6':
                 var res = await this.tiktokAbos(tiktokProfile.userId)
@@ -388,7 +387,9 @@ exports.youtubeAbos = async function (idPost) {
                 },
                 json: true,
             })
-            return res.items[0].statistics.subscriberCount
+            let follwers_count = res.items[0].statistics.subscriberCount
+            await GoogleProfile.updateMany({channelId},{"channelStatistics.subscriberCount" : follwers_count})
+            return follwers_count;
         } else {
             return null
         }
