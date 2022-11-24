@@ -753,7 +753,7 @@ exports.apply = async (req, res) => {
         }
 
         if (typeSN == 5) {
-            var linkedinProfile = await LinkedinProfile.findOne({ userId: id, ...linkedinId && {linkedinId} }).lean()
+            var linkedinProfile = await LinkedinProfile.findOne({ userId: id, ...linkedinId && {linkedinId} })
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString(),
