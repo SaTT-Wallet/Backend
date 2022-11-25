@@ -393,7 +393,9 @@ exports.youtubeAbos = async function (idPost) {
         } else {
             return null
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error('youtubeAbos',err)
+    }
 }
 
 exports.instagramAbos = async (idPost) => {
@@ -465,8 +467,14 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
             json: true,
         }
         let postData = await rp(linkedinData)
-        return postData.firstDegreeSize
-    } catch (err) {}
+        var  subscribers= postData.firstDegreeSize 
+        return subscribers
+    } catch (err) {
+        console.error("linkedinAbos",err)
+        return 0;
+    }finally{
+        subscribers &&  await LinkedinProfile.updateMany({"pages.organization" : organization},{$set: {'pages.$.subscribers': subscribers}})
+    }
 }
 
 exports.tiktokAbos = async (userId, access_token = null) => {
