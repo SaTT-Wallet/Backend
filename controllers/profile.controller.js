@@ -918,10 +918,10 @@ module.exports.verifyLink = async (req, response) => {
                 let fbPage = await FbPage.findOne({
                     UserId: userId,
                     username: idUser,
-                })
+                },{token:1,id:1}).lean();
                 if (fbProfile && fbPage) {
                     linked = true
-                    res = await verifyFacebook(userId, idUser, idPost)
+                    res = await verifyFacebook(idPost,fbPage)
 
                     if (res && res.deactivate === true) {
                         deactivate = true
