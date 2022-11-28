@@ -753,7 +753,7 @@ exports.apply = async (req, res) => {
         }
 
         if (typeSN == 5) {
-            var linkedinProfile = await LinkedinProfile.findOne({ userId: id, ...linkedinId && {linkedinId} })
+            var linkedinProfile = await LinkedinProfile.findOne({ userId: id, ...linkedinId && {linkedinId} },{refreshToken:1,accessToken : 1}).lean();
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString(),
@@ -1066,7 +1066,7 @@ exports.gains = async (req, res) => {
             var ctr
             var gasPrice
             var wrappedTrx = false
-            campaignData = await Campaigns.findOne({ hash: hash })
+            campaignData = await Campaigns.findOne({ hash: hash }).lean();
             req.body.network = campaignData.token.type
             credentials = await unlock(req, res)
 
@@ -1113,11 +1113,8 @@ exports.gains = async (req, res) => {
                         ret
                     )
                 }
-                let campaign = await Campaigns.findOne(
-                    { hash: hash },
-                    { bounties: 1 }
-                )
-                let bountie = campaign.bounties.find(
+
+                let bountie = campaignData.bounties.find(
                     (b) => b.oracle == findBountyOracle(prom.typeSN)
                 )
                 let maxBountieFollowers =
@@ -1322,10 +1319,6 @@ exports.gains = async (req, res) => {
         credentials && lock(credentials)
 
         if (ret?.transactionHash) {
-            let campaign = await Campaigns.findOne(
-                { hash: hash },
-                { token: 1, _id: 0 }
-            )
 
             let campaignType = {}
 
