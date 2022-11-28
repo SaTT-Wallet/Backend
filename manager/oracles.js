@@ -58,11 +58,8 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     } catch (err) {}
 }
 
-exports.verifyFacebook = async function (userId, pageName, idPost) {
+exports.verifyFacebook = async (idPost,page) => {
     try {
-        var page = await FbPage.findOne({
-            $and: [{ UserId: userId }, { username: pageName }],
-        })
         if (page) {
             var token = page.token
             var idPage = page.id
@@ -496,11 +493,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         var result = JSON.parse(runCmd(cmd))
         return result?.data?.user?.follower_count ?? 0
     } catch (err) {
-        return responseHandler.makeResponseError(
-            result,
-            500,
-            err.message ? err.message : err.error
-        )
+        console.error("tiktokAbos",err.message ? err.message : err.error)
     }
 }
 
