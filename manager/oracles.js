@@ -87,17 +87,13 @@ exports.verifyFacebook = async function (userId, pageName, idPost) {
     }
 }
 
-exports.verifyYoutube = async function (userId, idPost) {
+exports.verifyYoutube = async (userId, idPost,accessToken) => {
     try {
-        var googleProfile = await GoogleProfile.findOne({
-            UserId: userId,
-        })
-
         var res = await rp({
             uri: 'https://www.googleapis.com/youtube/v3/videos',
             qs: {
                 id: idPost,
-                access_token: googleProfile.accessToken,
+                access_token: accessToken,
                 part: 'snippet',
             },
             json: true,
@@ -113,13 +109,15 @@ exports.verifyYoutube = async function (userId, idPost) {
         } else {
             return false
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error('verifyYoutube',err)
+    }
 }
 
 exports.verifyInsta = async function (userId, idPost) {
     try {
         let userName
-        var fbProfile = await FbProfile.findOne({ UserId: userId })
+        var fbProfile = await FbProfile.findOne({ UserId: userId },{accessToken:1}).lean();
         if (fbProfile) {
             var accessToken = fbProfile.accessToken
             var media =
@@ -147,7 +145,7 @@ exports.verifyInsta = async function (userId, idPost) {
             }
             var page = await FbPage.findOne({
                 $and: [{ UserId: userId }, { instagram_username: userName }],
-            })
+            }).lean();
 
             if (page && !page.deactivate) return true
             else if (page && page.deactivate === true) return 'deactivate'

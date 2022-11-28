@@ -899,9 +899,7 @@ module.exports.confrimChangeMail = async (req, res) => {
 module.exports.verifyLink = async (req, response) => {
     try {
         var userId = req.user._id
-        var typeSN = req.params.typeSN
-        var idUser = req.params.idUser
-        var idPost = req.params.idPost
+        var {typeSN,idUser,idPost} = req.params;
         let profileLinedin = null;
         if (!typeSN || !idUser || !idPost) {
             return makeResponseError(response, 400, 'please provide all fields')
@@ -948,13 +946,13 @@ module.exports.verifyLink = async (req, response) => {
                         json: true,
                     }
 
-                    var result = await rp(options)
+                    const {access_token} = await rp(options)
                     await GoogleProfile.updateOne(
                         { UserId: userId },
-                        { $set: { accessToken: result.access_token } }
+                        { $set: { accessToken: access_token } }
                     )
                     linked = true
-                    res = await verifyYoutube(userId, idPost)
+                    res = await verifyYoutube(userId, idPost,access_token)
                     if (res && res.deactivate === true) deactivate = true
                 }
 
@@ -976,7 +974,7 @@ module.exports.verifyLink = async (req, response) => {
             case '4':
                 var twitterProfile = await TwitterProfile.findOne({
                     UserId: userId,
-                })
+                },{access_token_key : 1,access_token_secret:1}).lean()
                 if (twitterProfile) {
                     linked = true
                     res = await verifyTwitter(twitterProfile, userId, idPost)
@@ -1000,7 +998,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '6':
-                var tiktokProfile = await TikTokProfile.findOne({ userId })
+                var tiktokProfile = await TikTokProfile.findOne({ userId }).lean()
                 if (tiktokProfile) {
                     linked = true
                     res = await verifytiktok(tiktokProfile, userId, idPost)
