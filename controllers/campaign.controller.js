@@ -489,8 +489,8 @@ exports.campaigns = async (req, res) => {
 exports.campaignDetails = async (req, res) => {
     try {
         var _id = req.params.id
-
-        var campaign = await Campaigns.findOne({ _id })
+        const projection = req.query.projection === 'projection' && basicAtt || null
+        var campaign = await Campaigns.findOne({ _id }, projection).lean();
 
         if (campaign) {
             campaign.remaining = campaign.funds[1]
