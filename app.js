@@ -114,7 +114,6 @@ const swaggerSpec = swaggerJSDoc(options)
 
 if (process.env.NODE_ENV !== 'mainnet') {
     app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
-    x
 }
 
 // catch 204 and forward to error handler
