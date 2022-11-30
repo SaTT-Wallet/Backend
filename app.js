@@ -12,8 +12,8 @@ let cookieParser = require('cookie-parser')
 let path = require('path')
 
 const package = require('./package.json')
-app.use(require('body-parser').json()); 
-app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require('body-parser').json())
+app.use(require('body-parser').urlencoded({ extended: true }))
 
 app.use(express.json({ limit: '50mb' }))
 app.use(
@@ -111,7 +111,11 @@ const options = {
     apis: ['./routes/*.js'],
 }
 const swaggerSpec = swaggerJSDoc(options)
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
+
+if (process.env.NODE_ENV !== 'mainnet') {
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
+    x
+}
 
 // catch 204 and forward to error handler
 app.use(function (req, res, next) {
