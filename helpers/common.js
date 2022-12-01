@@ -277,7 +277,8 @@ exports.updateStatforUser = async (UserId) => {
 
         if (event.typeSN == 5) {
             var linkedinProfile = await LinkedinProfile.findOne({
-                userId: UserId, ...event.linkedinId && {linkedinId: event.linkedinId} 
+                userId: UserId,
+                ...(event.linkedinId && { linkedinId: event.linkedinId }),
             }).lean()
             var linkedinInfo = await getLinkedinLinkInfoMedia(
                 linkedinProfile?.accessToken,
@@ -404,11 +405,8 @@ exports.UpdateStats = async (obj, socialOracle) => {
 
 exports.BalanceUsersStats = async (condition) => {
     let today = new Date().toLocaleDateString('en-US')
-    let [currentDate, result] = ([Math.round(new Date().getTime() / 1000), {}][
-        (result.Date, result.convertDate)
-    ] = [currentDate, today])
-
-    //let Crypto = await getPrices()
+    let [currentDate, result] = [Math.round(new Date().getTime() / 1000), {}]
+    ;[result.Date, result.convertDate] = [currentDate, today]
 
     var users_
     if (condition === 'daily') {
