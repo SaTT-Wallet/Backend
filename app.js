@@ -12,8 +12,8 @@ let cookieParser = require('cookie-parser')
 let path = require('path')
 
 const package = require('./package.json')
-app.use(require('body-parser').json()); 
-app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require('body-parser').json())
+app.use(require('body-parser').urlencoded({ extended: true }))
 
 app.use(express.json({ limit: '50mb' }))
 app.use(
@@ -45,11 +45,22 @@ try {
 module.exports.connect = connect
 
 app.disable('x-powered-by')
-app.use(
-    cors({
+
+let Corsoptions = {}
+
+if (process.env.NODE_ENV !== 'mainnet') {
+    Corsoptions = {
         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-    })
-)
+    }
+} else {
+    Corsoptions = {
+        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+        // origin:[process.env.dns   ]
+    }
+}
+
+console.log('Corsoptions,', Corsoptions)
+app.use(cors(Corsoptions))
 
 app.use(logger('combined'))
 app.use(express.json())
@@ -111,7 +122,10 @@ const options = {
     apis: ['./routes/*.js'],
 }
 const swaggerSpec = swaggerJSDoc(options)
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
+
+if (process.env.NODE_ENV !== 'mainnet') {
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
+}
 
 // catch 204 and forward to error handler
 app.use(function (req, res, next) {

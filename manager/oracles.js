@@ -58,11 +58,8 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     } catch (err) {}
 }
 
-exports.verifyFacebook = async function (userId, pageName, idPost) {
+exports.verifyFacebook = async (idPost,page) => {
     try {
-        var page = await FbPage.findOne({
-            $and: [{ UserId: userId }, { username: pageName }],
-        })
         if (page) {
             var token = page.token
             var idPage = page.id
@@ -87,17 +84,13 @@ exports.verifyFacebook = async function (userId, pageName, idPost) {
     }
 }
 
-exports.verifyYoutube = async function (userId, idPost) {
+exports.verifyYoutube = async (userId, idPost,accessToken) => {
     try {
-        var googleProfile = await GoogleProfile.findOne({
-            UserId: userId,
-        })
-
         var res = await rp({
             uri: 'https://www.googleapis.com/youtube/v3/videos',
             qs: {
                 id: idPost,
-                access_token: googleProfile.accessToken,
+                access_token: accessToken,
                 part: 'snippet',
             },
             json: true,
@@ -113,13 +106,15 @@ exports.verifyYoutube = async function (userId, idPost) {
         } else {
             return false
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error('verifyYoutube',err)
+    }
 }
 
 exports.verifyInsta = async function (userId, idPost) {
     try {
         let userName
-        var fbProfile = await FbProfile.findOne({ UserId: userId })
+        var fbProfile = await FbProfile.findOne({ UserId: userId },{accessToken:1}).lean();
         if (fbProfile) {
             var accessToken = fbProfile.accessToken
             var media =
@@ -147,7 +142,7 @@ exports.verifyInsta = async function (userId, idPost) {
             }
             var page = await FbPage.findOne({
                 $and: [{ UserId: userId }, { instagram_username: userName }],
-            })
+            }).lean();
 
             if (page && !page.deactivate) return true
             else if (page && page.deactivate === true) return 'deactivate'
@@ -206,7 +201,9 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
                 return 'deactivate'
         })
         return res
-    } catch (err) {}
+    } catch (err) {
+        console.error("verifyLinkedin",err);
+    }
 }
 
 exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
@@ -322,8 +319,7 @@ exports.answerAbos = async (
 
                 break
             case '5':
-                var res = await this.linkedinAbos(linkedinProfile, idUser)
-
+                var res = await this.linkedinAbos(linkedinProfile, idUser)     
                 break
             case '6':
                 var res = await this.tiktokAbos(tiktokProfile.userId)
@@ -386,11 +382,15 @@ exports.youtubeAbos = async function (idPost) {
                 },
                 json: true,
             })
-            return res.items[0].statistics.subscriberCount
+            let follwers_count = res.items[0].statistics.subscriberCount
+            await GoogleProfile.updateMany({channelId},{"channelStatistics.subscriberCount" : follwers_count})
+            return follwers_count;
         } else {
             return null
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error('youtubeAbos',err)
+    }
 }
 
 exports.instagramAbos = async (idPost) => {
@@ -443,6 +443,10 @@ exports.twitterAbos = async function (pageName, idPost) {
             access_token_secret: oauth.twitter.access_token_secret,
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
+        await TwitterProfile.updateMany({
+            id: twitterDetails.user.id_str
+        },{"_json.followers_count" : twitterDetails.user.followers_count });
+
         return twitterDetails.user.followers_count
     } catch (err) {}
 }
@@ -458,8 +462,14 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
             json: true,
         }
         let postData = await rp(linkedinData)
-        return postData.firstDegreeSize
-    } catch (err) {}
+        var  subscribers= postData.firstDegreeSize 
+        return subscribers
+    } catch (err) {
+        console.error("linkedinAbos",err)
+        return 0;
+    }finally{
+        subscribers &&  await LinkedinProfile.updateMany({"pages.organization" : organization},{$set: {'pages.$.subscribers': subscribers}})
+    }
 }
 
 exports.tiktokAbos = async (userId, access_token = null) => {
@@ -483,11 +493,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         var result = JSON.parse(runCmd(cmd))
         return result?.data?.user?.follower_count ?? 0
     } catch (err) {
-        return responseHandler.makeResponseError(
-            result,
-            500,
-            err.message ? err.message : err.error
-        )
+        console.error("tiktokAbos",err.message ? err.message : err.error)
     }
 }
 
@@ -670,7 +676,7 @@ const instagram = async (UserId, link) => {
 
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
-            var fbProfile = await FbProfile.findOne({ UserId: UserId })
+            var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean();
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`

@@ -49,11 +49,13 @@ module.exports.transferTokens = async function ({
 
     web3.eth.accounts.wallet.decrypt([encryptedPrivateKey], walletPassword)
 
-    
     try {
         let result
 
-        if (tokenSmartContractAddress === null) {
+        if (
+            tokenSmartContractAddress === null ||
+            tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
+        ) {
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
                 to: toAddress,
