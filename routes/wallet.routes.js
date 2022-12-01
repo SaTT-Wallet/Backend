@@ -410,30 +410,6 @@ router.post('/getQuote', verifyAuthGetQuote, getQuote)
  */
 router.post('/payementRequest', verifyAuth, payementRequest)
 
-/**
- * @swagger
- * /wallet/bridge:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: swap satt erc20 to bep20 and the opposite.
- *     description: to swap satt from bep20 to erc20 you need to use direction="bte", from erc20 to bep20 you need to use direction="etb".
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *               amount:
- *                 type: string
- *     responses:
- *       "200":
- *          description: transactionHash:transactionHash,address:address,to:to,amount:amount
- *       "500":
- *          description: error:error message
- */
 //router.post('/bridge', verifyAuth, bridge)
 
 /**
