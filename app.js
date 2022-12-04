@@ -46,22 +46,24 @@ module.exports.connect = connect
 
 app.disable('x-powered-by')
 
-let Corsoptions = {}
+// let Corsoptions = {}
 
-if (process.env.NODE_ENV !== 'mainnet') {
-    Corsoptions = {
+// if (process.env.NODE_ENV !== 'mainnet') {
+//     Corsoptions = {
+//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+//     }
+// } else {
+//     Corsoptions = {
+//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+//         // origin:[process.env.dns   ]
+//     }
+// }
+
+app.use(
+    cors({
         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-    }
-} else {
-    Corsoptions = {
-        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-        // origin:[process.env.dns   ]
-    }
-}
-
-console.log('Corsoptions,', Corsoptions)
-app.use(cors(Corsoptions))
-
+    })
+)
 app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
