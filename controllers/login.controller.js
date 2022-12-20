@@ -252,7 +252,10 @@ exports.confirmCode = async (req, res) => {
         let [email, code] = [req.body.email.toLowerCase(), req.body.code]
         let user = await User.findOne({ email }, { secureCode: 1 })
         let dateNow = Math.floor(Date.now() / 1000)
+
+        console.log('user confirm code', user)
         if (!user) {
+            console.log('user not found')
             return responseHandler.makeResponseError(
                 res,
                 204,
