@@ -163,7 +163,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             var htmlToSend = template(replacements)
             var mailOptions = {
                 from: process.env.MAIL_SENDER,
-                to: user.email.toLowerCase(),
+                to: user.email?.toLowerCase(),
                 subject: 'Satt wallet activation',
                 html: htmlToSend,
             }
