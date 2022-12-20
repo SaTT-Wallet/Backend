@@ -567,7 +567,7 @@ exports.updateLastStep = async (req, res) => {
                 { _id },
                 {
                     $set: {
-                        email: profile.email,
+                        email: profile.email.toLowerCase(),
                         firstName: profile.firstName,
                         lastName: profile.lastName,
                         enabled: 0,
