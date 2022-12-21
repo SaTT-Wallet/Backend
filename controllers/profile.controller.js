@@ -576,13 +576,13 @@ exports.socialAccounts = async (req, res) => {
         let UserId = req.user._id
         let networks = {}
         let [channelsGoogle, channelsTwitter] = await Promise.all([
-            GoogleProfile.find({ UserId }, { accessToken: 0,refreshToken:0 }),
+            GoogleProfile.find({ UserId }, { accessToken: 0, refreshToken: 0 }),
             TwitterProfile.find(
                 { UserId },
                 { _raw: 0, access_token_key: 0, access_token_secret: 0 }
             ),
         ])
-        let channelsFacebook = await FbPage.find({ UserId },{token:0})
+        let channelsFacebook = await FbPage.find({ UserId }, { token: 0 })
         let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
         let channelsTiktok = await TikTokProfile.find(
             { userId: UserId },
@@ -899,8 +899,8 @@ module.exports.confrimChangeMail = async (req, res) => {
 module.exports.verifyLink = async (req, response) => {
     try {
         var userId = req.user._id
-        var {typeSN,idUser,idPost} = req.params;
-        let profileLinedin = null;
+        var { typeSN, idUser, idPost } = req.params
+        let profileLinedin = null
         if (!typeSN || !idUser || !idPost) {
             return makeResponseError(response, 400, 'please provide all fields')
         }
@@ -915,13 +915,16 @@ module.exports.verifyLink = async (req, response) => {
                     { accessToken: 1 }
                 ).lean()
                 await updateFacebookPages(userId, fbProfile.accessToken, false)
-                let fbPage = await FbPage.findOne({
-                    UserId: userId,
-                    username: idUser,
-                },{token:1,id:1}).lean();
+                let fbPage = await FbPage.findOne(
+                    {
+                        UserId: userId,
+                        username: idUser,
+                    },
+                    { token: 1, id: 1 }
+                ).lean()
                 if (fbProfile && fbPage) {
                     linked = true
-                    res = await verifyFacebook(idPost,fbPage)
+                    res = await verifyFacebook(idPost, fbPage)
 
                     if (res && res.deactivate === true) {
                         deactivate = true
@@ -929,9 +932,12 @@ module.exports.verifyLink = async (req, response) => {
                 }
                 break
             case '2':
-                var googleProfile = await GoogleProfile.findOne({
-                    UserId: userId,
-                },{refreshToken:1}).lean()
+                var googleProfile = await GoogleProfile.findOne(
+                    {
+                        UserId: userId,
+                    },
+                    { refreshToken: 1 }
+                ).lean()
 
                 if (googleProfile) {
                     var options = {
@@ -946,13 +952,13 @@ module.exports.verifyLink = async (req, response) => {
                         json: true,
                     }
 
-                    const {access_token} = await rp(options)
+                    const { access_token } = await rp(options)
                     await GoogleProfile.updateOne(
                         { UserId: userId },
                         { $set: { accessToken: access_token } }
                     )
                     linked = true
-                    res = await verifyYoutube(userId, idPost,access_token)
+                    res = await verifyYoutube(userId, idPost, access_token)
                     if (res && res.deactivate === true) deactivate = true
                 }
 
@@ -972,9 +978,12 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '4':
-                var twitterProfile = await TwitterProfile.findOne({
-                    UserId: userId,
-                },{access_token_key : 1,access_token_secret:1}).lean()
+                var twitterProfile = await TwitterProfile.findOne(
+                    {
+                        UserId: userId,
+                    },
+                    { access_token_key: 1, access_token_secret: 1 }
+                ).lean()
                 if (twitterProfile) {
                     linked = true
                     res = await verifyTwitter(twitterProfile, userId, idPost)
@@ -983,22 +992,27 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '5':
-                var linkedinProfile = await LinkedinProfile.find({ userId },{accessToken:1,pages:1,linkedinId:1})
+                var linkedinProfile = await LinkedinProfile.find(
+                    { userId },
+                    { accessToken: 1, pages: 1, linkedinId: 1 }
+                )
                 if (linkedinProfile.length) {
                     linked = true
                     for (let profile of linkedinProfile) {
                         res = await verifyLinkedin(profile, idPost)
-                        if (res === true){
+                        if (res === true) {
                             profileLinedin = profile
-                            break;
-                        } 
+                            break
+                        }
                         if (res === 'deactivate') deactivate = true
                     }
                 }
 
                 break
             case '6':
-                var tiktokProfile = await TikTokProfile.findOne({ userId }).lean()
+                var tiktokProfile = await TikTokProfile.findOne({
+                    userId,
+                }).lean()
                 if (tiktokProfile) {
                     linked = true
                     res = await verifytiktok(tiktokProfile, userId, idPost)
@@ -1021,7 +1035,7 @@ module.exports.verifyLink = async (req, response) => {
                 200,
                 'success',
                 res ? 'true' : 'false',
-                res === true && typeSN == "5" && profileLinedin?.linkedinId
+                res === true && typeSN == '5' && profileLinedin?.linkedinId
             )
     } catch (err) {
         return makeResponseError(
