@@ -557,6 +557,7 @@ exports.updateLastStep = async (req, res) => {
     try {
         let _id = req.user._id
         let profile = req.body
+
         let password = Math.random().toString(36).slice(-8)
         let user = await User.findOne({ email: profile.email })
         if (user && user._id !== _id) {
@@ -566,6 +567,7 @@ exports.updateLastStep = async (req, res) => {
                 'email already exists'
             )
         } else if (user && user._id === _id) {
+            console.log('email lowercase', profile.email.toLowerCase())
             await User.updateOne(
                 { _id },
                 {
@@ -590,7 +592,7 @@ exports.updateLastStep = async (req, res) => {
                 { _id },
                 {
                     $set: {
-                        email: profile.email,
+                        email: profile.email.toLowerCase(),
                         firstName: profile.firstName,
                         lastName: profile.lastName,
                         isChanged: true,
