@@ -573,7 +573,7 @@ exports.googleAuthSignup = async (
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile.displayName,
-            '',
+            profile.emails[0].value,
             'idOnSn2',
             profile.id,
             profile.name.givenName,
@@ -911,7 +911,10 @@ exports.addlinkedinChannel = async (
     let redirect = req.query.state.split('|')[1]
     let linkedinId = profile.id
 
-    let profileData = await LinkedinProfile.findOne({ userId, linkedinId }).lean();
+    let profileData = await LinkedinProfile.findOne({
+        userId,
+        linkedinId,
+    }).lean()
 
     if (profileData) {
         return done(null, profile, {
@@ -950,7 +953,7 @@ exports.addlinkedinChannel = async (
     // await LinkedinProfile.updateOne({ userId }, linkedinProfile, {
     //     upsert: true,
     // })
-     await LinkedinProfile.create(linkedinProfile)
+    await LinkedinProfile.create(linkedinProfile)
     return done(null, profile, {
         status: true,
         message: 'account_linked_with_success',
@@ -1079,35 +1082,6 @@ module.exports.verifyAuth = (req, res, next) => {
         next()
     })
 }
-module.exports.verifyAuthGetQuote = (req, res, next) => {
-    const authHeader = req.headers['authorization']
-    const token = authHeader?.split(' ')[1]
-    if (!!token) {
-        jwt.verify(
-            token,
-            process.env.REFRESH_TOKEN_SECRET,
-            async (err, user) => {
-                if (err) return res.json(err)
-                let _id = user?._id ? user?._id : user?._doc._id
-                newUser = await User.findOne({ _id })
-
-                if (!newUser) {
-                    return responseHandler.makeResponseError(
-                        res,
-                        401,
-                        'Invalid token'
-                    )
-                }
-                req.user = newUser
-                next()
-            }
-        )
-    } else {
-        req.user = { _id: Math.floor(1000 + Math.random() * 9000) + '' }
-        next()
-    }
-}
-
 module.exports.verifyAuthGetQuote = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader?.split(' ')[1]
