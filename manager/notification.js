@@ -81,8 +81,7 @@ exports.sendNotificationTest = async (req, res) => {
         }
         if (error) {
         }
-        // console.log("response new",response);
-        // error && console.log("new error",error)
+
         return
     })
 }

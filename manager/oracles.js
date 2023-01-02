@@ -58,7 +58,7 @@ exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     } catch (err) {}
 }
 
-exports.verifyFacebook = async (idPost,page) => {
+exports.verifyFacebook = async (idPost, page) => {
     try {
         if (page) {
             var token = page.token
@@ -84,7 +84,7 @@ exports.verifyFacebook = async (idPost,page) => {
     }
 }
 
-exports.verifyYoutube = async (userId, idPost,accessToken) => {
+exports.verifyYoutube = async (userId, idPost, accessToken) => {
     try {
         var res = await rp({
             uri: 'https://www.googleapis.com/youtube/v3/videos',
@@ -107,14 +107,17 @@ exports.verifyYoutube = async (userId, idPost,accessToken) => {
             return false
         }
     } catch (err) {
-        console.error('verifyYoutube',err)
+        console.error('verifyYoutube', err)
     }
 }
 
 exports.verifyInsta = async function (userId, idPost) {
     try {
         let userName
-        var fbProfile = await FbProfile.findOne({ UserId: userId },{accessToken:1}).lean();
+        var fbProfile = await FbProfile.findOne(
+            { UserId: userId },
+            { accessToken: 1 }
+        ).lean()
         if (fbProfile) {
             var accessToken = fbProfile.accessToken
             var media =
@@ -142,7 +145,7 @@ exports.verifyInsta = async function (userId, idPost) {
             }
             var page = await FbPage.findOne({
                 $and: [{ UserId: userId }, { instagram_username: userName }],
-            }).lean();
+            }).lean()
 
             if (page && !page.deactivate) return true
             else if (page && page.deactivate === true) return 'deactivate'
@@ -202,7 +205,7 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
         })
         return res
     } catch (err) {
-        console.error("verifyLinkedin",err);
+        console.error('verifyLinkedin', err)
     }
 }
 
@@ -269,13 +272,7 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 )
             })
         }
-        //https://www.instagram.com/p/CXdclE_oKjm/?__a=1
-        // var media =
-        //     'https://api.instagram.com/oembed/?callback=&url=https://www.instagram.com/p/' +
-        //     shortcode
-        // var media ='https://www.instagram.com/p/'+shortcode+'/?__a=1'
-        // var resMedia = await rp({ uri: media, json: true })
-        // console.log('resMedia', resMedia)
+
         return userName
     } catch (err) {}
 }
@@ -319,7 +316,7 @@ exports.answerAbos = async (
 
                 break
             case '5':
-                var res = await this.linkedinAbos(linkedinProfile, idUser)     
+                var res = await this.linkedinAbos(linkedinProfile, idUser)
                 break
             case '6':
                 var res = await this.tiktokAbos(tiktokProfile.userId)
@@ -383,13 +380,16 @@ exports.youtubeAbos = async function (idPost) {
                 json: true,
             })
             let follwers_count = res.items[0].statistics.subscriberCount
-            await GoogleProfile.updateMany({channelId},{"channelStatistics.subscriberCount" : follwers_count})
-            return follwers_count;
+            await GoogleProfile.updateMany(
+                { channelId },
+                { 'channelStatistics.subscriberCount': follwers_count }
+            )
+            return follwers_count
         } else {
             return null
         }
     } catch (err) {
-        console.error('youtubeAbos',err)
+        console.error('youtubeAbos', err)
     }
 }
 
@@ -443,9 +443,12 @@ exports.twitterAbos = async function (pageName, idPost) {
             access_token_secret: oauth.twitter.access_token_secret,
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
-        await TwitterProfile.updateMany({
-            id: twitterDetails.user.id_str
-        },{"_json.followers_count" : twitterDetails.user.followers_count });
+        await TwitterProfile.updateMany(
+            {
+                id: twitterDetails.user.id_str,
+            },
+            { '_json.followers_count': twitterDetails.user.followers_count }
+        )
 
         return twitterDetails.user.followers_count
     } catch (err) {}
@@ -462,13 +465,17 @@ exports.linkedinAbos = async (linkedinProfile, organization) => {
             json: true,
         }
         let postData = await rp(linkedinData)
-        var  subscribers= postData.firstDegreeSize 
+        var subscribers = postData.firstDegreeSize
         return subscribers
     } catch (err) {
-        console.error("linkedinAbos",err)
-        return 0;
-    }finally{
-        subscribers &&  await LinkedinProfile.updateMany({"pages.organization" : organization},{$set: {'pages.$.subscribers': subscribers}})
+        console.error('linkedinAbos', err)
+        return 0
+    } finally {
+        subscribers &&
+            (await LinkedinProfile.updateMany(
+                { 'pages.organization': organization },
+                { $set: { 'pages.$.subscribers': subscribers } }
+            ))
     }
 }
 
@@ -493,7 +500,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         var result = JSON.parse(runCmd(cmd))
         return result?.data?.user?.follower_count ?? 0
     } catch (err) {
-        console.error("tiktokAbos",err.message ? err.message : err.error)
+        console.error('tiktokAbos', err.message ? err.message : err.error)
     }
 }
 
@@ -676,7 +683,7 @@ const instagram = async (UserId, link) => {
 
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
-            var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean();
+            var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean()
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
@@ -739,14 +746,11 @@ const twitter = async (userName, idPost) => {
         })
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
 
-        console.log('userName', userName)
         var twitterProfile = (
             await TwitterProfile.find({
                 id: tweet_res.user.id_str,
             })
         )[0]
-
-        console.log('twitterProfile', twitterProfile)
 
         var tweet = new Twitter2({
             consumer_key: oauth.twitter.consumer_key,

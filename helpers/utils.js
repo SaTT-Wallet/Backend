@@ -361,15 +361,6 @@ exports.encodeParams = async (inputs) => {
         parameters = abiCoder.encode(types, values).replace(/^(0x)/, '')
     } catch (ex) {}
     return parameters
-
-    /*
-    HOW TO USE FUNCTION
-    let inputs = [
-        {type: 'address', value: "412ed5dd8a98aea00ae32517742ea5289761b2710e"},
-        {type: 'uint256', value: 50000000000}
-    ]
-    let parameters = await encodeParams(inputs)
-    console.log(parameters)*/
 }
 
 exports.decodeParams = async (types, output, ignoreMethodHash) => {

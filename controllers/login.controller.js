@@ -565,7 +565,6 @@ exports.updateLastStep = async (req, res) => {
                 'email already exists'
             )
         } else if (user && user._id === _id) {
-            console.log('email lowercase', profile.email.toLowerCase())
             await User.updateOne(
                 { _id },
                 {

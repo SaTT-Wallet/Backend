@@ -87,9 +87,8 @@ const {
 } = require('../web3/web3-connection')
 const { automaticRjectLink } = require('../helpers/common')
 
-cron.schedule(
-    process.env.CRON_UPDATE_STAT,
-    () => /*updateStat(),*/
+cron.schedule(process.env.CRON_UPDATE_STAT, () =>
+    /*updateStat(),*/
     automaticRjectLink()
 )
 
@@ -489,8 +488,9 @@ exports.campaigns = async (req, res) => {
 exports.campaignDetails = async (req, res) => {
     try {
         var _id = req.params.id
-        const projection = req.query.projection === 'projection' && basicAtt || null
-        var campaign = await Campaigns.findOne({ _id }, projection).lean();
+        const projection =
+            (req.query.projection === 'projection' && basicAtt) || null
+        var campaign = await Campaigns.findOne({ _id }, projection).lean()
 
         if (campaign) {
             campaign.remaining = campaign.funds[1]
@@ -720,7 +720,8 @@ exports.apply = async (req, res) => {
     // let title = req.body.title
     var id = req.user._id
     // var pass = req.body.pass
-    var {linkedinId,idCampaign,typeSN,idPost,idUser,title,pass}  = req.body;
+    var { linkedinId, idCampaign, typeSN, idPost, idUser, title, pass } =
+        req.body
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
 
@@ -748,12 +749,14 @@ exports.apply = async (req, res) => {
             tronWeb.setAddress(walletAddr)
         } else {
             cred = await unlock(req, res)
-            // console.log('cred: ', cred)
             if (!cred) return
         }
 
         if (typeSN == 5) {
-            var linkedinProfile = await LinkedinProfile.findOne({ userId: id, ...linkedinId && {linkedinId} },{refreshToken:1,accessToken : 1}).lean();
+            var linkedinProfile = await LinkedinProfile.findOne(
+                { userId: id, ...(linkedinId && { linkedinId }) },
+                { refreshToken: 1, accessToken: 1 }
+            ).lean()
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
                 idPost.toString(),
@@ -1019,7 +1022,7 @@ exports.validateCampaign = async (req, res) => {
                     { id_prom: idApply },
                     { $set: socialOracle }
                 )
-    
+
                 await notificationManager(id, 'cmp_candidate_accept_link', {
                     cmp_name: campaign.title,
                     action: 'link_accepted',
@@ -1037,10 +1040,9 @@ exports.validateCampaign = async (req, res) => {
                     _id
                 )
             }
-        }catch(err){
-          console.log(err)
+        } catch (err) {
+            console.log(err)
         }
-   
     }
 }
 
@@ -1051,7 +1053,7 @@ exports.gains = async (req, res) => {
     var requests = false
     var campaignData
     try {
-        var link = await CampaignLink.findOne({ id_prom: idProm }).lean();
+        var link = await CampaignLink.findOne({ id_prom: idProm }).lean()
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
         if (link.acceptedDate && date - link.acceptedDate <= 86400) {
@@ -1066,7 +1068,7 @@ exports.gains = async (req, res) => {
             var ctr
             var gasPrice
             var wrappedTrx = false
-            campaignData = await Campaigns.findOne({ hash: hash }).lean();
+            campaignData = await Campaigns.findOne({ hash: hash }).lean()
             req.body.network = campaignData.token.type
             credentials = await unlock(req, res)
 
@@ -1095,8 +1097,11 @@ exports.gains = async (req, res) => {
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
-                    { userId: req.user._id,...link.linkedinId && {linkedinId:link.linkedinId} },
-                    { accessToken: 1, _id: 0,refreshToken:1 }
+                    {
+                        userId: req.user._id,
+                        ...(link.linkedinId && { linkedinId: link.linkedinId }),
+                    },
+                    { accessToken: 1, _id: 0, refreshToken: 1 }
                 ).lean())
             if (!!campaignData.bounties.length) {
                 if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
@@ -1319,7 +1324,6 @@ exports.gains = async (req, res) => {
         credentials && lock(credentials)
 
         if (ret?.transactionHash) {
-
             let campaignType = {}
 
             let network = !!credentials && credentials.WEB3

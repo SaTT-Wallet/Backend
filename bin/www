@@ -39,14 +39,11 @@ if (cluster.isMaster) {
     }
   
     cluster.on('death', function(worker) {
-      console.log('worker ' + worker.pid + ' died');
     });
   } else {
     server.listen(port);
   }
-// server.listen(port);
-//console.log(`******** ${packagejson.name} ${packagejson.version} Listening on port ${server.address().port} ********`);
-//server.listen(port);
+
 server.on('error', onError);
 server.on('listening', onListening);
 
