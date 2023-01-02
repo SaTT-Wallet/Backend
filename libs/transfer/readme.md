@@ -55,7 +55,7 @@ transferTokens({
   provider,
   walletPassword: "yourSecretWalletPassword",
   encryptedPrivateKey,
-}).then((result) => console.log(result))
+}).then((result) => )
 
 // it will return a promise with the below value
 /*
