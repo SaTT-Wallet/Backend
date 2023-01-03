@@ -415,8 +415,85 @@ module.exports.launchBounty = async (req, res) => {
     }
 }
 
+campaignCoverSize = async (req, res) => {
+    let deviceType = req.query.deviceType
+    let width,
+        height = 25
+    // if (device) {resize cover image}
+    if (deviceType === 'mobile') {
+        sharp(inputFilePath)
+            .resize({ height: 25, width: 25 })
+            .toFile(outputFilePath)
+            .then(function (newFileInfo) {
+                console.log('Image Resized')
+            })
+            .catch(function (err) {
+                console.log('Got Error')
+            })
+    } else if (deviceType === 'tablette') {
+        sharp(inputFilePath)
+            .resize({ height: 50, width: 50 })
+            .toFile(outputFilePath)
+            .then(function (newFileInfo) {
+                console.log('Image Resized')
+            })
+            .catch(function (err) {
+                console.log('Got Error')
+            })
+    }
+    // sharp
+    try {
+        if (req.body.width !== undefined) width = parseInt(req.body.width)
+        if (req.body.height !== undefined) height = parseInt(req.body.height)
+
+        if (req.file !== undefined) {
+            const buffer = await sharp(req.file.buffer)
+                .resize({ width: width, height: height })
+                .jpeg()
+                .toBuffer()
+            res.setHeader('content-type', 'image/jpeg')
+            res.send(buffer)
+        } else {
+            res.send('No file selected')
+        }
+    } catch (error) {
+        next(error)
+    }
+}
+
+// module.exports.coverByCampaignSize = async (id, width, height) => {
+//     console.log('here ******')
+
+//     try {
+//         let _id = id
+//         let campaign = await Campaigns.findOne({ _id })
+//         // console.log('1 campaign: ', campaign)
+//         let image = Buffer.from(campaign.cover, 'base64')
+//         if (width && height) {
+//             sharp(image)
+//                 .resize(+height, +width)
+//                 .toBuffer()
+//                 .then((resizedImageBuffer) => {
+//                     console.log('with dimenssion')
+
+//                     // console.log('resizedImageBuffer', resizedImageBuffer)
+
+//                     return resizedImageBuffer
+//                 })
+//         } else {
+//             console.log('without dimenssions')
+
+//             return image
+//         }
+//     } catch (error) {
+//         console.log('error catch cover', error)
+//     }
+// }
+
 exports.campaigns = async (req, res) => {
     try {
+        let finalCampaigns = []
+        let bufferCover
         let strangerDraft = []
         if (req.query.idWallet) {
             let userId = await getUserIdByWallet(
@@ -472,10 +549,75 @@ exports.campaigns = async (req, res) => {
             .skip(skip)
             .limit(limit)
 
-        return responseHandler.makeResponseData(res, 200, 'success', {
-            campaigns,
-            count,
-        })
+        let deviceType = req.query.deviceType
+        console.log('deviceType: ', deviceType)
+
+        if (deviceType === 'mobile') {
+            console.log('here mobile')
+            var width = 25
+            var height = 25
+        } else if (deviceType === 'tablette') {
+            console.log('here tablette')
+            var width = 50
+            var height = 50
+        }
+
+        for (let campaign of campaigns) {
+            // console.log(campaign._id)
+            // console.log('hiii: ', campaign.cover)
+
+            let image = Buffer.from(campaign.cover, 'base64')
+            if (width && height) {
+                sharp(image)
+                    .resize(+height, +width)
+                    .toBuffer()
+                    .then((resizedImageBuffer) => {
+                        console.log('with dimenssion')
+
+                        // console.log('resizedImageBuffer', resizedImageBuffer)
+
+                        // return resizedImageBuffer
+                        campaign.cover = resizedImageBuffer
+                        bufferCover = campaign.cover
+                        finalCampaigns.unshift({
+                            campaign: campaign,
+                            bufferCover: bufferCover,
+                        })
+                        // console.log('finalCampaigns: ', finalCampaigns)
+
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'success',
+                            {
+                                // campaigns,
+                                finalCampaigns,
+                                count,
+                            }
+                        )
+                    })
+            } else {
+                console.log('without dimenssions')
+
+                return responseHandler.makeResponseData(res, 200, 'success', {
+                    campaigns,
+                    // finalCampaigns,
+                    count,
+                })
+            }
+        }
+
+        // campaign.cover = await this.coverByCampaignSize(
+        //     campaign._id,
+        //     width,
+        //     height
+        // )
+
+        // return responseHandler.makeResponseData(res, 200, 'success', {
+        //     // campaigns,
+        //     finalCampaigns,
+        //     count,
+        // })
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -2409,6 +2551,27 @@ module.exports.coverByCampaign = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
+    }
+}
+
+// Resize Cover Image
+module.exports.resizeCoverByCampaign = async (req, res) => {
+    try {
+        let _id = req.params.id
+        let campaign = await Campaigns.findOne({ _id })
+        let image = Buffer.from(campaign.cover, 'base64')
+        if (req.query.width && req.query.heigth)
+            sharp(image)
+                .resize(+req.query.heigth, +req.query.width)
+                .toBuffer()
+                .then((resizedImageBuffer) => {
+                    return resizedImageBuffer
+                })
+        else {
+            return image
+        }
+    } catch (err) {
+        console.log(err)
     }
 }
 

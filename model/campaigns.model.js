@@ -58,6 +58,13 @@ const campaignsSchema = mongoose.Schema(
         idNode: { type: String },
         type: { type: String },
         cover: { type: String },
+        // cover_with_size: [
+        //     {
+        //         full: { type: String },
+        //         medium: { type: String },
+        //         small: { type: String },
+        //     },
+        // ],
         logo: { type: String },
         coverSrc: { type: String },
         coverMobile: { type: String },
@@ -68,7 +75,7 @@ const campaignsSchema = mongoose.Schema(
         hash: { type: String },
         transactionHash: { type: String },
         walletId: { type: String },
-        launchDate    : { type: Date }
+        launchDate: { type: Date },
     },
     { timestamps: true, collection: 'campaigns' }
 )

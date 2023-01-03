@@ -535,7 +535,6 @@ exports.facebookAuthSignup = async (
             req.body.newsLetter,
             profile.photos.length ? profile.photos[0].value : false,
             profile._json.email,
-            profile._json.email,
             'idOnSn',
             profile._json.token_for_business,
             profile._json.name.split(' ')[0],
