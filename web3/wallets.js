@@ -597,6 +597,7 @@ exports.getListCryptoByUid = async (req, res) => {
                         addressesByNetwork[T_network],
                         T_network,
                         web3s[T_network]
+                        
                     ))
                     console.log(balancesBynetwork[T_network])*/
                 } else {

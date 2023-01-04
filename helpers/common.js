@@ -253,8 +253,6 @@ exports.updateStatforUser = async (UserId) => {
         ],
     })
 
-    console.log('MyLinksCampaign', MyLinksCampaign)
-
     let eventLint = []
     MyLinksCampaign.forEach((event) => {
         const result = campaigns.find(

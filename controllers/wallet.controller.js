@@ -397,6 +397,7 @@ exports.transferTokensController = async (req, res) => {
             }
 
             if (result.error) {
+                console.log('err', result.error)
                 return responseHandler.makeResponseError(res, 402, result.error)
             }
 
@@ -451,6 +452,7 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
+        console.log(err.error)
         return responseHandler.makeResponseError(res, 500, err.message)
     }
 }

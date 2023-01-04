@@ -13,6 +13,8 @@ module.exports = {
             },
             env_mainnet: {
                 NODE_ENV: 'mainnet',
+                max_memory_restart: '900M',
+                cron_restart: '8 30 * * *',
             },
         },
     ],

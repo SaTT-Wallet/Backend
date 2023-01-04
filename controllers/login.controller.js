@@ -252,6 +252,7 @@ exports.confirmCode = async (req, res) => {
         let [email, code] = [req.body.email.toLowerCase(), req.body.code]
         let user = await User.findOne({ email }, { secureCode: 1 })
         let dateNow = Math.floor(Date.now() / 1000)
+
         if (!user) {
             return responseHandler.makeResponseError(
                 res,
@@ -554,6 +555,7 @@ exports.updateLastStep = async (req, res) => {
     try {
         let _id = req.user._id
         let profile = req.body
+
         let password = Math.random().toString(36).slice(-8)
         let user = await User.findOne({ email: profile.email })
         if (user && user._id !== _id) {
@@ -567,7 +569,7 @@ exports.updateLastStep = async (req, res) => {
                 { _id },
                 {
                     $set: {
-                        email: profile.email,
+                        email: profile.email.toLowerCase(),
                         firstName: profile.firstName,
                         lastName: profile.lastName,
                         enabled: 0,
@@ -587,7 +589,7 @@ exports.updateLastStep = async (req, res) => {
                 { _id },
                 {
                     $set: {
-                        email: profile.email,
+                        email: profile.email.toLowerCase(),
                         firstName: profile.firstName,
                         lastName: profile.lastName,
                         isChanged: true,
@@ -879,7 +881,7 @@ exports.socialdisconnect = async (req, res) => {
 
 exports.logout = async (req, res) => {
     try {
-        let _id = req.user._id
+        let _id = req.params.idUser
         await User.updateOne({ _id }, { $set: { fireBaseAccessToken: null } })
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {

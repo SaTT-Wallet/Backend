@@ -1018,7 +1018,7 @@ router.post('/verifyQrCode', verifyAuth, verifyQrCode)
 
 /**
  * @swagger
- * /auth/logout:
+ * /auth/logout/{idUser}:
  *   get:
  *     tags:
  *     - "auth"
@@ -1030,7 +1030,7 @@ router.post('/verifyQrCode', verifyAuth, verifyQrCode)
  *       "500":
  *          description: error
  */
-router.get('/logout', verifyAuth, logout)
+router.get('/logout/:idUser', logout)
 
 /**
  * @swagger
