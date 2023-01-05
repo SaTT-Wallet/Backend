@@ -530,6 +530,7 @@ exports.campaignPromp = async (req, res) => {
                 cover: 0,
             }
         )
+
         var tronWeb
         var webTron
         if (campaign.token.type === 'TRON') {
