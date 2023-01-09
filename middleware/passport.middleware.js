@@ -64,7 +64,7 @@ const { updateStatforUser } = require('../helpers/common')
 try {
     app.use(
         session({
-            secret: 'fe3fF4FFGTSCSHT57UI8I8',
+            secret: process.env.SECRET_SESSION,
             resave: false,
             saveUninitialized: true,
             httpOnly: true, // dont let browser javascript access cookie ever
