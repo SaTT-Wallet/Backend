@@ -26,7 +26,7 @@ passport.deserializeUser(async function (id, cb) {
 try {
     router.use(
         session({
-            secret: 'fe3fF4FFGTSCSHT57UI8I8',
+            secret: process.env.SECRET_SESSION,
             resave: true,
             saveUninitialized: true,
         })
