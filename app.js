@@ -17,17 +17,9 @@ const package = require('./package.json')
 app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }))
 
-app.use(express.json({ limit: '50mb' }))
+app.use(express.json({ limit: '50mb', extended: true }))
 app.use(
     express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
-)
-
-// apply rate limiter to all requests
-app.use(
-    RateLimit({
-        windowMs: 1 * 60 * 1000, // 1 minute
-        max: 5,
-    })
 )
 
 const { mongoConnection } = require('./conf/config')
