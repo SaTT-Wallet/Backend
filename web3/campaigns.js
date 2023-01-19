@@ -911,7 +911,8 @@ exports.applyCampaign = async (
     idUser,
     cred,
     tronWeb,
-    token
+    token,
+    abos
 ) => {
     try {
         if (!!tronWeb) {
@@ -959,7 +960,7 @@ exports.applyCampaign = async (
 
         // var gas = 400000
         var gas = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser, 120)
+            .applyCampaign(idCampaign, typeSN, idPost, idUser, abos)
             .estimateGas({
                 from: cred.address,
                 gasPrice: gasPrice,
@@ -970,7 +971,7 @@ exports.applyCampaign = async (
         var gasPrice = await web3.getGasPrice()
 
         var receipt = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser, 120)
+            .applyCampaign(idCampaign, typeSN, idPost, idUser, abos)
             .send({
                 from: cred.address,
                 gas: gas,
