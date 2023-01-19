@@ -959,7 +959,7 @@ exports.applyCampaign = async (
 
         // var gas = 400000
         var gas = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser)
+            .applyCampaign(idCampaign, typeSN, idPost, idUser, 120)
             .estimateGas({
                 from: cred.address,
                 gasPrice: gasPrice,
@@ -970,7 +970,7 @@ exports.applyCampaign = async (
         var gasPrice = await web3.getGasPrice()
 
         var receipt = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser)
+            .applyCampaign(idCampaign, typeSN, idPost, idUser, 120)
             .send({
                 from: cred.address,
                 gas: gas,
@@ -1249,8 +1249,6 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
                 idProm: idProm,
             }
         } else return result
-         
-        
     }
     var gas = 100000
     let ctr = await getPromContract(idProm, credentials)
