@@ -1667,9 +1667,9 @@ Constants.campaign.abi = [
                 type: 'string',
             },
             {
-                internalType: 'uint8',
+                internalType: 'uint64',
                 name: 'abosNumber',
-                type: 'uint8',
+                type: 'uint64',
             },
         ],
         name: 'applyCampaign',
@@ -2183,14 +2183,14 @@ Constants.campaign.abi = [
                 type: 'uint8',
             },
             {
-                internalType: 'uint64',
+                internalType: 'uint256',
                 name: 'appliedDate',
-                type: 'uint64',
+                type: 'uint256',
             },
             {
-                internalType: 'uint8',
+                internalType: 'uint64',
                 name: 'abosNumber',
-                type: 'uint8',
+                type: 'uint64',
             },
             {
                 internalType: 'string',
