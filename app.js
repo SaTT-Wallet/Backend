@@ -30,22 +30,27 @@ const profileroutes = require('./routes/profile.routes')
 const campaignroutes = require('./routes/campaign.routes')
 
 /// db.url is different depending on NODE_ENV
-let connect
-try {
-    connect = mongoose.connect(mongoConnection().mongoURI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-    })
-    console.log(mongoConnection().mongoURI)
 
-    console.log(mongoConnection().mongoBase)
-    console.log('******connection establed to MongoServer*******')
-} catch (error) {
-    console.log('there is no connection')
+const connectDB = async () => {
+    try {
+        await mongoose.connect(mongoConnection().mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useCreateIndex: true,
+            useFindAndModify: false,
+        })
+        console.log(mongoConnection().mongoURI)
+
+        console.log(mongoConnection().mongoBase)
+        console.log('******connection establed to MongoServer*******')
+    } catch (err) {
+        console.log('Failed to connect to MongoDB', err)
+    }
 }
-module.exports.connect = connect
+
+connectDB()
+
+//module.exports.connect = connect
 
 app.disable('x-powered-by')
 
