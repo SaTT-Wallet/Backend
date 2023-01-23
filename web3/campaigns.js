@@ -958,13 +958,13 @@ exports.applyCampaign = async (
 
         let web3 = await getContractByNetwork(cred)
 
-        // var gas = 400000
-        var gas = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser, abos)
-            .estimateGas({
-                from: cred.address,
-                gasPrice: gasPrice,
-            })
+        var gas = 400000
+        // var gas = await web3.methods
+        //     .applyCampaign(idCampaign, typeSN, idPost, idUser, abos)
+        //     .estimateGas({
+        //         from: cred.address,
+        //         gasPrice: gasPrice,
+        //     })
 
         console.log('gas: ', gas)
 
