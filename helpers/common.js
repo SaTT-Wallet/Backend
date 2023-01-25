@@ -209,7 +209,7 @@ module.exports.updateStat = async () => {
 
 exports.updateStatforUser = async (UserId) => {
     let campaigns = await Campaigns.find(
-        { hash: { $exists: true } },
+        { hash: { $exists: true }, type: { $ne: 'archived' } },
         {
             logo: 0,
             resume: 0,
