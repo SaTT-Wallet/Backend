@@ -772,7 +772,13 @@ exports.apply = async (req, res) => {
         if (typeSN == 6) {
             var tiktokProfile = await TikTokProfile.findOne({ userId: id })
         }
-
+        prom.abosNumber = await answerAbos(
+            typeSN + '',
+            idPost,
+            idUser,
+            linkedinProfile,
+            tiktokProfile
+        )
         var ret = await applyCampaign(
             hash,
             typeSN,
@@ -821,14 +827,6 @@ exports.apply = async (req, res) => {
             prom.appliedDate = date
             prom.oracle = findBountyOracle(prom.typeSN)
             var insert = await CampaignLink.create(prom)
-
-            prom.abosNumber = await answerAbos(
-                typeSN,
-                idPost,
-                idUser,
-                linkedinProfile,
-                tiktokProfile
-            )
 
             let socialOracle = await getPromApplyStats(
                 prom.oracle,
