@@ -1097,7 +1097,7 @@ exports.gains = async (req, res) => {
             let prom =
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
-            if (prom.lastHarvest && date - prom.lastHarvest <= 300) {
+            if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
                 return responseHandler.makeResponseError(
                     res,
                     403,
