@@ -1097,6 +1097,13 @@ exports.gains = async (req, res) => {
             let prom =
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
+            if (prom.lastHarvest && date - prom.lastHarvest <= 300) {
+                return responseHandler.makeResponseError(
+                    res,
+                    403,
+                    "You didn't exceed the limits timing to harvest between 24H"
+                )
+            }
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
