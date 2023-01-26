@@ -810,7 +810,9 @@ exports.apply = async (req, res) => {
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
-                hash,
+                // hash,
+                txhash: ret?.transactionHash,
+                network: campaignDetails.token.type,
             })
             prom.id_prom = ret.idProm
             prom.typeSN = typeSN.toString()
