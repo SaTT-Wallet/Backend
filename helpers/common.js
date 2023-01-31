@@ -267,7 +267,7 @@ exports.updateStatforUser = async (UserId) => {
     for (const event of eventLint) {
         if (
             event.status === 'rejected' ||
-            event.campaign?.type === 'finished' ||
+            event.campaign?.funds[1] == '0' ||
             event.deleted === true ||
             event.status === 'indisponible'
         )
