@@ -1130,7 +1130,8 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
     } catch (error) {}
 }
 
-exports.git = async (opts) => {
+
+exports.answerCall= async (opts) => {
     try {
         if (!!opts.tronWeb) {
             var tronCampaignKeystore = fs.readFileSync(
