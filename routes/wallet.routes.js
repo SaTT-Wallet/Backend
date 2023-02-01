@@ -87,11 +87,16 @@ router.get('/allwallets', verifyAuth, allwallets)
 
 /**
  * @swagger
- * /wallet/userBalance:
+ * /wallet/userBalance/{idwallet}:
  *   get:
  *     tags:
  *     - "wallets"
  *     summary: get user balance
+ *     parameters:
+ *       - in: path
+ *         name: idWallet
+ *         required: true
+ *         description: idWallet
  *     description: return to user his crypto list <br> with access_token
  *     produces:
  *       - application/json
@@ -103,7 +108,7 @@ router.get('/allwallets', verifyAuth, allwallets)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.get('/userBalance', verifyAuth, userBalance)
+router.post('/userBalance', verifyAuth, userBalance)
 
 // router.get('/polygonCnx', testPolygon.polygonConnexion)
 // router.get('/polygonContract', getContractPolygon)
@@ -243,7 +248,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.get('/totalBalance', verifyAuth, totalBalances)
+router.post('/totalBalance', verifyAuth, totalBalances)
 
 /**
  * @swagger
