@@ -57,7 +57,6 @@ const walletSchema = mongoose.Schema(
                     mac: { type: String },
                 },
             },
-            num: { type: Number },
             btc: {
                 publicKey: { type: String },
                 addressSegWitCompat: { type: String },

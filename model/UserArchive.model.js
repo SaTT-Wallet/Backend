@@ -32,6 +32,7 @@ const userArchivedSchema = mongoose.Schema(
             type: { type: String },
         },
         hasWallet: { type: Boolean },
+        hasWalletV2: { type: Boolean, default: false },
         passphrase: { type: Boolean },
         is2FA: { type: Boolean },
         secret: { type: String },
