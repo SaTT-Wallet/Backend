@@ -51,6 +51,7 @@ const userSchema = mongoose.Schema(
             code: { type: Number },
         },
         hasWallet: { type: Boolean, default: false },
+        hasWalletV2: { type: Boolean, default: false },
         passphrase: { type: Boolean, default: false },
         is2FA: { type: Boolean, default: false },
         hasBiometrics: { type: Boolean, default: false },
