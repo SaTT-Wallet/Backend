@@ -185,10 +185,20 @@ exports.getAccount = async (req, res) => {
     let UserId = req.user._id
 
     let account = await Wallet.findOne({ UserId }).lean()
-
+var address = ''
+let tronAddress = ''
+let btcaddress = ''
     if (account) {
-        var address = '0x' + account.keystore.address
-        let tronAddress = account.tronAddress
+        if(!req.body.walletbsc)
+         {address ='0x' + account.keystore.address
+         tronAddress = account.tronAddress
+        btcaddress = account.btc.addressSegWitCompat}
+        else 
+        { address = req.body.walletbsc
+         tronAddress = req.body.wallettron
+         btcaddress = req.body.walletbtc}
+
+
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -237,7 +247,7 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account.btc ? account.btc.addressSegWitCompat : '',
+            btc: account.btc ? btcaddress : '',
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
@@ -254,16 +264,16 @@ exports.getAccount = async (req, res) => {
         if (
             process.env.NODE_ENV === 'mainnet' &&
             account.btc &&
-            account.btc.addressSegWitCompat
+            btcaddress
         ) {
-            result.btc = account.btc.addressSegWitCompat
+            result.btc = btcaddress
 
             try {
                 var utxo = JSON.parse(
                     child.execSync(
                         process.env.BTC_CMD +
                             ' listunspent 1 1000000 \'["' +
-                            account.btc.addressSegWitCompat +
+                            btcaddress +
                             '"]\''
                     )
                 )
@@ -511,6 +521,7 @@ exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
 
 exports.getListCryptoByUid = async (req, res) => {
     let id = req.user._id
+    
     let crypto = await this.getPrices()
     //list of first 200 crypto from coinmarketcap + satt + jet
     var listOfCrypto = []
