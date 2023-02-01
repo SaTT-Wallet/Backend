@@ -1,4 +1,4 @@
-const { Wallet, CustomToken } = require('../model/index')
+const { Wallet, User, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
@@ -299,15 +299,19 @@ exports.getAllWallets = async (req, res) => {
     let UserId = req.user._id
 
     let account = await Wallet.findOne({ UserId }).lean()
-
     if (account) {
-        let address = '0x' + account.keystore.address
-        let tronAddress = account.tronAddress
-        let addressV2 = '0x' + account.walletv2.keystore.address
-        let tronAddressV2 = account.walletv2.tronAddress
-        let btcAddress = account.btc.addressSegWitCompat
-        let btcAddressV2 = account.walletv2.btc.addressSegWitCompat
-
+        let address = account?.keystore ? '0x' + account?.keystore?.address : ''
+        let tronAddress = account?.tronAddress ? account?.tronAddress : ''
+        let addressV2 = account?.walletV2
+            ? '0x' + account?.walletV2?.keystore?.address
+            : ''
+        let tronAddressV2 = account?.walletV2
+            ? account?.walletV2?.tronAddress
+            : ''
+        let btcAddress = account?.btc ? account?.btc?.addressSegWitCompat : ''
+        let btcAddressV2 = account?.walletV2
+            ? account?.walletV2?.btc?.addressSegWitCompat
+            : ''
         let result = {
             address,
             tronAddress,
@@ -317,8 +321,7 @@ exports.getAllWallets = async (req, res) => {
             btcAddressV2,
         }
         return result
-    } else if (Object.keys(res).length !== 0)
-        return res.status(401).end('Account not found')
+    } else return res.status(401).end('wallets not found')
 }
 exports.getPrices = async () => {
     try {
@@ -1060,13 +1063,6 @@ exports.getCount = async function () {
     } catch (err) {}
 }
 
-exports.getCountV2 = async function () {
-    try {
-        var count = await Wallet.find({ walletV2: { $exists: true } }).count()
-        return count + 1
-    } catch (err) {}
-}
-
 exports.createSeed = async (req, res) => {
     try {
         var UserId = +req.user._id
@@ -1152,8 +1148,11 @@ exports.createSeedV2 = async (req, res) => {
 
         var escpassword = password.replace(/'/g, "\\'")
         let web3 = await bep20Connexion()
-        let walletV1 = await Wallet.findOne({ UserId })
-        web3.eth.accounts.decrypt(walletV1.keystore, password)
+        let walletV1 = await Wallet.findOne({
+            UserId,
+            keystore: { $exists: true },
+        })
+        if (walletV1) web3.eth.accounts.decrypt(walletV1.keystore, password)
         const mnemonic = bip39.generateMnemonic(256)
         const seed = bip39.mnemonicToSeedSync(mnemonic, password)
         const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
@@ -1193,7 +1192,7 @@ exports.createSeedV2 = async (req, res) => {
             publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
             ek: ek,
         }
-        var count = await this.getCountV2()
+        var count = await this.getCount()
 
         let TronWallet = await this.getWalletTronV2(
             UserId,
@@ -1202,16 +1201,24 @@ exports.createSeedV2 = async (req, res) => {
             mnemonic
         )
 
-        await Wallet.create({
-            walletV2: {
-                UserId,
-                keystore: account,
-                num: count,
-                btc: btcWallet,
-                mnemo: mnemonic,
-                tronAddress: TronWallet.addr,
+        await Wallet.updateOne(
+            { UserId },
+            {
+                $set: {
+                    UserId,
+                    num: count,
+                    walletV2: {
+                        keystore: account,
+                        btc: btcWallet,
+                        mnemo: mnemonic,
+                        tronAddress: TronWallet.addr,
+                    },
+                },
             },
-        })
+            { upsert: true }
+        )
+
+        await User.updateOne({ _id: UserId }, { $set: { hasWalletV2: true } })
 
         return {
             address: '0x' + account.address,
