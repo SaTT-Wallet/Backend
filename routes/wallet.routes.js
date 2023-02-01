@@ -33,6 +33,8 @@ const {
     exportTron,
     nbrHolder,
     countWallets,
+    addNewWallet,
+    allwallets,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -60,6 +62,28 @@ const {
  *          description: code:500,<br>error
  */
 router.get('/mywallet', verifyAuth, mywallet)
+
+/**
+ * @swagger
+ * /wallet/allwallets:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: return user wallet.
+ *     description: system return object of wallet(address,bnb balance ...)<br> with access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code:200,<br>message:"success"
+ *       "401":
+ *          description: code:401,<br>error:"token required"
+ *       "204":
+ *          description: code:204,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code:500,<br>error
+ */
+router.get('/allwallets', verifyAuth, allwallets)
 
 /**
  * @swagger
@@ -588,6 +612,32 @@ router.post('/verifyMnemo', verifyAuth, verifyMnemo)
  *          description: code,<br>error:"error"
  */
 router.post('/create', verifyAuth, createNewWallet)
+
+/**
+ * @swagger
+ * /wallet/addNewWallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: add new wallet.
+ *     description: add new wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/addNewWallet', verifyAuth, addNewWallet)
 
 /**
  * @swagger
