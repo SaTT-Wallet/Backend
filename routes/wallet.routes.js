@@ -62,7 +62,7 @@ const {
  *       "500":
  *          description: code:500,<br>error
  */
-router.get('/mywallet', verifyAuth, mywallet)
+router.post('/mywallet', verifyAuth, mywallet)
 
 /**
  * @swagger
