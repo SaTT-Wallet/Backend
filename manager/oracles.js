@@ -295,7 +295,9 @@ exports.answerAbos = async (
     idPost,
     idUser,
     linkedinProfile = null,
-    tiktokProfile = null
+    tiktokProfile = null,
+    id = null,
+    userName = false
 ) => {
     try {
         switch (typeSN) {
@@ -308,7 +310,7 @@ exports.answerAbos = async (
 
                 break
             case '3':
-                var res = await this.instagramAbos(idPost)
+                var res = await this.instagramAbos(idPost, id, userName)
 
                 break
             case '4':
@@ -393,19 +395,19 @@ exports.youtubeAbos = async function (idPost) {
     }
 }
 
-exports.instagramAbos = async (idPost) => {
+exports.instagramAbos = async (idPost, id, userName) => {
     try {
         var followers = 0
         var campaign_link = await CampaignLink.findOne({ idPost })
         var userWallet = await Wallet.findOne({
-            'keystore.address': campaign_link.id_wallet
+            'keystore.address': campaign_link?.id_wallet
                 .toLowerCase()
                 .substring(2),
         })
-        let instagramUserName = campaign_link.instagramUserName
+        let instagramUserName = campaign_link?.instagramUserName || userName
         var fbPage = await FbPage.findOne({
             $and: [
-                { UserId: userWallet.UserId },
+                { UserId: userWallet?.UserId || id },
                 { instagram_username: instagramUserName },
                 { instagram_id: { $exists: true } },
             ],
@@ -413,7 +415,7 @@ exports.instagramAbos = async (idPost) => {
         if (fbPage) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({
-                UserId: userWallet.UserId,
+                UserId: userWallet?.UserId || id,
             })
             var token = fbProfile.accessToken
             var res = await rp({
@@ -1130,8 +1132,7 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
     } catch (error) {}
 }
 
-
-exports.answerCall= async (opts) => {
+exports.answerCall = async (opts) => {
     try {
         if (!!opts.tronWeb) {
             var tronCampaignKeystore = fs.readFileSync(
