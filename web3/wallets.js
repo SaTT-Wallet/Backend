@@ -299,10 +299,10 @@ exports.getAllWallets = async (req, res) => {
     if (account) {
         let address = '0x' + account.keystore.address
         let tronAddress = account.tronAddress
-        let addressV2 = '0xFf5c90A2A96Bc1E5E6E4d5B2DAdD9e87071F9DDe'
-        let tronAddressV2 = account.tronAddress
+        let addressV2 = '0x' + account.walletV2.keystore.address
+        let tronAddressV2 = account.walletV2.tronAddress
         let btcAddress = account.btc.addressSegWitCompat
-        let btcAddressV2 = account.btc.addressSegWitCompat
+        let btcAddressV2 = account.walletV2.btc.addressSegWitCompat
 
         let result = {
             address,
