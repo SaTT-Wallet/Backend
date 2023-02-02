@@ -2051,6 +2051,12 @@ exports.getLinks = async (req, res) => {
                 'keystore.address': id_wallet.toLowerCase().substring(2),
             },
             { tronAddress: 1, _id: 0 }
+        ) || 
+          await Wallet.findOne(
+            {
+                'walletV2.keystore.address': id_wallet.toLowerCase().substring(2),
+            },
+            { tronAddress: 1, _id: 0 }
         )
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
