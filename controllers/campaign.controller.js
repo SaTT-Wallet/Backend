@@ -2045,19 +2045,9 @@ exports.erc20Allow = async (req, res) => {
 
 exports.getLinks = async (req, res) => {
     try {
-        const id_wallet = req.params.id_wallet
-        let userWallet = await Wallet.findOne(
-            {
-                'keystore.address': id_wallet.toLowerCase().substring(2),
-            },
-            { tronAddress: 1, _id: 0 }
-        ) || 
-          await Wallet.findOne(
-            {
-                'walletV2.keystore.address': id_wallet.toLowerCase().substring(2),
-            },
-            { tronAddress: 1, _id: 0 }
-        )
+        const userId = req.params.idUser
+        const accountData = await Wallet.findOne({ UserId: userId })
+
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -2067,19 +2057,20 @@ exports.getLinks = async (req, res) => {
         let allProms = []
         let allTronProms = []
 
-        let query1 = filterLinks(req, id_wallet)
-        let query3 = filterLinks(req, "0x1723e1ac746cad7fb35b1511944655e928a224ca")
-        let query2 = filterLinks(req, userWallet.tronAddress)
+        let query1 = filterLinks(req, '0x'+accountData.keystore.address)
+        let query3 = filterLinks(req, '0x'+accountData.walletV2.keystore.address)
+        let query2 = filterLinks(req, accountData.tronAddress)
+        let query4 = filterLinks(req, accountData.walletV2.tronAddress)
 
         var count =
             (await CampaignLink.find(
-                { id_wallet },
+                { id_wallet: { $in: [query1.id_wallet, query3.id_wallet] } },
                 { type: { $exists: 0 } }
             ).countDocuments()) +
-            ((!!userWallet.tronAddress &&
+            ((!!accountData.tronAddress && !!accountData.walletV2.tronAddress &&
                 req.query.state === 'part' &&
                 (await CampaignLink.find(
-                    { tronAddress: userWallet.tronAddress },
+                    { tronAddress: { $in: [accountData.tronAddress, accountData.walletV2.tronAddress] } },
                     { type: { $exists: 0 } }
                 ).countDocuments())) ||
                 0)
@@ -2114,7 +2105,8 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: {"$and": [query1 , query3]},
+                $match: { id_wallet: { $in: [query1.id_wallet, query3.id_wallet] } } 
+               
             },
             {
                 $addFields: {
@@ -2136,10 +2128,10 @@ exports.getLinks = async (req, res) => {
             .limit(limit)
 
         let tronUserLinks =
-            (!!userWallet.tronAddress &&
+            (!!accountData.tronAddress && !!accountData.walletV2.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: query2,
+                        $match: { id_wallet: { $in: [query2.id_wallet, query4.id_wallet] } } 
                     },
                     {
                         $addFields: {
