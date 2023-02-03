@@ -12,7 +12,6 @@ module.exports.transferTokens = async function ({
     encryptedPrivateKey,
     token = false,
 }) {
-    console.log(token)
     const web3 = new Web3(provider)
     if (!web3.utils.isAddress(fromAddress)) {
         throw Error('The sender address is not a valid ethereum address !!')
@@ -58,14 +57,12 @@ module.exports.transferTokens = async function ({
             tokenSmartContractAddress === null ||
             tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
         ) {
-            console.log(1111111111111, amount)
             token &&
                 (amount = new Big(amount)
                     .minus(
                         new Big(gasLimit).times(new Big(gasPrice)).toString()
                     )
                     .toString())
-            console.log(amount, 'BNB')
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
                 to: toAddress,
@@ -74,8 +71,6 @@ module.exports.transferTokens = async function ({
                 gasPrice,
             })
         } else {
-            console.log(2222222222222222222, toAddress)
-            console.log(amount)
             result = await tokenSmartContract.methods
                 .transfer(toAddress, amount)
                 .send({
