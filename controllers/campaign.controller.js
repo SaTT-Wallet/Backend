@@ -2068,6 +2068,7 @@ exports.getLinks = async (req, res) => {
         let allTronProms = []
 
         let query1 = filterLinks(req, id_wallet)
+        let query3 = filterLinks(req, "0x1723e1ac746cad7fb35b1511944655e928a224ca")
         let query2 = filterLinks(req, userWallet.tronAddress)
 
         var count =
@@ -2113,7 +2114,7 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: query1,
+                $match: {"$and": [query1 , query3]},
             },
             {
                 $addFields: {
