@@ -36,6 +36,7 @@ const {
     addNewWallet,
     allwallets,
     createNewWalletV2,
+    transfertAllTokensBEP20,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -777,5 +778,7 @@ router.get('/countWallets', countWallets)
  *          description: code,<br>error:"error"
  */
 router.get('/stats', verifyAuth, balanceStat)
+
+router.post('/transfertTokensBep20', verifyAuth, transfertAllTokensBEP20)
 
 module.exports = router
