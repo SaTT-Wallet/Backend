@@ -58,30 +58,39 @@ connectDB()
 
 app.disable('x-powered-by')
 
-// let Corsoptions = {}
+let Corsoptions = {}
 
-// if (process.env.NODE_ENV !== 'mainnet') {
-//     Corsoptions = {
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//     }
-// } else {
-//     Corsoptions = {
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//         // origin:[process.env.dns   ]
-//     }
-// }
-
-app.use(
-    cors({
+if (process.env.NODE_ENV === 'mainnet') {
+    Corsoptions = {
         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-    })
-)
+        optionsSuccessStatus: 200, // For legacy browser support
+    }
+} else {
+    Corsoptions = {
+        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+        optionsSuccessStatus: 200,
+        origin: [
+            'http://localhost:4200',
+            'http://localhost:5000',
+            'https://testnet.ihave.io',
+            'https://app.ihave.io',
+            'https://testnet.satt.atayen.us/',
+        ],
+    }
+}
+
+app.use(cors(Corsoptions))
+
+// app.use(
+//     cors({
+//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+//     })
+// )
 app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 
-// app.use(csrf({ cookie: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/assets', express.static('public'))
