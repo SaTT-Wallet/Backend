@@ -54,8 +54,6 @@ const connectDB = async () => {
 
 connectDB()
 
-//module.exports.connect = connect
-
 app.disable('x-powered-by')
 
 // let Corsoptions = {}
