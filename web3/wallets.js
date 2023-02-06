@@ -1148,7 +1148,11 @@ exports.createSeedV2 = async (req, res) => {
 
         var escpassword = password.replace(/'/g, "\\'")
         let web3 = await bep20Connexion()
-        let walletV1 = await Wallet.findOne({ UserId })
+        let walletV1 = await Wallet.findOne({
+            UserId,
+            keystore: { $exists: true },
+        })
+        if (walletV1) web3.eth.accounts.decrypt(walletV1.keystore, password)
         web3.eth.accounts.decrypt(walletV1.keystore, password)
         const mnemonic = bip39.generateMnemonic(256)
         const seed = bip39.mnemonicToSeedSync(mnemonic, password)
@@ -1197,18 +1201,24 @@ exports.createSeedV2 = async (req, res) => {
             account,
             mnemonic
         )
-
-        await Wallet.create({
-            walletV2: {
-                UserId,
-                keystore: account,
-                num: count,
-                btc: btcWallet,
-                mnemo: mnemonic,
-                tronAddress: TronWallet.addr,
+        await Wallet.updateOne(
+            { UserId },
+            {
+                $set: {
+                    UserId,
+                    num: count,
+                    walletV2: {
+                        keystore: account,
+                        btc: btcWallet,
+                        mnemo: mnemonic,
+                        tronAddress: TronWallet.addr,
+                    },
+                },
             },
-        })
+            { upsert: true }
+        )
 
+        await User.updateOne({ _id: UserId }, { $set: { hasWalletV2: true } })
         return {
             address: '0x' + account.address,
             btcAddress: btcWallet.addressSegWitCompat,
