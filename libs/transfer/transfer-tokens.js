@@ -10,6 +10,7 @@ module.exports.transferTokens = async function ({
     provider,
     walletPassword,
     encryptedPrivateKey,
+    token = false,
 }) {
     const web3 = new Web3(provider)
     if (!web3.utils.isAddress(fromAddress)) {
@@ -56,6 +57,12 @@ module.exports.transferTokens = async function ({
             tokenSmartContractAddress === null ||
             tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
         ) {
+            token &&
+                (amount = new Big(amount)
+                    .minus(
+                        new Big(gasLimit).times(new Big(gasPrice)).toString()
+                    )
+                    .toString())
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
                 to: toAddress,
@@ -80,6 +87,7 @@ module.exports.transferTokens = async function ({
             from: fromAddress,
             to: toAddress,
             amount: amount,
+            gas: new Big(gasLimit).times(new Big(gasPrice)).toString(),
         }
     } catch (error) {
         return { error: error.message }
