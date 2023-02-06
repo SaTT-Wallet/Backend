@@ -1,4 +1,4 @@
-const { Wallet, CustomToken } = require('../model/index')
+const { Wallet, User, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
@@ -1151,6 +1151,7 @@ exports.createSeedV2 = async (req, res) => {
             UserId,
             keystore: { $exists: true },
         })
+
         if (walletV1) web3.eth.accounts.decrypt(walletV1.keystore, password)
         web3.eth.accounts.decrypt(walletV1.keystore, password)
         const mnemonic = bip39.generateMnemonic(256)
@@ -1200,6 +1201,7 @@ exports.createSeedV2 = async (req, res) => {
             account,
             mnemonic
         )
+
         await Wallet.updateOne(
             { UserId },
             {
@@ -1218,6 +1220,7 @@ exports.createSeedV2 = async (req, res) => {
         )
 
         await User.updateOne({ _id: UserId }, { $set: { hasWalletV2: true } })
+
         return {
             address: '0x' + account.address,
             btcAddress: btcWallet.addressSegWitCompat,
