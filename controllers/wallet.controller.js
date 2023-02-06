@@ -62,6 +62,8 @@ const {
     createWalletTron,
     addWalletTron,
     getWalletTron,
+    createSeedV2,
+    getAllWallets,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -189,6 +191,19 @@ exports.mywallet = async (req, res) => {
     }
 }
 
+exports.allwallets = async (req, res) => {
+    try {
+        var ret = await getAllWallets(req, res)
+
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
@@ -880,6 +895,37 @@ exports.createNewWallet = async (req, res) => {
     }
 }
 
+exports.createNewWalletV2 = async (req, res) => {
+    try {
+        var { _id } = req.user
+        let user = await User.findOne({ _id }, { password: 1 }).lean()
+        if (user.password === synfonyHash(req.body.password)) {
+            return responseHandler.makeResponseError(res, 401, 'same password')
+        } else if (
+            (req.user.hasWallet && !req.user.hasWalletV2) ||
+            !req.user.hasWallet
+        ) {
+            var ret = await createSeedV2(req, res)
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Wallet already exist'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } finally {
+        if (ret) {
+            await User.updateOne({ _id }, { hasWallet: true })
+        }
+    }
+}
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
         let account = await Wallet.findOne({ UserId: req.user._id })
@@ -1065,6 +1111,22 @@ exports.countWallets = async (req, res) => {
     let countWallets = await Wallet.count()
 
     return responseHandler.makeResponseData(res, 200, 'success', countWallets)
+}
+exports.addNewWallet = async (req, res) => {
+    try {
+        let ret = await createSeedV2(req, res)
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } finally {
+        if (ret) {
+            await User.updateOne({ _id }, { hasWallet: true })
+        }
+    }
 }
 
 exports.transfertAllTokensBEP20 = async (req, res) => {
