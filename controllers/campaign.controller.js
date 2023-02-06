@@ -772,12 +772,17 @@ exports.apply = async (req, res) => {
         if (typeSN == 6) {
             var tiktokProfile = await TikTokProfile.findOne({ userId: id })
         }
+        if (typeSN == 3)
+            prom.instagramUserName = await getInstagramUserName(idPost, id)
+        console.log({ typeSN })
         prom.abosNumber = await answerAbos(
             typeSN + '',
             idPost,
             idUser,
             linkedinProfile,
-            tiktokProfile
+            tiktokProfile,
+            id,
+            prom.instagramUserName
         )
         var ret = await applyCampaign(
             hash,
@@ -804,9 +809,6 @@ exports.apply = async (req, res) => {
     } finally {
         cred && lock(cred)
         if (ret?.transactionHash) {
-            if (typeSN == 3)
-                prom.instagramUserName = await getInstagramUserName(idPost, id)
-
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
@@ -1097,7 +1099,7 @@ exports.gains = async (req, res) => {
             let prom =
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
-            if (prom.lastHarvest && date - prom.lastHarvest <= 300) {
+            if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
                 return responseHandler.makeResponseError(
                     res,
                     403,
