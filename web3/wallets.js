@@ -1144,8 +1144,7 @@ exports.createSeed = async (req, res) => {
 exports.createSeedV2 = async (req, res) => {
     try {
         var UserId = +req.user._id
-        var password = req.body.password
-
+        var password = req.body.pass
         var escpassword = password.replace(/'/g, "\\'")
         let web3 = await bep20Connexion()
         let walletV1 = await Wallet.findOne({ UserId })
