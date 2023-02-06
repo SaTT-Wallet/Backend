@@ -1061,6 +1061,44 @@ exports.balanceStat = async (req, res) => {
     }
 }
 
+exports.transfertAllTron = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const { pass } = req.body
+        // Check user migration
+        if (req.user?.migrate)
+            return responseHandler.makeResponseData(
+                res,
+                401,
+                'success',
+                'migration already done'
+            )
+
+        //const BEP20 = await bep20Connexion();
+        const accountData = await Wallet.findOne({ UserId: userId })
+        if (accountData) {
+            let tronWeb = await webTronInstance()
+            let privateKey = (await getWalletTron(userId, pass)).priv
+            let amount = await tronWeb.trx.getBalance(accountData.tronAddress)
+
+            result = await transferTronTokens({
+                tronAddress: accountData.tronAddress,
+                toAddress: to /* accountData.walletV2.tronAddress*/,
+                amount,
+                privateKey,
+            })
+
+            return res.json({ transactionHash: result.transactionHash })
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.countWallets = async (req, res) => {
     let countWallets = await Wallet.count()
 
