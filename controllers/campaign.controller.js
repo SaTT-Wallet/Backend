@@ -772,12 +772,17 @@ exports.apply = async (req, res) => {
         if (typeSN == 6) {
             var tiktokProfile = await TikTokProfile.findOne({ userId: id })
         }
+        if (typeSN == 3)
+            prom.instagramUserName = await getInstagramUserName(idPost, id)
+        console.log({ typeSN })
         prom.abosNumber = await answerAbos(
             typeSN + '',
             idPost,
             idUser,
             linkedinProfile,
-            tiktokProfile
+            tiktokProfile,
+            id,
+            prom.instagramUserName
         )
         var ret = await applyCampaign(
             hash,
@@ -804,9 +809,6 @@ exports.apply = async (req, res) => {
     } finally {
         cred && lock(cred)
         if (ret?.transactionHash) {
-            if (typeSN == 3)
-                prom.instagramUserName = await getInstagramUserName(idPost, id)
-
             await notificationManager(id, 'apply_campaign', {
                 cmp_name: title,
                 cmp_hash: idCampaign,
@@ -1097,7 +1099,7 @@ exports.gains = async (req, res) => {
             let prom =
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
-            if (prom.lastHarvest && date - prom.lastHarvest <= 300) {
+            if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
                 return responseHandler.makeResponseError(
                     res,
                     403,
@@ -2057,8 +2059,11 @@ exports.getLinks = async (req, res) => {
         let allProms = []
         let allTronProms = []
 
-        let query1 = filterLinks(req, '0x'+accountData.keystore.address)
-        let query3 = filterLinks(req, '0x'+accountData.walletV2.keystore.address)
+        let query1 = filterLinks(req, '0x' + accountData.keystore.address)
+        let query3 = filterLinks(
+            req,
+            '0x' + accountData.walletV2.keystore.address
+        )
         let query2 = filterLinks(req, accountData.tronAddress)
         let query4 = filterLinks(req, accountData.walletV2.tronAddress)
 
@@ -2067,10 +2072,18 @@ exports.getLinks = async (req, res) => {
                 { id_wallet: { $in: [query1.id_wallet, query3.id_wallet] } },
                 { type: { $exists: 0 } }
             ).countDocuments()) +
-            ((!!accountData.tronAddress && !!accountData.walletV2.tronAddress &&
+            ((!!accountData.tronAddress &&
+                !!accountData.walletV2.tronAddress &&
                 req.query.state === 'part' &&
                 (await CampaignLink.find(
-                    { tronAddress: { $in: [accountData.tronAddress, accountData.walletV2.tronAddress] } },
+                    {
+                        tronAddress: {
+                            $in: [
+                                accountData.tronAddress,
+                                accountData.walletV2.tronAddress,
+                            ],
+                        },
+                    },
                     { type: { $exists: 0 } }
                 ).countDocuments())) ||
                 0)
@@ -2105,8 +2118,9 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: { id_wallet: { $in: [query1.id_wallet, query3.id_wallet] } } 
-               
+                $match: {
+                    id_wallet: { $in: [query1.id_wallet, query3.id_wallet] },
+                },
             },
             {
                 $addFields: {
@@ -2128,10 +2142,15 @@ exports.getLinks = async (req, res) => {
             .limit(limit)
 
         let tronUserLinks =
-            (!!accountData.tronAddress && !!accountData.walletV2.tronAddress &&
+            (!!accountData.tronAddress &&
+                !!accountData.walletV2.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: { id_wallet: { $in: [query2.id_wallet, query4.id_wallet] } } 
+                        $match: {
+                            id_wallet: {
+                                $in: [query2.id_wallet, query4.id_wallet],
+                            },
+                        },
                     },
                     {
                         $addFields: {
