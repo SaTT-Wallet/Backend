@@ -1153,7 +1153,7 @@ exports.createSeedV2 = async (req, res) => {
         })
 
         if (walletV1) web3.eth.accounts.decrypt(walletV1.keystore, password)
-        web3.eth.accounts.decrypt(walletV1.keystore, password)
+
         const mnemonic = bip39.generateMnemonic(256)
         const seed = bip39.mnemonicToSeedSync(mnemonic, password)
         const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
