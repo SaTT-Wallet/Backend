@@ -37,6 +37,7 @@ const { responseHandler } = require('../helpers/response-handler')
 const { Constants } = require('../conf/const')
 const {
     unlock,
+    unlockV2,
     lock,
     createSeed,
     exportkeyBtc,
@@ -64,6 +65,9 @@ const {
     getWalletTron,
     createSeedV2,
     getAllWallets,
+    exportkeyV2,
+    exportkeyBtcV2,
+    exportkeyTronV2,
     getAccountV2,
 } = require('../web3/wallets')
 
@@ -131,6 +135,72 @@ exports.exportTron = async (req, res) => {
         res.attachment()
         if (req.user.hasWallet == true) {
             let ret = await exportkeyTron(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportTronV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyTronV2(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportBtcV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            var cred = await unlockV2(req, res)
+            if (!cred) return
+            if (cred) {
+                if (cred == 'Wallet v2 not found')
+                    return res.status(200).send(cred)
+                let ret = await exportkeyBtcV2(req, res)
+                res.status(200).send({ ret })
+            } else {
+                return
+            }
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {}
+}
+
+exports.exportEthV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyV2(req, res)
             if (!ret) {
                 return
             }
@@ -416,7 +486,6 @@ exports.transferTokensController = async (req, res) => {
             }
 
             if (result.error) {
-                console.log('err', result.error)
                 return responseHandler.makeResponseError(res, 402, result.error)
             }
 
@@ -471,7 +540,6 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.error)
         return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
@@ -818,9 +886,9 @@ module.exports.getMnemo = async (req, res) => {
         if (req.user.hasWallet == true) {
             let wallet = await Wallet.findOne(
                 { UserId: req.user._id },
-                { mnemo: true }
-            )
-            let mnemo = wallet.mnemo
+                { mnemo: true, walletV2: true }
+            ).lean()
+            let mnemo = wallet.walletV2.mnemo || wallet.mnemo
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 mnemo,
