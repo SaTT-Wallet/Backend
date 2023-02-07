@@ -67,6 +67,7 @@ const {
     getAllWallets,
     exportkeyV2,
     exportkeyBtcV2,
+    exportkeyTronV2,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -133,6 +134,27 @@ exports.exportTron = async (req, res) => {
         res.attachment()
         if (req.user.hasWallet == true) {
             let ret = await exportkeyTron(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportTronV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyTronV2(req, res)
             if (!ret) {
                 return
             }
@@ -862,9 +884,9 @@ module.exports.getMnemo = async (req, res) => {
         if (req.user.hasWallet == true) {
             let wallet = await Wallet.findOne(
                 { UserId: req.user._id },
-                { mnemo: true }
-            )
-            let mnemo = wallet.mnemo
+                { mnemo: true, walletV2: true }
+            ).lean()
+            let mnemo = wallet.walletV2.mnemo || wallet.mnemo
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 mnemo,
