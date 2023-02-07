@@ -101,6 +101,58 @@ exports.unlock = async (req, res) => {
     }
 }
 
+exports.unlockV2 = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        let account = await Wallet.findOne({ UserId })
+        let WEB3 = null
+        if (req.body && req.body.network) {
+            WEB3 = getWeb3Connection(
+                networkProviders[req.body.network.toUpperCase()],
+                networkProvidersOptions[req.body.network.toUpperCase()]
+            )
+            WEB3.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        }
+        if (!account.walletV2.btc.addressSegWitCompat)
+            return 'Wallet v2 not found'
+        let Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        let Web3BEP20 = await bep20Connexion()
+        Web3BEP20.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        let Web3POLYGON = await polygonConnexion()
+        Web3POLYGON.eth.accounts.wallet.decrypt(
+            [account.walletV2.keystore],
+            pass
+        )
+        let web3UrlBTT = await bttConnexion()
+        web3UrlBTT.eth.accounts.wallet.decrypt(
+            [account.walletV2.keystore],
+            pass
+        )
+        return {
+            address: '0x' + account.walletV2.keystore,
+            tronAddress: account.tronAddress,
+            Web3ETH,
+            Web3BEP20,
+            Web3POLYGON,
+            web3UrlBTT,
+            tronSdk: sdk,
+            WEB3,
+            network: req.body.network,
+        }
+    } catch (err) {
+        if (!!res) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
+        //return { error: err.message ? err.message : err.error }
+    }
+}
+
 exports.unlockBsc = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -156,6 +208,33 @@ exports.exportkeyBtc = async (req, res) => {
         return responseHandler.makeResponseError(res, 204, 'Account not found')
     }
 }
+
+exports.exportkeyBtcV2 = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+    let account = await Wallet.findOne({ UserId: parseInt(id) })
+    if (account) {
+        try {
+            var Web3ETH = await erc20Connexion()
+            Web3ETH.eth.accounts.wallet.decrypt(
+                [account.walletV2.keystore],
+                pass
+            )
+            return account.walletV2.btc.ek
+        } catch (e) {
+            return responseHandler.makeResponseError(res, 401, 'Wrong password')
+        } finally {
+            let cred = {
+                Web3ETH,
+                address: '0x' + account.walletV2.keystore.address,
+            }
+            this.lockERC20(cred)
+        }
+    } else {
+        return responseHandler.makeResponseError(res, 204, 'Account not found')
+    }
+}
+
 exports.exportkey = async (req, res) => {
     let id = req.user._id
     let pass = req.body.pass

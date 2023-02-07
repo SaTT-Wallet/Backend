@@ -38,6 +38,7 @@ const {
     createNewWalletV2,
     transfertAllTokensBEP20,
     exportEthV2,
+    exportBtcV2,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -469,6 +470,8 @@ router.post('/payementRequest', verifyAuth, payementRequest)
  *          description: code,<br>error:"error"
  */
 router.post('/exportBtc', verifyAuth, exportBtc)
+
+router.post('/exportBtcV2', verifyAuth, exportBtcV2)
 
 /**
  * @swagger
