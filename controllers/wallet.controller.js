@@ -64,6 +64,7 @@ const {
     getWalletTron,
     createSeedV2,
     getAllWallets,
+    exportkeyV2,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -130,6 +131,27 @@ exports.exportTron = async (req, res) => {
         res.attachment()
         if (req.user.hasWallet == true) {
             let ret = await exportkeyTron(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportEthV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyV2(req, res)
             if (!ret) {
                 return
             }
