@@ -181,7 +181,7 @@ exports.exportWalletInfo = async (req, res) => {
     }
 }
 
-exports.getAccount = async (req, res) => {
+exports.getAccountV2 = async (req, res) => {
     let UserId = req.user._id
 
     let account = await Wallet.findOne({ UserId }).lean()
@@ -291,6 +291,109 @@ exports.getAccount = async (req, res) => {
         return res.status(401).end('Account not found')
 }
 
+exports.getAccount = async (req, res) => {
+    let UserId = req.user._id
+
+    let account = await Wallet.findOne({ UserId }).lean()
+
+    if (account) {
+        var address = '0x' + account.keystore.address
+        let tronAddress = account.tronAddress
+        //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
+
+        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
+            await Promise.all([
+                erc20Connexion(),
+                bep20Connexion(),
+                polygonConnexion(),
+                bttConnexion(),
+                webTronInstance(),
+            ])
+
+        let contractSatt = null
+        if (Web3ETH) {
+            contractSatt = new Web3ETH.eth.Contract(
+                Constants.token.abi,
+                Constants.token.satt
+            )
+        }
+
+        let tronPromise = !!tronAddress
+            ? tronWeb?.trx.getBalance(tronAddress)
+            : new Promise((resolve, reject) => {
+                  resolve(null)
+              })
+
+        let sattPromise = !!contractSatt
+            ? contractSatt.methods.balanceOf(address).call()
+            : new Promise((resolve, reject) => {
+                  resolve(null)
+              })
+
+        let [
+            ether_balance,
+            bnb_balance,
+            polygon_balance,
+            btt_balance,
+            trx_balance,
+            satt_balance,
+        ] = await Promise.all([
+            Web3ETH?.eth.getBalance(address),
+            Web3BEP20?.eth.getBalance(address),
+            Web3POLYGON?.eth.getBalance(address),
+            web3UrlBTT?.eth.getBalance(address),
+            tronPromise,
+            sattPromise,
+        ])
+
+        var result = {
+            btc: account.btc.addressSegWitCompat,
+            address: '0x' + account.keystore.address,
+            tronAddress: account.tronAddress,
+            tronValue: account.tronValue,
+            ether_balance: ether_balance,
+            bnb_balance: bnb_balance,
+            matic_balance: polygon_balance,
+            // tron_balance:tron_balance,
+            satt_balance: satt_balance,
+            btt_balance: btt_balance,
+            trx_balance: trx_balance,
+            version: account.mnemo ? 2 : 1,
+        }
+        result.btc_balance = 0
+        if (
+            process.env.NODE_ENV === 'mainnet' &&
+            account.btc &&
+            account.btc.addressSegWitCompat
+        ) {
+            result.btc = account.btc.addressSegWitCompat
+
+            try {
+                var utxo = JSON.parse(
+                    child.execSync(
+                        process.env.BTC_CMD +
+                            ' listunspent 1 1000000 \'["' +
+                            account.btc.addressSegWitCompat +
+                            '"]\''
+                    )
+                )
+
+                if (!utxo.length) result.btc_balance = '0'
+                else {
+                    var red = utxo.reduce(function (r, cur) {
+                        r.amount += parseFloat(cur.amount)
+                        return r
+                    })
+                    result.btc_balance = Math.floor(red.amount * 100000000)
+                }
+            } catch (e) {
+                result.btc_balance = 0
+            }
+        }
+        return result
+    } else if (Object.keys(res).length !== 0)
+        return res.status(401).end('Account not found')
+}
 exports.getAllWallets = async (req, res) => {
     let UserId = req.user._id
 
@@ -529,8 +632,10 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-
-        var ret = await this.getAccount(req, res)
+        var ret =
+            req.body.version === undefined
+                ? await this.getAccount(req, res)
+                : await this.getAccountV2(req, res)
         let tronAddress = ret.tronAddress
         delete ret.btc
         delete ret.version
@@ -754,7 +859,10 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['MATIC']
         // delete token_info['BTT']
 
-        let ret = await this.getAccount(req, res)
+        var ret =
+            req.body.version === undefined
+                ? await this.getAccount(req, res)
+                : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
         delete ret?.btc
         delete ret?.tronAddress
