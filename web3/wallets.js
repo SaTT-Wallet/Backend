@@ -1494,6 +1494,40 @@ exports.exportkeyTron = async (req, res) => {
     return keystore
 }
 
+exports.exportkeyTronV2 = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+
+    let wallet = await Wallet.findOne({ UserId: id })
+
+    let Web3ETH = await erc20Connexion()
+
+    if (!wallet.walletV2.keystore.address) return 'Wallet v2 not found'
+
+    if (wallet.walletV2.keystore) {
+        try {
+            Web3ETH.eth.accounts.wallet.decrypt(
+                [wallet.walletV2.keystore],
+                pass
+            )
+        } catch (error) {
+            console.log(error)
+            return { error: 'Invalid Tron password' }
+        }
+    }
+    const seed = bip39.mnemonicToSeedSync(wallet.walletV2.mnemo, pass)
+    const root = bip32.fromSeed(seed)
+    const childTron = root.derivePath(pathTron)
+    var tronPriv = childTron.privateKey.toString('hex')
+
+    var keystore = Web3ETH.eth.accounts
+        .privateKeyToAccount(tronPriv)
+        .encrypt(pass)
+    let ethAddr = '41' + keystore.address
+    keystore.address = ethAddr
+    return keystore
+}
+
 exports.FilterTransactionsByHash = (
     All_Transactions,
     Erc20_OR_BEP20_Transactions,
