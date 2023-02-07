@@ -170,6 +170,20 @@ exports.exportkey = async (req, res) => {
     }
 }
 
+exports.exportkeyV2 = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+    let account = await Wallet.findOne({ UserId: parseInt(id) })
+    if (account) {
+        if (!account.walletV2.keystore.address) return 'Wallet V2 not found'
+        var Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        return account.walletV2.keystore
+    } else {
+        return 'Account not found'
+    }
+}
+
 exports.exportWalletInfo = async (req, res) => {
     let id = req.user._id
     let account = await Wallet.findOne({ UserId: parseInt(id) })
