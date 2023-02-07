@@ -37,6 +37,9 @@ const {
     allwallets,
     createNewWalletV2,
     transfertAllTokensBEP20,
+    exportEthV2,
+    exportBtcV2,
+    exportTronV2,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -547,6 +550,8 @@ router.post('/payementRequest', verifyAuth, payementRequest)
  */
 router.post('/exportBtc', verifyAuth, exportBtc)
 
+router.post('/exportBtcV2', verifyAuth, exportBtcV2)
+
 /**
  * @swagger
  * /wallet/exportETH:
@@ -574,6 +579,8 @@ router.post('/exportBtc', verifyAuth, exportBtc)
  */
 router.post('/exportETH', verifyAuth, exportEth)
 
+router.post('/exportETHV2', verifyAuth, exportEthV2)
+
 /**
  * @swagger
  * /wallet/exportTron:
@@ -600,6 +607,8 @@ router.post('/exportETH', verifyAuth, exportEth)
  *          description: code,<br>error:"error"
  */
 router.post('/exportTron', verifyAuth, exportTron)
+
+router.post('/exportTronV2', verifyAuth, exportTronV2)
 
 /**
  * @swagger
