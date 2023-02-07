@@ -14,7 +14,11 @@ let path = require('path')
 // set up rate limiter: maximum of five requests per minute
 var RateLimit = require('express-rate-limit')
 const package = require('./package.json')
-app.use(require('body-parser').json())
+app.use(
+    require('body-parser').json({
+        limit: '50mb',
+    })
+)
 app.use(require('body-parser').urlencoded({ extended: true }))
 
 app.use(express.json({ limit: '50mb', extended: true }))
@@ -50,22 +54,30 @@ const connectDB = async () => {
 
 connectDB()
 
-//module.exports.connect = connect
-
 app.disable('x-powered-by')
 
 // let Corsoptions = {}
 
-// if (process.env.NODE_ENV !== 'mainnet') {
+// if (process.env.NODE_ENV === 'mainnet') {
 //     Corsoptions = {
 //         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+//         optionsSuccessStatus: 200, // For legacy browser support
 //     }
 // } else {
 //     Corsoptions = {
 //         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//         // origin:[process.env.dns   ]
+//         optionsSuccessStatus: 200,
+//         origin: [
+//             'http://localhost:4200',
+//             'http://localhost:5000',
+//             'https://testnet.ihave.io',
+//             'https://app.ihave.io',
+//             'https://testnet.satt.atayen.us/',
+//         ],
 //     }
 // }
+
+// app.use(cors(Corsoptions))
 
 app.use(
     cors({
@@ -77,7 +89,6 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 
-// app.use(csrf({ cookie: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/assets', express.static('public'))
