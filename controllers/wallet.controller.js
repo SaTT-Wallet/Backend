@@ -64,6 +64,7 @@ const {
     getWalletTron,
     createSeedV2,
     getAllWallets,
+    getAccountV2,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -168,9 +169,13 @@ exports.exportWalletInfos = async (req, res) => {
 }
 
 exports.mywallet = async (req, res) => {
+    console.log('geeeeeeeee')
     try {
         if (req.user.hasWallet == true) {
-            var ret = await getAccount(req, res)
+            var ret =
+                req.body.version === undefined
+                    ? await getAccount(req, res)
+                    : await getAccountV2(req, res)
             if (!ret) {
                 return
             }
@@ -190,7 +195,6 @@ exports.mywallet = async (req, res) => {
         )
     }
 }
-
 exports.allwallets = async (req, res) => {
     try {
         var ret = await getAllWallets(req, res)
