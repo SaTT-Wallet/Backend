@@ -37,6 +37,7 @@ const { responseHandler } = require('../helpers/response-handler')
 const { Constants } = require('../conf/const')
 const {
     unlock,
+    unlockV2,
     lock,
     createSeed,
     exportkeyBtc,
@@ -65,6 +66,7 @@ const {
     createSeedV2,
     getAllWallets,
     exportkeyV2,
+    exportkeyBtcV2,
 } = require('../web3/wallets')
 
 const { notificationManager } = require('../manager/accounts')
@@ -145,6 +147,30 @@ exports.exportTron = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
+}
+
+exports.exportBtcV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            var cred = await unlockV2(req, res)
+            if (!cred) return
+            if (cred) {
+                if (cred == 'Wallet v2 not found')
+                    return res.status(200).send(cred)
+                let ret = await exportkeyBtcV2(req, res)
+                res.status(200).send({ ret })
+            } else {
+                return
+            }
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {}
 }
 
 exports.exportEthV2 = async (req, res) => {
