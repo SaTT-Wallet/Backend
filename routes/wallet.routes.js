@@ -49,6 +49,34 @@ const {
 /**
  * @swagger
  * /wallet/mywallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: return user wallet.
+ *     description: system return object of wallet(address,bnb balance ...)<br> with access_token
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               version:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code:200,<br>message:"success"
+ *       "401":
+ *          description: code:401,<br>error:"token required"
+ *       "204":
+ *          description: code:204,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code:500,<br>error
+ */
+router.post('/mywallet', verifyAuth, mywallet)
+
+/**
+ * @swagger
+ * /wallet/mywallet:
  *   get:
  *     tags:
  *     - "wallets"
@@ -66,7 +94,7 @@ const {
  *       "500":
  *          description: code:500,<br>error
  */
-router.post('/mywallet', verifyAuth, mywallet)
+router.get('/mywallet', verifyAuth, mywallet)
 
 /**
  * @swagger
@@ -92,16 +120,19 @@ router.get('/allwallets', verifyAuth, allwallets)
 
 /**
  * @swagger
- * /wallet/userBalance/{idwallet}:
- *   get:
+ * /wallet/userBalance:
+ *   post:
  *     tags:
  *     - "wallets"
  *     summary: get user balance
- *     parameters:
- *       - in: path
- *         name: idWallet
- *         required: true
- *         description: idWallet
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               version:
+ *                 type: string
  *     description: return to user his crypto list <br> with access_token
  *     produces:
  *       - application/json
@@ -114,6 +145,26 @@ router.get('/allwallets', verifyAuth, allwallets)
  *          description: code,<br>error:"error"
  */
 router.post('/userBalance', verifyAuth, userBalance)
+
+/**
+ * @swagger
+ * /wallet/userBalance:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get user balance
+ *     description: return to user his crypto list <br> with access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.get('/userBalance', verifyAuth, userBalance)
 
 // router.get('/polygonCnx', testPolygon.polygonConnexion)
 // router.get('/polygonContract', getContractPolygon)
@@ -238,6 +289,34 @@ router.get('/cryptoDetails', cryptoDetails)
 /**
  * @swagger
  * /wallet/totalBalance:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: get total balance
+ *     description: return the sum of balances for user
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               version:
+ *                 type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/totalBalance', verifyAuth, totalBalances)
+
+/**
+ * @swagger
+ * /wallet/totalBalance:
  *   get:
  *     tags:
  *     - "wallets"
@@ -253,8 +332,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/totalBalance', verifyAuth, totalBalances)
-
+router.get('/totalBalance', verifyAuth, totalBalances)
 /**
  * @swagger
  * /wallet/Erc20GasPrice:
