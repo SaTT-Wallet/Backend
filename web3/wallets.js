@@ -1511,7 +1511,6 @@ exports.exportkeyTronV2 = async (req, res) => {
                 pass
             )
         } catch (error) {
-            console.log(error)
             return { error: 'Invalid Tron password' }
         }
     }
