@@ -481,7 +481,7 @@ exports.transferTokensController = async (req, res) => {
                     tokenSmartContractAbi: Constants.token.abi,
                     provider,
                     walletPassword: pass,
-                    encryptedPrivateKey: accountData.keystore,
+                    encryptedPrivateKey: (from ==='0x'+accountData.walletV2.keystore.address) ? accountData.walletV2.keystore : accountData.keystore,
                 })
             }
 
