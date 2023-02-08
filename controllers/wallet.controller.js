@@ -1275,3 +1275,19 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
         )
     }
 }
+
+exports.checkUserWalletV2Exist = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const wallet = await Wallet.findOne({ UserId: userId })
+        if (wallet.walletV2.keystore.address)
+            return responseHandler.makeResponseData(res, 200, 'success', true)
+        return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
