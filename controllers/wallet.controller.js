@@ -239,7 +239,6 @@ exports.exportWalletInfos = async (req, res) => {
 }
 
 exports.mywallet = async (req, res) => {
-    console.log('geeeeeeeee')
     try {
         if (req.user.hasWallet == true) {
             var ret =
