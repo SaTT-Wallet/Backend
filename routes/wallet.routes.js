@@ -41,6 +41,7 @@ const {
     exportBtcV2,
     exportTronV2,
     checkUserWalletV2Exist,
+    checkIsNewUser,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -870,5 +871,7 @@ router.get('/stats', verifyAuth, balanceStat)
 router.post('/transfertTokensBep20', verifyAuth, transfertAllTokensBEP20)
 
 router.get('/checkUserWalletV2', verifyAuth, checkUserWalletV2Exist)
+
+router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
 
 module.exports = router
