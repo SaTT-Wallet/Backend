@@ -1,4 +1,4 @@
-const { Wallet, CustomToken } = require('../model/index')
+const { Wallet, User, CustomToken } = require('../model/index')
 const { responseHandler } = require('../helpers/response-handler')
 const {
     erc20Connexion,
@@ -101,6 +101,58 @@ exports.unlock = async (req, res) => {
     }
 }
 
+exports.unlockV2 = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+        let account = await Wallet.findOne({ UserId })
+        let WEB3 = null
+        if (req.body && req.body.network) {
+            WEB3 = getWeb3Connection(
+                networkProviders[req.body.network.toUpperCase()],
+                networkProvidersOptions[req.body.network.toUpperCase()]
+            )
+            WEB3.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        }
+        if (!account.walletV2.btc.addressSegWitCompat)
+            return 'Wallet v2 not found'
+        let Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        let Web3BEP20 = await bep20Connexion()
+        Web3BEP20.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        let Web3POLYGON = await polygonConnexion()
+        Web3POLYGON.eth.accounts.wallet.decrypt(
+            [account.walletV2.keystore],
+            pass
+        )
+        let web3UrlBTT = await bttConnexion()
+        web3UrlBTT.eth.accounts.wallet.decrypt(
+            [account.walletV2.keystore],
+            pass
+        )
+        return {
+            address: '0x' + account.walletV2.keystore,
+            tronAddress: account.tronAddress,
+            Web3ETH,
+            Web3BEP20,
+            Web3POLYGON,
+            web3UrlBTT,
+            tronSdk: sdk,
+            WEB3,
+            network: req.body.network,
+        }
+    } catch (err) {
+        if (!!res) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
+        //return { error: err.message ? err.message : err.error }
+    }
+}
+
 exports.unlockBsc = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -156,6 +208,33 @@ exports.exportkeyBtc = async (req, res) => {
         return responseHandler.makeResponseError(res, 204, 'Account not found')
     }
 }
+
+exports.exportkeyBtcV2 = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+    let account = await Wallet.findOne({ UserId: parseInt(id) })
+    if (account) {
+        try {
+            var Web3ETH = await erc20Connexion()
+            Web3ETH.eth.accounts.wallet.decrypt(
+                [account.walletV2.keystore],
+                pass
+            )
+            return account.walletV2.btc.ek
+        } catch (e) {
+            return responseHandler.makeResponseError(res, 401, 'Wrong password')
+        } finally {
+            let cred = {
+                Web3ETH,
+                address: '0x' + account.walletV2.keystore.address,
+            }
+            this.lockERC20(cred)
+        }
+    } else {
+        return responseHandler.makeResponseError(res, 204, 'Account not found')
+    }
+}
+
 exports.exportkey = async (req, res) => {
     let id = req.user._id
     let pass = req.body.pass
@@ -170,6 +249,20 @@ exports.exportkey = async (req, res) => {
     }
 }
 
+exports.exportkeyV2 = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+    let account = await Wallet.findOne({ UserId: parseInt(id) })
+    if (account) {
+        if (!account.walletV2.keystore.address) return 'Wallet V2 not found'
+        var Web3ETH = await erc20Connexion()
+        Web3ETH.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
+        return account.walletV2.keystore
+    } else {
+        return 'Account not found'
+    }
+}
+
 exports.exportWalletInfo = async (req, res) => {
     let id = req.user._id
     let account = await Wallet.findOne({ UserId: parseInt(id) })
@@ -179,6 +272,122 @@ exports.exportWalletInfo = async (req, res) => {
     } else {
         return 'Account not found'
     }
+}
+
+exports.getAccountV2 = async (req, res) => {
+    let UserId = req.user._id
+
+    let account = await Wallet.findOne({ UserId }).lean()
+    const version = req.body.version
+    if (account) {
+        var address =
+            version === 'v1'
+                ? !account.keystore
+                    ? '0x' + account.walletV2.keystore.address
+                    : '0x' + account.keystore.address
+                : '0x' + account.walletV2.keystore.address
+        let btcAddress =
+            version === 'v1'
+                ? !account.btc
+                    ? account.walletV2.btc.addressSegWitCompat
+                    : account.btc.addressSegWitCompat
+                : account.walletV2.btc.addressSegWitCompat
+        let tronAddress =
+            version === 'v1'
+                ? !account.tronAddress
+                    ? account.walletV2.tronAddress
+                    : account.tronAddress
+                : account.walletV2.tronAddress
+        //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
+
+        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
+            await Promise.all([
+                erc20Connexion(),
+                bep20Connexion(),
+                polygonConnexion(),
+                bttConnexion(),
+                webTronInstance(),
+            ])
+
+        let contractSatt = null
+        if (Web3ETH) {
+            contractSatt = new Web3ETH.eth.Contract(
+                Constants.token.abi,
+                Constants.token.satt
+            )
+        }
+
+        let tronPromise = !!tronAddress
+            ? tronWeb?.trx.getBalance(tronAddress)
+            : new Promise((resolve, reject) => {
+                  resolve(null)
+              })
+
+        let sattPromise = !!contractSatt
+            ? contractSatt.methods.balanceOf(address).call()
+            : new Promise((resolve, reject) => {
+                  resolve(null)
+              })
+
+        let [
+            ether_balance,
+            bnb_balance,
+            polygon_balance,
+            btt_balance,
+            trx_balance,
+            satt_balance,
+        ] = await Promise.all([
+            Web3ETH?.eth.getBalance(address),
+            Web3BEP20?.eth.getBalance(address),
+            Web3POLYGON?.eth.getBalance(address),
+            web3UrlBTT?.eth.getBalance(address),
+            tronPromise,
+            sattPromise,
+        ])
+
+        var result = {
+            btc: account.btc ? btcAddress : '',
+            address: address,
+            tronAddress: tronAddress,
+            tronValue: account.tronValue,
+            ether_balance: ether_balance,
+            bnb_balance: bnb_balance,
+            matic_balance: polygon_balance,
+            // tron_balance:tron_balance,
+            satt_balance: satt_balance,
+            btt_balance: btt_balance,
+            trx_balance: trx_balance,
+            version: account.mnemo ? 2 : 1,
+        }
+        result.btc_balance = 0
+        if (process.env.NODE_ENV === 'mainnet' && account.btc && btcAddress) {
+            result.btc = btcAddress
+
+            try {
+                var utxo = JSON.parse(
+                    child.execSync(
+                        process.env.BTC_CMD +
+                            ' listunspent 1 1000000 \'["' +
+                            btcAddress +
+                            '"]\''
+                    )
+                )
+
+                if (!utxo.length) result.btc_balance = '0'
+                else {
+                    var red = utxo.reduce(function (r, cur) {
+                        r.amount += parseFloat(cur.amount)
+                        return r
+                    })
+                    result.btc_balance = Math.floor(red.amount * 100000000)
+                }
+            } catch (e) {
+                result.btc_balance = 0
+            }
+        }
+        return result
+    } else if (Object.keys(res).length !== 0)
+        return res.status(401).end('Account not found')
 }
 
 exports.getAccount = async (req, res) => {
@@ -237,7 +446,7 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account.btc ? account.btc.addressSegWitCompat : '',
+            btc: account.btc.addressSegWitCompat,
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
@@ -284,7 +493,31 @@ exports.getAccount = async (req, res) => {
     } else if (Object.keys(res).length !== 0)
         return res.status(401).end('Account not found')
 }
+exports.getAllWallets = async (req, res) => {
+    let UserId = req.user._id
 
+    let account = await Wallet.findOne({ UserId }).lean()
+
+    if (account) {
+        let address = '0x' + account.keystore.address
+        let tronAddress = account.tronAddress
+        let addressV2 = '0x' + account.walletV2.keystore.address
+        let tronAddressV2 = account.walletV2.tronAddress
+        let btcAddress = account.btc.addressSegWitCompat
+        let btcAddressV2 = account.walletV2.btc.addressSegWitCompat
+
+        let result = {
+            address,
+            tronAddress,
+            btcAddress,
+            addressV2,
+            tronAddressV2,
+            btcAddressV2,
+        }
+        return result
+    } else if (Object.keys(res).length !== 0)
+        return res.status(401).end('Account not found')
+}
 exports.getPrices = async () => {
     try {
         if (
@@ -486,6 +719,7 @@ exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
 
 exports.getListCryptoByUid = async (req, res) => {
     let id = req.user._id
+
     let crypto = await this.getPrices()
     //list of first 200 crypto from coinmarketcap + satt + jet
     var listOfCrypto = []
@@ -497,8 +731,10 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-
-        var ret = await this.getAccount(req, res)
+        var ret =
+            req.body.version === undefined
+                ? await this.getAccount(req, res)
+                : await this.getAccountV2(req, res)
         let tronAddress = ret.tronAddress
         delete ret.btc
         delete ret.version
@@ -722,7 +958,10 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['MATIC']
         // delete token_info['BTT']
 
-        let ret = await this.getAccount(req, res)
+        var ret =
+            req.body.version === undefined
+                ? await this.getAccount(req, res)
+                : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
         delete ret?.btc
         delete ret?.tronAddress
@@ -1024,6 +1263,13 @@ exports.getCount = async function () {
     } catch (err) {}
 }
 
+exports.getCountV2 = async function () {
+    try {
+        var count = await Wallet.find({ walletV2: { $exists: true } }).count()
+        return count + 1
+    } catch (err) {}
+}
+
 exports.createSeed = async (req, res) => {
     try {
         var UserId = +req.user._id
@@ -1057,7 +1303,6 @@ exports.createSeed = async (req, res) => {
         var checksumAddress = ethUtil.toChecksumAddress(
             '0x' + addressBuffer.toString('hex')
         )
-        // var addressEth = ethUtil.addHexPrefix(checksumAddress);
         var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'))
 
         var pubBtc = childBtc.publicKey.toString('hex')
@@ -1067,24 +1312,6 @@ exports.createSeed = async (req, res) => {
         var account = Web3ETH.eth.accounts
             .privateKeyToAccount(privkey)
             .encrypt(pass)
-
-        // if (!booltestnet) {
-        //     child.execSync(
-        //         process.env.BTC_CMD +
-        //             ' importpubkey ' +
-        //             pubBtc +
-        //             " 'default' false"
-        //     )
-
-        //     const client = new bitcoinCore({
-        //         host: process.env.BTC_HOST,
-        //         username: process.env.BTC_USER,
-        //         password: process.env.BTC_PASSWORD,
-        //     })
-
-        //     await new Client().importPubKey('default', false)
-        // }
-
         var ek = bip38.encrypt(childBtc.privateKey, true, escpass)
         var btcWallet = {
             publicKey: pubBtc,
@@ -1121,6 +1348,95 @@ exports.createSeed = async (req, res) => {
     }
 }
 
+exports.createSeedV2 = async (req, res) => {
+    try {
+        var UserId = +req.user._id
+        var password = req.body.pass
+        var escpassword = password.replace(/'/g, "\\'")
+        let web3 = await bep20Connexion()
+        let walletV1 = await Wallet.findOne({
+            UserId,
+            keystore: { $exists: true },
+        })
+
+        if (walletV1) web3.eth.accounts.decrypt(walletV1.keystore, password)
+
+        const mnemonic = bip39.generateMnemonic(256)
+        const seed = bip39.mnemonicToSeedSync(mnemonic, password)
+        const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+        const rootBtcBc1 = bip32.fromSeed(seed, networkSegWit)
+        const rootEth = bip32.fromSeed(seed)
+        const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+        const childBtcBc1 = rootBtcBc1.derivePath(pathBtcSegwit)
+        const childEth = rootEth.derivePath(pathEth)
+
+        const address = bitcoinjs.payments.p2sh({
+            redeem: bitcoinjs.payments.p2wpkh({
+                pubkey: childBtc.publicKey,
+                network: networkSegWitCompat,
+            }),
+            network: networkSegWitCompat,
+        }).address
+
+        const addressbc1 = bitcoinjs.payments.p2wpkh({
+            pubkey: childBtcBc1.publicKey,
+            network: networkSegWit,
+        }).address
+
+        var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'))
+
+        var pubBtc = childBtc.publicKey.toString('hex')
+
+        let Web3ETH = await erc20Connexion()
+
+        var account = Web3ETH.eth.accounts
+            .privateKeyToAccount(privkey)
+            .encrypt(password)
+        var ek = bip38.encrypt(childBtc.privateKey, true, escpassword)
+        var btcWallet = {
+            publicKey: pubBtc,
+            addressSegWitCompat: address,
+            addressSegWit: addressbc1,
+            publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
+            ek: ek,
+        }
+        var count = await this.getCountV2()
+
+        let TronWallet = await this.getWalletTronV2(
+            UserId,
+            password,
+            account,
+            mnemonic
+        )
+
+        await Wallet.updateOne(
+            { UserId },
+            {
+                $set: {
+                    UserId,
+                    num: count,
+                    walletV2: {
+                        keystore: account,
+                        btc: btcWallet,
+                        mnemo: mnemonic,
+                        tronAddress: TronWallet.addr,
+                    },
+                },
+            },
+            { upsert: true }
+        )
+
+        await User.updateOne({ _id: UserId }, { $set: { hasWalletV2: true } })
+
+        return {
+            address: '0x' + account.address,
+            btcAddress: btcWallet.addressSegWitCompat,
+            tronAddress: TronWallet.addr,
+        }
+    } catch (error) {
+        return { error: error.message }
+    }
+}
 exports.addWalletTron = async (req, res) => {
     try {
         var UserId = req.user._id
@@ -1177,7 +1493,39 @@ exports.getWalletTron = async (
         return { err: err.message ? err.message : err.error }
     }
 }
+exports.getWalletTronV2 = async (
+    id,
+    pass,
+    keystoreWallet = false,
+    mnemonic = null
+) => {
+    let wallet = await Wallet.findOne(
+        { UserId: id },
+        { keystore: 1, mnemo: 1, walletV2: 1 }
+    ).lean()
+    const mnemos = wallet?.walletV2?.mnemo || mnemonic
+    const walletKeyStore = wallet?.walletV2?.keystore || keystoreWallet
 
+    if (walletKeyStore) {
+        try {
+            let Web3ETH = await erc20Connexion()
+            Web3ETH.eth.accounts.wallet.decrypt([walletKeyStore], pass)
+        } catch (error) {
+            return { error: 'Invalid Tron password' }
+        }
+    }
+    try {
+        const seed = bip39.mnemonicToSeedSync(mnemos, pass)
+        const root = bip32.fromSeed(seed)
+        const childTron = root.derivePath(pathTron)
+        var tronPriv = childTron.privateKey.toString('hex')
+        var tronAddr = tronWeb.address.fromPrivateKey(tronPriv)
+        var tronAddrHex = tronWeb.address.toHex(tronAddr)
+        return { priv: tronPriv, addr: tronAddr, addrHex: tronAddrHex }
+    } catch (err) {
+        return { err: err.message ? err.message : err.error }
+    }
+}
 exports.wrapNative = async (amount, credentials) => {
     try {
         tokenSmartContract = new credentials.WEB3.eth.Contract(
@@ -1248,6 +1596,39 @@ exports.exportkeyTron = async (req, res) => {
         }
     }
     const seed = bip39.mnemonicToSeedSync(wallet.mnemo, pass)
+    const root = bip32.fromSeed(seed)
+    const childTron = root.derivePath(pathTron)
+    var tronPriv = childTron.privateKey.toString('hex')
+
+    var keystore = Web3ETH.eth.accounts
+        .privateKeyToAccount(tronPriv)
+        .encrypt(pass)
+    let ethAddr = '41' + keystore.address
+    keystore.address = ethAddr
+    return keystore
+}
+
+exports.exportkeyTronV2 = async (req, res) => {
+    let id = req.user._id
+    let pass = req.body.pass
+
+    let wallet = await Wallet.findOne({ UserId: id })
+
+    let Web3ETH = await erc20Connexion()
+
+    if (!wallet.walletV2.keystore.address) return 'Wallet v2 not found'
+
+    if (wallet.walletV2.keystore) {
+        try {
+            Web3ETH.eth.accounts.wallet.decrypt(
+                [wallet.walletV2.keystore],
+                pass
+            )
+        } catch (error) {
+            return { error: 'Invalid Tron password' }
+        }
+    }
+    const seed = bip39.mnemonicToSeedSync(wallet.walletV2.mnemo, pass)
     const root = bip32.fromSeed(seed)
     const childTron = root.derivePath(pathTron)
     var tronPriv = childTron.privateKey.toString('hex')
