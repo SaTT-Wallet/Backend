@@ -1457,15 +1457,15 @@ exports.addWalletTron = async (req, res) => {
 exports.getWalletTron = async (
     id,
     pass,
+    walletversion,
     keystoreWallet = false,
     mnemonic = null
 ) => {
+    console.log("walletversionwalletversionwalletversion",walletversion)
     let wallet = await Wallet.findOne(
-        { UserId: id },
-        { keystore: 1, mnemo: 1 }
-    ).lean()
-    const mnemos = wallet?.mnemo || mnemonic
-    const walletKeyStore = wallet?.keystore || keystoreWallet
+        { UserId: id })
+    const mnemos =( walletversion==='v1' ? wallet?.mnemo : wallet?.walletV2.mnemo) || mnemonic
+    const walletKeyStore = (walletversion==='v1' ? wallet?.keystore : wallet?.walletV2.keystore) || keystoreWallet
 
     if (walletKeyStore) {
         try {
