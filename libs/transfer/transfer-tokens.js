@@ -11,6 +11,7 @@ module.exports.transferTokens = async function ({
     walletPassword,
     encryptedPrivateKey,
     token = false,
+    network,
 }) {
     const web3 = new Web3(provider)
     if (!web3.utils.isAddress(fromAddress)) {
@@ -41,7 +42,7 @@ module.exports.transferTokens = async function ({
 
     const gasPrice = await web3.eth.getGasPrice()
 
-    const gasLimit =
+    let gasLimit =
         tokenSmartContractAddress === null
             ? await web3.eth.estimateGas({ to: toAddress })
             : await tokenSmartContract.methods
@@ -57,12 +58,8 @@ module.exports.transferTokens = async function ({
             tokenSmartContractAddress === null ||
             tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
         ) {
-            token &&
-                (amount = new Big(amount)
-                    .minus(
-                        new Big(gasLimit).times(new Big(gasPrice)).toString()
-                    )
-                    .toString())
+            token !== 'BTT' && (gasLimit = 21000)
+
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
                 to: toAddress,
@@ -71,6 +68,8 @@ module.exports.transferTokens = async function ({
                 gasPrice,
             })
         } else {
+            gasLimit =
+                network === 'BEP20' || network === 'POLYGON' ? 21000 : 65000
             result = await tokenSmartContract.methods
                 .transfer(toAddress, amount)
                 .send({
@@ -87,9 +86,10 @@ module.exports.transferTokens = async function ({
             from: fromAddress,
             to: toAddress,
             amount: amount,
-            gas: new Big(gasLimit).times(new Big(gasPrice)).toString(),
+            //gas: new Big(gasLimit).times(new Big(gasPrice)).toString(),
         }
     } catch (error) {
+        console.error(error)
         return { error: error.message }
     } finally {
         web3.eth.accounts.wallet.remove(fromAddress)

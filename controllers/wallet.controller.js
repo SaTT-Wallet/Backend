@@ -1203,7 +1203,7 @@ exports.addNewWallet = async (req, res) => {
     }
 }
 
-exports.transfertAllTokensBEP20 = async (req, res) => {
+exports.transferTokens = async (req, res) => {
     try {
         const userId = req.user._id
         const pass = req.body.pass
