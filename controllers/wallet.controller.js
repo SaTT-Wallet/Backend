@@ -480,7 +480,10 @@ exports.transferTokensController = async (req, res) => {
                     tokenSmartContractAbi: Constants.token.abi,
                     provider,
                     walletPassword: pass,
-                    encryptedPrivateKey: (from ==='0x'+accountData.walletV2.keystore.address) ? accountData.walletV2.keystore : accountData.keystore,
+                    encryptedPrivateKey:
+                        from === '0x' + accountData.walletV2.keystore.address
+                            ? accountData.walletV2.keystore
+                            : accountData.keystore,
                 })
             }
 
@@ -1280,6 +1283,22 @@ exports.checkUserWalletV2Exist = async (req, res) => {
         const userId = req.user._id
         const wallet = await Wallet.findOne({ UserId: userId })
         if (wallet.walletV2.keystore.address)
+            return responseHandler.makeResponseData(res, 200, 'success', true)
+        return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.checkIsNewUser = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const wallet = await Wallet.findOne({ UserId: userId })
+        if (wallet.walletV2.keystore.address && !wallet.keystore.address)
             return responseHandler.makeResponseData(res, 200, 'success', true)
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
