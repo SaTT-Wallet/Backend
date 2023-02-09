@@ -1244,178 +1244,6 @@ exports.addNewWallet = async (req, res) => {
 exports.transfertAllTokensBEP20 = async (req, res) => {
     try {
         const userId = req.user._id
-        const { pass, tokens } = req.body
-        console.log(tokens)
-        if (req.user?.migrate)
-            return responseHandler.makeResponseData(
-                res,
-                401,
-                'success',
-                'has wallet v2 already done'
-            )
-
-        const accountData = await Wallet.findOne({ UserId: userId }).lean()
-        if (accountData) {
-            // PROVIDER
-
-            const provider = getHttpProvider(
-                networkProviders['BEP20'],
-                networkProvidersOptions['BEP20']
-            )
-
-            let bnb = tokens.findIndex((elem) => elem.symbol == 'BNB')
-
-            bnb !== -1 && tokens.splice(bnb, 1)
-            const transactionHash = []
-
-            for (let token of tokens) {
-                const send = await transferTokens({
-                    fromAddress: '0x' + accountData.keystore.address, // old wallet
-                    toAddress:
-                        '0x' +
-                        accountData.walletV2.keystore
-                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
-                    amount: token?.balance || bnbBalance,
-                    tokenSmartContractAddress:
-                        token.symbol == 'BNB' ? null : token.contract,
-                    tokenSmartContractAbi: Constants.token.abi,
-                    provider: provider,
-                    walletPassword: pass, // req.body
-                    encryptedPrivateKey: accountData.keystore,
-                    ...(token.symbol == 'BNB' && { token: token.symbol }),
-                })
-                // token.symbol !== 'BNB' && bnb &&
-                //     (bnbBalance = bnbBalance.minus(send.gas))
-                send?.transactionHash && transactionHash.push(send)
-            }
-
-            if (bnb !== -1) {
-                const Web3BEP20 = await bep20Connexion()
-                let bnbBalance =
-                    bnb &&
-                    Web3BEP20?.eth.getBalance(
-                        '0x' + accountData.keystore.address
-                    )
-                let amount = new Big(bnbBalance).minus(
-                    new Big(21000).times(new Big(Web3BEP20?.eth.gasPrice()))
-                )
-                const send = await transferTokens({
-                    fromAddress: '0x' + accountData.keystore.address, // old wallet
-                    toAddress:
-                        '0x' +
-                        accountData.walletV2.keystore
-                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
-                    amount: amount,
-                    tokenSmartContractAddress: null,
-                    tokenSmartContractAbi: Constants.token.abi,
-                    provider: provider,
-                    walletPassword: pass, // req.body
-                    encryptedPrivateKey: accountData.keystore,
-                    token: token.symbol,
-                })
-
-                send?.transactionHash && transactionHash.push(send)
-            }
-
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'success',
-                transactionHash
-            )
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.transfertAllTokensERC20 = async (req, res) => {
-    try {
-        const userId = req.user._id
-        const { pass, tokens } = req.body
-        console.log(tokens)
-        if (req.user?.migrate)
-            return responseHandler.makeResponseData(
-                res,
-                401,
-                'success',
-                'has wallet v2 already done'
-            )
-
-        const accountData = await Wallet.findOne({ UserId: userId }).lean()
-        if (accountData) {
-            // PROVIDER
-            //const bep20WEB3 = await bttConnexion()
-            const provider = getHttpProvider(
-                networkProviders['ERC20'],
-                networkProvidersOptions['ERC20']
-            )
-
-            // const balance = await getListCryptoByUid(req, res)
-            // const result1 = balance?.listOfCrypto
-            //     .filter(
-            //         (element) =>
-            //             Number(element.quantity) > 0 &&
-            //             !isNaN(Number(element.quantity))
-            //     )
-            //     .filter((element) => element.network == 'BEP20')
-            //const estimationGasPrice = await bep20WEB3.eth.getGasPrice()
-            let bnb =
-                tokens.find((elem) => elem.symbol == 'ETH')?.quantity || null
-            let bnbBalance = bnb && new Big(bnb || '').times(10 ** 18)
-            const transactionHash = []
-            // if (bnbBalance < result1.length * estimationGasPrice)
-            //     return responseHandler.makeResponseData(
-            //         res,
-            //         401,
-            //         'success',
-            //         'you need more bnb for the transaction fees'
-            //     )
-            for (let token of tokens) {
-                const send = await transferTokens({
-                    fromAddress: '0x' + accountData.keystore.address, // old wallet
-                    toAddress:
-                        '0x' +
-                        accountData.walletV2.keystore
-                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
-                    amount: token?.balance || bnbBalance,
-                    tokenSmartContractAddress:
-                        token.symbol == 'ETH' ? null : token.contract,
-                    tokenSmartContractAbi: Constants.token.abi,
-                    provider: provider,
-                    walletPassword: pass, // req.body
-                    encryptedPrivateKey: accountData.keystore,
-                    ...(token.symbol == 'ETH' && { token: token.symbol }),
-                })
-                token.symbol !== 'ETH' &&
-                    bnb &&
-                    (bnbBalance = bnbBalance.minus(send.gas))
-                send?.transactionHash && transactionHash.push(send)
-            }
-
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'success',
-                transactionHash
-            )
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.transfertAllTokensBEP20 = async (req, res) => {
-    try {
-        const userId = req.user._id
         const { pass, tokens, network } = req.body
         console.log(tokens)
         if (req.user?.migrate)
@@ -1535,6 +1363,22 @@ exports.checkUserWalletV2Exist = async (req, res) => {
         const userId = req.user._id
         const wallet = await Wallet.findOne({ UserId: userId })
         if (wallet.walletV2.keystore.address)
+            return responseHandler.makeResponseData(res, 200, 'success', true)
+        return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.checkIsNewUser = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const wallet = await Wallet.findOne({ UserId: userId })
+        if (wallet.walletV2.keystore.address && !wallet.keystore.address)
             return responseHandler.makeResponseData(res, 200, 'success', true)
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {

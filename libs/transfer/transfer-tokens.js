@@ -83,7 +83,6 @@ module.exports.transferTokens = async function ({
             from: fromAddress,
             to: toAddress,
             amount: amount,
-            //gas: new Big(gasLimit).times(new Big(gasPrice)).toString(),
         }
     } catch (error) {
         console.error(error)
