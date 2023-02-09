@@ -1448,7 +1448,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             const transactionHash = []
 
             for (let token of tokens) {
-                console.log({ token })
                 // console.log({token:new Big(10 **token?.decimal)});
                 const send = await transferTokens({
                     fromAddress: '0x' + accountData.keystore.address, // old wallet
@@ -1482,10 +1481,10 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                 let bnbBalance = await Web3Connexion?.eth.getBalance(
                     '0x' + accountData.keystore.address
                 )
-                console.log(bnbBalance)
+
                 let web3 = await new Web3(provider)
                 const gasPrice = await web3.eth.getGasPrice()
-                console.log({ bnbBalance })
+
                 gasLimit = 21000
                 console.log({
                     gas: new Big(gasLimit).times(new Big(gasPrice)).toFixed(),
@@ -1494,7 +1493,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                 let amount = new Big(bnbBalance).minus(
                     new Big(gasLimit).times(new Big(gasPrice))
                 )
-                console.log({ amount: amount.toFixed() })
+
                 const send = await transferTokens({
                     fromAddress: '0x' + accountData.keystore.address, // old wallet
                     toAddress:
