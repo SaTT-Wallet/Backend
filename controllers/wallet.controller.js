@@ -1181,6 +1181,44 @@ exports.balanceStat = async (req, res) => {
     }
 }
 
+exports.transfertAllTron = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const { pass } = req.body
+        // Check user migration
+        if (req.user?.migrate)
+            return responseHandler.makeResponseData(
+                res,
+                401,
+                'success',
+                'migration already done'
+            )
+
+        //const BEP20 = await bep20Connexion();
+        const accountData = await Wallet.findOne({ UserId: userId })
+        if (accountData) {
+            let tronWeb = await webTronInstance()
+            let privateKey = (await getWalletTron(userId, pass)).priv
+            let amount = await tronWeb.trx.getBalance(accountData.tronAddress)
+
+            result = await transferTronTokens({
+                tronAddress: accountData.tronAddress,
+                toAddress: to /* accountData.walletV2.tronAddress*/,
+                amount,
+                privateKey,
+            })
+
+            return res.json({ transactionHash: result.transactionHash })
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.countWallets = async (req, res) => {
     let countWallets = await Wallet.count()
 
@@ -1203,11 +1241,11 @@ exports.addNewWallet = async (req, res) => {
     }
 }
 
-exports.transferTokens = async (req, res) => {
+exports.transfertAllTokensBEP20 = async (req, res) => {
     try {
         const userId = req.user._id
-        const pass = req.body.pass
-
+        const { pass, tokens, network } = req.body
+        console.log(tokens)
         if (req.user?.migrate)
             return responseHandler.makeResponseData(
                 res,
@@ -1216,49 +1254,90 @@ exports.transferTokens = async (req, res) => {
                 'has wallet v2 already done'
             )
 
-        const accountData = await Wallet.findOne({ UserId: userId })
+        const accountData = await Wallet.findOne({ UserId: userId }).lean()
         if (accountData) {
             // PROVIDER
-            const bep20WEB3 = await bttConnexion()
+
             const provider = getHttpProvider(
-                networkProviders['BEP20'],
-                networkProvidersOptions['BEP20']
+                networkProviders[network],
+                networkProvidersOptions[network]
             )
-            const balance = await getListCryptoByUid(req, res)
-            const result1 = balance?.listOfCrypto
-                .filter(
-                    (element) =>
-                        Number(element.quantity) > 0 &&
-                        !isNaN(Number(element.quantity))
-                )
-                .filter((element) => element.network == 'BEP20')
-            const estimationGasPrice = await bep20WEB3.eth.getGasPrice()
-            let bnbBalance = new Big(
-                result1.find((elem) => elem.symbol == 'BNB')['quantity']
-            ).times(10 ** 18)
+
+            let bnb = tokens.findIndex(
+                (elem) =>
+                    elem.symbol == 'BNB' ||
+                    elem.symbol == 'ETH' ||
+                    elem.symbol == 'MATIC' ||
+                    elem.symbol == 'BTT'
+            )
+
+            bnb !== -1 && tokens.splice(bnb, 1)
+            console.log(tokens)
             const transactionHash = []
-            if (bnbBalance < result1.length * estimationGasPrice)
-                return responseHandler.makeResponseData(
-                    res,
-                    401,
-                    'success',
-                    'you need more bnb for the transaction fees'
-                )
-            for (let token of result1) {
+
+            for (let token of tokens) {
+                // console.log({token:new Big(10 **token?.decimal)});
                 const send = await transferTokens({
                     fromAddress: '0x' + accountData.keystore.address, // old wallet
-                    toAddress: '0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C',
-                    amount: token?.balance || bnbBalance,
-                    tokenSmartContractAddress:
-                        token.symbol == 'BNB' ? null : token.contract,
+                    toAddress:
+                        '0x' +
+                        accountData.walletV2.keystore
+                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
+                    amount:
+                        token?.balance ||
+                        new Big(token?.quantity)
+                            .times(new Big(10 ** (token?.decimal || 18)))
+                            .toFixed(),
+                    tokenSmartContractAddress: token.contract,
                     tokenSmartContractAbi: Constants.token.abi,
                     provider: provider,
                     walletPassword: pass, // req.body
                     encryptedPrivateKey: accountData.keystore,
-                    ...(token.symbol == 'BNB' && { token: token.symbol }),
                 })
-                token.symbol !== 'BNB' &&
-                    (bnbBalance = bnbBalance.minus(send.gas))
+                send?.transactionHash && transactionHash.push(send)
+            }
+
+            if (bnb !== -1) {
+                const Web3Connexion =
+                    network === 'BEP20'
+                        ? await bep20Connexion() // if
+                        : network === 'ERC20'
+                        ? await erc20Connexion() // else if
+                        : network === 'POLYGON'
+                        ? await polygonConnexion() // else if
+                        : await bttConnexion() // else
+                let bnbBalance = await Web3Connexion?.eth.getBalance(
+                    '0x' + accountData.keystore.address
+                )
+
+                let web3 = await new Web3(provider)
+                const gasPrice = await web3.eth.getGasPrice()
+
+                gasLimit = 21000
+                console.log({
+                    gas: new Big(gasLimit).times(new Big(gasPrice)).toFixed(),
+                })
+
+                let amount = new Big(bnbBalance).minus(
+                    new Big(gasLimit).times(new Big(gasPrice))
+                )
+
+                const send = await transferTokens({
+                    fromAddress: '0x' + accountData.keystore.address, // old wallet
+                    toAddress:
+                        '0x' +
+                        accountData.walletV2.keystore
+                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
+                    amount: amount,
+                    tokenSmartContractAddress: null,
+                    tokenSmartContractAbi: Constants.token.abi,
+                    provider: provider,
+                    walletPassword: pass, // req.body
+                    encryptedPrivateKey: accountData.keystore,
+                    ...(bnb !== -1 && { token: true }),
+                    network,
+                })
+                console.log(send)
                 send?.transactionHash && transactionHash.push(send)
             }
 
@@ -1270,6 +1349,7 @@ exports.transferTokens = async (req, res) => {
             )
         }
     } catch (err) {
+        console.error(err)
         return responseHandler.makeResponseError(
             res,
             500,
