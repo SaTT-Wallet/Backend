@@ -282,15 +282,21 @@ exports.getAccountV2 = async (req, res) => {
     if (account) {
         var address =
             version === 'v1'
-                ?  !account.keystore ? '0x' + account.walletV2.keystore.address : '0x' + account.keystore.address 
+                ? !account.keystore
+                    ? '0x' + account.walletV2.keystore.address
+                    : '0x' + account.keystore.address
                 : '0x' + account.walletV2.keystore.address
         let btcAddress =
             version === 'v1'
-                ? !account.btc ? account.walletV2.btc.addressSegWitCompat : account.btc.addressSegWitCompat 
+                ? !account.btc
+                    ? account.walletV2.btc.addressSegWitCompat
+                    : account.btc.addressSegWitCompat
                 : account.walletV2.btc.addressSegWitCompat
         let tronAddress =
             version === 'v1'
-                ? !account.tronAddress ? account.walletV2.tronAddress :account.tronAddress 
+                ? !account.tronAddress
+                    ? account.walletV2.tronAddress
+                    : account.tronAddress
                 : account.walletV2.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
