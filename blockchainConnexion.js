@@ -166,3 +166,19 @@ exports.getOracleContractByCampaignContract = async (credentials = false) => {
         return contract
     } catch (err) {}
 }
+
+module.exports.tronBalances = async (_) => {
+    // let tronWallets = await Wallet.find({tronAddress :{ $exists: true }},{tronAddress :1})
+    let tronWallets = require('./tronWallets').walletsTron
+    let tronWeb = await this.webTronInstance()
+    let walletBalances = []
+    for (let wallet of tronWallets) {
+        let amount = await tronWeb.trx.getBalance(wallet.tronAddress)
+        amount && walletBalances.push(wallet.tronAddress)
+    }
+    console.log('tron wallets that have trx balance', walletBalances.length)
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        count: walletBalances.length,
+        walletBalances,
+    })
+}
