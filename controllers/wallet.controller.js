@@ -1308,14 +1308,13 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             }
 
             if (bnb !== -1) {
-                const Web3Connexion =
-                    network === 'BEP20'
-                        ? await bep20Connexion() // if
-                        : network === 'ERC20'
-                        ? await erc20Connexion() // else if
-                        : network === 'POLYGON'
-                        ? await polygonConnexion() // else if
-                        : await bttConnexion() // else
+                let connexionObj = {
+                    BEP20: bep20Connexion,
+                    ERC20: erc20Connexion,
+                    POLYGON: polygonConnexion,
+                    BTTC: bttConnexion,
+                }
+                const Web3Connexion = await connexionObj[network]()
                 let bnbBalance = await Web3Connexion?.eth.getBalance(
                     '0x' + accountData.keystore.address
                 )
