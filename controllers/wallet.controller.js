@@ -464,9 +464,10 @@ exports.transferTokensController = async (req, res) => {
                     account: accountData,
                 })
             } else if (network.toUpperCase() === 'TRON') {
-                let privateKey = (await getWalletTron(userId, pass)).priv
+                if(req.body.from === '0x'+accountData.keystore.address){walletversion = 'v1'}else {walletversion = 'v2'}
+                let privateKey = (await getWalletTron(userId, pass,walletversion)).priv
                 result = await transferTronTokens({
-                    tronAddress: accountData.tronAddress,
+                    tronAddress: walletversion==='v1' ?   accountData.tronAddress :accountData.walletV2.tronAddress ,
                     toAddress: to,
                     amount,
                     privateKey,
