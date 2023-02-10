@@ -2,7 +2,6 @@ const Web3 = require('web3')
 const Big = require('big.js')
 const fromExponential = require('from-exponential')
 
-
 module.exports.transferTokens = async function ({
     fromAddress,
     toAddress,
@@ -49,8 +48,8 @@ module.exports.transferTokens = async function ({
         tokenSmartContractAddress === null
             ? await web3.eth.estimateGas({ to: toAddress })
             : await tokenSmartContract.methods
-                .transfer(toAddress, amount)
-                .estimateGas({ from: fromAddress })
+                  .transfer(toAddress, amount)
+                  .estimateGas({ from: fromAddress })
 
     web3.eth.accounts.wallet.decrypt([encryptedPrivateKey], walletPassword)
 
@@ -60,12 +59,12 @@ module.exports.transferTokens = async function ({
             tokenSmartContractAddress === null ||
             tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
         ) {
-            token  && (gasLimit = 21000)
-            if (max == 'true') 
+            token && (gasLimit = 21000)
+            if (max == 'true')
                 amount = new Big(senderBalance).minus(
-                new Big(gasLimit).times(new Big(gasPrice))
-            )
-            
+                    new Big(gasLimit).times(new Big(gasPrice))
+                )
+
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
                 to: toAddress,
@@ -74,16 +73,14 @@ module.exports.transferTokens = async function ({
                 gasPrice,
             })
         } else {
-            gasLimit =
-                network === 'BEP20'  ? 21000 : 65000
-                if (max == 'true') 
+            gasLimit = network === 'BEP20' ? 21000 : 65000
+            if (max == 'true')
                 amount = new Big(senderBalance).minus(
                     new Big(gasLimit).times(new Big(gasPrice))
                 )
-          
-                
-                result = await tokenSmartContract.methods
-                .transfer(toAddress,  fromExponential(amount))
+
+            result = await tokenSmartContract.methods
+                .transfer(toAddress, fromExponential(amount))
                 .send({
                     from: fromAddress,
                     gas: gasLimit,
