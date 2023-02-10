@@ -464,10 +464,19 @@ exports.transferTokensController = async (req, res) => {
                     account: accountData,
                 })
             } else if (network.toUpperCase() === 'TRON') {
-                if(req.body.from === '0x'+accountData.keystore.address){walletversion = 'v1'}else {walletversion = 'v2'}
-                let privateKey = (await getWalletTron(userId, pass,walletversion)).priv
+                if (req.body.from === '0x' + accountData.keystore.address) {
+                    walletversion = 'v1'
+                } else {
+                    walletversion = 'v2'
+                }
+                let privateKey = (
+                    await getWalletTron(userId, pass, walletversion)
+                ).priv
                 result = await transferTronTokens({
-                    tronAddress: walletversion==='v1' ?   accountData.tronAddress :accountData.walletV2.tronAddress ,
+                    tronAddress:
+                        walletversion === 'v1'
+                            ? accountData.tronAddress
+                            : accountData.walletV2.tronAddress,
                     toAddress: to,
                     amount,
                     privateKey,
@@ -917,7 +926,7 @@ module.exports.verifyMnemo = async (req, res) => {
         if (req.user.hasWallet == true) {
             let mnemo = req.body.mnemo
             let wallet = await Wallet.findOne({
-                $and: [{ UserId: req.user._id }, { mnemo }],
+                $and: [{ UserId: req.user._id }, { 'walletV2.mnemo': mnemo }],
             })
             let verify = wallet ? true : false
 
@@ -1315,9 +1324,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                 const gasPrice = await web3.eth.getGasPrice()
 
                 gasLimit = 21000
-                console.log({
-                    gas: new Big(gasLimit).times(new Big(gasPrice)).toFixed(),
-                })
 
                 let amount = new Big(bnbBalance).minus(
                     new Big(gasLimit).times(new Big(gasPrice))
