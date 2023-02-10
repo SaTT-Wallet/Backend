@@ -438,6 +438,7 @@ exports.transferTokensController = async (req, res) => {
     let from = req.body.from
     var to = req.body.to
     var amount = req.body.amount
+    let max = req.query.max
     //TODO: Add a constants enum for different blockchain networks
     let network = req.body.network
     let tokenSymbol = req.body.tokenSymbol
@@ -445,6 +446,7 @@ exports.transferTokensController = async (req, res) => {
     let tokenAddress = req.body.tokenAddress
     let userId = req.user._id
     let result
+
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
@@ -494,6 +496,8 @@ exports.transferTokensController = async (req, res) => {
                         from === '0x' + accountData.walletV2.keystore.address
                             ? accountData.walletV2.keystore
                             : accountData.keystore,
+                    max
+
                 })
             }
 
@@ -1364,6 +1368,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
         )
     }
 }
+
 
 exports.checkUserWalletV2Exist = async (req, res) => {
     try {
