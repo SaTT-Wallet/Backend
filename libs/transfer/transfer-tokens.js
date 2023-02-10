@@ -55,7 +55,7 @@ module.exports.transferTokens = async function ({
             tokenSmartContractAddress === null ||
             tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
         ) {
-            token !== 'BTT' && (gasLimit = 21000)
+            token && (gasLimit = 21000)
 
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
@@ -65,8 +65,7 @@ module.exports.transferTokens = async function ({
                 gasPrice,
             })
         } else {
-            gasLimit =
-                network === 'BEP20' || network === 'POLYGON' ? 21000 : 65000
+            gasLimit = network === 'BEP20' ? 21000 : 65000
             result = await tokenSmartContract.methods
                 .transfer(toAddress, amount)
                 .send({
