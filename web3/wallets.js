@@ -60,7 +60,8 @@ exports.unlock = async (req, res) => {
         let UserId = req.user._id
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        let account = await Wallet.findOne({ UserId })
+        let account = (await Wallet.findOne({ UserId })).walletV2;
+
         let WEB3 = null
         if (req.body && req.body.network) {
             WEB3 = getWeb3Connection(
