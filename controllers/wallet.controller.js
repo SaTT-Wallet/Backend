@@ -1258,7 +1258,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
     try {
         const userId = req.user._id
         const { pass, tokens, network } = req.body
-        console.log(tokens)
+
         if (req.user?.migrate)
             return responseHandler.makeResponseData(
                 res,
@@ -1270,7 +1270,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
         const accountData = await Wallet.findOne({ UserId: userId }).lean()
         if (accountData) {
             // PROVIDER
-
             const provider = getHttpProvider(
                 networkProviders[network],
                 networkProvidersOptions[network]
@@ -1390,6 +1389,31 @@ exports.checkIsNewUser = async (req, res) => {
         if (wallet.walletV2.keystore.address && !wallet.keystore.address)
             return responseHandler.makeResponseData(res, 200, 'success', true)
         return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.transferAllTron = async (req, res) => {
+    try {
+        const UserId = req.user._id
+        let tronWeb = await webTronInstance()
+        const accountData = await Wallet.findOne({ UserId }).lean()
+        let privateKey = (await getWalletTron(UserId, req.body.pass, 'v2')).priv
+        let amount = await tronWeb.trx.getBalance(accountData.tronAddress)
+
+        const result = await transferTronTokens({
+            tronAddress: accountData?.tronAddress,
+            toAddress: accountData?.walletV2?.tronAddress,
+            amount,
+            privateKey,
+        })
+
+        return responseHandler.makeResponseData(res, 200, 'success', result)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
