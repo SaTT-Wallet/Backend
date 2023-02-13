@@ -582,15 +582,26 @@ exports.campaignPromp = async (req, res) => {
             const bounties = campaign.bounties
             let allLinks
             if (req.query.influencer) {
+
                 let userWallet = await Wallet.findOne(
+                    {
+                        'walletV2.keystore.address': req.query.influencer
+                            .toLowerCase()
+                            .substring(2),
+                    },
+                    { tronAddress: 1, _id: 0 }
+                )  ||  await Wallet.findOne(
                     {
                         'keystore.address': req.query.influencer
                             .toLowerCase()
                             .substring(2),
                     },
                     { tronAddress: 1, _id: 0 }
-                )
+                )  
 
+
+
+        
                 allLinks = await CampaignLink.find({
                     $and: [
                         {
@@ -949,7 +960,7 @@ exports.validateCampaign = async (req, res) => {
             var tronWeb
             var cred
             if (campaign.token.type === 'TRON') {
-                let privateKey = (await getWalletTron(req.user._id, pass)).priv
+                let privateKey = (await getWalletTron(req.user._id, pass,req.body.version)).priv
                 tronWeb = await webTronInstance()
                 tronWeb.setPrivateKey(privateKey)
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -987,7 +998,7 @@ exports.validateCampaign = async (req, res) => {
                         ))) ||
                     (await Wallet.findOne(
                         {
-                            'keystore.address': link.id_wallet
+                            'walletV2.keystore.address': link.id_wallet
                                 .toLowerCase()
                                 .substring(2),
                         },
