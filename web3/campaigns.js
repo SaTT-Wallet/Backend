@@ -219,7 +219,7 @@ exports.unlockBsc = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        let account = await Wallet.findOne({ UserId })
+        let account = (await Wallet.findOne({ UserId })).walletV2;
         let Web3BEP20 = await bep20Connexion()
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         return { address: '0x' + account.keystore.address, Web3BEP20 }
