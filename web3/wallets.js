@@ -1467,11 +1467,14 @@ exports.getWalletTron = async (
     keystoreWallet = false,
     mnemonic = null
 ) => {
-    console.log("walletversionwalletversionwalletversion",walletversion)
-    let wallet = await Wallet.findOne(
-        { UserId: id })
-    const mnemos =( walletversion==='v1' ? wallet?.mnemo : wallet?.walletV2.mnemo) || mnemonic
-    const walletKeyStore = (walletversion==='v1' ? wallet?.keystore : wallet?.walletV2.keystore) || keystoreWallet
+    let wallet = await Wallet.findOne({ UserId: id }).lean()
+    const mnemos =
+        (walletversion === 'v1' ? wallet?.mnemo : wallet?.walletV2.mnemo) ||
+        mnemonic
+    const walletKeyStore =
+        (walletversion === 'v1'
+            ? wallet?.keystore
+            : wallet?.walletV2.keystore) || keystoreWallet
 
     if (walletKeyStore) {
         try {
