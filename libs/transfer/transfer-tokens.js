@@ -77,11 +77,6 @@ module.exports.transferTokens = async function ({
             })
         } else {
             gasLimit = network === 'BEP20' ? 21000 : 65000
-            if (max == 'true')
-                amount = new Big(senderBalance).minus(
-                    new Big(gasLimit).times(new Big(gasPrice))
-                )
-
             result = await tokenSmartContract.methods
                 .transfer(toAddress, fromExponential(amount))
                 .send({
