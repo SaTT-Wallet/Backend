@@ -25,7 +25,12 @@ const {
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation, timeout } = require('../helpers/utils')
-const { getPrices, getAccount, getWalletTron, getAccountV2 } = require('../web3/wallets')
+const {
+    getPrices,
+    getAccount,
+    getWalletTron,
+    getAccountV2,
+} = require('../web3/wallets')
 const {
     fundCampaign,
     getTransactionAmount,
@@ -233,13 +238,17 @@ module.exports.launchCampaign = async (req, res) => {
     let currency = req.body.currency
     let network = req.body.network
 
-
     try {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(req.user._id, req.body.pass, req.body.version))
-                .priv
+            let privateKey = (
+                await getWalletTron(
+                    req.user._id,
+                    req.body.pass,
+                    req.body.version
+                )
+            ).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -339,7 +348,9 @@ module.exports.launchBounty = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(id, req.body.pass, req.body.version)).priv
+            let privateKey = (
+                await getWalletTron(id, req.body.pass, req.body.version)
+            ).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -582,26 +593,24 @@ exports.campaignPromp = async (req, res) => {
             const bounties = campaign.bounties
             let allLinks
             if (req.query.influencer) {
+                let userWallet =
+                    (await Wallet.findOne(
+                        {
+                            'walletV2.keystore.address': req.query.influencer
+                                .toLowerCase()
+                                .substring(2),
+                        },
+                        { tronAddress: 1, _id: 0 }
+                    )) ||
+                    (await Wallet.findOne(
+                        {
+                            'keystore.address': req.query.influencer
+                                .toLowerCase()
+                                .substring(2),
+                        },
+                        { tronAddress: 1, _id: 0 }
+                    ))
 
-                let userWallet = await Wallet.findOne(
-                    {
-                        'walletV2.keystore.address': req.query.influencer
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { tronAddress: 1, _id: 0 }
-                )  ||  await Wallet.findOne(
-                    {
-                        'keystore.address': req.query.influencer
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { tronAddress: 1, _id: 0 }
-                )  
-
-
-
-        
                 allLinks = await CampaignLink.find({
                     $and: [
                         {
@@ -755,7 +764,8 @@ exports.apply = async (req, res) => {
         var tronWeb
         req.body.network = campaignDetails.token.type
         if (campaignDetails.token.type === 'TRON') {
-            let privateKey = (await getWalletTron(id, pass, req.body.version)).priv
+            let privateKey = (await getWalletTron(id, pass, req.body.version))
+                .priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -960,7 +970,9 @@ exports.validateCampaign = async (req, res) => {
             var tronWeb
             var cred
             if (campaign.token.type === 'TRON') {
-                let privateKey = (await getWalletTron(req.user._id, pass,req.body.version)).priv
+                let privateKey = (
+                    await getWalletTron(req.user._id, pass, req.body.version)
+                ).priv
                 tronWeb = await webTronInstance()
                 tronWeb.setPrivateKey(privateKey)
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -1851,7 +1863,9 @@ exports.bttAllow = async (req, res) => {
 exports.tronApproval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
-        let privateKey = (await getWalletTron(req.user._id, req.body.pass,req.body.version)).priv
+        let privateKey = (
+            await getWalletTron(req.user._id, req.body.pass, req.body.version)
+        ).priv
         let tronWeb = await webTronInstance(privateKey)
         tronWeb.setPrivateKey(privateKey)
         let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
