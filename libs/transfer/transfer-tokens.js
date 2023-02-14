@@ -38,7 +38,7 @@ module.exports.transferTokens = async function ({
             ? await web3.eth.getBalance(fromAddress)
             : await tokenSmartContract.methods.balanceOf(fromAddress).call()
 
-    if (new Big(amount).gt(new Big(senderBalance))) {
+    if (new Big(amount).gt(new Big(senderBalance)) && max === 'flase') {
         throw Error('No enough balance to perform withdraw !!')
     }
 
