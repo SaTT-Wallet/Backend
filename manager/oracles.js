@@ -398,12 +398,22 @@ exports.youtubeAbos = async function (idPost) {
 exports.instagramAbos = async (idPost, id, userName) => {
     try {
         var followers = 0
-        var campaign_link = await CampaignLink.findOne({ idPost })
+        var campaign_link = await CampaignLink.findOne({ idPost }).lean()
         var userWallet = await Wallet.findOne({
-            'keystore.address': campaign_link?.id_wallet
-                .toLowerCase()
-                .substring(2),
+            $or: [
+                {
+                    'keystore.address': campaign_link?.id_wallet
+                        .toLowerCase()
+                        .substring(2),
+                },
+                {
+                    'walletV2.keystore.address': campaign_link?.id_wallet
+                        .toLowerCase()
+                        .substring(2),
+                },
+            ],
         })
+
         let instagramUserName = campaign_link?.instagramUserName || userName
         var fbPage = await FbPage.findOne({
             $and: [
@@ -1079,11 +1089,24 @@ exports.answerOne = async (
                 break
             case '3':
                 var campaign_link = await CampaignLink.findOne({ idPost })
-                var userWallet = await Wallet.findOne({
-                    'keystore.address': campaign_link.id_wallet
-                        .toLowerCase()
-                        .substring(2),
-                })
+                var userWallet = await Wallet.findOne(
+                    {
+                        $or: [
+                            {
+                                'keystore.address': campaign_link.id_wallet
+                                    .toLowerCase()
+                                    .substring(2),
+                            },
+                            {
+                                'walletV2.keystore.address':
+                                    campaign_link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                            },
+                        ],
+                    },
+                    { UserId: 1 }
+                ).lean()
                 var res = await instagram(userWallet.UserId, campaign_link)
 
                 break
