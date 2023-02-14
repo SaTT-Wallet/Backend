@@ -1277,6 +1277,20 @@ exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
         }
     } catch (e) {}
 }
+exports.getFacebookUsername = async (userId, idlink) => {
+    try {
+        const fbpage = await FbPage.findOne({ UserId: userId })
+        const accessToken = fbpage.token
+        const response = await fetch(
+            `https://graph.facebook.com/${idlink}?access_token=${accessToken}`
+        )
+        const json = await response.json()
+        const fbpagename = json.name
+        var fbprofile = await FbPage.findOne({ name: fbpagename })
+        return fbprofile.username
+    } catch (err) {}
+}
+
 exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
     try {
         let message = 'account_linked_with_success'
