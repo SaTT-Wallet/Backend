@@ -1004,15 +1004,27 @@ exports.validateCampaign = async (req, res) => {
                     (!!tronWeb &&
                         (await Wallet.findOne(
                             {
-                                tronAddress: link.id_wallet,
+                                $or: [
+                                    { tronAddress: link.id_wallet },
+                                    { 'walletV2.tronAddress': link.id_wallet },
+                                ],
                             },
                             { UserId: 1, _id: 0 }
                         ))) ||
                     (await Wallet.findOne(
                         {
-                            'walletV2.keystore.address': link.id_wallet
-                                .toLowerCase()
-                                .substring(2),
+                            $or: [
+                                {
+                                    'walletV2.keystore.address': link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                                },
+                                {
+                                    'keystore.address': link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                                },
+                            ],
                         },
                         { UserId: 1, _id: 0 }
                     ))
