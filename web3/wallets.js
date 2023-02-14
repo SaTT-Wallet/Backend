@@ -295,10 +295,10 @@ exports.getAccountV2 = async (req, res) => {
                 : account.walletV2.btc.addressSegWitCompat
         let tronAddress =
             version === 'v1'
-                ? !account.tronAddress
-                    ? account.walletV2.tronAddress
-                    : account.tronAddress
-                : account.walletV2.tronAddress
+                ? !account?.tronAddress
+                    ? account?.walletV2?.tronAddress
+                    : account?.tronAddress
+                : account.walletV2?.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -398,7 +398,7 @@ exports.getAccount = async (req, res) => {
 
     if (account) {
         var address = '0x' + account.keystore.address
-        let tronAddress = account.tronAddress
+        let tronAddress = account?.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
