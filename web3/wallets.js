@@ -60,7 +60,8 @@ exports.unlock = async (req, res) => {
         let UserId = req.user._id
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        let account = await Wallet.findOne({ UserId })
+        let account = (await Wallet.findOne({ UserId })).walletV2
+
         let WEB3 = null
         if (req.body && req.body.network) {
             WEB3 = getWeb3Connection(
@@ -1467,11 +1468,14 @@ exports.getWalletTron = async (
     keystoreWallet = false,
     mnemonic = null
 ) => {
-    console.log("walletversionwalletversionwalletversion",walletversion)
-    let wallet = await Wallet.findOne(
-        { UserId: id })
-    const mnemos =( walletversion==='v1' ? wallet?.mnemo : wallet?.walletV2.mnemo) || mnemonic
-    const walletKeyStore = (walletversion==='v1' ? wallet?.keystore : wallet?.walletV2.keystore) || keystoreWallet
+    let wallet = await Wallet.findOne({ UserId: id }).lean()
+    const mnemos =
+        (walletversion === 'v1' ? wallet?.mnemo : wallet?.walletV2.mnemo) ||
+        mnemonic
+    const walletKeyStore =
+        (walletversion === 'v1'
+            ? wallet?.keystore
+            : wallet?.walletV2.keystore) || keystoreWallet
 
     if (walletKeyStore) {
         try {
