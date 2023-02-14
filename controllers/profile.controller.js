@@ -35,6 +35,7 @@ const {
     verifytiktok,
     updateFacebookPages,
     tiktokAbos,
+    getFacebookUsername,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -1040,6 +1041,25 @@ module.exports.verifyLink = async (req, response) => {
     } catch (err) {
         return makeResponseError(
             response,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+module.exports.convertIdToFbUsername = async (req, res) => {
+    try {
+        idUser = req.user._id
+        var idLink = req.params.idLink
+        let usernamefb = await getFacebookUsername(idUser, idLink)
+        return makeResponseData(
+            res,
+            200,
+            'get username successfully',
+            usernamefb
+        )
+    } catch (err) {
+        return makeResponseError(
+            res,
             500,
             err.message ? err.message : err.error
         )
