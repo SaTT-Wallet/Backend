@@ -1303,36 +1303,25 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
 
 /**
  * @swagger
- * /profile/link/verify/{typeSN}/{idUser}/{idPost}:
+ * /profile/link/verify/fbUserName/{idLink}:
  *   get:
  *     tags:
  *     - "profile"
  *     summary: confirm change email .
  *     description: the user must send the code that he had received in his new email.
  *     parameters:
- *       - name: typeSN
- *         description: typeSN.
- *         in: path
- *         required: true
- *       - name: idUser
- *         description: idUser.
- *         in: path
- *         required: true
- *       - name: idPost
- *         description: idPost.
+ *       - name: idLink
+ *         description: idLink.
  *         in: path
  *         required: true
  *     responses:
  *       "200":
- *          description: data:{"code":"200","message":"success","data":"true/false"}
+ *          description: data:{"code":"200","message":"success","data":"username"}
  *       "500":
  *          description: error:<br> server error
  */
-router.get(
-    '/link/verify/:typeSN/:idUser/:idPost',
-    verifyAuth,
-    convertIdToFbUsername
-)
+router.get('/link/verify/fbUserName/:idLink', verifyAuth, convertIdToFbUsername)
+
 /**
  * @swagger
  * /profile/linkedin/ShareByActivity/{activity}:

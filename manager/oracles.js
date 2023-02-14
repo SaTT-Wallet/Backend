@@ -1286,65 +1286,11 @@ exports.getFacebookUsername = async (userId, idlink) => {
         )
         const json = await response.json()
         const fbpagename = json.name
-        var fbProfile = await FbPage.findOne({ name: fbpagename })
-        return fbProfile.username
+        var fbprofile = await FbPage.findOne({ name: fbpagename })
+        return fbprofile.username
     } catch (err) {}
 }
 
-// async function getFacebookUserName   (userId) {
-
-//     function runCmd(cmd) {
-//         var resp = child_process.execSync(cmd)
-//         var result = resp.toString('UTF8')
-//         return result
-//     }
-//     var cmd = `curl -i -X GET  "https://graph.facebook.com/${userId}?access_token=EAAdzbG5D1A8BAN7rwijK6Vg58pGEygTyq8o22cauGePZABZCfLXIhIAHpY9a8lSbpZCu5Kkcpqf9KZCULoHZCRt0dPy0gm7kiQ94UVeanS9nlM1BdBi3PHjuiRtd5tBiNZA7EAqMAjE5iTPuKPIfVxs0Xg8m52cZCi9byZC6Se1kz7eZBfDngKZBDRwpmhsmbr9ZCXHGB9XjfuyEfGb3SxAPjxhTswetRiTVFedXrH64zfMhQZDZD"`
-//     var result = runCmd(cmd)
-// console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$result$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$",result);
-//    return result
-// }
-
-// getFacebookUserName(100082964764646).then(username => {
-//     console.log(username);
-//   });
-// async function getUsername(userId ) {
-//     const response = await fetch(`https://graph.facebook.com/${userId}?fields=username&access_token=EAAdzbG5D1A8BAJQxp6KBfy2v2sli1ZBD6e8ZBOiMFUXk2QwwWIiUQLApGzy9mFRiIuopBNCzZABefOpV8oHnC1qQ10yJn9aMGpDihij7Ej69cRuteHr4ZC3GwtfdAa5rtfbxneT1Xe6YhGNZAwDuDwWWkWTr11D6CAKOZAMfNV0kCCmNZCmZAR2U`);
-//     const json = await response.json();
-//     return json.username;
-//   }
-
-//   getUsername(100082964764646).then(username => {
-//     console.log(username);
-//   });
-//   function convertAndGetUsername(link) {
-//     var storyFbidIndex = link.indexOf("story_fbid=");
-//     if (storyFbidIndex === -1) {
-//       return null;
-//     }
-//     var postId = link.substring(storyFbidIndex + 11);
-//     var postLink = "https://www.facebook.com/posts/" + postId;
-//     var xhr = new XMLHttpRequest();
-//     xhr.open("GET", postLink, false);
-//     xhr.send();
-//     if (xhr.status === 200) {
-//       var content = xhr.responseText;
-//       var authorIndex = content.indexOf('<a class="_5pb8 _8o _8s lfloat _ohe"');
-//       if (authorIndex === -1) {
-//         return null;
-//       }
-//       var authorStartIndex = content.indexOf('href="', authorIndex) + 6;
-//       var authorEndIndex = content.indexOf('"', authorStartIndex);
-//       var authorLink = content.substring(authorStartIndex, authorEndIndex);
-//       var usernameIndex = authorLink.lastIndexOf("/") + 1;
-//       var username = authorLink.substring(usernameIndex);
-//       return {
-//         postLink: postLink,
-//         username: username
-//       };
-//     } else {
-//       return null;
-//     }
-//   }
 exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
     try {
         let message = 'account_linked_with_success'

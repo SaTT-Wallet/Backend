@@ -1048,7 +1048,8 @@ module.exports.verifyLink = async (req, response) => {
 }
 module.exports.convertIdToFbUsername = async (req, res) => {
     try {
-        var { idUser, idLink } = req.params
+        idUser = req.user._id
+        var idLink = req.params.idLink
         let usernamefb = await getFacebookUsername(idUser, idLink)
         return makeResponseData(
             res,
