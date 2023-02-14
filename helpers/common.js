@@ -249,7 +249,9 @@ exports.updateStatforUser = async (UserId) => {
     let MyLinksCampaign = await CampaignLink.find({
         $or: [
             { id_wallet: '0x' + myWallet.keystore.address },
-            { id_wallet: myWallet.tronAddress },
+            { id_wallet: myWallet?.tronAddress },
+            { id_wallet: myWallet?.walletV2?.tronAddress },
+            { id_wallet: '0x' + myWallet.walletV2?.keystore?.address },
         ],
     })
 
