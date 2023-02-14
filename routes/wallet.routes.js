@@ -871,8 +871,6 @@ router.get('/stats', verifyAuth, balanceStat)
 
 router.post('/transfertTokensBep20', verifyAuth, transfertAllTokensBEP20)
 
-router.post('/transferTron', verifyAuth, transferAllTron)
-
 router.get('/checkUserWalletV2', verifyAuth, checkUserWalletV2Exist)
 
 router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
