@@ -1273,24 +1273,29 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
 
             for (let token of tokens) {
                 // console.log({token:new Big(10 **token?.decimal)});
-                const send = await transferTokens({
-                    fromAddress: '0x' + accountData.keystore.address, // old wallet
-                    toAddress:
-                        '0x' +
-                        accountData.walletV2.keystore
-                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
-                    amount:
-                        token?.balance ||
-                        new Big(token?.quantity)
-                            .times(new Big(10 ** (token?.decimal || 18)))
-                            .toFixed(),
-                    tokenSmartContractAddress: token.contract,
-                    tokenSmartContractAbi: Constants.token.abi,
-                    provider: provider,
-                    walletPassword: pass, // req.body
-                    encryptedPrivateKey: accountData.keystore,
-                })
-                send?.transactionHash && transactionHash.push(send)
+                try {
+                    const send = await transferTokens({
+                        fromAddress: '0x' + accountData.keystore.address, // old wallet
+                        toAddress:
+                            '0x' +
+                            accountData.walletV2.keystore
+                                .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
+                        amount:
+                            token?.balance ||
+                            new Big(token?.quantity)
+                                .times(new Big(10 ** (token?.decimal || 18)))
+                                .toFixed(),
+                        tokenSmartContractAddress: token.contract,
+                        tokenSmartContractAbi: Constants.token.abi,
+                        provider: provider,
+                        walletPassword: pass, // req.body
+                        encryptedPrivateKey: accountData.keystore,
+                    })
+                    send?.transactionHash && transactionHash.push(send)
+                } catch (err) {
+                    console.error(err)
+                    continue
+                }
             }
 
             if (bnb !== -1) {
