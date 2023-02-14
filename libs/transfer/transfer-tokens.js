@@ -43,7 +43,9 @@ module.exports.transferTokens = async function ({
     }
 
     const gasPrice = await web3.eth.getGasPrice()
-    amount = max === 'false' ?amount : senderBalance
+    if(max === 'true')
+    amount =senderBalance
+
 
     let gasLimit =
         tokenSmartContractAddress === null
