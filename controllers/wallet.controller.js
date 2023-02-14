@@ -1234,7 +1234,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
         if (accountData) {
             if (network === 'TRON') {
                 let tronWeb = await webTronInstance()
-                let privateKey = (await getWalletTron(UserId, pass, 'v1')).priv
+                let privateKey = (await getWalletTron(userId, pass, 'v1')).priv
                 let amount = await tronWeb.trx.getBalance(
                     accountData.tronAddress
                 )
