@@ -1290,6 +1290,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                         provider: provider,
                         walletPassword: pass, // req.body
                         encryptedPrivateKey: accountData.keystore,
+                        max: false,
                     })
                     send?.transactionHash && transactionHash.push(send)
                 } catch (err) {
@@ -1331,6 +1332,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     provider: provider,
                     walletPassword: pass, // req.body
                     encryptedPrivateKey: accountData.keystore,
+                    max: false,
                     ...(bnb !== -1 && { token: true }),
                     network,
                 })
