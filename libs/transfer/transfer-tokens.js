@@ -11,7 +11,7 @@ module.exports.transferTokens = async function ({
     provider,
     walletPassword,
     encryptedPrivateKey,
-    max,
+    max = false,
     token = false,
     network = null,
 }) {
