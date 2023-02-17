@@ -502,7 +502,9 @@ exports.getAllWallets = async (req, res) => {
     if (account) {
         let address = '0x' + account?.keystore?.address
         let tronAddress = account?.tronAddress || null
-        let addressV2 = account?.walletV2?.keystore?.address ? '0x' + account?.walletV2?.keystore?.address : null
+        let addressV2 = account?.walletV2?.keystore?.address
+            ? '0x' + account?.walletV2?.keystore?.address
+            : null
         let tronAddressV2 = account?.walletV2?.tronAddress || null
         let btcAddress = account?.btc?.addressSegWitCompat
         let btcAddressV2 = account?.walletV2?.btc?.addressSegWitCompat || null
