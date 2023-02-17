@@ -500,12 +500,12 @@ exports.getAllWallets = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        let address = '0x' + account.keystore.address
-        let tronAddress = account.tronAddress
-        let addressV2 = '0x' + account.walletV2.keystore.address
-        let tronAddressV2 = account.walletV2.tronAddress
-        let btcAddress = account.btc.addressSegWitCompat
-        let btcAddressV2 = account.walletV2.btc.addressSegWitCompat
+        let address = '0x' + account?.keystore?.address
+        let tronAddress = account?.tronAddress || null
+        let addressV2 = account?.walletV2?.keystore?.address ? '0x' + account?.walletV2?.keystore?.address : null
+        let tronAddressV2 = account?.walletV2?.tronAddress || null
+        let btcAddress = account?.btc?.addressSegWitCompat
+        let btcAddressV2 = account?.walletV2?.btc?.addressSegWitCompat || null
 
         let result = {
             address,
