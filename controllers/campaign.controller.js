@@ -796,7 +796,7 @@ exports.apply = async (req, res) => {
         }
         if (typeSN == 3)
             prom.instagramUserName = await getInstagramUserName(idPost, id)
-        console.log({ typeSN })
+
         prom.abosNumber = await answerAbos(
             typeSN + '',
             idPost,
