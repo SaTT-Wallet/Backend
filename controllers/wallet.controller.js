@@ -1231,9 +1231,11 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             if (network === 'TRON') {
                 let tronWeb = await webTronInstance()
                 let privateKey = (await getWalletTron(userId, pass, 'v1')).priv
-                let amount = await tronWeb.trx.getBalance(
-                    accountData.tronAddress
+                let amount = new Big(
+                    await tronWeb.trx.getBalance(accountData.tronAddress)
                 )
+                    .minus(1100000)
+                    .toString()
 
                 const send = await transferTronTokens({
                     tronAddress: accountData?.tronAddress,
@@ -1268,7 +1270,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             bnb !== -1 && tokens.splice(bnb, 1)
 
             for (let token of tokens) {
-                // console.log({token:new Big(10 **token?.decimal)});
                 try {
                     const send = await transferTokens({
                         fromAddress: '0x' + accountData.keystore.address, // old wallet
@@ -1332,7 +1333,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     ...(bnb !== -1 && { token: true }),
                     network,
                 })
-                console.log(send)
+
                 send?.transactionHash && transactionHash.push(send)
             }
 
