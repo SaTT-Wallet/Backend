@@ -500,7 +500,9 @@ exports.getAllWallets = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        let address = '0x' + account?.keystore?.address
+        let address = account?.keystore?.address
+            ? '0x' + account?.keystore?.address
+            : null
         let tronAddress = account?.tronAddress || null
         let addressV2 = account?.walletV2?.keystore?.address
             ? '0x' + account?.walletV2?.keystore?.address
@@ -1429,7 +1431,10 @@ exports.createSeedV2 = async (req, res) => {
             { upsert: true }
         )
 
-        await User.updateOne({ _id: UserId }, { $set: { hasWalletV2: true } })
+        await User.updateOne(
+            { _id: UserId },
+            { $set: { hasWalletV2: true, hasWallet: true } }
+        )
 
         return {
             address: '0x' + account.address,
