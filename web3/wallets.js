@@ -1431,7 +1431,10 @@ exports.createSeedV2 = async (req, res) => {
             { upsert: true }
         )
 
-        await User.updateOne({ _id: UserId }, { $set: { hasWalletV2: true } })
+        await User.updateOne(
+            { _id: UserId },
+            { $set: { hasWalletV2: true, hasWallet: true } }
+        )
 
         return {
             address: '0x' + account.address,
