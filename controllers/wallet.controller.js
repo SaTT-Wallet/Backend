@@ -1007,10 +1007,6 @@ exports.createNewWalletV2 = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
-    } finally {
-        if (ret) {
-            await User.updateOne({ _id }, { hasWallet: true })
-        }
     }
 }
 exports.addTronWalletToExistingAccount = async (req, res) => {
