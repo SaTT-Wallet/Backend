@@ -818,7 +818,7 @@ exports.getUserIdByWallet = async (wallet) => {
     let user =
         (await Wallet.findOne({ 'keystore.address': wallet })) ||
         (await Wallet.findOne({ 'walletV2.keystore.address': wallet }))
-    return user.UserId
+    return user?.UserId
 }
 
 exports.getLinkedinLinkInfo = async (
