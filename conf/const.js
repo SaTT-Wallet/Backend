@@ -1617,9 +1617,9 @@ Constants.campaign.abi = [
         inputs: [
             {
                 indexed: true,
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'id',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'PromAccepted',
@@ -1630,9 +1630,9 @@ Constants.campaign.abi = [
         inputs: [
             {
                 indexed: true,
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'id',
-                type: 'bytes32',
+                type: 'string',
             },
             {
                 indexed: false,
@@ -1690,9 +1690,9 @@ Constants.campaign.abi = [
                 type: 'string',
             },
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'askBounty',
@@ -1894,9 +1894,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'getGains',
@@ -1949,9 +1949,9 @@ Constants.campaign.abi = [
         name: 'getProms',
         outputs: [
             {
-                internalType: 'bytes32[]',
+                internalType: 'string[]',
                 name: 'cproms',
-                type: 'bytes32[]',
+                type: 'string[]',
             },
         ],
         stateMutability: 'view',
@@ -2012,9 +2012,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'getResults',
@@ -2094,9 +2094,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: '',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'proms',
@@ -2193,9 +2193,9 @@ Constants.campaign.abi = [
         name: 'results',
         outputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
             {
                 internalType: 'uint64',
@@ -2334,22 +2334,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        name: 'updateBounty',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
             {
                 internalType: 'uint256',
@@ -2371,6 +2358,19 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
+                internalType: 'string',
+                name: 'idProm',
+                type: 'string',
+            },
+        ],
+        name: 'updateBounty',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
                 internalType: 'bytes32',
                 name: 'idCampaign',
                 type: 'bytes32',
@@ -2384,9 +2384,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'updatePromStats',
@@ -2403,9 +2403,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32',
+                internalType: 'string',
                 name: 'idProm',
-                type: 'bytes32',
+                type: 'string',
             },
         ],
         name: 'validateProm',
@@ -2416,9 +2416,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'bytes32[]',
+                internalType: 'string[]',
                 name: 'idProms',
-                type: 'bytes32[]',
+                type: 'string[]',
             },
         ],
         name: 'validateProms',
