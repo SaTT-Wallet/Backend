@@ -1265,7 +1265,7 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
 
     return {
         transactionHash: receipt.transactionHash,
-        idProm: idProm,
+        signature: idProm,
     }
 }
 
