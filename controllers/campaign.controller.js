@@ -430,7 +430,11 @@ module.exports.launchBounty = async (req, res) => {
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
-        if (JSON.parse(req.query.idWallet)) {
+        let idWallet =
+            req.query.idWallet === 'null'
+                ? JSON.parse(req.query.idWallet)
+                : req.query.idWallet
+        if (idWallet) {
             let userId = await getUserIdByWallet(
                 req.query.idWallet.substring(2)
             )
