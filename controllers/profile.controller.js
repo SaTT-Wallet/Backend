@@ -190,16 +190,8 @@ module.exports.addProfilePicture = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const id = req.user._id
-        let profile = req.body
+        let { email, ...profile } = req.body
 
-        if (profile.email) {
-            const user = await User.findOne({
-                $and: [{ email: profile.email }, { _id: { $nin: [id] } }],
-            })
-            if (user) {
-                return makeResponseError(res, 406, 'email already exists')
-            }
-        }
         const updatedProfile = await User.findOneAndUpdate(
             { _id: id },
             { $set: profile },
