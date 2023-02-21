@@ -1,6 +1,6 @@
 {
     "name": "node_satt_api",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "author": "Atayen, Inc",
     "license": "ISC",
     "description": "Satt NodeJS backend",
