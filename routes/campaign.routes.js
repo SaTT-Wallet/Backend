@@ -1170,7 +1170,7 @@ router.post('/funding', verifyAuth, increaseBudget)
 
 /**
  * @swagger
- * /campaign/filterLinks/{id_wallet}:
+ * /campaign/filterLinks/{idUser}:
  *   get:
  *     tags:
  *     - "campaign"
@@ -1179,7 +1179,7 @@ router.post('/funding', verifyAuth, increaseBudget)
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id_wallet
+ *       - name: idUser
  *         description: the address wallet of user.
  *         in: path
  *         required: true
@@ -1191,7 +1191,7 @@ router.post('/funding', verifyAuth, increaseBudget)
  *       "500":
  *          description: error:error message
  */
-router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
+router.get('/filterLinks/:idUser', verifyAuth, getLinks)
 
 /**
  * @swagger
