@@ -25,7 +25,12 @@ const {
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation, timeout } = require('../helpers/utils')
-const { getPrices, getAccount, getWalletTron } = require('../web3/wallets')
+const {
+    getPrices,
+    getAccount,
+    getWalletTron,
+    getAccountV2,
+} = require('../web3/wallets')
 const {
     fundCampaign,
     getTransactionAmount,
@@ -237,8 +242,13 @@ module.exports.launchCampaign = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
-                .priv
+            let privateKey = (
+                await getWalletTron(
+                    req.user._id,
+                    req.body.pass,
+                    req.body.version
+                )
+            ).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -338,7 +348,9 @@ module.exports.launchBounty = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(id, req.body.pass)).priv
+            let privateKey = (
+                await getWalletTron(id, req.body.pass, req.body.version)
+            ).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -581,14 +593,23 @@ exports.campaignPromp = async (req, res) => {
             const bounties = campaign.bounties
             let allLinks
             if (req.query.influencer) {
-                let userWallet = await Wallet.findOne(
-                    {
-                        'keystore.address': req.query.influencer
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { tronAddress: 1, _id: 0 }
-                )
+                let userWallet =
+                    (await Wallet.findOne(
+                        {
+                            'walletV2.keystore.address': req.query.influencer
+                                .toLowerCase()
+                                .substring(2),
+                        },
+                        { tronAddress: 1, _id: 0 }
+                    )) ||
+                    (await Wallet.findOne(
+                        {
+                            'keystore.address': req.query.influencer
+                                .toLowerCase()
+                                .substring(2),
+                        },
+                        { tronAddress: 1, _id: 0 }
+                    ))
 
                 allLinks = await CampaignLink.find({
                     $and: [
@@ -743,7 +764,8 @@ exports.apply = async (req, res) => {
         var tronWeb
         req.body.network = campaignDetails.token.type
         if (campaignDetails.token.type === 'TRON') {
-            let privateKey = (await getWalletTron(id, pass)).priv
+            let privateKey = (await getWalletTron(id, pass, req.body.version))
+                .priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -774,7 +796,7 @@ exports.apply = async (req, res) => {
         }
         if (typeSN == 3)
             prom.instagramUserName = await getInstagramUserName(idPost, id)
-        console.log({ typeSN })
+
         prom.abosNumber = await answerAbos(
             typeSN + '',
             idPost,
@@ -948,7 +970,9 @@ exports.validateCampaign = async (req, res) => {
             var tronWeb
             var cred
             if (campaign.token.type === 'TRON') {
-                let privateKey = (await getWalletTron(req.user._id, pass)).priv
+                let privateKey = (
+                    await getWalletTron(req.user._id, pass, req.body.version)
+                ).priv
                 tronWeb = await webTronInstance()
                 tronWeb.setPrivateKey(privateKey)
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -980,15 +1004,27 @@ exports.validateCampaign = async (req, res) => {
                     (!!tronWeb &&
                         (await Wallet.findOne(
                             {
-                                tronAddress: link.id_wallet,
+                                $or: [
+                                    { tronAddress: link.id_wallet },
+                                    { 'walletV2.tronAddress': link.id_wallet },
+                                ],
                             },
                             { UserId: 1, _id: 0 }
                         ))) ||
                     (await Wallet.findOne(
                         {
-                            'keystore.address': link.id_wallet
-                                .toLowerCase()
-                                .substring(2),
+                            $or: [
+                                {
+                                    'walletV2.keystore.address': link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                                },
+                                {
+                                    'keystore.address': link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                                },
+                            ],
                         },
                         { UserId: 1, _id: 0 }
                     ))
@@ -1839,7 +1875,9 @@ exports.bttAllow = async (req, res) => {
 exports.tronApproval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
-        let privateKey = (await getWalletTron(req.user._id, req.body.pass)).priv
+        let privateKey = (
+            await getWalletTron(req.user._id, req.body.pass, req.body.version)
+        ).priv
         let tronWeb = await webTronInstance(privateKey)
         tronWeb.setPrivateKey(privateKey)
         let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -1889,7 +1927,7 @@ exports.bep20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await getAccount(req, res)
+        let account = await getAccountV2(req, res)
         let allowance = await bep20Approve(
             tokenAddress,
             account.address,
@@ -1966,7 +2004,7 @@ exports.erc20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await getAccount(req, res)
+        let account = await getAccountV2(req, res)
         let allowance = await erc20Approve(
             tokenAddress,
             account.address,
@@ -2047,13 +2085,9 @@ exports.erc20Allow = async (req, res) => {
 
 exports.getLinks = async (req, res) => {
     try {
-        const id_wallet = req.params.id_wallet
-        let userWallet = await Wallet.findOne(
-            {
-                'keystore.address': id_wallet.toLowerCase().substring(2),
-            },
-            { tronAddress: 1, _id: 0 }
-        )
+        const userId = req.params.idUser
+        const accountData = await Wallet.findOne({ UserId: userId })
+
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -2063,18 +2097,31 @@ exports.getLinks = async (req, res) => {
         let allProms = []
         let allTronProms = []
 
-        let query1 = filterLinks(req, id_wallet)
-        let query2 = filterLinks(req, userWallet.tronAddress)
+        let query1 = filterLinks(req, '0x' + accountData.keystore.address)
+        let query3 = filterLinks(
+            req,
+            '0x' + accountData.walletV2.keystore.address
+        )
+        let query2 = filterLinks(req, accountData.tronAddress)
+        let query4 = filterLinks(req, accountData.walletV2.tronAddress)
 
         var count =
             (await CampaignLink.find(
-                { id_wallet },
+                { id_wallet: { $in: [query1.id_wallet, query3.id_wallet] } },
                 { type: { $exists: 0 } }
             ).countDocuments()) +
-            ((!!userWallet.tronAddress &&
+            ((!!accountData.tronAddress &&
+                !!accountData.walletV2.tronAddress &&
                 req.query.state === 'part' &&
                 (await CampaignLink.find(
-                    { tronAddress: userWallet.tronAddress },
+                    {
+                        tronAddress: {
+                            $in: [
+                                accountData.tronAddress,
+                                accountData.walletV2.tronAddress,
+                            ],
+                        },
+                    },
                     { type: { $exists: 0 } }
                 ).countDocuments())) ||
                 0)
@@ -2109,7 +2156,9 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: query1,
+                $match: {
+                    id_wallet: { $in: [query1.id_wallet, query3.id_wallet] },
+                },
             },
             {
                 $addFields: {
@@ -2131,10 +2180,15 @@ exports.getLinks = async (req, res) => {
             .limit(limit)
 
         let tronUserLinks =
-            (!!userWallet.tronAddress &&
+            (!!accountData.tronAddress &&
+                !!accountData.walletV2.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: query2,
+                        $match: {
+                            id_wallet: {
+                                $in: [query2.id_wallet, query4.id_wallet],
+                            },
+                        },
                     },
                     {
                         $addFields: {

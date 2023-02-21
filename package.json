@@ -1,6 +1,6 @@
 {
     "name": "node_satt_api",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "author": "Atayen, Inc",
     "license": "ISC",
     "description": "Satt NodeJS backend",
@@ -56,6 +56,7 @@
         "fast-csv": "^4.3.6",
         "fb": "^2.0.0",
         "filereader": "^0.10.3",
+        "from-exponential": "^1.1.1",
         "geoip-lite": "^1.4.2",
         "google-auth-library": "^7.6.2",
         "graphql": "^16.0.1",

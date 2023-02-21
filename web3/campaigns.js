@@ -219,7 +219,7 @@ exports.unlockBsc = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        let account = await Wallet.findOne({ UserId })
+        let account = (await Wallet.findOne({ UserId })).walletV2
         let Web3BEP20 = await bep20Connexion()
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         return { address: '0x' + account.keystore.address, Web3BEP20 }
@@ -815,7 +815,9 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
 }
 
 exports.getUserIdByWallet = async (wallet) => {
-    let user = await Wallet.findOne({ 'keystore.address': wallet })
+    let user =
+        (await Wallet.findOne({ 'keystore.address': wallet })) ||
+        (await Wallet.findOne({ 'walletV2.keystore.address': wallet }))
     return user.UserId
 }
 
