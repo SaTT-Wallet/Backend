@@ -284,7 +284,7 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
-            if (tokenAddress == Constants.bep20.address.sattBep20) {
+            if (currency.includes('SATT')) {
                 amount = (amount * 95) / 100
             } else {
                 amount = (amount * 85) / 100
@@ -312,7 +312,7 @@ module.exports.launchCampaign = async (req, res) => {
                 ).toLowerCase(),
                 walletId: (!!tronWeb && walletAddr) || cred.address,
                 type: 'inProgress',
-                cost: amount,
+                cost: costcampaign,
             }
             let campaignData = await Campaigns.findOne({ _id })
             campaign.cost_usd =
