@@ -312,7 +312,7 @@ module.exports.launchCampaign = async (req, res) => {
                 ).toLowerCase(),
                 walletId: (!!tronWeb && walletAddr) || cred.address,
                 type: 'inProgress',
-                cost: costcampaign,
+                cost: amount,
             }
             let campaignData = await Campaigns.findOne({ _id })
             campaign.cost_usd =
