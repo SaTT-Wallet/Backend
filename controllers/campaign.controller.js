@@ -386,6 +386,11 @@ module.exports.launchBounty = async (req, res) => {
     } finally {
         cred && lock(cred)
         if (ret && ret.hash) {
+            if (currency.includes('SATT')) {
+                amount = (amount * 95) / 100
+            } else {
+                amount = (amount * 85) / 100
+            }
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
