@@ -2166,7 +2166,7 @@ exports.getLinks = async (req, res) => {
         let userLinks = await CampaignLink.aggregate([
             {
                 $match: {
-                    id_wallet: { $in: [query1.id_wallet, query3.id_wallet] },
+                    id_campaign: { $in: [query1.id_campaign, query3.id_campaign] },
                 },
             },
             {
