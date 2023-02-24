@@ -1617,9 +1617,9 @@ Constants.campaign.abi = [
         inputs: [
             {
                 indexed: true,
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'id',
-                type: 'string',
+                type: 'bytes32',
             },
         ],
         name: 'PromAccepted',
@@ -1630,9 +1630,9 @@ Constants.campaign.abi = [
         inputs: [
             {
                 indexed: true,
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'id',
-                type: 'string',
+                type: 'bytes32',
             },
             {
                 indexed: false,
@@ -1643,6 +1643,79 @@ Constants.campaign.abi = [
         ],
         name: 'PromPayed',
         type: 'event',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'bytes32',
+                name: '_hashedMessage',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: '_v',
+                type: 'uint8',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_r',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_s',
+                type: 'bytes32',
+            },
+        ],
+        name: 'VerifyMessage',
+        outputs: [
+            {
+                internalType: 'address',
+                name: '',
+                type: 'address',
+            },
+        ],
+        stateMutability: 'pure',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'bytes32',
+                name: 'idCampaign',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: 'typeSN',
+                type: 'uint8',
+            },
+            {
+                internalType: 'string',
+                name: 'idPost',
+                type: 'string',
+            },
+            {
+                internalType: 'string',
+                name: 'idUser',
+                type: 'string',
+            },
+            {
+                internalType: 'uint64',
+                name: 'abosNumber',
+                type: 'uint64',
+            },
+        ],
+        name: 'applyCampaign',
+        outputs: [
+            {
+                internalType: 'bytes32',
+                name: 'idProm',
+                type: 'bytes32',
+            },
+        ],
+        stateMutability: 'nonpayable',
+        type: 'function',
     },
     {
         inputs: [
@@ -1690,9 +1763,9 @@ Constants.campaign.abi = [
                 type: 'string',
             },
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'idProm',
-                type: 'string',
+                type: 'bytes32',
             },
         ],
         name: 'askBounty',
@@ -1894,9 +1967,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'idProm',
-                type: 'string',
+                type: 'bytes32',
             },
         ],
         name: 'getGains',
@@ -1949,9 +2022,9 @@ Constants.campaign.abi = [
         name: 'getProms',
         outputs: [
             {
-                internalType: 'string[]',
+                internalType: 'bytes32[]',
                 name: 'cproms',
-                type: 'string[]',
+                type: 'bytes32[]',
             },
         ],
         stateMutability: 'view',
@@ -2012,9 +2085,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'idProm',
-                type: 'string',
+                type: 'bytes32',
             },
         ],
         name: 'getResults',
@@ -2094,9 +2167,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: '',
-                type: 'string',
+                type: 'bytes32',
             },
         ],
         name: 'proms',
@@ -2178,6 +2251,11 @@ Constants.campaign.abi = [
                 name: 'lastHarvest',
                 type: 'uint256',
             },
+            {
+                internalType: 'uint256',
+                name: 'validate',
+                type: 'uint256',
+            },
         ],
         stateMutability: 'view',
         type: 'function',
@@ -2193,9 +2271,9 @@ Constants.campaign.abi = [
         name: 'results',
         outputs: [
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'idProm',
-                type: 'string',
+                type: 'bytes32',
             },
             {
                 internalType: 'uint64',
@@ -2334,9 +2412,22 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'idProm',
-                type: 'string',
+                type: 'bytes32',
+            },
+        ],
+        name: 'updateBounty',
+        outputs: [],
+        stateMutability: 'nonpayable',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'bytes32',
+                name: 'idProm',
+                type: 'bytes32',
             },
             {
                 internalType: 'uint256',
@@ -2358,19 +2449,6 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'string',
-                name: 'idProm',
-                type: 'string',
-            },
-        ],
-        name: 'updateBounty',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
                 internalType: 'bytes32',
                 name: 'idCampaign',
                 type: 'bytes32',
@@ -2384,9 +2462,9 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
-                internalType: 'string',
+                internalType: 'bytes32',
                 name: 'idProm',
-                type: 'string',
+                type: 'bytes32',
             },
         ],
         name: 'updatePromStats',
@@ -2403,25 +2481,57 @@ Constants.campaign.abi = [
     {
         inputs: [
             {
+                internalType: 'bytes32',
+                name: 'idCampaign',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: 'typeSN',
+                type: 'uint8',
+            },
+            {
                 internalType: 'string',
-                name: 'idProm',
+                name: 'idPost',
                 type: 'string',
+            },
+            {
+                internalType: 'string',
+                name: 'idUser',
+                type: 'string',
+            },
+            {
+                internalType: 'uint64',
+                name: 'abosNumber',
+                type: 'uint64',
+            },
+            {
+                internalType: 'address',
+                name: 'ownerLink',
+                type: 'address',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_hashedMessage',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: '_v',
+                type: 'uint8',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_r',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_s',
+                type: 'bytes32',
             },
         ],
         name: 'validateProm',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'string[]',
-                name: 'idProms',
-                type: 'string[]',
-            },
-        ],
-        name: 'validateProms',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
@@ -3289,373 +3399,6 @@ Constants.priceGap.abi = [
         type: 'function',
     },
 ]
-// Constants.bep20.abi = [
-//     {
-//         inputs: [],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'constructor',
-//     },
-//     {
-//         anonymous: false,
-//         inputs: [
-//             {
-//                 indexed: true,
-//                 internalType: 'address',
-//                 name: 'owner',
-//                 type: 'address',
-//             },
-//             {
-//                 indexed: true,
-//                 internalType: 'address',
-//                 name: 'spender',
-//                 type: 'address',
-//             },
-//             {
-//                 indexed: false,
-//                 internalType: 'uint256',
-//                 name: 'value',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'Approval',
-//         type: 'event',
-//     },
-//     {
-//         anonymous: false,
-//         inputs: [
-//             {
-//                 indexed: true,
-//                 internalType: 'address',
-//                 name: 'previousOwner',
-//                 type: 'address',
-//             },
-//             {
-//                 indexed: true,
-//                 internalType: 'address',
-//                 name: 'newOwner',
-//                 type: 'address',
-//             },
-//         ],
-//         name: 'OwnershipTransferred',
-//         type: 'event',
-//     },
-//     {
-//         anonymous: false,
-//         inputs: [
-//             {
-//                 indexed: true,
-//                 internalType: 'address',
-//                 name: 'from',
-//                 type: 'address',
-//             },
-//             {
-//                 indexed: true,
-//                 internalType: 'address',
-//                 name: 'to',
-//                 type: 'address',
-//             },
-//             {
-//                 indexed: false,
-//                 internalType: 'uint256',
-//                 name: 'value',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'Transfer',
-//         type: 'event',
-//     },
-//     {
-//         constant: true,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'owner',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'address',
-//                 name: 'spender',
-//                 type: 'address',
-//             },
-//         ],
-//         name: 'allowance',
-//         outputs: [
-//             {
-//                 internalType: 'uint256',
-//                 name: '',
-//                 type: 'uint256',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'spender',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'uint256',
-//                 name: 'amount',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'approve',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'account',
-//                 type: 'address',
-//             },
-//         ],
-//         name: 'balanceOf',
-//         outputs: [
-//             {
-//                 internalType: 'uint256',
-//                 name: '',
-//                 type: 'uint256',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'uint256',
-//                 name: 'amount',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'burn',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [],
-//         name: 'decimals',
-//         outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'spender',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'uint256',
-//                 name: 'subtractedValue',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'decreaseAllowance',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [],
-//         name: 'getOwner',
-//         outputs: [
-//             {
-//                 internalType: 'address',
-//                 name: '',
-//                 type: 'address',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'spender',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'uint256',
-//                 name: 'addedValue',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'increaseAllowance',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'uint256',
-//                 name: 'amount',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'mint',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [],
-//         name: 'name',
-//         outputs: [
-//             {
-//                 internalType: 'string',
-//                 name: '',
-//                 type: 'string',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [],
-//         name: 'owner',
-//         outputs: [
-//             {
-//                 internalType: 'address',
-//                 name: '',
-//                 type: 'address',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [],
-//         name: 'renounceOwnership',
-//         outputs: [],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [],
-//         name: 'symbol',
-//         outputs: [
-//             {
-//                 internalType: 'string',
-//                 name: '',
-//                 type: 'string',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: true,
-//         inputs: [],
-//         name: 'totalSupply',
-//         outputs: [
-//             {
-//                 internalType: 'uint256',
-//                 name: '',
-//                 type: 'uint256',
-//             },
-//         ],
-//         payable: false,
-//         stateMutability: 'view',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'recipient',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'uint256',
-//                 name: 'amount',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'transfer',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'sender',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'address',
-//                 name: 'recipient',
-//                 type: 'address',
-//             },
-//             {
-//                 internalType: 'uint256',
-//                 name: 'amount',
-//                 type: 'uint256',
-//             },
-//         ],
-//         name: 'transferFrom',
-//         outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-//     {
-//         constant: false,
-//         inputs: [
-//             {
-//                 internalType: 'address',
-//                 name: 'newOwner',
-//                 type: 'address',
-//             },
-//         ],
-//         name: 'transferOwnership',
-//         outputs: [],
-//         payable: false,
-//         stateMutability: 'nonpayable',
-//         type: 'function',
-//     },
-// ]
 
 Constants.bep20.abi = [
     {
@@ -3776,6 +3519,40 @@ Constants.bep20.abi = [
         inputs: [
             {
                 internalType: 'bytes32',
+                name: '_hashedMessage',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: '_v',
+                type: 'uint8',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_r',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_s',
+                type: 'bytes32',
+            },
+        ],
+        name: 'VerifyMessage',
+        outputs: [
+            {
+                internalType: 'address',
+                name: '',
+                type: 'address',
+            },
+        ],
+        stateMutability: 'pure',
+        type: 'function',
+    },
+    {
+        inputs: [
+            {
+                internalType: 'bytes32',
                 name: 'idCampaign',
                 type: 'bytes32',
             },
@@ -3795,9 +3572,9 @@ Constants.bep20.abi = [
                 type: 'string',
             },
             {
-                internalType: 'uint8',
+                internalType: 'uint64',
                 name: 'abosNumber',
-                type: 'uint8',
+                type: 'uint64',
             },
         ],
         name: 'applyCampaign',
@@ -4311,14 +4088,14 @@ Constants.bep20.abi = [
                 type: 'uint8',
             },
             {
-                internalType: 'uint64',
+                internalType: 'uint256',
                 name: 'appliedDate',
-                type: 'uint64',
+                type: 'uint256',
             },
             {
-                internalType: 'uint8',
+                internalType: 'uint64',
                 name: 'abosNumber',
-                type: 'uint8',
+                type: 'uint64',
             },
             {
                 internalType: 'string',
@@ -4343,6 +4120,11 @@ Constants.bep20.abi = [
             {
                 internalType: 'uint256',
                 name: 'lastHarvest',
+                type: 'uint256',
+            },
+            {
+                internalType: 'uint256',
+                name: 'validate',
                 type: 'uint256',
             },
         ],
@@ -4571,24 +4353,56 @@ Constants.bep20.abi = [
         inputs: [
             {
                 internalType: 'bytes32',
-                name: 'idProm',
+                name: 'idCampaign',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: 'typeSN',
+                type: 'uint8',
+            },
+            {
+                internalType: 'string',
+                name: 'idPost',
+                type: 'string',
+            },
+            {
+                internalType: 'string',
+                name: 'idUser',
+                type: 'string',
+            },
+            {
+                internalType: 'uint64',
+                name: 'abosNumber',
+                type: 'uint64',
+            },
+            {
+                internalType: 'address',
+                name: 'ownerLink',
+                type: 'address',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_hashedMessage',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'uint8',
+                name: '_v',
+                type: 'uint8',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_r',
+                type: 'bytes32',
+            },
+            {
+                internalType: 'bytes32',
+                name: '_s',
                 type: 'bytes32',
             },
         ],
         name: 'validateProm',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32[]',
-                name: 'idProms',
-                type: 'bytes32[]',
-            },
-        ],
-        name: 'validateProms',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
