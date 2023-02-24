@@ -384,8 +384,8 @@ module.exports.launchBounty = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        cred && lock(cred)
-        if (ret && ret.hash) {
+        !!cred && lock(cred)
+        if (ret?.hash) {
             if (currency.includes('SATT')) {
                 amount = (amount * 95) / 100
             } else {
@@ -2166,7 +2166,9 @@ exports.getLinks = async (req, res) => {
         let userLinks = await CampaignLink.aggregate([
             {
                 $match: {
-                    id_campaign: { $in: [query1.id_campaign, query3.id_campaign] },
+                    id_campaign: {
+                        $in: [query1.id_campaign, query3.id_campaign],
+                    },
                 },
             },
             {
