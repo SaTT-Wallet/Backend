@@ -43,6 +43,7 @@ const {
     checkUserWalletV2Exist,
     checkIsNewUser,
     transferAllTron,
+    resetpassword,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -874,5 +875,33 @@ router.post('/transfertTokensBep20', verifyAuth, transfertAllTokensBEP20)
 router.get('/checkUserWalletV2', verifyAuth, checkUserWalletV2Exist)
 
 router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
+
+/**
+ * @swagger
+ * /wallet/resetpassword:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: add TRX wallet to preExisting ETH/BTC Wallet .
+ *     description: add TRX wallet to preExisting ETH/BTC Wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               oldPass:
+ *                 type: string
+ *               newPass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/resetpassword', verifyAuth, resetpassword)
 
 module.exports = router
