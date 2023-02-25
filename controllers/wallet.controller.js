@@ -6,7 +6,9 @@ const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
 var fs = require('fs')
-
+var bip39 = require('bip39')
+var bip32 = require('bip32')
+var bip38 = require('bip38')
 const Web3 = require('web3')
 const {
     networkProviders,
@@ -26,7 +28,13 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
+const {
+    configSendBox,
+    PolygonApi,
+    Tokens,
+    networkSegWitCompat,
+    pathBtcSegwitCompat,
+} = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -1377,6 +1385,60 @@ exports.checkIsNewUser = async (req, res) => {
         if (wallet?.walletV2?.keystore?.address && !wallet?.keystore?.address)
             return responseHandler.makeResponseData(res, 200, 'success', true)
         return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.resetpassword = async (req, res) => {
+    try {
+        const UserId = req.user._id
+        let oldPass = req.body.oldPass
+        let newPass = req.body.newPass
+        let update = {}
+        const account = await Wallet.findOne({ UserId }).lean()
+        if (account?.walletV2) {
+            let Web3ETH = await erc20Connexion()
+            let newAccount = Web3ETH.eth.accounts.wallet
+                .decrypt([account.walletV2.keystore], oldPass)
+                .encrypt(newPass)
+            let new_ek = account.walletV2.btc.ek
+            if (account.walletV2.btc) {
+                let escpassold = oldPass.replace(/'/g, "\\'")
+                let escpass = newPass.replace(/'/g, "\\'")
+                const seed = bip39.mnemonicToSeedSync(
+                    account.mnemonic,
+                    escpassold
+                )
+                const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+                const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+                new_ek = bip38.encrypt(childBtc.privateKey, true, escpass)
+            }
+            update = {
+                'walletV2.keystore': newAccount[0],
+                'walletV2.btc.ek': new_ek,
+            }
+
+            await Wallet.updateOne(
+                { UserId },
+                {
+                    $set: update,
+                },
+                { upsert: true }
+            )
+            return responseHandler.makeResponseData(res, 200, 'success', false)
+        }
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'wallet v2 not exist',
+            false
+        )
     } catch (err) {
         return responseHandler.makeResponseError(
             res,

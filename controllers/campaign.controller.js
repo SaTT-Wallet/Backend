@@ -284,7 +284,7 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
-            if (tokenAddress == Constants.bep20.address.sattBep20) {
+            if (currency.includes('SATT')) {
                 amount = (amount * 95) / 100
             } else {
                 amount = (amount * 85) / 100
@@ -384,8 +384,13 @@ module.exports.launchBounty = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        cred && lock(cred)
-        if (ret && ret.hash) {
+        !!cred && lock(cred)
+        if (ret?.hash) {
+            if (currency.includes('SATT')) {
+                amount = (amount * 95) / 100
+            } else {
+                amount = (amount * 85) / 100
+            }
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -2161,7 +2166,9 @@ exports.getLinks = async (req, res) => {
         let userLinks = await CampaignLink.aggregate([
             {
                 $match: {
-                    id_wallet: { $in: [query1.id_wallet, query3.id_wallet] },
+                    id_campaign: {
+                        $in: [query1.id_campaign, query3.id_campaign],
+                    },
                 },
             },
             {
