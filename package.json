@@ -1,6 +1,6 @@
 {
     "name": "node_satt_api",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "author": "Atayen, Inc",
     "license": "ISC",
     "description": "Satt NodeJS backend",
@@ -106,6 +106,7 @@
         "path": "^0.12.7",
         "puppeteer": "^14.4.0",
         "qrcode": "^1.5.0",
+        "reactstrap": "^9.1.6",
         "request": "^2.88.0",
         "request-promise": "^4.2.2",
         "rlp": "^2.1.0",
