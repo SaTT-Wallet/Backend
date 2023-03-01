@@ -6,7 +6,6 @@ let router = express.Router()
 router.use(passport.initialize())
 var session = require('express-session')
 var GoogleStrategy = require('passport-google-oauth20').Strategy
-//const TwitterStrategy = require('passport-twitter').Strategy
 var FbStrategy = require('passport-facebook').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
 
