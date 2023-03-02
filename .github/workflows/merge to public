@@ -1,0 +1,29 @@
+name: Sync Private Repo to Public Repo
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && github.event.repository.private == true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: 'refs/heads/develop'
+
+      - name: Add public repo as remote
+        run: |
+          git remote add public https://github.com/SaTT-Wallet/Backend.git
+          git fetch public
+
+      - name: Merge changes to public repo
+        run: |
+          git checkout public/develop
+          git merge -m "Merge from private" HEAD
+          git push public public/develop
