@@ -56,7 +56,7 @@ const {
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: return user wallet.
+ *     summary: return user wallet depending on version (v1/v2).
  *     description: system return object of wallet(address,bnb balance ...)<br> with access_token
  *     requestBody:
  *       content:
