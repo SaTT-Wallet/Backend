@@ -5,11 +5,14 @@ on:
     types: [closed]
     branches:
       - develop
+  push:
+    branches:
+      - develop
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true && github.event.repository.private == true
+    if: github.event.pull_request.merged == true || (github.event.pusher && github.event.pusher.name != 'dependabot[bot]')
 
     steps:
       - name: Checkout code
