@@ -42,7 +42,6 @@ const {
     campaignApproval,
     approveCampaign,
     campaignAllowance,
-    expandUrl,
 } = require('../controllers/campaign.controller')
 const { automaticRjectLink, updateStatforUser } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
