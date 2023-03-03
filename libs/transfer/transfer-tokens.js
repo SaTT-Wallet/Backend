@@ -93,7 +93,6 @@ module.exports.transferTokens = async function ({
             amount: amount,
         }
     } catch (error) {
-        console.error(error)
         return { error: error.message }
     } finally {
         web3.eth.accounts.wallet.remove(fromAddress)

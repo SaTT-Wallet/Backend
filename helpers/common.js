@@ -10,7 +10,7 @@ var Event = require('../model/event.model')
 var Request = require('../model/request.model')
 var User = require('../model/user.model')
 var TwitterProfile = require('../model/twitterProfile.model')
-
+var fs = require('fs')
 // /const { getPrices } = require('../manager/accounts.js')
 //const { getBalanceByUid } = require('../web3/wallets')
 
@@ -452,6 +452,7 @@ exports.BalanceUsersStats = async (condition) => {
             balance = await getBalanceByUid(req, res)
         } catch (err) {
             console.error(err)
+            continue
         }
         // !balance['Total_balance'] && counter++
         result.Balance = balance?.Total_balance
