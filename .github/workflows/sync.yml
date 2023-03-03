@@ -9,6 +9,10 @@ on:
     branches:
       - develop
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PAT: ${{ secrets.MERGE_TOKEN }}
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -24,9 +28,18 @@ jobs:
         run: |
           git remote add public https://github.com/SaTT-Wallet/Backend.git
           git fetch public
+          with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge changes to public repo
         run: |
           git checkout public/develop
-          git merge -m "Merge from private" HEAD
-          git push public public/develop
+          git merge -m "Merge from private repo" HEAD
+
+          # Set up Git config with user name and email
+          git config --global user.email "dhia@atayen.us"
+          git config --global user.name "Dhia Touati"
+
+          # Authenticate the Git push command with the PAT
+          export GITHUB_TOKEN="${{ secrets.PAT }}"
+          git push public HEAD:develop
