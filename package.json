@@ -78,7 +78,7 @@
         "json2csv": "^5.0.6",
         "jsonwebtoken": "^9.0.0",
         "memory-cache": "^0.2.0",
-        "mocha": "^9.2.1",
+        "mocha": "^10.1.0",
         "moment": "^2.22.2",
         "mongodb": "^4.4.1",
         "mongoose": "^5.11.15",
