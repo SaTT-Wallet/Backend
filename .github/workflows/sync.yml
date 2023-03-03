@@ -27,6 +27,7 @@ jobs:
       - name: Add public repo as remote
         run: |
           git remote add public https://github.com/SaTT-Wallet/Backend.git
+          export GITHUB_TOKEN="${{ secrets.PAT }}"
           git fetch public
 
       - name: Merge changes to public repo
