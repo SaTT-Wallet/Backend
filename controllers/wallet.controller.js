@@ -512,16 +512,15 @@ exports.transferTokensController = async (req, res) => {
                     to,
                     transactionHash: result.transactionHash,
                 })
-                const wallet =
-                    (network.toUpperCase() === 'TRON' &&
-                        (await Wallet.findOne(
-                            { tronAddress: to },
-                            { UserId: 1 }
-                        ))) ||
-                    (await Wallet.findOne(
-                        { 'keystore.address': to.substring(2) },
-                        { UserId: 1 }
-                    ))
+
+                const wallet = await Wallet.findOne(
+                    {
+                        ...((network.toUpperCase() === 'TRON' && {
+                            tronAddress: to,
+                        }) || { 'keystore.address': to.substring(2) }),
+                    },
+                    { UserId: 1 }
+                ).lean()
 
                 if (wallet) {
                     await notificationManager(
@@ -1383,5 +1382,60 @@ exports.checkIsNewUser = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
+    }
+}
+
+var fileStream = fs.createWriteStream('walletToMigrate.txt', {
+    flags: 'a', // 'a' means appending (old data will be preserved)
+})
+
+module.exports.userBalances = async (request, res) => {
+    try {
+        let today = new Date().toLocaleDateString('en-US')
+        let [currentDate, result] = [
+            Math.round(new Date().getTime() / 1000),
+            {},
+        ]
+        ;[result.Date, result.convertDate] = [currentDate, today]
+
+        let users_ = await User.find({ hasWallet: true })
+
+        let [counter, usersCount] = [0, users_.length]
+        while (counter < usersCount) {
+            let balance
+
+            var user = users_[counter]
+
+            try {
+                let req = { user: users_[counter], body: {} }
+                req.body.version = 'v1'
+                let res = {}
+                balance = await getBalanceByUid(req, res)
+            } catch (err) {
+                console.error(err)
+                continue
+            }
+            // !balance['Total_balance'] && counter++
+            result.Balance = balance?.Total_balance
+
+            if (
+                !result.Balance ||
+                isNaN(parseInt(result.Balance)) ||
+                result.Balance === null ||
+                result.Balance === '0.00'
+            ) {
+                counter++
+            } else {
+                console.log(user.email, result.Balance)
+                fileStream.write(
+                    ' ' + (user.email || user._id) + ' ' + result.Balance + '\n'
+                )
+
+                counter++
+            }
+        }
+        res.end({ message: 'users balances script done' })
+    } catch (error) {
+        console.error(error)
     }
 }
