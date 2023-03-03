@@ -56,34 +56,28 @@ connectDB()
 
 app.disable('x-powered-by')
 
-// let Corsoptions = {}
+let Corsoptions = {}
 
-// if (process.env.NODE_ENV === 'mainnet') {
-//     Corsoptions = {
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//         optionsSuccessStatus: 200, // For legacy browser support
-//     }
-// } else {
-//     Corsoptions = {
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//         optionsSuccessStatus: 200,
-//         origin: [
-//             'http://localhost:4200',
-//             'http://localhost:5000',
-//             'https://testnet.ihave.io',
-//             'https://app.ihave.io',
-//             'https://testnet.satt.atayen.us/',
-//         ],
-//     }
-// }
-
-// app.use(cors(Corsoptions))
-
-app.use(
-    cors({
+if (process.env.NODE_ENV === 'mainnet') {
+    Corsoptions = {
         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-    })
-)
+        optionsSuccessStatus: 200, // For legacy browser support
+        origin: ['https://dapp.satt.com'],
+    }
+} else {
+    Corsoptions = {
+        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+        optionsSuccessStatus: 200,
+    }
+}
+
+app.use(cors(Corsoptions))
+
+// app.use(
+//     cors({
+//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+//     })
+// )
 app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

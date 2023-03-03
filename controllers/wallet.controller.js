@@ -6,7 +6,9 @@ const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
 var fs = require('fs')
-
+var bip39 = require('bip39')
+var bip32 = require('bip32')
+var bip38 = require('bip38')
 const Web3 = require('web3')
 const {
     networkProviders,
@@ -26,7 +28,13 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
+const {
+    configSendBox,
+    PolygonApi,
+    Tokens,
+    networkSegWitCompat,
+    pathBtcSegwitCompat,
+} = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
@@ -1385,57 +1393,56 @@ exports.checkIsNewUser = async (req, res) => {
     }
 }
 
-var fileStream = fs.createWriteStream('walletToMigrate.txt', {
-    flags: 'a', // 'a' means appending (old data will be preserved)
-})
-
-module.exports.userBalances = async (request, res) => {
+exports.resetpassword = async (req, res) => {
     try {
-        let today = new Date().toLocaleDateString('en-US')
-        let [currentDate, result] = [
-            Math.round(new Date().getTime() / 1000),
-            {},
-        ]
-        ;[result.Date, result.convertDate] = [currentDate, today]
-
-        let users_ = await User.find({ hasWallet: true })
-
-        let [counter, usersCount] = [0, users_.length]
-        while (counter < usersCount) {
-            let balance
-
-            var user = users_[counter]
-
-            try {
-                let req = { user: users_[counter], body: {} }
-                req.body.version = 'v1'
-                let res = {}
-                balance = await getBalanceByUid(req, res)
-            } catch (err) {
-                console.error(err)
-                continue
-            }
-            // !balance['Total_balance'] && counter++
-            result.Balance = balance?.Total_balance
-
-            if (
-                !result.Balance ||
-                isNaN(parseInt(result.Balance)) ||
-                result.Balance === null ||
-                result.Balance === '0.00'
-            ) {
-                counter++
-            } else {
-                console.log(user.email, result.Balance)
-                fileStream.write(
-                    ' ' + (user.email || user._id) + ' ' + result.Balance + '\n'
+        const UserId = req.user._id
+        let oldPass = req.body.oldPass
+        let newPass = req.body.newPass
+        let update = {}
+        const account = await Wallet.findOne({ UserId }).lean()
+        if (account?.walletV2) {
+            let Web3ETH = await erc20Connexion()
+            let newAccount = Web3ETH.eth.accounts.wallet
+                .decrypt([account.walletV2.keystore], oldPass)
+                .encrypt(newPass)
+            let new_ek = account.walletV2.btc.ek
+            if (account.walletV2.btc) {
+                let escpassold = oldPass.replace(/'/g, "\\'")
+                let escpass = newPass.replace(/'/g, "\\'")
+                const seed = bip39.mnemonicToSeedSync(
+                    account.mnemonic,
+                    escpassold
                 )
-
-                counter++
+                const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+                const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+                new_ek = bip38.encrypt(childBtc.privateKey, true, escpass)
             }
+            update = {
+                'walletV2.keystore': newAccount[0],
+                'walletV2.btc.ek': new_ek,
+            }
+
+            await Wallet.updateOne(
+                { UserId },
+                {
+                    $set: update,
+                },
+                { upsert: true }
+            )
+            return responseHandler.makeResponseData(res, 200, 'success', false)
         }
-        res.end({ message: 'users balances script done' })
-    } catch (error) {
-        console.error(error)
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'wallet v2 not exist',
+            false
+        )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
