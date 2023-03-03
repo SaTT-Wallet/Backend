@@ -327,6 +327,7 @@ exports.cloneUser = (user) => {
         account_locked,
         created,
         updated,
+        fireBaseAccessToken,
         confirmation_token,
         ...newUser
     } = user
