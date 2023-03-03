@@ -163,8 +163,8 @@ const signinWithEmail = async (
             if (user.password == synfonyHash(password)) {
                 var validAuth = await isBlocked(user, true)
                 if (!validAuth.res && validAuth.auth == true) {
-                    let userAuth = cloneUser(user)
-                    let token = generateAccessToken(userAuth)
+                    //let userAuth = cloneUser(user)
+                    let token = generateAccessToken({ _id: user._id })
                     await User.updateOne(
                         { _id: Long.fromNumber(user._id) },
                         { $set: { failed_count: 0 } }
@@ -266,13 +266,15 @@ passport.use(
         { passReqToCallback: true },
         async (req, username, password, done) => {
             var date = Math.floor(Date.now() / 1000) + 86400
-            var user = await User.findOne({ email: username.toLowerCase() })
+            var user = await User.findOne({
+                email: username.toLowerCase(),
+            }).lean()
             if (user) {
                 if (user.password == synfonyHash(password)) {
                     let validAuth = await isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
-                        let userAuth = cloneUser(user.toObject())
-                        let token = generateAccessToken(userAuth)
+                        //let userAuth = cloneUser(user)
+                        let token = generateAccessToken({ _id: user._id })
                         await User.updateOne(
                             { _id: Long.fromNumber(user._id) },
                             { $set: { failed_count: 0 } }
@@ -446,7 +448,7 @@ passport.use(
             )
             let user = await new User(createdUser).save()
             createdUser._id = user._id
-            let token = generateAccessToken(createdUser)
+            let token = generateAccessToken({ _id: user._id })
             const lang = req.query.lang || 'en'
             const code = await updateAndGenerateCode(
                 createdUser._id,
@@ -543,7 +545,7 @@ exports.facebookAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: user._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -581,7 +583,7 @@ exports.googleAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: createdUser._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -700,7 +702,7 @@ exports.twitterAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: createdUser._id })
 
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }

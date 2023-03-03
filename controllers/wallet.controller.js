@@ -520,16 +520,15 @@ exports.transferTokensController = async (req, res) => {
                     to,
                     transactionHash: result.transactionHash,
                 })
-                const wallet =
-                    (network.toUpperCase() === 'TRON' &&
-                        (await Wallet.findOne(
-                            { tronAddress: to },
-                            { UserId: 1 }
-                        ))) ||
-                    (await Wallet.findOne(
-                        { 'keystore.address': to.substring(2) },
-                        { UserId: 1 }
-                    ))
+
+                const wallet = await Wallet.findOne(
+                    {
+                        ...((network.toUpperCase() === 'TRON' && {
+                            tronAddress: to,
+                        }) || { 'keystore.address': to.substring(2) }),
+                    },
+                    { UserId: 1 }
+                ).lean()
 
                 if (wallet) {
                     await notificationManager(
