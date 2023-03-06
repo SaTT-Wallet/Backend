@@ -296,7 +296,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: get total balance
+ *     summary: get total balance depending on version (v1/v2).
  *     description: return the sum of balances for user
  *     requestBody:
  *       content:
