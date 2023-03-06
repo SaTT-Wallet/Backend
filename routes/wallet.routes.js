@@ -56,7 +56,7 @@ const {
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: return user wallet.
+ *     summary: return user wallet depending on version (v1/v2).
  *     description: system return object of wallet(address,bnb balance ...)<br> with access_token
  *     requestBody:
  *       content:
@@ -296,7 +296,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: get total balance
+ *     summary: get total balance depending on version (v1/v2).
  *     description: return the sum of balances for user
  *     requestBody:
  *       content:
