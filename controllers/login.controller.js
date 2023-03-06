@@ -509,9 +509,9 @@ exports.getToken = async (req, res) => {
         let _id = +req.params.id
         var date = Math.floor(Date.now() / 1000) + 86400
 
-        var user = await User.findOne({ _id })
-        let userAuth = cloneUser(user.toObject())
-        let token = generateAccessToken(userAuth)
+        var user = await User.findOne({ _id }).lean()
+        //let userAuth = cloneUser(user.toObject())
+        let token = generateAccessToken({ _id: user._id })
         res.send({
             id: user._id,
             token,
@@ -656,10 +656,10 @@ exports.authApple = async (req, res) => {
         let idSn = req.body.idSN
         let name = req.body.name
 
-        let user = await User.findOne({ id_apple })
+        let user = await User.findOne({ id_apple }).lean()
         if (user) {
-            let userAuth = cloneUser(user)
-            let token = generateAccessToken(userAuth)
+            //let userAuth = cloneUser(user)
+            let token = generateAccessToken({ _id: user._id })
             if (user.idSn === idSn) {
                 let param = {
                     access_token: token,
@@ -733,7 +733,7 @@ exports.socialSignUp = async (req, res) => {
         )
         let socialField = req.body.idSn === 1 ? 'idOnSn' : 'idOnSn2'
         snUser[socialField] = req.body.id
-        let user = await User.findOne({ [socialField]: req.body.id })
+        let user = await User.findOne({ [socialField]: req.body.id }).lean()
 
         if (user) {
             return responseHandler.makeResponseError(
@@ -746,7 +746,7 @@ exports.socialSignUp = async (req, res) => {
             let date = Math.floor(Date.now() / 1000) + 86400
             let user = User.create(snUser)
             snUser._id = user._id
-            let token = generateAccessToken(snUser)
+            let token = generateAccessToken({ _id: user._id })
             let param = {
                 access_token: token,
                 expires_in: date,
@@ -775,11 +775,11 @@ exports.socialSignin = async (req, res) => {
                 false
             )
         let socialField = req.body.idSn === 1 ? 'idOnSn' : 'idOnSn2'
-        let user = await User.findOne({ [socialField]: req.body.id })
+        let user = await User.findOne({ [socialField]: req.body.id }).lean()
         if (user) {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let userAuth = cloneUser(user)
-            let token = generateAccessToken(userAuth)
+            //let userAuth = cloneUser(user)
+            let token = generateAccessToken({ _id: user._id })
             let param = {
                 access_token: token,
                 expires_in: date,
@@ -898,10 +898,9 @@ exports.sattConnect = async (req, res) => {
     const address = req.body.address
     const password = req.body.password
     try {
-        const user = await User.findOne({ address })
+        const user = await User.findOne({ address }).lean()
         if (user) {
-            let userAuth = cloneUser(user.toObject())
-            let token = generateAccessToken(userAuth)
+            let token = generateAccessToken({ _id: user._id })
 
             var param = {
                 access_token: token,
