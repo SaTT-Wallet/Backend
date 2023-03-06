@@ -286,7 +286,7 @@ exports.getAccountV2 = async (req, res) => {
                 ? !account.keystore
                     ? '0x' + account.walletV2.keystore.address
                     : '0x' + account.keystore.address
-                : '0x' + account.walletV2.keystore.address
+                : '0x' + account.walletV2?.keystore.address
         let btcAddress =
             version === 'v1'
                 ? !account.btc
@@ -447,7 +447,7 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account.btc.addressSegWitCompat,
+            btc: account?.btc?.addressSegWitCompat,
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
@@ -463,10 +463,10 @@ exports.getAccount = async (req, res) => {
         result.btc_balance = 0
         if (
             process.env.NODE_ENV === 'mainnet' &&
-            account.btc &&
-            account.btc.addressSegWitCompat
+            account?.btc &&
+            account?.btc?.addressSegWitCompat
         ) {
-            result.btc = account.btc.addressSegWitCompat
+            result.btc = account?.btc?.addressSegWitCompat
 
             try {
                 var utxo = JSON.parse(
