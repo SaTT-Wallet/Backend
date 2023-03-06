@@ -52,6 +52,8 @@ const {
     pathTron,
     booltestnet,
 } = require('../conf/config')
+const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
+
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
 
@@ -59,7 +61,6 @@ exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = (await Wallet.findOne({ UserId })).walletV2
 
         let WEB3 = null
@@ -106,7 +107,6 @@ exports.unlockV2 = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
         let WEB3 = null
         if (req.body && req.body.network) {
