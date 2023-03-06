@@ -650,6 +650,8 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
+ *               Walletversion:
+ *                 type: string
  *               pass:
  *                 type: string
  *               idCampaign:
@@ -716,11 +718,15 @@ router.post('/linkNotification', verifyAuth, linkNotifications)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
+ *               Walletversion:
+ *                 type: string
+ *               idLink:
+ *                 type: string
  *               pass:
  *                 type: string
  *               idCampaign:
  *                 type: string
- *               idProm:
+ *               signature:
  *                 type: string
  *               link:
  *                 type: string
