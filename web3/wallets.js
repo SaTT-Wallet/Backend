@@ -284,15 +284,15 @@ exports.getAccountV2 = async (req, res) => {
         var address =
             version === 'v1'
                 ? !account.keystore
-                    ? '0x' + account.walletV2.keystore.address
+                    ? '0x' + account?.walletV2?.keystore?.address
                     : '0x' + account.keystore.address
                 : '0x' + account.walletV2?.keystore.address
         let btcAddress =
             version === 'v1'
                 ? !account.btc
-                    ? account.walletV2.btc.addressSegWitCompat
-                    : account.btc.addressSegWitCompat
-                : account.walletV2.btc.addressSegWitCompat
+                    ? account.walletV2?.btc?.addressSegWitCompat
+                    : account?.btc?.addressSegWitCompat
+                : account?.walletV2?.btc?.addressSegWitCompat
         let tronAddress =
             version === 'v1'
                 ? !account?.tronAddress
