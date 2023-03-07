@@ -789,6 +789,12 @@ exports.apply = async (req, res) => {
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
         } else {
+            if (!req.user.hasWalletV2)
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'Wallet v2 not found'
+                )
             cred = await unlock(req, res)
 
             let userWallet = await Wallet.findOne({ UserId: req.user._id })

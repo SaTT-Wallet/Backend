@@ -52,8 +52,6 @@ const {
     pathTron,
     booltestnet,
 } = require('../conf/config')
-const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
 
@@ -61,6 +59,7 @@ exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = (await Wallet.findOne({ UserId })).walletV2
 
         let WEB3 = null
@@ -107,6 +106,7 @@ exports.unlockV2 = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
+        const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
         let account = await Wallet.findOne({ UserId })
         let WEB3 = null
         if (req.body && req.body.network) {
@@ -284,15 +284,15 @@ exports.getAccountV2 = async (req, res) => {
         var address =
             version === 'v1'
                 ? !account.keystore
-                    ? '0x' + account.walletV2.keystore.address
+                    ? '0x' + account?.walletV2?.keystore?.address
                     : '0x' + account.keystore.address
-                : '0x' + account.walletV2.keystore.address
+                : '0x' + account.walletV2?.keystore.address
         let btcAddress =
             version === 'v1'
                 ? !account.btc
-                    ? account.walletV2.btc.addressSegWitCompat
-                    : account.btc.addressSegWitCompat
-                : account.walletV2.btc.addressSegWitCompat
+                    ? account.walletV2?.btc?.addressSegWitCompat
+                    : account?.btc?.addressSegWitCompat
+                : account?.walletV2?.btc?.addressSegWitCompat
         let tronAddress =
             version === 'v1'
                 ? !account?.tronAddress
@@ -447,7 +447,7 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account.btc.addressSegWitCompat,
+            btc: account?.btc?.addressSegWitCompat,
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
@@ -463,10 +463,10 @@ exports.getAccount = async (req, res) => {
         result.btc_balance = 0
         if (
             process.env.NODE_ENV === 'mainnet' &&
-            account.btc &&
-            account.btc.addressSegWitCompat
+            account?.btc &&
+            account?.btc?.addressSegWitCompat
         ) {
-            result.btc = account.btc.addressSegWitCompat
+            result.btc = account?.btc?.addressSegWitCompat
 
             try {
                 var utxo = JSON.parse(
