@@ -250,7 +250,7 @@ exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             var ret =
-                req.body.version === undefined
+                req.body.version === 'v1'
                     ? await getAccount(req, res)
                     : await getAccountV2(req, res)
             if (!ret) {
