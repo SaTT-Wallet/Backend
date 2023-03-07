@@ -128,7 +128,7 @@ router.get('/allwallets', verifyAuth, allwallets)
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: get user balance depending on version (v1/v2)
+ *     summary: get user balance depending on version (v1/v2).
  *     requestBody:
  *       content:
  *         application/json:
