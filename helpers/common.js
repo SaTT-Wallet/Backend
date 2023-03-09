@@ -408,33 +408,16 @@ exports.BalanceUsersStats = async (condition) => {
     let [currentDate, result] = [Math.round(new Date().getTime() / 1000), {}]
     ;[result.Date, result.convertDate] = [currentDate, today]
 
-    var users_
-    if (condition === 'daily') {
-        users_ = await User.find({
-            $and: [
-                { userSatt: true },
-                { hasWallet: true },
-                { 'daily.convertDate': { $nin: [today] } },
-            ],
-        })
-    } else if (condition === 'weekly') {
-        users_ = await User.find({
-            $and: [
-                { userSatt: true },
-                { hasWallet: true },
-                { 'weekly.convertDate': { $nin: [today] } },
-            ],
-        })
-    } else if (condition === 'monthly') {
-        users_ = await User.find({
-            $and: [
-                { userSatt: true },
-                { hasWallet: true },
-                { 'monthly.convertDate': { $nin: [today] } },
-            ],
-        })
-    }
 
+  
+    var query = condition + '.convertDate'
+    var users_ = await User.find({
+                $and: [
+                    { userSatt: true },
+                    { hasWallet: true },
+                    { query: { $nin: [today] } },
+                ],
+            },{daily:1,weekly:1,monthly:1})
     let [counter, usersCount] = [0, users_.length]
     while (counter < usersCount) {
         let balance
@@ -447,7 +430,7 @@ exports.BalanceUsersStats = async (condition) => {
         } //adding time frame field in users depending on condition if it doesn't exist.
 
         try {
-            let req = { user: users_[counter] }
+            let req = { user: users_[counter],prices :await this.getPrices() }
             let res = {}
             balance = await getBalanceByUid(req, res)
         } catch (err) {
