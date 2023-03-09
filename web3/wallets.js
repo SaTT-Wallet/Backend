@@ -942,7 +942,7 @@ exports.getListCryptoByUid = async (req, res) => {
 exports.getBalanceByUid = async (req, res) => {
     try {
         var userId = req.user._id
-        let crypto = req.prices || await this.getPrices()
+        let crypto = req.prices || (await this.getPrices())
 
         var [Total_balance, CryptoPrices] = [0, crypto]
         var {
@@ -964,7 +964,7 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['BTT']
 
         var ret =
-            req.body.version === undefined
+            req.body.version === 'v1'
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
