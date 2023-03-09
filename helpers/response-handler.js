@@ -10,6 +10,7 @@ class responseHandler {
         })
     }
     makeResponseError = (res, code, error) => {
+        if (!res.status) return
         return res.status(code).send({
             code,
             error,
