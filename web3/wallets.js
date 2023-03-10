@@ -253,9 +253,9 @@ exports.exportkey = async (req, res) => {
 exports.exportkeyV2 = async (req, res) => {
     let id = req.user._id
     let pass = req.body.pass
-    let account = await Wallet.findOne({ UserId: parseInt(id) })
+    let account = await Wallet.findOne({ UserId: parseInt(id) }).lean()
     if (account) {
-        if (!account.walletV2.keystore.address) return 'Wallet V2 not found'
+        if (!account?.walletV2?.keystore.address) return 'Wallet V2 not found'
         var Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
         return account.walletV2.keystore
@@ -942,7 +942,7 @@ exports.getListCryptoByUid = async (req, res) => {
 exports.getBalanceByUid = async (req, res) => {
     try {
         var userId = req.user._id
-        let crypto = await this.getPrices()
+        let crypto = req.prices || (await this.getPrices())
 
         var [Total_balance, CryptoPrices] = [0, crypto]
         var {
@@ -964,7 +964,7 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['BTT']
 
         var ret =
-            req.body.version === undefined
+            req.body.version === 'v1'
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
