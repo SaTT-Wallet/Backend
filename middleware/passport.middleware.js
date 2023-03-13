@@ -634,7 +634,8 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({_id : user._id})
+        console.log('create user telegram')
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -646,20 +647,24 @@ exports.signup_telegram_function = async (req, profile, cb) => {
 begin signin with telegram strategy
 */
 exports.signin_telegram_function = async (req, profile, cb) => {
+    console.log('signin_telegram_function')
     await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
 }
 exports.telegramConnection = (req, res) => {
     try {
+        console.log('telegramConnection')
         var param = {
-            access_token: req.user.token,
-            expires_in: req.user.expires_in,
+            access_token: req.user?.token,
+            expires_in: req.user?.expires_in,
             token_type: 'bearer',
             scope: 'user',
         }
         res.redirect(
             process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
-    } catch (e) {}
+    } catch (e) {
+        console.error(e)
+    }
 }
 /*
  *end signin with telegram strategy
