@@ -2569,8 +2569,7 @@ exports.rejectLink = async (req, res) => {
 
 module.exports.updateStatistics = async (req, res) => {
     try {
-       await BalanceUsersStats('daily')
-        //await updateStat()
+        await updateStat()
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
         return responseHandler.makeResponseError(
