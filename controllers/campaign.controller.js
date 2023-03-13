@@ -90,7 +90,7 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
-const { automaticRjectLink } = require('../helpers/common')
+const { automaticRjectLink, BalanceUsersStats } = require('../helpers/common')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () =>
     /*updateStat(),*/
@@ -2569,7 +2569,8 @@ exports.rejectLink = async (req, res) => {
 
 module.exports.updateStatistics = async (req, res) => {
     try {
-        await updateStat()
+       await BalanceUsersStats('daily')
+        //await updateStat()
         return responseHandler.makeResponseData(res, 200, 'success', false)
     } catch (err) {
         return responseHandler.makeResponseError(

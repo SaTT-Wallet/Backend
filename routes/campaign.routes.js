@@ -1369,6 +1369,6 @@ router.get('/statistics', campaignsStatistics)
  */
 router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
 
-router.post('/updateStat', updateStatistics)
+router.get('/updateStat', updateStatistics)
 
 module.exports = router
