@@ -710,6 +710,7 @@ passport.use(
             passReqToCallback: true,
         },
         async function (req, profile, cb) {
+            console.log('signup_telegram_function passport')
             signup_telegram_function(req, profile, cb)
         }
     )
@@ -741,6 +742,7 @@ passport.use(
             passReqToCallback: true,
         },
         async function (req, profile, cb) {
+            console.log('inside telegram passeport signin')
             signin_telegram_function(req, profile, cb)
         }
     )
