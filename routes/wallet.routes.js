@@ -36,6 +36,7 @@ const {
     addNewWallet,
     allwallets,
     createNewWalletV2,
+    verifySign,
     transfertAllTokensBEP20,
     exportEthV2,
     exportBtcV2,
@@ -736,6 +737,32 @@ router.post('/create', verifyAuth, createNewWallet)
  *          description: code,<br>error:"error"
  */
 router.post('/create/v2', verifyAuth, createNewWalletV2)
+
+/**
+ * @swagger
+ * /wallet/create/v2:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: create new wallet.
+ *     description: create new wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/verifySign', verifyAuth, verifySign)
 
 /**
  * @swagger
