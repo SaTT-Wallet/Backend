@@ -409,16 +409,18 @@ exports.BalanceUsersStats = async (condition) => {
     ;[result.Date, result.convertDate] = [currentDate, today]
 
     var query = condition + '.convertDate'
+  
     var users_ = await User.find(
         {
             $and: [
                 { userSatt: true },
                 { hasWallet: true },
-                { query: { $nin: [today] } },
+                { [query]: { $nin: [today] } },
             ],
         },
         { daily: 1, weekly: 1, monthly: 1 }
     )
+  
     let [counter, usersCount] = [0, users_.length]
     while (counter < usersCount) {
         let balance
@@ -433,7 +435,7 @@ exports.BalanceUsersStats = async (condition) => {
         try {
             let req = {
                 user: users_[counter],
-                prices: await this.getPrices(),
+                prices: await getPrices(),
                 body: { version: 'v1' },
             }
             let res = {}
