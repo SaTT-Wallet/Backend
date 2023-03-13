@@ -85,6 +85,7 @@ const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
 const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
+/*
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -95,7 +96,7 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
-)
+)*/
 
 exports.exportBtc = async (req, res) => {
     try {
@@ -142,7 +143,7 @@ exports.exportTron = async (req, res) => {
     try {
         res.attachment()
         if (req.user.hasWallet == true) {
-            let ret = await exportkeyTron(req, res)
+            let ret = await exportkeyTron(req.user._id, req.body.pass)
             if (!ret) {
                 return
             }
@@ -163,7 +164,7 @@ exports.exportTronV2 = async (req, res) => {
     try {
         res.attachment()
         if (req.user.hasWallet == true) {
-            let ret = await exportkeyTronV2(req, res)
+            let ret = await exportkeyTronV2(req.user._id, req.body.pass)
             if (!ret) {
                 return
             }
