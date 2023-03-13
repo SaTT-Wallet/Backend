@@ -90,7 +90,7 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
-const { automaticRjectLink } = require('../helpers/common')
+const { automaticRjectLink, BalanceUsersStats } = require('../helpers/common')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () =>
     /*updateStat(),*/
