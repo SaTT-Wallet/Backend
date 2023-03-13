@@ -60,7 +60,7 @@ exports.unlock = async (req, res) => {
         let UserId = req.user._id
         let pass = req.body.pass
         const sdk = require('api')('@tron/v4.5.1#7p0hyl5luq81q')
-        let account = (await Wallet.findOne({ UserId })).walletV2
+        let account = await Wallet.findOne({ UserId })
 
         let WEB3 = null
         if (req.body && req.body.network) {
@@ -281,9 +281,17 @@ exports.getAccountV2 = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
     //const version = req.body.version
     if (account) {
-        var address = account?.walletV2?.keystore &&  '0x' + account?.walletV2?.keystore?.address || '0x' + account?.keystore?.address
-        let btcAddress = account.walletV2?.btc && account.walletV2?.btc?.addressSegWitCompat || account?.walletV2?.btc?.addressSegWitCompat
-        let tronAddress = account?.walletV2 && account?.walletV2?.tronAddress || account?.tronAddress;
+        var address =
+            (account?.walletV2?.keystore &&
+                '0x' + account?.walletV2?.keystore?.address) ||
+            '0x' + account?.keystore?.address
+        let btcAddress =
+            (account.walletV2?.btc &&
+                account.walletV2?.btc?.addressSegWitCompat) ||
+            account?.walletV2?.btc?.addressSegWitCompat
+        let tronAddress =
+            (account?.walletV2 && account?.walletV2?.tronAddress) ||
+            account?.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -382,7 +390,9 @@ exports.getAccount = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        var address = /*account?.walletV2?.keystore && account?.walletV2?.keystore?.address ||*/  '0x' + account.keystore?.address
+        var address =
+            /*account?.walletV2?.keystore && account?.walletV2?.keystore?.address ||*/ '0x' +
+            account.keystore?.address
         let tronAddress = account?.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
@@ -1602,7 +1612,6 @@ exports.exportkeyTron = async (id, pass) => {
 }
 
 exports.exportkeyTronV2 = async (id, pass) => {
-
     let wallet = await Wallet.findOne({ UserId: id })
 
     let Web3ETH = await erc20Connexion()
