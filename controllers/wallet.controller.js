@@ -85,7 +85,7 @@ const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
 const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
-/*
+
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -96,7 +96,7 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
-)*/
+)
 
 exports.exportBtc = async (req, res) => {
     try {
@@ -911,7 +911,7 @@ module.exports.getMnemo = async (req, res) => {
                 { UserId: req.user._id },
                 { mnemo: true, walletV2: true }
             ).lean()
-            let mnemo = wallet.walletV2.mnemo || wallet.mnemo
+            let mnemo = wallet?.walletV2?.mnemo || wallet.mnemo
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 mnemo,
