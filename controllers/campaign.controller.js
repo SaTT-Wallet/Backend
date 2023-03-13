@@ -1175,6 +1175,7 @@ exports.validateCampaign = async (req, res) => {
                 socialOracle.totalToEarn = link.totalToEarn
                 socialOracle.type = getButtonStatus(link)
                 socialOracle.acceptedDate = Math.floor(Date.now() / 1000)
+                socialOracle.id_prom = ret.prom
                 await CampaignLink.updateOne(
                     { _id: idLink },
                     { $set: socialOracle }
