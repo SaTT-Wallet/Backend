@@ -1298,6 +1298,7 @@ exports.validateProm = async (
 
     return {
         transactionHash: receipt.transactionHash,
+        prom: receipt.events.PromAccepted.returnValues.id,
     }
 }
 
