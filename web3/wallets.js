@@ -731,7 +731,7 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        var ret =
+        let ret =
             req.body.version === 'v1'
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
