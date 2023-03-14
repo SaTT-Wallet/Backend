@@ -85,6 +85,7 @@ const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
 const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
+
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -142,7 +143,7 @@ exports.exportTron = async (req, res) => {
     try {
         res.attachment()
         if (req.user.hasWallet == true) {
-            let ret = await exportkeyTron(req, res)
+            let ret = await exportkeyTron(req.user._id, req.body.pass)
             if (!ret) {
                 return
             }
@@ -163,7 +164,7 @@ exports.exportTronV2 = async (req, res) => {
     try {
         res.attachment()
         if (req.user.hasWallet == true) {
-            let ret = await exportkeyTronV2(req, res)
+            let ret = await exportkeyTronV2(req.user._id, req.body.pass)
             if (!ret) {
                 return
             }
@@ -250,7 +251,7 @@ exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             var ret =
-                req.body.version === undefined
+                req.body.version === 'v1'
                     ? await getAccount(req, res)
                     : await getAccountV2(req, res)
             if (!ret) {
@@ -520,16 +521,15 @@ exports.transferTokensController = async (req, res) => {
                     to,
                     transactionHash: result.transactionHash,
                 })
-                const wallet =
-                    (network.toUpperCase() === 'TRON' &&
-                        (await Wallet.findOne(
-                            { tronAddress: to },
-                            { UserId: 1 }
-                        ))) ||
-                    (await Wallet.findOne(
-                        { 'keystore.address': to.substring(2) },
-                        { UserId: 1 }
-                    ))
+
+                const wallet = await Wallet.findOne(
+                    {
+                        ...((network.toUpperCase() === 'TRON' && {
+                            tronAddress: to,
+                        }) || { 'keystore.address': to.substring(2) }),
+                    },
+                    { UserId: 1 }
+                ).lean()
 
                 if (wallet) {
                     await notificationManager(
@@ -911,7 +911,7 @@ module.exports.getMnemo = async (req, res) => {
                 { UserId: req.user._id },
                 { mnemo: true, walletV2: true }
             ).lean()
-            let mnemo = wallet.walletV2.mnemo || wallet.mnemo
+            let mnemo = wallet?.walletV2?.mnemo || wallet.mnemo
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 mnemo,

@@ -253,9 +253,9 @@ exports.exportkey = async (req, res) => {
 exports.exportkeyV2 = async (req, res) => {
     let id = req.user._id
     let pass = req.body.pass
-    let account = await Wallet.findOne({ UserId: parseInt(id) })
+    let account = await Wallet.findOne({ UserId: parseInt(id) }).lean()
     if (account) {
-        if (!account.walletV2.keystore.address) return 'Wallet V2 not found'
+        if (!account?.walletV2?.keystore.address) return 'Wallet V2 not found'
         var Web3ETH = await erc20Connexion()
         Web3ETH.eth.accounts.wallet.decrypt([account.walletV2.keystore], pass)
         return account.walletV2.keystore
@@ -279,26 +279,11 @@ exports.getAccountV2 = async (req, res) => {
     let UserId = req.user._id
 
     let account = await Wallet.findOne({ UserId }).lean()
-    const version = req.body.version
+    //const version = req.body.version
     if (account) {
-        var address =
-            version === 'v1'
-                ? !account.keystore
-                    ? '0x' + account.walletV2.keystore.address
-                    : '0x' + account.keystore.address
-                : '0x' + account.walletV2.keystore.address
-        let btcAddress =
-            version === 'v1'
-                ? !account.btc
-                    ? account.walletV2.btc.addressSegWitCompat
-                    : account.btc.addressSegWitCompat
-                : account.walletV2.btc.addressSegWitCompat
-        let tronAddress =
-            version === 'v1'
-                ? !account?.tronAddress
-                    ? account?.walletV2?.tronAddress
-                    : account?.tronAddress
-                : account.walletV2?.tronAddress
+        var address = account?.walletV2?.keystore &&  '0x' + account?.walletV2?.keystore?.address || '0x' + account?.keystore?.address
+        let btcAddress = account.walletV2?.btc && account.walletV2?.btc?.addressSegWitCompat || account?.walletV2?.btc?.addressSegWitCompat
+        let tronAddress = account?.walletV2 && account?.walletV2?.tronAddress || account?.tronAddress;
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -397,7 +382,7 @@ exports.getAccount = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        var address = '0x' + account.keystore.address
+        var address = /*account?.walletV2?.keystore && account?.walletV2?.keystore?.address ||*/  '0x' + account.keystore?.address
         let tronAddress = account?.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
@@ -447,7 +432,7 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account.btc.addressSegWitCompat,
+            btc: account?.btc?.addressSegWitCompat,
             address: '0x' + account.keystore.address,
             tronAddress: account.tronAddress,
             tronValue: account.tronValue,
@@ -463,10 +448,10 @@ exports.getAccount = async (req, res) => {
         result.btc_balance = 0
         if (
             process.env.NODE_ENV === 'mainnet' &&
-            account.btc &&
-            account.btc.addressSegWitCompat
+            account?.btc &&
+            account?.btc?.addressSegWitCompat
         ) {
-            result.btc = account.btc.addressSegWitCompat
+            result.btc = account?.btc?.addressSegWitCompat
 
             try {
                 var utxo = JSON.parse(
@@ -942,7 +927,7 @@ exports.getListCryptoByUid = async (req, res) => {
 exports.getBalanceByUid = async (req, res) => {
     try {
         var userId = req.user._id
-        let crypto = await this.getPrices()
+        let crypto = req.prices || (await this.getPrices())
 
         var [Total_balance, CryptoPrices] = [0, crypto]
         var {
@@ -964,7 +949,7 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['BTT']
 
         var ret =
-            req.body.version === undefined
+            req.body.version === 'v1'
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
@@ -1591,10 +1576,7 @@ exports.unWrapNative = async (credentials) => {
     }
 }
 
-exports.exportkeyTron = async (req, res) => {
-    let id = req.user._id
-    let pass = req.body.pass
-
+exports.exportkeyTron = async (id, pass) => {
     let wallet = await Wallet.findOne({ UserId: id })
 
     let Web3ETH = await erc20Connexion()
@@ -1619,9 +1601,7 @@ exports.exportkeyTron = async (req, res) => {
     return keystore
 }
 
-exports.exportkeyTronV2 = async (req, res) => {
-    let id = req.user._id
-    let pass = req.body.pass
+exports.exportkeyTronV2 = async (id, pass) => {
 
     let wallet = await Wallet.findOne({ UserId: id })
 
