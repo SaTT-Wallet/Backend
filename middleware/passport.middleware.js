@@ -163,8 +163,8 @@ const signinWithEmail = async (
             if (user.password == synfonyHash(password)) {
                 var validAuth = await isBlocked(user, true)
                 if (!validAuth.res && validAuth.auth == true) {
-                    let userAuth = cloneUser(user)
-                    let token = generateAccessToken(userAuth)
+                    //let userAuth = cloneUser(user)
+                    let token = generateAccessToken({ _id: user._id })
                     await User.updateOne(
                         { _id: Long.fromNumber(user._id) },
                         { $set: { failed_count: 0 } }
@@ -266,13 +266,15 @@ passport.use(
         { passReqToCallback: true },
         async (req, username, password, done) => {
             var date = Math.floor(Date.now() / 1000) + 86400
-            var user = await User.findOne({ email: username.toLowerCase() })
+            var user = await User.findOne({
+                email: username.toLowerCase(),
+            }).lean()
             if (user) {
                 if (user.password == synfonyHash(password)) {
                     let validAuth = await isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
-                        let userAuth = cloneUser(user.toObject())
-                        let token = generateAccessToken(userAuth)
+                        //let userAuth = cloneUser(user)
+                        let token = generateAccessToken({ _id: user._id })
                         await User.updateOne(
                             { _id: Long.fromNumber(user._id) },
                             { $set: { failed_count: 0 } }
@@ -446,7 +448,7 @@ passport.use(
             )
             let user = await new User(createdUser).save()
             createdUser._id = user._id
-            let token = generateAccessToken(createdUser)
+            let token = generateAccessToken({ _id: user._id })
             const lang = req.query.lang || 'en'
             const code = await updateAndGenerateCode(
                 createdUser._id,
@@ -543,7 +545,7 @@ exports.facebookAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: user._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -581,7 +583,7 @@ exports.googleAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: createdUser._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -632,7 +634,8 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({_id : user._id})
+        console.log('create user telegram')
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -644,20 +647,24 @@ exports.signup_telegram_function = async (req, profile, cb) => {
 begin signin with telegram strategy
 */
 exports.signin_telegram_function = async (req, profile, cb) => {
+    console.log('signin_telegram_function')
     await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
 }
 exports.telegramConnection = (req, res) => {
     try {
+        console.log('telegramConnection')
         var param = {
-            access_token: req.user.token,
-            expires_in: req.user.expires_in,
+            access_token: req.user?.token,
+            expires_in: req.user?.expires_in,
             token_type: 'bearer',
             scope: 'user',
         }
         res.redirect(
             process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
-    } catch (e) {}
+    } catch (e) {
+        console.error(e)
+    }
 }
 /*
  *end signin with telegram strategy
@@ -700,7 +707,7 @@ exports.twitterAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: createdUser._id })
 
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }

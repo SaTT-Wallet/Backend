@@ -1233,7 +1233,22 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
     } catch (err) {}
 }
 
-exports.validateProm = async (idProm, credentials, tronWeb) => {
+exports.validateProm = async (
+    id_campaign,
+    typeSN,
+    idPost,
+    idUser,
+    abosNumber,
+    ownerLink,
+    messageHash,
+    v,
+    r,
+    s,
+    credentials,
+    tronWeb
+) => {
+    console.log('id_campaign', id_campaign)
+
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
@@ -1253,19 +1268,37 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
             }
         } else return result
     }
-    var gas = 100000
-    let ctr = await getPromContract(idProm, credentials)
+    var gas = 1000000
+    // let ctr = await getPromContract(idProm, credentials)
+
+    let ctr = await getContractByNetwork(credentials)
+
+    // let ctr = await getPromContract(idProm, credentials)
+
     var gasPrice = await ctr.getGasPrice()
-    var receipt = await ctr.methods.validateProm(idProm).send({
-        from: credentials.address,
-        gas: gas,
-        gasPrice: gasPrice,
-    })
-    receipt.transactionHash
+
+    var receipt = await ctr.methods
+        .validateProm(
+            id_campaign,
+            typeSN,
+            idPost,
+            idUser,
+            abosNumber,
+            ownerLink,
+            messageHash,
+            v,
+            r,
+            s
+        )
+        .send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
 
     return {
         transactionHash: receipt.transactionHash,
-        idProm: idProm,
+        prom: receipt.events.PromAccepted.returnValues.id,
     }
 }
 
