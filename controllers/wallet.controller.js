@@ -1018,6 +1018,7 @@ exports.createNewWalletV2 = async (req, res) => {
     try {
         var { _id } = req.user
         let user = await User.findOne({ _id }, { password: 1 }).lean()
+
         if (user.password === synfonyHash(req.body.password)) {
             return responseHandler.makeResponseError(res, 401, 'same password')
         } else if (
