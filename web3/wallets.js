@@ -133,7 +133,7 @@ exports.unlockV2 = async (req, res) => {
             pass
         )
         return {
-            address: '0x' + account.walletV2.keystore,
+            address: '0x' + account.walletV2.keystore.address,
             tronAddress: account.tronAddress,
             Web3ETH,
             Web3BEP20,
