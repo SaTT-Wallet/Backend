@@ -447,7 +447,7 @@ exports.transferTokensController = async (req, res) => {
     let from = req.body.from
     var to = req.body.to
     var amount = req.body.amount
-    let max = req.query.max
+    let {max} = req.query
     //TODO: Add a constants enum for different blockchain networks
     let network = req.body.network
     let tokenSymbol = req.body.tokenSymbol
@@ -483,6 +483,7 @@ exports.transferTokensController = async (req, res) => {
                 let privateKey = (
                     await getWalletTron(userId, pass, walletversion)
                 ).priv
+
                 result = await transferTronTokens({
                     tronAddress:
                         walletversion === 'v1'
@@ -491,6 +492,7 @@ exports.transferTokensController = async (req, res) => {
                     toAddress: to,
                     amount,
                     privateKey,
+                    max
                 })
             } else {
                 result = await transferTokens({
