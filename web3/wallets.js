@@ -1350,7 +1350,6 @@ exports.createSeed = async (req, res) => {
 
 exports.createSeedV2 = async (req, res) => {
     try {
-        console.log('inside create ssed')
         var UserId = +req.user._id
         var password = req.body.password
         var escpassword = password.replace(/'/g, "\\'")
@@ -1360,9 +1359,6 @@ exports.createSeedV2 = async (req, res) => {
             keystore: { $exists: true },
         })
 
-        //   console.log("web3",web3.eth.accounts.wallet);
-
-        console.log('walletV1', walletV1)
         try {
             let pass = await web3.eth.accounts.wallet.decrypt(
                 walletV1.keystore,
