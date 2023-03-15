@@ -1350,8 +1350,9 @@ exports.createSeed = async (req, res) => {
 
 exports.createSeedV2 = async (req, res) => {
     try {
+        console.log('inside create ssed')
         var UserId = +req.user._id
-        var password = req.body.pass
+        var password = req.body.password
         var escpassword = password.replace(/'/g, "\\'")
         let web3 = await bep20Connexion()
         let walletV1 = await Wallet.findOne({
@@ -1359,82 +1360,115 @@ exports.createSeedV2 = async (req, res) => {
             keystore: { $exists: true },
         })
 
-        if (walletV1) web3.eth.accounts.decrypt(walletV1.keystore, password)
+        //   console.log("web3",web3.eth.accounts.wallet);
 
-        const mnemonic = bip39.generateMnemonic(256)
-        const seed = bip39.mnemonicToSeedSync(mnemonic, password)
-        const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
-        const rootBtcBc1 = bip32.fromSeed(seed, networkSegWit)
-        const rootEth = bip32.fromSeed(seed)
-        const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
-        const childBtcBc1 = rootBtcBc1.derivePath(pathBtcSegwit)
-        const childEth = rootEth.derivePath(pathEth)
+        console.log('walletV1', walletV1)
+        try {
+            let pass = await web3.eth.accounts.wallet.decrypt(
+                walletV1.keystore,
+                password
+            )
 
-        const address = bitcoinjs.payments.p2sh({
-            redeem: bitcoinjs.payments.p2wpkh({
-                pubkey: childBtc.publicKey,
+            if (pass) {
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'same transaction pass '
+                )
+            }
+        } catch (error) {
+            const mnemonic = bip39.generateMnemonic(256)
+            const seed = bip39.mnemonicToSeedSync(mnemonic, password)
+            const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+            const rootBtcBc1 = bip32.fromSeed(seed, networkSegWit)
+            const rootEth = bip32.fromSeed(seed)
+            const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+            const childBtcBc1 = rootBtcBc1.derivePath(pathBtcSegwit)
+            const childEth = rootEth.derivePath(pathEth)
+
+            const address = bitcoinjs.payments.p2sh({
+                redeem: bitcoinjs.payments.p2wpkh({
+                    pubkey: childBtc.publicKey,
+                    network: networkSegWitCompat,
+                }),
                 network: networkSegWitCompat,
-            }),
-            network: networkSegWitCompat,
-        }).address
+            }).address
 
-        const addressbc1 = bitcoinjs.payments.p2wpkh({
-            pubkey: childBtcBc1.publicKey,
-            network: networkSegWit,
-        }).address
+            const addressbc1 = bitcoinjs.payments.p2wpkh({
+                pubkey: childBtcBc1.publicKey,
+                network: networkSegWit,
+            }).address
 
-        var privkey = ethUtil.addHexPrefix(childEth.privateKey.toString('hex'))
+            console.log('addressbc1', addressbc1)
 
-        var pubBtc = childBtc.publicKey.toString('hex')
+            var privkey = ethUtil.addHexPrefix(
+                childEth.privateKey.toString('hex')
+            )
 
-        let Web3ETH = await erc20Connexion()
+            var pubBtc = childBtc.publicKey.toString('hex')
 
-        var account = Web3ETH.eth.accounts
-            .privateKeyToAccount(privkey)
-            .encrypt(password)
-        var ek = bip38.encrypt(childBtc.privateKey, true, escpassword)
-        var btcWallet = {
-            publicKey: pubBtc,
-            addressSegWitCompat: address,
-            addressSegWit: addressbc1,
-            publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
-            ek: ek,
-        }
-        var count = await this.getCountV2()
+            let Web3ETH = await erc20Connexion()
 
-        let TronWallet = await this.getWalletTronV2(
-            UserId,
-            password,
-            account,
-            mnemonic
-        )
+            var account = Web3ETH.eth.accounts
+                .privateKeyToAccount(privkey)
+                .encrypt(password)
 
-        await Wallet.updateOne(
-            { UserId },
-            {
-                $set: {
-                    UserId,
-                    num: count,
-                    walletV2: {
-                        keystore: account,
-                        btc: btcWallet,
-                        mnemo: mnemonic,
-                        tronAddress: TronWallet.addr,
+            console.log('account', account)
+            var ek = bip38.encrypt(childBtc.privateKey, true, escpassword)
+            var btcWallet = {
+                publicKey: pubBtc,
+                addressSegWitCompat: address,
+                addressSegWit: addressbc1,
+                publicKeySegWit: childBtcBc1.publicKey.toString('hex'),
+                ek: ek,
+            }
+            var count = await this.getCountV2()
+            console.log('count', count)
+
+            let TronWallet = await this.getWalletTronV2(
+                UserId,
+                password,
+                account,
+                mnemonic
+            )
+
+            await Wallet.updateOne(
+                { UserId },
+                {
+                    $set: {
+                        UserId,
+                        num: count,
+                        walletV2: {
+                            keystore: account,
+                            btc: btcWallet,
+                            mnemo: mnemonic,
+                            tronAddress: TronWallet.addr,
+                        },
                     },
                 },
-            },
-            { upsert: true }
-        )
+                { upsert: true }
+            )
 
-        await User.updateOne(
-            { _id: UserId },
-            { $set: { hasWalletV2: true, hasWallet: true } }
-        )
+            await User.updateOne(
+                { _id: UserId },
+                { $set: { hasWalletV2: true, hasWallet: true } }
+            )
 
-        return {
-            address: '0x' + account.address,
-            btcAddress: btcWallet.addressSegWitCompat,
-            tronAddress: TronWallet.addr,
+            console.log(
+                'return',
+                ' address:',
+                '0x' + account.address,
+                ' btcAddress:',
+                btcWallet.addressSegWitCompat,
+                ' tronAddress:',
+                TronWallet.addr
+            )
+
+            return {
+                address: '0x' + account.address,
+                btcAddress: btcWallet.addressSegWitCompat,
+                tronAddress: TronWallet.addr,
+            }
         }
     } catch (error) {
         return { error: error.message }
