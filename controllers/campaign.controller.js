@@ -797,10 +797,8 @@ exports.apply = async (req, res) => {
                     'Wallet v2 not found'
                 )
             cred = await unlockV2(req, res)
-            console.log('cred', cred)
 
             let userWallet = await Wallet.findOne({ UserId: req.user._id })
-            console.log('userWallet', userWallet)
 
             let decryptAccount =
                 await cred.Web3BEP20.eth.accounts.wallet.decrypt(
