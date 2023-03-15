@@ -1395,8 +1395,6 @@ exports.createSeedV2 = async (req, res) => {
                 network: networkSegWit,
             }).address
 
-            console.log('addressbc1', addressbc1)
-
             var privkey = ethUtil.addHexPrefix(
                 childEth.privateKey.toString('hex')
             )
@@ -1409,7 +1407,6 @@ exports.createSeedV2 = async (req, res) => {
                 .privateKeyToAccount(privkey)
                 .encrypt(password)
 
-            console.log('account', account)
             var ek = bip38.encrypt(childBtc.privateKey, true, escpassword)
             var btcWallet = {
                 publicKey: pubBtc,
@@ -1419,7 +1416,6 @@ exports.createSeedV2 = async (req, res) => {
                 ek: ek,
             }
             var count = await this.getCountV2()
-            console.log('count', count)
 
             let TronWallet = await this.getWalletTronV2(
                 UserId,
@@ -1448,16 +1444,6 @@ exports.createSeedV2 = async (req, res) => {
             await User.updateOne(
                 { _id: UserId },
                 { $set: { hasWalletV2: true, hasWallet: true } }
-            )
-
-            console.log(
-                'return',
-                ' address:',
-                '0x' + account.address,
-                ' btcAddress:',
-                btcWallet.addressSegWitCompat,
-                ' tronAddress:',
-                TronWallet.addr
             )
 
             return {
