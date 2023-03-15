@@ -56,7 +56,7 @@ connectDB()
 
 app.disable('x-powered-by')
 
-let Corsoptions = {}
+/*let Corsoptions = {}
 
 if (process.env.NODE_ENV === 'mainnet') {
     Corsoptions = {
@@ -71,13 +71,29 @@ if (process.env.NODE_ENV === 'mainnet') {
     }
 }
 
+
 app.use(cors(Corsoptions))
+*/
 
 // app.use(
 //     cors({
 //         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
 //     })
 // )
+app.use(cors('*'));
+  app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'mainnet') {
+    if(req.headers.origin) {
+        if(req.headers.origin === "https://dapp.satt.com") return next();
+        return res.redirect("https://satt-token.com");
+    } else {
+        if(req.url.includes('google') || req.url.includes('facebook') || req.url.includes('tiktok') || req.url.includes('linkedin') || req.url.includes('twitter') || req.url.includes('telegram')) return next();
+        return res.redirect("https://satt-token.com");
+    }
+}
+ return next();
+  })
+
 app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
