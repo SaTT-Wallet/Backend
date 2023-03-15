@@ -917,6 +917,7 @@ exports.applyCampaign = async (
     abos
 ) => {
     try {
+
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
                 TronConstant.campaign.abi,
