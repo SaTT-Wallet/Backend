@@ -991,11 +991,36 @@ exports.createNewWallet = async (req, res) => {
         }
     }
 }
+exports.verifySign = async (req, res) => {
+    try {
+        cred = await unlock(req, res)
+        let userWallet = await Wallet.findOne({ UserId: req.user._id })
+
+        let decryptAccount = await cred.Web3BEP20.eth.accounts.wallet.decrypt(
+            [userWallet.keystore],
+            req.body.pass
+        )
+
+        signature = await cred.Web3BEP20.eth.accounts.sign(
+            'SignWallet',
+            decryptAccount[0].privateKey
+        )
+
+        return responseHandler.makeResponseData(res, 200, 'success', signature)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 
 exports.createNewWalletV2 = async (req, res) => {
     try {
         var { _id } = req.user
         let user = await User.findOne({ _id }, { password: 1 }).lean()
+
         if (user.password === synfonyHash(req.body.password)) {
             return responseHandler.makeResponseError(res, 401, 'same password')
         } else if (
