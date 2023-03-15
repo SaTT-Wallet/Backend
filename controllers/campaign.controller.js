@@ -797,8 +797,10 @@ exports.apply = async (req, res) => {
                     'Wallet v2 not found'
                 )
             cred = await unlockV2(req, res)
+            console.log('cred', cred)
 
             let userWallet = await Wallet.findOne({ UserId: req.user._id })
+            console.log('userWallet', userWallet)
 
             let decryptAccount =
                 await cred.Web3BEP20.eth.accounts.wallet.decrypt(
@@ -1081,7 +1083,7 @@ exports.validateCampaign = async (req, res) => {
                 tronWeb.setAddress(walletAddr)
             } else {
                 req.body.network = campaign.token.type
-                cred = await unlock(req, res)
+                cred = await unlockV2(req, res)
 
                 let recoveredSigner = await cred.WEB3.eth.accounts.recover(
                     campaignLink.applyerSignature
@@ -1237,7 +1239,7 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             campaignData = await Campaigns.findOne({ hash: hash }).lean()
             req.body.network = campaignData.token.type
-            credentials = await unlock(req, res)
+            credentials = await unlockV2(req, res)
 
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
