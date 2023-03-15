@@ -6,6 +6,7 @@ module.exports.transferTronTokens = async function ({
     toAddress,
     amount,
     privateKey,
+    max = false
 }) {
     let tronWeb = await webTronInstance()
     tronWeb.setPrivateKey(privateKey)
@@ -19,6 +20,7 @@ module.exports.transferTronTokens = async function ({
     if (tronAddress === toAddress)
         throw Error('you cant send to your own wallet address !!')
     let balance = await tronWeb.trx.getBalance(tronAddress)
+    max && (amount = balance);
     if (balance === 0) throw Error('No enough balance to perform withdraw !!')
     if (new Big(amount).gt(new Big(balance)))
         throw Error('No enough balance to perform withdraw !!')
