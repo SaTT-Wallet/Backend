@@ -94,6 +94,7 @@ const { async } = require('hasha')
 const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
 const { number } = require('bitcoinjs-lib/src/script')
 
+/*
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -104,7 +105,7 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
-)
+)*/
 
 exports.exportBtc = async (req, res) => {
     try {
