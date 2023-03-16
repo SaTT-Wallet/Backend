@@ -198,7 +198,7 @@ exports.exportkeyBtc = async (req, res) => {
         try {
             var Web3ETH = await erc20Connexion()
             Web3ETH.eth.accounts.wallet.decrypt([account.keystore], pass)
-            return account.btc.ek
+            return account.btc?.ek
         } catch (e) {
             return responseHandler.makeResponseError(res, 401, 'Wrong password')
         } finally {
