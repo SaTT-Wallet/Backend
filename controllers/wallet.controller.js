@@ -38,7 +38,11 @@ const {
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
-const { synfonyHash } = require('../helpers/utils')
+const {
+    synfonyHash,
+    configureTranslation,
+    readHTMLFileLogin,
+} = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
@@ -76,15 +80,19 @@ const {
     exportkeyV2,
     exportkeyBtcV2,
     exportkeyTronV2,
-    getAccountV2,
+    getAccountV2
 } = require('../web3/wallets')
 
-const { notificationManager } = require('../manager/accounts')
+const {
+    notificationManager,
+    updateAndGenerateCode,
+} = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
 const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
+const { number } = require('bitcoinjs-lib/src/script')
 
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
@@ -447,7 +455,7 @@ exports.transferTokensController = async (req, res) => {
     let from = req.body.from
     var to = req.body.to
     var amount = req.body.amount
-    let {max} = req.query
+    let { max } = req.query
     //TODO: Add a constants enum for different blockchain networks
     let network = req.body.network
     let tokenSymbol = req.body.tokenSymbol
@@ -492,7 +500,7 @@ exports.transferTokensController = async (req, res) => {
                     toAddress: to,
                     amount,
                     privateKey,
-                    max
+                    max,
                 })
             } else {
                 result = await transferTokens({
@@ -1021,7 +1029,7 @@ exports.createNewWalletV2 = async (req, res) => {
         var { _id } = req.user
         let user = await User.findOne({ _id }, { password: 1 }).lean()
 
-        if (user.password === synfonyHash(req.body.password)) {
+        if (user.password === synfonyHash(req.body.pass)) {
             return responseHandler.makeResponseError(res, 401, 'same password')
         } else if (
             (req.user.hasWallet && !req.user.hasWalletV2) ||
@@ -1466,6 +1474,215 @@ exports.resetpassword = async (req, res) => {
             'wallet v2 not exist',
             false
         )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.getCodeKeyStore = async (req, res) => {
+    try {
+        const { network, version } = req.body
+        if (
+            (version === '1' || version === '2') &&
+            (network === 'eth' || network === 'btc' || network === 'tron')
+        ) {
+            const _id = req.user._id
+            let user = await User.findOne({ _id })
+
+            if (!user) {
+                return responseHandler.makeResponseError(
+                    res,
+                    204,
+                    'user not found',
+                    false
+                )
+            } else {
+                const code = Math.floor(100000 + Math.random() * 900000)
+                let secureCode = {}
+                ;(secureCode.code = code),
+                    (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+                    (secureCode.type = `keystore-v${version}-${network}`)
+                console.log('secure code is ', secureCode)
+                await User.updateOne({ _id }, { $set: { secureCode } })
+                let lang = req.body.lang || 'en'
+                configureTranslation(lang)
+                readHTMLFileLogin(
+                    __dirname +
+                        '/../public/emailtemplate/email_validated_code.html',
+                    'emailValidation',
+                    null,
+                    null,
+                    code,
+                    user
+                )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'code sent',
+                    true
+                )
+            }
+        } else {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                'inputs not supported'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportKeyStore = async (req, res) => {
+    try {
+        // VARIABLES FROM REQUEST
+        const _id = req.user._id
+        const { code, network, version } = req.body
+
+        // INPUT VALIDATION
+        if (
+            code &&
+            typeof code === 'number' &&
+            (network === 'eth' || network === 'btc' || network === 'tron') &&
+            (version === '1' || version === '2')
+        ) {
+            const user = await User.findOne({ _id })
+            const wallet = await Wallet.findOne({ UserId: _id }).lean()
+
+            // CHECK WALLET VERSION
+            if (version === '1') {
+                /*****                    WALLET V1                        ******/
+
+                //CHECK FOR CODE VERIFICATION
+                if (
+                    parseInt(code) === user.secureCode.code &&
+                    user.secureCode.type.includes(network) &&
+                    user.secureCode.type.includes(version)
+                ) {
+                    // CHECK FOR EXPIRED CODE
+                    if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
+                        // CHECK USER WALLET V1 EXIST
+                        if (
+                            wallet.keystore &&
+                            wallet.btc 
+                        ) {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                (network === 'eth' && wallet.keystore) || (network === 'btc' && wallet?.btc?.ek),
+                                true
+                            )
+                        } else {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                'wallet v1 not found',
+                                false
+                            )
+                        }
+                    } else {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'code expired',
+                            false
+                        )
+                    }
+                } else {
+                    await User.updateOne(
+                        { _id: user._id },
+                        {
+                            $set: {
+                                'secureCode.attempts':
+                                    user.secureCode.attempts + 1,
+                            },
+                        }
+                    )
+                    return responseHandler.makeResponseData(
+                        res,
+                        200,
+                        code !== user.secureCode.code
+                            ? 'code wrong'
+                            : 'network or version wrong',
+                        false
+                    )
+                }
+            } else {
+                /*****                    WALLET V2                        ******/
+
+                //CHECK FOR CODE VERIFICATION
+                if (
+                    parseInt(code) === user.secureCode.code &&
+                    user.secureCode.type.includes(network) &&
+                    user.secureCode.type.includes(version)
+                ) {
+                    // CHECK FOR EXPIRED CODE
+                    if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
+                        // CHECK USER WALLET V2 EXIST
+                        if (
+                            wallet.walletV2?.keystore &&
+                            wallet.walletV2?.btc 
+                        ) {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                (network === 'eth' && wallet.walletV2.keystore) || (network === 'btc' && wallet.walletV2?.btc.ek),
+                                true
+                            )
+                        } else {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                'wallet v2 not found',
+                                false
+                            )
+                        }
+                    } else {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'code expired',
+                            false
+                        )
+                    }
+                } else {
+                    await User.updateOne(
+                        { _id: user._id },
+                        {
+                            $set: {
+                                'secureCode.attempts':
+                                    user.secureCode.attempts + 1,
+                            },
+                        }
+                    )
+                    return responseHandler.makeResponseData(
+                        res,
+                        200,
+                        code !== user.secureCode.code
+                            ? 'code wrong'
+                            : 'network or version wrong',
+                        false
+                    )
+                }
+            }
+        } else {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'inputs not supported',
+                false
+            )
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
