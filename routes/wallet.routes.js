@@ -45,6 +45,8 @@ const {
     checkIsNewUser,
     transferAllTron,
     resetpassword,
+    getCodeKeyStore,
+    exportKeyStore,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -930,5 +932,8 @@ router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
  *          description: code,<br>error:"error"
  */
 router.post('/resetpassword', verifyAuth, resetpassword)
+
+router.post('/code-export-keystore', verifyAuth, getCodeKeyStore)
+router.post('/export-keystore', verifyAuth, exportKeyStore)
 
 module.exports = router
