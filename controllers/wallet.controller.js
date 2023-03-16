@@ -80,7 +80,7 @@ const {
     exportkeyV2,
     exportkeyBtcV2,
     exportkeyTronV2,
-    getAccountV2,
+    getAccountV2
 } = require('../web3/wallets')
 
 const {
@@ -1502,7 +1502,6 @@ exports.getCodeKeyStore = async (req, res) => {
                 )
             } else {
                 const code = Math.floor(100000 + Math.random() * 900000)
-                console.log('code is ', code)
                 let secureCode = {}
                 ;(secureCode.code = code),
                     (secureCode.expiring = Date.now() + 3600 * 20 * 5),
@@ -1575,17 +1574,12 @@ exports.exportKeyStore = async (req, res) => {
                         // CHECK USER WALLET V1 EXIST
                         if (
                             wallet.keystore &&
-                            wallet.btc &&
-                            wallet.tronAddress
+                            wallet.btc 
                         ) {
                             return responseHandler.makeResponseData(
                                 res,
                                 200,
-                                network === 'eth'
-                                    ? wallet.keystore
-                                    : network === 'btc'
-                                    ? wallet.btc.ek
-                                    : wallet.tronAddress,
+                                (network === 'eth' && wallet.keystore) || (network === 'btc' && wallet?.btc?.ek),
                                 true
                             )
                         } else {
@@ -1637,17 +1631,12 @@ exports.exportKeyStore = async (req, res) => {
                         // CHECK USER WALLET V2 EXIST
                         if (
                             wallet.walletV2?.keystore &&
-                            wallet.walletV2?.btc &&
-                            wallet.walletV2?.tronAddress
+                            wallet.walletV2?.btc 
                         ) {
                             return responseHandler.makeResponseData(
                                 res,
                                 200,
-                                network === 'eth'
-                                    ? wallet.walletV2.keystore
-                                    : network === 'btc'
-                                    ? wallet.walletV2.btc.ek
-                                    : wallet.walletV2.tronAddress,
+                                (network === 'eth' && wallet.walletV2.keystore) || (network === 'btc' && wallet.walletV2?.btc.ek),
                                 true
                             )
                         } else {
