@@ -1852,13 +1852,13 @@ module.exports.increaseBudget = async (req, res) => {
 exports.getFunds = async (req, res) => {
     var hash = req.body.hash
     try {
-        let _id = req.user._id
-        var campaignDetails = await Campaigns.findOne({ hash })
+        let {_id} = req.user;
+        var campaignDetails = await Campaigns.findOne({ hash },{idNode:1,token :1}).lean()
 
         if (campaignDetails?.idNode !== '0' + _id) {
             return responseHandler.makeResponseError(res, 204, 'unauthorized')
         } else {
-            var cred = await unlock(req, res)
+            var cred = await unlockV2(req, res)
             var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
 
             return responseHandler.makeResponseData(
