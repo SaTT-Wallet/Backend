@@ -1361,7 +1361,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 ;(secureCode.code = code),
                     (secureCode.expiring = Date.now() + 3600 * 20 * 5),
                     (secureCode.type = `keystore-v${version}-${network}`)
-                console.log('secure code is ', secureCode)
+                
                 await User.updateOne({ _id }, { $set: { secureCode } })
                 let lang = req.body.lang || 'en'
                 configureTranslation(lang)
