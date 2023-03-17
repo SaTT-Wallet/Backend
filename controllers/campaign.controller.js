@@ -30,6 +30,7 @@ const {
     getAccount,
     getWalletTron,
     getAccountV2,
+    unlockV2,
 } = require('../web3/wallets')
 const {
     fundCampaign,
@@ -258,7 +259,7 @@ module.exports.launchCampaign = async (req, res) => {
                 await wrappedtrx(tronWeb, amount)
             }
         } else {
-            cred = await unlock(req, res)
+            cred = await unlockV2(req, res)
 
             if (!cred) return
         }
@@ -360,7 +361,7 @@ module.exports.launchBounty = async (req, res) => {
                 await wrappedtrx(tronWeb, amount)
             }
         } else {
-            cred = await unlock(req, res)
+            cred = await unlockV2(req, res)
 
             if (!cred) return
         }
@@ -795,7 +796,7 @@ exports.apply = async (req, res) => {
                     401,
                     'Wallet v2 not found'
                 )
-            cred = await unlock(req, res)
+            cred = await unlockV2(req, res)
 
             let userWallet = await Wallet.findOne({ UserId: req.user._id })
 
@@ -1222,7 +1223,7 @@ exports.gains = async (req, res) => {
         var link = await CampaignLink.findOne({ id_prom: idProm }).lean()
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
-        if (link.acceptedDate && date - link.acceptedDate <= 86400) {
+        if (link.acceptedDate && date - link.acceptedDate <= 300) {
             return responseHandler.makeResponseError(
                 res,
                 403,

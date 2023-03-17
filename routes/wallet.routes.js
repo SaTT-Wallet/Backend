@@ -21,6 +21,7 @@ const {
     cryptoDetails,
     getMnemo,
     verifyMnemo,
+    verifySign,
     createNewWallet,
     removeToken,
     getTransactionHistory,
@@ -44,6 +45,8 @@ const {
     checkIsNewUser,
     transferAllTron,
     resetpassword,
+    getCodeKeyStore,
+    exportKeyStore,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -713,6 +716,32 @@ router.post('/create', verifyAuth, createNewWallet)
 
 /**
  * @swagger
+ * /wallet/verifySign:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: verify wallet.
+ *     description: verif wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/verifySign', verifyAuth, verifySign)
+
+/**
+ * @swagger
  * /wallet/create/v2:
  *   post:
  *     tags:
@@ -903,5 +932,8 @@ router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
  *          description: code,<br>error:"error"
  */
 router.post('/resetpassword', verifyAuth, resetpassword)
+
+router.post('/code-export-keystore', verifyAuth, getCodeKeyStore)
+router.post('/export-keystore', verifyAuth, exportKeyStore)
 
 module.exports = router
