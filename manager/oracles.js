@@ -1,5 +1,5 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
-var rp = require('request-promise')
+var rp = require('axios');
 const child_process = require('child_process')
 const {
     FbPage,
