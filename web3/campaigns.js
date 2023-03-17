@@ -1012,7 +1012,9 @@ exports.getRemainingFunds = async (token, hash, credentials) => {
             transactionHash: receipt.transactionHash,
             hash: hash,
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error(err)
+    }
 }
 
 exports.getReachLimit = async (campaignRatio, oracle) => {
