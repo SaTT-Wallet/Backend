@@ -1368,7 +1368,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 readHTMLFileLogin(
                     __dirname +
                         '/../public/emailtemplate/email_validated_code.html',
-                    'emailValidation',
+                    'exportKeystore',
                     null,
                     null,
                     code,
