@@ -153,7 +153,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             }
         }
 
-        if (event === 'emailValidation') {
+        if (event === 'emailValidation' || event === "exportKeystore") {
             var replacements = {
                 satt_faq: process.env.SATT_FAQ,
                 satt_url: process.env.BASED_URL,
@@ -164,7 +164,7 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             var mailOptions = {
                 from: process.env.MAIL_SENDER,
                 to: user.email?.toLowerCase(),
-                subject: 'Satt wallet activation',
+                subject: event === "exportKeystore"&& 'Export keystore' || 'Satt wallet activation',
                 html: htmlToSend,
             }
         }
