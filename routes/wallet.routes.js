@@ -41,11 +41,114 @@ const {
     resetpassword,
     getCodeKeyStore,
     exportKeyStore,
+    exportEth,
+    exportBtc,
+    exportTron,
+    exportEthV2,
+    exportBtcV2,
+    exportTronV2,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
     verifyAuthGetQuote,
 } = require('../middleware/passport.middleware')
+
+
+/**
+ * @swagger
+ * /wallet/exportBtc:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export btc wallet.
+ *     description: user can download his BTC key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/exportBtc', verifyAuth, exportBtc)
+
+router.post('/exportBtcV2', verifyAuth, exportBtcV2)
+
+
+/**
+ * @swagger
+ * /wallet/exportETH:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export eth wallet.
+ *     description: user can download his ETH key, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/exportETH', verifyAuth, exportEth)
+
+router.post('/exportETHV2', verifyAuth, exportEthV2)
+
+
+
+
+
+/**
+ * @swagger
+ * /wallet/exportTron:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: export tron wallet.
+ *     description: user can download his Tronlink compatible keystore, <br> with access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               pass:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/exportTron', verifyAuth, exportTron)
+
+router.post('/exportTronV2', verifyAuth, exportTronV2)
+
+
+
+
+
+
+
 
 /**
  * @swagger
