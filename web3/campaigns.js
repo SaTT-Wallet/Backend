@@ -21,7 +21,7 @@ const {
     BttNetworkConstant,
 } = require('../conf/const')
 const { config } = require('../conf/config')
-const rp = require('request-promise')
+const rp = require('axios');
 const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')

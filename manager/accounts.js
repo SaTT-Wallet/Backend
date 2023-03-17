@@ -2,7 +2,7 @@ const { Notification, User } = require('../model/index')
 
 const { sendNotification } = require('./notification')
 
-var rp = require('request-promise')
+var rp = require('axios');
 
 const { token200, Tokens } = require('../conf/config')
 

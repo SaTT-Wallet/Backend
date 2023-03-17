@@ -1,4 +1,4 @@
-var rp = require('request-promise')
+var rp = require('axios');
 const validator = require('validator')
 
 const {

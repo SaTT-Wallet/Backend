@@ -16,7 +16,7 @@ const {
 } = require('./web3-connection')
 var cache = require('memory-cache')
 
-var rp = require('request-promise')
+var rp = require('axios');
 const Big = require('big.js')
 var wif = require('wif')
 

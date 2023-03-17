@@ -1,6 +1,6 @@
 const { User, Wallet, CustomToken, WalletUserNode } = require('../model/index')
 
-const rp = require('request-promise')
+const rp = require('axios');
 const path = require('path')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
