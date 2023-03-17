@@ -389,13 +389,16 @@ exports.UpdateStats = async (obj, socialOracle) => {
     }
 
     await CampaignLink.findOne(
-        { id_prom: obj.id_prom },
+        { 'applyerSignature.signature': obj.applyerSignature.signature },
         async (err, result) => {
             if (!result) {
                 await CampaignLink.create(obj)
             } else {
                 await CampaignLink.updateOne(
-                    { id_prom: obj.id_prom },
+                    {
+                        'applyerSignature.signature':
+                            obj.applyerSignature.signature,
+                    },
                     { $set: obj }
                 )
             }
@@ -409,7 +412,7 @@ exports.BalanceUsersStats = async (condition) => {
     ;[result.Date, result.convertDate] = [currentDate, today]
 
     var query = condition + '.convertDate'
-  
+
     var users_ = await User.find(
         {
             $and: [
@@ -420,7 +423,7 @@ exports.BalanceUsersStats = async (condition) => {
         },
         { daily: 1, weekly: 1, monthly: 1 }
     )
-  
+
     let [counter, usersCount] = [0, users_.length]
     while (counter < usersCount) {
         let balance
@@ -454,7 +457,7 @@ exports.BalanceUsersStats = async (condition) => {
         ) {
             counter++
         } else {
-            console.log('user balance: ' + result.Balance , "userId: " + id)
+            console.log('user balance: ' + result.Balance, 'userId: ' + id)
             user[condition].unshift(result)
             if (user[condition].length > 7) {
                 user[condition].pop()
