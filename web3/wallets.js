@@ -25,8 +25,7 @@ var bip38 = require('bip38')
 var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
-const bitcoinCore = require('bitcoin-core')
-const Client = require('bitcoin-core')
+
 const tronWeb = require('tronweb')
 
 const {
