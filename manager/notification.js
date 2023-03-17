@@ -1,6 +1,6 @@
 const { JWT } = require('google-auth-library')
 const serviceAccount = require('../conf/satt-token-firebase-adminsdk-fwxcj-2215bda3fa.json')
-const request = require('request')
+const request = require('axios')
 
 const getAccessToken = () => {
     return new Promise((resolve, reject) => {
@@ -25,18 +25,19 @@ const getAccessToken = () => {
 
 exports.sendNotification = async (data) => {
     let fireBaseAccessToken = await getAccessToken()
-    var clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/v1/projects/satt-token/messages:send',
-        body: JSON.stringify(data),
-        method: 'POST',
+    var axiosOptions = {
+        url: 'https://fcm.googleapis.com/v1/projects/satt-token/messages:send',
+        method: 'post',
         headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer ' + fireBaseAccessToken,
         },
+        data: JSON.stringify(data)
     }
-    request(clientServerOptions, (error, response) => {
-        error
-        return
+    axios(axiosOptions).then((response) => {
+        console.log(response)
+    }).catch((error) => {
+        console.error(error)
     })
 }
 
@@ -67,23 +68,23 @@ exports.sendNotificationTest = async (req, res) => {
 
     let fireBaseAccessToken = await getAccessToken()
     var clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/v1/projects/satt-token/messages:send',
-        body: JSON.stringify(data),
+        url: 'https://fcm.googleapis.com/v1/projects/satt-token/messages:send',
+        data: JSON.stringify(data),
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer ' + fireBaseAccessToken,
         },
     }
-    request(clientServerOptions, (error, response) => {
-        if (response) {
-            res.send(response)
-        }
-        if (error) {
-        }
 
-        return
-    })
+    axios(clientServerOptions)
+        .then((response) => {
+            res.send(response.data)
+        })
+        .catch((error) => {
+            console.error(error)
+        })
 }
+
 
 // module.exports = { sendNotification }
