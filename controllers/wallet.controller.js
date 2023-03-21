@@ -107,154 +107,8 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
 )*/
 
-exports.exportBtc = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            var cred = await unlock(req, res)
-            if (!cred) return
 
-            let ret = await exportkeyBtc(req, res)
 
-            res.status(200).send({ ret })
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
-    } catch (err) {}
-}
-
-exports.exportEth = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            let ret = await exportkey(req, res)
-            if (!ret) {
-                return
-            }
-            res.status(200).send(ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.exportTron = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            let ret = await exportkeyTron(req.user._id, req.body.pass)
-            if (!ret) {
-                return
-            }
-            res.status(200).send(ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.exportTronV2 = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            let ret = await exportkeyTronV2(req.user._id, req.body.pass)
-            if (!ret) {
-                return
-            }
-            res.status(200).send(ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.exportBtcV2 = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            var cred = await unlockV2(req, res)
-            if (!cred) return
-            if (cred) {
-                if (cred == 'Wallet v2 not found')
-                    return res.status(200).send(cred)
-                let ret = await exportkeyBtcV2(req, res)
-                res.status(200).send({ ret })
-            } else {
-                return
-            }
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
-    } catch (err) {}
-}
-
-exports.exportEthV2 = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            let ret = await exportkeyV2(req, res)
-            if (!ret) {
-                return
-            }
-            res.status(200).send(ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.exportWalletInfos = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-            let ret = await exportWalletInfo(req, res)
-            let address = '0x' + ret.keystore.address
-            if (!ret) {
-                return
-            }
-            res.status(200).send({ keystore: ret.keystore, address })
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
 
 exports.mywallet = async (req, res) => {
     try {
@@ -1514,7 +1368,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 readHTMLFileLogin(
                     __dirname +
                         '/../public/emailtemplate/email_validated_code.html',
-                    'emailValidation',
+                    'exportKeystore',
                     null,
                     null,
                     code,
