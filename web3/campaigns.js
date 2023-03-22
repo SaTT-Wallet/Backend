@@ -21,7 +21,7 @@ const {
     BttNetworkConstant,
 } = require('../conf/const')
 const { config } = require('../conf/config')
-const rp = require('axios');
+const rp = require('axios')
 const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
@@ -917,7 +917,6 @@ exports.applyCampaign = async (
     abos
 ) => {
     try {
-
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
                 TronConstant.campaign.abi,
@@ -1012,7 +1011,9 @@ exports.getRemainingFunds = async (token, hash, credentials) => {
             transactionHash: receipt.transactionHash,
             hash: hash,
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error(err)
+    }
 }
 
 exports.getReachLimit = async (campaignRatio, oracle) => {
