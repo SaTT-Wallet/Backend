@@ -80,7 +80,7 @@ const {
     exportkeyV2,
     exportkeyBtcV2,
     exportkeyTronV2,
-    getAccountV2
+    getAccountV2,
 } = require('../web3/wallets')
 
 const {
@@ -106,9 +106,6 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
 )*/
-
-
-
 
 exports.mywallet = async (req, res) => {
     try {
@@ -1367,7 +1364,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 configureTranslation(lang)
                 readHTMLFileLogin(
                     __dirname +
-                        '/../public/emailtemplate/email_validated_code.html',
+                        '/../public/emailtemplate/email_validated_keystore_code.html',
                     'exportKeystore',
                     null,
                     null,
@@ -1427,14 +1424,12 @@ exports.exportKeyStore = async (req, res) => {
                     // CHECK FOR EXPIRED CODE
                     if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
                         // CHECK USER WALLET V1 EXIST
-                        if (
-                            wallet.keystore &&
-                            wallet.btc 
-                        ) {
+                        if (wallet.keystore && wallet.btc) {
                             return responseHandler.makeResponseData(
                                 res,
                                 200,
-                                (network === 'eth' && wallet.keystore) || (network === 'btc' && wallet?.btc?.ek),
+                                (network === 'eth' && wallet.keystore) ||
+                                    (network === 'btc' && wallet?.btc?.ek),
                                 true
                             )
                         } else {
@@ -1484,14 +1479,14 @@ exports.exportKeyStore = async (req, res) => {
                     // CHECK FOR EXPIRED CODE
                     if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
                         // CHECK USER WALLET V2 EXIST
-                        if (
-                            wallet.walletV2?.keystore &&
-                            wallet.walletV2?.btc 
-                        ) {
+                        if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
                             return responseHandler.makeResponseData(
                                 res,
                                 200,
-                                (network === 'eth' && wallet.walletV2.keystore) || (network === 'btc' && wallet.walletV2?.btc.ek),
+                                (network === 'eth' &&
+                                    wallet.walletV2.keystore) ||
+                                    (network === 'btc' &&
+                                        wallet.walletV2?.btc.ek),
                                 true
                             )
                         } else {
