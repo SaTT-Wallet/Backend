@@ -16,7 +16,7 @@ const {
 } = require('./web3-connection')
 var cache = require('memory-cache')
 
-var rp = require('axios');
+var rp = require('axios')
 const Big = require('big.js')
 var wif = require('wif')
 
@@ -525,32 +525,53 @@ exports.getPrices = async () => {
         ) {
             return cache.get('prices').data
         } else {
-            var options = {
+            const options = {
                 method: 'GET',
-                uri:
-                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY=' +
-                    process.env.CMCAPIKEY,
-
-                json: true,
+                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                params: {
+                    start: '1',
+                    limit: '200',
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
             }
 
-            var options2 = {
+            const options2 = {
                 method: 'GET',
-                uri:
-                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET%2CBTT&convert=USD&CMC_PRO_API_KEY=' +
-                    process.env.CMCAPIKEY,
-
-                json: true,
+                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',
+                params: {
+                    symbol: 'SATT,JET,BTT',
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
             }
-            let result = await Promise.all([rp(options), rp(options2)])
+
+            let result 
+
+            try {
+                result = await Promise.all([
+                    rp.request(options),
+                    rp.request(options2),
+                ])
+
+            } catch (error) {
+                console.error(error)
+                throw new Error('Error fetching prices')
+            }
+
             var response = result[0]
 
             var responseSattJet = result[1]
-            response.data.push(responseSattJet.data.SATT)
-            response.data.push(responseSattJet.data.JET)
-            response.data.push(responseSattJet.data.BTT)
-
-            var priceMap = response.data.map((elem) => {
+            response.data.data.push(responseSattJet.data.data.SATT)
+            response.data.data.push(responseSattJet.data.data.JET)
+            response.data.data.push(responseSattJet.data.data.BTT)
+            let  priceMap
+            try {
+             priceMap = response.data.data.map((elem) => {
                 var obj = {}
                 let tokenAddress = null
                 if (elem.platform?.name === 'BNB') {
@@ -563,16 +584,16 @@ exports.getPrices = async () => {
                         tokenAddress: tokenAddress,
                         symbol: elem.symbol,
                         name: elem.name,
-                        price: elem.quote.USD.price,
-                        percent_change_24h: elem.quote.USD.percent_change_24h,
-                        market_cap: elem.quote.USD.market_cap,
-                        volume_24h: elem.quote.USD.volume_24h,
+                        price: elem?.quote.USD.price,
+                        percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        market_cap: elem?.quote.USD.market_cap,
+                        volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
                         total_supply: elem.total_supply,
                         max_supply: elem.max_supply,
 
                         fully_diluted:
-                            responseSattJet.data.SATT.quote.USD
+                            responseSattJet.data.SATT?.quote.USD
                                 .fully_diluted_market_cap,
                         logo:
                             'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
@@ -586,10 +607,10 @@ exports.getPrices = async () => {
                         tokenAddress: tokenAddress,
                         symbol: elem.symbol,
                         name: elem.name,
-                        price: elem.quote.USD.price,
-                        percent_change_24h: elem.quote.USD.percent_change_24h,
-                        market_cap: elem.quote.USD.market_cap,
-                        volume_24h: elem.quote.USD.volume_24h,
+                        price: elem?.quote.USD.price,
+                        percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        market_cap: elem?.quote.USD.market_cap,
+                        volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
                         total_supply: elem.total_supply,
                         max_supply: elem.max_supply,
@@ -601,6 +622,12 @@ exports.getPrices = async () => {
 
                 return obj
             })
+
+        } catch (error) {
+            console.error(error)
+            throw new Error('Error fetching prices')
+        }
+
             var finalMap = {}
             for (var i = 0; i < priceMap.length; i++) {
                 finalMap[priceMap[i].symbol] = priceMap[i]
