@@ -1364,7 +1364,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 configureTranslation(lang)
                 readHTMLFileLogin(
                     __dirname +
-                        '/../public/emailtemplate/email_validated_code.html',
+                        '/../public/emailtemplate/email_validated_keystore_code.html',
                     'exportKeystore',
                     null,
                     null,
