@@ -1345,7 +1345,11 @@ exports.getCodeKeyStore = async (req, res) => {
             const _id = req.user._id
             let user = await User.findOne({ _id })
 
-            let walletAddr = user.WalletId
+            let wallet = await Wallet.findOne({
+                UserId: _id,
+            })
+
+            let walletAddr = wallet.keystore.address
 
             if (!user) {
                 return responseHandler.makeResponseError(
@@ -1371,8 +1375,8 @@ exports.getCodeKeyStore = async (req, res) => {
                     null,
                     null,
                     code,
-                    walletAddr,
-                    user
+                    user,
+                    walletAddr
                 )
                 return responseHandler.makeResponseData(
                     res,
