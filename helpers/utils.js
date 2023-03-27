@@ -131,7 +131,15 @@ exports.readHTMLFileProfile = (
     })
 }
 
-exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
+exports.readHTMLFileLogin = (
+    path,
+    event,
+    ip,
+    requestDate,
+    code,
+    user,
+    walletAddr
+) => {
     readHTMLFile(path, async (err, html) => {
         var template = handlebars.compile(html)
 
@@ -153,12 +161,31 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             }
         }
 
-        if (event === 'emailValidation' || event === 'exportKeystore') {
+        if (event === 'emailValidation') {
             var replacements = {
                 satt_faq: process.env.SATT_FAQ,
                 satt_url: process.env.BASED_URL,
                 code,
                 imgUrl: process.env.BASE_EMAIL_IMG_URL,
+            }
+            var htmlToSend = template(replacements)
+            var mailOptions = {
+                from: process.env.MAIL_SENDER,
+                to: user.email?.toLowerCase(),
+                subject:
+                    (event === 'exportKeystore' && 'Export keystore') ||
+                    'Satt wallet activation',
+                html: htmlToSend,
+            }
+        }
+
+        if (event === 'exportKeystore') {
+            var replacements = {
+                satt_faq: process.env.SATT_FAQ,
+                satt_url: process.env.BASED_URL,
+                code,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                walletAddr,
             }
             var htmlToSend = template(replacements)
             var mailOptions = {
