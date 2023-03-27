@@ -184,8 +184,8 @@ exports.readHTMLFileLogin = (
                 satt_faq: process.env.SATT_FAQ,
                 satt_url: process.env.BASED_URL,
                 code,
-                walletAddr,
                 imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                walletAddr,
             }
             var htmlToSend = template(replacements)
             var mailOptions = {
