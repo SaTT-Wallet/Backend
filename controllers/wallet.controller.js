@@ -1351,9 +1351,9 @@ exports.getCodeKeyStore = async (req, res) => {
                 UserId: _id,
             })
             if (version === '1') {
-                walletAddr = '0X' + (await wallet.keystore.address)
+                walletAddr = '0x' + (await wallet.keystore.address)
             } else {
-                walletAddr = '0X' + (await wallet.walletV2.keystore.address)
+                walletAddr = '0x' + (await wallet.walletV2.keystore.address)
             }
             if (!user) {
                 return responseHandler.makeResponseError(
