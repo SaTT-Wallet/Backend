@@ -1337,6 +1337,8 @@ exports.resetpassword = async (req, res) => {
 
 exports.getCodeKeyStore = async (req, res) => {
     try {
+        let walletAddr
+
         const { network, version } = req.body
         if (
             (version === '1' || version === '2') &&
@@ -1348,9 +1350,11 @@ exports.getCodeKeyStore = async (req, res) => {
             let wallet = await Wallet.findOne({
                 UserId: _id,
             })
-
-            let walletAddr = wallet.keystore.address
-
+            if (version === '1') {
+                walletAddr = await wallet.keystore.address
+            } else {
+                walletAddr = await wallet.walletV2.keystore.address
+            }
             if (!user) {
                 return responseHandler.makeResponseError(
                     res,
