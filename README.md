@@ -2,7 +2,7 @@
 
 ## SaTT Wallet API
 
-Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://satt.atayen.us/)
+Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://dapp.satt.com/)
 
 It provides :
 
