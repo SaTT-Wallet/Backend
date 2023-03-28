@@ -389,10 +389,9 @@ exports.getAccount = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        var address =
-            /*account?.walletV2?.keystore && account?.walletV2?.keystore?.address ||*/ '0x' +
-            account.keystore?.address
-        let tronAddress = account?.tronAddress
+        var address = account.keystore && '0x' + account.keystore?.address || '0x' + account.walletV2?.keystore?.address 
+
+        let tronAddress = account?.tronAddress || account.walletV2?.tronAddress 
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
