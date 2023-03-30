@@ -1154,7 +1154,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                 networkProvidersOptions[network]
             )
 
-            let bnb = tokens.findIndex(
+            let nativeIndex = tokens.findIndex(
                 (elem) =>
                     elem.symbol == 'BNB' ||
                     elem.symbol == 'ETH' ||
@@ -1162,7 +1162,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     elem.symbol == 'BTT'
             )
 
-            bnb !== -1 && tokens.splice(bnb, 1)
+            nativeIndex !== -1 && tokens.splice(nativeIndex, 1)
 
             for (let token of tokens) {
                 try {
@@ -1186,12 +1186,11 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     })
                     send?.transactionHash && transactionHash.push(send)
                 } catch (err) {
-                    console.error(err)
                     continue
                 }
             }
 
-            if (bnb !== -1) {
+            if (nativeIndex !== -1) {
                 let connexionObj = {
                     BEP20: bep20Connexion,
                     ERC20: erc20Connexion,
@@ -1225,7 +1224,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     walletPassword: pass, // req.body
                     encryptedPrivateKey: accountData.keystore,
                     max: false,
-                    ...(bnb !== -1 && { token: true }),
+                    ...(nativeIndex !== -1 && { token: true }),
                     network,
                 })
 
@@ -1240,7 +1239,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             )
         }
     } catch (err) {
-        console.error(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1345,16 +1343,22 @@ exports.getCodeKeyStore = async (req, res) => {
             (network === 'eth' || network === 'btc' || network === 'tron')
         ) {
             const _id = req.user._id
-            let user = await User.findOne({ _id })
+            // let user = await User.findOne({ _id },{email :1}).lean()
 
-            let wallet = await Wallet.findOne({
+            // let wallet = await Wallet.findOne({
+            //     UserId: _id,
+            // }).lean()
+
+            let [user, wallet] = await Promise.all([User.findOne({ _id },{email :1}).lean(),Wallet.findOne({
                 UserId: _id,
-            })
+            }).lean()])
+
             if (version === '1') {
-                walletAddr = '0x' + (await wallet.keystore.address)
+                walletAddr = '0x' +  wallet.keystore.address
             } else {
-                walletAddr = '0x' + (await wallet.walletV2.keystore.address)
+                walletAddr = '0x' +  wallet.walletV2.keystore.address
             }
+
             if (!user) {
                 return responseHandler.makeResponseError(
                     res,
@@ -1368,7 +1372,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 ;(secureCode.code = code),
                     (secureCode.expiring = Date.now() + 3600 * 20 * 5),
                     (secureCode.type = `keystore-v${version}-${network}`)
-                console.log('secure code is ', secureCode)
+                
                 await User.updateOne({ _id }, { $set: { secureCode } })
                 let lang = req.body.lang || 'en'
                 configureTranslation(lang)
