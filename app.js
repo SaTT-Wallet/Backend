@@ -83,7 +83,7 @@ app.use(cors(Corsoptions))
 // )
 app.use(cors('*'))
 app.use((req, res, next) => {
-    if (process.env.PRODUCTION_MOD) {
+    if (process.env.PRODUCTION_MOD === "true") {
         if (req.headers.origin) {
             if (
                 req.headers.origin === 'https://dapp.satt.com' ||
