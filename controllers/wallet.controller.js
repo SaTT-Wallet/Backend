@@ -870,7 +870,7 @@ exports.verifySign = async (req, res) => {
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
-            500,
+            401,
             err.message ? err.message : err.error
         )
     }
