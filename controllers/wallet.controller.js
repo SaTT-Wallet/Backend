@@ -1111,7 +1111,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
     try {
         const userId = req.user._id
         const { pass, tokens, network } = req.body
-
         if (req.user?.migrate)
             return responseHandler.makeResponseData(
                 res,
@@ -1121,7 +1120,8 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             )
 
         const accountData = await Wallet.findOne({ UserId: userId }).lean()
-        const transactionHash = []
+        const transactionHash = [];
+        const errorTransaction = [];
         if (accountData) {
             if (network === 'TRON') {
                 let tronWeb = await webTronInstance()
@@ -1147,13 +1147,12 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     transactionHash
                 )
             }
-
             // PROVIDER
             const provider = getHttpProvider(
                 networkProviders[network],
                 networkProvidersOptions[network]
             )
-
+            
             let nativeIndex = tokens.findIndex(
                 (elem) =>
                     elem.symbol == 'BNB' ||
@@ -1161,9 +1160,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     elem.symbol == 'MATIC' ||
                     elem.symbol == 'BTT'
             )
-
             nativeIndex !== -1 && tokens.splice(nativeIndex, 1)
-
             for (let token of tokens) {
                 try {
                     const send = await transferTokens({
@@ -1184,13 +1181,21 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                         encryptedPrivateKey: accountData.keystore,
                         max: false,
                     })
-                    send?.transactionHash && transactionHash.push(send)
+                    if (send?.transactionHash) {
+                        transactionHash.push(send);
+                      } 
+                    if (send?.error) {
+                         errorTransaction.push(`Error sending ${token.name} tokens: ${send.error}`); 
+                         break;
+                        }
+
+                    
                 } catch (err) {
                     continue
                 }
             }
 
-            if (nativeIndex !== -1) {
+            if (nativeIndex !== -1 && errorTransaction.length === 0) {
                 let connexionObj = {
                     BEP20: bep20Connexion,
                     ERC20: erc20Connexion,
@@ -1227,15 +1232,20 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     ...(nativeIndex !== -1 && { token: true }),
                     network,
                 })
-
-                send?.transactionHash && transactionHash.push(send)
+                if (send?.transactionHash) {
+                    transactionHash.push(send);
+                  } 
+                if (send?.error) {
+                     errorTransaction.push(`Error sending ${network === "ERC20" ? "ETH" : ( network === "BEP20" ? "BNB" : (network === "BTTC" ? "BTT" : "MATIC"))} tokens: ${send.error}`); 
+                    
+                    }
             }
 
             return responseHandler.makeResponseData(
                 res,
                 200,
                 'success',
-                transactionHash
+                {transactionHash,errorTransaction}
             )
         }
     } catch (err) {
