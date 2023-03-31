@@ -647,12 +647,10 @@ exports.signup_telegram_function = async (req, profile, cb) => {
 begin signin with telegram strategy
 */
 exports.signin_telegram_function = async (req, profile, cb) => {
-    console.log('signin_telegram_function')
     await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
 }
 exports.telegramConnection = (req, res) => {
     try {
-        console.log('telegramConnection')
         var param = {
             access_token: req.user?.token,
             expires_in: req.user?.expires_in,
