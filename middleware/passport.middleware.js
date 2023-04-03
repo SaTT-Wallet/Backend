@@ -928,8 +928,12 @@ exports.addlinkedinChannel = async (
         })
     }
 
-    const linkedinData = config.linkedinPages(accessToken)
-    let linkedinPages = await rp(linkedinData)
+    let linkedinPages = await rp.get('https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',{
+        headers : {
+            Authorization: 'Bearer ' + accessToken,
+            'X-Restli-Protocol-Version': '2.0.0'
+        }
+    })
     var linkedinProfile = { accessToken, refreshToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
