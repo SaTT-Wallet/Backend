@@ -598,15 +598,15 @@ exports.getQuote = async (req, res) => {
         requestQuote['end_user_id'] = String(req.user._id)
         requestQuote['client_ip'] = ip
         requestQuote['wallet_id'] = 'satt'
-        const simplexQuote = {
-            url: configSendBox + '/wallet/merchant/v2/quote',
-            method: 'POST',
-            body: requestQuote,
-            headers: {
-                Authorization: `ApiKey ${process.env.SEND_BOX}`,
-            },
-            json: true,
-        }
+        // const simplexQuote = {
+        //     url: configSendBox + '/wallet/merchant/v2/quote',
+        //     method: 'POST',
+        //     body: requestQuote,
+        //     headers: {
+        //         Authorization: `ApiKey ${process.env.SEND_BOX}`,
+        //     },
+        //     json: true,
+        // }
          var quote = (await rp.post(configSendBox + '/wallet/merchant/v2/quote',requestQuote, {headers :{
             Authorization: `ApiKey ${process.env.SEND_BOX}`,
         }})).data
