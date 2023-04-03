@@ -532,17 +532,20 @@ exports.addNewToken = async (req, res) => {
                 customToken = req.body
                 customToken.sn_users = [req.user._id]
                 if (CryptoPrices.hasOwnProperty(symbol)) {
-                    const cryptoMetaData = {
-                        method: 'GET',
-                        uri: process.env.CMR_URL + symbol,
-                        headers: {
-                            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                        },
-                        json: true,
-                        gzip: true,
-                    }
-
-                    let metaData = await rp(cryptoMetaData)
+                    // const cryptoMetaData = {
+                    //     method: 'GET',
+                    //     uri: process.env.CMR_URL + symbol,
+                    //     headers: {
+                    //         'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                    //     },
+                    //     json: true,
+                    //     gzip: true,
+                    // }
+                    
+                    
+                    let metaData = (await rp(process.env.CMR_URL + symbol,{headers : {
+                        'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                    } })).data
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }
                 await CustomToken.create(customToken)
@@ -604,7 +607,10 @@ exports.getQuote = async (req, res) => {
             },
             json: true,
         }
-        var quote = await rp(simplexQuote)
+         var quote = (await rp.post(configSendBox + '/wallet/merchant/v2/quote',requestQuote, {headers :{
+            Authorization: `ApiKey ${process.env.SEND_BOX}`,
+        }})).data
+        //var quote = await rp(simplexQuote)
         if (!!quote.error) {
             return responseHandler.makeResponseError(res, 403, quote.error)
         }
@@ -650,17 +656,20 @@ exports.payementRequest = async (req, res) => {
             request.currency = req.body.currency
             request.idWallet = req.body.idWallet
             let payment = await payementRequest(request)
-            const paymentRequest = {
-                url:
-                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
-                method: 'POST',
-                body: payment,
-                headers: {
-                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
-                },
-                json: true,
-            }
-            var paymentSubmitted = await rp(paymentRequest)
+            // const paymentRequest = {
+            //     url:
+            //         configSendBox + '/wallet/merchant/v2/payments/partner/data',
+            //     method: 'POST',
+            //     body: payment,
+            //     headers: {
+            //         Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            //     },
+            //     json: true,
+            // }
+             var paymentSubmitted = (await rp.post(configSendBox + '/wallet/merchant/v2/payments/partner/data',payment,{headers : {
+                Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            }})).data
+            // var paymentSubmitted = await rp(paymentRequest)
             paymentSubmitted.payment_id = payment_id
             return responseHandler.makeResponseData(
                 res,
