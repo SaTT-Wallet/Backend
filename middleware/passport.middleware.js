@@ -928,12 +928,13 @@ exports.addlinkedinChannel = async (
         })
     }
 
-    let linkedinPages = await rp.get('https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',{
+    let linkedinPages = (await rp.get('https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',{
         headers : {
             Authorization: 'Bearer ' + accessToken,
             'X-Restli-Protocol-Version': '2.0.0'
         }
-    })
+    })).data
+    
     var linkedinProfile = { accessToken, refreshToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
@@ -1028,21 +1029,18 @@ exports.addyoutubeChannel = async (
     cb
 ) => {
     var user_id = +req.query.state.split('|')[0]
-    var res = await rp({
-        uri: 'https://www.googleapis.com/youtube/v3/channels',
-        qs: {
-            access_token: accessToken,
+
+    var res = await rp.get('https://www.googleapis.com/youtube/v3/channels', {params :{
+              access_token: accessToken,
             part: 'snippet,statistics',
             mine: true,
-        },
-        json: true,
-    })
-    if (res.pageInfo.totalResults == 0) {
+    }})
+    if (res?.data?.pageInfo?.totalResults == 0) {
         return cb(null, profile, {
             message: 'channel obligatoire',
         })
     }
-    var channelId = res.items[0].id
+    var channelId = res.data?.items[0].id
     var channelGoogle = await GoogleProfile.findOne({
         channelId: channelId,
         UserId: user_id,
@@ -1061,9 +1059,9 @@ exports.addyoutubeChannel = async (
         user_google.accessToken = accessToken
         user_google.UserId = user_id
         user_google.google_id = profile.id
-        user_google.channelTitle = res?.items[0]?.snippet.title
-        user_google.channelImage = res?.items[0]?.snippet.thumbnails
-        user_google.channelStatistics = res?.items[0]?.statistics
+        user_google.channelTitle = res?.data?.items[0]?.snippet.title
+        user_google.channelImage = res?.data?.items[0]?.snippet.thumbnails
+        user_google.channelStatistics = res?.data?.items[0]?.statistics
         user_google.channelId = channelId
         await GoogleProfile.create(user_google)
 
