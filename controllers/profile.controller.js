@@ -1,4 +1,4 @@
-var rp = require('request-promise')
+var rp = require('axios');
 const validator = require('validator')
 
 const {
@@ -933,19 +933,24 @@ module.exports.verifyLink = async (req, response) => {
                 ).lean()
 
                 if (googleProfile) {
-                    var options = {
-                        method: 'POST',
-                        uri: 'https://oauth2.googleapis.com/token',
-                        body: {
-                            client_id: oauth.google.googleClientId,
-                            client_secret: oauth.google.googleClientSecret,
-                            refresh_token: googleProfile.refreshToken,
-                            grant_type: 'refresh_token',
-                        },
-                        json: true,
-                    }
-
-                    const { access_token } = await rp(options)
+                    // var options = {
+                    //     method: 'POST',
+                    //     uri: 'https://oauth2.googleapis.com/token',
+                    //     body: {
+                    //         client_id: oauth.google.googleClientId,
+                    //         client_secret: oauth.google.googleClientSecret,
+                    //         refresh_token: googleProfile.refreshToken,
+                    //         grant_type: 'refresh_token',
+                    //     },
+                    //     json: true,
+                    // }
+                    const {access_token} = await rp.post('https://oauth2.googleapis.com/token', {
+                                client_id: oauth.google.googleClientId,
+                                client_secret: oauth.google.googleClientSecret,
+                                refresh_token: googleProfile.refreshToken,
+                                grant_type: 'refresh_token',
+                            })
+                    //const { access_token } = await rp(options)
                     await GoogleProfile.updateOne(
                         { UserId: userId },
                         { $set: { accessToken: access_token } }
@@ -1072,7 +1077,11 @@ module.exports.ShareByActivity = async (req, res) => {
             },
             json: true,
         }
-        let postData = await rp(linkedinData)
+
+        let postData = await rp.get(process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN,{headers:{
+            Authorization: 'Bearer ' + linkedinProfile.accessToken,
+        }})
+        //let postData = await rp(linkedinData)
         let urn = `urn:li:activity:${activityURN}`
 
         let sharedId = postData.results[urn]['domainEntity']
@@ -1092,7 +1101,7 @@ module.exports.ProfilPrivacy = async (req, res) => {
         let userId = req.user._id
         let tiktokProfile = await TikTokProfile.findOne({ userId })
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
-        let resMedia = await rp({ uri: getUrl, json: true })
+        let resMedia = await rp.get(getUrl)
         const linkedinData = {
             url: 'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
             method: 'POST',
@@ -1104,7 +1113,11 @@ module.exports.ProfilPrivacy = async (req, res) => {
             },
             json: true,
         }
-        let postData = await rp(linkedinData)
+        let postData = await rp.post('https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',{
+            max_count: 20,
+        },{headers :{
+            Authorization: 'Bearer ' + resMedia?.data.access_token,
+        }})
         if (postData.data.videos.length === 0) {
             privacy = 'private'
         } else {

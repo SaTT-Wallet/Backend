@@ -1,5 +1,5 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
-var rp = require('request-promise')
+var rp = require('axios');
 const child_process = require('child_process')
 const {
     FbPage,
@@ -11,7 +11,7 @@ const {
     IgMedia,
     LinkedinProfile,
 } = require('../model/index')
-var Twitter2 = require('twitter-v2')
+var Twitter2 = require('twitter-api-v2')
 var fs = require('fs')
 const axios = require('axios')
 
@@ -159,21 +159,21 @@ exports.verifyInsta = async function (userId, idPost) {
 
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
-        var tweet = new Twitter2({
-            consumer_key: process.env.TWITTER_CONSUMER_KEY,
-            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-            access_token_key: twitterProfile?.access_token_key,
-            access_token_secret: twitterProfile.access_token_secret,
-        })
-        var res = await tweet.get('tweets', {
+         var tweet = new Twitter2({
+             consumer_key: process.env.TWITTER_CONSUMER_KEY,
+             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+             access_token_key: twitterProfile?.access_token_key,
+             access_token_secret: twitterProfile.access_token_secret,
+         })
+         var res = await tweet.get('tweets', {
             ids: idPost,
-            'tweet.fields': 'author_id',
-        })
-        var twitterProfile = await TwitterProfile.findOne({
-            id: res.data[0].author_id,
-            UserId: userId,
-        }).select('access_token_key access_token_secret id')
-        return twitterProfile ? true : false
+             'tweet.fields': 'author_id',
+         })
+         var twitterProfile = await TwitterProfile.findOne({
+             id: res.data[0].author_id,
+             UserId: userId,
+         }).select('access_token_key access_token_secret id')
+         return twitterProfile ? true : false
     } catch (err) {
         return 'lien_invalid'
     }
@@ -764,12 +764,12 @@ const twitter = async (userName, idPost) => {
             })
         )[0]
 
-        var tweet = new Twitter2({
-            consumer_key: oauth.twitter.consumer_key,
-            consumer_secret: oauth.twitter.consumer_secret,
-            access_token_key: twitterProfile?.access_token_key,
-            access_token_secret: twitterProfile.access_token_secret,
-        })
+         var tweet = new Twitter2({
+             consumer_key: oauth.twitter.consumer_key,
+             consumer_secret: oauth.twitter.consumer_secret,
+             access_token_key: twitterProfile?.access_token_key,
+             access_token_secret: twitterProfile.access_token_secret,
+         })
 
         var res = await tweet.get('tweets', {
             ids: idPost,

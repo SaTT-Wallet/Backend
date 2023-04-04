@@ -25,7 +25,7 @@ const {
     getTransactionHistory,
     bridge,
     balanceStat,
-   
+
     addTronWalletToExistingAccount,
     gasPriceTrx,
     getGasPrice,
@@ -627,8 +627,6 @@ router.post('/getQuote', verifyAuthGetQuote, getQuote)
 router.post('/payementRequest', verifyAuth, payementRequest)
 
 //router.post('/bridge', verifyAuth, bridge)
-
-
 
 /**
  * @swagger

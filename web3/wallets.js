@@ -16,7 +16,7 @@ const {
 } = require('./web3-connection')
 var cache = require('memory-cache')
 
-var rp = require('request-promise')
+var rp = require('axios')
 const Big = require('big.js')
 var wif = require('wif')
 
@@ -25,8 +25,7 @@ var bip38 = require('bip38')
 var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
 var ethUtil = require('ethereumjs-util')
-const bitcoinCore = require('bitcoin-core')
-const Client = require('bitcoin-core')
+
 const tronWeb = require('tronweb')
 
 const {
@@ -288,7 +287,7 @@ exports.getAccountV2 = async (req, res) => {
         let btcAddress =
             (account.walletV2?.btc &&
                 account.walletV2?.btc?.addressSegWitCompat) ||
-            account?.walletV2?.btc?.addressSegWitCompat
+            account?.btc?.addressSegWitCompat
         let tronAddress =
             (account?.walletV2 && account?.walletV2?.tronAddress) ||
             account?.tronAddress
@@ -354,7 +353,7 @@ exports.getAccountV2 = async (req, res) => {
             version: account.mnemo ? 2 : 1,
         }
         result.btc_balance = 0
-        if (process.env.NODE_ENV === 'mainnet' && account.btc && btcAddress) {
+        if (process.env.NODE_ENV === 'mainnet' && btcAddress) {
             result.btc = btcAddress
 
             try {
@@ -390,10 +389,12 @@ exports.getAccount = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        var address =
-            /*account?.walletV2?.keystore && account?.walletV2?.keystore?.address ||*/ '0x' +
-            account.keystore?.address
-        let tronAddress = account?.tronAddress
+        var address = account.keystore && '0x' + account.keystore?.address || '0x' + account.walletV2?.keystore?.address 
+
+        let tronAddress = account?.tronAddress || account.walletV2?.tronAddress 
+
+        let btcAddress = account.btc && account?.btc?.addressSegWitCompat ||  account.walletV2?.btc?.addressSegWitCompat;
+        
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -442,10 +443,10 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account?.btc?.addressSegWitCompat,
-            address: '0x' + account.keystore.address,
-            tronAddress: account.tronAddress,
-            tronValue: account.tronValue,
+            btc: btcAddress,
+            address: address,
+            tronAddress: tronAddress,
+            tronValue: account?.tronValue,
             ether_balance: ether_balance,
             bnb_balance: bnb_balance,
             matic_balance: polygon_balance,
@@ -458,17 +459,16 @@ exports.getAccount = async (req, res) => {
         result.btc_balance = 0
         if (
             process.env.NODE_ENV === 'mainnet' &&
-            account?.btc &&
-            account?.btc?.addressSegWitCompat
+            btcAddress
         ) {
-            result.btc = account?.btc?.addressSegWitCompat
+            result.btc = btcAddress
 
             try {
                 var utxo = JSON.parse(
                     child.execSync(
                         process.env.BTC_CMD +
                             ' listunspent 1 1000000 \'["' +
-                            account.btc.addressSegWitCompat +
+                            btcAddress +
                             '"]\''
                     )
                 )
@@ -526,32 +526,52 @@ exports.getPrices = async () => {
         ) {
             return cache.get('prices').data
         } else {
-            var options = {
+            const options = {
                 method: 'GET',
-                uri:
-                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=200&convert=USD&CMC_PRO_API_KEY=' +
-                    process.env.CMCAPIKEY,
-
-                json: true,
+                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                params: {
+                    start: '1',
+                    limit: '200',
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
             }
 
-            var options2 = {
+            const options2 = {
                 method: 'GET',
-                uri:
-                    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=SATT%2CJET%2CBTT&convert=USD&CMC_PRO_API_KEY=' +
-                    process.env.CMCAPIKEY,
-
-                json: true,
+                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',
+                params: {
+                    symbol: 'SATT,JET,BTT',
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
             }
-            let result = await Promise.all([rp(options), rp(options2)])
+
+            let result 
+
+            try {
+                result = await Promise.all([
+                    rp.request(options),
+                    rp.request(options2),
+                ])
+
+            } catch (error) {
+                throw new Error('Error fetching prices')
+            }
+
             var response = result[0]
 
             var responseSattJet = result[1]
-            response.data.push(responseSattJet.data.SATT)
-            response.data.push(responseSattJet.data.JET)
-            response.data.push(responseSattJet.data.BTT)
-
-            var priceMap = response.data.map((elem) => {
+            response.data.data.push(responseSattJet.data.data.SATT)
+            response.data.data.push(responseSattJet.data.data.JET)
+            response.data.data.push(responseSattJet.data.data.BTT)
+            let  priceMap
+            try {
+             priceMap = response.data.data.map((elem) => {
                 var obj = {}
                 let tokenAddress = null
                 if (elem.platform?.name === 'BNB') {
@@ -564,16 +584,16 @@ exports.getPrices = async () => {
                         tokenAddress: tokenAddress,
                         symbol: elem.symbol,
                         name: elem.name,
-                        price: elem.quote.USD.price,
-                        percent_change_24h: elem.quote.USD.percent_change_24h,
-                        market_cap: elem.quote.USD.market_cap,
-                        volume_24h: elem.quote.USD.volume_24h,
+                        price: elem?.quote.USD.price,
+                        percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        market_cap: elem?.quote.USD.market_cap,
+                        volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
                         total_supply: elem.total_supply,
                         max_supply: elem.max_supply,
 
                         fully_diluted:
-                            responseSattJet.data.SATT.quote.USD
+                            responseSattJet.data.SATT?.quote.USD
                                 .fully_diluted_market_cap,
                         logo:
                             'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
@@ -587,10 +607,10 @@ exports.getPrices = async () => {
                         tokenAddress: tokenAddress,
                         symbol: elem.symbol,
                         name: elem.name,
-                        price: elem.quote.USD.price,
-                        percent_change_24h: elem.quote.USD.percent_change_24h,
-                        market_cap: elem.quote.USD.market_cap,
-                        volume_24h: elem.quote.USD.volume_24h,
+                        price: elem?.quote.USD.price,
+                        percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        market_cap: elem?.quote.USD.market_cap,
+                        volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
                         total_supply: elem.total_supply,
                         max_supply: elem.max_supply,
@@ -602,6 +622,11 @@ exports.getPrices = async () => {
 
                 return obj
             })
+
+        } catch (error) {
+            throw new Error('Error fetching prices')
+        }
+
             var finalMap = {}
             for (var i = 0; i < priceMap.length; i++) {
                 finalMap[priceMap[i].symbol] = priceMap[i]
