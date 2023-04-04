@@ -1,6 +1,6 @@
 var requirement = require('../helpers/utils')
 var readHTMLFileCampaign = requirement.readHTMLFileCampaign
-
+var sanitize = require("mongo-sanitize");
 const multer = require('multer')
 const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
@@ -1850,6 +1850,7 @@ module.exports.increaseBudget = async (req, res) => {
 }
 
 exports.getFunds = async (req, res) => {
+    req.body = sanitize(req.body);
     var hash = req.body.hash
     try {
         let { _id } = req.user
