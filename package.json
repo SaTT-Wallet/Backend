@@ -81,6 +81,7 @@
         "memory-cache": "^0.2.0",
         "mocha": "^10.1.0",
         "moment": "^2.22.2",
+        "mongo-sanitize": "^1.1.0",
         "mongodb": "^4.4.1",
         "mongoose": "^5.11.15",
         "mongoose-auto-increment": "^5.0.1",
