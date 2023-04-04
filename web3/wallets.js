@@ -287,7 +287,7 @@ exports.getAccountV2 = async (req, res) => {
         let btcAddress =
             (account.walletV2?.btc &&
                 account.walletV2?.btc?.addressSegWitCompat) ||
-            account?.walletV2?.btc?.addressSegWitCompat
+            account?.btc?.addressSegWitCompat
         let tronAddress =
             (account?.walletV2 && account?.walletV2?.tronAddress) ||
             account?.tronAddress
@@ -353,7 +353,7 @@ exports.getAccountV2 = async (req, res) => {
             version: account.mnemo ? 2 : 1,
         }
         result.btc_balance = 0
-        if (process.env.NODE_ENV === 'mainnet' && account.btc && btcAddress) {
+        if (process.env.NODE_ENV === 'mainnet' && btcAddress) {
             result.btc = btcAddress
 
             try {
@@ -389,10 +389,12 @@ exports.getAccount = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        var address =
-            /*account?.walletV2?.keystore && account?.walletV2?.keystore?.address ||*/ '0x' +
-            account.keystore?.address
-        let tronAddress = account?.tronAddress
+        var address = account.keystore && '0x' + account.keystore?.address || '0x' + account.walletV2?.keystore?.address 
+
+        let tronAddress = account?.tronAddress || account.walletV2?.tronAddress 
+
+        let btcAddress = account.btc && account?.btc?.addressSegWitCompat ||  account.walletV2?.btc?.addressSegWitCompat;
+        
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -441,10 +443,10 @@ exports.getAccount = async (req, res) => {
         ])
 
         var result = {
-            btc: account?.btc?.addressSegWitCompat,
-            address: '0x' + account.keystore.address,
-            tronAddress: account.tronAddress,
-            tronValue: account.tronValue,
+            btc: btcAddress,
+            address: address,
+            tronAddress: tronAddress,
+            tronValue: account?.tronValue,
             ether_balance: ether_balance,
             bnb_balance: bnb_balance,
             matic_balance: polygon_balance,
@@ -457,17 +459,16 @@ exports.getAccount = async (req, res) => {
         result.btc_balance = 0
         if (
             process.env.NODE_ENV === 'mainnet' &&
-            account?.btc &&
-            account?.btc?.addressSegWitCompat
+            btcAddress
         ) {
-            result.btc = account?.btc?.addressSegWitCompat
+            result.btc = btcAddress
 
             try {
                 var utxo = JSON.parse(
                     child.execSync(
                         process.env.BTC_CMD +
                             ' listunspent 1 1000000 \'["' +
-                            account.btc.addressSegWitCompat +
+                            btcAddress +
                             '"]\''
                     )
                 )

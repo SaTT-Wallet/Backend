@@ -217,7 +217,7 @@ exports.gasPriceErc20 = async (req, res) => {
 
     var gasPrice = await Web3BEP20.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
+        gasPrice: gasPrice / 10000000000,
     })
 }
 
@@ -532,17 +532,20 @@ exports.addNewToken = async (req, res) => {
                 customToken = req.body
                 customToken.sn_users = [req.user._id]
                 if (CryptoPrices.hasOwnProperty(symbol)) {
-                    const cryptoMetaData = {
-                        method: 'GET',
-                        uri: process.env.CMR_URL + symbol,
-                        headers: {
-                            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                        },
-                        json: true,
-                        gzip: true,
-                    }
-
-                    let metaData = await rp(cryptoMetaData)
+                    // const cryptoMetaData = {
+                    //     method: 'GET',
+                    //     uri: process.env.CMR_URL + symbol,
+                    //     headers: {
+                    //         'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                    //     },
+                    //     json: true,
+                    //     gzip: true,
+                    // }
+                    
+                    
+                    let metaData = (await rp(process.env.CMR_URL + symbol,{headers : {
+                        'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                    } })).data
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }
                 await CustomToken.create(customToken)
@@ -604,7 +607,10 @@ exports.getQuote = async (req, res) => {
             },
             json: true,
         }
-        var quote = await rp(simplexQuote)
+         var quote = (await rp.post(configSendBox + '/wallet/merchant/v2/quote',requestQuote, {headers :{
+            Authorization: `ApiKey ${process.env.SEND_BOX}`,
+        }})).data
+        //var quote = await rp(simplexQuote)
         if (!!quote.error) {
             return responseHandler.makeResponseError(res, 403, quote.error)
         }
@@ -650,17 +656,20 @@ exports.payementRequest = async (req, res) => {
             request.currency = req.body.currency
             request.idWallet = req.body.idWallet
             let payment = await payementRequest(request)
-            const paymentRequest = {
-                url:
-                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
-                method: 'POST',
-                body: payment,
-                headers: {
-                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
-                },
-                json: true,
-            }
-            var paymentSubmitted = await rp(paymentRequest)
+            // const paymentRequest = {
+            //     url:
+            //         configSendBox + '/wallet/merchant/v2/payments/partner/data',
+            //     method: 'POST',
+            //     body: payment,
+            //     headers: {
+            //         Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            //     },
+            //     json: true,
+            // }
+             var paymentSubmitted = (await rp.post(configSendBox + '/wallet/merchant/v2/payments/partner/data',payment,{headers : {
+                Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            }})).data
+            // var paymentSubmitted = await rp(paymentRequest)
             paymentSubmitted.payment_id = payment_id
             return responseHandler.makeResponseData(
                 res,
@@ -870,7 +879,7 @@ exports.verifySign = async (req, res) => {
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
-            500,
+            401,
             err.message ? err.message : err.error
         )
     }
@@ -1111,7 +1120,6 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
     try {
         const userId = req.user._id
         const { pass, tokens, network } = req.body
-
         if (req.user?.migrate)
             return responseHandler.makeResponseData(
                 res,
@@ -1121,7 +1129,8 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             )
 
         const accountData = await Wallet.findOne({ UserId: userId }).lean()
-        const transactionHash = []
+        const transactionHash = [];
+        const errorTransaction = [];
         if (accountData) {
             if (network === 'TRON') {
                 let tronWeb = await webTronInstance()
@@ -1147,23 +1156,20 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     transactionHash
                 )
             }
-
             // PROVIDER
             const provider = getHttpProvider(
                 networkProviders[network],
                 networkProvidersOptions[network]
             )
-
-            let bnb = tokens.findIndex(
+            
+            let nativeIndex = tokens.findIndex(
                 (elem) =>
                     elem.symbol == 'BNB' ||
                     elem.symbol == 'ETH' ||
                     elem.symbol == 'MATIC' ||
                     elem.symbol == 'BTT'
             )
-
-            bnb !== -1 && tokens.splice(bnb, 1)
-
+            nativeIndex !== -1 && tokens.splice(nativeIndex, 1)
             for (let token of tokens) {
                 try {
                     const send = await transferTokens({
@@ -1184,14 +1190,21 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                         encryptedPrivateKey: accountData.keystore,
                         max: false,
                     })
-                    send?.transactionHash && transactionHash.push(send)
+                    if (send?.transactionHash) {
+                        transactionHash.push(send);
+                      } 
+                    if (send?.error) {
+                         errorTransaction.push(`Error sending ${token.name} tokens: ${send.error}`); 
+                         break;
+                        }
+
+                    
                 } catch (err) {
-                    console.error(err)
                     continue
                 }
             }
 
-            if (bnb !== -1) {
+            if (nativeIndex !== -1 && errorTransaction.length === 0) {
                 let connexionObj = {
                     BEP20: bep20Connexion,
                     ERC20: erc20Connexion,
@@ -1225,22 +1238,26 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     walletPassword: pass, // req.body
                     encryptedPrivateKey: accountData.keystore,
                     max: false,
-                    ...(bnb !== -1 && { token: true }),
+                    ...(nativeIndex !== -1 && { token: true }),
                     network,
                 })
-
-                send?.transactionHash && transactionHash.push(send)
+                if (send?.transactionHash) {
+                    transactionHash.push(send);
+                  } 
+                if (send?.error) {
+                     errorTransaction.push(`Error sending ${network === "ERC20" ? "ETH" : ( network === "BEP20" ? "BNB" : (network === "BTTC" ? "BTT" : "MATIC"))} tokens: ${send.error}`); 
+                    
+                    }
             }
 
             return responseHandler.makeResponseData(
                 res,
                 200,
                 'success',
-                transactionHash
+                {transactionHash,errorTransaction}
             )
         }
     } catch (err) {
-        console.error(err)
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1337,13 +1354,29 @@ exports.resetpassword = async (req, res) => {
 
 exports.getCodeKeyStore = async (req, res) => {
     try {
+        let walletAddr
+
         const { network, version } = req.body
         if (
             (version === '1' || version === '2') &&
             (network === 'eth' || network === 'btc' || network === 'tron')
         ) {
             const _id = req.user._id
-            let user = await User.findOne({ _id })
+            // let user = await User.findOne({ _id },{email :1}).lean()
+
+            // let wallet = await Wallet.findOne({
+            //     UserId: _id,
+            // }).lean()
+
+            let [user, wallet] = await Promise.all([User.findOne({ _id },{email :1}).lean(),Wallet.findOne({
+                UserId: _id,
+            }).lean()])
+
+            if (version === '1') {
+                walletAddr = '0x' +  wallet.keystore.address
+            } else {
+                walletAddr = '0x' +  wallet.walletV2.keystore.address
+            }
 
             if (!user) {
                 return responseHandler.makeResponseError(
@@ -1358,7 +1391,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 ;(secureCode.code = code),
                     (secureCode.expiring = Date.now() + 3600 * 20 * 5),
                     (secureCode.type = `keystore-v${version}-${network}`)
-                console.log('secure code is ', secureCode)
+                
                 await User.updateOne({ _id }, { $set: { secureCode } })
                 let lang = req.body.lang || 'en'
                 configureTranslation(lang)
@@ -1369,7 +1402,8 @@ exports.getCodeKeyStore = async (req, res) => {
                     null,
                     null,
                     code,
-                    user
+                    user,
+                    walletAddr
                 )
                 return responseHandler.makeResponseData(
                     res,

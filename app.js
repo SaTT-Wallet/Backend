@@ -83,15 +83,18 @@ app.use(cors(Corsoptions))
 // )
 app.use(cors('*'))
 app.use((req, res, next) => {
-    if (process.env.NODE_ENV === 'mainnet') {
+    if (process.env.NODE_ENV == "mainnet") {
         if (req.headers.origin) {
             if (
                 req.headers.origin === 'https://dapp.satt.com' ||
                 req.headers.origin === 'https://satt-token.com' ||
                 req.headers.origin === 'https://app.ihave.io' ||
                 req.headers.origin === 'http://backoffice.atayen.us'
-            )
+            ) {
                 return next()
+            } else return res.redirect("https://satt-token.com");
+            
+                
         } else {
             if (
                 req.url.includes('google') ||
@@ -100,11 +103,15 @@ app.use((req, res, next) => {
                 req.url.includes('linkedin') ||
                 req.url.includes('twitter') ||
                 req.url.includes('telegram')
-            )
+            ) {
                 return next()
+            } else return res.redirect("https://satt-token.com");
+            
+                
+                
         }
-    }
-    return next()
+    } else return next()
+    
 })
 
 app.use(logger('combined'))
