@@ -1,5 +1,4 @@
-const { Wallet, Campaigns, Event, User } = require('../model/index')
-const { responseHandler } = require('../helpers/response-handler')
+const { Wallet, User } = require('../model/index')
 const {
     erc20Connexion,
     bep20Connexion,
@@ -14,18 +13,15 @@ const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
 const {
     Constants,
-    tronTokensCampaign,
     TronConstant,
     wrapConstants,
     PolygonNetworkConstant,
     BttNetworkConstant,
 } = require('../conf/const')
 const { config } = require('../conf/config')
-const rp = require('axios')
-const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
-const { async } = require('hasha')
+
 const {
     getHttpProvider,
     networkProviders,
@@ -814,10 +810,9 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
     return query
 }
 
-exports.getUserIdByWallet = async (wallet) => {
+exports.getUserIdByWallet = async wallet => {
     let user =
-        (await Wallet.findOne({ 'keystore.address': wallet })) ||
-        (await Wallet.findOne({ 'walletV2.keystore.address': wallet }))
+        await Wallet.findOne({$or:[{ 'walletV2.keystore.address': wallet },{'keystore.address': wallet }]},{UserId:1}).lean()
     return user?.UserId
 }
 
@@ -838,19 +833,12 @@ exports.getLinkedinLinkInfo = async (
         )
         if (!tokenValidityBody.data?.active) {
             let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            let resAccessToken = (await axios.get(accessTokenUrl)).data
             accessToken = resAccessToken.access_token
         }
         let linkInfo = {}
-        const linkedinData = {
-            url: config.linkedinActivityUrl(activityURN),
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-        let postData = await rp(linkedinData)
+
+        let postData = (await axios.get(config.linkedinActivityUrl(activityURN), {headers : {Authorization: 'Bearer ' + accessToken}})).data
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??
@@ -882,19 +870,12 @@ exports.getLinkedinLinkInfoMedia = async (
         )
         if (!tokenValidityBody.data?.active) {
             let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            let resAccessToken = (await axios.get(accessTokenUrl)).data
             accessToken = resAccessToken.access_token
         }
         let linkInfo = {}
-        const linkedinData = {
-            url: config.linkedinShareUrl(shareURN),
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-        let postData = await rp(linkedinData)
+      
+        let postData = (await axios.get(config.linkedinShareUrl(shareURN),{headers : {'Authorization': 'Bearer ' + accessToken}})).data
         let urn = shareURN
         linkInfo.idUser =
             postData.results[urn].owner ?? postData.results[urn].author
