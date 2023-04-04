@@ -560,7 +560,6 @@ exports.getPrices = async () => {
                 ])
 
             } catch (error) {
-                console.error(error)
                 throw new Error('Error fetching prices')
             }
 
@@ -625,7 +624,6 @@ exports.getPrices = async () => {
             })
 
         } catch (error) {
-            console.error(error)
             throw new Error('Error fetching prices')
         }
 

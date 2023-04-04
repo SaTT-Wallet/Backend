@@ -35,9 +35,7 @@ exports.sendNotification = async (data) => {
         data: JSON.stringify(data)
     }
     axios(axiosOptions).then((response) => {
-        console.log(response)
     }).catch((error) => {
-        console.error(error)
     })
 }
 
