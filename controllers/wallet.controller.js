@@ -1147,13 +1147,17 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     amount,
                     privateKey,
                 })
-                send?.transactionHash && transactionHash.push(send)
+                if (send?.transactionHash) {
+                    transactionHash.push(send);
+                  }  else {
+                    errorTransaction.push(`Error sending TRX token: ${send.error}`); 
+                  }
 
                 return responseHandler.makeResponseData(
                     res,
                     200,
                     'success',
-                    transactionHash
+                    {transactionHash,errorTransaction}
                 )
             }
             // PROVIDER
