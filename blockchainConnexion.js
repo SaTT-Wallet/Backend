@@ -96,7 +96,9 @@ exports.webTronInstance = async () => {
             headers: { 'TRON-PRO-API-KEY': process.env.TRON_PRO_API_KEY },
         })
         return tronWeb
-    } catch (err) {}
+    } catch (err) {
+        console.error(tronWeb)
+    }
 }
 
 exports.getContractByNetwork = async (credentials) => {

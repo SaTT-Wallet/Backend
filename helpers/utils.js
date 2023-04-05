@@ -6,8 +6,8 @@ const path = require('path')
 const i18n = require('i18n')
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
+var sanitize = require("mongo-sanitize");
 
-const Big = require('big.js')
 
 var fs = require('fs')
 
@@ -429,3 +429,16 @@ exports.timeout = async (ms) =>
 //global function that generates user acessToken
 exports.generateAccessToken = (user) =>
     jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '3h' })
+
+
+module.exports.deepSanitize = value => {
+        if(Array.isArray(value)){
+            value.forEach(elm=>deepSanitize(elm))
+        }
+        if(typeof value === 'object' && value !== null){
+            Object.values(value).forEach((elm)=>{
+                deepSanitize(elm)
+            })
+        }
+        return sanitize(value)
+    }

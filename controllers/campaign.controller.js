@@ -1,5 +1,4 @@
-var requirement = require('../helpers/utils')
-var readHTMLFileCampaign = requirement.readHTMLFileCampaign
+var {readHTMLFileCampaign,deepSanitize} = require('../helpers/utils')
 var sanitize = require("mongo-sanitize");
 const multer = require('multer')
 const Big = require('big.js')
@@ -87,7 +86,6 @@ const {
 
 const {
     getWeb3Connection,
-    getHttpProvider,
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
@@ -136,16 +134,11 @@ const {
     answerOne,
     limitStats,
     answerCall,
-    tiktokAbos,
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
 const { ObjectId } = require('mongodb')
 const { Constants, TronConstant, wrapConstants } = require('../conf/const')
-const { BigNumber } = require('ethers')
-const { token } = require('morgan')
-const { request } = require('http')
-const { Console } = require('console')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -439,7 +432,7 @@ exports.campaigns = async (req, res) => {
         let idWallet =
             req.query.idWallet === 'null'
                 ? JSON.parse(req.query.idWallet)
-                : req.query.idWallet
+                : deepSanitize(req.query.idWallet);
         if (idWallet) {
             let userId = await getUserIdByWallet(
                 req.query.idWallet.substring(2)
@@ -509,7 +502,7 @@ exports.campaigns = async (req, res) => {
 
 exports.campaignDetails = async (req, res) => {
     try {
-        var _id = req.params.id
+        var _id = deepSanitize(req.params.id);
         const projection =
             (req.query.projection === 'projection' && basicAtt) || null
         var campaign = await Campaigns.findOne({ _id }, projection).lean()
@@ -539,7 +532,7 @@ exports.campaignDetails = async (req, res) => {
 }
 
 exports.campaignPromp = async (req, res) => {
-    var _id = req.params.id
+    var _id = deepSanitize(req.params.id);
     try {
         var _id = req.params.id
         const campaign = await Campaigns.findOne(
@@ -749,7 +742,7 @@ exports.apply = async (req, res) => {
     // var pass = req.body.pass
     var { linkedinId, idCampaign, typeSN, idPost, idUser, title, pass } =
         req.body
-    let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
+    let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), deepSanitize(req.body.hash)]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
 
     try {
@@ -1214,8 +1207,8 @@ exports.validateCampaign = async (req, res) => {
 }
 
 exports.gains = async (req, res) => {
-    var idProm = req.body.idProm
-    var hash = req.body.hash
+    var idProm = deepSanitize(req.body.idProm)
+    var hash = deepSanitize(req.body.hash)
     var stats
     var requests = false
     var campaignData
@@ -1723,7 +1716,7 @@ exports.update = async (req, res) => {
 module.exports.linkStats = async (req, res) => {
     try {
         let totalToEarn
-        const idProm = req.params.idProm
+        const idProm = deepSanitize(req.params.idProm)
 
         const info = await CampaignLink.findOne({ id_prom: idProm })
 
@@ -2218,8 +2211,8 @@ exports.getLinks = async (req, res) => {
         const userId = req.params.idUser
         const accountData = await Wallet.findOne({ UserId: userId })
 
-        const limit = +req.query.limit || 50
-        const page = +req.query.page || 1
+        const limit = +deepSanitize(req.query.limit) || 50
+        const page = +deepSanitize(req.query.page) || 1
         const skip = limit * (page - 1)
         let arrayOfLinks = []
         let arrayOfTronLinks = []
@@ -2505,7 +2498,7 @@ module.exports.campaignInvested = async (req, res) => {
 exports.rejectLink = async (req, res) => {
     const lang = req.body.lang || 'en'
     const title = req.body.title || ''
-    const idCampaign = req.body.idCampaign
+    const idCampaign = deepSanitize(req.body.idCampaign)
     const idLink = req.params.idLink
     const email = req.body.email
     const link = req.body.link
@@ -2588,7 +2581,7 @@ module.exports.updateStatistics = async (req, res) => {
 module.exports.coverByCampaign = async (req, res) => {
     try {
         let _id = req.params.id
-        let campaign = await Campaigns.findOne({ _id })
+        let campaign = await Campaigns.findOne({ _id }).lean();
         let image = Buffer.from(campaign.cover, 'base64')
         if (req.query.width && req.query.heigth)
             sharp(image)

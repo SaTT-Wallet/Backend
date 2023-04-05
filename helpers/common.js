@@ -1,4 +1,3 @@
-var requirement = require('./utils')
 
 var Campaigns = require('../model/campaigns.model')
 var CampaignLink = require('../model/campaignLink.model')
@@ -6,11 +5,9 @@ var CampaignLink = require('../model/campaignLink.model')
 var LinkedinProfile = require('../model/linkedinProfile.model')
 
 var Wallet = require('../model/wallet.model')
-var Event = require('../model/event.model')
-var Request = require('../model/request.model')
+
 var User = require('../model/user.model')
-var TwitterProfile = require('../model/twitterProfile.model')
-var fs = require('fs')
+
 // /const { getPrices } = require('../manager/accounts.js')
 //const { getBalanceByUid } = require('../web3/wallets')
 

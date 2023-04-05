@@ -1511,7 +1511,7 @@ exports.getWalletTron = async (
     keystoreWallet = false,
     mnemonic = null
 ) => {
-    let wallet = await Wallet.findOne({ UserId: id }).lean()
+    /*let wallet = await Wallet.findOne({ UserId: id }).lean()
     const mnemos =
         (walletversion === 'v1' ? wallet?.mnemo : wallet?.walletV2.mnemo) ||
         mnemonic
@@ -1520,16 +1520,16 @@ exports.getWalletTron = async (
             ? wallet?.keystore
             : wallet?.walletV2.keystore) || keystoreWallet
 
-    if (walletKeyStore) {
+   /* if (walletKeyStore) {
         try {
             let Web3ETH = await erc20Connexion()
             Web3ETH.eth.accounts.wallet.decrypt([walletKeyStore], pass)
         } catch (error) {
             return { error: 'Invalid Tron password' }
         }
-    }
+    }*/
     try {
-        const seed = bip39.mnemonicToSeedSync(mnemos, pass)
+        const seed = bip39.mnemonicToSeedSync(mnemonic, pass)
         const root = bip32.fromSeed(seed)
         const childTron = root.derivePath(pathTron)
         var tronPriv = childTron.privateKey.toString('hex')

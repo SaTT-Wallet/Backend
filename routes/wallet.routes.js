@@ -1,7 +1,5 @@
 let express = require('express')
 let router = express.Router()
-const cron = require('node-cron')
-
 const {
     payementRequest,
     getQuote,
@@ -46,7 +44,6 @@ const {
     verifyAuth,
     verifyAuthGetQuote,
 } = require('../middleware/passport.middleware')
-
 /**
  * @swagger
  * /wallet/mywallet:
