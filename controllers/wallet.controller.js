@@ -217,7 +217,7 @@ exports.gasPriceErc20 = async (req, res) => {
 
     var gasPrice = await Web3BEP20.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 10000000000,
+        gasPrice: gasPrice / 1000000000,
     })
 }
 
@@ -1147,13 +1147,17 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     amount,
                     privateKey,
                 })
-                send?.transactionHash && transactionHash.push(send)
+                if (send?.transactionHash) {
+                    transactionHash.push(send);
+                  }  else {
+                    errorTransaction.push(`Error sending TRX token: ${send.error}`); 
+                  }
 
                 return responseHandler.makeResponseData(
                     res,
                     200,
                     'success',
-                    transactionHash
+                    {transactionHash,errorTransaction}
                 )
             }
             // PROVIDER
