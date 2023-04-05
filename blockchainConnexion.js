@@ -97,7 +97,6 @@ exports.webTronInstance = async () => {
         })
         return tronWeb
     } catch (err) {
-        console.error(tronWeb)
     }
 }
 
