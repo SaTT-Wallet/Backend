@@ -62,30 +62,8 @@ connectDB()
 
 app.disable('x-powered-by')
 
-/*let Corsoptions = {}
+app.use(helmet.frameguard({ action: 'deny' }));
 
-if (process.env.NODE_ENV === 'mainnet') {
-    Corsoptions = {
-        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-        optionsSuccessStatus: 200, // For legacy browser support
-        origin: ['https://dapp.satt.com'],
-    }
-} else {
-    Corsoptions = {
-        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-        optionsSuccessStatus: 200,
-    }
-}
-
-
-app.use(cors(Corsoptions))
-*/
-
-// app.use(
-//     cors({
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//     })
-// )
 app.use(cors('*'))
 app.use((req, res, next) => {
     if (process.env.NODE_ENV == "mainnet") {
