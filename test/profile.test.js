@@ -109,7 +109,7 @@ describe('Profile Management', () => {
                 headers: {
                     'content-type': 'application/json',
                 },
-                rejectUnauthorized: false,
+                //      rejectUnauthorized: false,
             }
             let result
             let account = await axios.post(url, options)

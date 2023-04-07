@@ -5,7 +5,7 @@ var LocalStrategy = require('passport-local').Strategy
 var Long = require('mongodb').Long
 const crypto = require('crypto')
 const hasha = require('hasha')
-var rp = require('request-promise')
+var rp = require('axios');
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 var FbProfile = require('../model/fbProfile.model')
@@ -64,7 +64,7 @@ const { updateStatforUser } = require('../helpers/common')
 try {
     app.use(
         session({
-            secret: 'fe3fF4FFGTSCSHT57UI8I8',
+            secret: process.env.SECRET_SESSION,
             resave: false,
             saveUninitialized: true,
             httpOnly: true, // dont let browser javascript access cookie ever
@@ -163,8 +163,8 @@ const signinWithEmail = async (
             if (user.password == synfonyHash(password)) {
                 var validAuth = await isBlocked(user, true)
                 if (!validAuth.res && validAuth.auth == true) {
-                    let userAuth = cloneUser(user)
-                    let token = generateAccessToken(userAuth)
+                    //let userAuth = cloneUser(user)
+                    let token = generateAccessToken({ _id: user._id })
                     await User.updateOne(
                         { _id: Long.fromNumber(user._id) },
                         { $set: { failed_count: 0 } }
@@ -266,13 +266,15 @@ passport.use(
         { passReqToCallback: true },
         async (req, username, password, done) => {
             var date = Math.floor(Date.now() / 1000) + 86400
-            var user = await User.findOne({ email: username.toLowerCase() })
+            var user = await User.findOne({
+                email: username.toLowerCase(),
+            }).lean()
             if (user) {
                 if (user.password == synfonyHash(password)) {
                     let validAuth = await isBlocked(user, true)
                     if (!validAuth.res && validAuth.auth == true) {
-                        let userAuth = cloneUser(user.toObject())
-                        let token = generateAccessToken(userAuth)
+                        //let userAuth = cloneUser(user)
+                        let token = generateAccessToken({ _id: user._id })
                         await User.updateOne(
                             { _id: Long.fromNumber(user._id) },
                             { $set: { failed_count: 0 } }
@@ -446,7 +448,7 @@ passport.use(
             )
             let user = await new User(createdUser).save()
             createdUser._id = user._id
-            let token = generateAccessToken(createdUser)
+            let token = generateAccessToken({ _id: user._id })
             const lang = req.query.lang || 'en'
             const code = await updateAndGenerateCode(
                 createdUser._id,
@@ -543,7 +545,7 @@ exports.facebookAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: user._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -581,7 +583,7 @@ exports.googleAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: createdUser._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -632,7 +634,8 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({_id : user._id})
+        console.log('create user telegram')
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -649,15 +652,17 @@ exports.signin_telegram_function = async (req, profile, cb) => {
 exports.telegramConnection = (req, res) => {
     try {
         var param = {
-            access_token: req.user.token,
-            expires_in: req.user.expires_in,
+            access_token: req.user?.token,
+            expires_in: req.user?.expires_in,
             token_type: 'bearer',
             scope: 'user',
         }
         res.redirect(
             process.env.BASED_URL + '/auth/login?token=' + JSON.stringify(param)
         )
-    } catch (e) {}
+    } catch (e) {
+        console.error(e)
+    }
 }
 /*
  *end signin with telegram strategy
@@ -700,7 +705,7 @@ exports.twitterAuthSignup = async (
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken(createdUser)
+        let token = generateAccessToken({ _id: createdUser._id })
 
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
@@ -923,8 +928,13 @@ exports.addlinkedinChannel = async (
         })
     }
 
-    const linkedinData = config.linkedinPages(accessToken)
-    let linkedinPages = await rp(linkedinData)
+    let linkedinPages = (await rp.get('https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',{
+        headers : {
+            Authorization: 'Bearer ' + accessToken,
+            'X-Restli-Protocol-Version': '2.0.0'
+        }
+    })).data
+    
     var linkedinProfile = { accessToken, refreshToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
@@ -1019,21 +1029,18 @@ exports.addyoutubeChannel = async (
     cb
 ) => {
     var user_id = +req.query.state.split('|')[0]
-    var res = await rp({
-        uri: 'https://www.googleapis.com/youtube/v3/channels',
-        qs: {
-            access_token: accessToken,
+
+    var res = await rp.get('https://www.googleapis.com/youtube/v3/channels', {params :{
+              access_token: accessToken,
             part: 'snippet,statistics',
             mine: true,
-        },
-        json: true,
-    })
-    if (res.pageInfo.totalResults == 0) {
+    }})
+    if (res?.data?.pageInfo?.totalResults == 0) {
         return cb(null, profile, {
             message: 'channel obligatoire',
         })
     }
-    var channelId = res.items[0].id
+    var channelId = res.data?.items[0].id
     var channelGoogle = await GoogleProfile.findOne({
         channelId: channelId,
         UserId: user_id,
@@ -1052,9 +1059,9 @@ exports.addyoutubeChannel = async (
         user_google.accessToken = accessToken
         user_google.UserId = user_id
         user_google.google_id = profile.id
-        user_google.channelTitle = res?.items[0]?.snippet.title
-        user_google.channelImage = res?.items[0]?.snippet.thumbnails
-        user_google.channelStatistics = res?.items[0]?.statistics
+        user_google.channelTitle = res?.data?.items[0]?.snippet.title
+        user_google.channelImage = res?.data?.items[0]?.snippet.thumbnails
+        user_google.channelStatistics = res?.data?.items[0]?.statistics
         user_google.channelId = channelId
         await GoogleProfile.create(user_google)
 

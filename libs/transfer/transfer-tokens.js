@@ -1,5 +1,6 @@
 const Web3 = require('web3')
 const Big = require('big.js')
+const fromExponential = require('from-exponential')
 
 module.exports.transferTokens = async function ({
     fromAddress,
@@ -10,6 +11,9 @@ module.exports.transferTokens = async function ({
     provider,
     walletPassword,
     encryptedPrivateKey,
+    max = false,
+    token = false,
+    network = null,
 }) {
     const web3 = new Web3(provider)
     if (!web3.utils.isAddress(fromAddress)) {
@@ -34,13 +38,14 @@ module.exports.transferTokens = async function ({
             ? await web3.eth.getBalance(fromAddress)
             : await tokenSmartContract.methods.balanceOf(fromAddress).call()
 
-    if (new Big(amount).gt(new Big(senderBalance))) {
+    if (new Big(amount).gt(new Big(senderBalance)) && max === 'flase') {
         throw Error('No enough balance to perform withdraw !!')
     }
 
     const gasPrice = await web3.eth.getGasPrice()
+    if (max === 'true') amount = senderBalance
 
-    const gasLimit =
+    let gasLimit =
         tokenSmartContractAddress === null
             ? await web3.eth.estimateGas({ to: toAddress })
             : await tokenSmartContract.methods
@@ -51,21 +56,27 @@ module.exports.transferTokens = async function ({
 
     try {
         let result
-
         if (
             tokenSmartContractAddress === null ||
             tokenSmartContractAddress === process.env.TOKEN_BTT_CONTRACT
         ) {
+            token && (gasLimit = 21000)
+            if (max == 'true')
+                amount = new Big(senderBalance).minus(
+                    new Big(gasLimit).times(new Big(gasPrice))
+                )
+
             result = await web3.eth.sendTransaction({
                 from: fromAddress,
                 to: toAddress,
-                value: amount,
+                value: fromExponential(amount),
                 gas: gasLimit,
                 gasPrice,
             })
         } else {
+            gasLimit = network === 'BEP20' ? 21000 : 65000
             result = await tokenSmartContract.methods
-                .transfer(toAddress, amount)
+                .transfer(toAddress, fromExponential(amount))
                 .send({
                     from: fromAddress,
                     gas: gasLimit,

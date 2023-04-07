@@ -131,7 +131,15 @@ exports.readHTMLFileProfile = (
     })
 }
 
-exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
+exports.readHTMLFileLogin = (
+    path,
+    event,
+    ip,
+    requestDate,
+    code,
+    user,
+    walletAddr
+) => {
     readHTMLFile(path, async (err, html) => {
         var template = handlebars.compile(html)
 
@@ -164,7 +172,28 @@ exports.readHTMLFileLogin = (path, event, ip, requestDate, code, user) => {
             var mailOptions = {
                 from: process.env.MAIL_SENDER,
                 to: user.email?.toLowerCase(),
-                subject: 'Satt wallet activation',
+                subject:
+                    (event === 'exportKeystore' && 'Export keystore') ||
+                    'Satt wallet activation',
+                html: htmlToSend,
+            }
+        }
+
+        if (event === 'exportKeystore') {
+            var replacements = {
+                satt_faq: process.env.SATT_FAQ,
+                satt_url: process.env.BASED_URL,
+                code,
+                imgUrl: process.env.BASE_EMAIL_IMG_URL,
+                walletAddr,
+            }
+            var htmlToSend = template(replacements)
+            var mailOptions = {
+                from: process.env.MAIL_SENDER,
+                to: user.email?.toLowerCase(),
+                subject:
+                    (event === 'exportKeystore' && 'Export keystore') ||
+                    'Satt wallet activation',
                 html: htmlToSend,
             }
         }
@@ -326,7 +355,9 @@ exports.cloneUser = (user) => {
         failed_count,
         account_locked,
         created,
+        password,
         updated,
+        fireBaseAccessToken,
         confirmation_token,
         ...newUser
     } = user

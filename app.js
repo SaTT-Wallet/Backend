@@ -4,8 +4,10 @@ let createError = require('http-errors')
 
 var express = require('express')
 let app = express()
-
+const helmet = require('helmet')
+app.use(helmet())
 var cors = require('cors')
+// var csrf = require('csurf')
 require('dotenv').config()
 let logger = require('morgan')
 let cookieParser = require('cookie-parser')
@@ -13,20 +15,16 @@ let path = require('path')
 // set up rate limiter: maximum of five requests per minute
 var RateLimit = require('express-rate-limit')
 const package = require('./package.json')
-app.use(require('body-parser').json())
+app.use(
+    require('body-parser').json({
+        limit: '50mb',
+    })
+)
 app.use(require('body-parser').urlencoded({ extended: true }))
 
-app.use(express.json({ limit: '50mb' }))
+app.use(express.json({ limit: '50mb', extended: true }))
 app.use(
     express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
-)
-
-// apply rate limiter to all requests
-app.use(
-    RateLimit({
-        windowMs: 1 * 60 * 1000, // 1 minute
-        max: 5,
-    })
 )
 
 const { mongoConnection } = require('./conf/config')
@@ -37,47 +35,90 @@ const profileroutes = require('./routes/profile.routes')
 const campaignroutes = require('./routes/campaign.routes')
 
 /// db.url is different depending on NODE_ENV
-let connect
-try {
-    connect = mongoose.connect(mongoConnection().mongoURI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-    })
-    console.log(mongoConnection().mongoURI)
 
-    console.log(mongoConnection().mongoBase)
-    console.log('******connection establed to MongoServer*******')
-} catch (error) {
-    console.log('there is no connection')
+const connectDB = async () => {
+    try {
+        await mongoose.connect(mongoConnection().mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useCreateIndex: true,
+            useFindAndModify: false,
+        })
+        console.log(mongoConnection().mongoURI)
+
+        console.log(mongoConnection().mongoBase)
+        console.log('******connection establed to MongoServer*******')
+    } catch (err) {
+        console.log('Failed to connect to MongoDB', err)
+    }
 }
-module.exports.connect = connect
+
+connectDB()
 
 app.disable('x-powered-by')
 
-// let Corsoptions = {}
+/*let Corsoptions = {}
 
-// if (process.env.NODE_ENV !== 'mainnet') {
-//     Corsoptions = {
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//     }
-// } else {
-//     Corsoptions = {
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//         // origin:[process.env.dns   ]
-//     }
-// }
-
-app.use(
-    cors({
+if (process.env.NODE_ENV === 'mainnet') {
+    Corsoptions = {
         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-    })
-)
+        optionsSuccessStatus: 200, // For legacy browser support
+        origin: ['https://dapp.satt.com'],
+    }
+} else {
+    Corsoptions = {
+        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+        optionsSuccessStatus: 200,
+    }
+}
+
+
+app.use(cors(Corsoptions))
+*/
+
+// app.use(
+//     cors({
+//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+//     })
+// )
+app.use(cors('*'))
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV == "mainnet") {
+        if (req.headers.origin) {
+            if (
+                req.headers.origin === 'https://dapp.satt.com' ||
+                req.headers.origin === 'https://satt-token.com' ||
+                req.headers.origin === 'https://app.ihave.io' ||
+                req.headers.origin === 'http://backoffice.atayen.us'
+            ) {
+                return next()
+            } else return res.redirect("https://satt-token.com");
+            
+                
+        } else {
+            if (
+                req.url.includes('google') ||
+                req.url.includes('facebook') ||
+                req.url.includes('tiktok') ||
+                req.url.includes('linkedin') ||
+                req.url.includes('twitter') ||
+                req.url.includes('telegram')
+            ) {
+                return next()
+            } else return res.redirect("https://satt-token.com");
+            
+                
+                
+        }
+    } else return next()
+    
+})
+
 app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
+
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/assets', express.static('public'))

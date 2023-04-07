@@ -3,7 +3,7 @@ var app = express()
 const Twitter = require('twitter-lite')
 const passport = require('passport')
 var FbStrategy = require('passport-facebook').Strategy
-var TwitterStrategy = require('passport-twitter').Strategy
+// var TwitterStrategy = require('passport-twitter').Strategy
 let LinkedInStrategy = require('passport-linkedin-oauth2').Strategy
 var GoogleStrategy = require('passport-google-oauth20').Strategy
 var TelegramStrategy = require('passport-telegram-official').TelegramStrategy
@@ -35,7 +35,7 @@ passport.deserializeUser(async function (id, cb) {
 try {
     router.use(
         session({
-            secret: 'fe3fF4FFGTSCSHT57UI8I8',
+            secret: process.env.SECRET_SESSION,
             resave: true,
             saveUninitialized: true,
         })
@@ -65,6 +65,7 @@ const {
     getNotifications,
     changeEmail,
     verifyLink,
+    convertIdToFbUsername,
     addProfilePicture,
     uploadImageProfile,
     deleteGoogleChannel,
@@ -1299,6 +1300,27 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
  *          description: error:<br> server error
  */
 router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
+
+/**
+ * @swagger
+ * /profile/link/verify/fbUserName/{idLink}:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: confirm change email .
+ *     description: the user must send the code that he had received in his new email.
+ *     parameters:
+ *       - name: idLink
+ *         description: idLink.
+ *         in: path
+ *         required: true
+ *     responses:
+ *       "200":
+ *          description: data:{"code":"200","message":"success","data":"username"}
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.get('/link/verify/fbUserName/:idLink', verifyAuth, convertIdToFbUsername)
 
 /**
  * @swagger

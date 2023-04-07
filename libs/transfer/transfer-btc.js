@@ -1,7 +1,7 @@
 const bip38 = require('bip38')
 const wif = require('wif')
 const child = require('child_process')
-const rp = require('request-promise')
+const rp = require('axios');
 const bitcoinjs = require('bitcoinjs-lib')
 const config = require('./config')
 

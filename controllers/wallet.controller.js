@@ -1,12 +1,14 @@
 const { User, Wallet, CustomToken, WalletUserNode } = require('../model/index')
 
-const rp = require('request-promise')
+const rp = require('axios')
 const path = require('path')
 const { randomUUID } = require('crypto')
 const { v5: uuidv5 } = require('uuid')
 const cron = require('node-cron')
 var fs = require('fs')
-
+var bip39 = require('bip39')
+var bip32 = require('bip32')
+var bip38 = require('bip38')
 const Web3 = require('web3')
 const {
     networkProviders,
@@ -26,17 +28,28 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
-const { configSendBox, PolygonApi, Tokens } = require('../conf/config')
+const {
+    configSendBox,
+    PolygonApi,
+    Tokens,
+    networkSegWitCompat,
+    pathBtcSegwitCompat,
+} = require('../conf/config')
 
 const Big = require('big.js')
 var requirement = require('../helpers/utils')
-const { synfonyHash } = require('../helpers/utils')
+const {
+    synfonyHash,
+    configureTranslation,
+    readHTMLFileLogin,
+} = require('../helpers/utils')
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
 const { Constants } = require('../conf/const')
 const {
     unlock,
+    unlockV2,
     lock,
     createSeed,
     exportkeyBtc,
@@ -62,14 +75,26 @@ const {
     createWalletTron,
     addWalletTron,
     getWalletTron,
+    createSeedV2,
+    getAllWallets,
+    exportkeyV2,
+    exportkeyBtcV2,
+    exportkeyTronV2,
+    getAccountV2,
 } = require('../web3/wallets')
 
-const { notificationManager } = require('../manager/accounts')
+const {
+    notificationManager,
+    updateAndGenerateCode,
+} = require('../manager/accounts')
 
 const { payementRequest } = require('../conf/config')
 const { BalanceUsersStats } = require('../helpers/common')
 const { async } = require('hasha')
 const { transferTronTokens } = require('../libs/transfer/transfer-TRON')
+const { number } = require('bitcoinjs-lib/src/script')
+
+/*
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_DAILY, () =>
     BalanceUsersStats('daily')
 )
@@ -80,95 +105,15 @@ cron.schedule(process.env.CRON_WALLET_USERS_sTAT_MONTHLY, () =>
 
 cron.schedule(process.env.CRON_WALLET_USERS_sTAT_WEEKLY, () =>
     BalanceUsersStats('weekly')
-)
-
-exports.exportBtc = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            var cred = await unlock(req, res)
-            if (!cred) return
-
-            let ret = await exportkeyBtc(req, res)
-
-            res.status(200).send({ ret })
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
-    } catch (err) {}
-}
-
-exports.exportEth = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            let ret = await exportkey(req, res)
-            if (!ret) {
-                return
-            }
-            res.status(200).send(ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.exportTron = async (req, res) => {
-    try {
-        res.attachment()
-        if (req.user.hasWallet == true) {
-            let ret = await exportkeyTron(req, res)
-            if (!ret) {
-                return
-            }
-            res.status(200).send(ret)
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.exportWalletInfos = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-            let ret = await exportWalletInfo(req, res)
-            let address = '0x' + ret.keystore.address
-            if (!ret) {
-                return
-            }
-            res.status(200).send({ keystore: ret.keystore, address })
-        } else {
-            responseHandler.makeResponseError(res, 204, 'Account not found')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
+)*/
 
 exports.mywallet = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
-            var ret = await getAccount(req, res)
+            var ret =
+                req.body.version === 'v1'
+                    ? await getAccount(req, res)
+                    : await getAccountV2(req, res)
             if (!ret) {
                 return
             }
@@ -188,7 +133,19 @@ exports.mywallet = async (req, res) => {
         )
     }
 }
+exports.allwallets = async (req, res) => {
+    try {
+        var ret = await getAllWallets(req, res)
 
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.userBalance = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
@@ -260,7 +217,7 @@ exports.gasPriceErc20 = async (req, res) => {
 
     var gasPrice = await Web3BEP20.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
+        gasPrice: gasPrice / 10000000000,
     })
 }
 
@@ -350,6 +307,7 @@ exports.transferTokensController = async (req, res) => {
     let from = req.body.from
     var to = req.body.to
     var amount = req.body.amount
+    let { max } = req.query
     //TODO: Add a constants enum for different blockchain networks
     let network = req.body.network
     let tokenSymbol = req.body.tokenSymbol
@@ -357,6 +315,7 @@ exports.transferTokensController = async (req, res) => {
     let tokenAddress = req.body.tokenAddress
     let userId = req.user._id
     let result
+
     try {
         if (req.user.hasWallet == true) {
             const provider = getHttpProvider(
@@ -376,12 +335,24 @@ exports.transferTokensController = async (req, res) => {
                     account: accountData,
                 })
             } else if (network.toUpperCase() === 'TRON') {
-                let privateKey = (await getWalletTron(userId, pass)).priv
+                if (req.body.from === '0x' + accountData.keystore.address) {
+                    walletversion = 'v1'
+                } else {
+                    walletversion = 'v2'
+                }
+                let privateKey = (
+                    await getWalletTron(userId, pass, walletversion)
+                ).priv
+
                 result = await transferTronTokens({
-                    tronAddress: accountData.tronAddress,
+                    tronAddress:
+                        walletversion === 'v1'
+                            ? accountData.tronAddress
+                            : accountData.walletV2.tronAddress,
                     toAddress: to,
                     amount,
                     privateKey,
+                    max,
                 })
             } else {
                 result = await transferTokens({
@@ -392,12 +363,15 @@ exports.transferTokensController = async (req, res) => {
                     tokenSmartContractAbi: Constants.token.abi,
                     provider,
                     walletPassword: pass,
-                    encryptedPrivateKey: accountData.keystore,
+                    encryptedPrivateKey:
+                        from === '0x' + accountData.walletV2.keystore.address
+                            ? accountData.walletV2.keystore
+                            : accountData.keystore,
+                    max,
                 })
             }
 
             if (result.error) {
-                console.log('err', result.error)
                 return responseHandler.makeResponseError(res, 402, result.error)
             }
 
@@ -409,16 +383,15 @@ exports.transferTokensController = async (req, res) => {
                     to,
                     transactionHash: result.transactionHash,
                 })
-                const wallet =
-                    (network.toUpperCase() === 'TRON' &&
-                        (await Wallet.findOne(
-                            { tronAddress: to },
-                            { UserId: 1 }
-                        ))) ||
-                    (await Wallet.findOne(
-                        { 'keystore.address': to.substring(2) },
-                        { UserId: 1 }
-                    ))
+
+                const wallet = await Wallet.findOne(
+                    {
+                        ...((network.toUpperCase() === 'TRON' && {
+                            tronAddress: to,
+                        }) || { 'keystore.address': to.substring(2) }),
+                    },
+                    { UserId: 1 }
+                ).lean()
 
                 if (wallet) {
                     await notificationManager(
@@ -452,7 +425,6 @@ exports.transferTokensController = async (req, res) => {
             )
         }
     } catch (err) {
-        console.log(err.error)
         return responseHandler.makeResponseError(res, 500, err.message)
     }
 }
@@ -560,17 +532,20 @@ exports.addNewToken = async (req, res) => {
                 customToken = req.body
                 customToken.sn_users = [req.user._id]
                 if (CryptoPrices.hasOwnProperty(symbol)) {
-                    const cryptoMetaData = {
-                        method: 'GET',
-                        uri: process.env.CMR_URL + symbol,
-                        headers: {
-                            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                        },
-                        json: true,
-                        gzip: true,
-                    }
-
-                    let metaData = await rp(cryptoMetaData)
+                    // const cryptoMetaData = {
+                    //     method: 'GET',
+                    //     uri: process.env.CMR_URL + symbol,
+                    //     headers: {
+                    //         'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                    //     },
+                    //     json: true,
+                    //     gzip: true,
+                    // }
+                    
+                    
+                    let metaData = (await rp(process.env.CMR_URL + symbol,{headers : {
+                        'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                    } })).data
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }
                 await CustomToken.create(customToken)
@@ -623,16 +598,19 @@ exports.getQuote = async (req, res) => {
         requestQuote['end_user_id'] = String(req.user._id)
         requestQuote['client_ip'] = ip
         requestQuote['wallet_id'] = 'satt'
-        const simplexQuote = {
-            url: configSendBox + '/wallet/merchant/v2/quote',
-            method: 'POST',
-            body: requestQuote,
-            headers: {
-                Authorization: `ApiKey ${process.env.SEND_BOX}`,
-            },
-            json: true,
-        }
-        var quote = await rp(simplexQuote)
+        // const simplexQuote = {
+        //     url: configSendBox + '/wallet/merchant/v2/quote',
+        //     method: 'POST',
+        //     body: requestQuote,
+        //     headers: {
+        //         Authorization: `ApiKey ${process.env.SEND_BOX}`,
+        //     },
+        //     json: true,
+        // }
+         var quote = (await rp.post(configSendBox + '/wallet/merchant/v2/quote',requestQuote, {headers :{
+            Authorization: `ApiKey ${process.env.SEND_BOX}`,
+        }})).data
+        //var quote = await rp(simplexQuote)
         if (!!quote.error) {
             return responseHandler.makeResponseError(res, 403, quote.error)
         }
@@ -678,17 +656,20 @@ exports.payementRequest = async (req, res) => {
             request.currency = req.body.currency
             request.idWallet = req.body.idWallet
             let payment = await payementRequest(request)
-            const paymentRequest = {
-                url:
-                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
-                method: 'POST',
-                body: payment,
-                headers: {
-                    Authorization: `ApiKey ${process.env.SEND_BOX}`,
-                },
-                json: true,
-            }
-            var paymentSubmitted = await rp(paymentRequest)
+            // const paymentRequest = {
+            //     url:
+            //         configSendBox + '/wallet/merchant/v2/payments/partner/data',
+            //     method: 'POST',
+            //     body: payment,
+            //     headers: {
+            //         Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            //     },
+            //     json: true,
+            // }
+             var paymentSubmitted = (await rp.post(configSendBox + '/wallet/merchant/v2/payments/partner/data',payment,{headers : {
+                Authorization: `ApiKey ${process.env.SEND_BOX}`,
+            }})).data
+            // var paymentSubmitted = await rp(paymentRequest)
             paymentSubmitted.payment_id = payment_id
             return responseHandler.makeResponseData(
                 res,
@@ -799,9 +780,9 @@ module.exports.getMnemo = async (req, res) => {
         if (req.user.hasWallet == true) {
             let wallet = await Wallet.findOne(
                 { UserId: req.user._id },
-                { mnemo: true }
-            )
-            let mnemo = wallet.mnemo
+                { mnemo: true, walletV2: true }
+            ).lean()
+            let mnemo = wallet?.walletV2?.mnemo || wallet.mnemo
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 mnemo,
@@ -827,7 +808,7 @@ module.exports.verifyMnemo = async (req, res) => {
         if (req.user.hasWallet == true) {
             let mnemo = req.body.mnemo
             let wallet = await Wallet.findOne({
-                $and: [{ UserId: req.user._id }, { mnemo }],
+                $and: [{ UserId: req.user._id }, { 'walletV2.mnemo': mnemo }],
             })
             let verify = wallet ? true : false
 
@@ -879,7 +860,59 @@ exports.createNewWallet = async (req, res) => {
         }
     }
 }
+exports.verifySign = async (req, res) => {
+    try {
+        cred = await unlock(req, res)
+        let userWallet = await Wallet.findOne({ UserId: req.user._id })
 
+        let decryptAccount = await cred.Web3BEP20.eth.accounts.wallet.decrypt(
+            [userWallet.keystore],
+            req.body.pass
+        )
+
+        signature = await cred.Web3BEP20.eth.accounts.sign(
+            'SignWallet',
+            decryptAccount[0].privateKey
+        )
+
+        return responseHandler.makeResponseData(res, 200, 'success', signature)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            401,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.createNewWalletV2 = async (req, res) => {
+    try {
+        var { _id } = req.user
+        let user = await User.findOne({ _id }, { password: 1 }).lean()
+
+        if (user.password === synfonyHash(req.body.pass)) {
+            return responseHandler.makeResponseError(res, 401, 'same password')
+        } else if (
+            (req.user.hasWallet && !req.user.hasWalletV2) ||
+            !req.user.hasWallet
+        ) {
+            var ret = await createSeedV2(req, res)
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Wallet already exist'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
         let account = await Wallet.findOne({ UserId: req.user._id })
@@ -1065,4 +1098,621 @@ exports.countWallets = async (req, res) => {
     let countWallets = await Wallet.count()
 
     return responseHandler.makeResponseData(res, 200, 'success', countWallets)
+}
+exports.addNewWallet = async (req, res) => {
+    try {
+        let ret = await createSeedV2(req, res)
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } finally {
+        if (ret) {
+            await User.updateOne({ _id }, { hasWallet: true })
+        }
+    }
+}
+
+exports.transfertAllTokensBEP20 = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const { pass, tokens, network } = req.body
+        if (req.user?.migrate)
+            return responseHandler.makeResponseData(
+                res,
+                401,
+                'success',
+                'has wallet v2 already done'
+            )
+
+        const accountData = await Wallet.findOne({ UserId: userId }).lean()
+        const transactionHash = [];
+        const errorTransaction = [];
+        if (accountData) {
+            if (network === 'TRON') {
+                let tronWeb = await webTronInstance()
+                let privateKey = (await getWalletTron(userId, pass, 'v1')).priv
+                let amount = new Big(
+                    await tronWeb.trx.getBalance(accountData.tronAddress)
+                )
+                    .minus(1100000)
+                    .toString()
+
+                const send = await transferTronTokens({
+                    tronAddress: accountData?.tronAddress,
+                    toAddress: accountData?.walletV2?.tronAddress,
+                    amount,
+                    privateKey,
+                })
+                send?.transactionHash && transactionHash.push(send)
+
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    transactionHash
+                )
+            }
+            // PROVIDER
+            const provider = getHttpProvider(
+                networkProviders[network],
+                networkProvidersOptions[network]
+            )
+            
+            let nativeIndex = tokens.findIndex(
+                (elem) =>
+                    elem.symbol == 'BNB' ||
+                    elem.symbol == 'ETH' ||
+                    elem.symbol == 'MATIC' ||
+                    elem.symbol == 'BTT'
+            )
+            nativeIndex !== -1 && tokens.splice(nativeIndex, 1)
+            for (let token of tokens) {
+                try {
+                    const send = await transferTokens({
+                        fromAddress: '0x' + accountData.keystore.address, // old wallet
+                        toAddress:
+                            '0x' +
+                            accountData.walletV2.keystore
+                                .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
+                        amount:
+                            token?.balance ||
+                            new Big(token?.quantity)
+                                .times(new Big(10 ** (token?.decimal || 18)))
+                                .toFixed(),
+                        tokenSmartContractAddress: token.contract,
+                        tokenSmartContractAbi: Constants.token.abi,
+                        provider: provider,
+                        walletPassword: pass, // req.body
+                        encryptedPrivateKey: accountData.keystore,
+                        max: false,
+                    })
+                    if (send?.transactionHash) {
+                        transactionHash.push(send);
+                      } 
+                    if (send?.error) {
+                         errorTransaction.push(`Error sending ${token.name} tokens: ${send.error}`); 
+                         break;
+                        }
+
+                    
+                } catch (err) {
+                    continue
+                }
+            }
+
+            if (nativeIndex !== -1 && errorTransaction.length === 0) {
+                let connexionObj = {
+                    BEP20: bep20Connexion,
+                    ERC20: erc20Connexion,
+                    POLYGON: polygonConnexion,
+                    BTTC: bttConnexion,
+                }
+                const Web3Connexion = await connexionObj[network]()
+                let bnbBalance = await Web3Connexion?.eth.getBalance(
+                    '0x' + accountData.keystore.address
+                )
+
+                let web3 = await new Web3(provider)
+                const gasPrice = await web3.eth.getGasPrice()
+
+                gasLimit = 21000
+
+                let amount = new Big(bnbBalance).minus(
+                    new Big(gasLimit).times(new Big(gasPrice))
+                )
+
+                const send = await transferTokens({
+                    fromAddress: '0x' + accountData.keystore.address, // old wallet
+                    toAddress:
+                        '0x' +
+                        accountData.walletV2.keystore
+                            .address /*'0x2f5f8767F82658E24AFb1e3Ff25101bEfF98d85C'*/,
+                    amount: amount,
+                    tokenSmartContractAddress: null,
+                    tokenSmartContractAbi: Constants.token.abi,
+                    provider: provider,
+                    walletPassword: pass, // req.body
+                    encryptedPrivateKey: accountData.keystore,
+                    max: false,
+                    ...(nativeIndex !== -1 && { token: true }),
+                    network,
+                })
+                if (send?.transactionHash) {
+                    transactionHash.push(send);
+                  } 
+                if (send?.error) {
+                     errorTransaction.push(`Error sending ${network === "ERC20" ? "ETH" : ( network === "BEP20" ? "BNB" : (network === "BTTC" ? "BTT" : "MATIC"))} tokens: ${send.error}`); 
+                    
+                    }
+            }
+
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                {transactionHash,errorTransaction}
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.checkUserWalletV2Exist = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const wallet = await Wallet.findOne({ UserId: userId }).lean()
+        if (wallet?.walletV2?.keystore?.address)
+            return responseHandler.makeResponseData(res, 200, 'success', true)
+        return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.checkIsNewUser = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const wallet = await Wallet.findOne({ UserId: userId }).lean()
+        if (wallet?.walletV2?.keystore?.address && !wallet?.keystore?.address)
+            return responseHandler.makeResponseData(res, 200, 'success', true)
+        return responseHandler.makeResponseData(res, 200, 'success', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.resetpassword = async (req, res) => {
+    try {
+        const UserId = req.user._id
+        let oldPass = req.body.oldPass
+        let newPass = req.body.newPass
+        let update = {}
+        const account = await Wallet.findOne({ UserId }).lean()
+        if (account?.walletV2) {
+            let Web3ETH = await erc20Connexion()
+            let newAccount = Web3ETH.eth.accounts.wallet
+                .decrypt([account.walletV2.keystore], oldPass)
+                .encrypt(newPass)
+            let new_ek = account.walletV2.btc.ek
+            if (account.walletV2.btc) {
+                let escpassold = oldPass.replace(/'/g, "\\'")
+                let escpass = newPass.replace(/'/g, "\\'")
+                const seed = bip39.mnemonicToSeedSync(
+                    account.mnemonic,
+                    escpassold
+                )
+                const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
+                const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
+                new_ek = bip38.encrypt(childBtc.privateKey, true, escpass)
+            }
+            update = {
+                'walletV2.keystore': newAccount[0],
+                'walletV2.btc.ek': new_ek,
+            }
+
+            await Wallet.updateOne(
+                { UserId },
+                {
+                    $set: update,
+                },
+                { upsert: true }
+            )
+            return responseHandler.makeResponseData(res, 200, 'success', false)
+        }
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'wallet v2 not exist',
+            false
+        )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.getCodeKeyStore = async (req, res) => {
+    try {
+        let walletAddr
+
+        const { network, version } = req.body
+        if (
+            (version === '1' || version === '2') &&
+            (network === 'eth' || network === 'btc' || network === 'tron')
+        ) {
+            const _id = req.user._id
+            // let user = await User.findOne({ _id },{email :1}).lean()
+
+            // let wallet = await Wallet.findOne({
+            //     UserId: _id,
+            // }).lean()
+
+            let [user, wallet] = await Promise.all([User.findOne({ _id },{email :1}).lean(),Wallet.findOne({
+                UserId: _id,
+            }).lean()])
+
+            if (version === '1') {
+                walletAddr = '0x' +  wallet.keystore.address
+            } else {
+                walletAddr = '0x' +  wallet.walletV2.keystore.address
+            }
+
+            if (!user) {
+                return responseHandler.makeResponseError(
+                    res,
+                    204,
+                    'user not found',
+                    false
+                )
+            } else {
+                const code = Math.floor(100000 + Math.random() * 900000)
+                let secureCode = {}
+                ;(secureCode.code = code),
+                    (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+                    (secureCode.type = `keystore-v${version}-${network}`)
+                
+                await User.updateOne({ _id }, { $set: { secureCode } })
+                let lang = req.body.lang || 'en'
+                configureTranslation(lang)
+                readHTMLFileLogin(
+                    __dirname +
+                        '/../public/emailtemplate/email_validated_keystore_code.html',
+                    'exportKeystore',
+                    null,
+                    null,
+                    code,
+                    user,
+                    walletAddr
+                )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'code sent',
+                    true
+                )
+            }
+        } else {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                'inputs not supported'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.exportKeyStore = async (req, res) => {
+    try {
+        // VARIABLES FROM REQUEST
+        const _id = req.user._id
+        const { code, network, version } = req.body
+
+        // INPUT VALIDATION
+        if (
+            code &&
+            typeof code === 'number' &&
+            (network === 'eth' || network === 'btc' || network === 'tron') &&
+            (version === '1' || version === '2')
+        ) {
+            const user = await User.findOne({ _id })
+            const wallet = await Wallet.findOne({ UserId: _id }).lean()
+
+            // CHECK WALLET VERSION
+            if (version === '1') {
+                /*****                    WALLET V1                        ******/
+
+                //CHECK FOR CODE VERIFICATION
+                if (
+                    parseInt(code) === user.secureCode.code &&
+                    user.secureCode.type.includes(network) &&
+                    user.secureCode.type.includes(version)
+                ) {
+                    // CHECK FOR EXPIRED CODE
+                    if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
+                        // CHECK USER WALLET V1 EXIST
+                        if (wallet.keystore && wallet.btc) {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                (network === 'eth' && wallet.keystore) ||
+                                    (network === 'btc' && wallet?.btc?.ek),
+                                true
+                            )
+                        } else {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                'wallet v1 not found',
+                                false
+                            )
+                        }
+                    } else {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'code expired',
+                            false
+                        )
+                    }
+                } else {
+                    await User.updateOne(
+                        { _id: user._id },
+                        {
+                            $set: {
+                                'secureCode.attempts':
+                                    user.secureCode.attempts + 1,
+                            },
+                        }
+                    )
+                    return responseHandler.makeResponseData(
+                        res,
+                        200,
+                        code !== user.secureCode.code
+                            ? 'code wrong'
+                            : 'network or version wrong',
+                        false
+                    )
+                }
+            } else {
+                /*****                    WALLET V2                        ******/
+
+                //CHECK FOR CODE VERIFICATION
+                if (
+                    parseInt(code) === user.secureCode.code &&
+                    user.secureCode.type.includes(network) &&
+                    user.secureCode.type.includes(version)
+                ) {
+                    // CHECK FOR EXPIRED CODE
+                    if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
+                        // CHECK USER WALLET V2 EXIST
+                        if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                (network === 'eth' &&
+                                    wallet.walletV2.keystore) ||
+                                    (network === 'btc' &&
+                                        wallet.walletV2?.btc.ek),
+                                true
+                            )
+                        } else {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                'wallet v2 not found',
+                                false
+                            )
+                        }
+                    } else {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'code expired',
+                            false
+                        )
+                    }
+                } else {
+                    await User.updateOne(
+                        { _id: user._id },
+                        {
+                            $set: {
+                                'secureCode.attempts':
+                                    user.secureCode.attempts + 1,
+                            },
+                        }
+                    )
+                    return responseHandler.makeResponseData(
+                        res,
+                        200,
+                        code !== user.secureCode.code
+                            ? 'code wrong'
+                            : 'network or version wrong',
+                        false
+                    )
+                }
+            }
+        } else {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'inputs not supported',
+                false
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+
+
+exports.exportBtc = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            var cred = await unlock(req, res)
+            if (!cred) return
+
+            let ret = await exportkeyBtc(req, res)
+
+            res.status(200).send({ ret })
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {}
+}
+
+
+
+exports.exportEth = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkey(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+
+
+exports.exportTron = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyTron(req.user._id, req.body.pass)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+
+exports.exportTronV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyTronV2(req.user._id, req.body.pass)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+
+exports.exportBtcV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            var cred = await unlockV2(req, res)
+            if (!cred) return
+            if (cred) {
+                if (cred == 'Wallet v2 not found')
+                    return res.status(200).send(cred)
+                let ret = await exportkeyBtcV2(req, res)
+                res.status(200).send({ ret })
+            } else {
+                return
+            }
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Wallet not found'
+            )
+        }
+    } catch (err) {}
+}
+
+
+exports.exportEthV2 = async (req, res) => {
+    try {
+        res.attachment()
+        if (req.user.hasWallet == true) {
+            let ret = await exportkeyV2(req, res)
+            if (!ret) {
+                return
+            }
+            res.status(200).send(ret)
+        } else {
+            responseHandler.makeResponseError(res, 204, 'Account not found')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
 }

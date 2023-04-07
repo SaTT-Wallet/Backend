@@ -42,7 +42,6 @@ const {
     campaignApproval,
     approveCampaign,
     campaignAllowance,
-    expandUrl,
 } = require('../controllers/campaign.controller')
 const { automaticRjectLink, updateStatforUser } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
@@ -651,6 +650,8 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
+ *               Walletversion:
+ *                 type: string
  *               pass:
  *                 type: string
  *               idCampaign:
@@ -717,11 +718,15 @@ router.post('/linkNotification', verifyAuth, linkNotifications)
  *           schema:      # Request body contents
  *             type: object
  *             properties:
+ *               Walletversion:
+ *                 type: string
+ *               idLink:
+ *                 type: string
  *               pass:
  *                 type: string
  *               idCampaign:
  *                 type: string
- *               idProm:
+ *               signature:
  *                 type: string
  *               link:
  *                 type: string
@@ -1170,7 +1175,7 @@ router.post('/funding', verifyAuth, increaseBudget)
 
 /**
  * @swagger
- * /campaign/filterLinks/{id_wallet}:
+ * /campaign/filterLinks/{idUser}:
  *   get:
  *     tags:
  *     - "campaign"
@@ -1179,7 +1184,7 @@ router.post('/funding', verifyAuth, increaseBudget)
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id_wallet
+ *       - name: idUser
  *         description: the address wallet of user.
  *         in: path
  *         required: true
@@ -1191,7 +1196,7 @@ router.post('/funding', verifyAuth, increaseBudget)
  *       "500":
  *          description: error:error message
  */
-router.get('/filterLinks/:id_wallet', verifyAuth, getLinks)
+router.get('/filterLinks/:idUser', verifyAuth, getLinks)
 
 /**
  * @swagger
@@ -1363,28 +1368,6 @@ router.get('/statistics', campaignsStatistics)
  *          description: error:<br> server error
  */
 router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
-
-/**
- * @swagger
- * /campaign/expandUrl:
- *   get:
- *     tags:
- *     - "campaign"
- *     summary: expand short url.
- *     description: expand short url to normal url.
- *     parameters:
- *       - in: query
- *         name: shortUrl
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       "200":
- *          description: expanded successfully, {"code":"status code","message":"expanded successfully"}
- *       "500":
- *          description: error:error message
- */
-router.get('/expandUrl', expandUrl)
 
 router.post('/updateStat', updateStatistics)
 

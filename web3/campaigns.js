@@ -1,5 +1,4 @@
-const { Wallet, Campaigns, Event, User } = require('../model/index')
-const { responseHandler } = require('../helpers/response-handler')
+const { Wallet, User } = require('../model/index')
 const {
     erc20Connexion,
     bep20Connexion,
@@ -14,18 +13,15 @@ const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
 const {
     Constants,
-    tronTokensCampaign,
     TronConstant,
     wrapConstants,
     PolygonNetworkConstant,
     BttNetworkConstant,
 } = require('../conf/const')
 const { config } = require('../conf/config')
-const rp = require('request-promise')
-const { ethers } = require('ethers')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
-const { async } = require('hasha')
+
 const {
     getHttpProvider,
     networkProviders,
@@ -219,7 +215,7 @@ exports.unlockBsc = async (req, res) => {
     try {
         let UserId = req.user._id
         let pass = req.body.pass
-        let account = await Wallet.findOne({ UserId })
+        let account = (await Wallet.findOne({ UserId })).walletV2
         let Web3BEP20 = await bep20Connexion()
         Web3BEP20.eth.accounts.wallet.decrypt([account.keystore], pass)
         return { address: '0x' + account.keystore.address, Web3BEP20 }
@@ -814,9 +810,10 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
     return query
 }
 
-exports.getUserIdByWallet = async (wallet) => {
-    let user = await Wallet.findOne({ 'keystore.address': wallet })
-    return user.UserId
+exports.getUserIdByWallet = async wallet => {
+    let user =
+        await Wallet.findOne({$or:[{ 'walletV2.keystore.address': wallet },{'keystore.address': wallet }]},{UserId:1}).lean()
+    return user?.UserId
 }
 
 exports.getLinkedinLinkInfo = async (
@@ -836,19 +833,12 @@ exports.getLinkedinLinkInfo = async (
         )
         if (!tokenValidityBody.data?.active) {
             let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            let resAccessToken = (await axios.get(accessTokenUrl)).data
             accessToken = resAccessToken.access_token
         }
         let linkInfo = {}
-        const linkedinData = {
-            url: config.linkedinActivityUrl(activityURN),
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-        let postData = await rp(linkedinData)
+
+        let postData = (await axios.get(config.linkedinActivityUrl(activityURN), {headers : {Authorization: 'Bearer ' + accessToken}})).data
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??
@@ -880,19 +870,12 @@ exports.getLinkedinLinkInfoMedia = async (
         )
         if (!tokenValidityBody.data?.active) {
             let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            let resAccessToken = (await axios.get(accessTokenUrl)).data
             accessToken = resAccessToken.access_token
         }
         let linkInfo = {}
-        const linkedinData = {
-            url: config.linkedinShareUrl(shareURN),
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-        let postData = await rp(linkedinData)
+      
+        let postData = (await axios.get(config.linkedinShareUrl(shareURN),{headers : {'Authorization': 'Bearer ' + accessToken}})).data
         let urn = shareURN
         linkInfo.idUser =
             postData.results[urn].owner ?? postData.results[urn].author
@@ -911,7 +894,8 @@ exports.applyCampaign = async (
     idUser,
     cred,
     tronWeb,
-    token
+    token,
+    abos
 ) => {
     try {
         if (!!tronWeb) {
@@ -957,20 +941,20 @@ exports.applyCampaign = async (
 
         let web3 = await getContractByNetwork(cred)
 
-        // var gas = 400000
-        var gas = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser)
-            .estimateGas({
-                from: cred.address,
-                gasPrice: gasPrice,
-            })
+        var gas = 400000
+        // var gas = await web3.methods
+        //     .applyCampaign(idCampaign, typeSN, idPost, idUser, abos)
+        //     .estimateGas({
+        //         from: cred.address,
+        //         gasPrice: gasPrice,
+        //     })
 
         console.log('gas: ', gas)
 
         var gasPrice = await web3.getGasPrice()
 
         var receipt = await web3.methods
-            .applyCampaign(idCampaign, typeSN, idPost, idUser)
+            .applyCampaign(idCampaign, typeSN, idPost, idUser, abos)
             .send({
                 from: cred.address,
                 gas: gas,
@@ -1008,7 +992,9 @@ exports.getRemainingFunds = async (token, hash, credentials) => {
             transactionHash: receipt.transactionHash,
             hash: hash,
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error(err)
+    }
 }
 
 exports.getReachLimit = async (campaignRatio, oracle) => {
@@ -1230,7 +1216,22 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
     } catch (err) {}
 }
 
-exports.validateProm = async (idProm, credentials, tronWeb) => {
+exports.validateProm = async (
+    id_campaign,
+    typeSN,
+    idPost,
+    idUser,
+    abosNumber,
+    ownerLink,
+    messageHash,
+    v,
+    r,
+    s,
+    credentials,
+    tronWeb
+) => {
+    console.log('id_campaign', id_campaign)
+
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
@@ -1249,22 +1250,38 @@ exports.validateProm = async (idProm, credentials, tronWeb) => {
                 idProm: idProm,
             }
         } else return result
-         
-        
     }
-    var gas = 100000
-    let ctr = await getPromContract(idProm, credentials)
+    var gas = 1000000
+    // let ctr = await getPromContract(idProm, credentials)
+
+    let ctr = await getContractByNetwork(credentials)
+
+    // let ctr = await getPromContract(idProm, credentials)
+
     var gasPrice = await ctr.getGasPrice()
-    var receipt = await ctr.methods.validateProm(idProm).send({
-        from: credentials.address,
-        gas: gas,
-        gasPrice: gasPrice,
-    })
-    receipt.transactionHash
+
+    var receipt = await ctr.methods
+        .validateProm(
+            id_campaign,
+            typeSN,
+            idPost,
+            idUser,
+            abosNumber,
+            ownerLink,
+            messageHash,
+            v,
+            r,
+            s
+        )
+        .send({
+            from: credentials.address,
+            gas: gas,
+            gasPrice: gasPrice,
+        })
 
     return {
         transactionHash: receipt.transactionHash,
-        idProm: idProm,
+        prom: receipt.events.PromAccepted.returnValues.id,
     }
 }
 

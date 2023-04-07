@@ -1,6 +1,6 @@
 var requirement = require('../helpers/utils')
 var readHTMLFileCampaign = requirement.readHTMLFileCampaign
-
+var sanitize = require("mongo-sanitize");
 const multer = require('multer')
 const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
@@ -25,7 +25,13 @@ const {
 const { responseHandler } = require('../helpers/response-handler')
 const { notificationManager, getDecimal } = require('../manager/accounts')
 const { configureTranslation, timeout } = require('../helpers/utils')
-const { getPrices, getAccount, getWalletTron } = require('../web3/wallets')
+const {
+    getPrices,
+    getAccount,
+    getWalletTron,
+    getAccountV2,
+    unlockV2,
+} = require('../web3/wallets')
 const {
     fundCampaign,
     getTransactionAmount,
@@ -85,7 +91,7 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
-const { automaticRjectLink } = require('../helpers/common')
+const { automaticRjectLink, BalanceUsersStats } = require('../helpers/common')
 
 cron.schedule(process.env.CRON_UPDATE_STAT, () =>
     /*updateStat(),*/
@@ -237,8 +243,13 @@ module.exports.launchCampaign = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(req.user._id, req.body.pass))
-                .priv
+            let privateKey = (
+                await getWalletTron(
+                    req.user._id,
+                    req.body.pass,
+                    req.body.version
+                )
+            ).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -248,7 +259,7 @@ module.exports.launchCampaign = async (req, res) => {
                 await wrappedtrx(tronWeb, amount)
             }
         } else {
-            cred = await unlock(req, res)
+            cred = await unlockV2(req, res)
 
             if (!cred) return
         }
@@ -274,7 +285,7 @@ module.exports.launchCampaign = async (req, res) => {
         )
     } finally {
         if (ret?.hash) {
-            if (tokenAddress == Constants.bep20.address.sattBep20) {
+            if (currency.includes('SATT')) {
                 amount = (amount * 95) / 100
             } else {
                 amount = (amount * 85) / 100
@@ -338,7 +349,9 @@ module.exports.launchBounty = async (req, res) => {
         var tronWeb
         var cred
         if (network === 'TRON') {
-            let privateKey = (await getWalletTron(id, req.body.pass)).priv
+            let privateKey = (
+                await getWalletTron(id, req.body.pass, req.body.version)
+            ).priv
             tronWeb = await webTronInstance()
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -348,7 +361,7 @@ module.exports.launchBounty = async (req, res) => {
                 await wrappedtrx(tronWeb, amount)
             }
         } else {
-            cred = await unlock(req, res)
+            cred = await unlockV2(req, res)
 
             if (!cred) return
         }
@@ -372,8 +385,13 @@ module.exports.launchBounty = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-        cred && lock(cred)
-        if (ret && ret.hash) {
+        !!cred && lock(cred)
+        if (ret?.hash) {
+            if (currency.includes('SATT')) {
+                amount = (amount * 95) / 100
+            } else {
+                amount = (amount * 85) / 100
+            }
             var campaign = {
                 hash: ret.hash,
                 transactionHash: ret.transactionHash,
@@ -418,7 +436,11 @@ module.exports.launchBounty = async (req, res) => {
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
-        if (req.query.idWallet) {
+        let idWallet =
+            req.query.idWallet === 'null'
+                ? JSON.parse(req.query.idWallet)
+                : req.query.idWallet
+        if (idWallet) {
             let userId = await getUserIdByWallet(
                 req.query.idWallet.substring(2)
             )
@@ -581,14 +603,23 @@ exports.campaignPromp = async (req, res) => {
             const bounties = campaign.bounties
             let allLinks
             if (req.query.influencer) {
-                let userWallet = await Wallet.findOne(
-                    {
-                        'keystore.address': req.query.influencer
-                            .toLowerCase()
-                            .substring(2),
-                    },
-                    { tronAddress: 1, _id: 0 }
-                )
+                let userWallet =
+                    (await Wallet.findOne(
+                        {
+                            'walletV2.keystore.address': req.query.influencer
+                                .toLowerCase()
+                                .substring(2),
+                        },
+                        { tronAddress: 1, _id: 0 }
+                    )) ||
+                    (await Wallet.findOne(
+                        {
+                            'keystore.address': req.query.influencer
+                                .toLowerCase()
+                                .substring(2),
+                        },
+                        { tronAddress: 1, _id: 0 }
+                    ))
 
                 allLinks = await CampaignLink.find({
                     $and: [
@@ -714,11 +745,6 @@ exports.campaignPromp = async (req, res) => {
 }
 
 exports.apply = async (req, res) => {
-    // var idCampaign = req.body.idCampaign
-    // var typeSN = req.body.typeSN
-    // var idPost = req.body.idPost
-    // var idUser = req.body.idUser
-    // let title = req.body.title
     var id = req.user._id
     // var pass = req.body.pass
     var { linkedinId, idCampaign, typeSN, idPost, idUser, title, pass } =
@@ -743,13 +769,47 @@ exports.apply = async (req, res) => {
         var tronWeb
         req.body.network = campaignDetails.token.type
         if (campaignDetails.token.type === 'TRON') {
-            let privateKey = (await getWalletTron(id, pass)).priv
+            let privateKey = (
+                await getWalletTron(id, pass, req.body.Walletversion)
+            ).priv
+
+            //signature tron
             tronWeb = await webTronInstance()
+
+            let hexStrWithout0x = tronWeb
+                .toHex(req.body.idPost)
+                .replace(/^0x/, '')
+            // conert hex string to byte array
+            let byteArray = tronWeb.utils.code.hexStr2byteArray(hexStrWithout0x)
+            // keccak256 computing, then remove "0x"
+            let strHash = tronWeb.sha3(byteArray).replace(/^0x/, '')
+
+            signature = await tronWeb.trx.sign(strHash, privateKey)
+
             tronWeb.setPrivateKey(privateKey)
             var walletAddr = tronWeb.address.fromPrivateKey(privateKey)
             tronWeb.setAddress(walletAddr)
         } else {
-            cred = await unlock(req, res)
+            if (!req.user.hasWalletV2)
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'Wallet v2 not found'
+                )
+            cred = await unlockV2(req, res)
+
+            let userWallet = await Wallet.findOne({ UserId: req.user._id })
+
+            let decryptAccount =
+                await cred.Web3BEP20.eth.accounts.wallet.decrypt(
+                    [userWallet.keystore],
+                    req.body.pass
+                )
+
+            signature = await cred.Web3BEP20.eth.accounts.sign(
+                req.body.idPost,
+                decryptAccount[0].privateKey
+            )
             if (!cred) return
         }
 
@@ -772,22 +832,69 @@ exports.apply = async (req, res) => {
         if (typeSN == 6) {
             var tiktokProfile = await TikTokProfile.findOne({ userId: id })
         }
+        if (typeSN == 3)
+            prom.instagramUserName = await getInstagramUserName(idPost, id)
 
-        var ret = await applyCampaign(
-            hash,
-            typeSN,
+        prom.abosNumber = await answerAbos(
+            typeSN + '',
             idPost,
             idUser,
-            cred,
-            tronWeb,
-            campaignDetails.token
+            linkedinProfile,
+            tiktokProfile,
+            id,
+            prom.instagramUserName
+        )
+        // var ret = await applyCampaign(
+        //     hash,
+        //     typeSN,
+        //     idPost,
+        //     idUser,
+        //     cred,
+        //     tronWeb,
+        //     campaignDetails.token,
+        //     prom.abosNumber
+        // )
+
+        //prom.id_prom = ret.idProm
+        prom.applyerSignature = signature
+        prom.typeSN = typeSN.toString()
+        prom.idUser = idUser
+        if (media_url) prom.media_url = media_url
+        if (prom.typeSN == 5) {
+            prom.typeURL = linkedinInfo.idPost.split(':')[2]
+            prom.linkedinId = linkedinId
+        }
+        prom.id_wallet = (!!tronWeb && walletAddr) || cred.address.toLowerCase()
+        prom.idPost = idPost
+        prom.id_campaign = hash
+        prom.appliedDate = date
+        prom.oracle = findBountyOracle(prom.typeSN)
+        var insert = await CampaignLink.create(prom)
+
+        await notificationManager(id, 'apply_campaign', {
+            cmp_name: title,
+            cmp_hash: idCampaign,
+            hash,
+            network: campaignDetails.token.type,
+        })
+        let socialOracle = await getPromApplyStats(
+            prom.oracle,
+            prom,
+            id,
+            linkedinProfile,
+            tiktokProfile
         )
 
-        if (ret.error) {
-            return responseHandler.makeResponseError(res, 402, ret.error)
-        }
+        prom.views = socialOracle?.views || 0
+        prom.likes = socialOracle?.likes || 0
+        prom.shares = socialOracle?.shares || 0
+        prom.media_url = media_url || socialOracle?.media_url
 
-        return responseHandler.makeResponseData(res, 200, 'success', ret)
+        await Promise.allSettled([
+            CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+        ])
+
+        return responseHandler.makeResponseData(res, 200, 'success', insert)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -796,67 +903,59 @@ exports.apply = async (req, res) => {
         )
     } finally {
         cred && lock(cred)
-        if (ret?.transactionHash) {
-            if (typeSN == 3)
-                prom.instagramUserName = await getInstagramUserName(idPost, id)
+        // if (ret?.transactionHash) {
+        //     await notificationManager(id, 'apply_campaign', {
+        //         cmp_name: title,
+        //         cmp_hash: idCampaign,
+        //         // hash,
+        //         txhash: ret?.transactionHash,
+        //         network: campaignDetails.token.type,
+        //     })
+        //     prom.id_prom = ret.idProm
+        //     prom.typeSN = typeSN.toString()
+        //     prom.idUser = idUser
+        //     if (media_url) prom.media_url = media_url
+        //     if (prom.typeSN == 5) {
+        //         prom.typeURL = linkedinInfo.idPost.split(':')[2]
+        //         prom.linkedinId = linkedinId
+        //     }
+        //     prom.id_wallet =
+        //         (!!tronWeb && walletAddr) || cred.address.toLowerCase()
+        //     prom.idPost = idPost
+        //     prom.id_campaign = hash
+        //     prom.appliedDate = date
+        //     prom.oracle = findBountyOracle(prom.typeSN)
+        //     var insert = await CampaignLink.create(prom)
 
-            await notificationManager(id, 'apply_campaign', {
-                cmp_name: title,
-                cmp_hash: idCampaign,
-                hash,
-            })
-            prom.id_prom = ret.idProm
-            prom.typeSN = typeSN.toString()
-            prom.idUser = idUser
-            if (media_url) prom.media_url = media_url
-            if (prom.typeSN == 5) {
-                prom.typeURL = linkedinInfo.idPost.split(':')[2]
-                prom.linkedinId = linkedinId
-            }
-            prom.id_wallet =
-                (!!tronWeb && walletAddr) || cred.address.toLowerCase()
-            prom.idPost = idPost
-            prom.id_campaign = hash
-            prom.appliedDate = date
-            prom.oracle = findBountyOracle(prom.typeSN)
-            var insert = await CampaignLink.create(prom)
-            prom.abosNumber = await answerAbos(
-                prom.typeSN,
-                prom.idPost,
-                idUser,
-                linkedinProfile,
-                tiktokProfile
-            )
+        //     let socialOracle = await getPromApplyStats(
+        //         prom.oracle,
+        //         prom,
+        //         id,
+        //         linkedinProfile,
+        //         tiktokProfile
+        //     )
 
-            let socialOracle = await getPromApplyStats(
-                prom.oracle,
-                prom,
-                id,
-                linkedinProfile,
-                tiktokProfile
-            )
+        //     prom.views = socialOracle?.views || 0
+        //     prom.likes = socialOracle?.likes || 0
+        //     prom.shares = socialOracle?.shares || 0
+        //     prom.media_url = media_url || socialOracle?.media_url
 
-            prom.views = socialOracle?.views || 0
-            prom.likes = socialOracle?.likes || 0
-            prom.shares = socialOracle?.shares || 0
-            prom.media_url = media_url || socialOracle?.media_url
+        //     let event = {
+        //         id: hash,
+        //         prom: ret.idProm,
+        //         type: 'applied',
+        //         date: date,
+        //         txhash: ret.transactionHash,
+        //         contract: campaignDetails.contract.toLowerCase(),
+        //         owner: campaignDetails.contract.toLowerCase(),
+        //         media_url: prom.media_url,
+        //     }
 
-            let event = {
-                id: hash,
-                prom: ret.idProm,
-                type: 'applied',
-                date: date,
-                txhash: ret.transactionHash,
-                contract: campaignDetails.contract.toLowerCase(),
-                owner: campaignDetails.contract.toLowerCase(),
-                media_url: prom.media_url,
-            }
-
-            await Promise.allSettled([
-                CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
-                Event.create(event),
-            ])
-        }
+        //     await Promise.allSettled([
+        //         CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+        //         Event.create(event),
+        //     ])
+        // }
     }
 }
 
@@ -916,10 +1015,13 @@ exports.linkNotifications = async (req, res) => {
 exports.validateCampaign = async (req, res) => {
     const _id = req.body.idCampaign
     const linkProm = req.body.link
-    const idApply = req.body.idProm
+    const idLink = req.body.idLink
+    const idApply = req.body.signature
     const idUser = '0' + req.user._id
     const pass = req.body.pass
 
+    let signature
+    let ownerLink
     if (!mongoose.Types.ObjectId.isValid(_id)) {
         return responseHandler.makeResponseError(
             res,
@@ -943,51 +1045,106 @@ exports.validateCampaign = async (req, res) => {
             configureTranslation(lang)
             var tronWeb
             var cred
+
+            let campaignLink = await CampaignLink.findOne({ _id: idLink })
+
+            signature = campaignLink.applyerSignature
+
+            ownerLink = campaignLink.id_wallet
+
             if (campaign.token.type === 'TRON') {
-                let privateKey = (await getWalletTron(req.user._id, pass)).priv
+                let privateKey = await getWalletTron(
+                    req.user._id,
+                    pass,
+                    req.body.Walletversion
+                ).priv
+
                 tronWeb = await webTronInstance()
+
+                let hexStrWithout0x = await tronWeb
+                    .toHex(campaignLink.idPost)
+                    .replace(/^0x/, '')
+                var byteArray = await tronWeb.utils.code.hexStr2byteArray(
+                    hexStrWithout0x
+                )
+
+                var strHash = await tronWeb.sha3(byteArray).replace(/^0x/, '')
+
+                var verifyLInk = await tronWeb.trx.verifyMessage(
+                    strHash,
+                    campaignLink.applyCampaign,
+                    campaignLink.id_wallet
+                )
+
                 tronWeb.setPrivateKey(privateKey)
                 let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
                 tronWeb.setAddress(walletAddr)
             } else {
                 req.body.network = campaign.token.type
                 cred = await unlock(req, res)
+
+                let recoveredSigner = await cred.WEB3.eth.accounts.recover(
+                    campaignLink.applyerSignature
+                )
+
+                if (recoveredSigner.toLowerCase() !== campaignLink.id_wallet) {
+                    return responseHandler.makeResponseError(
+                        res,
+                        401,
+                        'the signature is not matched  to the link or signature'
+                    )
+                }
+
+                var ret = await validateProm(
+                    campaignLink.id_campaign,
+                    campaignLink.typeSN,
+                    campaignLink.idPost,
+                    campaignLink.idUser,
+                    campaignLink.abosNumber,
+                    ownerLink,
+                    signature.messageHash,
+                    signature.v,
+                    signature.r,
+                    signature.s,
+                    cred,
+                    tronWeb
+                )
             }
 
-            var ret = await validateProm(idApply, cred, tronWeb)
-            return responseHandler.makeResponseData(res, 200, 'success', ret)
-        } else {
-            return responseHandler.makeResponseError(res, 401, 'unothorized')
-        }
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    } finally {
-        try {
             if (cred) {
                 lock(cred)
             }
             if (ret && ret.transactionHash) {
-                let link = await CampaignLink.findOne({ id_prom: idApply })
+                let link = await CampaignLink.findOne({ _id: idLink })
                 let userWallet =
                     (!!tronWeb &&
                         (await Wallet.findOne(
                             {
-                                tronAddress: link.id_wallet,
+                                $or: [
+                                    { tronAddress: link.id_wallet },
+                                    { 'walletV2.tronAddress': link.id_wallet },
+                                ],
                             },
                             { UserId: 1, _id: 0 }
                         ))) ||
                     (await Wallet.findOne(
                         {
-                            'keystore.address': link.id_wallet
-                                .toLowerCase()
-                                .substring(2),
+                            $or: [
+                                {
+                                    'walletV2.keystore.address': link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                                },
+                                {
+                                    'keystore.address': link.id_wallet
+                                        .toLowerCase()
+                                        .substring(2),
+                                },
+                            ],
                         },
                         { UserId: 1, _id: 0 }
                     ))
+
                 let user = await User.findOne({ _id: userWallet.UserId })
                 const id = user._id
                 const email = user.email
@@ -1019,8 +1176,9 @@ exports.validateCampaign = async (req, res) => {
                 socialOracle.totalToEarn = link.totalToEarn
                 socialOracle.type = getButtonStatus(link)
                 socialOracle.acceptedDate = Math.floor(Date.now() / 1000)
+                socialOracle.id_prom = ret.prom
                 await CampaignLink.updateOne(
-                    { id_prom: idApply },
+                    { _id: idLink },
                     { $set: socialOracle }
                 )
 
@@ -1041,9 +1199,17 @@ exports.validateCampaign = async (req, res) => {
                     _id
                 )
             }
-        } catch (err) {
-            console.log(err)
+
+            return responseHandler.makeResponseData(res, 200, 'success', ret)
+        } else {
+            return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
@@ -1057,7 +1223,7 @@ exports.gains = async (req, res) => {
         var link = await CampaignLink.findOne({ id_prom: idProm }).lean()
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
-        if (link.acceptedDate && date - link.acceptedDate <= 86400) {
+        if (link.acceptedDate && date - link.acceptedDate <= 300) {
             return responseHandler.makeResponseError(
                 res,
                 403,
@@ -1095,6 +1261,13 @@ exports.gains = async (req, res) => {
             let prom =
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
+            if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
+                return responseHandler.makeResponseError(
+                    res,
+                    403,
+                    "You didn't exceed the limits timing to harvest between 24H"
+                )
+            }
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
@@ -1677,15 +1850,19 @@ module.exports.increaseBudget = async (req, res) => {
 }
 
 exports.getFunds = async (req, res) => {
+    req.body = sanitize(req.body);
     var hash = req.body.hash
     try {
-        let _id = req.user._id
-        var campaignDetails = await Campaigns.findOne({ hash })
+        let { _id } = req.user
+        var campaignDetails = await Campaigns.findOne(
+            { hash },
+            { idNode: 1, token: 1 }
+        ).lean()
 
         if (campaignDetails?.idNode !== '0' + _id) {
             return responseHandler.makeResponseError(res, 204, 'unauthorized')
         } else {
-            var cred = await unlock(req, res)
+            var cred = await unlockV2(req, res)
             var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
 
             return responseHandler.makeResponseData(
@@ -1828,7 +2005,9 @@ exports.bttAllow = async (req, res) => {
 exports.tronApproval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
-        let privateKey = (await getWalletTron(req.user._id, req.body.pass)).priv
+        let privateKey = (
+            await getWalletTron(req.user._id, req.body.pass, req.body.version)
+        ).priv
         let tronWeb = await webTronInstance(privateKey)
         tronWeb.setPrivateKey(privateKey)
         let walletAddr = tronWeb.address.fromPrivateKey(privateKey)
@@ -1878,7 +2057,7 @@ exports.bep20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await getAccount(req, res)
+        let account = await getAccountV2(req, res)
         let allowance = await bep20Approve(
             tokenAddress,
             account.address,
@@ -1955,7 +2134,7 @@ exports.erc20Approval = async (req, res) => {
     try {
         let tokenAddress = req.body.tokenAddress
         let campaignAddress = req.body.campaignAddress
-        let account = await getAccount(req, res)
+        let account = await getAccountV2(req, res)
         let allowance = await erc20Approve(
             tokenAddress,
             account.address,
@@ -2036,13 +2215,9 @@ exports.erc20Allow = async (req, res) => {
 
 exports.getLinks = async (req, res) => {
     try {
-        const id_wallet = req.params.id_wallet
-        let userWallet = await Wallet.findOne(
-            {
-                'keystore.address': id_wallet.toLowerCase().substring(2),
-            },
-            { tronAddress: 1, _id: 0 }
-        )
+        const userId = req.params.idUser
+        const accountData = await Wallet.findOne({ UserId: userId })
+
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -2052,18 +2227,31 @@ exports.getLinks = async (req, res) => {
         let allProms = []
         let allTronProms = []
 
-        let query1 = filterLinks(req, id_wallet)
-        let query2 = filterLinks(req, userWallet.tronAddress)
+        let query1 = filterLinks(req, '0x' + accountData.keystore.address)
+        let query3 = filterLinks(
+            req,
+            '0x' + accountData.walletV2.keystore.address
+        )
+        let query2 = filterLinks(req, accountData.tronAddress)
+        let query4 = filterLinks(req, accountData.walletV2.tronAddress)
 
         var count =
             (await CampaignLink.find(
-                { id_wallet },
+                { id_wallet: { $in: [query1.id_wallet, query3.id_wallet] } },
                 { type: { $exists: 0 } }
             ).countDocuments()) +
-            ((!!userWallet.tronAddress &&
+            ((!!accountData.tronAddress &&
+                !!accountData.walletV2.tronAddress &&
                 req.query.state === 'part' &&
                 (await CampaignLink.find(
-                    { tronAddress: userWallet.tronAddress },
+                    {
+                        tronAddress: {
+                            $in: [
+                                accountData.tronAddress,
+                                accountData.walletV2.tronAddress,
+                            ],
+                        },
+                    },
                     { type: { $exists: 0 } }
                 ).countDocuments())) ||
                 0)
@@ -2098,7 +2286,20 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: query1,
+                $match: {
+                    $or: [
+                        {
+                            id_wallet: {
+                                $in: [query1.id_wallet, query3.id_wallet],
+                            },
+                        },
+                        {
+                            id_campaign: {
+                                $in: [query1.id_campaign, query3.id_campaign],
+                            },
+                        },
+                    ],
+                },
             },
             {
                 $addFields: {
@@ -2120,10 +2321,15 @@ exports.getLinks = async (req, res) => {
             .limit(limit)
 
         let tronUserLinks =
-            (!!userWallet.tronAddress &&
+            (!!accountData.tronAddress &&
+                !!accountData.walletV2.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: query2,
+                        $match: {
+                            id_wallet: {
+                                $in: [query2.id_wallet, query4.id_wallet],
+                            },
+                        },
                     },
                     {
                         $addFields: {

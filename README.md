@@ -2,7 +2,7 @@
 
 ## SaTT Wallet API
 
-Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://satt.atayen.us/)
+Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://dapp.satt.com/)
 
 It provides :
 
@@ -12,7 +12,7 @@ It provides :
 
 ### Built With
 
-This projetct is build in JavaScript for NodeJS and these main npm modules :
+This project is build in JavaScript for NodeJS and these main npm modules :
 
 -   [Express](https://expressjs.com/)
 -   [Mongodb](https://github.com/mongodb/node-mongodb-native)
@@ -24,11 +24,11 @@ This projetct is build in JavaScript for NodeJS and these main npm modules :
 
 ### Blockchain deployment
 
-1. You can check all our differents smart contracts in contract folder:
+1. You can check all our different smart contracts in contract folder:
 
 ![alt text](/public/contracts.png)
 
-2. To Deploy smart contracts (token,campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/):
+2. To Deploy smart contracts (token, campaign and oracle) in contract folder with [Remix](https://remix.ethereum.org) and [Metamask](https://metamask.io/) or [MEW](https://www.myetherwallet.com/):
 
 \*\*create your file on Remix and paste your code there
 
@@ -91,7 +91,7 @@ For development, you will only need Node.js and a node global package.
     up to 6.x.x
 
     If the installation was successful, you should be able to run the following command.
-    PM2 Process Manager, you can install it a described below :
+    PM2 Process Manager, you can install it as described below :
 
     ```sh
     npm install pm2 -g
@@ -243,7 +243,7 @@ See the [open issues](https://github.com/Atayen/node-satt/issues) for a list of 
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -274,7 +274,7 @@ Contributions are what make the open source community such an amazing place to b
 ![alt text](/public/4.png)
 
 PS:
-All this credentials refers to APPID,APP_SECRET,FB_GRAPH_VERSION in .env file
+All these credentials refer to APPID,APP_SECRET,FB_GRAPH_VERSION in .env file
 
 ```sh
 APPID=process.env.APPID
@@ -286,7 +286,7 @@ FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 
     To create a google app you should visit [official console.developers.google.com website](https://console.developers.google.com/) and respect the following steps:
 
-    # Create Credentialds
+    # Create Credentials
 
 ![alt text](/public/11.png)
 
@@ -294,7 +294,7 @@ FB_GRAPH_VERSION=process.env.FB_GRAPH_VERSION
 
 ![alt text](/public/22.png)
 
-# Get Client crededentials
+# Get Client credentials
 
 ![alt text](/public/33.png)
 
@@ -315,7 +315,7 @@ GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
 GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 ```
 
--   #### LinkedIN configuration
+-   #### LinkedIn configuration
 
     To create a linkedin app you should visit [official developer.linkedin.com website](https://developer.linkedin.com/) and respect the following steps:
 
@@ -328,7 +328,7 @@ GDA_TAP_API_KEY= process.env.GDA_TAP_API_KEY
 ![alt text](/public/444.png)
 
 PS:
-All this credentials refers to LINKEDIN_KEY and LINKEDIN_SECRET in .env file
+All these credentials refer to LINKEDIN_KEY and LINKEDIN_SECRET in .env file
 
 ```sh
 LINKEDIN_KEY=process.env.LINKEDIN_KEY
@@ -347,11 +347,11 @@ LINKEDIN_SECRET=process.env.LINKEDIN_SECRET
 
 ![alt text](/public/2t.png)
 
-# Get your twitter credentialds
+# Get your twitter credentials
 
 ![alt text](/public/3t.png)
 
-# Get your twitter credentialds
+# Get your twitter credentials
 
 you can regenerate again your credentials with more options
 
@@ -384,7 +384,7 @@ TWITTER_ACCESS_TOKEN_SECRET=process.env.TWITTER_ACCESS_TOKEN_SECRET
 ![alt text](/public/bot2.png)
 
 PS:
-This credential refer to TELEGRAM_BOT_TOKEN in .env file
+This credential refers to TELEGRAM_BOT_TOKEN in .env file
 
 ```sh
 TELEGRAM_BOT_TOKEN=process.env.TELEGRAM_BOT_TOKEN
@@ -393,13 +393,13 @@ TELEGRAM_BOT_TOKEN=process.env.TELEGRAM_BOT_TOKEN
 
 -   #### CoinMarketCap
 
-We get data refer tou Satt token from [official coinmarketcap.com/api website](https://coinmarketcap.com/api/) and respect the following steps:
+We get data referred to Satt token from [official coinmarketcap.com/api website](https://coinmarketcap.com/api/) and respect the following steps:
 
 # Create your account
 
 ![alt text](/public/marketcap0.png)
 
-# Get your crededentials
+# Get your credentials
 
 ![alt text](/public/marketcap1.png)
 
