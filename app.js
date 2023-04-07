@@ -1,7 +1,6 @@
 var fs = require('fs')
 const mongoose = require('mongoose')
-let createError = require('http-errors')
-
+const mongoSanitize = require('express-mongo-sanitize');
 var express = require('express')
 let app = express()
 const helmet = require('helmet')
@@ -27,6 +26,12 @@ app.use(
     express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
 )
 
+app.use(
+    mongoSanitize({
+      allowDots: true,
+      replaceWith: '_',
+    }),
+  );
 const { mongoConnection } = require('./conf/config')
 
 const loginroutes = require('./routes/login.routes')
@@ -57,30 +62,8 @@ connectDB()
 
 app.disable('x-powered-by')
 
-/*let Corsoptions = {}
+app.use(helmet.frameguard({ action: 'deny' }));
 
-if (process.env.NODE_ENV === 'mainnet') {
-    Corsoptions = {
-        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-        optionsSuccessStatus: 200, // For legacy browser support
-        origin: ['https://dapp.satt.com'],
-    }
-} else {
-    Corsoptions = {
-        methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-        optionsSuccessStatus: 200,
-    }
-}
-
-
-app.use(cors(Corsoptions))
-*/
-
-// app.use(
-//     cors({
-//         methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
-//     })
-// )
 app.use(cors('*'))
 app.use((req, res, next) => {
     if (process.env.NODE_ENV == "mainnet") {

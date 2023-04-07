@@ -217,7 +217,7 @@ exports.gasPriceErc20 = async (req, res) => {
 
     var gasPrice = await Web3BEP20.eth.getGasPrice()
     return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 10000000000,
+        gasPrice: gasPrice / 1000000000,
     })
 }
 
@@ -384,15 +384,18 @@ exports.transferTokensController = async (req, res) => {
                     transactionHash: result.transactionHash,
                 })
 
+                
                 const wallet = await Wallet.findOne(
                     {
                         ...((network.toUpperCase() === 'TRON' && {
                             tronAddress: to,
-                        }) || { 'keystore.address': to.substring(2) }),
+                        }) || {$or: [{'keystore.address': to.substring(2)}, {'walletV2.keystore.address': to.substring(2)}]}
+                       ),
                     },
                     { UserId: 1 }
                 ).lean()
-
+                   
+                 
                 if (wallet) {
                     await notificationManager(
                         wallet.UserId,
@@ -408,8 +411,7 @@ exports.transferTokensController = async (req, res) => {
                             transactionHash: result.transactionHash,
                         }
                     )
-                }
-
+                } 
                 return responseHandler.makeResponseData(
                     res,
                     200,
@@ -1147,13 +1149,17 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     amount,
                     privateKey,
                 })
-                send?.transactionHash && transactionHash.push(send)
+                if (send?.transactionHash) {
+                    transactionHash.push(send);
+                  }  else {
+                    errorTransaction.push(`Error sending TRX token: ${send.error}`); 
+                  }
 
                 return responseHandler.makeResponseData(
                     res,
                     200,
                     'success',
-                    transactionHash
+                    {transactionHash,errorTransaction}
                 )
             }
             // PROVIDER
