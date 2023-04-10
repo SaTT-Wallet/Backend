@@ -1384,7 +1384,7 @@ exports.createSeedV2 = async (req, res) => {
             keystore: { $exists: true },
         })
 
-        
+        try {
             let oldpass = await web3.eth.accounts.decrypt(
                 walletV1.keystore,
                 req.body.pass
@@ -1396,8 +1396,8 @@ exports.createSeedV2 = async (req, res) => {
                     401,
                     'same transaction pass '
                 )
-            } else {
-
+            }
+        } catch (error) {
             const mnemonic = bip39.generateMnemonic(256)
             const seed = bip39.mnemonicToSeedSync(mnemonic, password)
             const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
