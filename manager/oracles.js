@@ -86,18 +86,18 @@ exports.verifyFacebook = async (idPost, page) => {
 
 exports.verifyYoutube = async (userId, idPost, accessToken) => {
     try {
-        var res = await rp({
-            uri: 'https://www.googleapis.com/youtube/v3/videos',
-            qs: {
-                id: idPost,
-                access_token: accessToken,
-                part: 'snippet',
-            },
-            json: true,
-        })
+        var res = await rp(
+            'https://www.googleapis.com/youtube/v3/videos',
+            {
+                params: {
+                    id: idPost,
+                    access_token: accessToken,
+                    part: 'snippet',
+                }
+            });
 
-        if (res.items) {
-            var channelId = res.items[0]?.snippet.channelId
+        if (res.data.items) {
+            var channelId = res.data.items[0]?.snippet.channelId
             var googleProfile = await GoogleProfile.findOne({
                 UserId: userId,
                 channelId: channelId,
