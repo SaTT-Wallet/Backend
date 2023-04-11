@@ -933,24 +933,14 @@ module.exports.verifyLink = async (req, response) => {
                 ).lean()
 
                 if (googleProfile) {
-                    // var options = {
-                    //     method: 'POST',
-                    //     uri: 'https://oauth2.googleapis.com/token',
-                    //     body: {
-                    //         client_id: oauth.google.googleClientId,
-                    //         client_secret: oauth.google.googleClientSecret,
-                    //         refresh_token: googleProfile.refreshToken,
-                    //         grant_type: 'refresh_token',
-                    //     },
-                    //     json: true,
-                    // }
-                    const {access_token} = await rp.post('https://oauth2.googleapis.com/token', {
+                   
+                    const data = await rp.post('https://oauth2.googleapis.com/token', {
                                 client_id: oauth.google.googleClientId,
                                 client_secret: oauth.google.googleClientSecret,
                                 refresh_token: googleProfile.refreshToken,
                                 grant_type: 'refresh_token',
                             })
-                    //const { access_token } = await rp(options)
+                    const access_token = data.data.access_token;
                     await GoogleProfile.updateOne(
                         { UserId: userId },
                         { $set: { accessToken: access_token } }
