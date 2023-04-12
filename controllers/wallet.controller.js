@@ -1448,9 +1448,8 @@ exports.exportKeyStore = async (req, res) => {
             (network === 'eth' || network === 'btc' || network === 'tron') &&
             (version === '1' || version === '2')
         ) {
-            const user = await User.findOne({ _id })
-            const wallet = await Wallet.findOne({ UserId: _id }).lean()
 
+            const [user,wallet] = await Promise.all([User.findOne({ _id }).lean(),Wallet.findOne({ UserId: _id }).lean()])
             // CHECK WALLET VERSION
             if (version === '1') {
                 /*****                    WALLET V1                        ******/

@@ -536,8 +536,7 @@ const facebook = async (pageName, idPost) => {
         if (page) {
             var token = page.token
             var idPage = page.id
-            var res2 = await rp({
-                uri:
+            var res2 = (await rp.get(
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
                     '/' +
@@ -545,11 +544,9 @@ const facebook = async (pageName, idPost) => {
                     '_' +
                     idPost +
                     '?fields=shares,full_picture&access_token=' +
-                    token,
-                json: true,
-            })
-            var res3 = await rp({
-                uri:
+                    token)).data
+            var res3 = (await rp.get(
+
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
                     '/' +
@@ -557,9 +554,7 @@ const facebook = async (pageName, idPost) => {
                     '_' +
                     idPost +
                     '/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token=' +
-                    token,
-                json: true,
-            })
+                    token)).data
 
             var shares = 0
             if (res2.shares) {
@@ -588,14 +583,14 @@ const youtube = async (idPost) => {
             idPost = idPost.split('&')[0]
         }
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
-        var body = await rp({
-            uri: 'https://www.googleapis.com/youtube/v3/videos',
-            qs: {
+  
+        var body = (await rp.get('https://www.googleapis.com/youtube/v3/videos', {
+            params : {
                 id: idPost,
                 key: oauth.google.gdataApiKey,
-                part: 'statistics,snippet',
-            },
-        })
+                part: 'statistics,snippet'
+            }
+        })).data
         var res = JSON.parse(body)
 
         if (res.items && res.items[0]) {
@@ -626,22 +621,15 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         )
         if (!tokenValidityBody.data?.active) {
             let accessTokenUrl = `https://www.linkedin.com/oauth/v2/accessToken?grant_type=refresh_token&refresh_token=${linkedinProfile.refreshToken}&client_id=${process.env.LINKEDIN_KEY}&client_secret=${process.env.LINKEDIN_SECRET}`
-            let resAccessToken = await rp({ uri: accessTokenUrl, json: true })
+            let resAccessToken = (await rp.get(accessTokenUrl)).data
             accessToken = resAccessToken.access_token
         }
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
 
-        const linkedinData = {
-            url: url,
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-
-        var body = await rp(linkedinData)
+        var body = (await rp.get(url,{headers:{
+            Authorization: 'Bearer ' + accessToken
+        }})).data;
         if (body.elements.length) {
             perf.views = body.elements[0]?.totalShareStatistics.impressionCount
             perf.likes = body.elements[0]?.totalShareStatistics.likeCount

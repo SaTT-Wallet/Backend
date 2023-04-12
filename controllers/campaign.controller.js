@@ -1079,7 +1079,7 @@ exports.validateCampaign = async (req, res) => {
                 tronWeb.setAddress(walletAddr)
             } else {
                 req.body.network = campaign.token.type
-                cred = await unlock(req, res)
+                cred = await unlockV2(req, res)
 
                 let recoveredSigner = await cred.WEB3.eth.accounts.recover(
                     campaignLink.applyerSignature
