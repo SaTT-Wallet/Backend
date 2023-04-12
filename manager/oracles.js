@@ -157,18 +157,15 @@ exports.verifyInsta = async function (userId, idPost) {
 
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
-         var tweet = new Twitter2({
+         const client = new Twitter({
              consumer_key: process.env.TWITTER_CONSUMER_KEY,
              consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-             access_token_key: twitterProfile?.access_token_key,
+             access_token_key: twitterProfile.access_token_key,
              access_token_secret: twitterProfile.access_token_secret,
          })
-         var res = await tweet.get('tweets', {
-            ids: idPost,
-             'tweet.fields': 'author_id',
-         })
+         const tweet = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`);
          var twitterProfile = await TwitterProfile.findOne({
-             id: res.data[0].author_id,
+             id: tweet.data[0].author_id,
              UserId: userId,
          }).select('access_token_key access_token_secret id')
          return twitterProfile ? true : false
@@ -214,7 +211,7 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
         let videoInfoResponse = await axios.post(
             'https://open-api.tiktok.com/video/query/',
             {
-                access_token: resMedia?.data.access_token,
+                access_token: resMedia?.data.data.access_token,
                 open_id: tiktokProfile.userTiktokId,
                 filters: {
                     video_ids: [idPost],
