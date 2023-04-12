@@ -84,18 +84,18 @@ exports.verifyFacebook = async (idPost, page) => {
 
 exports.verifyYoutube = async (userId, idPost, accessToken) => {
     try {
-        var res = await rp({
-            uri: 'https://www.googleapis.com/youtube/v3/videos',
-            qs: {
-                id: idPost,
-                access_token: accessToken,
-                part: 'snippet',
-            },
-            json: true,
-        })
+        var res = await rp(
+            'https://www.googleapis.com/youtube/v3/videos',
+            {
+                params: {
+                    id: idPost,
+                    access_token: accessToken,
+                    part: 'snippet',
+                }
+            });
 
-        if (res.items) {
-            var channelId = res.items[0]?.snippet.channelId
+        if (res.data.items) {
+            var channelId = res.data.items[0]?.snippet.channelId
             var googleProfile = await GoogleProfile.findOne({
                 UserId: userId,
                 channelId: channelId,
@@ -354,28 +354,22 @@ exports.facebookAbos = async pageName =>{
     } catch (err) {}
 }
 
-exports.youtubeAbos = async function (idPost) {
+exports.youtubeAbos = async  idPost => {
     try {
-        var res = await rp({
-            uri: 'https://www.googleapis.com/youtube/v3/videos',
-            qs: {
-                id: idPost,
+        var res = (await rp.get('https://www.googleapis.com/youtube/v3/videos',{params : {
+            id: idPost,
                 key: oauth.google.gdataApiKey,
-                part: 'snippet',
-            },
-            json: true,
-        })
+                part: 'snippet'
+        }})).data
         if (res.items.length > 0) {
             var channelId = res.items[0]?.snippet.channelId
-            var res = await rp({
-                uri: 'https://www.googleapis.com/youtube/v3/channels',
-                qs: {
+            var res = (await rp.get('https://www.googleapis.com/youtube/v3/channels', {
+                params : {
                     id: channelId,
                     key: oauth.google.gdataApiKey,
-                    part: 'statistics',
-                },
-                json: true,
-            })
+                    part: 'statistics'
+                }
+            })).data
             let follwers_count = res.items[0].statistics.subscriberCount
             await GoogleProfile.updateMany(
                 { channelId },

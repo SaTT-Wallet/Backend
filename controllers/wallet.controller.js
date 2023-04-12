@@ -384,15 +384,18 @@ exports.transferTokensController = async (req, res) => {
                     transactionHash: result.transactionHash,
                 })
 
+                
                 const wallet = await Wallet.findOne(
                     {
                         ...((network.toUpperCase() === 'TRON' && {
                             tronAddress: to,
-                        }) || { 'keystore.address': to.substring(2) }),
+                        }) || {$or: [{'keystore.address': to.substring(2)}, {'walletV2.keystore.address': to.substring(2)}]}
+                       ),
                     },
                     { UserId: 1 }
                 ).lean()
-
+                   
+                 
                 if (wallet) {
                     await notificationManager(
                         wallet.UserId,
@@ -408,8 +411,7 @@ exports.transferTokensController = async (req, res) => {
                             transactionHash: result.transactionHash,
                         }
                     )
-                }
-
+                } 
                 return responseHandler.makeResponseData(
                     res,
                     200,
