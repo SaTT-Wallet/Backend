@@ -163,7 +163,7 @@ exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
              access_token_key: twitterProfile.access_token_key,
              access_token_secret: twitterProfile.access_token_secret,
          })
-         const tweet = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`);
+         const tweet = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`,  {params: {}});
          var twitterProfile = await TwitterProfile.findOne({
              id: tweet.data[0].author_id,
              UserId: userId,
