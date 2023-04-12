@@ -211,7 +211,7 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
         let videoInfoResponse = await axios.post(
             'https://open-api.tiktok.com/video/query/',
             {
-                access_token: resMedia?.data.data.access_token,
+                access_token: resMedia?.data.access_token,
                 open_id: tiktokProfile.userTiktokId,
                 filters: {
                     video_ids: [idPost],
