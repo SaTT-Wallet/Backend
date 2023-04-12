@@ -454,15 +454,11 @@ exports.twitterAbos = async function (pageName, idPost) {
 
 exports.linkedinAbos = async (linkedinProfile, organization) => {
     try {
-        const linkedinData = {
-            url: `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
-            method: 'GET',
+        let postData = (await rp.get(`https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,{
             headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken,
-            },
-            json: true,
-        }
-        let postData = await rp(linkedinData)
+                Authorization: 'Bearer ' + linkedinProfile.accessToken
+            }
+        })).data
         var subscribers = postData.firstDegreeSize
         return subscribers
     } catch (err) {
