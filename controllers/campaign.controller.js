@@ -751,13 +751,12 @@ exports.apply = async (req, res) => {
         req.body
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
-
+    
     try {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
             idPost,
         }).lean()
-
         if (promExist) {
             return responseHandler.makeResponseError(
                 res,
@@ -799,10 +798,9 @@ exports.apply = async (req, res) => {
             cred = await unlockV2(req, res)
 
             let userWallet = await Wallet.findOne({ UserId: req.user._id })
-
             let decryptAccount =
                 await cred.Web3BEP20.eth.accounts.wallet.decrypt(
-                    [userWallet.keystore],
+                    [userWallet.walletV2.keystore],
                     req.body.pass
                 )
 
