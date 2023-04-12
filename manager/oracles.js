@@ -730,56 +730,25 @@ const twitter = async (userName, idPost) => {
             access_token_secret: oauth.access_token_secret,
         })
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
-
         var twitterProfile = (
             await TwitterProfile.find({
                 id: tweet_res.user.id_str,
             })
         )[0]
-
-         var tweet = new Twitter2({
-             consumer_key: oauth.twitter.consumer_key,
-             consumer_secret: oauth.twitter.consumer_secret,
-             access_token_key: twitterProfile?.access_token_key,
-             access_token_secret: twitterProfile.access_token_secret,
-         })
-
-        var res = await tweet.get('tweets', {
-            ids: idPost,
-            'tweet.fields': 'public_metrics,non_public_metrics',
-            expansions: 'attachments.media_keys',
-            'media.fields':
-                'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
+        const client = new Twitter({
+            consumer_key: process.env.TWITTER_CONSUMER_KEY,
+            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+            access_token_key: twitterProfile.access_token_key,
+            access_token_secret: twitterProfile.access_token_secret,
         })
-
-        if (res.errors) {
-            res = await tweet.get('tweets', {
-                ids: idPost,
-                'tweet.fields': 'public_metrics',
-                expansions: 'attachments.media_keys',
-                'media.fields':
-                    'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text',
-            })
-
-            var perf = {
-                shares: res.data[0].public_metrics.retweet_count,
-                likes: res.data[0].public_metrics.like_count,
-                date: Math.floor(Date.now() / 1000),
-                media_url: res.includes?.media[0]?.url || ' ',
-                views: 'old',
-            }
-
-            return perf
-        }
-
+        const res = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text`,  {params: {}});
         var perf = {
             shares: res.data[0]?.public_metrics.retweet_count,
             likes: res.data[0]?.public_metrics.like_count,
-            views: res.data[0]?.non_public_metrics.impression_count,
+            views: res.data[0]?.public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
             media_url: res.includes?.media[0]?.url || ' ',
         }
-
         return perf
     } catch (err) {
         console.error('error twittRate limit exceededer oracles', err)
@@ -788,8 +757,6 @@ const twitter = async (userName, idPost) => {
             : err[0]?.message === 'No status found with that ID.'
             ? 'No found'
             : 'indisponible'
-
-        //err[0]?.message ==="Rate limit exceeded" ? "Rate limit exceeded" :'indisponible'
     }
 }
 
