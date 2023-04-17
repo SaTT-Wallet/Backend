@@ -2515,7 +2515,7 @@ exports.rejectLink = async (req, res) => {
     try {
         if (idUser === campaign?.idNode) {
             const rejectedLink = await CampaignLink.findOneAndUpdate(
-                { id_prom: idLink },
+                { _id: idLink },
                 {
                     $set: {
                         status: 'rejected',
