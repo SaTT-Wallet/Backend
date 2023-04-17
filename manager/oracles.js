@@ -35,15 +35,7 @@ const { responseHandler } = require('../helpers/response-handler')
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
         let linkInfo = {}
-        const linkedinData = {
-            url: linkedinActivityUrl(activityURN),
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-            json: true,
-        }
-        let postData = await rp(linkedinData)
+        let postData = (await rp.get(linkedinActivityUrl(activityURN),{headers : {'Authorization': 'Bearer ' + accessToken}})).data
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??

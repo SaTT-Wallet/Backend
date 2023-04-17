@@ -1235,7 +1235,7 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             campaignData = await Campaigns.findOne({ hash: hash }).lean()
             req.body.network = campaignData.token.type
-            credentials = await unlock(req, res)
+            credentials = await unlockV2(req, res)
 
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
@@ -2214,8 +2214,8 @@ exports.erc20Allow = async (req, res) => {
 exports.getLinks = async (req, res) => {
     try {
         const userId = req.params.idUser
-        const accountData = await Wallet.findOne({ UserId: userId })
-
+        const accountData = await Wallet.findOne({ UserId: userId }).lean()
+        const {version} = req.query;
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -2284,20 +2284,7 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: {
-                    $or: [
-                        {
-                            id_wallet: {
-                                $in: [query1.id_wallet, query3.id_wallet],
-                            },
-                        },
-                        {
-                            id_campaign: {
-                                $in: [query1.id_campaign, query3.id_campaign],
-                            },
-                        },
-                    ],
-                },
+                $match: version ==="v1" && query1 || query3
             },
             {
                 $addFields: {
@@ -2323,11 +2310,11 @@ exports.getLinks = async (req, res) => {
                 !!accountData.walletV2.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: {
+                        $match: version ==="v1"&&  query2 ||query4 /*{
                             id_wallet: {
                                 $in: [query2.id_wallet, query4.id_wallet],
                             },
-                        },
+                        },*/
                     },
                     {
                         $addFields: {
