@@ -1,11 +1,3 @@
-/**
- *Submitted for verification at BscScan.com on 2023-01-24
-*/
-
-/**
- *Submitted for verification at BscScan.com on 2023-01-17
-*/
-
 //SPDX-License-Identifier: Unlicense
 
 
