@@ -1068,7 +1068,7 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
                 calculstats.likes = max
             }
             if (+stats.shares > max) {
-                calculstats .shares = max
+                calculstats.shares = max
             }
         }
 
