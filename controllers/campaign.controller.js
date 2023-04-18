@@ -1221,7 +1221,7 @@ exports.gains = async (req, res) => {
         var link = await CampaignLink.findOne({ id_prom: idProm }).lean()
         //86400 one day
         var date = Math.floor(Date.now() / 1000)
-        if (link.acceptedDate && date - link.acceptedDate <= 300) {
+        if (link.acceptedDate && date - link.acceptedDate <= 86400) {
             return responseHandler.makeResponseError(
                 res,
                 403,
