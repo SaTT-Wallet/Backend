@@ -1053,6 +1053,7 @@ exports.answerOne = async (
 
 exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
     try {
+        let calculstats = {...stats}
         if (!limit) {
             var limits = ratios[4]
             limit = limits[parseInt(typeSN) - 1]
@@ -1061,17 +1062,17 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
             limit = parseFloat(limit)
             var max = Math.ceil((limit * parseFloat(abos)) / 100)
             if (+stats.views > max) {
-                stats.views = max
+                calculstats.views = max
             }
             if (+stats.likes > max) {
-                stats.likes = max
+                calculstats.likes = max
             }
             if (+stats.shares > max) {
-                stats.shares = max
+                calculstats .shares = max
             }
         }
 
-        return stats
+        return calculstats 
     } catch (error) {}
 }
 
