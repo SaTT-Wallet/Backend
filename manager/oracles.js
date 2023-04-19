@@ -583,21 +583,21 @@ const youtube = async (idPost) => {
                 part: 'statistics,snippet'
             }
         })).data
-        var res = JSON.parse(body)
-
-        if (res.items && res.items[0]) {
+        if (body.items && body.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
-                likes: res.items[0].statistics.likeCount,
-                views: res.items[0].statistics.viewCount,
+                likes: body.items[0].statistics.likeCount,
+                views: body.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
                 media_url:
-                    res.items[0]?.snippet?.thumbnails?.default?.url || ' ',
+                    body.items[0]?.snippet?.thumbnails?.default?.url || ' ',
             }
         }
 
         return perf
-    } catch (err) {}
+    } catch (err) {
+        console.log({err})
+    }
 }
 const linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
