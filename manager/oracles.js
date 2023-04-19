@@ -596,7 +596,7 @@ const youtube = async (idPost) => {
 
         return perf
     } catch (err) {
-        console.log({err})
+        
     }
 }
 const linkedin = async (organization, idPost, type, linkedinProfile) => {
