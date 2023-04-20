@@ -664,23 +664,23 @@ exports.campaignPromp = async (req, res) => {
                             '',
                             result,
                             '',
-                            result.abosNumber,
+                            result._doc.abosNumber,
                             reachLimit
                         )
                     ratio.forEach((num) => {
                         if (
                             num.oracle === result.oracle ||
-                            num.typeSN === result.typeSN
+                            num.typeSN === result._doc.typeSN
                         ) {
-                            let view = result.views
-                                ? new Big(num['view']).times(result.views)
+                            let view = result._doc.views
+                                ? new Big(num['view']).times(result._doc.views)
                                 : '0'
-                            let like = result.likes
-                                ? new Big(num['like']).times(result.likes)
+                            let like = result._doc.likes
+                                ? new Big(num['like']).times(result._doc.likes)
                                 : '0'
-                            let share = result.shares
+                            let share = result._doc.shares
                                 ? new Big(num['share']).times(
-                                      result.shares.toString()
+                                      result._doc.shares.toString()
                                   )
                                 : '0'
                             let totalToEarn = new Big(view)
@@ -688,7 +688,7 @@ exports.campaignPromp = async (req, res) => {
                                 .plus(new Big(share))
                                 .toFixed()
                             allProms[i].totalToEarn = new Big(totalToEarn).gt(
-                                new Big(result.payedAmount)
+                                new Big(result._doc.payedAmount)
                             )
                                 ? totalToEarn
                                 : result.payedAmount

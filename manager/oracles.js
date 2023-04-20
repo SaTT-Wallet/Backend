@@ -583,21 +583,21 @@ const youtube = async (idPost) => {
                 part: 'statistics,snippet'
             }
         })).data
-        var res = JSON.parse(body)
-
-        if (res.items && res.items[0]) {
+        if (body.items && body.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
-                likes: res.items[0].statistics.likeCount,
-                views: res.items[0].statistics.viewCount,
+                likes: body.items[0].statistics.likeCount,
+                views: body.items[0].statistics.viewCount,
                 date: Math.floor(Date.now() / 1000),
                 media_url:
-                    res.items[0]?.snippet?.thumbnails?.default?.url || ' ',
+                    body.items[0]?.snippet?.thumbnails?.default?.url || ' ',
             }
         }
 
         return perf
-    } catch (err) {}
+    } catch (err) {
+        
+    }
 }
 const linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
@@ -1053,6 +1053,7 @@ exports.answerOne = async (
 
 exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
     try {
+        let calculstats = {...stats}
         if (!limit) {
             var limits = ratios[4]
             limit = limits[parseInt(typeSN) - 1]
@@ -1061,17 +1062,17 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
             limit = parseFloat(limit)
             var max = Math.ceil((limit * parseFloat(abos)) / 100)
             if (+stats.views > max) {
-                stats.views = max
+                calculstats.views = max
             }
             if (+stats.likes > max) {
-                stats.likes = max
+                calculstats.likes = max
             }
             if (+stats.shares > max) {
-                stats.shares = max
+                calculstats.shares = max
             }
         }
 
-        return stats
+        return calculstats 
     } catch (error) {}
 }
 
