@@ -1134,7 +1134,7 @@ exports.influencersLinks = async (links, tronWeb = null) => {
             for (let i = 0; i < wallets.length; i++) {
                 idByAddress[
                     (!!tronWeb && wallets[i].tronAddress) ||
-                        '0x' + wallets[i].keystore.address
+                        '0x' + wallets[i].keystore?.address
                 ] = 'id#' + wallets[i].UserId
                 if (ids.indexOf(wallets[i].UserId) == -1)
                     ids.push(wallets[i].UserId)

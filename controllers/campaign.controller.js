@@ -2224,14 +2224,14 @@ exports.getLinks = async (req, res) => {
 
         let allProms = []
         let allTronProms = []
-
-        let query1 = filterLinks(req, '0x' + accountData.keystore.address)
+        let query1 = {}
+        version ==="v1" && (query1 = filterLinks(req, '0x' + accountData?.keystore?.address))
         let query3 = filterLinks(
             req,
-            '0x' + accountData.walletV2.keystore.address
+            '0x' + accountData.walletV2?.keystore?.address
         )
-        let query2 = filterLinks(req, accountData.tronAddress)
-        let query4 = filterLinks(req, accountData.walletV2.tronAddress)
+        let query2 = filterLinks(req, accountData?.tronAddress)
+        let query4 = filterLinks(req, accountData.walletV2?.tronAddress)
 
         var count =
             (await CampaignLink.find(
@@ -2239,14 +2239,14 @@ exports.getLinks = async (req, res) => {
                 { type: { $exists: 0 } }
             ).countDocuments()) +
             ((!!accountData.tronAddress &&
-                !!accountData.walletV2.tronAddress &&
+                !!accountData.walletV2?.tronAddress &&
                 req.query.state === 'part' &&
                 (await CampaignLink.find(
                     {
                         tronAddress: {
                             $in: [
                                 accountData.tronAddress,
-                                accountData.walletV2.tronAddress,
+                                accountData.walletV2?.tronAddress,
                             ],
                         },
                     },
@@ -2307,7 +2307,7 @@ exports.getLinks = async (req, res) => {
 
         let tronUserLinks =
             (!!accountData.tronAddress &&
-                !!accountData.walletV2.tronAddress &&
+                !!accountData.walletV2?.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
                         $match: version ==="v1"&&  query2 ||query4 /*{
