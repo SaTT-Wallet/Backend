@@ -1,14 +1,17 @@
-pragma solidity ^0.5;
+//SPDX-License-Identifier: Unlicense
+
+
+pragma solidity ^0.8.17;
 
 contract owned {
     address payable public owner;
 
-    constructor () public {
-        owner = msg.sender;
+    constructor ()  {
+        owner = payable(msg.sender);
     }
 
     modifier onlyOwner {
-        require(msg.sender == owner);
+         require(msg.sender == owner,"only owner method");
         _;
     }
 
@@ -18,12 +21,15 @@ contract owned {
 }
 
 contract limited is owned {
-    mapping (address => bool) canAsk ;
+    mapping (address => bool) canAsk;
+    
     
      modifier onlyCanAsk {
         require(canAsk[msg.sender]);
         _;
     }
+    
+    
     
     function changeAsk (address a,bool allow) onlyOwner public {
         canAsk[a] = allow;
@@ -32,7 +38,9 @@ contract limited is owned {
 }
 
 interface ICampaign {
+    
     function update(bytes32 idRequest,uint64 likes,uint64 shares,uint64 views) external  returns (bool ok);
+    function updateBounty(bytes32 idProm,uint256 nbAbos) external  returns (bool ok);
 }
 
 interface IERC20 {
@@ -41,20 +49,38 @@ interface IERC20 {
 
 contract oracle is limited {
     
+    struct oracleUnit {
+        bool granted;
+	    address token;
+	    uint256 fee;
+	}
     
-    // social network ids: 
-    // 01 : facebook;
-    // 02 : youtube
-    // 03 : instagram
-    // 04 : twitter
-    // 05 : url TLS Notary
+    mapping (address => oracleUnit) oracleList;
+    
+     modifier onlyCanAnswer {
+        require(oracleList[msg.sender].granted || msg.sender == owner,"sender not in whitelist");
+        _;
+    }
+    
+    function changeAnswer (address a,bool allow,address token,uint256 fee) onlyOwner public {
+        oracleList[a] = oracleUnit(allow,token,fee);
+    }
     
     event AskRequest(bytes32 indexed idRequest, uint8 typeSN, string idPost,string idUser);
     event AnswerRequest(bytes32 indexed idRequest, uint64 likes, uint64 shares, uint64 views);
     
+    event AskRequestBounty( uint8 typeSN, string idPost,string idUser,bytes32 idProm);
+    event AnswerRequestBounty(bytes32 indexed idProm,uint256 nbAbos);
+   
+    
     function  ask (uint8 typeSN,string memory idPost,string memory idUser, bytes32 idRequest) public onlyCanAsk
     {
         emit AskRequest(idRequest, typeSN, idPost, idUser );
+    }
+    
+    function askBounty(uint8 typeSN,string memory idPost,string memory idUser, bytes32 idProm) public onlyCanAsk
+    {
+        emit AskRequestBounty( typeSN, idPost, idUser, idProm);
     }
     
     function answer(address campaignContract,bytes32 idRequest,uint64 likes,uint64 shares, uint64 views) public onlyOwner {
@@ -63,8 +89,23 @@ contract oracle is limited {
         emit AnswerRequest(idRequest,likes,shares,views);
     }
     
-    function() external payable {}
+    function answerBounty(address campaignContract,bytes32 idProm,uint256 nbAbos) public onlyOwner {
+        ICampaign campaign = ICampaign(campaignContract);
+        campaign.updateBounty(idProm,nbAbos);
+        emit AnswerRequestBounty(idProm,nbAbos);
+    }
     
+    
+     function thirdPartyAnswer(address campaignContract,bytes32 idRequest,uint64 likes,uint64 shares, uint64 views) public onlyCanAnswer {
+        ICampaign campaign = ICampaign(campaignContract);
+        campaign.update(idRequest,likes,shares,views);
+        emit AnswerRequest(idRequest,likes,shares,views);
+        
+    
+        IERC20 erc20 = IERC20(oracleList[msg.sender].token);
+        erc20.transfer(msg.sender,oracleList[msg.sender].fee);
+     }
+       
     function withdraw() onlyOwner public {
         owner.transfer(address(this).balance);
     }
