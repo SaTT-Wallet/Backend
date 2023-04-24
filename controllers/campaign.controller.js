@@ -452,7 +452,8 @@ exports.campaigns = async (req, res) => {
         }
         let limit = +req.query.limit || 10
         let page = +req.query.page || 1
-        let skip = limit * (page - 1)
+        //let skip = limit * (page - 1)
+        let skip = 1 * (page -1)
         let query = sortOutPublic(req, idNode, strangerDraft)
 
         let count = await Campaigns.countDocuments()
@@ -492,12 +493,14 @@ exports.campaigns = async (req, res) => {
         ])
             .allowDiskUse(true)
             .skip(skip)
-            .limit(limit)
-
-        return responseHandler.makeResponseData(res, 200, 'success', {
-            campaigns,
-            count,
-        })
+            .limit(1)
+       
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                campaigns,
+                count,
+            })
+        
+        
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
