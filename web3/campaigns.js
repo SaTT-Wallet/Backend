@@ -978,19 +978,20 @@ exports.applyCampaign = async (
     }
 }
 
-exports.getRemainingFunds = async (token, hash, credentials) => {
+exports.getRemainingFunds = async (hash, credentials,advertiser = null) => {
     try {
         var gas = 200000
         var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.getRemainingFunds(hash).send({
             from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
+            gas,
+            gasPrice,
         })
         return {
             transactionHash: receipt.transactionHash,
-            hash: hash,
+            hash,
+            ...advertiser && {advertiser}
         }
     } catch (err) {
         console.error(err)

@@ -1849,19 +1849,19 @@ module.exports.increaseBudget = async (req, res) => {
 
 exports.getFunds = async (req, res) => {
     req.body = sanitize(req.body);
-    var hash = req.body.hash
+    var {hash} = req.body;
     try {
-        let { _id } = req.user
+        let { _id } = '0' + req.user;
         var campaignDetails = await Campaigns.findOne(
             { hash },
-            { idNode: 1, token: 1 }
+            { idNode: 1}
         ).lean()
 
-        if (campaignDetails?.idNode !== '0' + _id) {
+        if (campaignDetails?.idNode !==  _id) {
             return responseHandler.makeResponseError(res, 204, 'unauthorized')
         } else {
             var cred = await unlockV2(req, res)
-            var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
+            var ret = await getRemainingFunds(hash, cred)
 
             return responseHandler.makeResponseData(
                 res,
