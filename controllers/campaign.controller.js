@@ -1,12 +1,12 @@
 var requirement = require('../helpers/utils')
 var readHTMLFileCampaign = requirement.readHTMLFileCampaign
-var sanitize = require("mongo-sanitize");
+var sanitize = require('mongo-sanitize')
 const multer = require('multer')
 const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
-const {create} = require('ipfs-http-client')
+const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 var fs = require('fs')
 const cron = require('node-cron')
@@ -98,20 +98,22 @@ cron.schedule(process.env.CRON_UPDATE_STAT, () =>
     automaticRjectLink()
 )
 
-
 const ipfsConnect = async () => {
-    const auth = 'Basic ' + Buffer.from(process.env.IPFS_PROJECT_ID + ':' + process.env.IPFS_SECRET_KEY).toString('base64');
+    const auth =
+        'Basic ' +
+        Buffer.from(
+            process.env.IPFS_PROJECT_ID + ':' + process.env.IPFS_SECRET_KEY
+        ).toString('base64')
     const ipfs = await create({
         host: 'ipfs.infura.io',
         port: 5001,
         protocol: 'https',
         headers: {
             authorization: auth,
-            },
-        });
-    return ipfs;    
+        },
+    })
+    return ipfs
 }
-
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -241,17 +243,21 @@ async function wrappedtrx(webTron, amount) {
 }
 const storageCover = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        cb(null, 'uploads/')
     },
     filename: (req, file, cb) => {
-        cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
-    }
-});
+        cb(
+            null,
+            new Date().toISOString().replace(/:/g, '-') + file.originalname
+        )
+    },
+})
 
 module.exports.upload = multer({ storage }).array('file')
 
-
-module.exports.campaignsPictureUpload = multer({storage: storageCover}).single('cover')
+module.exports.campaignsPictureUpload = multer({
+    storage: storageCover,
+}).single('cover')
 
 module.exports.launchCampaign = async (req, res) => {
     var dataUrl = req.body.dataUrl
@@ -459,40 +465,33 @@ module.exports.launchBounty = async (req, res) => {
     }
 }
 
-
-exports.uploadPictureToIPFS = async (req,res) => {
+exports.uploadPictureToIPFS = async (req, res) => {
     // using IPFS
     try {
-        if(req.file) {
+        if (req.file) {
             console.log(req.file)
             // IPFS CONNECTION
-            const ipfs = await ipfsConnect();
+            const ipfs = await ipfsConnect()
 
             // READ FILE
-            const x = fs.readFileSync(req.file.path);
+            const x = fs.readFileSync(req.file.path)
 
-            // ADD TO IPFS 
+            // ADD TO IPFS
             let buffer = Buffer.from(x)
-            let result = await ipfs.add({content: buffer})
+            let result = await ipfs.add({ content: buffer })
 
-            // REMOVE FILE FROM UPLOADS DIR 
-            fs.unlinkSync('uploads/'+ req.file.filename)
+            // REMOVE FILE FROM UPLOADS DIR
+            fs.unlinkSync('uploads/' + req.file.filename)
 
+            return responseHandler.makeResponseData(res, 200, result, true)
+        } else
             return responseHandler.makeResponseData(
                 res,
                 200,
-                result,
-                true
+                'required picture',
+                false
             )
-            
-        } else return responseHandler.makeResponseData(
-            res,
-            200,
-            "required picture",
-            false
-        )
-        
-    } catch(err) {
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
@@ -521,7 +520,7 @@ exports.campaigns = async (req, res) => {
         let limit = +req.query.limit || 10
         let page = +req.query.page || 1
         //let skip = limit * (page - 1)
-        let skip = 1 * (page -1)
+        let skip = 1 * (page - 1)
         let query = sortOutPublic(req, idNode, strangerDraft)
 
         let count = await Campaigns.countDocuments()
@@ -562,13 +561,11 @@ exports.campaigns = async (req, res) => {
             .allowDiskUse(true)
             .skip(skip)
             .limit(1)
-       
-            return responseHandler.makeResponseData(res, 200, 'success', {
-                campaigns,
-                count,
-            })
-        
-        
+
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            campaigns,
+            count,
+        })
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -822,7 +819,7 @@ exports.apply = async (req, res) => {
         req.body
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
-    
+
     try {
         let promExist = await CampaignLink.findOne({
             id_campaign: hash,
@@ -1919,20 +1916,20 @@ module.exports.increaseBudget = async (req, res) => {
 }
 
 exports.getFunds = async (req, res) => {
-    req.body = sanitize(req.body);
-    var hash = req.body.hash
+    req.body = sanitize(req.body)
+    var { hash } = req.body
     try {
-        let { _id } = req.user
+        let { _id } = '0' + req.user
         var campaignDetails = await Campaigns.findOne(
             { hash },
-            { idNode: 1, token: 1 }
+            { idNode: 1 }
         ).lean()
 
-        if (campaignDetails?.idNode !== '0' + _id) {
+        if (campaignDetails?.idNode !== _id) {
             return responseHandler.makeResponseError(res, 204, 'unauthorized')
         } else {
             var cred = await unlockV2(req, res)
-            var ret = await getRemainingFunds(campaignDetails.token, hash, cred)
+            var ret = await getRemainingFunds(hash, cred)
 
             return responseHandler.makeResponseData(
                 res,
@@ -2286,7 +2283,7 @@ exports.getLinks = async (req, res) => {
     try {
         const userId = req.params.idUser
         const accountData = await Wallet.findOne({ UserId: userId }).lean()
-        const {version} = req.query;
+        const { version } = req.query
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -2296,7 +2293,8 @@ exports.getLinks = async (req, res) => {
         let allProms = []
         let allTronProms = []
         let query1 = {}
-        version ==="v1" && (query1 = filterLinks(req, '0x' + accountData?.keystore?.address))
+        version === 'v1' &&
+            (query1 = filterLinks(req, '0x' + accountData?.keystore?.address))
         let query3 = filterLinks(
             req,
             '0x' + accountData.walletV2?.keystore?.address
@@ -2355,7 +2353,7 @@ exports.getLinks = async (req, res) => {
                   ]
         let userLinks = await CampaignLink.aggregate([
             {
-                $match: version ==="v1" && query1 || query3
+                $match: (version === 'v1' && query1) || query3,
             },
             {
                 $addFields: {
@@ -2381,11 +2379,11 @@ exports.getLinks = async (req, res) => {
                 !!accountData.walletV2?.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: version ==="v1"&&  query2 ||query4 /*{
+                        $match: (version === 'v1' && query2) || query4 /*{
                             id_wallet: {
                                 $in: [query2.id_wallet, query4.id_wallet],
                             },
-                        },*/
+                        },*/,
                     },
                     {
                         $addFields: {

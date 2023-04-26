@@ -810,9 +810,16 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
     return query
 }
 
-exports.getUserIdByWallet = async wallet => {
-    let user =
-        await Wallet.findOne({$or:[{ 'walletV2.keystore.address': wallet },{'keystore.address': wallet }]},{UserId:1}).lean()
+exports.getUserIdByWallet = async (wallet) => {
+    let user = await Wallet.findOne(
+        {
+            $or: [
+                { 'walletV2.keystore.address': wallet },
+                { 'keystore.address': wallet },
+            ],
+        },
+        { UserId: 1 }
+    ).lean()
     return user?.UserId
 }
 
@@ -838,7 +845,11 @@ exports.getLinkedinLinkInfo = async (
         }
         let linkInfo = {}
 
-        let postData = (await axios.get(config.linkedinActivityUrl(activityURN), {headers : {Authorization: 'Bearer ' + accessToken}})).data
+        let postData = (
+            await axios.get(config.linkedinActivityUrl(activityURN), {
+                headers: { Authorization: 'Bearer ' + accessToken },
+            })
+        ).data
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??
@@ -874,8 +885,12 @@ exports.getLinkedinLinkInfoMedia = async (
             accessToken = resAccessToken.access_token
         }
         let linkInfo = {}
-      
-        let postData = (await axios.get(config.linkedinShareUrl(shareURN),{headers : {'Authorization': 'Bearer ' + accessToken}})).data
+
+        let postData = (
+            await axios.get(config.linkedinShareUrl(shareURN), {
+                headers: { Authorization: 'Bearer ' + accessToken },
+            })
+        ).data
         let urn = shareURN
         linkInfo.idUser =
             postData.results[urn].owner ?? postData.results[urn].author
@@ -978,19 +993,20 @@ exports.applyCampaign = async (
     }
 }
 
-exports.getRemainingFunds = async (token, hash, credentials) => {
+exports.getRemainingFunds = async (hash, credentials, advertiser = null) => {
     try {
         var gas = 200000
         var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.getRemainingFunds(hash).send({
             from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
+            gas,
+            gasPrice,
         })
         return {
             transactionHash: receipt.transactionHash,
-            hash: hash,
+            hash,
+            ...(advertiser && { advertiser }),
         }
     } catch (err) {
         console.error(err)
