@@ -6,11 +6,11 @@ const Big = require('big.js')
 const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
-
+const {create} = require('ipfs-http-client')
 var mongoose = require('mongoose')
 var fs = require('fs')
 const cron = require('node-cron')
-
+//const ipfs = IPFS('ipfs.infura.io', '5001', {protocol: 'https'})
 const {
     Campaigns,
     CampaignLink,
@@ -97,6 +97,21 @@ cron.schedule(process.env.CRON_UPDATE_STAT, () =>
     /*updateStat(),*/
     automaticRjectLink()
 )
+
+
+const ipfsConnect = async () => {
+    const auth = 'Basic ' + Buffer.from(process.env.IPFS_PROJECT_ID + ':' + process.env.IPFS_SECRET_KEY).toString('base64');
+    const ipfs = await create({
+        host: 'ipfs.infura.io',
+        port: 5001,
+        protocol: 'https',
+        headers: {
+            authorization: auth,
+            },
+        });
+    return ipfs;    
+}
+
 
 let calcSNStat = (objNw, link) => {
     objNw.total++
@@ -224,8 +239,19 @@ async function wrappedtrx(webTron, amount) {
         return ret
     } catch (error) {}
 }
+const storageCover = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname);
+    }
+});
 
 module.exports.upload = multer({ storage }).array('file')
+
+
+module.exports.campaignsPictureUpload = multer({storage: storageCover}).single('cover')
 
 module.exports.launchCampaign = async (req, res) => {
     var dataUrl = req.body.dataUrl
@@ -430,6 +456,48 @@ module.exports.launchBounty = async (req, res) => {
             }
             await Event.create(event)
         }
+    }
+}
+
+
+exports.uploadPictureToIPFS = async (req,res) => {
+    // using IPFS
+    try {
+        if(req.file) {
+            console.log(req.file)
+            // IPFS CONNECTION
+            const ipfs = await ipfsConnect();
+
+            // READ FILE
+            const x = fs.readFileSync(req.file.path);
+
+            // ADD TO IPFS 
+            let buffer = Buffer.from(x)
+            let result = await ipfs.add({content: buffer})
+
+            // REMOVE FILE FROM UPLOADS DIR 
+            fs.unlinkSync('uploads/'+ req.file.filename)
+
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                result,
+                true
+            )
+            
+        } else return responseHandler.makeResponseData(
+            res,
+            200,
+            "required picture",
+            false
+        )
+        
+    } catch(err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
