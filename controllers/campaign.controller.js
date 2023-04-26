@@ -104,10 +104,11 @@ const ipfsConnect = async () => {
         Buffer.from(
             process.env.IPFS_PROJECT_ID + ':' + process.env.IPFS_SECRET_KEY
         ).toString('base64')
+
     const ipfs = await create({
-        host: 'ipfs.infura.io',
-        port: 5001,
-        protocol: 'https',
+        host: process.env.IPFS_INFURA,
+        port: process.env.IPFS_INFURA_PORT,
+        protocol: process.env.IPFS_INFURA_PROTOCOL,
         headers: {
             authorization: auth,
         },
@@ -469,7 +470,6 @@ exports.uploadPictureToIPFS = async (req, res) => {
     // using IPFS
     try {
         if (req.file) {
-            console.log(req.file)
             // IPFS CONNECTION
             const ipfs = await ipfsConnect()
 
