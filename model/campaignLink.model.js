@@ -41,7 +41,7 @@ const campaignLinkSchema = mongoose.Schema(
             signature: { type: String },
         },
     },
-    {
+    {timestamps: true, 
         collection: 'campaign_link',
     }
 )
