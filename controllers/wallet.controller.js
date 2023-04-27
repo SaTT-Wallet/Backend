@@ -658,20 +658,10 @@ exports.payementRequest = async (req, res) => {
             request.currency = req.body.currency
             request.idWallet = req.body.idWallet
             let payment = await payementRequest(request)
-            // const paymentRequest = {
-            //     url:
-            //         configSendBox + '/wallet/merchant/v2/payments/partner/data',
-            //     method: 'POST',
-            //     body: payment,
-            //     headers: {
-            //         Authorization: `ApiKey ${process.env.SEND_BOX}`,
-            //     },
-            //     json: true,
-            // }
+
              var paymentSubmitted = (await rp.post(configSendBox + '/wallet/merchant/v2/payments/partner/data',payment,{headers : {
                 Authorization: `ApiKey ${process.env.SEND_BOX}`,
             }})).data
-            // var paymentSubmitted = await rp(paymentRequest)
             paymentSubmitted.payment_id = payment_id
             return responseHandler.makeResponseData(
                 res,

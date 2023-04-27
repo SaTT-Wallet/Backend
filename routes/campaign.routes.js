@@ -42,6 +42,8 @@ const {
     campaignApproval,
     approveCampaign,
     campaignAllowance,
+    uploadPictureToIPFS,
+    campaignsPictureUpload
 } = require('../controllers/campaign.controller')
 const { automaticRjectLink, updateStatforUser } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
@@ -581,6 +583,9 @@ router.post('/launchBounty', verifyAuth, launchBounty)
  *          description: error:"error"
  */
 router.get('/campaigns', campaigns)
+
+
+router.post('/ipfs', verifyAuth,campaignsPictureUpload ,uploadPictureToIPFS)
 
 /**
  * @swagger
