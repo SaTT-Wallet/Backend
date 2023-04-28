@@ -154,6 +154,7 @@ exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
              consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
              access_token_key: twitterProfile.access_token_key,
              access_token_secret: twitterProfile.access_token_secret,
+             bearer_token: process.env.TWITTER_BEARER_TOKEN
          })
          const tweet = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`,  {params: {}});
          var twitterProfile = await TwitterProfile.findOne({
@@ -720,6 +721,7 @@ const twitter = async (userName, idPost) => {
             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
             access_token_key: twitterProfile.access_token_key,
             access_token_secret: twitterProfile.access_token_secret,
+            bearer_token: process.env.TWITTER_BEARER_TOKEN
         })
         const res = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text`,  {params: {}});
         var perf = {
