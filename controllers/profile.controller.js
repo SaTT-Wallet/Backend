@@ -134,20 +134,19 @@ exports.account = async (req, res) => {
 
 exports.profilePicture = async (req, response) => {
     try {
-        const idUser = req.query.id ? +req.query.id : req.user._id
-        gfsprofilePic.files.findOne({ 'user.$id': idUser }, (err, file) => {
-            if (!file || file.length === 0) {
-                return makeResponseError(response, 204, 'No file exists')
-            } else {
-                response.writeHead(200, {
-                    'Content-Type': 'image/png',
-                    'Content-Length': file.length,
-                    'Content-Disposition': contentDisposition(file.filename),
-                })
-                const readstream = gfsprofilePic.createReadStream(file.filename)
-                readstream.pipe(response)
-            }
+        const idUser = req.query.id ? +req.query.id : req.user._id;
+    let file = await gfsprofilePic.files.findOne({ 'user.$id': idUser })
+    if (!file || file.length === 0) {
+        return makeResponseError(response, 204, 'No file exists')
+    } else {
+        response.writeHead(200, {
+            'Content-Type': 'image/png',
+            'Content-Length': file.length,
+            'Content-Disposition': contentDisposition(file.filename),
         })
+        const readstream = gfsprofilePic.createReadStream(file.filename)
+        readstream.pipe(response)
+    }
     } catch (err) {
         return makeResponseError(
             response,
@@ -280,24 +279,20 @@ exports.addUserLegalProfile = async (req, res) => {
 exports.FindUserLegalProfile = async (req, res) => {
     try {
         const _id = req.params.id
-        gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
-            if (!file || file.length === 0) {
-                return makeResponseError(res, 204, 'No file exists')
-            } else {
-                if (file.contentType) {
-                    contentType = file.contentType
-                } else {
-                    contentType = file.mimeType
-                }
-                res.writeHead(200, {
-                    'Content-type': contentType,
-                    'Content-Length': file.length,
-                    'Content-Disposition': contentDisposition(file.filename),
-                })
-                const readstream = gfsUserLegal.createReadStream(file.filename)
-                readstream.pipe(res)
-            }
-        })
+        let file = await gfsUserLegal.files.findOne({ _id: ObjectId(_id) })
+        if (!file || file.length === 0) {
+            return makeResponseError(res, 204, 'No file exists')
+        } else {
+            let contentType = file?.contentType && file.contentType || file.mimeType
+            res.writeHead(200, {
+                'Content-type': contentType,
+                'Content-Length': file.length,
+                'Content-Disposition': contentDisposition(file.filename),
+            })
+            const readstream = gfsUserLegal.createReadStream(file.filename)
+            readstream.pipe(res)
+        }
+        
     } catch (err) {
         return makeResponseError(
             res,
