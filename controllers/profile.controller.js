@@ -361,7 +361,7 @@ exports.deleteGoogleChannel = async (req, res) => {
     try {
         let UserId = req.user._id
         let _id = req.params.id
-        let googleProfile = await GoogleProfile.findOne({ _id })
+        let googleProfile = await GoogleProfile.findOne({ _id }).lean()
         if (googleProfile?.UserId !== UserId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
