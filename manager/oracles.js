@@ -709,6 +709,7 @@ const twitter = async (userName, idPost) => {
             consumer_secret: oauth.twitter.consumer_secret_alt,
             access_token_key: oauth.access_token_key,
             access_token_secret: oauth.access_token_secret,
+            bearer_token: process.env.TWITTER_BEARER_TOKEN
         })
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
         var twitterProfile = (
