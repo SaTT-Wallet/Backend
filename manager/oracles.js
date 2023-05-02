@@ -711,12 +711,14 @@ const twitter = async (userName, idPost) => {
             access_token_secret: oauth.access_token_secret,
             bearer_token: process.env.TWITTER_BEARER_TOKEN
         })
+        
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
         var twitterProfile = (
             await TwitterProfile.find({
                 id: tweet_res.user.id_str,
             })
         )[0]
+
         const client = new Twitter({
             consumer_key: process.env.TWITTER_CONSUMER_KEY,
             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
