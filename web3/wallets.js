@@ -1288,7 +1288,7 @@ exports.getCount = async function () {
     } catch (err) {}
 }
 
-exports.getCountV2 = async function () {
+exports.getCountV2 = async  () => {
     try {
         var count = await Wallet.find({ walletV2: { $exists: true } }).count()
         return count + 1
