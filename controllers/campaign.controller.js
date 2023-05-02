@@ -1026,8 +1026,7 @@ exports.apply = async (req, res) => {
 }
 
 exports.linkNotifications = async (req, res) => {
-    // var id = req.user._id
-
+    req.body = sanitize(req.body);
     const lang = req.query.lang || 'en'
     configureTranslation(lang)
 
@@ -1052,23 +1051,24 @@ exports.linkNotifications = async (req, res) => {
             linkHash: idProm,
         })
 
-        User.findOne({ _id: owner }, (err, result) => {
-            readHTMLFileCampaign(
-                __dirname +
-                    '/../public/emailtemplate/Email_Template_link_added.html',
-                'linkNotifications',
-                element.title,
-                result.email,
-                null,
-                link
-            )
+        let user = await User.findOne({ _id: owner },{email:1}).lean();
 
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'Email was sent to ' + result.email
-            )
-        })
+        readHTMLFileCampaign(
+            __dirname +
+                '/../public/emailtemplate/Email_Template_link_added.html',
+            'linkNotifications',
+            element.title,
+            user.email,
+            null,
+            link
+        )
+
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'Email was sent to ' + user.email
+        )
+
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1211,7 +1211,7 @@ exports.validateCampaign = async (req, res) => {
                         { UserId: 1, _id: 0 }
                     ))
 
-                let user = await User.findOne({ _id: userWallet.UserId })
+                let user = await User.findOne({ _id: userWallet.UserId }).lean()
                 const id = user._id
                 const email = user.email
                 let linkedinProfile =
@@ -1280,6 +1280,7 @@ exports.validateCampaign = async (req, res) => {
 }
 
 exports.gains = async (req, res) => {
+    req.body =  sanitize(req.body);
     var idProm = req.body.idProm
     var hash = req.body.hash
     var stats
@@ -1575,23 +1576,20 @@ exports.gains = async (req, res) => {
                 network
             )
             let updatedFUnds = {}
-            await CampaignLink.findOne(
-                { id_prom: idProm },
-                async (err, result) => {
-                    if (req.body.bounty) updatedFUnds.isPayed = true
-                    updatedFUnds.payedAmount = !result.payedAmount
+      
+            let cmpLink = await CampaignLink.findOne(
+                { id_prom: idProm }).lean
+                req.body.bounty && (updatedFUnds.isPayed = true)
+                updatedFUnds.payedAmount = !cmpLink.payedAmount
                         ? amount
-                        : new Big(result.payedAmount)
+                        : new Big(cmpLink.payedAmount)
                               .plus(new Big(amount))
                               .toFixed()
                     updatedFUnds.type = 'already_recovered'
-
                     await CampaignLink.updateOne(
                         { id_prom: idProm },
                         { $set: updatedFUnds }
                     )
-                }
-            )
 
             let contract = await getCampaignContractByHashCampaign(
                 hash,
@@ -1902,15 +1900,15 @@ module.exports.increaseBudget = async (req, res) => {
         if (ret?.transactionHash) {
             const ctr = await getCampaignContractByHashCampaign(hash, cred)
             let fundsInfo = await ctr.methods.campaigns(hash).call()
-            await Campaigns.findOne({ hash: hash }, async (err, result) => {
-                let budget = new Big(result.cost)
-                    .plus(new Big(amount))
-                    .toFixed()
-                await Campaigns.updateOne(
-                    { hash: hash },
-                    { $set: { cost: budget, funds: fundsInfo.funds } }
-                )
-            })
+
+            let campaign = await Campaigns.findOne({ hash },{cost:1}).lean()
+            let budget = new Big(campaign.cost)
+            .plus(new Big(amount))
+            .toFixed()
+            await Campaigns.updateOne(
+                { hash: hash },
+                { $set: { cost: budget, funds: fundsInfo.funds } }
+            )
         }
     }
 }
@@ -2642,7 +2640,7 @@ module.exports.updateStatistics = async (req, res) => {
 module.exports.coverByCampaign = async (req, res) => {
     try {
         let _id = req.params.id
-        let campaign = await Campaigns.findOne({ _id })
+        let campaign = await Campaigns.findOne({ _id }).lean();
         let image = Buffer.from(campaign.cover, 'base64')
         if (req.query.width && req.query.heigth)
             sharp(image)
