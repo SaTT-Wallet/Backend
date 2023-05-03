@@ -1159,8 +1159,7 @@ exports.validateCampaign = async (req, res) => {
                         401,
                         'the signature is not matched  to the link or signature'
                     )
-                }
-
+                }          
                 var ret = await validateProm(
                     campaignLink.id_campaign,
                     campaignLink.typeSN,

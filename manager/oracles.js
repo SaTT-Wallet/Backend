@@ -429,6 +429,7 @@ exports.twitterAbos = async function (pageName, idPost) {
             consumer_secret: oauth.twitter.consumer_secret_alt,
             access_token_key: oauth?.twitter?.access_token_key,
             access_token_secret: oauth.twitter.access_token_secret,
+            bearer_token: process.env.TWITTER_BEARER_TOKEN
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
         await TwitterProfile.updateMany(
