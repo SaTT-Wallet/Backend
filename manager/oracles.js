@@ -1079,7 +1079,9 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
         }
 
         return calculstats 
-    } catch (error) {}
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 exports.answerCall = async (opts) => {
