@@ -1450,6 +1450,7 @@ exports.gains = async (req, res) => {
                 linkedinData,
                 tiktokProfile
             )
+            var copyStats = {...stats}
             var ratios =
                 (!!tronWeb && (await ctr.getRatios(prom.idCampaign).call())) ||
                 (await ctr.methods.getRatios(prom.idCampaign).call())
@@ -1574,10 +1575,10 @@ exports.gains = async (req, res) => {
                 ret.transactionHash,
                 network
             )
-            let updatedFUnds = {}
+            let updatedFUnds = {...copyStats}
       
             let cmpLink = await CampaignLink.findOne(
-                { id_prom: idProm }).lean
+                { id_prom: idProm }).lean();
                 req.body.bounty && (updatedFUnds.isPayed = true)
                 updatedFUnds.payedAmount = !cmpLink.payedAmount
                         ? amount
@@ -1788,8 +1789,8 @@ module.exports.linkStats = async (req, res) => {
         let totalToEarn
         const idProm = req.params.idProm
 
-        const info = await CampaignLink.findOne({ id_prom: idProm })
-
+        const info = await CampaignLink.findOne({ id_prom: idProm }).lean();
+              
         if (info) {
             const payedAmount = info.payedAmount || '0'
             const campaign = (
