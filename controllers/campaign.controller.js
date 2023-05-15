@@ -469,7 +469,15 @@ module.exports.launchBounty = async (req, res) => {
 exports.uploadPictureToIPFS = async (req, res) => {
     // using IPFS
     try {
+        
         if (req.file) {
+            const { id } = req.params
+            
+            // SEARCH COMPAIGN ID
+            const campaign = await Campaigns.findOne({_id: id, idNode: '0'+req.user._id});
+
+            if(campaign) {
+                
             // IPFS CONNECTION
             const ipfs = await ipfsConnect()
 
@@ -479,15 +487,20 @@ exports.uploadPictureToIPFS = async (req, res) => {
             // ADD TO IPFS
             let buffer = Buffer.from(x)
             let result = await ipfs.add({ content: buffer })
-
+            
             // REMOVE FILE FROM UPLOADS DIR
             fs.unlinkSync('uploads/' + req.file.filename)
 
             return responseHandler.makeResponseData(res, 200, result, true)
+            
+            } else return responseHandler.makeResponseData(res, 400, "campaign not found / you are not the owner", false)
+            
+            
+            
         } else
             return responseHandler.makeResponseData(
                 res,
-                200,
+                400,
                 'required picture',
                 false
             )
@@ -1756,7 +1769,7 @@ exports.update = async (req, res) => {
         let campaign = req.body
         campaign.updatedAt = Date.now()
         let updatedCampaign = await Campaigns.findOneAndUpdate(
-            { _id: req.params.idCampaign },
+            { _id: req.params.idCampaign , idNode: '0'+req.user._id},
             { $set: campaign },
             { new: true }
         )

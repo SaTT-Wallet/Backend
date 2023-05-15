@@ -585,7 +585,7 @@ router.post('/launchBounty', verifyAuth, launchBounty)
 router.get('/campaigns', campaigns)
 
 
-router.post('/ipfs', verifyAuth,campaignsPictureUpload ,uploadPictureToIPFS)
+router.post('/ipfs/:id', verifyAuth,campaignsPictureUpload ,uploadPictureToIPFS)
 
 /**
  * @swagger
