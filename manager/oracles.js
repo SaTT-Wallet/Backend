@@ -472,17 +472,28 @@ exports.tiktokAbos = async (userId, access_token = null) => {
                 { userId: +userId },
                 { accessToken: 1 }
             ).lean()
-        ).accessToken
+        ).accessToken   
 
     try {
-        function runCmd(cmd) {
-            var resp = child_process.execSync(cmd)
-            var result = resp.toString('UTF8')
-            return result
+
+         /*const runCmd = cmd => {
+            let resp = child_process.execSync(cmd)
+            return resp.toString('UTF8')
         }
         var cmd = `curl -L -X GET 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count' \
         -H 'Authorization: Bearer ${accessToken}'`
-        var result = JSON.parse(runCmd(cmd))
+        var result = JSON.parse(runCmd(cmd))*/
+
+        const result = await axios.get('https://open.tiktokapis.com/v2/user/info', {
+            params: {
+              fields: 'follower_count',
+            },
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+        
+          
         return result?.data?.user?.follower_count ?? 0
     } catch (err) {
         console.error('tiktokAbos', err.message ? err.message : err.error)
@@ -751,10 +762,11 @@ const tiktok = async (tiktokProfile, idPost) => {
         if (!tiktokProfile) return 'indisponible'
 
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
-        let resMedia = (await rp.get(getUrl)).data
+        let resMedia = await rp.get(getUrl)
+        resMedia?.data?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.data.access_token})
         let videoInfoResponse = await axios
             .post('https://open-api.tiktok.com/video/query/', {
-                access_token: resMedia?.data.access_token,
+                access_token: resMedia?.data?.data.access_token,
                 open_id: tiktokProfile.userTiktokId,
                 filters: {
                     video_ids: [idPost],
