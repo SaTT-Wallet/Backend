@@ -27,6 +27,7 @@ const {
     validateCampaign,
     bep20Allow,
     erc20Allow,
+    expandUrl,
     updateStatistics,
     coverByCampaign,
     campaignsStatistics,
@@ -640,6 +641,28 @@ router.get('/details/:id', campaignDetails)
  *          description: error:"error"
  */
 router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
+
+/**
+ * @swagger
+ * /campaign/expandLink/{shortUrl}:
+ *   get:
+ *     tags:
+ *     - "campaign"
+ *     summary: expand short url.
+ *     description: expand short url to normal url.
+ *     parameters:
+ *       - in: path
+ *         name: shortUrl
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *          description: data:{"code":"200","message":"success"}
+ *       "500":
+ *          description: error:<br> server error
+ */
+router.get('/expandLink/:shortUrl',  expandUrl)
 
 /**
  * @swagger

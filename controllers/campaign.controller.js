@@ -9,6 +9,8 @@ const GridFsStorage = require('multer-gridfs-storage')
 const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 var fs = require('fs')
+const requestt = require('request');
+const urlParse = require('url-parse');
 const cron = require('node-cron')
 //const ipfs = IPFS('ipfs.infura.io', '5001', {protocol: 'https'})
 const {
@@ -2817,34 +2819,26 @@ module.exports.initStat = () => {
         rejected: 0,
     }
 }
-module.exports.expandUrl = (req, res) => {
-    try {
-        var child_process = require('child_process')
-        let { shortUrl } = req.query
+module.exports.expandUrl = async  (req, res) => {
+    const shortUrl = req.params.shortUrl;
+    const options = {
+      method: 'HEAD',
+      url: shortUrl,
+      followRedirect: false
+    };
+  
+    requestt(options, (error, response) => {
+      if (error) {
+        res.status(500).send(error);
+      } else {
+        const expandedUrl = response.headers.location || shortUrl;
+        const parsedUrl = urlParse(expandedUrl);
+        res.status(200).send(parsedUrl.href);
+      }
+    });
 
-        function runCmd(cmd) {
-            var resp = child_process.execSync(cmd)
-            var result = resp.toString('UTF8')
-            return result
-        }
-        var cmd = `curl -sLI ${shortUrl} | grep -i Location`
-        var result = runCmd(cmd)
-
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'shorted successfully',
-            result.split('Location: ')[1] || result.split('location: ')[1]
-        )
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
+  
 }
-
 module.exports.statLinkCampaign = async (req, res) => {
     try {
         let id_campaign = req.params.hash
