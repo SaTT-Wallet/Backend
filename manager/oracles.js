@@ -494,7 +494,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
           });
         
           
-        return result?.data?.user?.follower_count ?? 0
+        return result?.data?.data?.user?.follower_count ?? 0
     } catch (err) {
         console.error('tiktokAbos', err.message ? err.message : err.error)
     }
