@@ -19,8 +19,11 @@ var cache = require('memory-cache')
 var rp = require('axios')
 const Big = require('big.js')
 var wif = require('wif')
-
-var bip32 = require('bip32')
+const ecc = require('tiny-secp256k1')
+const { BIP32Factory } = require('bip32')
+// You must wrap a tiny-secp256k1 compatible implementation
+const bip32 = BIP32Factory(ecc)
+//var bip32 = require('bip32')
 var bip38 = require('bip38')
 var bip39 = require('bip39')
 var bitcoinjs = require('bitcoinjs-lib')
