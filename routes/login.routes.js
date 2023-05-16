@@ -54,6 +54,7 @@ const {
     getToken,
     setVisitSignUpStep,
     signupRequest,
+    verifyExpiredToken
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -1116,5 +1117,12 @@ router.post('/setVisitSignUpStep', setVisitSignUpStep)
  *          description: error:<br> server error
  */
 router.post('/email/signup', signupRequest)
+
+
+
+
+
+router.get('/verify-token', verifyAuth, verifyExpiredToken)
+
 
 module.exports = router

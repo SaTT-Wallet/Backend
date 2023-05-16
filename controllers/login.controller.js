@@ -991,3 +991,8 @@ module.exports.signupRequest = async (req, res) => {
         )
     }
 }
+
+
+module.exports.verifyExpiredToken = (req, res) => {
+    return responseHandler.makeResponseData(res, 200, 'success', true)
+}
