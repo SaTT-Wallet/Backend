@@ -1087,23 +1087,23 @@ module.exports.ProfilPrivacy = async (req, res) => {
         let tiktokProfile = await TikTokProfile.findOne({ userId })
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp.get(getUrl)
-        const linkedinData = {
+        const linkedinData = await{
             url: 'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
             method: 'POST',
             body: {
                 max_count: 20,
             },
             headers: {
-                Authorization: 'Bearer ' + resMedia?.data.access_token,
+                Authorization: 'Bearer ' + resMedia?.data.data.access_token,
             },
             json: true,
         }
         let postData = await rp.post('https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',{
             max_count: 20,
         },{headers :{
-            Authorization: 'Bearer ' + resMedia?.data.access_token,
+            Authorization: 'Bearer ' + resMedia?.data.data.access_token,
         }})
-        if (postData.data.videos.length === 0) {
+        if (postData.data.data.videos.length === 0) {
             privacy = 'private'
         } else {
             privacy = 'public'
