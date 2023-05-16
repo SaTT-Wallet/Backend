@@ -662,7 +662,7 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/expandLink/:shortUrl',  expandUrl)
+router.get('/expandLink',  expandUrl)
 
 /**
  * @swagger

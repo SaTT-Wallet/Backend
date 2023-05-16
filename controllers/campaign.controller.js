@@ -9,8 +9,8 @@ const GridFsStorage = require('multer-gridfs-storage')
 const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 var fs = require('fs')
-const requestt = require('request');
-const urlParse = require('url-parse');
+const axios = require('axios');
+
 const cron = require('node-cron')
 //const ipfs = IPFS('ipfs.infura.io', '5001', {protocol: 'https'})
 const {
@@ -165,6 +165,8 @@ const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 const { request } = require('http')
+const { URL } = require('url');
+const { http, https } = require('follow-redirects');
 const { Console } = require('console')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
@@ -2819,26 +2821,32 @@ module.exports.initStat = () => {
         rejected: 0,
     }
 }
-module.exports.expandUrl = async  (req, res) => {
-    const shortUrl = req.params.shortUrl;
+module.exports.expandUrl = async (req, res) => {
+    const shortUrl = req.query.shortUrl;
     const options = {
       method: 'HEAD',
       url: shortUrl,
-      followRedirect: false
+      maxRedirects: 5,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
+      },
+      agent: shortUrl.startsWith('https') ? https : http
     };
   
-    requestt(options, (error, response) => {
-      if (error) {
-        res.status(500).send(error);
-      } else {
-        const expandedUrl = response.headers.location || shortUrl;
-        const parsedUrl = urlParse(expandedUrl);
-        res.status(200).send(parsedUrl.href);
-      }
-    });
+    try {
+      const response = await axios(options);
+      const expandedUrl = response.request.res.responseUrl || shortUrl;
+      const parsedUrl = new URL(expandedUrl);
 
-  
-}
+      return responseHandler.makeResponseData(res, 200, 'success', parsedUrl)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+  };
 module.exports.statLinkCampaign = async (req, res) => {
     try {
         let id_campaign = req.params.hash
