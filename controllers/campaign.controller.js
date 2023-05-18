@@ -9,6 +9,8 @@ const GridFsStorage = require('multer-gridfs-storage')
 const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 var fs = require('fs')
+const axios = require('axios');
+
 const cron = require('node-cron')
 //const ipfs = IPFS('ipfs.infura.io', '5001', {protocol: 'https'})
 const {
@@ -163,6 +165,8 @@ const { Constants, TronConstant, wrapConstants } = require('../conf/const')
 const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 const { request } = require('http')
+const { URL } = require('url');
+const { http, https } = require('follow-redirects');
 const { Console } = require('console')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
@@ -2830,25 +2834,24 @@ module.exports.initStat = () => {
         rejected: 0,
     }
 }
-module.exports.expandUrl = (req, res) => {
+module.exports.expandUrl = async (req, res) => {
+    const shortUrl = req.query.shortUrl;
+    const options = {
+      method: 'HEAD',
+      url: shortUrl,
+      maxRedirects: 5,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36'
+      },
+      agent: shortUrl.startsWith('https') ? https : http
+    };
+  
     try {
-        var child_process = require('child_process')
-        let { shortUrl } = req.query
+      const response = await axios(options);
+      const expandedUrl = response.request.res.responseUrl || shortUrl;
+      const parsedUrl = new URL(expandedUrl);
 
-        function runCmd(cmd) {
-            var resp = child_process.execSync(cmd)
-            var result = resp.toString('UTF8')
-            return result
-        }
-        var cmd = `curl -sLI ${shortUrl} | grep -i Location`
-        var result = runCmd(cmd)
-
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'shorted successfully',
-            result.split('Location: ')[1] || result.split('location: ')[1]
-        )
+      return responseHandler.makeResponseData(res, 200, 'success', parsedUrl)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -2856,8 +2859,7 @@ module.exports.expandUrl = (req, res) => {
             err.message ? err.message : err.error
         )
     }
-}
-
+  };
 module.exports.statLinkCampaign = async (req, res) => {
     try {
         let id_campaign = req.params.hash
