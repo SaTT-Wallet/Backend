@@ -476,25 +476,18 @@ exports.tiktokAbos = async (userId, access_token = null) => {
 
     try {
 
-         /*const runCmd = cmd => {
+         const runCmd = cmd => {
             let resp = child_process.execSync(cmd)
             return resp.toString('UTF8')
         }
         var cmd = `curl -L -X GET 'https://open.tiktokapis.com/v2/user/info/?fields=follower_count' \
         -H 'Authorization: Bearer ${accessToken}'`
-        var result = JSON.parse(runCmd(cmd))*/
+        var result = JSON.parse(runCmd(cmd))
 
-        const result = await axios.get('https://open.tiktokapis.com/v2/user/info', {
-            params: {
-              fields: 'follower_count',
-            },
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          });
+    
         
           
-        return result?.data?.data?.user?.follower_count ?? 0
+        return result?.data?.user?.follower_count ?? 0
     } catch (err) {
         console.error('tiktokAbos', err.message ? err.message : err.error)
     }
