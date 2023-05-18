@@ -484,15 +484,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         -H 'Authorization: Bearer ${accessToken}'`
         var result = JSON.parse(runCmd(cmd))
 
-        // const result = await axios.get('https://open.tiktokapis.com/v2/user/info', {
-        //     params: {
-        //       fields: 'follower_count',
-        //     },
-        //     headers: {
-        //       Authorization: `Bearer ${accessToken}`,
-        //     },
-        //   });
-        
+
           
         return result?.data?.user?.follower_count ?? 0
     } catch (err) {
