@@ -400,7 +400,7 @@ exports.createPerformanceCampaign = async (
         var ctr = await getContractByNetwork(credentials)
 
         var gasPrice = await ctr.getGasPrice()
-        var gas = 5000000
+        var gas = process.env.GAS_LIMIT
         var receipt = await ctr.methods
             .createPriceFundAll(
                 dataUrl,
@@ -422,6 +422,7 @@ exports.createPerformanceCampaign = async (
             transactionHash: receipt.events.CampaignCreated.transactionHash,
         }
     } catch (err) {
+        console.log({err})
         res.status(500).send({
             code: 500,
             error: err.message ? err.message : err.error,
