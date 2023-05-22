@@ -1,14 +1,40 @@
-<!-- ABOUT THE PROJECT -->
+# SaTT Wallet 🚀💼
 
-## SaTT Wallet API
+Welcome to SaTT Wallet, a cutting-edge project in the realm of smart advertising. Our wallet leverages blockchain technology to offer a unique approach to managing and transacting with the Smart Advertising Transaction Token (SaTT). 🌐💰
 
-Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager : [Wallet](https://dapp.satt.com/)
+## Project Overview 📚
 
-It provides :
+Our project is composed of two main repositories:
 
--   Masterseed HD Wallet management for SaTT and other main cryptos.
--   Transaction management
--   Advertising campaign management
+1. **Backend** 🖥️: This part of the project provides the webservice for the SaTT Token WebWallet and the advertising campaign manager. It's primarily written in JavaScript.
+
+2. **Frontend** 🎨: The frontend of the SaTT wallet is built using Angular, a robust framework in the TypeScript ecosystem.
+
+## How to Contribute 💪🔧
+
+We welcome developers who are passionate about decentralized technology, advertising, and improving user experience.
+
+To contribute:
+
+1. Fork the repository you wish to contribute to (Backend or Frontend). 🍴
+2. Create a new branch for your feature. 🌿
+3. Make your changes and commit them with clear, concise messages. 📝
+4. Push your changes to your branch. 🚀
+5. Create a pull request. 🙏
+
+We strongly encourage contributors to adhere to best coding practices, which include:
+
+- Write clean, readable, and maintainable code. 🧹✨
+- Use meaningful naming for variables, functions, classes, and modules. 🏷️
+- Comment your code where necessary but strive to make your code as self-explanatory as possible. 🗂️
+- Avoid large commits that make the code review process more difficult. Break your work into small, individual commits each with a specific purpose. 🧩
+- Update and write tests when contributing to code. 🧪
+
+## Get in Touch 📞📧
+
+If you have any questions or suggestions, please reach out to us at contact@satt-token.com. You can also follow our updates on Twitter at [@SaTT_Token](https://twitter.com/SaTT_Token).
+
+Happy coding! 🎉👩‍💻👨‍💻
 
 ### Built With
 
