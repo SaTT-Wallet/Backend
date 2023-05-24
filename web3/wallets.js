@@ -51,8 +51,7 @@ const {
     pathBtcSegwitCompat,
     pathBtcSegwit,
     pathEth,
-    pathTron,
-    booltestnet,
+    pathTron
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')

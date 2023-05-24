@@ -2,7 +2,7 @@ const { auth } = require('google-auth-library')
 const { Token } = require('graphql')
 const { environment } = require('./settings')
 
-exports.mongoConnection = () => {
+/*exports.mongoConnection = () => {
     let connexion = {}
     if (process.env.NODE_ENV === 'local') {
         connexion.mongoBase = process.env.MONGO_BASE_LOCAL
@@ -40,8 +40,8 @@ exports.mongoConnection = () => {
         connexion.mongoURI = environment.mainnet.MONGOURI
     }
     return connexion
-}
-
+}*/
+exports.mongoConnection = () => process.env.MONGOURI
 exports.payementRequest = async (payment) => {
     return {
         account_details: {
@@ -78,17 +78,11 @@ exports.payementRequest = async (payment) => {
     }
 }
 
-let sattContract,
-    sattBEP20CONTRACT,
-    sattTRONCONTRACT,
-    sattBTTCONTRACT,
-    daiContract,
-    busdContract,
-    usdtContract,
-    TRON_CONTRACT
+let sattTRONCONTRACT,
+    sattBTTCONTRACT
 
-if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
-    sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
+/*if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
+  sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
     sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
     sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT_TESTNET
@@ -98,24 +92,17 @@ if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
     busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
     TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
     cakeContract = process.env.TOKEN_CAKE_CONTRACT_TESTNET
-} else {
-    sattContract = process.env.TOKEN_SATT_CONTRACT
-    sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
-    sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
-    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
-    daiContract = process.env.TOKEN_DAI_CONTRACT
-    usdtContract = process.env.TOKEN_USDT_CONTRACT
-    busdContract = process.env.TOKEN_BUSD_CONTRACT
-    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT
-    cakeContract = process.env.TOKEN_CAKE_CONTRACT
-}
+} else {*/
+   /* sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
+    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT*/
+//}
 let Tokens = {
     SATT: {
         name: process.env.TOKEN_SATT_NAME,
         symbol: process.env.TOKEN_SATT_SYMBOL,
         undername: process.env.TOKEN_SATT_UNDERNAME,
         undername2: process.env.TOKEN_SATT_UNDERNAME2,
-        contract: sattContract,
+        contract: process.env.TOKEN_SATT_CONTRACT,
         dicimal: process.env.TOKEN_SATT_DICIMAL,
         network: process.env.TOKEN_SATT_NETWORK,
     },
@@ -133,7 +120,7 @@ let Tokens = {
         symbol: process.env.TOKEN_SATT_BEP20_SYMBOL,
         undername: process.env.TOKEN_SATT_BEP20_UNDERNAME,
         undername2: process.env.TOKEN_SATT_BEP20_UNDERNAME2,
-        contract: sattBEP20CONTRACT,
+        contract: process.env.TOKEN_SATT_BEP20_CONTRACT,
         dicimal: process.env.TOKEN_SATT_BEP20_DICIMAL,
         network: process.env.TOKEN_SATT_BEP20_NETWORK,
     },
@@ -151,7 +138,7 @@ let Tokens = {
         symbol: process.env.TOKEN_DAI_SYMBOL,
         undername: process.env.TOKEN_DAI_UNDERNAME,
         undername2: process.env.TOKEN_DAI_UNDERNAME2,
-        contract: daiContract,
+        contract: process.env.TOKEN_DAI_CONTRACT,
         dicimal: process.env.TOKEN_DAI_DICIMAL,
         network: process.env.TOKEN_DAI_NETWORK,
     },
@@ -160,7 +147,7 @@ let Tokens = {
         symbol: process.env.TOKEN_USDT_SYMBOL,
         undername: process.env.TOKEN_USDT_UNDERNAME,
         undername2: process.env.TOKEN_USDT_UNDERNAME2,
-        contract: usdtContract,
+        contract: process.env.TOKEN_USDT_CONTRACT,
         dicimal: process.env.TOKEN_USDT_DICIMAL,
         network: process.env.TOKEN_USDT_NETWORK,
     },
@@ -196,7 +183,7 @@ let Tokens = {
         symbol: process.env.TOKEN_CAKE_SYMBOL,
         undername: process.env.TOKEN_CAKE_UNDERNAME,
         undername2: process.env.TOKEN_CAKE_UNDERNAME2,
-        contract: cakeContract,
+        contract: process.env.TOKEN_CAKE_CONTRACT,
         dicimal: process.env.TOKEN_CAKE_DICIMAL,
         network: process.env.TOKEN_CAKE_NETWORK,
     },
@@ -205,7 +192,7 @@ let Tokens = {
         symbol: process.env.TOKEN_BUSD_SYMBOL,
         undername: process.env.TOKEN_BUSD_UNDERNAME,
         undername2: process.env.TOKEN_BUSD_UNDERNAME2,
-        contract: busdContract,
+        contract: process.env.TOKEN_BUSD_CONTRACT,
         dicimal: process.env.TOKEN_BUSD_DICIMAL,
         network: process.env.TOKEN_BUSD_NETWORK,
     },
@@ -242,7 +229,7 @@ let Tokens = {
         symbol: process.env.TOKEN_TRON_SYMBOL,
         undername: process.env.TOKEN_TRON_UNDERNAME,
         undername2: process.env.TOKEN_TRON_UNDERNAME2,
-        contract: TRON_CONTRACT,
+        contract: process.env.TOKEN_TRON_CONTRACT,
         dicimal: process.env.TOKEN_TRON_DICIMAL,
         network: process.env.TOKEN_TRON_NETWORK,
     },
@@ -1278,21 +1265,6 @@ let loginSettings = {
     lockedPeriod: process.env.lockedPeriod,
 }
 
-let configSendBox
-
-let booltestnet
-
-if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
-    configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
-    PolygonApi = process.env.POLYGONSCAN_testnet_API
-    booltestnet = true
-} else {
-    PolygonApi = process.env.POLYGONSCAN_API
-    booltestnet = false
-
-    configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
-}
-
 let networkSegWitCompat = {
     baseNetwork: 'bitcoin',
     messagePrefix: '\x18Bitcoin Signed Message:\n',
@@ -1408,7 +1380,6 @@ module.exports.config = config
 module.exports.basicAtt = basicAtt
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
-module.exports.configSendBox = configSendBox
-module.exports.booltestnet = booltestnet
+module.exports.configSendBox = process.env.CONFIG_SAND_BOX
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
-module.exports.PolygonApi = PolygonApi
+module.exports.PolygonApi = process.env.POLYGONSCAN_API

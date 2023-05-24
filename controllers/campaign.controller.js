@@ -171,7 +171,7 @@ const { Console } = require('console')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
-const promise = mongoose.connect(mongoConnection().mongoURI, {
+const promise = mongoose.connect(mongoConnection(), {
     useUnifiedTopology: true,
     useNewUrlParser: true,
     useCreateIndex: true,

@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 autoIncrement = require('mongoose-auto-increment')
 const { mongoConnection } = require('../conf/config')
 
-const db = mongoose.createConnection(mongoConnection().mongoURI, {
+const db = mongoose.createConnection(mongoConnection(), {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
