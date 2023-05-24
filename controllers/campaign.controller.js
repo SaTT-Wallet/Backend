@@ -1197,7 +1197,7 @@ exports.validateCampaign = async (req, res) => {
                 lock(cred)
             }
             if (ret && ret.transactionHash) {
-                let link = await CampaignLink.findOne({ _id: idLink })
+                let link = await CampaignLink.findOne({ _id: idLink }).lean()
                 let userWallet =
                     (!!tronWeb &&
                         (await Wallet.findOne(

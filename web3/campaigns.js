@@ -352,13 +352,19 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
-        if (!!tronWeb) {
-            let ctr = await tronWeb.contract(
+
+        /**   CHECK IF COMPAGNE NETWORK IS TRON */
+        if (tronWeb !== null && tronWeb !== undefined) {
+
+            /**  GET CAMPAGNE CONTRACT */
+            const contract = await tronWeb.contract(
                 TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
+            
 
-            let receipt = await ctr
+            /**   CALL METHOD CREATE PRICE FUND ALL FROM CONTRACT*/
+            const transactionReceipt = await contract
                 .createPriceFundAll(
                     dataUrl,
                     startDate,
@@ -374,8 +380,11 @@ exports.createPerformanceCampaign = async (
                 })
 
             await timeout(10000)
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
-                receipt
+
+
+            /**  CHECK TRANSACTION STATUS  */
+            const result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                transactionReceipt
             )
 
             if (result.receipt.result === 'SUCCESS') {
@@ -391,17 +400,29 @@ exports.createPerformanceCampaign = async (
             }
         }
 
+
+        /** CHECK TOKEN IS NATIVE OR NO (BNB for BEP20 / ETH for ERC20 ) */
         if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
 
             await wrapNative(amount, credentials)
         }
 
-        var ctr = await getContractByNetwork(credentials)
 
-        var gasPrice = await ctr.getGasPrice()
-        var gas = 5000000
-        var receipt = await ctr.methods
+
+        /** GET CONTRACT  */
+        const contract = await getContractByNetwork(credentials)
+
+
+        /** GET GAS PRICE  */
+        const gasPrice = await contract.getGasPrice()
+
+        /** GET GAS LIMIT FROM .env */
+        const gas = process.env.GAS_LIMIT
+
+
+        /**   CALL METHOD CREATE PRICE FUND ALL FROM CONTRACT*/
+        const transactionReceipt = await contract.methods
             .createPriceFundAll(
                 dataUrl,
                 startDate,
@@ -416,10 +437,10 @@ exports.createPerformanceCampaign = async (
                 gasPrice: gasPrice,
             })
 
-        receipt.transactionHash
+            transactionReceipt.transactionHash
         return {
-            hash: receipt.events.CampaignCreated.returnValues.id,
-            transactionHash: receipt.events.CampaignCreated.transactionHash,
+            hash: transactionReceipt.events.CampaignCreated.returnValues.id,
+            transactionHash: transactionReceipt.events.CampaignCreated.transactionHash,
         }
     } catch (err) {
         res.status(500).send({
