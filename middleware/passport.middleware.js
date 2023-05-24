@@ -738,7 +738,8 @@ exports.linkFacebookAccount = async (
     } else {
         await User.updateOne(
             { _id: user_id },
-            { $set: { idOnSn: profile._json.token_for_business } }
+        
+            { $set: { idOnSn: profile._json.token_for_business, completed: true } }
         )
         return cb(null, profile, {
             status: true,
@@ -771,7 +772,8 @@ exports.linkGoogleAccount = async (
     } else {
         await User.updateOne(
             { _id: user_id },
-            { $set: { idOnSn2: profile.id } }
+
+            { $set: { idOnSn2: profile.id, completed: true} }
         )
         return done(null, profile, {
             status: true,
@@ -803,7 +805,8 @@ exports.telegram_connect_function = async (req, profile, cb) => {
     } else {
         await User.updateOne(
             { _id: user_id },
-            { $set: { idOnSn3: profile.id } }
+        
+            { $set: { idOnSn3: profile.id, completed: true } }
         )
         return cb(null, profile, {
             status: true,
