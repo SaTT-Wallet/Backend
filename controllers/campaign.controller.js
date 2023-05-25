@@ -1934,13 +1934,13 @@ exports.getFunds = async (req, res) => {
     req.body = sanitize(req.body)
     var { hash } = req.body
     try {
-        let { _id } = '0' + req.user
+        let { _id } = req.user;
         var campaignDetails = await Campaigns.findOne(
             { hash },
             { idNode: 1 }
         ).lean()
 
-        if (campaignDetails?.idNode !== _id) {
+        if (campaignDetails?.idNode !== `0${_id}`) {
             return responseHandler.makeResponseError(res, 204, 'unauthorized')
         } else {
             var cred = await unlockV2(req, res)
@@ -1961,7 +1961,7 @@ exports.getFunds = async (req, res) => {
         )
     } finally {
         cred && lock(cred)
-        if (ret && ret.transactionHash) {
+        if (ret?.transactionHash) {
             await Campaigns.updateOne(
                 { _id: campaignDetails._id },
                 {

@@ -93,8 +93,8 @@ let sattTRONCONTRACT,
     TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
     cakeContract = process.env.TOKEN_CAKE_CONTRACT_TESTNET
 } else {*/
-   /* sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
-    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT*/
+    sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
+    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
 //}
 let Tokens = {
     SATT: {
