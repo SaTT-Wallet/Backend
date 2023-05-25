@@ -11,6 +11,7 @@ require('dotenv').config()
 let logger = require('morgan')
 let cookieParser = require('cookie-parser')
 let path = require('path')
+const {swaggerUi, swaggerSpec, cssOptions} = require('./conf/swaggerSetup');
 // set up rate limiter: maximum of five requests per minute
 var RateLimit = require('express-rate-limit')
 const package = require('./package.json')
@@ -111,6 +112,7 @@ app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)
 app.use('/campaign', campaignroutes)
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 let host
 if (process.env.NODE_ENV == 'testnet') {
     host = process.env.BASEURL
@@ -120,49 +122,10 @@ if (process.env.NODE_ENV == 'testnet') {
     host = process.env.BASEURL_MAINNET
 }
 
-const swaggerJSDoc = require('swagger-jsdoc')
-const swaggerUi = require('swagger-ui-express')
-const swaggerDefinition = {
-    openapi: '3.0.0',
-    info: {
-        title: 'API for node-satt',
-        version: package.version,
-        description:
-            'Welcome to SaTT Webservice endpoint, this backend provides webservice to SaTT WebWallet and advertising campaign manager',
-        customCss: '.swagger-ui .topbar { display: none }',
-    },
-    host: host,
-    components: {
-        securitySchemes: {
-            bearerAuth: {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
-            },
-        },
-    },
-    security: [
-        {
-            bearerAuth: [],
-        },
-    ],
-}
-var cssOptions = {
-    customCss: `
-    .topbar-wrapper img {content:url(/assets/SaTT.png); width:50px; height:auto;}`,
-    customSiteTitle: 'SaTT',
-    customfavIcon: '/assets/SaTT-noire.png',
-}
-const options = {
-    swaggerDefinition,
-    apis: ['./routes/*.js'],
-}
-const swaggerSpec = swaggerJSDoc(options)
 
-// if (process.env.NODE_ENV !== 'mainnet') {
-//     app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
-// }
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions))
+
+
+
 
 // catch 204 and forward to error handler
 app.use(function (req, res, next) {
