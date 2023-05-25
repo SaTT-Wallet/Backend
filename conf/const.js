@@ -5724,11 +5724,11 @@ multicallConstants[TronNetworkConstant] =
     Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHER
     Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAI
     Constants.campaign.address.campaignErc20 =
-        process.env.CONST_COMPAIGN_ADDRESS
+        process.env.CONST_CAMPAIGN_ADDRESS
     Constants.campaign.address.campaignBep20 =
-        process.env.CONST_COMPAIGN_ADDRESS_BEP20
+        process.env.CONST_CAMPAIGN_ADDRESS_BEP20
     Constants.campaign.address.campaignPolygon =
-        process.env.CONST_COMPAIGN_ADDRESS_POLYGON
+        process.env.CONST_CAMPAIGN_ADDRESS_POLYGON
     Constants.oracle.address.oracleErc20 =
         process.env.CONST_ORACLE_ADDRESS
     Constants.oracle.address.oracleBep20 =
@@ -5743,17 +5743,17 @@ multicallConstants[TronNetworkConstant] =
     PolygonConstants.token.satt =
         process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS
     PolygonConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_POLYGON
+        process.env.CONST_CAMPAIGN_ADDRESS_POLYGON
     PolygonConstants.oracle.address =
         process.env.CONST_ORACLE_ADDRESS_POLYGON
 
     BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS
     BttConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_BTT
+        process.env.CONST_CAMPAIGN_ADDRESS_BTT
     BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_BTT
     TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS
     TronConstant.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TRON
+        process.env.CONST_CAMPAIGN_ADDRESS_TRON
     TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TRON
     TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS
     Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
@@ -5785,74 +5785,6 @@ multicallConstants[TronNetworkConstant] =
         abi: multicallConstants[TronNetworkConstant].abi,
         address: process.env.CONST_MULTICALL_ADDRESS_TRON,
     }
-/*} else {
-    Constants.token.satt = process.env.CONST_TOKEN_ADDRESS
-    
-
-    Constants.token.tether = process.env.CONST_TOKEN_ADDRESS_TETHERTESTNET
-    Constants.token.dai = process.env.CONST_TOKEN_ADDRESS_DAITESTNET
-    Constants.campaign.address.campaignErc20 =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET
-    Constants.campaign.address.campaignBep20 =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNETBEP20
-    Constants.campaign.address.campaignPolygon =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
-    Constants.oracle.address.oracleErc20 =
-        process.env.CONST_ORACLE_ADDRESS_TESTNET
-    Constants.oracle.address.oracleBep20 =
-        process.env.CONST_ORACLE_ADDRESS_TESTNETBEP20
-    Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS
-    Constants.priceGap.address.token =
-        process.env.CONST_PRICEGAP_ADDRESS_MAINNET
-    Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS_TESTNET
-    Constants.bep20.address.bnb = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
-    Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDTESTNET
-
-    PolygonConstants.token.satt =
-        process.env.CONST_TOKEN_SATT_POLYGON_ADDRESS_TESTNET
-    PolygonConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_POLYGON
-    PolygonConstants.oracle.address =
-        process.env.CONST_ORACLE_ADDRESS_TESTNET_POLYGON
-    BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS_TESTNET
-    BttConstants.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_BTT
-    BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_BTT
-    TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS_TESTNET
-    TronConstant.campaign.address =
-        process.env.CONST_COMPAIGN_ADDRESS_TESTNET_TRON
-    TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TESTNET_TRON
-    TronConstant.token.wtrx = process.env.CONST_TOKEN_WTRX_TRON_ADDRESS_TESTNET
-    Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
-    Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
-    Constants.token.native = process.env.TOKEN_NATIVE_CONTRACT
-
-    wrapConstants[PolygonNetworkConstant].address =
-        process.env.CONST_WMATIC_TESTNET
-    wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT_TESTNET
-    wrapConstants[TronNetworkConstant] = { address: TronConstant.token.wtrx }
-
-    multicallConstants[Erc20NetworkConstant] = {
-        abi: multicallConstants[Erc20NetworkConstant].abi,
-        address: process.env.CONST_MULTICALL_ADDRESS,
-    }
-    multicallConstants[Bep20NetworkConstant] = {
-        abi: multicallConstants[Bep20NetworkConstant].abi,
-        address: process.env.CONST_MULTICALL_ADDRESS_TESTNETBEP20,
-    }
-    multicallConstants[PolygonNetworkConstant] = {
-        abi: multicallConstants[PolygonNetworkConstant].abi,
-        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_POLYGON,
-    }
-    multicallConstants[BttNetworkConstant] = {
-        abi: multicallConstants[BttNetworkConstant].abi,
-        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_BTT,
-    }
-    multicallConstants[TronNetworkConstant] = {
-        abi: multicallConstants[TronNetworkConstant].abi,
-        address: process.env.CONST_MULTICALL_ADDRESS_TESTNET_TRON,
-    }
-}*/
 
 CampaignConstants[Erc20NetworkConstant] = {
     abi: Constants.campaign.abi,
