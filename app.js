@@ -12,7 +12,7 @@ let logger = require('morgan')
 let cookieParser = require('cookie-parser')
 let path = require('path')
 const {swaggerUi, swaggerSpec, cssOptions} = require('./conf/swaggerSetup');
-const {errorHandler, handleEndpointNotFound} = require('./conf/errorHandler');
+const {errorHandler, handleEndpointNotFound} = require('./middleware/errorHandler.middleware');
 // set up rate limiter: maximum of five requests per minute
 var RateLimit = require('express-rate-limit')
 const package = require('./package.json')
