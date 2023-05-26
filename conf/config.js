@@ -1,46 +1,5 @@
-const { auth } = require('google-auth-library')
-const { Token } = require('graphql')
-const { environment } = require('./settings')
 
-/*exports.mongoConnection = () => {
-    let connexion = {}
-    if (process.env.NODE_ENV === 'local') {
-        connexion.mongoBase = process.env.MONGO_BASE_LOCAL
-        connexion.mongoUser = process.env.MONGO_USER_LOCAL
-        connexion.mongoPass = process.env.MONGO_PASS_LOCAL
-        connexion.mongoHost = process.env.MONGO_HOST_LOCAL
-        connexion.mongoPort = process.env.MONGO_PORT_LOCAL
 
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            connexion.mongoBase
-    }
-    if (process.env.NODE_ENV === 'testnet') {
-        connexion.mongoBase = environment.testnet.MONGO_BASE
-
-        connexion.mongoUser = environment.testnet.MONGO_USER
-        connexion.mongoPass = environment.testnet.MONGO_PASS
-        connexion.mongoHost = environment.testnet.MONGO_HOST
-        connexion.mongoPort = environment.testnet.MONGO_PORT
-
-        connexion.mongoURI = environment.testnet.MONGOURI
-    }
-    if (process.env.NODE_ENV === 'mainnet') {
-        connexion.mongoBase = environment.mainnet.MONGO_BASE
-
-        connexion.mongoUser = environment.mainnet.MONGO_USER
-        connexion.mongoPass = environment.mainnet.MONGO_PASS
-        connexion.mongoHost = environment.mainnet.MONGO_HOST
-        connexion.mongoPort = environment.mainnet.MONGO_PORT
-
-        connexion.mongoURI = environment.mainnet.MONGOURI
-    }
-    return connexion
-}*/
 exports.mongoConnection = () => process.env.MONGOURI
 exports.payementRequest = async (payment) => {
     return {
@@ -81,21 +40,10 @@ exports.payementRequest = async (payment) => {
 let sattTRONCONTRACT,
     sattBTTCONTRACT
 
-/*if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
-  sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
-    sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
-    sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
-    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT_TESTNET
 
-    daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
-    usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
-    busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
-    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
-    cakeContract = process.env.TOKEN_CAKE_CONTRACT_TESTNET
-} else {*/
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
     sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
-//}
+
 let Tokens = {
     SATT: {
         name: process.env.TOKEN_SATT_NAME,
