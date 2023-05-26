@@ -12,6 +12,7 @@ let logger = require('morgan')
 let cookieParser = require('cookie-parser')
 let path = require('path')
 const {swaggerUi, swaggerSpec, cssOptions} = require('./conf/swaggerSetup');
+const {errorHandler, handleEndpointNotFound} = require('./middleware/errorHandler.middleware');
 // set up rate limiter: maximum of five requests per minute
 var RateLimit = require('express-rate-limit')
 const package = require('./package.json')
@@ -102,54 +103,21 @@ app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
-
 app.use(express.static(path.join(__dirname, 'public')))
-
 app.use('/assets', express.static('public'))
 app.set('view engine', 'ejs')
-
 app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)
 app.use('/campaign', campaignroutes)
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
-let host
-if (process.env.NODE_ENV == 'testnet') {
-    host = process.env.BASEURL
-} else if (process.env.NODE_ENV == 'local') {
-    host = process.env.BASEURLLOCAL
-} else {
-    host = process.env.BASEURL_MAINNET
-}
 
 
-
-
-
-
-// catch 204 and forward to error handler
-app.use(function (req, res, next) {
-    res.status(404)
-    // respond with json
-    if (req.accepts('json')) {
-        res.json({ error: 'Not found' })
-        return
-    }
-
-    // default to plain-text. send()
-    res.type('txt').send('Not found')
-})
+// catch not found endpoints
+app.use(handleEndpointNotFound)
 
 // error handler
+app.use(errorHandler)
 
-app.use(function (err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message
-    res.locals.error = req.app.get('env') === 'testnet' ? err : {}
-
-    // render the error page
-    res.status(err.status || 500)
-    console.log('err', err)
-})
 
 module.exports = app
