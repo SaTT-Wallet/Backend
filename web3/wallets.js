@@ -51,8 +51,7 @@ const {
     pathBtcSegwitCompat,
     pathBtcSegwit,
     pathEth,
-    pathTron,
-    booltestnet,
+    pathTron
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
@@ -408,26 +407,10 @@ exports.getAccount = async (req, res) => {
                 bttConnexion(),
                 webTronInstance(),
             ])
-
-        let contractSatt = null
-        if (Web3ETH) {
-            contractSatt = new Web3ETH.eth.Contract(
-                Constants.token.abi,
-                Constants.token.satt
-            )
-        }
-
-        let tronPromise = !!tronAddress
-            ? tronWeb?.trx.getBalance(tronAddress)
-            : new Promise((resolve, reject) => {
-                  resolve(null)
-              })
-
-        let sattPromise = !!contractSatt
-            ? contractSatt.methods.balanceOf(address).call()
-            : new Promise((resolve, reject) => {
-                  resolve(null)
-              })
+      
+  const contractSatt = Web3ETH ? new Web3ETH.eth.Contract(Constants.token.abi, Constants.token.satt) : null;
+  const tronPromise = tronAddress ? tronWeb?.trx.getBalance(tronAddress) : Promise.resolve(null);
+  const sattPromise = contractSatt ? contractSatt.methods.balanceOf(address).call() : Promise.resolve(null);
 
         let [
             ether_balance,

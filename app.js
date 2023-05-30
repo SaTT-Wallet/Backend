@@ -7,7 +7,10 @@ const helmet = require('helmet')
 app.use(helmet())
 var cors = require('cors')
 // var csrf = require('csurf')
-require('dotenv').config()
+require('dotenv').config({
+    path: `.env.${process.env.NODE_ENV}`
+  })
+
 let logger = require('morgan')
 let cookieParser = require('cookie-parser')
 let path = require('path')
@@ -45,15 +48,14 @@ const campaignroutes = require('./routes/campaign.routes')
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(mongoConnection().mongoURI, {
+        await mongoose.connect(mongoConnection(), {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useCreateIndex: true,
             useFindAndModify: false,
         })
-        console.log(mongoConnection().mongoURI)
+        console.log(mongoConnection())
 
-        console.log(mongoConnection().mongoBase)
         console.log('******connection establed to MongoServer*******')
     } catch (err) {
         console.log('Failed to connect to MongoDB', err)

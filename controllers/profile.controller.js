@@ -46,7 +46,7 @@ let gfsprofilePic
 let gfsUserLegal
 const { mongoConnection, oauth } = require('../conf/config')
 
-const connect = mongoose.connect(mongoConnection().mongoURI, {
+const connect = mongoose.connect(mongoConnection(), {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
