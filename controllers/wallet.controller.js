@@ -433,6 +433,7 @@ exports.transferTokensController = async (req, res) => {
 
 exports.checkWalletToken = async (req, res) => {
     try {
+        console.log({body: req.body})
         if (req.user.hasWallet == true) {
         } else {
             return responseHandler.makeResponseError(
@@ -937,7 +938,7 @@ module.exports.removeToken = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {
             let id = req.user._id
-            const tokenAdress = req.params.tokenAddress
+            const tokenAdress = req.params.address
             let token = await CustomToken.findOne({ tokenAdress })
             if (token) {
                 let splicedArray = token.sn_users.filter((item) => item !== id)
@@ -975,7 +976,7 @@ module.exports.removeToken = async (req, res) => {
 
 module.exports.getTransactionHistory = async (req, res) => {
     var address = req.params.address
-    var btcAddress = req.params.addressBTC
+   
 
     try {
         //ETH Network
@@ -985,19 +986,19 @@ module.exports.getTransactionHistory = async (req, res) => {
             json: true,
             gzip: true,
         }
-
         const requestOptions_ERC20_transactions = {
             method: 'GET',
             uri: process.env.ETHERSCAN_APIURL_ + address + '&action=tokentx',
             json: true,
             gzip: true,
         }
+        
 
-        var Eth_transactions = await rp(requestOptions_ETH_transactions)
-        var ERC20_transactions = await rp(requestOptions_ERC20_transactions)
-        var all_Eth_transactions = FilterTransactionsByHash(
-            Eth_transactions,
-            ERC20_transactions,
+        const Eth_transactions = await rp.get(requestOptions_ETH_transactions.uri)
+        const ERC20_transactions = await rp.get(requestOptions_ERC20_transactions.uri)
+        const all_Eth_transactions = FilterTransactionsByHash(
+            Eth_transactions.data,
+            ERC20_transactions.data,
             'ERC20'
         )
         //BNB Network
@@ -1015,11 +1016,11 @@ module.exports.getTransactionHistory = async (req, res) => {
             gzip: true,
         }
 
-        var BNB_transactions = await rp(requestOptions_BNB_transactions)
-        var BEP20_transactions = await rp(requestOptions_BEP20_transactions)
-        var all_BNB_transactions = FilterTransactionsByHash(
-            BNB_transactions,
-            BEP20_transactions,
+        const BNB_transactions = await rp.get(requestOptions_BNB_transactions.uri)
+        const BEP20_transactions = await rp.get(requestOptions_BEP20_transactions.uri)
+        const all_BNB_transactions = FilterTransactionsByHash(
+            BNB_transactions.data,
+            BEP20_transactions.data,
             'BEP20'
         )
 
@@ -1037,11 +1038,11 @@ module.exports.getTransactionHistory = async (req, res) => {
             json: true,
             gzip: true,
         }
-        var POLYGON_transactions = await rp(requestOptions_MATIC_transactions)
-        var MATIC_transactions = await rp(requestOptions_POLYGON_transactions)
-        var all_POLYGON_transactions = FilterTransactionsByHash(
-            POLYGON_transactions,
-            MATIC_transactions,
+        const POLYGON_transactions = await rp.get(requestOptions_MATIC_transactions.uri)
+        const MATIC_transactions = await rp.get(requestOptions_POLYGON_transactions.uri)
+        const all_POLYGON_transactions = FilterTransactionsByHash(
+            POLYGON_transactions.data,
+            MATIC_transactions.data,
             'POLYGON'
         )
 
@@ -1294,69 +1295,13 @@ exports.checkIsNewUser = async (req, res) => {
     }
 }
 
-exports.resetpassword = async (req, res) => {
-    try {
-        const UserId = req.user._id
-        let oldPass = req.body.oldPass
-        let newPass = req.body.newPass
-        let update = {}
-        const account = await Wallet.findOne({ UserId }).lean()
-        if (account?.walletV2) {
-            let Web3ETH = await erc20Connexion()
-            let newAccount = Web3ETH.eth.accounts.wallet
-                .decrypt([account.walletV2.keystore], oldPass)
-                .encrypt(newPass)
-            let new_ek = account.walletV2.btc.ek
-            if (account.walletV2.btc) {
-                let escpassold = oldPass.replace(/'/g, "\\'")
-                let escpass = newPass.replace(/'/g, "\\'")
-                const seed = bip39.mnemonicToSeedSync(
-                    account.mnemonic,
-                    escpassold
-                )
-                const rootBtc = bip32.fromSeed(seed, networkSegWitCompat)
-                const childBtc = rootBtc.derivePath(pathBtcSegwitCompat)
-                new_ek = bip38.encrypt(childBtc.privateKey, true, escpass)
-            }
-            update = {
-                'walletV2.keystore': newAccount[0],
-                'walletV2.btc.ek': new_ek,
-            }
-
-            await Wallet.updateOne(
-                { UserId },
-                {
-                    $set: update,
-                },
-                { upsert: true }
-            )
-            return responseHandler.makeResponseData(res, 200, 'success', false)
-        }
-
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'wallet v2 not exist',
-            false
-        )
-    } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
 
 exports.getCodeKeyStore = async (req, res) => {
     try {
         let walletAddr
 
         const { network, version } = req.body
-        if (
-            (version === '1' || version === '2') &&
-            (network === 'eth' || network === 'btc' || network === 'tron')
-        ) {
+        
             const _id = req.user._id
             // let user = await User.findOne({ _id },{email :1}).lean()
 
@@ -1386,6 +1331,7 @@ exports.getCodeKeyStore = async (req, res) => {
                 let secureCode = {}
                 ;(secureCode.code = code),
                     (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+                    (secureCode.attempts = 0),
                     (secureCode.type = `keystore-v${version}-${network}`)
                 
                 await User.updateOne({ _id }, { $set: { secureCode } })
@@ -1408,14 +1354,7 @@ exports.getCodeKeyStore = async (req, res) => {
                     true
                 )
             }
-        } else {
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'success',
-                'inputs not supported'
-            )
-        }
+       
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1431,13 +1370,6 @@ exports.exportKeyStore = async (req, res) => {
         const _id = req.user._id
         const { code, network, version } = req.body
 
-        // INPUT VALIDATION
-        if (
-            code &&
-            typeof code === 'number' &&
-            (network === 'eth' || network === 'btc' || network === 'tron') &&
-            (version === '1' || version === '2')
-        ) {
 
             const [user,wallet] = await Promise.all([User.findOne({ _id }).lean(),Wallet.findOne({ UserId: _id }).lean()])
             // CHECK WALLET VERSION
@@ -1554,14 +1486,7 @@ exports.exportKeyStore = async (req, res) => {
                     )
                 }
             }
-        } else {
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'inputs not supported',
-                false
-            )
-        }
+        
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
