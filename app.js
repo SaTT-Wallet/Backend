@@ -1,5 +1,3 @@
-var fs = require('fs')
-const mongoose = require('mongoose')
 const mongoSanitize = require('express-mongo-sanitize');
 const corsSetup = require('./conf/corsSetup')
 var express = require('express')
@@ -17,6 +15,7 @@ let cookieParser = require('cookie-parser')
 let path = require('path')
 const {swaggerUi, swaggerSpec, cssOptions} = require('./conf/swaggerSetup');
 const {errorHandler, handleEndpointNotFound} = require('./middleware/errorHandler.middleware');
+require('./conf/database').connect();
 // set up rate limiter: maximum of five requests per minute
 var RateLimit = require('express-rate-limit')
 const package = require('./package.json')
@@ -38,7 +37,7 @@ app.use(
       replaceWith: '_',
     }),
   );
-const { mongoConnection } = require('./conf/config')
+
 
 const loginroutes = require('./routes/login.routes')
 const walletroutes = require('./routes/wallet.routes')
@@ -47,23 +46,7 @@ const campaignroutes = require('./routes/campaign.routes')
 
 /// db.url is different depending on NODE_ENV
 
-const connectDB = async () => {
-    try {
-        await mongoose.connect(mongoConnection(), {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            useCreateIndex: true,
-            useFindAndModify: false,
-        })
-        console.log(mongoConnection())
 
-        console.log('******connection establed to MongoServer*******')
-    } catch (err) {
-        console.log('Failed to connect to MongoDB', err)
-    }
-}
-
-connectDB()
 
 app.disable('x-powered-by')
 
