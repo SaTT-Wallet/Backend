@@ -117,7 +117,8 @@ const handleSocialMediaSignin = async (query, cb) => {
     }
 }
 
-let createUser = (
+
+const createUser = ({
     enabled,
     idSn,
     lang,
@@ -130,21 +131,19 @@ let createUser = (
     firstName = null,
     lastName = null,
     password = null
-) => {
-    const userObject = {}
-    userObject.enabled = enabled
-    userObject.idSn = idSn
-    userObject.newsLetter = newsLetter ?? false
-    if (picLink) userObject.picLink = picLink
-    ;(userObject.username = username || ''), (userObject.email = email)
-    if (idOnSn && socialId) userObject[idOnSn] = socialId
-    if (firstName) userObject.firstName = firstName
-    if (lang) userObject.lang = lang
-    if (lastName) userObject.lastName = lastName
-
-    userObject.password = password ?? synfonyHash(crypto.randomUUID())
-    return userObject
-}
+  }) => ({
+    password: password ?? synfonyHash(crypto.randomUUID()),
+    enabled,
+    idSn,
+    newsLetter: newsLetter ?? false,
+    ...(picLink && { picLink }),
+    username: username || '',
+    email,
+    ...(idOnSn && socialId && { [idOnSn]: socialId }),
+    ...(firstName && { firstName }),
+    ...(lang && { lang }),
+    ...(lastName && { lastName })
+  });
 /*
  * begin signin with email and password
  */
@@ -159,54 +158,56 @@ const signinWithEmail = async (
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne({ email: username.toLowerCase() }).lean()
-        if (user) {
-            if (user.password == synfonyHash(password)) {
-                var validAuth = await isBlocked(user, true)
-                if (!validAuth.res && validAuth.auth == true) {
-                    //let userAuth = cloneUser(user)
-                    let token = generateAccessToken({ _id: user._id })
-                    await User.updateOne(
-                        { _id: Long.fromNumber(user._id) },
-                        { $set: { failed_count: 0 } }
-                    )
-                    return done(null, {
-                        id: user._id,
-                        token,
-                        expires_in: date,
-                        noredirect: req.body.noredirect,
-                        loggedIn: true,
-                    })
-                } else {
-                    return done(null, false, {
-                        error: true,
-                        message: 'account_locked',
-                        blockedDate: validAuth.blockedDate,
-                    })
-                }
-            } else {
-                let validAuth = await isBlocked(user, false)
-                if (validAuth.res) {
-                    return done(null, false, {
-                        error: true,
-                        message: 'account_locked',
-                        blockedDate: validAuth.blockedDate,
-                    })
-                }
-                return done(null, false, {
-                    error: true,
-                    message:
-                        (!fromSignup && 'invalid_credentials') ||
-                        (user.idSn == 2 && 'account_already_used') ||
-                        'account_exists',
-                    ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
-                })
-            }
-        } else {
+        if (!user) {
             return done(null, false, {
+              error: true,
+              message: 'user not found',
+            });
+          }
+          
+        const isPasswordMatch = user.password === synfonyHash(password);
+        const validAuth = await isBlocked(user, isPasswordMatch);
+
+        if (!isPasswordMatch) {
+            if (validAuth.res) {
+              return done(null, false, {
                 error: true,
-                message: 'user not found',
-            })
-        }
+                message: 'account_locked',
+                blockedDate: validAuth.blockedDate,
+              });
+            }
+      
+            return done(null, false, {
+              error: true,
+              message: (!fromSignup && 'invalid_credentials') ||
+                (user.idSn === 2 && 'account_already_used') ||
+                'account_exists',
+              ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
+            });
+          }
+      
+          if (!validAuth.res && validAuth.auth === true) {
+            const token = generateAccessToken({ _id: user._id });
+      
+            await User.updateOne(
+              { _id: Long.fromNumber(user._id) },
+              { $set: { failed_count: 0 } }
+            );
+      
+            return done(null, {
+              id: user._id,
+              token,
+              expires_in: date,
+              noredirect: req.body.noredirect,
+              loggedIn: true,
+            });
+          }
+      
+          return done(null, false, {
+            error: true,
+            message: 'account_locked',
+            blockedDate: validAuth.blockedDate,
+          });
     } catch (err) {
         console.error('singin catch', err)
     } finally {
@@ -236,7 +237,7 @@ exports.emailConnection = async (req, res, next) => {
             if (!user) {
                 return responseHandler.makeResponseError(res, 401, info)
             }
-            req.logIn(user, function (err) {
+            req.logIn(user,  (err) => {
                 var param = {
                     access_token: user.token,
                     expires_in: user.expires_in,
@@ -270,16 +271,16 @@ passport.use(
                 email: username.toLowerCase(),
             }).lean()
             if (user) {
-                if (user.password == synfonyHash(password)) {
+                if (user.password === synfonyHash(password)) {
                     let validAuth = await isBlocked(user, true)
-                    if (!validAuth.res && validAuth.auth == true) {
+                    if (!validAuth.res && validAuth.auth === true) {
                         //let userAuth = cloneUser(user)
                         let token = generateAccessToken({ _id: user._id })
                         await User.updateOne(
                             { _id: Long.fromNumber(user._id) },
                             { $set: { failed_count: 0 } }
                         )
-                        if (user.hasWallet == true) {
+                        if (user.hasWallet === true) {
                             let account = await Wallet.findOne({
                                 UserId: user._id,
                             })
