@@ -1467,12 +1467,10 @@ exports.createSeedV2 = async (req, res) => {
         return { error: error.message }
     }
 }
-exports.addWalletTron = async (req, res) => {
+exports.addWalletTron = async ({user:{_id : UserId},body:{pass}}) => {
     try {
-        var UserId = req.user._id
-        var pass = req.body.pass
         let TronWallet = await this.getWalletTron(UserId, pass)
-        await Wallet.findOneAndUpdate(
+        await Wallet.updateOne(
             { UserId: UserId },
             {
                 $set: {

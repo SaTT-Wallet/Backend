@@ -918,7 +918,7 @@ exports.addTronWalletToExistingAccount = async (req, res) => {
                 'Invalid password'
             )
         } else {
-            var ret = await addWalletTron(req, res)
+            var ret = await addWalletTron(req)
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 tronAddress: ret.addr,
