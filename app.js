@@ -1,5 +1,3 @@
-var fs = require('fs')
-const mongoose = require('mongoose')
 const mongoSanitize = require('express-mongo-sanitize');
 var express = require('express')
 let app = express()

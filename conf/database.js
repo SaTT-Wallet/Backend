@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { mongoConnection } = require('./config')
+require('dotenv').config()
 exports.connect = () => {
     mongoose.connect(
         mongoConnection().mongoURI,
@@ -10,11 +11,8 @@ exports.connect = () => {
             useFindAndModify: false,
         }
     ).then(() => {
-        console.log(mongoConnection().mongoURI)
-
-        console.log(mongoConnection().mongoBase)
-        console.log('******connection establed to MongoServer*******')
+        if(process.env.NODE_ENV != "mainnet") console.log('******connection establed to MongoServer*******')
     }).catch((err) => {
-        console.log('Failed to connect to MongoDB', err)
+        if(process.env.NODE_ENV != "mainnet") console.log('Failed to connect to MongoDB', err)
     })
 }
