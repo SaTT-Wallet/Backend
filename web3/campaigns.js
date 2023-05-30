@@ -272,8 +272,7 @@ exports.getAccount = async (req, res) => {
 
     if (account) {
         var address = '0x' + account.keystore.address
-        let Web3ETH = await erc20Connexion()
-        let Web3BEP20 = await bep20Connexion()
+        const [Web3ETH, Web3BEP20] = await Promise.all([erc20Connexion(), bep20Connexion()]);
         var ether_balance = Web3ETH.eth.getBalance(address)
 
         var bnb_balance = Web3BEP20.eth.getBalance(address)
@@ -1267,7 +1266,7 @@ exports.validateProm = async (
     credentials,
     tronWeb
 ) => {
-    console.log('id_campaign', id_campaign)
+
 
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(

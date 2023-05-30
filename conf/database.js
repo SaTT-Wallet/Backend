@@ -3,7 +3,7 @@ const { mongoConnection } = require('./config')
 require('dotenv').config()
 exports.connect = () => {
     mongoose.connect(
-        mongoConnection().mongoURI,
+        mongoConnection(),
         {
             useNewUrlParser: true,
             useUnifiedTopology: true,

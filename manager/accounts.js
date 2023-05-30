@@ -2,9 +2,7 @@ const { Notification, User } = require('../model/index')
 
 const { sendNotification } = require('./notification')
 
-var rp = require('axios');
-
-const { token200, Tokens } = require('../conf/config')
+const { Tokens } = require('../conf/config')
 
 exports.notificationManager = async (id, NotifType, label) => {
     try {

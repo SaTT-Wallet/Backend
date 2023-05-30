@@ -73,7 +73,7 @@
         "intl": "^1.2.5",
         "ip": "^1.1.5",
         "ipfs-http-client": "^56.0.3",
-        "jquery": "^3.3.1",
+        "jquery": "^3.6.4",
         "js-cookie": "^2.2.0",
         "jsdom": "^21.1.0",
         "json-schema": ">=0.4.0",
