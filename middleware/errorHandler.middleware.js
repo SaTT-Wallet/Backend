@@ -20,7 +20,7 @@ const errorHandler = (err, req, res, next) => {
             message,
             status
         } 
-        
+        if(process.env.NODE_ENV != "mainnet") console.error('error : ', message);
         // render the error page
         res.status(status).json(body);
         
