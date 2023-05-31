@@ -655,16 +655,18 @@ exports.telegramConnection = (req, res) => {
 /*
  * begin connect account with facebook strategy
  */
-exports.linkFacebookAccount = async (req, profile, cb) => {
+
+  exports.linkFacebookAccount = async (req, profile, cb) => {
     const user_id = +req.query.state.split('|')[0];
     const token_for_business = profile._json.token_for_business;
-    
-    if (await User.exists({ idOnSn: token_for_business })) {
-      return cb(null, profile, { status: false, message: 'account exist' });
+    let response =   { status: false, message: 'account exist' };
+    if (!(await User.exists({ idOnSn: token_for_business }))) {
+      await User.updateOne({ _id: user_id }, { $set: { idOnSn: token_for_business, completed: true } });
+      response = { status: true, message: 'account_linked_with success' };
     } 
   
-    await User.updateOne({ _id: user_id }, { $set: { idOnSn: token_for_business, completed: true } });
-    return cb(null, profile, { status: true, message: 'account_linked_with success' });
+    
+    return cb(null, profile, response);
   }
 /*
  * end connect account with facebook strategy
