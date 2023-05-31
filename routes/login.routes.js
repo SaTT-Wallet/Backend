@@ -68,9 +68,7 @@ const {
     signup_telegram_function,
     signin_telegram_function,
     verifyAuth,
-    sattConnect,
-    twitterAuthSignup,
-    twitterAuthSignin,
+    sattConnect
 } = require('../middleware/passport.middleware')
 const {
     persmissionsObjFb,
@@ -404,7 +402,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('auth/callback/facebook/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
+            facebookAuthSignup(req,profile, cb)
         }
     )
 )
@@ -425,22 +423,6 @@ router.get('/signup/twitter', async (req, res, next) => {
     passport.authenticate('twitter')(req, res, next)
 })
 
-// passport.use(
-//     new TwitterStrategy(
-//         {
-//             consumerKey: process.env.TWITTER_CONSUMER_KEY,
-//             consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-//             callbackURL: process.env.BASEURL + 'auth/twitter/callback',
-//             profileFields: ['id', 'displayName', 'photos', 'email'],
-//             includeEmail: true,
-//         },
-//         async (req, accessToken, refreshToken, profile, cb) => {
-//             twitterAuthSignup(req, accessToken, refreshToken, profile, cb)
-//         }
-//     )
-// )
-
-// router.get('/auth/twitter', passport.authenticate('twitter'))
 
 router.get(
     '/twitter/callback',
@@ -506,44 +488,6 @@ router.get('/signin/twitter', async (req, res, next) => {
     passport.authenticate('twitter-signin')(req, res, next)
 })
 
-// passport.use(
-//     'twitter-signin',
-//     new TwitterStrategy(
-//         {
-//             consumerKey: process.env.TWITTER_CONSUMER_KEY,
-//             consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
-//             callbackURL: process.env.BASEURL + '/auth/twitter/signin/callback',
-//             profileFields: ['id', 'displayName', 'photos', 'email'],
-//             includeEmail: true,
-//         },
-//         async function (req, accessToken, refreshToken, profile, cb) {
-//             twitterAuthSignin(req, accessToken, refreshToken, profile, cb)
-//         }
-//     )
-// )
-// router.get(
-//     '/twitter/signin/callback',
-//     passport.authenticate('twitter-signin'),
-//     async function (req, response) {
-//         try {
-//             var param = {
-//                 access_token: req.user.token,
-//                 expires_in: req.user.expires_in,
-//                 token_type: 'bearer',
-//                 scope: 'user',
-//             }
-//             response.redirect(
-//                 process.env.BASED_URL +
-//                     '/auth/login?token=' +
-//                     JSON.stringify(param)
-//             )
-//         } catch (e) {
-//             console.log(e)
-//         }
-//     },
-//     authSignInErrorHandler
-// )
-//end twitter
 
 /**
  * @swagger
@@ -566,7 +510,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('auth/callback/facebook/connection'),
         async function (req, accessToken, refreshToken, profile, cb) {
-            facebookAuthSignin(req, accessToken, refreshToken, profile, cb)
+            facebookAuthSignin(profile, cb)
         }
     )
 )
@@ -614,7 +558,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            googleAuthSignup(req, accessToken, refreshToken, profile, cb)
+            googleAuthSignup(req, profile, cb)
         }
     )
 )
@@ -660,7 +604,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            googleAuthSignin(req, accessToken, refreshToken, profile, cb)
+            googleAuthSignin(profile, cb)
         }
     )
 )
