@@ -1135,7 +1135,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('profile/callback/link/facebook'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            linkFacebookAccount(req, accessToken, refreshToken, profile, cb)
+            linkFacebookAccount(req, profile, cb)
         }
     )
 )
@@ -1183,7 +1183,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('profile/callback/link/google'),
         async (req, accessToken, refreshToken, profile, done) => {
-            linkGoogleAccount(req, accessToken, refreshToken, profile, done)
+            linkGoogleAccount(req,profile, done)
         }
     )
 )

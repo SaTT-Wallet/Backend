@@ -70,52 +70,53 @@ exports.updateAndGenerateCode = async (_id, type) => {
     }
 }
 
-exports.isBlocked = async (user, auth = false) => {
-    let dateNow = Math.floor(Date.now() / 1000)
-    var res = false
-    let logBlock = {}
-    if (auth) {
-        if (user.account_locked) {
-            if (
-                this.differenceBetweenDates(user.date_locked, dateNow) <
-                process.env.lockedPeriod
-            ) {
-                logBlock.date_locked = dateNow
-                logBlock.failed_count = 0
-                res = true
-            } else {
-                logBlock.failed_count = 0
-                logBlock.account_locked = false
-                res = false
-            }
+exports.isBlocked = async (user, isAuthAttempt = false) => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    let [isBlocked,updateFields] = [false,{}];
+
+    if (isAuthAttempt) {
+        if (user.account_locked && this.differenceBetweenDates(user.date_locked, currentTime) < process.env.lockedPeriod) {
+            // If the user is locked and the locked period hasn't passed yet, reset the failed attempts and keep the account locked
+            updateFields.date_locked = currentTime;
+            updateFields.failed_count = 0;
+            isBlocked = true;
+        } else {
+            // If the locked period has passed, unlock the account
+            updateFields.failed_count = 0;
+            updateFields.account_locked = false;
+            isBlocked = false;
         }
     } else {
-        let failed_count = user.failed_count ? user.failed_count + 1 : 1
-        logBlock.failed_count = failed_count
-        if (failed_count == 1) logBlock.dateFirstAttempt = dateNow
+        let failedAttempts = user.failed_count ? user.failed_count + 1 : 1;
+        updateFields.failed_count = failedAttempts;
+
+        if (failedAttempts === 1) {
+            updateFields.dateFirstAttempt = currentTime;
+        }
+
         if (user.account_locked) {
-            logBlock.date_locked = dateNow
-            logBlock.failed_count = 0
-            res = true
-        } else if (
-            !user.account_locked &&
-            failed_count >= process.env.bad_login_limit &&
-            this.differenceBetweenDates(user.dateFirstAttempt, dateNow) <
-                process.env.failInterval
-        ) {
-            logBlock.account_locked = true
-            logBlock.failed_count = 0
-            logBlock.date_locked = dateNow
-            res = true
-        } else if (failed_count >= process.env.bad_login_limit)
-            logBlock.failed_count = 1
+            // If the user is already locked, reset the failed attempts and update the locked date
+            updateFields.date_locked = currentTime;
+            updateFields.failed_count = 0;
+            isBlocked = true;
+        } else if (!user.account_locked && failedAttempts >= process.env.bad_login_limit &&
+            this.differenceBetweenDates(user.dateFirstAttempt, currentTime) < process.env.failInterval) {
+            // If the user is not locked, and they've reached the limit of failed attempts in the given interval, lock the account
+            updateFields.account_locked = true;
+            updateFields.failed_count = 0;
+            updateFields.date_locked = currentTime;
+            isBlocked = true;
+        } else if (failedAttempts >= process.env.bad_login_limit) {
+            // If the user has reached the limit of failed attempts but not in the given interval, reset the failed attempts count
+            updateFields.failed_count = 1;
+        }
     }
-    if (Object.keys(logBlock).length)
-        await User.updateOne({ _id: user._id }, { $set: logBlock })
+        // If there are any changes, update the user record in the database
+        Object.keys(updateFields).length && await User.updateOne({ _id: user._id }, { $set: updateFields });
+    
 
-    return { res, blockedDate: dateNow, auth }
+    return { res: isBlocked, blockedDate: currentTime, auth: isAuthAttempt };
 }
-
 exports.getDecimal = (symbol) => {
     try {
         let token_info = Tokens

@@ -4,7 +4,6 @@ var Twitter = require('twitter')
 var LocalStrategy = require('passport-local').Strategy
 var Long = require('mongodb').Long
 const crypto = require('crypto')
-const hasha = require('hasha')
 var rp = require('axios');
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
@@ -87,26 +86,29 @@ const handleSocialMediaSignin = async (query, cb) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne(query).lean()
-        if (user) {
-            var validAuth = await isBlocked(user, true)
-            if (!validAuth.res && validAuth.auth == true) {
-                let token = generateAccessToken({ _id: user._id })
-                await User.updateOne(
-                    { _id: Long.fromNumber(user._id) },
-                    { $set: { failed_count: 0 } }
-                )
-                return cb(null, { id: user._id, token, expires_in: date })
-            } else {
-                let message = `account_locked:${user.date_locked}`
-                return cb({
-                    error: true,
-                    message,
-                    blockedDate: user.date_locked,
-                })
-            }
-        } else {
-            return cb('Register First')
-        }
+        if(!user) return cb('Register First')
+
+            var validAuth = await isBlocked(user, true);
+
+            const response = !validAuth.res && validAuth.auth
+            ? { id: user._id, token: generateAccessToken({ _id: user._id }), expires_in: date }
+            : {
+            error: true,
+            message: `account_locked:${user.date_locked}`,
+            blockedDate: user.date_locked,
+            };
+
+            if (response.error) {
+            return cb(response);
+          }
+      
+          await User.updateOne(
+            { _id: Long.fromNumber(user._id) },
+            { $set: { failed_count: 0 } }
+          );
+      
+          cb(null, response);
+
     } catch (err) {
         console.error('handleSocialMediaSignin', err)
     } finally {
@@ -368,16 +370,7 @@ exports.sattConnect = async (req, res, next) => {
 /*
  * begin signin with facebook strategy
  */
-exports.twitterAuthSignin = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
-    console.log('profilleeee in sigin,', profile)
-    await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
-}
+
 /*
  * end signin with email and password
  */
@@ -386,9 +379,6 @@ exports.twitterAuthSignin = async (
  * begin signin with facebook strategy
  */
 exports.facebookAuthSignin = async (
-    req,
-    accessToken,
-    refreshToken,
     profile,
     cb
 ) => {
@@ -669,60 +659,11 @@ exports.telegramConnection = (req, res) => {
  *end signin with telegram strategy
  */
 
-//  twitter signup
-
-exports.twitterAuthSignup = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
-    console.log('hello twitter signup')
-    var date = Math.floor(Date.now() / 1000) + 86400
-
-    let user = await User.findOne({ idOnSn: profile.id })
-
-    console.log('user', user)
-
-    console.log('profile..........', profile)
-
-    if (user) {
-        await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
-    } else {
-        console.log('not exist', profile)
-        let createdUser = createUser(
-            1,
-            7,
-            'en',
-            false,
-            '',
-            '',
-            '',
-            'idOnSn3',
-            profile.id,
-            profile.displayName,
-            ''
-        )
-        let user = await new User(createdUser).save()
-        createdUser._id = user._id
-        let token = generateAccessToken({ _id: createdUser._id })
-
-        return cb(null, { id: createdUser._id, token: token, expires_in: date })
-    }
-
-    console.log('user', user)
-
-    return user
-}
-
 /*
  * begin connect account with facebook strategy
  */
 exports.linkFacebookAccount = async (
     req,
-    accessToken,
-    refreshToken,
     profile,
     cb
 ) => {
@@ -748,6 +689,18 @@ exports.linkFacebookAccount = async (
         })
     }
 }
+
+exports.linkFacebookAccount = async (req, profile, cb) => {
+    const user_id = +req.query.state.split('|')[0];
+    const token_for_business = profile._json.token_for_business;
+    
+    if (await User.findOne({ idOnSn: token_for_business }).lean()) {
+      return cb(null, profile, { status: false, message: 'account exist' });
+    } 
+  
+    await User.updateOne({ _id: user_id }, { $set: { idOnSn: token_for_business, completed: true } });
+    return cb(null, profile, { status: true, message: 'account_linked_with success' });
+  }
 /*
  * end connect account with facebook strategy
  */
@@ -757,15 +710,13 @@ exports.linkFacebookAccount = async (
  */
 exports.linkGoogleAccount = async (
     req,
-    accessToken,
-    refreshToken,
     profile,
     done
 ) => {
     let state = req.query.state.split('|')
     let user_id = +state[0]
-    let userExist = await User.findOne({ idOnSn2: profile.id })
-    if (userExist) {
+
+    if (await User.findOne({ idOnSn2: profile.id }).lean()) {
         return done(null, profile, {
             status: false,
             message: 'account exist',
