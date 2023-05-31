@@ -90,6 +90,7 @@ const {
     connectTelegramAccount,
     linkGoogleAccount,
     linkFacebookAccount,
+    linkSocialAccount
 } = require('../middleware/passport.middleware')
 const {
     facebookCredentials,
@@ -1135,7 +1136,14 @@ passport.use(
     new FbStrategy(
         facebookCredentials('profile/callback/link/facebook'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            linkFacebookAccount(req, profile, cb)
+            // linkFacebookAccount(req, profile, cb)
+            linkSocialAccount({
+                req,
+                profile,
+                done: cb,
+                token_field: 'idOnSn',
+                id_field: 'token_for_business'
+            })
         }
     )
 )
@@ -1183,7 +1191,12 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('profile/callback/link/google'),
         async (req, accessToken, refreshToken, profile, done) => {
-            linkGoogleAccount(req,profile, done)
+            linkSocialAccount({
+                req,
+                profile,
+                done,
+                token_field: 'idOnSn2'
+            })
         }
     )
 )

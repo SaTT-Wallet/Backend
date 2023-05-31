@@ -652,42 +652,24 @@ exports.telegramConnection = (req, res) => {
  *end signin with telegram strategy
  */
 
+
 /*
  * begin connect account with facebook strategy
  */
-
-  exports.linkFacebookAccount = async (req, profile, cb) => {
-    const user_id = +req.query.state.split('|')[0];
-    const token_for_business = profile._json.token_for_business;
-    let response =   { status: false, message: 'account exist' };
-    if (!(await User.exists({ idOnSn: token_for_business }))) {
-      await User.updateOne({ _id: user_id }, { $set: { idOnSn: token_for_business, completed: true } });
-      response = { status: true, message: 'account_linked_with success' };
-    } 
-  
-    
-    return cb(null, profile, response);
-  }
-/*
- * end connect account with facebook strategy
- */
-
-/*
- * begin connect account with google strategy
- */
-
-exports.linkGoogleAccount = async (req, profile, done) => {
+ exports.linkSocialAccount = async ({ req, profile, done, token_field, id_field }) =>{
     let state = req.query.state.split('|');
     let user_id = +state[0];
     let response = { status: false, message: 'account exist' };
+    let id = id_field ? profile._json[id_field] : profile.id;
 
-    if (!(await User.exists({ idOnSn2: profile.id }))) {
-        await User.updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id, completed: true } });
+    if (!(await User.exists({ [token_field]: id }))) {
+        await User.updateOne({ _id: user_id }, { $set: { [token_field]: id, completed: true } });
         response = { status: true, message: 'account_linked_with success' };
     }
 
     return done(null, profile, response);
 }
+
 /*
  * end connect account with google strategy
  */
