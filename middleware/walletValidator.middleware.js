@@ -11,7 +11,7 @@ const Joi = require('joi');
 
 
 // VALIDATION TRANSACTION PASSWORD
-const validatePassword = () => Joi.string().min(8).required().custom((value, helpers) => {
+const validatePassword = () => Joi.string().min(8).required().custom((value) => {
     const RegUpperCase = RegExp('[A-Z]');
     const RegLowerCase = RegExp('[a-z]');
     const RegNumber = RegExp('[0-9]');
@@ -23,7 +23,7 @@ const validatePassword = () => Joi.string().min(8).required().custom((value, hel
 
 
 // VALIDATION NETWORK 
-const validateNetworks = (validNetworks) => Joi.string().required().custom((value, helpers) => {
+const validateNetworks = (validNetworks) => Joi.string().required().custom((value) => {
     for(let i = 0; i < validNetworks.length ; i++) {
         if(validNetworks[i] === value.toString().toLowerCase()) {
             return value;
@@ -39,7 +39,7 @@ const validateAddress = (pattern) => Joi.string().required().pattern(new RegExp(
 
 
 // VALIDATION VERSION
-const validateVersion = (validVersions) => Joi.string().required().custom((value, helpers) => {
+const validateVersion = (validVersions) => Joi.string().required().custom((value) => {
     for(let i = 0; i < validVersions.length ; i++) {
         if(validVersions[i] === value) {
             return value;
@@ -111,7 +111,7 @@ const schemas = {
         network: validateNetworks(["erc20", "bep20", "polygon", "btc", "tron", "bttc"]),
         pass: validatePassword(),
         to : validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
-        tokenAddress : Joi.custom((value, helpers) => {
+        tokenAddress : Joi.custom((value) => {
             if(value === null || RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").test(value) || value.toString().toLowerCase() === "trx") {
                 return value;
             } else throw Error('Invalid smart contract')
