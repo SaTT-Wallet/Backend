@@ -6,7 +6,6 @@ const {
     payementRequest,
     getQuote,
     gasPriceErc20,
-    gasPriceTron,
     checkWalletToken,
     addNewToken,
     mywallet,
@@ -23,21 +22,16 @@ const {
     createNewWallet,
     removeToken,
     getTransactionHistory,
-    bridge,
     balanceStat,
-
     addTronWalletToExistingAccount,
     gasPriceTrx,
     getGasPrice,
-    nbrHolder,
     countWallets,
-    addNewWallet,
     allwallets,
     createNewWalletV2,
     transfertAllTokensBEP20,
     checkUserWalletV2Exist,
     checkIsNewUser,
-    transferAllTron,
     getCodeKeyStore,
     exportKeyStore,
 } = require('../controllers/wallet.controller')
@@ -476,7 +470,7 @@ router.post('/getQuote', verifyAuthGetQuote, getQuoteValidation ,getQuote)
  */
 router.post('/payementRequest', verifyAuth, paymentRequestValidation ,payementRequest)
 
-//router.post('/bridge', verifyAuth, bridge)
+
 
 /**
  * @swagger
