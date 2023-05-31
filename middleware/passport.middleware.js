@@ -673,30 +673,18 @@ exports.linkFacebookAccount = async (req, profile, cb) => {
 /*
  * begin connect account with google strategy
  */
-exports.linkGoogleAccount = async (
-    req,
-    profile,
-    done
-) => {
-    let state = req.query.state.split('|')
-    let user_id = +state[0]
 
-    if (await User.exists({ idOnSn2: profile.id })) {
-        return done(null, profile, {
-            status: false,
-            message: 'account exist',
-        })
-    } else {
-        await User.updateOne(
-            { _id: user_id },
+exports.linkGoogleAccount = async (req, profile, done) => {
+    let state = req.query.state.split('|');
+    let user_id = +state[0];
+    let response = { status: false, message: 'account exist' };
 
-            { $set: { idOnSn2: profile.id, completed: true} }
-        )
-        return done(null, profile, {
-            status: true,
-            message: 'account_linked_with success',
-        })
+    if (!(await User.exists({ idOnSn2: profile.id }))) {
+        await User.updateOne({ _id: user_id }, { $set: { idOnSn2: profile.id, completed: true } });
+        response = { status: true, message: 'account_linked_with success' };
     }
+
+    return done(null, profile, response);
 }
 /*
  * end connect account with google strategy
