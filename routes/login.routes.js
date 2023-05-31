@@ -402,7 +402,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('auth/callback/facebook/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            facebookAuthSignup(req, accessToken, refreshToken, profile, cb)
+            facebookAuthSignup(req,profile, cb)
         }
     )
 )
@@ -558,7 +558,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            googleAuthSignup(req, accessToken, refreshToken, profile, cb)
+            googleAuthSignup(req, profile, cb)
         }
     )
 )
@@ -604,7 +604,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            googleAuthSignin(req, accessToken, refreshToken, profile, cb)
+            googleAuthSignin(profile, cb)
         }
     )
 )

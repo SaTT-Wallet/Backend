@@ -609,7 +609,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('profile/callback/addChannel/facebook'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            addFacebookChannel(req, accessToken, refreshToken, profile, cb)
+            addFacebookChannel(req, accessToken, profile, cb)
         }
     )
 )

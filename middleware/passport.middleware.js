@@ -395,9 +395,6 @@ exports.facebookAuthSignin = async (
  *begin signin with google strategy
  */
 exports.googleAuthSignin = async (
-    req,
-    accessToken,
-    refreshToken,
     profile,
     cb
 ) => {
@@ -505,8 +502,6 @@ exports.emailSignup = async (req, res, next) => {
  */
 exports.facebookAuthSignup = async (
     req,
-    accessToken,
-    refreshToken,
     profile,
     cb
 ) => {
@@ -546,8 +541,6 @@ exports.facebookAuthSignup = async (
 
 exports.googleAuthSignup = async (
     req,
-    accessToken,
-    refreshToken,
     profile,
     cb
 ) => {
@@ -662,39 +655,11 @@ exports.telegramConnection = (req, res) => {
 /*
  * begin connect account with facebook strategy
  */
-exports.linkFacebookAccount = async (
-    req,
-    profile,
-    cb
-) => {
-    let state = req.query.state.split('|')
-    let user_id = +state[0]
-    let user = await User.findOne({
-        idOnSn: profile._json.token_for_business,
-    })
-    if (user) {
-        return cb(null, profile, {
-            status: false,
-            message: 'account exist',
-        })
-    } else {
-        await User.updateOne(
-            { _id: user_id },
-        
-            { $set: { idOnSn: profile._json.token_for_business, completed: true } }
-        )
-        return cb(null, profile, {
-            status: true,
-            message: 'account_linked_with success',
-        })
-    }
-}
-
 exports.linkFacebookAccount = async (req, profile, cb) => {
     const user_id = +req.query.state.split('|')[0];
     const token_for_business = profile._json.token_for_business;
     
-    if (await User.findOne({ idOnSn: token_for_business }).lean()) {
+    if (await User.exists({ idOnSn: token_for_business })) {
       return cb(null, profile, { status: false, message: 'account exist' });
     } 
   
@@ -716,7 +681,7 @@ exports.linkGoogleAccount = async (
     let state = req.query.state.split('|')
     let user_id = +state[0]
 
-    if (await User.findOne({ idOnSn2: profile.id }).lean()) {
+    if (await User.exists({ idOnSn2: profile.id })) {
         return done(null, profile, {
             status: false,
             message: 'account exist',
@@ -751,8 +716,8 @@ exports.connectTelegramAccount = async (req, res) => {
 }
 exports.telegram_connect_function = async (req, profile, cb) => {
     let user_id = +req.params.idUser
-    let user = await User.findOne({ idOnSn3: profile.id })
-    if (user) {
+   
+    if (await User.exists({ idOnSn3: profile.id })) {
         return cb(null, profile, { message: 'account exist' })
     } else {
         await User.updateOne(
@@ -776,15 +741,14 @@ exports.telegram_connect_function = async (req, profile, cb) => {
 exports.addFacebookChannel = async (
     req,
     accessToken,
-    refreshToken,
     profile,
     cb
 ) => {
     let longToken = accessToken
     let UserId = +req.query.state.split('|')[0]
     let isInsta = false
-    let fbProfile = await FbProfile.findOne({ UserId })
-    if (fbProfile) {
+
+    if (await FbProfile.exists({ UserId })) {
         await FbProfile.updateOne(
             { UserId },
             { $set: { accessToken: longToken } }
