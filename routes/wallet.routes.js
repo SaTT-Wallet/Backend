@@ -57,7 +57,8 @@ const {
     passwordCheckValidation,
     paymentRequestValidation,
     getQuoteValidation,
-    sendTokenValidation
+    sendTokenValidation,
+    migrationWalletValidation
 } = require('../middleware/walletValidator.middleware')
 
 /**
@@ -599,31 +600,6 @@ router.post('/verifySign', verifyAuth, passwordCheckValidation ,verifySign)
  */
 router.post('/create/v2', verifyAuth, passwordCheckValidation ,createNewWalletV2)
 
-/**
- * @swagger
- * /wallet/addNewWallet:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: add new wallet.
- *     description: add new wallet.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               password:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"Wallet already exist"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/addNewWallet', verifyAuth, addNewWallet)
 
 /**
  * @swagger
@@ -732,7 +708,7 @@ router.get('/countWallets', countWallets)
  */
 router.get('/stats', verifyAuth, balanceStat)
 
-router.post('/transfertTokensBep20', verifyAuth, transfertAllTokensBEP20)
+router.post('/transfertTokensBep20', verifyAuth, migrationWalletValidation,transfertAllTokensBEP20)
 
 
 router.get('/checkUserWalletV2', verifyAuth, checkUserWalletV2Exist)

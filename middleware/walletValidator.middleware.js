@@ -1,222 +1,179 @@
 const Joi = require('joi');
 
-/** SCHEMAAAAA */
-const getCodeKeyStoreSchema = Joi.object({
-    network:Joi.string().required().custom((value, helpers) => {
-        if(value.toString().toLowerCase() === "eth" || value.toString().toLowerCase() === "btc" || value.toString().toLowerCase() === "tron") {
+
+
+/**********
+ * 
+ *  SCHEMA FOR JOI
+ * 
+ *  **********************       */
+
+
+
+// VALIDATION TRANSACTION PASSWORD
+const validatePassword = () => Joi.string().min(8).required().custom((value, helpers) => {
+    const RegUpperCase = RegExp('[A-Z]');
+    const RegLowerCase = RegExp('[a-z]');
+    const RegNumber = RegExp('[0-9]');
+    const RegSpecialChar = RegExp('[^A-Za-z0-9]');
+    if(RegUpperCase.test(value) && RegLowerCase.test(value) && RegNumber.test(value) && RegSpecialChar.test(value)) {
+        return value;
+    } else throw Error('password not match')
+});
+
+
+// VALIDATION NETWORK 
+const validateNetworks = (validNetworks) => Joi.string().required().custom((value, helpers) => {
+    for(let i = 0; i < validNetworks.length ; i++) {
+        if(validNetworks[i] === value.toString().toLowerCase()) {
             return value;
-        } else throw Error('Invalid network')
-    }),
-    version:Joi.string().length(1).required().custom((value, helpers) => {
-        if(value === '1' || value === '2') {
-            return value;
-        } else throw Error('Invalid version')
-    })
-})
-
-const exportKeyStoreSchema = Joi.object({
-    code:Joi.number().required(),
-    network:Joi.string().required().custom((value, helpers) => {
-        if(value.toString().toLowerCase() === "eth" || value.toString().toLowerCase() === "btc" || value.toString().toLowerCase() === "tron") {
-            return value;
-        } else throw Error('Invalid network')
-    }),
-    version:Joi.string().length(1).required().custom((value, helpers) => {
-        if(value === '1' || value === '2') {
-            return value;
-        } else throw Error('Invalid version')
-    })
-})
-
-const walletVersionSchema = Joi.object({
-    version: Joi.string().required().custom((value, helpers) => {
-        if(value === "v1" || value === "v2") {
-            return value;
-        } else throw Error('Invalid version')
-    })
-})
-
-const networkSchema = Joi.object({
-    network: Joi.string().required().custom((value, helpers) => {
-        if(value.toString().toLowerCase() === "erc20" || value.toString().toLowerCase() === "bep20" || value.toString().toLowerCase() === "polygon" || value.toString().toLowerCase() === "bttc" || value.toString().toLowerCase() === "tron") {
-            return value;
-        } else throw Error('Invalid network')
-    })
-})
-
-const checkTokenSchema = Joi.object({
-    network: Joi.string().required().custom((value, helpers) => {
-        if(value.toString().toLowerCase() === "erc20" || value.toString().toLowerCase() === "bep20" || value.toString().toLowerCase() === "polygon") {
-            return value;
-        } else throw Error('Network not supported')
-    }),
-    tokenAdress: Joi.string().required().pattern(new RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$")),
-})
-
-const checkEVMAddressSchema = Joi.object({
-    address: Joi.string().required().pattern(new RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$")),
-})
-
-
-const tokenSchema = Joi.object({
-    tokenAdress: Joi.string().required().pattern(new RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$")),
-    decimal: Joi.number().required(),
-    symbol: Joi.string().required(),
-    network: Joi.string().required().custom((value, helpers) => {
-        if(value.toString().toLowerCase() === "erc20" || value.toString().toLowerCase() === "bep20" || value.toString().toLowerCase() === "polygon") {
-            return value;
-        } else throw Error('Network not supported')
-    }),
-    tokenName: Joi.string().required()
-})
-
-const passwordCheckSchema = Joi.object({
-    pass: Joi.string().min(8).required().custom((value, helpers) => {
-        const RegUpperCase = RegExp('[A-Z]');
-        const RegLowerCase = RegExp('[a-z]');
-        const RegNumber = RegExp('[0-9]');
-        const RegSpecialChar = RegExp('[^A-Za-z0-9]');
-        if(RegUpperCase.test(value) && RegLowerCase.test(value) && RegNumber.test(value) && RegSpecialChar.test(value)) {
-            return value;
-        } else throw Error('password not match')
-    }),
-})
-
-
-const paymentRequestSchema = Joi.object({
-    currency: Joi.string().required(),
-    idWallet: Joi.string().required().pattern(new RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$")),
-    quote_id: Joi.string().required(),
+        } 
+    }
+    throw Error('Networks supported are : '+ validNetworks)
     
-})
+});
 
 
-const getQuoteSchema = Joi.object({
-    digital_currency: Joi.string().required(),
-    requested_amount: Joi.number().required(),
-    fiat_currency: Joi.string().required(),
-    requested_currency : Joi.string().required(),
-})
+// VALIDATION ADDRESS
+const validateAddress = (pattern) => Joi.string().required().pattern(new RegExp(pattern));
 
 
-const sendTokenSchema = Joi.object({
-    amount: Joi.number().required(),
-    from: Joi.string().required().pattern(new RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$")),
-    network: Joi.string().required(),
-    pass: Joi.string().min(8).required().custom((value, helpers) => {
-        const RegUpperCase = RegExp('[A-Z]');
-        const RegLowerCase = RegExp('[a-z]');
-        const RegNumber = RegExp('[0-9]');
-        const RegSpecialChar = RegExp('[^A-Za-z0-9]');
-        if(RegUpperCase.test(value) && RegLowerCase.test(value) && RegNumber.test(value) && RegSpecialChar.test(value)) {
+// VALIDATION VERSION
+const validateVersion = (validVersions) => Joi.string().required().custom((value, helpers) => {
+    for(let i = 0; i < validVersions.length ; i++) {
+        if(validVersions[i] === value) {
             return value;
-        } else throw Error('password not match')
+        } 
+    }
+    throw Error('Version supported are : '+ validVersions)
+    
+});
+
+
+// SCHEMAS OBJECT
+const schemas = {
+    getCodeKeyStoreSchema: Joi.object({
+        network: validateNetworks(["eth", "btc", "tron"]),
+        version: validateVersion(["1", "2"])
     }),
-    to : Joi.string().required().pattern(new RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$")),
-    tokenAddress : Joi.string().required().custom((value, helpers) => {
-        if(value === null || RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").test(value)) {
-            return value;
-        } else throw Error('Invalid smart contract')
+
+    exportKeyStoreSchema: Joi.object({
+        code:Joi.number().required(),
+        network: validateNetworks(["eth", "btc", "tron"]),
+        version: validateVersion(["1", "2"])
     }),
-    tokenSymbol :  Joi.string().required(),
-})
 
+    walletVersionSchema: Joi.object({
+        version: validateVersion(["v1", "v2"])
+    }),
 
+    networkSchema: Joi.object({
+        network: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
+    }),
 
+    checkTokenSchema: Joi.object({
+        network: validateNetworks(["erc20", "bep20", "polygon"]),
+        tokenAdress: validateAddress("^0x[a-fA-F0-9]{40}$")
+    }),
 
+    checkEVMAddressSchema: Joi.object({
+        address: validateAddress("^0x[a-fA-F0-9]{40}$")
+    }),
 
+    tokenSchema: Joi.object({
+        tokenAdress:validateAddress("^0x[a-fA-F0-9]{40}$"),
+        decimal: Joi.number().required(),
+        symbol: Joi.string().required(),
+        network: validateNetworks(["erc20", "bep20", "polygon"]),
+        tokenName: Joi.string().required(),
+    }),
 
+    passwordCheckSchema: Joi.object({
+        pass: validatePassword()
+    }),
 
-/**  MIDDLEWARE  */
-const walletVersionValidation = (req, res, next) => {
-    const { error, value } = walletVersionSchema.validate(req.body)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
+    paymentRequestSchema: Joi.object({
+        currency: Joi.string().required(),
+        idWallet: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        quote_id: Joi.string().required(),
+    }),
 
-const getCodeKeyStoreValidation = (req, res, next) => {
-    const {error, value} = getCodeKeyStoreSchema.validate(req.body);
-    if(error) {
-        throw Error(error)
-    } else next();
-}
-const exportKeyStoreValidation = (req, res, next) => {
-    const {error, value} = exportKeyStoreSchema.validate(req.body);
-    if(error) {
-        throw Error(error)
-    } else next();
-}
-const networkValidation = (req, res, next) => {
-    const { error, value } = networkSchema.validate(req.params)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
+    getQuoteSchema: Joi.object({
+        digital_currency: Joi.string().required(),
+        requested_amount: Joi.number().required(),
+        fiat_currency: Joi.string().required(),
+        requested_currency : Joi.string().required(),
+    }),
 
-const checkTokenValidation = (req, res, next) => {
-    const { error, value } = checkTokenSchema.validate(req.body)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
+    sendTokenSchema: Joi.object({
+        amount: Joi.number().unsafe().required(),
+        from: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        network: validateNetworks(["erc20", "bep20", "polygon", "btc", "tron", "bttc"]),
+        pass: validatePassword(),
+        to : validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        tokenAddress : Joi.custom((value, helpers) => {
+            if(value === null || RegExp("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").test(value) || value.toString().toLowerCase() === "trx") {
+                return value;
+            } else throw Error('Invalid smart contract')
+        }),
+        tokenSymbol :  Joi.string().required(),
+    }),
 
+    maxSendTokenQuerySchema: Joi.object({
+        max: Joi.boolean()
+    }),
 
-const checkEVMValidation = (req, res, next) => {
-    const { error, value } = checkEVMAddressSchema.validate(req.params)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
-
-const addNewTokenValidation = (req, res, next) => {
-    const { error, value } = tokenSchema.validate(req.body)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
-
-
-const passwordCheckValidation = (req, res, next) => {
-    const { error, value } = passwordCheckSchema.validate(req.body)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
-
-const paymentRequestValidation = (req, res, next) => {
-    const { error, value } = paymentRequestSchema.validate(req.body)
-    if(error) {
-        throw Error(error)
-    } else next();
-}
-
-const getQuoteValidation = (req, res, next) => {
-    const { error, value } = getQuoteSchema.validate(req.body)
-    if(error) {
-        throw Error(error)
-    } else next();
+    migrationWalletSchema: Joi.object({
+        tokens: Joi.array().required(),
+        network:validateNetworks(["erc20", "bep20", "polygon", "btc", "tron", "bttc"]),
+        pass: validatePassword(),
+    })
 }
 
 
-const sendTokenValidation = (req, res, next) => {
-    const { error, value } = sendTokenSchema.validate(req.body)
+
+
+
+/**********
+ * 
+ *  MIDDLEWARE VALIDATION 
+ * 
+ *  **********************       */
+
+
+// MIDDLEWARE FUNCTION 
+const validationMiddleware = (schema, property) => (req, res, next) => {
+    const {error} = schema.validate(req[property]);
+    if(error) throw Error(error);
+    else next();
+}
+
+// CUSTOM MIDDLEWARE FOR SEND TOKEN USING BODY AND QUERY 
+const validationCustomMiddleware = (schemaBody, schemaQuery) => (req, res, next) => {
+    const {error} = schemaBody.validate(req.body);
     if(error) {
         throw Error(error)
-    } else next();
+    } else {
+        const {error} = schemaQuery.validate(req.query);
+        if(error) throw Error(error);
+        else next();
+    }
 }
+
+
 
 
 module.exports = {
-    getCodeKeyStoreValidation, 
-    exportKeyStoreValidation,
-    walletVersionValidation,
-    networkValidation,
-    checkTokenValidation,
-    checkEVMValidation,
-    addNewTokenValidation,
-    passwordCheckValidation,
-    paymentRequestValidation,
-    getQuoteValidation,
-    sendTokenValidation
+    getCodeKeyStoreValidation: validationMiddleware(schemas.getCodeKeyStoreSchema, 'body'), 
+    exportKeyStoreValidation: validationMiddleware(schemas.exportKeyStoreSchema, 'body'),
+    walletVersionValidation: validationMiddleware(schemas.walletVersionSchema, 'body'),
+    networkValidation: validationMiddleware(schemas.networkSchema, 'params'),
+    checkTokenValidation: validationMiddleware(schemas.checkTokenSchema, 'body'),
+    checkEVMValidation: validationMiddleware(schemas.checkEVMAddressSchema, 'params'),
+    addNewTokenValidation: validationMiddleware(schemas.tokenSchema, 'body'),
+    passwordCheckValidation: validationMiddleware(schemas.passwordCheckSchema, 'body'),
+    paymentRequestValidation: validationMiddleware(schemas.paymentRequestSchema, 'body'),
+    getQuoteValidation: validationMiddleware(schemas.getQuoteSchema, 'body'),
+    sendTokenValidation: validationCustomMiddleware(schemas.sendTokenSchema, schemas.maxSendTokenQuerySchema),
+    migrationWalletValidation: validationMiddleware(schemas.migrationWalletSchema, 'body')
 };
