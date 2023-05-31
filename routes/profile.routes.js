@@ -88,8 +88,6 @@ const {
     verifyAuth,
     telegram_connect_function,
     connectTelegramAccount,
-    linkGoogleAccount,
-    linkFacebookAccount,
     linkSocialAccount
 } = require('../middleware/passport.middleware')
 const {
