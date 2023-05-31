@@ -433,7 +433,6 @@ exports.transferTokensController = async (req, res) => {
 
 exports.checkWalletToken = async (req, res) => {
     try {
-        console.log({body: req.body})
         if (req.user.hasWallet == true) {
         } else {
             return responseHandler.makeResponseError(
