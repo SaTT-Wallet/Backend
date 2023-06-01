@@ -75,6 +75,13 @@ const {
     facebookCredentials,
     googleCredentials,
 } = require('../conf/config')
+const {
+    purgeAccountValidation,
+    changePasswordValidation,
+    emailConnectionValidation,
+    codeRecoverValidation,
+    confirmCodeValidation
+} = require('../middleware/authValidator.middleware')
 const { profile } = require('winston')
 
 function authSignInErrorHandler(err, req, res, next) {
@@ -163,7 +170,7 @@ router.post('/verifyCaptcha', verifyCaptcha)
  *       "500":
  *          description: code,<br>error
  */
-router.post('/purge', verifyAuth, purgeAccount)
+router.post('/purge', verifyAuth, purgeAccountValidation,purgeAccount)
 
 /**
  * @swagger
@@ -193,7 +200,7 @@ router.post('/purge', verifyAuth, purgeAccount)
  *       "500":
  *          description: error:"error"
  */
-router.post('/changePassword', verifyAuth, changePassword)
+router.post('/changePassword', verifyAuth, changePasswordValidation,changePassword)
 /**
  * @swagger
  * /auth/signin/mail:
@@ -220,35 +227,9 @@ router.post('/changePassword', verifyAuth, changePassword)
  *       "500":
  *          description: error=eror
  */
-router.post('/signin/mail', emailConnection)
+router.post('/signin/mail', emailConnectionValidation , emailConnection)
 
-/**
- * @swagger
- * /auth/walletconnect:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: signin using WalletConnect.
- *     description: Check if wallet address is exist and return access token <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               address:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user "}
- *       "401":
- *          description: code,<br>error
- *       "500":
- *          description: error=eror
- */
-router.post('/walletconnect', walletConnection)
+
 
 /**
  * @swagger
@@ -278,9 +259,8 @@ router.post('/walletconnect', walletConnection)
  *       "500":
  *          description: error=eror
  */
-router.post('/passlost', codeRecover)
+router.post('/passlost', codeRecoverValidation,codeRecover)
 
-router.get('/getToken/:id', getToken)
 
 /**
  * @swagger
@@ -312,7 +292,7 @@ router.get('/getToken/:id', getToken)
  *       "500":
  *          description: error=eror
  */
-router.post('/confirmCode', confirmCode)
+router.post('/confirmCode', confirmCodeValidation,confirmCode)
 
 /**
  * @swagger
