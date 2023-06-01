@@ -938,7 +938,7 @@ module.exports.removeToken = async (req, res) => {
         if (req.user.hasWallet == true) {
             let id = req.user._id
             const tokenAdress = req.params.tokenAddress
-            let token = await CustomToken.findOne({ tokenAdress })
+            let token = await CustomToken.findOne({ tokenAdress }).lean()
             if (token) {
                 let splicedArray = token.sn_users.filter((item) => item !== id)
                 await CustomToken.updateOne(

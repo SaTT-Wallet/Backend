@@ -168,7 +168,7 @@ const signinWithEmail = async (
           }
           
         const isPasswordMatch = user.password === synfonyHash(password);
-        const validAuth = await isBlocked(user, isPasswordMatch);
+        var validAuth = await isBlocked(user, isPasswordMatch);
 
         if (!isPasswordMatch) {
             if (validAuth.res) {
