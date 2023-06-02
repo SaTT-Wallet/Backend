@@ -26,7 +26,7 @@ const validatePassword = () => Joi.string().min(8).required().custom((value) => 
 const schemas = {
     purgeAccountSchema: Joi.object({
         password: validatePassword(),
-        reason: Joi.string().required()
+        reason: Joi.string()
     }),
 
     changePasswordSchema: Joi.object({
@@ -47,7 +47,10 @@ const schemas = {
     confirmCodeSchema: Joi.object({
         code: Joi.number().required(),
         email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
-        type: Joi.string().required()
+        type: Joi.string().required().custom((value) => {
+            if(value === "reset" || value === "validation") return value;
+            else throw Error("Type must be 'reset'")
+        })
     }),
 
     passRecoverSchema: Joi.object({
