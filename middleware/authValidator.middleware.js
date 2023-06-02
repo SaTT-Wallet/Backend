@@ -35,42 +35,42 @@ const schemas = {
     }),
 
     emailConnectionSchema: Joi.object({
-        username: Joi.string().email().required(),
+        username: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         password: validatePassword()
     }),
 
     codeRecoverSchema: Joi.object({
-        mail: Joi.string().email().required(),
+        mail: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         lang: Joi.string()
     }),
     
     confirmCodeSchema: Joi.object({
         code: Joi.number().required(),
-        email: Joi.string().email().required(),
+        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         type: Joi.string().required()
     }),
 
     passRecoverSchema: Joi.object({
         newpass: validatePassword(),
-        email: Joi.string().email().required(),
+        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         code: Joi.number().required()
     }),
 
     emailSignupSchema: Joi.object({
         password: validatePassword(),
-        username: Joi.string().email().required(),
+        username: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         lang: Joi.string(),
         newsLetter: Joi.boolean()
     }),
 
     resendConfirmationTokenSchema: Joi.object({
-        email: Joi.string().email().required(),
+        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         lang: Joi.string()
     }),
 
     authAppleSchema: Joi.object({
         id_apple: Joi.string().required(),
-        mail: Joi.string().email(),
+        mail: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/),
         idSN: Joi.number().required(),
         name: Joi.string()
     }),
@@ -94,7 +94,7 @@ const schemas = {
 
     updateLastStepSchema: Joi.object({
         completed: Joi.boolean().required(),
-        email: Joi.string().email().required(),
+        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
         firstName: Joi.string(),
         lastName: Joi.string()
     }),
