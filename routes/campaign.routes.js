@@ -46,6 +46,10 @@ const {
     uploadPictureToIPFS,
     campaignsPictureUpload
 } = require('../controllers/campaign.controller')
+const {
+    approveCampaignValidation,
+    campaignAllowanceValidation
+} = require('../middleware/campaignValidator.middleware')
 const { automaticRjectLink, updateStatforUser } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -84,7 +88,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *       "500":
  *          description: error:"error"
  */
-router.post('/approve/:network', verifyAuth, approveCampaign)
+router.post('/approve/:network', verifyAuth, approveCampaignValidation ,approveCampaign)
 
 /**
  * @swagger
@@ -117,7 +121,7 @@ router.post('/approve/:network', verifyAuth, approveCampaign)
  *       "500":
  *          description: error:"error"
  */
-router.post('/allow/:network', verifyAuth, campaignAllowance)
+router.post('/allow/:network', verifyAuth, campaignAllowanceValidation,campaignAllowance)
 
 /**
  * @swagger
