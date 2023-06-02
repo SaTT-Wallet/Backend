@@ -67,6 +67,41 @@ const schemas = {
         email: Joi.string().email().required(),
         lang: Joi.string()
     }),
+
+    authAppleSchema: Joi.object({
+        id_apple: Joi.string().required(),
+        mail: Joi.string().email(),
+        idSN: Joi.number().required(),
+        name: Joi.string()
+    }),
+
+    logoutSchema: Joi.object({
+        idUser: Joi.number().required(),
+    }),
+
+    setVisitSignUpStepSchema: Joi.object({
+        userId: Joi.number().required(),
+        visitedStep: Joi.string().required()
+    }),
+
+    socialdisconnectSchema: Joi.object({
+        social: Joi.string().required(),
+    }),
+
+    saveFirebaseAccessTokenSchema: Joi.object({
+        fb_accesstoken: Joi.string().required()
+    }),
+
+    updateLastStepSchema: Joi.object({
+        completed: Joi.boolean().required(),
+        email: Joi.string().email().required(),
+        firstName: Joi.string(),
+        lastName: Joi.string()
+    }),
+
+    verifyQrCodeSchema: Joi.object({
+        code: Joi.number().required(),
+    })
 }
 
 
@@ -99,5 +134,12 @@ module.exports = {
     confirmCodeValidation: validationMiddleware(schemas.confirmCodeSchema, 'body'),
     passRecovervalidation: validationMiddleware(schemas.passRecoverSchema, 'body'),
     emailSignupValidation: validationMiddleware(schemas.emailSignupSchema, 'body'),
-    resendConfirmationTokenValidation: validationMiddleware(schemas.resendConfirmationTokenSchema, 'body')
+    resendConfirmationTokenValidation: validationMiddleware(schemas.resendConfirmationTokenSchema, 'body'),
+    authAppleValidation: validationMiddleware(schemas.authAppleSchema, 'body'),
+    logoutValidation: validationMiddleware(schemas.logoutSchema, 'params'),
+    setVisitSignUpStepValidation: validationMiddleware(schemas.setVisitSignUpStepSchema, 'body'),
+    socialdisconnectValidation: validationMiddleware(schemas.socialdisconnectSchema, 'params'),
+    saveFirebaseAccessTokenValidation: validationMiddleware(schemas.saveFirebaseAccessTokenSchema, 'body'),
+    updateLastStepValidation: validationMiddleware(schemas.updateLastStepSchema, 'body'),
+    verifyQrCodeValidation: validationMiddleware(schemas.verifyQrCodeSchema, 'body')
 };

@@ -78,7 +78,14 @@ const {
     confirmCodeValidation,
     passRecovervalidation,
     emailSignupValidation,
-    resendConfirmationTokenValidation
+    resendConfirmationTokenValidation,
+    authAppleValidation,
+    logoutValidation,
+    setVisitSignUpStepValidation,
+    socialdisconnectValidation,
+    saveFirebaseAccessTokenValidation,
+    updateLastStepValidation,
+    verifyQrCodeValidation
 } = require('../middleware/authValidator.middleware')
 const { profile } = require('winston')
 
@@ -724,7 +731,7 @@ router.post('/resend/confirmationToken', resendConfirmationTokenValidation , res
  *       "500":
  *          description: error:error message
  */
-router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
+router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessTokenValidation,saveFirebaseAccessToken)
 
 /**
  * @swagger
@@ -756,7 +763,7 @@ router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
  *       "500":
  *          description: error
  */
-router.put('/updateLastStep', verifyAuth, updateLastStep)
+router.put('/updateLastStep', verifyAuth, updateLastStepValidation ,updateLastStep)
 
 /**
  * @swagger
@@ -788,7 +795,7 @@ router.put('/updateLastStep', verifyAuth, updateLastStep)
  *       "500":
  *          description: error
  */
-router.post('/apple', authApple)
+router.post('/apple', authAppleValidation,authApple)
 
 
 /**
@@ -810,7 +817,7 @@ router.post('/apple', authApple)
  *       "500":
  *          description: error:"error"
  */
-router.put('/disconnect/:social', verifyAuth, socialdisconnect)
+router.put('/disconnect/:social', verifyAuth, socialdisconnectValidation , socialdisconnect)
 
 
 
@@ -852,7 +859,7 @@ router.get('/qrCode', verifyAuth, getQrCode)
  *       "500":
  *          description: error
  */
-router.post('/verifyQrCode', verifyAuth, verifyQrCode)
+router.post('/verifyQrCode', verifyAuth, verifyQrCodeValidation,verifyQrCode)
 
 /**
  * @swagger
@@ -868,7 +875,7 @@ router.post('/verifyQrCode', verifyAuth, verifyQrCode)
  *       "500":
  *          description: error
  */
-router.get('/logout/:idUser', logout)
+router.get('/logout/:idUser', logoutValidation ,logout)
 
 /**
  * @swagger
@@ -896,7 +903,7 @@ router.get('/logout/:idUser', logout)
  *       "500":
  *          description: error=eror
  */
-router.post('/satt-connect', sattConnect)
+router.post('/satt-connect', emailConnectionValidation,sattConnect)
 
 /**
  * @swagger
@@ -924,7 +931,7 @@ router.post('/satt-connect', sattConnect)
  *       "500":
  *          description: error=eror
  */
-router.post('/setVisitSignUpStep', setVisitSignUpStep)
+router.post('/setVisitSignUpStep', setVisitSignUpStepValidation,setVisitSignUpStep)
 
 
 
