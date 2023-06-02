@@ -49,6 +49,24 @@ const schemas = {
         email: Joi.string().email().required(),
         type: Joi.string().required()
     }),
+
+    passRecoverSchema: Joi.object({
+        newpass: validatePassword(),
+        email: Joi.string().email().required(),
+        code: Joi.number().required()
+    }),
+
+    emailSignupSchema: Joi.object({
+        password: validatePassword(),
+        username: Joi.string().email().required(),
+        lang: Joi.string(),
+        newsLetter: Joi.boolean()
+    }),
+
+    resendConfirmationTokenSchema: Joi.object({
+        email: Joi.string().email().required(),
+        lang: Joi.string()
+    }),
 }
 
 
@@ -78,5 +96,8 @@ module.exports = {
     changePasswordValidation: validationMiddleware(schemas.changePasswordSchema, 'body'),
     emailConnectionValidation: validationMiddleware(schemas.emailConnectionSchema, 'body'),
     codeRecoverValidation: validationMiddleware(schemas.codeRecoverSchema, 'body'),
-    confirmCodeValidation: validationMiddleware(schemas.confirmCodeSchema, 'body')
+    confirmCodeValidation: validationMiddleware(schemas.confirmCodeSchema, 'body'),
+    passRecovervalidation: validationMiddleware(schemas.passRecoverSchema, 'body'),
+    emailSignupValidation: validationMiddleware(schemas.emailSignupSchema, 'body'),
+    resendConfirmationTokenValidation: validationMiddleware(schemas.resendConfirmationTokenSchema, 'body')
 };

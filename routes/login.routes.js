@@ -33,7 +33,6 @@ try {
     router.use(passport.session())
 } catch (e) {}
 const {
-    walletConnection,
     changePassword,
     socialdisconnect,
     captcha,
@@ -45,15 +44,11 @@ const {
     saveFirebaseAccessToken,
     updateLastStep,
     authApple,
-    socialSignUp,
-    socialSignin,
     getQrCode,
     verifyQrCode,
     purgeAccount,
     logout,
-    getToken,
     setVisitSignUpStep,
-    signupRequest,
     verifyExpiredToken
 } = require('../controllers/login.controller')
 const {
@@ -80,7 +75,10 @@ const {
     changePasswordValidation,
     emailConnectionValidation,
     codeRecoverValidation,
-    confirmCodeValidation
+    confirmCodeValidation,
+    passRecovervalidation,
+    emailSignupValidation,
+    resendConfirmationTokenValidation
 } = require('../middleware/authValidator.middleware')
 const { profile } = require('winston')
 
@@ -323,7 +321,7 @@ router.post('/confirmCode', confirmCodeValidation,confirmCode)
  *       "500":
  *          description: error=eror
  */
-router.post('/passrecover', passRecover)
+router.post('/passrecover', passRecovervalidation , passRecover)
 
 /**
  * @swagger
@@ -355,7 +353,7 @@ router.post('/passrecover', passRecover)
  *       "500":
  *          description: error=eror
  */
-router.post('/signup/mail', emailSignup)
+router.post('/signup/mail', emailSignupValidation , emailSignup)
 
 /**
  * @swagger
@@ -698,7 +696,7 @@ passport.use(
  *       "500":
  *          description: error=eror
  */
-router.post('/resend/confirmationToken', resendConfirmationToken)
+router.post('/resend/confirmationToken', resendConfirmationTokenValidation , resendConfirmationToken)
 
 /**
  * @swagger
@@ -792,73 +790,6 @@ router.put('/updateLastStep', verifyAuth, updateLastStep)
  */
 router.post('/apple', authApple)
 
-/**
- * @swagger
- * /auth/socialSignup:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: register with social for apple.
- *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               lang:
- *                 type: string
- *               idSn:
- *                 type: number
- *               id:
- *                 type: string
- *               photo:
- *                 type: string
- *               givenName:
- *                 type: string
- *               familyName:
- *                 type: string
- *               newsLetter:
- *                 type: boolean
- *     responses:
- *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
- *       "401":
- *          description: code,<br>message:"account_exists"
- *       "500":
- *          description: error
- */
-router.post('/socialSignup', socialSignUp)
-
-/**
- * @swagger
- * /auth/socialSignin:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: auth with social for apple.
- *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               idSn:
- *                 type: number
- *               id:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message,<br>param:{"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"}
- *       "401":
- *          description: code,<br>message
- *       "500":
- *          description: error
- */
-router.post('/socialSignin', socialSignin)
 
 /**
  * @swagger
@@ -881,26 +812,7 @@ router.post('/socialSignin', socialSignin)
  */
 router.put('/disconnect/:social', verifyAuth, socialdisconnect)
 
-/**
- * @swagger
- * /auth/disconnect/{social}:
- *   put:
- *     tags:
- *     - "auth"
- *     summary: disconnect social account.
- *     description: user enter his social network to disconnect <br> with access_token.
- *     parameters:
- *       - name: social
- *         description: social can be facebook , google or telegram.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: code,<br>message:"deconnect successfully from social
- *       "500":
- *          description: error
- */
-router.put('/disconnect/:social', verifyAuth, socialdisconnect)
+
 
 /**
  * @swagger
@@ -1014,33 +926,7 @@ router.post('/satt-connect', sattConnect)
  */
 router.post('/setVisitSignUpStep', setVisitSignUpStep)
 
-/**
- * @swagger
- * /auth/email/signup:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: Signup Request .
- *     description: send signup request if user doesn't have a satt account.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *     responses:
- *       "200":
- *          description: Email was sent, {"code":"status code","message":"Email was sent"}
- *       "400":
- *          description: error:<br> please provide a valid email address!
- *       "406":
- *          description: error:<br> Account already exist
- *       "500":
- *          description: error:<br> server error
- */
-router.post('/email/signup', signupRequest)
+
 
 
 
