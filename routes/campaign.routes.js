@@ -15,7 +15,6 @@ const {
     apply,
     linkNotifications,
     linkStats,
-    increaseBudget,
     getLinks,
     getFunds,
     gains,
@@ -28,7 +27,6 @@ const {
     bep20Allow,
     erc20Allow,
     expandUrl,
-    updateStatistics,
     coverByCampaign,
     campaignsStatistics,
     deleteDraft,
@@ -39,10 +37,6 @@ const {
     polygonAllow,
     tronApproval,
     tronAllow,
-    swapTrx,
-    campaignApproval,
-    approveCampaign,
-    campaignAllowance,
     uploadPictureToIPFS,
     campaignsPictureUpload
 } = require('../controllers/campaign.controller')
@@ -53,9 +47,22 @@ const {
     tronAllowValidation,
     launchCampaignValidation,
     launchBountyValidation,
-    idCheckValidation
+    idCheckValidation,
+    campaignPrompValidation,
+    expandUrlValidation,
+    linkNotificationsValidation,
+    gainsValidation,
+    getFundsValidation,
+    statLinkCampaignValidation,
+    rejectLinkValidation,
+    coverByCampaignValidation,
+    getLinksValidation,
+    validateCampaignValidation,
+    applyValidation,
+    saveCampaignValidation,
+    updateCampaignValidation,
+    addKitsValidation
 } = require('../middleware/campaignValidator.middleware')
-const { automaticRjectLink, updateStatforUser } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
 
@@ -554,7 +561,7 @@ router.get('/details/:id', idCheckValidation,campaignDetails)
  *       "500":
  *          description: error:"error"
  */
-router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
+router.get('/campaignPrompAll/:id', verifyAuth, campaignPrompValidation,campaignPromp)
 
 /**
  * @swagger
@@ -576,7 +583,7 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPromp)
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/expandLink',  expandUrl)
+router.get('/expandLink',  expandUrlValidation,expandUrl)
 
 /**
  * @swagger
@@ -616,7 +623,7 @@ router.get('/expandLink',  expandUrl)
  *       "500":
  *          description: error:error message
  */
-router.post('/apply', verifyAuth, apply)
+router.post('/apply', verifyAuth, applyValidation,apply)
 /**
  * @swagger
  * /campaign/linkNotification:
@@ -645,7 +652,7 @@ router.post('/apply', verifyAuth, apply)
  *       "500":
  *          description: error:error message
  */
-router.post('/linkNotification', verifyAuth, linkNotifications)
+router.post('/linkNotification', verifyAuth, linkNotificationsValidation , linkNotifications)
 /**
  * @swagger
  * /campaign/validate:
@@ -684,7 +691,7 @@ router.post('/linkNotification', verifyAuth, linkNotifications)
  *       "500":
  *          description: error:error message
  */
-router.post('/validate', verifyAuth, validateCampaign)
+router.post('/validate', verifyAuth, validateCampaignValidation,validateCampaign)
 
 /**
  * @swagger
@@ -719,7 +726,7 @@ router.post('/validate', verifyAuth, validateCampaign)
  *          description: error:error message
  */
 
-router.post('/gains', verifyAuth, gains)
+router.post('/gains', verifyAuth, gainsValidation , gains)
 
 /**
  * @swagger
@@ -840,7 +847,7 @@ router.get('/invested', verifyAuth, totalInvested)
  *          description: error:error message
  */
 
-router.post('/save', verifyAuth, saveCampaign)
+router.post('/save', verifyAuth, saveCampaignValidation,saveCampaign)
 
 /**
  * @swagger
@@ -853,8 +860,8 @@ router.post('/save', verifyAuth, saveCampaign)
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: idCampaign
- *         description: the  idCampaign.
+ *       - name: id
+ *         description: the  id campaign.
  *         in: path
  *         required: true
  *     responses:
@@ -865,7 +872,7 @@ router.post('/save', verifyAuth, saveCampaign)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/:idCampaign/kits', kits)
+router.get('/:id/kits', idCheckValidation,kits)
 
 /**
  * @swagger
@@ -890,7 +897,7 @@ router.get('/:idCampaign/kits', kits)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/kit/:id', findKit)
+router.get('/kit/:id', idCheckValidation,findKit)
 
 /**
  * @swagger
@@ -915,7 +922,7 @@ router.get('/kit/:id', findKit)
  *       "500":
  *          description: code,<br>error
  */
-router.delete('/kit/:id', deleteKit)
+router.delete('/kit/:id', verifyAuth,idCheckValidation,deleteKit)
 
 /**
  * @swagger
@@ -947,7 +954,7 @@ router.delete('/kit/:id', deleteKit)
  *          description: error:error message
  */
 
-router.post('/addKits', verifyAuth, upload, addKits)
+router.post('/addKits', verifyAuth, upload, addKitsValidation,addKits)
 
 /**
  * @swagger
@@ -1058,7 +1065,7 @@ router.post('/addKits', verifyAuth, upload, addKits)
  *          description: error:error message
  */
 
-router.put('/update/:idCampaign', verifyAuth, update)
+router.put('/update/:id', verifyAuth, updateCampaignValidation,update)
 /**
  * @swagger
  * /campaign/prom/stats/{idProm}:
@@ -1079,41 +1086,8 @@ router.put('/update/:idCampaign', verifyAuth, update)
  *          description: error:error message
  */
 
-router.get('/prom/stats/:idProm', linkStats)
+router.get('/prom/stats/:id', idCheckValidation, linkStats)
 
-router.get('/upadte-rejected-links', automaticRjectLink)
-
-/**
- * @swagger
- * /campaign/funding:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: Increase budget.
- *     description: Increase campaign budget.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               amount:
- *                 type: string
- *               tokenAddress:
- *                 type: string
- *               hash:
- *                 type: string
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"unauthorized"
- *       "500":
- *          description: error:error message
- */
-router.post('/funding', verifyAuth, increaseBudget)
 
 /**
  * @swagger
@@ -1138,7 +1112,7 @@ router.post('/funding', verifyAuth, increaseBudget)
  *       "500":
  *          description: error:error message
  */
-router.get('/filterLinks/:idUser', verifyAuth, getLinks)
+router.get('/filterLinks/:idUser', verifyAuth, getLinksValidation,getLinks)
 
 /**
  * @swagger
@@ -1167,7 +1141,7 @@ router.get('/filterLinks/:idUser', verifyAuth, getLinks)
  *          description: error:error message
  */
 
-router.post('/remaining', verifyAuth, getFunds)
+router.post('/remaining', verifyAuth, getFundsValidation,getFunds)
 
 /**
  * @swagger
@@ -1192,7 +1166,7 @@ router.post('/remaining', verifyAuth, getFunds)
  *       "500":
  *          description: error:error message
  */
-router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaign)
+router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaignValidation,statLinkCampaign)
 
 /**
  * @swagger
@@ -1238,7 +1212,7 @@ router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaign)
  *       "500":
  *          description: error:error message
  */
-router.put('/reject/:idLink', verifyAuth, rejectLink)
+router.put('/reject/:id', verifyAuth, rejectLinkValidation,rejectLink)
 
 /**
  * @swagger
@@ -1267,7 +1241,7 @@ router.put('/reject/:idLink', verifyAuth, rejectLink)
  *       "500":
  *          description: error:error message
  */
-router.get('/coverByCampaign/:id', coverByCampaign)
+router.get('/coverByCampaign/:id', coverByCampaignValidation,coverByCampaign)
 
 /**
  * @swagger
@@ -1311,6 +1285,6 @@ router.get('/statistics', campaignsStatistics)
  */
 router.delete('/deleteDraft/:id', verifyAuth, idCheckValidation,deleteDraft)
 
-router.post('/updateStat', updateStatistics)
+
 
 module.exports = router
