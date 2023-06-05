@@ -52,24 +52,62 @@ const validateVersion = (validVersions) => Joi.string().required().custom((value
 
 // SCHEMAS OBJECT
 const schemas = {
-    approveCampaignSchema: Joi.object({
+    evmApprovalSchema: Joi.object({
+        campaignAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$")
+    }),
+
+    evmAllowSchema: Joi.object({
+        campaignAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
         amount: Joi.number().unsafe().required(),
-        campaignAddress: validateAddress(),
-        tokenAddress: validateAddress(),
-        pass: validatePassword()
+        pass: validatePassword(),
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
     }),
 
-    approveCampaignNetworkSchema: Joi.object({
+    tronApprovalSchema: Joi.object({
+        version: validateVersion(["v1", "v2"]),
+        pass: validatePassword(),
+        tokenAddress: validateAddress("^T[A-Za-z1-9]{33}$"),
+    }),
+
+    tronAllowSchema: Joi.object({
+        amount: Joi.number().unsafe().required(),
+        pass: validatePassword(),
+        tokenAddress: validateAddress("^T[A-Za-z1-9]{33}$"),
+    }),
+
+
+    launchCampaignSchema: Joi.object({
+        amount: Joi.number().unsafe().required(),
+        contract: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        currency: Joi.string().required(),
+        dataUrl: Joi.string().required(),
+        endDate: Joi.number().unsafe().required(),
         network: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
+        pass: validatePassword(),
+        ratios: Joi.array().required(),
+        startDate: Joi.number().unsafe().required(),
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        idCampaign: Joi.string().required()
     }),
 
-    campaignAllowanceSchema: Joi.object({
-        campaignAddress: validateAddress(),
-        tokenAddress: validateAddress(),
-    }),
 
-    campaignAllowanceNetworkSchema: Joi.object({
+    launchBountySchema: Joi.object({
+        amount: Joi.number().unsafe().required(),
+        contract: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        currency: Joi.string().required(),
+        dataUrl: Joi.string().required(),
+        endDate: Joi.number().unsafe().required(),
         network: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
+        pass: validatePassword(),
+        bounties: Joi.array(),
+        startDate: Joi.number().unsafe().required(),
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        idCampaign: Joi.string().required()
+    }),
+
+    idCheckSchema: Joi.object({
+        id: Joi.string().required()
     })
 }
 
@@ -107,6 +145,15 @@ const validationCustomMiddleware = (schemaBody, schemaParam) => (req, res, next)
 
 
 module.exports = {
-    approveCampaignValidation: validationCustomMiddleware(schemas.approveCampaignNetworkSchema,schemas.approveCampaignSchema),
-    campaignAllowanceValidation: validationCustomMiddleware(schemas.campaignAllowanceNetworkSchema, schemas.campaignAllowanceSchema)
+    
+
+
+
+    evmApprovalValidation: validationMiddleware(schemas.evmApprovalSchema, 'body'),
+    evmAllowValidation: validationMiddleware(schemas.evmAllowSchema, 'body'),
+    tronApprovalValidation: validationMiddleware(schemas.tronApprovalSchema, 'body'),
+    tronAllowValidation: validationMiddleware(schemas.tronAllowSchema, 'body'),
+    launchCampaignValidation: validationMiddleware(schemas.launchCampaignSchema, 'body'),
+    launchBountyValidation: validationMiddleware(schemas.launchBountySchema, 'body'),
+    idCheckValidation: validationMiddleware(schemas.idCheckSchema, 'params')
 };

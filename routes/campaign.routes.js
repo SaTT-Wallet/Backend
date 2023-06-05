@@ -47,81 +47,18 @@ const {
     campaignsPictureUpload
 } = require('../controllers/campaign.controller')
 const {
-    approveCampaignValidation,
-    campaignAllowanceValidation
+    evmApprovalValidation,
+    evmAllowValidation,
+    tronApprovalValidation,
+    tronAllowValidation,
+    launchCampaignValidation,
+    launchBountyValidation,
+    idCheckValidation
 } = require('../middleware/campaignValidator.middleware')
 const { automaticRjectLink, updateStatforUser } = require('../helpers/common')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
-/**
- * @swagger
- * /campaign/approve/{network}:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: approve
- *     description: Approve the smart contract to interact with user wallet
- *     parameters:
- *       - name: network
- *         description: network.
- *         in: path
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               campaignAddress:
- *                 type: string
- *               amount:
- *                 type: string
- *               pass:
- *                 type: string
- *               tokenAddress:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"unauthorized"
- *       "500":
- *          description: error:"error"
- */
-router.post('/approve/:network', verifyAuth, approveCampaignValidation ,approveCampaign)
 
-/**
- * @swagger
- * /campaign/allow/{network}:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: allow
- *     description: Allow user wallet to interact the smart contract
- *     parameters:
- *       - name: network
- *         description: network
- *         in: path
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               campaignAddress:
- *                 type: string
- *               tokenAddress:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"unauthorized"
- *       "500":
- *          description: error:"error"
- */
-router.post('/allow/:network', verifyAuth, campaignAllowanceValidation,campaignAllowance)
 
 /**
  * @swagger
@@ -150,7 +87,7 @@ router.post('/allow/:network', verifyAuth, campaignAllowanceValidation,campaignA
  *       "500":
  *          description: error:"error"
  */
-router.post('/btt/approval', verifyAuth, bttApproval)
+router.post('/btt/approval', verifyAuth, evmApprovalValidation,bttApproval)
 
 /**
  * @swagger
@@ -183,7 +120,7 @@ router.post('/btt/approval', verifyAuth, bttApproval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/btt/allow', verifyAuth, bttAllow)
+router.post('/btt/allow', verifyAuth, evmAllowValidation,bttAllow)
 
 /**
  * @swagger
@@ -212,36 +149,9 @@ router.post('/btt/allow', verifyAuth, bttAllow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/tron/approval', verifyAuth, tronApproval)
+router.post('/tron/approval', verifyAuth, tronApprovalValidation,tronApproval)
 
-/**
- * @swagger
- * /campaign/tron/swapTrx:
- *   post:
- *     tags:
- *     - "campaign"
- *     summary: swap trx
- *     description: swap trx to wrappedtrx
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               amount:
- *                 type: string
- *               privateKey:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"Unauthorized"
- *       "500":
- *          description: error:"error"
- */
-router.post('/tron/swapTrx', verifyAuth, swapTrx)
+
 /**
  * @swagger
  * /campaign/tron/allow:
@@ -272,7 +182,7 @@ router.post('/tron/swapTrx', verifyAuth, swapTrx)
  *       "500":
  *          description: error:"error"
  */
-router.post('/tron/allow', verifyAuth, tronAllow)
+router.post('/tron/allow', verifyAuth, tronAllowValidation,tronAllow)
 
 /**
  * @swagger
@@ -301,7 +211,7 @@ router.post('/tron/allow', verifyAuth, tronAllow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/bep20/approval', verifyAuth, bep20Approval)
+router.post('/bep20/approval', verifyAuth, evmApprovalValidation,bep20Approval)
 
 /**
  * @swagger
@@ -334,7 +244,7 @@ router.post('/bep20/approval', verifyAuth, bep20Approval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/bep20/allow', verifyAuth, bep20Allow)
+router.post('/bep20/allow', verifyAuth, evmAllowValidation,bep20Allow)
 
 /**
  * @swagger
@@ -363,7 +273,7 @@ router.post('/bep20/allow', verifyAuth, bep20Allow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/polygon/approval', verifyAuth, polygonApproval)
+router.post('/polygon/approval', verifyAuth, evmApprovalValidation,polygonApproval)
 
 /**
  * @swagger
@@ -395,7 +305,7 @@ router.post('/polygon/approval', verifyAuth, polygonApproval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/polygon/allow', verifyAuth, polygonAllow)
+router.post('/polygon/allow', verifyAuth, evmAllowValidation,polygonAllow)
 
 /**
  * @swagger
@@ -424,7 +334,7 @@ router.post('/polygon/allow', verifyAuth, polygonAllow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/erc20/approval', verifyAuth, erc20Approval)
+router.post('/erc20/approval', verifyAuth, evmApprovalValidation,erc20Approval)
 /**
  * @swagger
  * /campaign/erc20/allow:
@@ -455,7 +365,7 @@ router.post('/erc20/approval', verifyAuth, erc20Approval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/erc20/allow', verifyAuth, erc20Allow)
+router.post('/erc20/allow', verifyAuth, evmAllowValidation,erc20Allow)
 /**
  * @swagger
  * /campaign/launch/performance:
@@ -518,7 +428,7 @@ router.post('/erc20/allow', verifyAuth, erc20Allow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/launch/performance', verifyAuth, launchCampaign)
+router.post('/launch/performance', verifyAuth, launchCampaignValidation,launchCampaign)
 /**
  * @swagger
  * /campaign/launchBounty:
@@ -563,7 +473,7 @@ router.post('/launch/performance', verifyAuth, launchCampaign)
  *          description: error:"error"
  */
 
-router.post('/launchBounty', verifyAuth, launchBounty)
+router.post('/launchBounty', verifyAuth, launchBountyValidation,launchBounty)
 
 /**
  * @swagger
@@ -590,7 +500,7 @@ router.post('/launchBounty', verifyAuth, launchBounty)
 router.get('/campaigns', campaigns)
 
 
-router.post('/ipfs/:id', verifyAuth,campaignsPictureUpload ,uploadPictureToIPFS)
+router.post('/ipfs/:id', verifyAuth,idCheckValidation,campaignsPictureUpload ,uploadPictureToIPFS)
 
 /**
  * @swagger
@@ -615,7 +525,7 @@ router.post('/ipfs/:id', verifyAuth,campaignsPictureUpload ,uploadPictureToIPFS)
  *       "500":
  *          description: error:"error"
  */
-router.get('/details/:id', campaignDetails)
+router.get('/details/:id', idCheckValidation,campaignDetails)
 
 /**
  * @swagger
@@ -1399,7 +1309,7 @@ router.get('/statistics', campaignsStatistics)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/deleteDraft/:id', verifyAuth, deleteDraft)
+router.delete('/deleteDraft/:id', verifyAuth, idCheckValidation,deleteDraft)
 
 router.post('/updateStat', updateStatistics)
 
