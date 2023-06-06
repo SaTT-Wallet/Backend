@@ -97,6 +97,21 @@ const {
     googleCredentials,
     tikTokCredentials,
 } = require('../conf/config')
+const {
+    addProfilePictureValidation,
+    UpdateInterstsValidation,
+    idCheckValidation,
+    confrimChangeMailValidation,
+    supportValidation,
+    changeEmailValidation,
+    requestMoneyValidation,
+    idUserCheckValidation,
+    updateProfileValidation,
+    deleteLinkedinChannelValidation,
+    verifyLinkValidation,
+    ShareByActivityValidation,
+    addUserLegalProfileValidation
+} = require('../middleware/profileValidator.middleware')
 const { sendNotificationTest } = require('../manager/notification')
 
 /**
@@ -166,7 +181,7 @@ router.get('/picture', verifyAuth, profilePicture)
  *          description: error:<br> server error
  */
 
-router.post('/picture', verifyAuth, uploadImageProfile, addProfilePicture)
+router.post('/picture', verifyAuth, uploadImageProfile, addProfilePictureValidation,addProfilePicture)
 /**
  * @swagger
  * /profile/UpdateProfile:
@@ -227,7 +242,7 @@ router.post('/picture', verifyAuth, uploadImageProfile, addProfilePicture)
  *       "500":
  *          description: error:<br> server error
  */
-router.put('/UpdateProfile', verifyAuth, updateProfile)
+router.put('/UpdateProfile', verifyAuth, updateProfileValidation,updateProfile)
 /**
  * @swagger
  * /profile/UserLegal:
@@ -296,7 +311,7 @@ router.get('/UserIntersts', verifyAuth, UserInterstes)
  *       "500":
  *          description: error:<br> Server error
  */
-router.post('/AddUserIntersts', verifyAuth, UpdateIntersts)
+router.post('/AddUserIntersts', verifyAuth, UpdateInterstsValidation,UpdateIntersts)
 
 /**
  * @swagger
@@ -328,7 +343,7 @@ router.post('/AddUserIntersts', verifyAuth, UpdateIntersts)
  *       "500":
  *          description: error:<br> server error
  */
-router.put('/UpdateUserIntersts', verifyAuth, UpdateIntersts)
+router.put('/UpdateUserIntersts', verifyAuth, UpdateInterstsValidation,UpdateIntersts)
 
 /**
  * @swagger
@@ -372,7 +387,7 @@ router.delete('/RemoveTwitterChannels', verifyAuth, deleteTwitterChannels)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveTwitterChannel/:id', verifyAuth, deleteTwitterChannel)
+router.delete('/RemoveTwitterChannel/:id', verifyAuth, idCheckValidation,deleteTwitterChannel)
 
 /**
  * @swagger
@@ -416,7 +431,7 @@ router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveGoogleChannel/:id', verifyAuth, deleteGoogleChannel)
+router.delete('/RemoveGoogleChannel/:id', verifyAuth, idCheckValidation,deleteGoogleChannel)
 
 /**
  * @swagger
@@ -461,7 +476,7 @@ router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveFacebookChannel/:id', verifyAuth, deleteFacebookChannel)
+router.delete('/RemoveFacebookChannel/:id', verifyAuth, idCheckValidation,deleteFacebookChannel)
 
 /**
  * @swagger
@@ -512,6 +527,7 @@ router.delete('/RemoveLinkedInChannels', verifyAuth, deleteLinkedinChannels)
 router.delete(
     '/remove/:linkedinId/linkedInChannel/:organization',
     verifyAuth,
+    deleteLinkedinChannelValidation,
     deleteLinkedinChannel
 )
 
@@ -534,7 +550,7 @@ router.delete(
  *          description: error:<br> server error
  */
 
-router.delete('/RemoveTiktokChannel/:id', verifyAuth, deleteTiktokChannel)
+router.delete('/RemoveTiktokChannel/:id', verifyAuth, idCheckValidation,deleteTiktokChannel)
 /**
  * @swagger
  * /profile/RemoveTiktokChannel:
@@ -588,7 +604,7 @@ router.get('/socialAccounts', verifyAuth, socialAccounts)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/facebook/:idUser', (req, res, next) => {
+router.get('/addChannel/facebook/:idUser', idUserCheckValidation,(req, res, next) => {
     const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('facebook_strategy_add_channel', {
         scope: [
@@ -640,21 +656,21 @@ router.get(
 
 /**
  * @swagger
- * /profile/tiktokAbos/{userId}:
+ * /profile/tiktokAbos/{idUser}:
  *   get:
  *     tags:
  *     - "profile"
  *     summary: signin with twitter.
  *     description: user asked for signin with twitter, system redirect him to signin with twitter account <br> without access_token.
  *     parameters:
- *       - name: userId
+ *       - name: idUser
  *         description: organization of linkedin channel.
  *         in: path
  *     responses:
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/tiktokAbos/:userId', tiktokApiAbos)
+router.get('/tiktokAbos/:idUser', idUserCheckValidation,tiktokApiAbos)
 /**
  * @swagger
  * /profile/addChannel/twitter/{idUser}:
@@ -667,7 +683,7 @@ router.get('/tiktokAbos/:userId', tiktokApiAbos)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/twitter/:idUser', async (req, res) => {
+router.get('/addChannel/twitter/:idUser', idUserCheckValidation,async (req, res) => {
     const requestedData = await client.getRequestToken(
         process.env.BASEURL +
             'profile/callback/addChannel/twitter' +
@@ -690,7 +706,7 @@ router.get('/callback/addChannel/twitter', addTwitterChannel)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/linkedin/:idUser', (req, res, next) => {
+router.get('/addChannel/linkedin/:idUser', idUserCheckValidation,(req, res, next) => {
     let state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('linkedin_strategy_add_channel', { state })(
         req,
@@ -752,7 +768,7 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/tikTok/:idUser', (req, res, next) => {
+router.get('/addChannel/tikTok/:idUser', idUserCheckValidation,(req, res, next) => {
     const state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('tikTok_strategy_add_channel', {
         scope: ['user.info.basic', 'video.list'],
@@ -811,7 +827,7 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/youtube/:idUser', (req, res, next) => {
+router.get('/addChannel/youtube/:idUser', idUserCheckValidation,(req, res, next) => {
     var state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('youtube_strategy_add_channel', {
         scope: [
@@ -919,7 +935,7 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/receiveMoney', verifyAuth, requestMoney)
+router.post('/receiveMoney', verifyAuth, requestMoneyValidation,requestMoney)
 
 /**
  * @swagger
@@ -953,6 +969,7 @@ router.post(
     '/add/Legalprofile',
     uploadUserLegal,
     verifyAuth,
+    addUserLegalProfileValidation,
     addUserLegalProfile
 )
 
@@ -979,7 +996,7 @@ router.post(
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/legalUserUpload/:id', verifyAuth, FindUserLegalProfile)
+router.get('/legalUserUpload/:id', verifyAuth, idCheckValidation,FindUserLegalProfile)
 
 /**
  * @swagger
@@ -1006,7 +1023,7 @@ router.get('/legalUserUpload/:id', verifyAuth, FindUserLegalProfile)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/notification/seen/:id', verifyAuth, notificationUpdate)
+router.post('/notification/seen/:id', verifyAuth, idCheckValidation,notificationUpdate)
 
 /**
  * @swagger
@@ -1078,7 +1095,7 @@ router.get('/notifications', verifyAuth, getNotifications)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/changeEmail', verifyAuth, changeEmail)
+router.post('/changeEmail', verifyAuth, changeEmailValidation,changeEmail)
 
 /**
  * @swagger
@@ -1110,7 +1127,7 @@ router.post('/changeEmail', verifyAuth, changeEmail)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/SattSupport', support)
+router.post('/SattSupport', supportValidation,support)
 
 /**
  * @swagger
@@ -1124,7 +1141,7 @@ router.post('/SattSupport', support)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/connect/facebook/:idUser', (req, res, next) => {
+router.get('/connect/facebook/:idUser', idUserCheckValidation,(req, res, next) => {
     let state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('link_facebook_account', { state })(req, res, next)
 })
@@ -1176,7 +1193,7 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/connect/google/:idUser', (req, res, next) => {
+router.get('/connect/google/:idUser', idUserCheckValidation,(req, res, next) => {
     let state = req.params.idUser + '|' + req.query.redirect
     passport.authenticate('link_google_account', {
         scope: ['profile', 'email'],
@@ -1229,7 +1246,7 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get(
-    '/connect/telegram/:idUser',
+    '/connect/telegram/:idUser',idUserCheckValidation,
     passport.authenticate('link_telegram_account'),
     connectTelegramAccount
 )
@@ -1273,7 +1290,7 @@ passport.use(
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
+router.post('/confirmChangeEmail', verifyAuth, confrimChangeMailValidation,confrimChangeMail)
 
 /**
  * @swagger
@@ -1310,7 +1327,7 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMail)
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
+router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLinkValidation,verifyLink)
 
 /**
  * @swagger
@@ -1331,7 +1348,7 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLink)
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/link/verify/fbUserName/:idLink', verifyAuth, convertIdToFbUsername)
+router.get('/link/verify/fbUserName/:id', verifyAuth, idCheckValidation,convertIdToFbUsername)
 
 /**
  * @swagger
@@ -1354,7 +1371,7 @@ router.get('/link/verify/fbUserName/:idLink', verifyAuth, convertIdToFbUsername)
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
+router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivityValidation,ShareByActivity)
 
 /**
  * @swagger
@@ -1373,5 +1390,5 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivity)
  */
 router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
 
-router.get('/sendNotificationMobile', sendNotificationTest)
+
 module.exports = router
