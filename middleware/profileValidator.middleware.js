@@ -28,7 +28,7 @@ const validateAddress = (pattern) => Joi.string().required().pattern(new RegExp(
 // SCHEMAS OBJECT
 const schemas = {
     checkFileSchema: Joi.object({
-        mimetype: Joi.string().custom((value, helpers) => {
+        mimetype: Joi.string().custom((value) => {
             if (value && value.startsWith('image/')) {
                 return value;
             } else {
