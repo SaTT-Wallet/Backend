@@ -709,6 +709,7 @@ exports.multicall = async (tokens, addresses, network, web3) => {
 
         return amounts
     } catch (err) {
+        console.error(err)
         return new Array(tokens.length)
     }
 }
@@ -858,7 +859,7 @@ exports.getListCryptoByUid = async (req, res) => {
 
                 for (var i = 0; i < balancesBynetwork[T_network].length; i++) {
                     let crypto = tokensInfosByNetwork[T_network][i]
-
+                   
                     crypto.balance = balancesBynetwork[T_network][i]
                         ? web3s[Erc20NetworkConstant].utils
                               .toBN(balancesBynetwork[T_network][i])

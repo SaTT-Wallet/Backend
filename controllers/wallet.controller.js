@@ -148,7 +148,7 @@ exports.allwallets = async (req, res) => {
 }
 exports.userBalance = async (req, res) => {
     try {
-        if (req.user.hasWallet == true) {
+        if (req.user.hasWallet == true || req.user.hasWalletV2) {
             const balance = await getListCryptoByUid(req, res)
 
             let listOfCrypto = [...new Set(balance.listOfCrypto)]

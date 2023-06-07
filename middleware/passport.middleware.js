@@ -120,7 +120,7 @@ const handleSocialMediaSignin = async (query, cb) => {
 }
 
 
-const createUser = ({
+const createUser = (
     enabled,
     idSn,
     lang,
@@ -133,7 +133,7 @@ const createUser = ({
     firstName = null,
     lastName = null,
     password = null
-  }) => ({
+  ) => ({
     password: password ?? synfonyHash(crypto.randomUUID()),
     enabled,
     idSn,
@@ -549,9 +549,11 @@ exports.googleAuthSignup = async (
     let wallet = user && (await Wallet.findOne({ UserId: user._id }).lean())
 
     if (user && wallet) {
+        console.log('heeeeeeeeeeeeere')
         // return cb('account_already_used&idSn=' + user.idSn)
         await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
     } else {
+
         let createdUser = createUser(
             1,
             2,
@@ -565,6 +567,7 @@ exports.googleAuthSignup = async (
             profile.name.givenName,
             profile.name.familyName
         )
+        
         let user = await new User(createdUser).save()
         createdUser._id = user._id
         let token = generateAccessToken({ _id: createdUser._id })
