@@ -549,7 +549,6 @@ exports.googleAuthSignup = async (
     let wallet = user && (await Wallet.findOne({ UserId: user._id }).lean())
 
     if (user && wallet) {
-        console.log('heeeeeeeeeeeeere')
         // return cb('account_already_used&idSn=' + user.idSn)
         await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
     } else {
@@ -746,22 +745,19 @@ exports.addTwitterChannel = async (req, res) => {
     let user_id = +req.query.u
     let redirect = req.query.r
     const { oauth_verifier, oauth_token } = req.query
-    var twitterAccount = await twitterOauth(oauth_verifier, oauth_token)
+    var {oauth_token : accountToken,oauth_token_secret} = await twitterOauth(oauth_verifier, oauth_token)
+
     const userAuth = new Twitter(
         twitterAuth(
-            twitterAccount.oauth_token,
-            twitterAccount.oauth_token_secret
+            accountToken,
+            oauth_token_secret
         )
     )
-    var userData = await userAuth.get('account/verify_credentials', {
+     const { id, id_str, screen_name, name, followers_count, profile_image_url } = await userAuth.get('account/verify_credentials', {
         include_email: true,
     })
 
-    var twitterProfile = await TwitterProfile.findOne({
-        $and: [{ UserId: user_id }, { twitter_id: userData.id }],
-    }).lean()
-
-    if (twitterProfile) {
+    if (await TwitterProfile.exists({UserId: user_id ,  twitter_id: id })) {
         return res.redirect(
             process.env.BASED_URL +
                 redirect +
@@ -771,16 +767,16 @@ exports.addTwitterChannel = async (req, res) => {
         )
     } else {
         let profile = { _json: {} }
-        profile.access_token_key = twitterAccount.oauth_token
-        profile.access_token_secret = twitterAccount.oauth_token_secret
+        profile.access_token_key = accountToken
+        profile.access_token_secret = oauth_token_secret
         profile.UserId = user_id
-        profile.username = userData.screen_name
-        profile.subscibers = userData.followers_count
-        profile.twitter_id = userData.id
-        profile.id = userData.id_str
-        profile.displayName = userData.name
-        profile.photos = [{ value: userData.profile_image_url }]
-        profile._json.followers_count = userData.followers_count
+        profile.username = screen_name
+        profile.subscibers = followers_count
+        profile.twitter_id = id
+        profile.id = id_str
+        profile.displayName = name
+        profile.photos = [{ value: profile_image_url }]
+        profile._json.followers_count = followers_count
         await TwitterProfile.create(profile)
     }
     // return cb(null, { id: user_id })
