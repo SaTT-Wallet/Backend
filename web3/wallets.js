@@ -709,7 +709,6 @@ exports.multicall = async (tokens, addresses, network, web3) => {
 
         return amounts
     } catch (err) {
-        console.error(err)
         return new Array(tokens.length)
     }
 }
