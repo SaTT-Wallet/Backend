@@ -19,6 +19,10 @@ const validatePassword = () => Joi.string().min(8).required().custom((value) => 
 });
 
 
+// VALIDATION EMAIL
+const validateEmail = () => Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required()
+
+
 
 
 
@@ -35,18 +39,18 @@ const schemas = {
     }),
 
     emailConnectionSchema: Joi.object({
-        username: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        username: validateEmail(),
         password: validatePassword()
     }),
 
     codeRecoverSchema: Joi.object({
-        mail: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        mail: validateEmail(),
         lang: Joi.string()
     }),
     
     confirmCodeSchema: Joi.object({
         code: Joi.number().required(),
-        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        email: validateEmail(),
         type: Joi.string().required().custom((value) => {
             if(value === "reset" || value === "validation") return value;
             else throw Error("Type must be 'reset'")
@@ -55,19 +59,19 @@ const schemas = {
 
     passRecoverSchema: Joi.object({
         newpass: validatePassword(),
-        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        email: validateEmail(),
         code: Joi.number().required()
     }),
 
     emailSignupSchema: Joi.object({
         password: validatePassword(),
-        username: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        username: validateEmail(),
         lang: Joi.string(),
         newsLetter: Joi.boolean()
     }),
 
     resendConfirmationTokenSchema: Joi.object({
-        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        email: validateEmail(),
         lang: Joi.string()
     }),
 
@@ -97,7 +101,7 @@ const schemas = {
 
     updateLastStepSchema: Joi.object({
         completed: Joi.boolean().required(),
-        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        email: validateEmail(),
         firstName: Joi.string(),
         lastName: Joi.string()
     }),

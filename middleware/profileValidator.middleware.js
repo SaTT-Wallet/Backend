@@ -23,6 +23,9 @@ const validatePassword = () => Joi.string().min(8).required().custom((value) => 
 const validateAddress = (pattern) => Joi.string().required().pattern(new RegExp(pattern));
 
 
+// VALIDATION EMAIL
+const validateEmail = () => Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required()
+
 
 
 // SCHEMAS OBJECT
@@ -51,23 +54,23 @@ const schemas = {
 
     supportSchema: Joi.object({
         name: Joi.string().allow(''),
-        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        email: validateEmail(),
         subject: Joi.string().allow(''),
         message: Joi.string().allow('')
     }),
 
     changeEmailSchema: Joi.object({
         pass: validatePassword(),
-        email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        email: validateEmail(),
     }),
 
     requestMoneySchema: Joi.object({
         cryptoCurrency: Joi.string().required(),
-        from: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        from: validateEmail(),
         message: Joi.string().allow(''),
         name: Joi.string().allow(''),
         price: Joi.number().unsafe().required(),
-        to: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+        to: validateEmail(),
         wallet: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
     }),
 
@@ -81,7 +84,7 @@ const schemas = {
             birthday: Joi.string().allow('').required(),
             city: Joi.string().allow('').required(),
             country: Joi.string().allow('').required(),
-            email: Joi.string().email({ tlds: { allow: false } }).regex(/^[^@]+@[^@]+\.[^@]+$/).required(),
+            email: validateEmail(),
             firstName: Joi.string().allow('').required(),
             gender: Joi.string().allow('').required(),
             lastName: Joi.string().allow('').required(),
