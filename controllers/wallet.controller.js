@@ -57,6 +57,7 @@ const {
     exportkeyTron,
     getAccount,
     getPrices,
+    getChartVariation ,
     getListCryptoByUid,
     getBalanceByUid,
     getBalance,
@@ -252,7 +253,11 @@ exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
     return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
-
+exports.cryptoPriceDetails = async (req, res) => {
+    let chart = await getChartVariation(req.query.cryptolist)
+  
+    return responseHandler.makeResponseData(res, 200, 'success', chart)
+}
 exports.totalBalances = async (req, res) => {
     try {
         if (req.user.hasWallet == true) {

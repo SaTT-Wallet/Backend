@@ -56,6 +56,7 @@ const {
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
 
+
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -536,6 +537,7 @@ exports.getPrices = async () => {
                     'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
                 },
             }
+        
 
             let result 
 
@@ -565,6 +567,7 @@ exports.getPrices = async () => {
                 }
                 if (elem.name === 'SaTT') {
                     obj = {
+                        id: elem.id,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
                         tokenAddress: tokenAddress,
@@ -572,12 +575,13 @@ exports.getPrices = async () => {
                         name: elem.name,
                         price: elem?.quote.USD.price,
                         percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        percent_change_1h:elem?.quote.USD.percent_change_1h,
+                        percent_change_7d:elem?.quote.USD.percent_change_7d,
                         market_cap: elem?.quote.USD.market_cap,
                         volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
                         total_supply: elem.total_supply,
                         max_supply: elem.max_supply,
-
                         fully_diluted:
                             responseSattJet.data.SATT?.quote.USD
                                 .fully_diluted_market_cap,
@@ -588,6 +592,7 @@ exports.getPrices = async () => {
                     }
                 } else
                     obj = {
+                        id: elem.id,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
                         tokenAddress: tokenAddress,
@@ -595,6 +600,8 @@ exports.getPrices = async () => {
                         name: elem.name,
                         price: elem?.quote.USD.price,
                         percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        percent_change_1h:elem?.quote.USD.percent_change_1h,
+                        percent_change_7d:elem?.quote.USD.percent_change_7d,
                         market_cap: elem?.quote.USD.market_cap,
                         volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
@@ -638,6 +645,70 @@ exports.getPrices = async () => {
     } catch (err) {}
 }
 
+exports.getChartVariation = async(cryptolist) => {
+    try{
+        if (
+        cache.get('chartPrices') &&
+        Date.now() - new Date(cache.get('chartPrices')?.date).getTime() < 1200000 ) 
+        {
+        return cache.get('charts').data
+        } else {
+        const endDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+        const startDate = endDate - (7 * 24 * 60 * 60);
+        const options = {
+            method: 'GET',
+            url: 'https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical',
+            params: {
+                id: cryptolist,
+                time_start:startDate,
+                time_end:endDate,
+                interval:'hourly',
+            },
+            headers: {
+                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+            },
+           
+        }
+        var results 
+        try {
+            results = await Promise.all([ rp.request(options)])
+         
+        } catch (error) {
+            throw new Error('Error fetching prices chart')
+        }
+        var result = await results[0]
+        var cryptoInfo
+        var priceVariation =[]
+        try {
+         
+             
+     cryptoInfo =result.data.data
+     Object.values(cryptoInfo).forEach(innerObj => {
+       let sparkline_in_7d= innerObj.quotes.map((elem)=>{
+      return elem.quote.USD.price
+       })
+       priceVariation.push({
+        id: innerObj.id,
+        name: innerObj.name,
+        sparkline_in_7d : sparkline_in_7d,
+      })
+     
+     });
+
+        }catch (error) {
+            throw new Error('Error fetching prices char')
+        }
+       
+       
+    }
+     chartPrices= { data: priceVariation, date: Date.now() }
+        cache.put('chartPrices', priceVariation)
+return  priceVariation
+    } catch(err){
+  throw new Error('Error fetching prices char')
+    }
+
+}
 exports.filterAmount = function (input, nbre = 10) {
     if (input) {
         var out = input

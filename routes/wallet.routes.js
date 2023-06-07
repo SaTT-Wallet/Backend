@@ -34,6 +34,7 @@ const {
     checkIsNewUser,
     getCodeKeyStore,
     exportKeyStore,
+    cryptoPriceDetails,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -251,6 +252,30 @@ router.get('/polygonGasPrice', gasPricePolygon)
  *          description: error:"error"
  */
 router.get('/cryptoDetails', cryptoDetails)
+
+/**
+ * @swagger
+ * /wallet/cryptoPriceDetails:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: cryptolist
+ *         required: false
+ *         type: string
+ *         description: The list of cryptos to get details for, separated by commas
+ *     responses:
+ *       "200":
+ *         description: code,<br>message:"success"
+ *       "500":
+ *         description: error:"error"
+ */
+router.get('/cryptoPriceDetails', cryptoPriceDetails);
 
 /**
  * @swagger
