@@ -198,6 +198,13 @@ const storage = new GridFsStorage({
     },
 })
 
+async function fetchCampaign(query) {
+    return await Campaigns.findOne(
+        query,
+        { logo: 0, resume: 0, description: 0, tags: 0, cover: 0 }
+    ).lean();
+}
+
 exports.swapTrx = async (req, res) => {
     try {
         let privateKey = req.body.privateKey
@@ -927,18 +934,7 @@ exports.apply = async (req, res) => {
             id,
             prom.instagramUserName
         )
-        // var ret = await applyCampaign(
-        //     hash,
-        //     typeSN,
-        //     idPost,
-        //     idUser,
-        //     cred,
-        //     tronWeb,
-        //     campaignDetails.token,
-        //     prom.abosNumber
-        // )
 
-        //prom.id_prom = ret.idProm
         prom.applyerSignature = signature
         prom.typeSN = typeSN.toString()
         prom.idUser = idUser
@@ -986,85 +982,25 @@ exports.apply = async (req, res) => {
         )
     } finally {
         cred && lock(cred)
-        // if (ret?.transactionHash) {
-        //     await notificationManager(id, 'apply_campaign', {
-        //         cmp_name: title,
-        //         cmp_hash: idCampaign,
-        //         // hash,
-        //         txhash: ret?.transactionHash,
-        //         network: campaignDetails.token.type,
-        //     })
-        //     prom.id_prom = ret.idProm
-        //     prom.typeSN = typeSN.toString()
-        //     prom.idUser = idUser
-        //     if (media_url) prom.media_url = media_url
-        //     if (prom.typeSN == 5) {
-        //         prom.typeURL = linkedinInfo.idPost.split(':')[2]
-        //         prom.linkedinId = linkedinId
-        //     }
-        //     prom.id_wallet =
-        //         (!!tronWeb && walletAddr) || cred.address.toLowerCase()
-        //     prom.idPost = idPost
-        //     prom.id_campaign = hash
-        //     prom.appliedDate = date
-        //     prom.oracle = findBountyOracle(prom.typeSN)
-        //     var insert = await CampaignLink.create(prom)
-
-        //     let socialOracle = await getPromApplyStats(
-        //         prom.oracle,
-        //         prom,
-        //         id,
-        //         linkedinProfile,
-        //         tiktokProfile
-        //     )
-
-        //     prom.views = socialOracle?.views || 0
-        //     prom.likes = socialOracle?.likes || 0
-        //     prom.shares = socialOracle?.shares || 0
-        //     prom.media_url = media_url || socialOracle?.media_url
-
-        //     let event = {
-        //         id: hash,
-        //         prom: ret.idProm,
-        //         type: 'applied',
-        //         date: date,
-        //         txhash: ret.transactionHash,
-        //         contract: campaignDetails.contract.toLowerCase(),
-        //         owner: campaignDetails.contract.toLowerCase(),
-        //         media_url: prom.media_url,
-        //     }
-
-        //     await Promise.allSettled([
-        //         CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
-        //         Event.create(event),
-        //     ])
-        // }
     }
 }
 
 exports.linkNotifications = async (req, res) => {
-    req.body = sanitize(req.body);
+    // Sanitize and destructure the request body
+    const { idCampaign: campaignId, link, idProm } = sanitize(req.body);
+    // Set the language for translation
     const lang = req.query.lang || 'en'
     configureTranslation(lang)
 
     try {
-        const _id = req.body.idCampaign
-        const link = req.body.link
-        const idProm = req.body.idProm
-        const element = await Campaigns.findOne(
-            { _id },
-            {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-            }
-        )
+        // Fetch the campaign
+        const element =  await fetchCampaign({_id:campaignId});
         let owner = Number(element.idNode.substring(1))
+
+        // Notify the campaign owner
         await notificationManager(owner, 'cmp_candidate_insert_link', {
             cmp_name: element.title,
-            cmp_hash: _id,
+            cmp_hash: campaignId,
             linkHash: idProm,
         })
 
@@ -1079,7 +1015,7 @@ exports.linkNotifications = async (req, res) => {
             null,
             link
         )
-
+         // Respond with succes
         return responseHandler.makeResponseData(
             res,
             200,
@@ -1096,13 +1032,13 @@ exports.linkNotifications = async (req, res) => {
 }
 
 exports.validateCampaign = async (req, res) => {
-    const _id = req.body.idCampaign
+    /*const _id = req.body.idCampaign
     const linkProm = req.body.link
     const idLink = req.body.idLink
-    const idApply = req.body.signature
-    const idUser = '0' + req.user._id
-    const pass = req.body.pass
-
+    const idApply = req.body.signature*/
+    const idUser = `0${req.user._id}`;
+    //const pass = req.body.pass
+    const {idCampaign: _id,idLink, signature:idApply, link : linkProm, pass }= req.body
     let signature
     let ownerLink
     if (!mongoose.Types.ObjectId.isValid(_id)) {
@@ -1112,16 +1048,8 @@ exports.validateCampaign = async (req, res) => {
             'Please enter a valid id!'
         )
     }
-    const campaign = await Campaigns.findOne(
-        { _id },
-        {
-            logo: 0,
-            resume: 0,
-            description: 0,
-            tags: 0,
-            cover: 0,
-        }
-    ).lean()
+    const campaign = await fetchCampaign({_id});
+ 
     try {
         if (idUser === campaign?.idNode) {
             const lang = 'en'
