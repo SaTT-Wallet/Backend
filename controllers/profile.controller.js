@@ -158,6 +158,7 @@ exports.profilePicture = async (req, response) => {
 
 module.exports.addProfilePicture = async (req, res) => {
     try {
+        
         if (req.file) {
             await gfsprofilePic.files.findOneAndDelete({
                 'user.$id': req.user._id,
@@ -237,7 +238,6 @@ exports.addUserLegalProfile = async (req, res) => {
         const id = req.user._id
         const idNode = '0' + id
         let type = req.body.type
-
         if (type && req.file) {
             await gfsUserLegal.files.deleteMany({
                 $and: [{ idNode }, { type }],
@@ -548,7 +548,7 @@ exports.UpdateIntersts = async (req, res) => {
 }
 exports.tiktokApiAbos = async (req, res) => {
     try {
-        let abos = await tiktokAbos(req.params.userId)
+        let abos = await tiktokAbos(req.params.idUser)
         return makeResponseData(res, 200, 'success', abos)
     } catch (err) {
         return makeResponseError(
@@ -1031,7 +1031,7 @@ module.exports.verifyLink = async (req, response) => {
 module.exports.convertIdToFbUsername = async (req, res) => {
     try {
         idUser = req.user._id
-        var idLink = req.params.idLink
+        var idLink = req.params.id
         let usernamefb = await getFacebookUsername(idUser, idLink)
         return makeResponseData(
             res,
