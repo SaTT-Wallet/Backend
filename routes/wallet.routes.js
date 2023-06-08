@@ -53,7 +53,8 @@ const {
     paymentRequestValidation,
     getQuoteValidation,
     sendTokenValidation,
-    migrationWalletValidation
+    migrationWalletValidation,
+    cryptoListValidation
 } = require('../middleware/walletValidator.middleware')
 
 /**
@@ -275,7 +276,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *         description: error:"error"
  */
-router.get('/cryptoPriceDetails', cryptoPriceDetails);
+router.get('/cryptoPriceDetails',cryptoListValidation, cryptoPriceDetails);
 
 /**
  * @swagger

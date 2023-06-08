@@ -647,12 +647,7 @@ exports.getPrices = async () => {
 
 exports.getChartVariation = async(cryptolist) => {
     try{
-        if (
-        cache.get('chartPrices') &&
-        Date.now() - new Date(cache.get('chartPrices')?.date).getTime() < 1200000 ) 
-        {
-        return cache.get('charts').data
-        } else {
+       
         const endDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
         const startDate = endDate - (7 * 24 * 60 * 60);
         const options = {
@@ -700,9 +695,7 @@ exports.getChartVariation = async(cryptolist) => {
         }
        
        
-    }
-     chartPrices= { data: priceVariation, date: Date.now() }
-        cache.put('chartPrices', priceVariation)
+   
 return  priceVariation
     } catch(err){
   throw new Error('Error fetching prices char')
