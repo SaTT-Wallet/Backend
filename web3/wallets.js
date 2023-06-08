@@ -513,6 +513,7 @@ exports.getPrices = async () => {
         ) {
             return cache.get('prices').data
         } else {
+          
             const options = {
                 method: 'GET',
                 url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
@@ -544,7 +545,7 @@ exports.getPrices = async () => {
             try {
                 result = await Promise.all([
                     rp.request(options),
-                    rp.request(options2),
+                    rp.request(options2)
                 ])
 
             } catch (error) {
@@ -702,6 +703,32 @@ return  priceVariation
     }
 
 }
+exports.getGlobalCryptoMarket = async () =>{
+    try {const options = {
+        method: 'GET',
+        url: 'https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest',
+        params: {
+            convert: 'USD',
+        },
+        headers: {
+            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+        },
+    }
+    var result
+    try{
+        result = await Promise.all([rp.request(options) ])
+    } 
+    catch(err){
+        throw new Error('Error fetching Global Crypto Market Info')
+    }
+    return result[0]?.data?.data?.quote?.USD
+} catch(err){
+    throw new Error('Error fetching Global Crypto Market Info')
+}
+
+
+}
+
 exports.filterAmount = function (input, nbre = 10) {
     if (input) {
         var out = input

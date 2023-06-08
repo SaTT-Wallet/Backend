@@ -57,7 +57,8 @@ const {
     exportkeyTron,
     getAccount,
     getPrices,
-    getChartVariation ,
+    getChartVariation,
+    getGlobalCryptoMarket,
     getListCryptoByUid,
     getBalanceByUid,
     getBalance,
@@ -257,6 +258,10 @@ exports.cryptoPriceDetails = async (req, res) => {
     let chart = await getChartVariation(req.query.cryptolist)
   
     return responseHandler.makeResponseData(res, 200, 'success', chart)
+}
+exports.globalCryptoMarketInfo = async (req, res) =>{
+    const global = await getGlobalCryptoMarket()
+    return responseHandler.makeResponseData(res, 200, 'success', global)
 }
 exports.totalBalances = async (req, res) => {
     try {

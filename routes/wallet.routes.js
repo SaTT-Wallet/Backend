@@ -35,6 +35,7 @@ const {
     getCodeKeyStore,
     exportKeyStore,
     cryptoPriceDetails,
+    globalCryptoMarketInfo,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -235,6 +236,25 @@ router.get('/TrxGasPrice', gasPriceTrx)
  */
 
 router.get('/polygonGasPrice', gasPricePolygon)
+
+
+/**
+* @swagger
+* /wallet/globalCryptoMarketInfo:
+*   get:
+*     tags:
+*     - "wallets"
+*     summary: get crypto list details
+*     description: return detail of crypto list to user <br> without access_token
+*     produces:
+*       - application/json
+*     responses:
+*       "200":
+*          description: code,<br>message:"success"
+*       "500":
+*          description: error:"error"
+*/
+router.get('/globalCryptoMarketInfo', globalCryptoMarketInfo)
 
 /**
  * @swagger
