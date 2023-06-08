@@ -29,7 +29,7 @@
         "bip38": "^2.0.3",
         "bip39": "^3.0.3",
         "bitcoinjs-lib": "^4.0.3",
-        "bitcore-lib": "^8.23.1",
+        "bitcore-lib": "^8.25.47",
         "body-parser": "^1.18.3",
         "chai": "^4.3.6",
         "chai-as-promised": "^7.1.1",
