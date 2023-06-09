@@ -1,5 +1,5 @@
 var requirement = require('../helpers/utils')
-var readHTMLFileCampaign = requirement.readHTMLFileCampaign
+var {readHTMLFileCampaign} = requirement
 var sanitize = require('mongo-sanitize')
 const multer = require('multer')
 const Big = require('big.js')
@@ -70,7 +70,6 @@ const {
     sortOutPublic,
     getUserIdByWallet,
     getLinkedinLinkInfo,
-    applyCampaign,
     getRemainingFunds,
     validateProm,
     filterLinks,
@@ -155,8 +154,7 @@ const {
     answerBounty,
     answerOne,
     limitStats,
-    answerCall,
-    tiktokAbos,
+    answerCall
 } = require('../manager/oracles')
 const { updateStat } = require('../helpers/common')
 const sharp = require('sharp')
@@ -204,6 +202,32 @@ async function fetchCampaign(query) {
         { logo: 0, resume: 0, description: 0, tags: 0, cover: 0 }
     ).lean();
 }
+
+//Abstracted functon to use in diffrent campaign blockchain functions
+const setupTronWeb = async _ => {
+    const tronCampaignKeystore = fs.readFileSync(
+        process.env.CAMPAIGN_TRON_WALLET_PATH,
+        'utf8'
+    );
+    const tronCampaignWallet = JSON.parse(tronCampaignKeystore);
+    const ethAddr = tronCampaignWallet.address.slice(2);
+    tronCampaignWallet.address = ethAddr;
+    const webTron = getWeb3Connection(
+        networkProviders['ERC20'],
+        networkProvidersOptions['ERC20']
+    );
+    const wallet = webTron.eth.accounts.decrypt(
+        tronCampaignWallet,
+        process.env.CAMPAIGN_TRON_OWNER_PASS
+    );
+    const tronWeb = await webTronInstance();
+
+    tronWeb.setPrivateKey(wallet.privateKey.slice(2));
+    const walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2));
+    tronWeb.setAddress(walletAddr);
+    return tronWeb;
+}
+
 
 exports.swapTrx = async (req, res) => {
     try {
@@ -631,49 +655,15 @@ exports.campaignDetails = async (req, res) => {
 }
 
 exports.campaignPromp = async (req, res) => {
-    var _id = req.params.id
     try {
-        var _id = req.params.id
-        const campaign = await Campaigns.findOne(
-            { _id },
-            {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-            }
-        )
-
+        var {_id} = req.params
+    
+        const campaign = await fetchCampaign({ _id })
         var tronWeb
-        var webTron
-        if (campaign.token.type === 'TRON') {
-            var tronCampaignKeystore = fs.readFileSync(
-                process.env.CAMPAIGN_TRON_WALLET_PATH,
-                'utf8'
-            )
-            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
 
-            let ethAddr = tronCampaignWallet.address.slice(2)
-            tronCampaignWallet.address = ethAddr
-
-            webTron = getWeb3Connection(
-                networkProviders['ERC20'],
-                networkProvidersOptions['ERC20']
-            )
-
-            let wallet = webTron.eth.accounts.decrypt(
-                tronCampaignWallet,
-                process.env.CAMPAIGN_TRON_OWNER_PASS
-            )
-
-            tronWeb = await webTronInstance()
-            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
-            let walletAddr = tronWeb.address.fromPrivateKey(
-                wallet.privateKey.slice(2)
-            )
-            tronWeb.setAddress(walletAddr)
-        }
+         tronWeb = await setupTronWeb();
+        
+        campaign.token.type === 'TRON' &&(tronWeb = await setupTronWeb())
         var cred = []
 
         cred.WEB3 = getWeb3Connection(
@@ -845,10 +835,10 @@ exports.apply = async (req, res) => {
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
 
     try {
-        let promExist = await CampaignLink.findOne({
+        let promExist = await CampaignLink.exists({
             id_campaign: hash,
             idPost,
-        }).lean()
+        })
         if (promExist) {
             return responseHandler.makeResponseError(
                 res,
@@ -1610,32 +1600,32 @@ exports.addKits = async (req, res) => {
         let idCampaign = ObjectId(req.body.campaign)
 
         if (files) {
-            files.forEach((file) => {
-                gfsKit.files.updateOne(
-                    { _id: file.id },
-                    {
-                        $set: {
-                            campaign: {
-                                $ref: 'campaign',
-                                $id: idCampaign,
-                                $db: 'atayen',
-                            },
-                        },
-                    }
-                )
-            })
-        }
-        if (links) {
-            links.forEach((link) => {
-                gfsKit.files.insertOne({
-                    campaign: {
+            await Promise.all(files.map((file) => {
+                return gfsKit.files.updateOne(
+                  { _id: file.id },
+                  {
+                    $set: {
+                      campaign: {
                         $ref: 'campaign',
                         $id: idCampaign,
                         $db: 'atayen',
+                      },
                     },
-                    link: link,
-                })
-            })
+                  }
+                );
+              }));
+        }
+        if (links) {
+            await Promise.all(links.map((link) => {
+                return gfsKit.files.insertOne({
+                  campaign: {
+                    $ref: 'campaign',
+                    $id: idCampaign,
+                    $db: 'atayen',
+                  },
+                  link: link,
+                });
+              }));
         }
         return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false)
     } catch (err) {
