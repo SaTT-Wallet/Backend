@@ -516,7 +516,7 @@ exports.getPrices = async () => {
           
             const options = {
                 method: 'GET',
-                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                url: process.env.CMC_URl,
                 params: {
                     start: '1',
                     limit: '200',
@@ -529,7 +529,7 @@ exports.getPrices = async () => {
 
             const options2 = {
                 method: 'GET',
-                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',
+                url: process.env.CMC_CRYPTO_URL,
                 params: {
                     symbol: 'SATT,JET,BTT',
                     convert: 'USD',
@@ -653,7 +653,7 @@ exports.getChartVariation = async(cryptolist) => {
         const startDate = endDate - (7 * 24 * 60 * 60);
         const options = {
             method: 'GET',
-            url: 'https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical',
+            url:  process.env.CMC_HISTORY_URL,
             params: {
                 id: cryptolist,
                 time_start:startDate,
@@ -706,7 +706,7 @@ return  priceVariation
 exports.getGlobalCryptoMarket = async () =>{
     try {const options = {
         method: 'GET',
-        url: 'https://pro-api.coinmarketcap.com/v1/global-metrics/quotes/latest',
+        url: process.env.CMC_GLOBL_URL,
         params: {
             convert: 'USD',
         },
