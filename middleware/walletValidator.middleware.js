@@ -164,7 +164,7 @@ const validationCustomMiddleware = (schemaBody, schemaQuery) => (req, res, next)
         else next();
     }
 }
-const cryptoListValidation = validationMiddleware(schemas.cryptoListSchema, 'query');
+
 
 
 
@@ -182,5 +182,5 @@ module.exports = {
     getQuoteValidation: validationMiddleware(schemas.getQuoteSchema, 'body'),
     sendTokenValidation: validationCustomMiddleware(schemas.sendTokenSchema, schemas.maxSendTokenQuerySchema),
     migrationWalletValidation: validationMiddleware(schemas.migrationWalletSchema, 'body'),
-    cryptoListValidation
+    cryptoListValidation :validationMiddleware(schemas.cryptoListSchema, 'query'),
 };
