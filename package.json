@@ -112,7 +112,7 @@
         "path": "^0.12.7",
         "peer": "^1.0.0",
         "puppeteer": "^14.4.0",
-        "qrcode": "^1.5.0",
+        "qrcode": "^1.5.3",
         "reactstrap": "^9.1.6",
         "request-promise": "^4.2.6",
         "rlp": "^2.1.0",
