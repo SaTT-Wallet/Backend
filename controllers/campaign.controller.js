@@ -206,32 +206,6 @@ async function fetchCampaign(query) {
     ).lean();
 }
 
-//Abstracted functon to use in diffrent campaign blockchain functions
-const setupTronWeb = async _ => {
-    const tronCampaignKeystore = fs.readFileSync(
-        process.env.CAMPAIGN_TRON_WALLET_PATH,
-        'utf8'
-    );
-    const tronCampaignWallet = JSON.parse(tronCampaignKeystore);
-    const ethAddr = tronCampaignWallet.address.slice(2);
-    tronCampaignWallet.address = ethAddr;
-    const webTron = getWeb3Connection(
-        networkProviders['ERC20'],
-        networkProvidersOptions['ERC20']
-    );
-    const wallet = webTron.eth.accounts.decrypt(
-        tronCampaignWallet,
-        process.env.CAMPAIGN_TRON_OWNER_PASS
-    );
-    const tronWeb = await webTronInstance();
-
-    tronWeb.setPrivateKey(wallet.privateKey.slice(2));
-    const walletAddr = tronWeb.address.fromPrivateKey(wallet.privateKey.slice(2));
-    tronWeb.setAddress(walletAddr);
-    return tronWeb;
-}
-
-
 exports.swapTrx = async (req, res) => {
     try {
         let privateKey = req.body.privateKey
