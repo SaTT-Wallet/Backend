@@ -171,6 +171,10 @@ const schemas = {
             } else throw Error("Version supported are v1 / v2");
         }),
         state: Joi.string(),
+        oracles: Joi.alternatives().try(
+            Joi.string(),
+            Joi.array()
+        ),
 
     }),
 
@@ -214,7 +218,7 @@ const schemas = {
         token: Joi.object({
             name: Joi.string().required(),
             type: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
-            addr: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$")
+            addr: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").allow(null)
         })
     }),
 
@@ -223,8 +227,8 @@ const schemas = {
     updateCampaignSchema: Joi.object({
         bounties: Joi.array(),
         brand: Joi.string().allow(''),
-        cost: Joi.number().unsafe(),
-        cost_usd: Joi.number().unsafe(),
+        cost: Joi.string().allow(null).allow(''),
+        cost_usd: Joi.string(),
         countries: Joi.array(),
         description:  Joi.string().allow(''),
         endDate: Joi.number().unsafe(),
@@ -239,8 +243,13 @@ const schemas = {
         token: Joi.object({
             name: Joi.string(),
             type: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
-            addr: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$")
-        })
+            addr: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").allow(null)
+        }),
+        logo: Joi.string().allow(''),
+        cover: Joi.string().allow(''),
+        coverMobile: Joi.string().allow(''),
+        coverSrc:Joi.string().allow(''),
+        coverSrcMobile: Joi.string().allow('')
     }),
 
     checkFileSchema: Joi.object({
