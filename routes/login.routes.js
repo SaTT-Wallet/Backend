@@ -33,7 +33,6 @@ try {
     router.use(passport.session())
 } catch (e) {}
 const {
-    walletConnection,
     changePassword,
     socialdisconnect,
     captcha,
@@ -45,15 +44,11 @@ const {
     saveFirebaseAccessToken,
     updateLastStep,
     authApple,
-    socialSignUp,
-    socialSignin,
     getQrCode,
     verifyQrCode,
     purgeAccount,
     logout,
-    getToken,
     setVisitSignUpStep,
-    signupRequest,
     verifyExpiredToken
 } = require('../controllers/login.controller')
 const {
@@ -75,6 +70,23 @@ const {
     facebookCredentials,
     googleCredentials,
 } = require('../conf/config')
+const {
+    purgeAccountValidation,
+    changePasswordValidation,
+    emailConnectionValidation,
+    codeRecoverValidation,
+    confirmCodeValidation,
+    passRecovervalidation,
+    emailSignupValidation,
+    resendConfirmationTokenValidation,
+    authAppleValidation,
+    logoutValidation,
+    setVisitSignUpStepValidation,
+    socialdisconnectValidation,
+    saveFirebaseAccessTokenValidation,
+    updateLastStepValidation,
+    verifyQrCodeValidation
+} = require('../middleware/authValidator.middleware')
 const { profile } = require('winston')
 
 function authSignInErrorHandler(err, req, res, next) {
@@ -163,7 +175,7 @@ router.post('/verifyCaptcha', verifyCaptcha)
  *       "500":
  *          description: code,<br>error
  */
-router.post('/purge', verifyAuth, purgeAccount)
+router.post('/purge', verifyAuth, purgeAccountValidation,purgeAccount)
 
 /**
  * @swagger
@@ -193,7 +205,7 @@ router.post('/purge', verifyAuth, purgeAccount)
  *       "500":
  *          description: error:"error"
  */
-router.post('/changePassword', verifyAuth, changePassword)
+router.post('/changePassword', verifyAuth, changePasswordValidation,changePassword)
 /**
  * @swagger
  * /auth/signin/mail:
@@ -220,35 +232,9 @@ router.post('/changePassword', verifyAuth, changePassword)
  *       "500":
  *          description: error=eror
  */
-router.post('/signin/mail', emailConnection)
+router.post('/signin/mail', emailConnectionValidation , emailConnection)
 
-/**
- * @swagger
- * /auth/walletconnect:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: signin using WalletConnect.
- *     description: Check if wallet address is exist and return access token <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               address:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user "}
- *       "401":
- *          description: code,<br>error
- *       "500":
- *          description: error=eror
- */
-router.post('/walletconnect', walletConnection)
+
 
 /**
  * @swagger
@@ -278,9 +264,8 @@ router.post('/walletconnect', walletConnection)
  *       "500":
  *          description: error=eror
  */
-router.post('/passlost', codeRecover)
+router.post('/passlost', codeRecoverValidation,codeRecover)
 
-router.get('/getToken/:id', getToken)
 
 /**
  * @swagger
@@ -312,7 +297,7 @@ router.get('/getToken/:id', getToken)
  *       "500":
  *          description: error=eror
  */
-router.post('/confirmCode', confirmCode)
+router.post('/confirmCode', confirmCodeValidation,confirmCode)
 
 /**
  * @swagger
@@ -343,7 +328,7 @@ router.post('/confirmCode', confirmCode)
  *       "500":
  *          description: error=eror
  */
-router.post('/passrecover', passRecover)
+router.post('/passrecover', passRecovervalidation , passRecover)
 
 /**
  * @swagger
@@ -375,7 +360,7 @@ router.post('/passrecover', passRecover)
  *       "500":
  *          description: error=eror
  */
-router.post('/signup/mail', emailSignup)
+router.post('/signup/mail', emailSignupValidation , emailSignup)
 
 /**
  * @swagger
@@ -718,7 +703,7 @@ passport.use(
  *       "500":
  *          description: error=eror
  */
-router.post('/resend/confirmationToken', resendConfirmationToken)
+router.post('/resend/confirmationToken', resendConfirmationTokenValidation , resendConfirmationToken)
 
 /**
  * @swagger
@@ -746,7 +731,7 @@ router.post('/resend/confirmationToken', resendConfirmationToken)
  *       "500":
  *          description: error:error message
  */
-router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
+router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessTokenValidation,saveFirebaseAccessToken)
 
 /**
  * @swagger
@@ -778,7 +763,7 @@ router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessToken)
  *       "500":
  *          description: error
  */
-router.put('/updateLastStep', verifyAuth, updateLastStep)
+router.put('/updateLastStep', verifyAuth, updateLastStepValidation ,updateLastStep)
 
 /**
  * @swagger
@@ -810,75 +795,8 @@ router.put('/updateLastStep', verifyAuth, updateLastStep)
  *       "500":
  *          description: error
  */
-router.post('/apple', authApple)
+router.post('/apple', authAppleValidation,authApple)
 
-/**
- * @swagger
- * /auth/socialSignup:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: register with social for apple.
- *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               lang:
- *                 type: string
- *               idSn:
- *                 type: number
- *               id:
- *                 type: string
- *               photo:
- *                 type: string
- *               givenName:
- *                 type: string
- *               familyName:
- *                 type: string
- *               newsLetter:
- *                 type: boolean
- *     responses:
- *       "200":
- *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
- *       "401":
- *          description: code,<br>message:"account_exists"
- *       "500":
- *          description: error
- */
-router.post('/socialSignup', socialSignUp)
-
-/**
- * @swagger
- * /auth/socialSignin:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: auth with social for apple.
- *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               idSn:
- *                 type: number
- *               id:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message,<br>param:{"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"}
- *       "401":
- *          description: code,<br>message
- *       "500":
- *          description: error
- */
-router.post('/socialSignin', socialSignin)
 
 /**
  * @swagger
@@ -899,28 +817,9 @@ router.post('/socialSignin', socialSignin)
  *       "500":
  *          description: error:"error"
  */
-router.put('/disconnect/:social', verifyAuth, socialdisconnect)
+router.put('/disconnect/:social', verifyAuth, socialdisconnectValidation , socialdisconnect)
 
-/**
- * @swagger
- * /auth/disconnect/{social}:
- *   put:
- *     tags:
- *     - "auth"
- *     summary: disconnect social account.
- *     description: user enter his social network to disconnect <br> with access_token.
- *     parameters:
- *       - name: social
- *         description: social can be facebook , google or telegram.
- *         in: path
- *         required: true
- *     responses:
- *       "200":
- *          description: code,<br>message:"deconnect successfully from social
- *       "500":
- *          description: error
- */
-router.put('/disconnect/:social', verifyAuth, socialdisconnect)
+
 
 /**
  * @swagger
@@ -960,7 +859,7 @@ router.get('/qrCode', verifyAuth, getQrCode)
  *       "500":
  *          description: error
  */
-router.post('/verifyQrCode', verifyAuth, verifyQrCode)
+router.post('/verifyQrCode', verifyAuth, verifyQrCodeValidation,verifyQrCode)
 
 /**
  * @swagger
@@ -976,7 +875,7 @@ router.post('/verifyQrCode', verifyAuth, verifyQrCode)
  *       "500":
  *          description: error
  */
-router.get('/logout/:idUser', logout)
+router.get('/logout/:idUser', logoutValidation ,logout)
 
 /**
  * @swagger
@@ -1004,7 +903,7 @@ router.get('/logout/:idUser', logout)
  *       "500":
  *          description: error=eror
  */
-router.post('/satt-connect', sattConnect)
+router.post('/satt-connect', emailConnectionValidation,sattConnect)
 
 /**
  * @swagger
@@ -1032,35 +931,9 @@ router.post('/satt-connect', sattConnect)
  *       "500":
  *          description: error=eror
  */
-router.post('/setVisitSignUpStep', setVisitSignUpStep)
+router.post('/setVisitSignUpStep', setVisitSignUpStepValidation,setVisitSignUpStep)
 
-/**
- * @swagger
- * /auth/email/signup:
- *   post:
- *     tags:
- *     - "auth"
- *     summary: Signup Request .
- *     description: send signup request if user doesn't have a satt account.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *     responses:
- *       "200":
- *          description: Email was sent, {"code":"status code","message":"Email was sent"}
- *       "400":
- *          description: error:<br> please provide a valid email address!
- *       "406":
- *          description: error:<br> Account already exist
- *       "500":
- *          description: error:<br> server error
- */
-router.post('/email/signup', signupRequest)
+
 
 
 

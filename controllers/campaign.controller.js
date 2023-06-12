@@ -168,7 +168,7 @@ const { token } = require('morgan')
 const { request } = require('http')
 const { URL } = require('url');
 const { http, https } = require('follow-redirects');
-const { Console } = require('console')
+
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -1573,7 +1573,7 @@ exports.saveCampaign = async (req, res) => {
 
 exports.kits = async (req, res) => {
     try {
-        const idCampaign = req.params.idCampaign
+        const idCampaign = req.params.id
         gfsKit.files
             .find({ 'campaign.$id': ObjectId(idCampaign) })
             .toArray((err, files) => {
@@ -1694,7 +1694,7 @@ exports.update = async (req, res) => {
         let campaign = req.body
         campaign.updatedAt = Date.now()
         let updatedCampaign = await Campaigns.findOneAndUpdate(
-            { _id: req.params.idCampaign , idNode: '0'+req.user._id},
+            { _id: req.params.id , idNode: '0'+req.user._id},
             { $set: campaign },
             { new: true }
         )
@@ -1725,7 +1725,7 @@ exports.update = async (req, res) => {
 module.exports.linkStats = async (req, res) => {
     try {
         let totalToEarn
-        const idProm = req.params.idProm
+        const idProm = req.params.id
 
         const info = await CampaignLink.findOne({ id_prom: idProm }).lean();
               

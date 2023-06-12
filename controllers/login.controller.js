@@ -154,15 +154,6 @@ exports.walletConnection = async (req, res) => {
 }
 
 exports.codeRecover = async (req, res) => {
-    const validateEmail = /\S+@\S+\.\S+/
-
-    if (!validateEmail.test(req.body.mail.toLowerCase())) {
-        return responseHandler.makeResponseError(
-            res,
-            400,
-            'please enter a valid email address!'
-        )
-    }
     try {
         let dateNow = Math.floor(Date.now() / 1000)
         let lang = req.body.lang || 'en'
