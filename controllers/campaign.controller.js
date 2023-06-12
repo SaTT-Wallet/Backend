@@ -88,7 +88,6 @@ const {
 
 const {
     getWeb3Connection,
-    getHttpProvider,
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
@@ -117,17 +116,21 @@ const ipfsConnect = async () => {
     return ipfs
 }
 
-let calcSNStat = (objNw, link) => {
-    objNw.total++
+const calcSNStat = (objNw, link) => {
+    objNw.total++;
     if (link.status !== 'rejected') {
-        if (link.views) objNw.views += Number(link.views)
-        if (link.likes) objNw.likes += Number(link.likes)
-        if (link.shares) objNw.shares += Number(link.shares)
-        if (link.status === true) objNw.accepted++
-        if (link.status === false) objNw.pending++
-    } else objNw.rejected++
-    return objNw
-}
+        const fields = ['views', 'likes', 'shares'];
+        fields.forEach(field => {
+         link[field] &&
+                (objNw[field] += Number(link[field]));    
+        });
+        link.status === true && objNw.accepted++ || objNw.pending++
+    } else {
+        objNw.rejected++;
+    }
+    
+    return objNw;
+};
 
 let initStat = () => {
     return {
@@ -2312,11 +2315,7 @@ exports.getLinks = async (req, res) => {
                 !!accountData.walletV2?.tronAddress &&
                 (await CampaignLink.aggregate([
                     {
-                        $match: (version === 'v1' && query2) || query4 /*{
-                            id_wallet: {
-                                $in: [query2.id_wallet, query4.id_wallet],
-                            },
-                        },*/,
+                        $match: (version === 'v1' && query2) || query4
                     },
                     {
                         $addFields: {
@@ -2489,67 +2488,55 @@ module.exports.campaignInvested = async (req, res) => {
     } catch (e) {}
 }
 
+//REJECT influencer link controller by advertiser
 exports.rejectLink = async (req, res) => {
-    const lang = req.body.lang || 'en'
-    const title = req.body.title || ''
-    const idCampaign = req.body.idCampaign
-    const idLink = req.params.idLink
-    const email = req.body.email
-    const link = req.body.link
+    const { lang = 'en', title = '', idCampaign, reason, email, link } = req.body;
+    const { idLink } = req.params;
+    const idUser = '0' + req.user._id;
+    
     configureTranslation(lang)
-    let reason = []
-    req.body.reason.forEach((str) => reason.push(str))
-    let idUser = '0' + req.user._id
+    let reqReason = reason.map(str => str)
 
-    const campaign = await Campaigns.findOne(
-        { _id: idCampaign },
-        {
-            fields: {
-                logo: 0,
-                resume: 0,
-                description: 0,
-                tags: 0,
-                cover: 0,
-            },
-        }
-    )
+    const campaign = await fetchCampaign({_id:campaignId});
 
     try {
-        if (idUser === campaign?.idNode) {
+        if (idUser !== campaign?.idNode) {
+            return responseHandler.makeResponseError(res, 401, 'unauthorized');
+        }
+
             const rejectedLink = await CampaignLink.findOneAndUpdate(
                 { _id: idLink },
                 {
                     $set: {
                         status: 'rejected',
                         type: 'rejected',
-                        reason: reason,
+                        reason: reqReason,
                     },
                 },
                 { returnOriginal: false }
             )
             let id = +req.body.idUser
-            await notificationManager(id, 'cmp_candidate_reject_link', {
+            const notificationPromise = notificationManager(id, 'cmp_candidate_reject_link', {
                 cmp_name: title,
                 action: 'link_rejected',
                 cmp_link: link,
                 cmp_hash: idCampaign,
                 promHash: idLink,
             })
-            readHTMLFileCampaign(
+            const emailPromise = readHTMLFileCampaign(
                 __dirname + '/../public/emailtemplate/rejected_link.html',
                 'rejectLink',
                 title,
                 email,
                 idCampaign,
-                reason
+                reqReason
             )
+
+            await Promise.all([notificationPromise, emailPromise]);
 
             return responseHandler.makeResponseData(res, 200, 'success', {
                 prom: rejectedLink.value,
             })
-        } else {
-            return responseHandler.makeResponseError(res, 401, 'unothorized')
-        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -2608,16 +2595,15 @@ module.exports.coverByCampaign = async (req, res) => {
 
 module.exports.campaignsStatistics = async (req, res) => {
     try {
-        let totalAbos = 0
-        let totalViews = 0
-        let totalPayed = new Big(0)
-        let tvl = 0
-        let Crypto = await getPrices()
+        let totalAbos = 0;
+        let totalViews = 0;
+        let totalPayed = new Big(0);
+        let tvl = 0;
+        const decimalPower = new Big(10);
 
-        let SATT = Crypto['SATT']
-        let SATTBEP20 = Crypto['OMG']
+        const Crypto = await getPrices();
 
-        let campaignProms = Campaigns.aggregate([
+        const campaignProms = Campaigns.aggregate([
             {
                 $project: basicAtt,
             },
@@ -2626,74 +2612,62 @@ module.exports.campaignsStatistics = async (req, res) => {
                     hash: { $exists: true },
                 },
             },
-        ]).allowDiskUse(true)
+        ]).allowDiskUse(true);
 
-        let linkProms = CampaignLink.aggregate([
+        const linkProms = CampaignLink.aggregate([
             {
                 $match: {
                     id_campaign: { $exists: true },
                 },
             },
-        ]).allowDiskUse(true)
-        let data = await Promise.all([campaignProms, linkProms])
+        ]).allowDiskUse(true);
 
-        let pools = data[0]
+        const data = await Promise.all([campaignProms, linkProms]);
 
-        let links = data[1]
-        let j = 0
-        let i = 0
+        const [pools, links] = data;
 
-        while (j < links.length) {
-            let campaign = pools.find((e) => e.hash === links[j].id_campaign)
+        // Convert the pools array to a Map for faster access
+        const campaignMap = new Map(pools.map(campaign => [campaign.hash, campaign]));
+
+        for (let link of links) {
+            const campaign = campaignMap.get(link.id_campaign);
             if (campaign) {
-                if (
-                    links[j].abosNumber &&
-                    links[j].abosNumber !== 'indisponible'
-                )
-                    totalAbos += +links[j].abosNumber
-                if (links[j].views) totalViews += +links[j].views
+                if (link.abosNumber && link.abosNumber !== 'indisponible')
+                    totalAbos += +link.abosNumber;
+                if (link.views) totalViews += +link.views;
 
-                if (links[j].payedAmount && links[j].payedAmount !== '0') {
-                    let tokenName = ['SATTBEP20', 'WSATT'].includes(
-                        campaign.token.name
-                    )
+                if (link.payedAmount && link.payedAmount !== '0') {
+                    let tokenName = ['SATTBEP20', 'WSATT'].includes(campaign.token.name)
                         ? 'SATT'
-                        : campaign.token.name
-                    let payedAmountInCryptoCurrency = new Big(
-                        links[j].payedAmount
-                    ).div(new Big(10).pow(getDecimal(tokenName)))
-                    let cryptoUnitPriceInUSD = new Big(Crypto[tokenName].price)
-                    let tokenPriceInUSD =
-                        payedAmountInCryptoCurrency.times(cryptoUnitPriceInUSD)
-                    totalPayed = totalPayed.plus(tokenPriceInUSD)
+                        : campaign.token.name;
+
+                    const payedAmountInCryptoCurrency = new Big(link.payedAmount).div(decimalPower.pow(getDecimal(tokenName)));
+                    const cryptoUnitPriceInUSD = new Big(Crypto[tokenName].price);
+                    const tokenPriceInUSD = payedAmountInCryptoCurrency.times(cryptoUnitPriceInUSD);
+                    totalPayed = totalPayed.plus(tokenPriceInUSD);
                 }
             }
-            j++
         }
 
-        while (i < pools.length) {
-            if (pools[i].type === 'apply' && pools[i]) {
-                let campaignToken = pools[i].token.name
-                if (
-                    campaignToken === 'SATTBEP20' ||
-                    campaignToken === 'SATTBTT'
-                )
-                    campaignToken = 'SATT'
+        for (let pool of pools) {
+            if (pool.type === 'apply' && pool) {
+                let campaignToken = pool.token.name;
+                if (campaignToken === 'SATTBEP20' || campaignToken === 'SATTBTT') {
+                    campaignToken = 'SATT';
+                }
+
                 tvl = new Big(tvl)
                     .plus(
-                        new Big(pools[i].funds[1])
-                            .div(
-                                new Big(10).pow(getDecimal(pools[i].token.name))
-                            )
+                        new Big(pool.funds[1])
+                            .div(decimalPower.pow(getDecimal(pool.token.name)))
                             .times(Crypto[campaignToken].price)
                     )
-                    .toFixed(2)
+                    .toFixed(2);
             }
-
-            i++
         }
 
-        let result = {
+        const SATT = Crypto['SATT'];
+        const result = {
             fully_diluted: SATT.fully_diluted,
             volume_24h: SATT.volume_24h,
             marketCap: SATT.market_cap,
@@ -2704,7 +2678,7 @@ module.exports.campaignsStatistics = async (req, res) => {
             posts: links.length,
             views: totalViews,
             harvested: totalPayed.toFixed(),
-            tvl: tvl,
+            tvl
         }
 
         return responseHandler.makeResponseData(res, 200, 'success', result)
@@ -2778,53 +2752,57 @@ module.exports.expandUrl = async (req, res) => {
         )
     }
   };
+
 module.exports.statLinkCampaign = async (req, res) => {
     try {
-        let id_campaign = req.params.hash
-        let arrayOfUser = []
-        let arrayOfnbAbos = []
-        let nbTotalUser = 0
-        let totalAbos = 0
-        let result = {
+        const id_campaign = req.params.hash;
+        const arrayOfUser = new Set();
+        const arrayOfnbAbos = new Set();
+        let nbTotalUser = 0;
+        let totalAbos = 0;
+
+        const result = {
             facebook: initStat(),
             twitter: initStat(),
             instagram: initStat(),
             youtube: initStat(),
             linkedin: initStat(),
             tiktok: initStat(),
-        }
-        let links = await CampaignLink.find({ id_campaign })
-        let i = 0
-        while (i < links.length) {
-            let link = links[i]
-            let oracle = link.oracle
-            result[oracle] = calcSNStat(result[oracle], link)
-            if (arrayOfUser.indexOf(link.id_wallet) === -1) {
-                nbTotalUser++
-                arrayOfUser.push(link.id_wallet)
+        };
+
+        const links = await CampaignLink.find({ id_campaign });
+
+        for (let i = 0; i < links.length; i++) {
+            const link = links[i];
+            const { oracle } = link;
+            result[oracle] = calcSNStat(result[oracle], link);
+
+            if (!arrayOfUser.has(link.id_wallet)) {
+                nbTotalUser++;
+                arrayOfUser.add(link.id_wallet);
             }
-            if (
-                arrayOfnbAbos.indexOf(link.id_wallet + '|' + link.typeSN) === -1
-            ) {
-                if (link.abosNumber) totalAbos += +link.abosNumber
-                arrayOfUser.push(link.id_wallet + '|' + link.typeSN)
+
+            const abosKey = `${link.id_wallet}|${link.typeSN}`;
+            if (!arrayOfnbAbos.has(abosKey)) {
+                if (link.abosNumber) {
+                    totalAbos += parseInt(link.abosNumber, 10);
+                }
+                arrayOfnbAbos.add(abosKey);
             }
-            i++
         }
 
-        return responseHandler.makeResponseData(res, 200, 'success', {
+        const responseData = {
             stat: result,
             creatorParticipate: nbTotalUser,
             reachTotal: totalAbos,
-        })
+        };
+
+        return responseHandler.makeResponseData(res, 200, 'success', responseData);
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+        return responseHandler.makeResponseError(res, 500, err.message || err.error);
     }
-}
+};
+
 
 module.exports.totalInvested = async (req, res) => {
     try {
