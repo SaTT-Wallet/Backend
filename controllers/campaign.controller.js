@@ -663,26 +663,7 @@ exports.campaignPromp = async (req, res) => {
     
         const campaign = await fetchCampaign({ _id })
         var tronWeb
-
-         tronWeb = await setupTronWeb();
         
-        campaign.token.type === 'TRON' &&(tronWeb = await setupTronWeb())
-        var cred = []
-
-        cred.WEB3 = getWeb3Connection(
-            networkProviders[campaign.token.type.toUpperCase()],
-            networkProvidersOptions[campaign.token.type.toUpperCase()]
-        )
-
-        let ctr = await getCampaignContractByHashCampaign(
-            campaign.hash,
-            cred,
-            tronWeb
-        )
-
-        if (!ctr) {
-            return responseHandler.makeResponseData(res, 200, 'success', {})
-        } else {
             const funds = campaign.funds ? campaign.funds[1] : campaign.cost
             const ratio = campaign.ratios
             const bounties = campaign.bounties
@@ -815,7 +796,7 @@ exports.campaignPromp = async (req, res) => {
                         }
                     })
                 }
-            }
+         
             return responseHandler.makeResponseData(res, 200, 'success', {
                 allProms,
             })
