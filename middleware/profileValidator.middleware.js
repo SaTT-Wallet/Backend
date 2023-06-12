@@ -100,6 +100,10 @@ const schemas = {
         }),
         Joi.object({
             photoUpdated: Joi.boolean().required()
+        }),
+        Joi.object({
+            enabled: Joi.number().required(),
+            new: Joi.boolean().required()
         })
     ),
     
