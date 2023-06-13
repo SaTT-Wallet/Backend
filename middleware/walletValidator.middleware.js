@@ -50,7 +50,7 @@ const validateVersion = (validVersions) => Joi.string().required().custom((value
 });
 
 // Validation schema for cryptolist
-const validateCryptoList = () => Joi.string().pattern(/^(\d+(,\d+)*)?$/).message('Cryptolist must be a string of numbers separated by commas');
+const validateCryptoList = () => Joi.string().pattern(/^(\d+(,\d+)*)?$/);
 
 // SCHEMAS OBJECT
 const schemas = {

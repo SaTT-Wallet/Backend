@@ -675,8 +675,7 @@ exports.getChartVariation = async(cryptolist) => {
         var result = await results[0]
         var cryptoInfo
         var priceVariation =[]
-        try {
-         
+      
              
      cryptoInfo =result.data.data
      Object.values(cryptoInfo).forEach(innerObj => {
@@ -691,9 +690,7 @@ exports.getChartVariation = async(cryptolist) => {
      
      });
 
-        }catch (error) {
-            throw new Error('Error fetching prices char')
-        }
+      
        
        
    
