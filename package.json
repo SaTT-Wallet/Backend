@@ -113,7 +113,7 @@
         "peer": "^1.0.0",
         "puppeteer": "^14.4.0",
         "qrcode": "^1.5.0",
-        "reactstrap": "^9.1.6",
+        "reactstrap": "^9.1.10",
         "request-promise": "^4.2.6",
         "rlp": "^2.1.0",
         "save": "^2.9.0",
