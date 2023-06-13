@@ -1,5 +1,6 @@
 const mongoSanitize = require('express-mongo-sanitize');
 const corsSetup = require('./conf/corsSetup')
+const setupRoutes = require('./route-setup/routeSetup');
 var express = require('express')
 let app = express()
 const helmet = require('helmet')
@@ -30,7 +31,7 @@ app.use(express.json({ limit: '50mb', extended: true }))
 app.use(
     express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
 )
-
+console.log("testttt    , ", process.env.MONGOURI)
 app.use(
     mongoSanitize({
       allowDots: true,
@@ -38,11 +39,11 @@ app.use(
     }),
   );
 
-
+/*
 const loginroutes = require('./routes/login.routes')
 const walletroutes = require('./routes/wallet.routes')
 const profileroutes = require('./routes/profile.routes')
-const campaignroutes = require('./routes/campaign.routes')
+const campaignroutes = require('./routes/campaign.routes')*/
 
 /// db.url is different depending on NODE_ENV
 
@@ -62,10 +63,14 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/assets', express.static('public'))
 app.set('view engine', 'ejs')
+setupRoutes(app);
+/*
 app.use('/auth', loginroutes)
 app.use('/wallet', walletroutes)
 app.use('/profile', profileroutes)
 app.use('/campaign', campaignroutes)
+*/
+
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
 
