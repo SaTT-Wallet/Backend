@@ -24,8 +24,7 @@ const axios = require('axios')
 
 const {
     getHttpProvider,
-    networkProviders,
-    getWeb3Connection,
+    networkProviders
 } = require('../web3/web3-connection')
 const Web3 = require('web3')
 
@@ -1104,18 +1103,18 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
 }
 
 exports.filterLinks = (req, id_wallet) => {
-    const status = req.query.status
-    let oracles = req.query.oracles
-    oracles = typeof oracles === 'string' ? [oracles] : oracles
-    var query = { id_wallet: id_wallet }
-    if (req.query.campaign && req.query.state === 'part') {
-        query = { id_wallet: id_wallet, id_campaign: req.query.campaign }
-    } else if (req.query.campaign && req.query.state === 'owner')
-        query = { id_campaign: req.query.campaign }
-    else if (!req.query.campaign && !req.query.state)
+    
+    let {oracles,status,campaign} = req.query;
+   
+    var query = { id_wallet }
+    if (campaign && state === 'part') {
+        query = { id_wallet, id_campaign: campaign }
+    } else if (campaign && state === 'owner')
+        query = { id_campaign: campaign }
+    else if (!campaign && !state)
         query = { id_wallet: id_wallet }
 
-    if (oracles) query.oracle = { $in: oracles }
+    if (oracles) query.oracle = { $in: Array.isArray(oracles) ? oracles : [oracles] };
 
     if (status == 'false') {
         query.status = false
