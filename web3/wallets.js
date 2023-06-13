@@ -727,7 +727,7 @@ exports.getGlobalCryptoMarket = async () =>{
 }
 
 exports.filterAmount = function (input, nbre = 10) {
-    if (input) {
+   try{ if (input) {
         var out = input
         let size = input.length
         let toAdd = parseInt(nbre) - parseInt(size)
@@ -762,6 +762,8 @@ exports.filterAmount = function (input, nbre = 10) {
         return out
     } else {
         return '-'
+    }} catch(err){
+        throw new Error('Error filterAmount')
     }
 }
 
