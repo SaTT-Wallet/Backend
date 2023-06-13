@@ -14,7 +14,7 @@ require('dotenv').config({
 let logger = require('morgan')
 let cookieParser = require('cookie-parser')
 let path = require('path')
-const {swaggerUi, swaggerSpec, cssOptions} = require('./conf/swaggerSetup');
+//const {swaggerUi, swaggerSpec, cssOptions} = require('./conf/swaggerSetup');
 const {errorHandler, handleEndpointNotFound} = require('./middleware/errorHandler.middleware');
 require('./conf/database').connect();
 // set up rate limiter: maximum of five requests per minute
@@ -31,31 +31,16 @@ app.use(express.json({ limit: '50mb', extended: true }))
 app.use(
     express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
 )
-console.log("testttt    , ", process.env.MONGOURI)
 app.use(
     mongoSanitize({
       allowDots: true,
       replaceWith: '_',
     }),
   );
-
-/*
-const loginroutes = require('./routes/login.routes')
-const walletroutes = require('./routes/wallet.routes')
-const profileroutes = require('./routes/profile.routes')
-const campaignroutes = require('./routes/campaign.routes')*/
-
-/// db.url is different depending on NODE_ENV
-
-
-
 app.disable('x-powered-by')
-
 app.use(helmet.frameguard({ action: 'deny' }));
-
 app.use(cors('*'))
 app.use(corsSetup);
-
 app.use(logger('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
@@ -64,15 +49,9 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/assets', express.static('public'))
 app.set('view engine', 'ejs')
 setupRoutes(app);
-/*
-app.use('/auth', loginroutes)
-app.use('/wallet', walletroutes)
-app.use('/profile', profileroutes)
-app.use('/campaign', campaignroutes)
-*/
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
+//app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, cssOptions));
 
 // catch not found endpoints
 app.use(handleEndpointNotFound)
