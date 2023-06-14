@@ -549,25 +549,18 @@ exports.socialAccounts = async (req, res) => {
 
 module.exports.checkOnBoarding = async (req, res) => {
     try {
-        const _id = req.user._id
+        const {_id} = req.user;
         const userUpdated = User.updateOne(
             { _id },
             { $set: { onBoarding: true } }
         )
-        const firstNotif = notificationManager(_id, 'buy_some_gas', {
-            action: 'buy_some_gas',
-        })
-        const secondNotif = notificationManager(_id, 'invite_friends', {
-            action: 'Invite your friends',
-        })
-        const thirdNotif = notificationManager(_id, 'join_on_social', {
-            action: 'Join us on social',
-        })
+
+        const notifications = ['buy_some_gas', 'invite_friends', 'join_on_social'].map(notifType => 
+            notificationManager(_id, notifType, { action: notifType !=='buy_some_gas' && notifType.replace(/_/g, ' ') ||  notifType}));
+
         await Promise.allSettled([
             userUpdated,
-            firstNotif,
-            secondNotif,
-            thirdNotif,
+            ...notifications
         ])
         return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
