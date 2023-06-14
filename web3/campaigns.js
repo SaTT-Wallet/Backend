@@ -350,7 +350,6 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
-
         /**   CHECK IF COMPAGNE NETWORK IS TRON */
         if (tronWeb !== null && tronWeb !== undefined) {
 
@@ -441,6 +440,7 @@ exports.createPerformanceCampaign = async (
             transactionHash: transactionReceipt.events.CampaignCreated.transactionHash,
         }
     } catch (err) {
+        console.error({err})
         res.status(500).send({
             code: 500,
             error: err.message ? err.message : err.error,
@@ -983,7 +983,6 @@ exports.applyCampaign = async (
         //         gasPrice: gasPrice,
         //     })
 
-        console.log('gas: ', gas)
 
         var gasPrice = await web3.getGasPrice()
 
