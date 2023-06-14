@@ -12,7 +12,6 @@ const {
     FbPage,
     TikTokProfile,
 } = require('../model/index')
-const axios = require('axios')
 
 const contentDisposition = require('content-disposition')
 
@@ -107,6 +106,17 @@ module.exports.uploadImageProfile = multer({
 module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
+const findTwitterProfile= (queryField,projection={}) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const profile = TwitterProfile.findOne(queryField,projection).lean();
+        resolve(profile);
+      } catch (err) {
+        reject({ message: err.message });
+      }
+    });
+  };
+
 
 exports.account = async (req, res) => {
     try {
@@ -301,136 +311,83 @@ exports.FindUserLegalProfile = async (req, res) => {
         )
     }
 }
-exports.deleteTwitterChannels = async (req, res) => {
+const deleteChannel = async (model, condition, res) => {
     try {
-        const UserId = req.user._id
-        const result = await TwitterProfile.deleteMany({ UserId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
+      const result = await model.deleteMany(condition);
+      if (result.deletedCount === 0) {
+        return makeResponseError(res, 204, 'No channel found');
+      } else {
+        return makeResponseData(res, 200, 'deleted successfully');
+      }
     } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+      return makeResponseError(res, 500, err.message ? err.message : err.error);
     }
-}
+  };
 
-exports.deleteTwitterChannel = async (req, res) => {
-    try {
-        let UserId = req.user._id
-        let _id = req.params.id
-        let twitterProfile = await TwitterProfile.findOne({ _id })
-        if (twitterProfile?.UserId !== UserId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await TwitterProfile.deleteOne({ UserId })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
+  exports.deleteTwitterChannels = async (req, res) => {
+    const UserId = req.user._id;
+    return deleteChannel(TwitterProfile, { UserId }, res);
+  };
+  
+  exports.deleteGoogleChannels = async (req, res) => {
+    const UserId = req.user._id;
+    return deleteChannel(GoogleProfile, { UserId }, res);
+  };
 
-exports.deleteGoogleChannels = async (req, res) => {
-    try {
-        const UserId = req.user._id
-        const result = await GoogleProfile.deleteMany({ UserId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
+  exports.deleteFacebookChannels = async (req, res) => {
+    const UserId = req.user._id;
+    return deleteChannel(FbPage, { UserId }, res);
+  };
 
-exports.deleteGoogleChannel = async (req, res) => {
-    try {
-        let UserId = req.user._id
-        let _id = req.params.id
-        let googleProfile = await GoogleProfile.findOne({ _id }).lean()
-        if (googleProfile?.UserId !== UserId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await GoogleProfile.deleteOne({ _id })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.deleteFacebookChannels = async (req, res) => {
-    try {
-        const UserId = req.user._id
-        const result = await FbPage.deleteMany({ UserId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.deleteFacebookChannel = async (req, res) => {
-    try {
-        let UserId = req.user._id
-        let _id = req.params.id
-        let facebookProfile = await FbPage.findOne({ _id })
-        if (facebookProfile?.UserId !== UserId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await FbPage.deleteOne({ _id })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-exports.deleteLinkedinChannels = async (req, res) => {
-    try {
+  exports.deleteLinkedinChannels = async (req, res) => {
         const userId = req.user._id
-        const result = await LinkedinProfile.deleteMany({ userId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
+        return deleteChannel(LinkedinProfile, { userId }, res);
 }
+
+exports.deleteTiktokChannels = async (req, res) => {
+        let userId = req.user._id
+        return deleteChannel(TikTokProfile, { userId }, res);
+}
+  
+
+const deleteChannelById = async (model, condition, unauthorizedErrorMessage, res,UserId) => {
+    try {
+      const channel = await model.findOne(condition,{UserId:1}).lean();
+      if (!channel) {
+        return makeResponseError(res, 204, 'No channel found');
+      } else if (channel.UserId !== UserId) {
+        return makeResponseError(res, 401, unauthorizedErrorMessage);
+      } else {
+        await model.deleteOne(condition);
+        return makeResponseData(res, 200, 'deleted successfully');
+      }
+    } catch (err) {
+      return makeResponseError(res, 500, err.message ? err.message : err.error);
+    }
+  };
+
+  exports.deleteTwitterChannel = async (req, res) => {
+    const _id = req.params.id;
+    return deleteChannelById(TwitterProfile, {_id}, 'unauthorized', res,req.user._id);
+  };
+  
+
+  exports.deleteGoogleChannel = async (req, res) => {
+    const _id = req.params.id;
+    return deleteChannelById(GoogleProfile, {_id}, 'unauthorized', res,req.user._id);
+  };
+
+  exports.deleteFacebookChannel = async (req, res) => {
+    const _id = req.params.id;
+    return deleteChannelById(FbPage, { _id}, 'unauthorized', res,req.user._id);
+  }
+
+  exports.deleteTiktokChannel = async (req, res) => {
+        let userId = +req.user._id
+        return deleteChannelById(TikTokProfile, { userId}, 'unauthorized',res, userId);
+}
+
+
 
 exports.deleteLinkedinChannel = async (req, res) => {
     try {
@@ -459,57 +416,19 @@ exports.deleteLinkedinChannel = async (req, res) => {
     }
 }
 
-exports.deleteTiktokChannel = async (req, res) => {
-    try {
-        let userId = +req.user._id
-        let tiktokProfile = await TikTokProfile.findOneAndDelete({ userId })
-        if (!tiktokProfile) return makeResponseError(res, 401, 'unauthorized')
-        return makeResponseData(res, 200, 'deleted successfully')
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
 
-exports.deleteTiktokChannels = async (req, res) => {
-    try {
-        let userId = req.user._id
 
-        let tiktokProfiles = await TikTokProfile.find({ userId })
-
-        if (tiktokProfiles.length === 0)
-            return makeResponseError(res, 204, 'No channel found')
-        else {
-            await TikTokProfile.deleteMany({ userId })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
 exports.UserInterstes = async (req, res) => {
     try {
-        const userId = req.user._id
-        let allInterests = []
+        const {_id :userId} = req.user
 
         const result = await Interests.find({ userId })
 
         if (!result.length) {
             return makeResponseError(res, 204, 'No interest found')
-        } else if (result.length >= 2) {
-            result.forEach((item, index) => {
-                allInterests = [...allInterests, ...item.interests]
-            })
-        } else {
-            allInterests = [...result[0].interests]
-        }
+        } 
+
+        const allInterests = results.flatMap(result => result.interests);
 
         return makeResponseData(res, 200, 'success', allInterests)
     } catch (err) {
@@ -961,12 +880,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '4':
-                var twitterProfile = await TwitterProfile.findOne(
-                    {
-                        UserId: userId,
-                    },
-                    { access_token_key: 1, access_token_secret: 1 }
-                ).lean()
+                var twitterProfile =await findTwitterProfile({UserId: userId},{access_token_key: 1, access_token_secret: 1})
                 if (twitterProfile) {
                     linked = true
                     res = await verifyTwitter(twitterProfile, userId, idPost)
