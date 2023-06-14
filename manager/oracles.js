@@ -492,41 +492,6 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         console.error('tiktokAbos', err.message ? err.message : err.error)
     }
 }
-/*
-exports.getPromApplyStats = async (
-    oracles,
-    link,
-    id,
-    linkedinProfile = null,
-    tiktokProfile = null
-) => {
-    try {
-        let socialOracle = {}
-        if (oracles === 'facebook')
-            socialOracle = await facebook(link.idUser, link.idPost)
-        else if (oracles === 'twitter')
-            socialOracle = await twitter(link.idUser, link.idPost)
-        else if (oracles === 'youtube')
-            socialOracle = await youtube(link.idPost)
-        else if (oracles === 'instagram')
-            socialOracle = await instagram(id, link)
-        else if (oracles === 'linkedin') {
-            socialOracle = await linkedin(
-                link.idUser,
-                link.idPost,
-                link.typeURL,
-                linkedinProfile
-            )
-        } else if (oracles === 'tiktok') {
-            socialOracle = await tiktok(tiktokProfile, link.idPost)
-        }
-
-        delete socialOracle?.date
-        return socialOracle
-    } catch (err) {
-        console.error('getPromApplyStats', err)
-    }
-}*/
 
 const socialNetworkStrategies = {
     facebook: async ({ link }) => await facebook(link.idUser, link.idPost),
