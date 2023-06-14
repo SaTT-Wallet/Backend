@@ -5680,6 +5680,11 @@ wrapConstants[PolygonNetworkConstant] = {
     abi: wrapConstants[BttNetworkConstant].abi,
 }
 
+wrapConstants[Bep20NetworkConstant] = {
+    abi: wrapConstants[BttNetworkConstant].abi,
+}
+
+
 let multicallConstants = []
 
 multicallConstants[Erc20NetworkConstant] = {
@@ -5759,7 +5764,9 @@ multicallConstants[TronNetworkConstant] =
     Constants.token.wbtt = process.env.TOKEN_BTT_CONTRACT
     Constants.token.matic = process.env.TOKEN_MATIC_CONTRACT
     Constants.token.native = process.env.TOKEN_NATIVE_CONTRACT
-
+    
+    wrapConstants[Bep20NetworkConstant].address =
+        process.env.CONST_WBNB
     wrapConstants[PolygonNetworkConstant].address =
         process.env.CONST_WMATIC
     wrapConstants[BttNetworkConstant].address = process.env.CONST_WBTT
