@@ -440,7 +440,6 @@ exports.createPerformanceCampaign = async (
             transactionHash: transactionReceipt.events.CampaignCreated.transactionHash,
         }
     } catch (err) {
-        console.error({err})
         res.status(500).send({
             code: 500,
             error: err.message ? err.message : err.error,
