@@ -1,9 +1,7 @@
-
-
 require('dotenv').config({
     path: `.env.${process.env.NODE_ENV}`
   });
-  
+
 exports.mongoConnection = () => process.env.MONGOURI
 exports.payementRequest = async (payment) => {
     return {

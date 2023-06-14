@@ -106,17 +106,6 @@ module.exports.uploadImageProfile = multer({
 module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
-/*const TwitterProfile.findOne= (queryField,projection={}) => {
-    return new Promise((resolve, reject) => {
-      try {
-        const profile = TwitterProfile.findOne(queryField,projection).lean();
-        resolve(profile);
-      } catch (err) {
-        reject({ message: err.message });
-      }
-    });
-  };*/
-
 
 exports.account = async (req, res) => {
     try {

@@ -350,7 +350,6 @@ exports.createPerformanceCampaign = async (
     res
 ) => {
     try {
-
         /**   CHECK IF COMPAGNE NETWORK IS TRON */
         if (tronWeb !== null && tronWeb !== undefined) {
 
@@ -983,7 +982,6 @@ exports.applyCampaign = async (
         //         gasPrice: gasPrice,
         //     })
 
-        console.log('gas: ', gas)
 
         var gasPrice = await web3.getGasPrice()
 

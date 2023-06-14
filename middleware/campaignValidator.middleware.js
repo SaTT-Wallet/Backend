@@ -54,14 +54,14 @@ const validateVersion = (validVersions) => Joi.string().required().custom((value
 const schemas = {
     evmApprovalSchema: Joi.object({
         campaignAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
-        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$")
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$").allow(null)
     }),
 
     evmAllowSchema: Joi.object({
         campaignAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
         amount: Joi.number().unsafe().required(),
         pass: validatePassword(),
-        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$").allow(null),
     }),
 
     tronApprovalSchema: Joi.object({
@@ -87,7 +87,7 @@ const schemas = {
         pass: validatePassword(),
         ratios: Joi.array().required(),
         startDate: Joi.number().unsafe().required(),
-        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
+        tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").allow(null),
         idCampaign: Joi.string().required()
     }),
 

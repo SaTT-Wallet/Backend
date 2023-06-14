@@ -283,7 +283,6 @@ module.exports.launchCampaign = async (req, res) => {
     let _id = req.body.idCampaign
     let currency = req.body.currency
     let network = req.body.network
-
     try {
         var tronWeb
         var cred
@@ -314,7 +313,7 @@ module.exports.launchCampaign = async (req, res) => {
             startDate,
             endDate,
             ratios,
-            tokenAddress ? tokenAddress : Constants.token.native,
+            tokenAddress === null ? Constants.token.native : tokenAddress,
             amount,
             cred,
             tronWeb,
@@ -323,6 +322,7 @@ module.exports.launchCampaign = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
+        console.error({err})
         return responseHandler.makeResponseError(
             res,
             500,
@@ -2117,7 +2117,7 @@ exports.bep20Allow = async (req, res) => {
     try {
         let campaignAddress = req.body.campaignAddress
         let amount = req.body.amount
-        let bep20TOken = req.body.tokenAddress
+        let bep20TOken = req.body.tokenAddress === null ? process.env.CONST_WBNB: req.body.tokenAddress 
         var cred = await unlockBsc(req, res)
         if (!cred) return
         let ret = await bep20Allow(
