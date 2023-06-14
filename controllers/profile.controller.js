@@ -106,7 +106,7 @@ module.exports.uploadImageProfile = multer({
 module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
     'file'
 )
-const findTwitterProfile= (queryField,projection={}) => {
+/*const TwitterProfile.findOne= (queryField,projection={}) => {
     return new Promise((resolve, reject) => {
       try {
         const profile = TwitterProfile.findOne(queryField,projection).lean();
@@ -115,7 +115,7 @@ const findTwitterProfile= (queryField,projection={}) => {
         reject({ message: err.message });
       }
     });
-  };
+  };*/
 
 
 exports.account = async (req, res) => {
@@ -478,53 +478,74 @@ exports.tiktokApiAbos = async (req, res) => {
     }
 }
 
+
+const networkModelMap = {
+    google: {
+        model: GoogleProfile,
+        excludeFields: { accessToken: 0, refreshToken: 0 }
+    },
+    twitter: {
+        model: TwitterProfile,
+        excludeFields: { _raw: 0, access_token_key: 0, access_token_secret: 0 }
+    },
+    facebook: {
+        model: FbPage,
+        excludeFields: { token: 0 }
+    },
+    linkedin: {
+        model: LinkedinProfile,
+        excludeFields: {accessToken : 0 , refreshToken : 0}
+    },
+    tikTok: {
+        model: TikTokProfile,
+        excludeFields: { accessToken: 0, refreshToken: 0 }
+    }
+};
+
 exports.socialAccounts = async (req, res) => {
     try {
-        let UserId = req.user._id
-        let networks = {}
-        let [channelsGoogle, channelsTwitter] = await Promise.all([
-            GoogleProfile.find({ UserId }, { accessToken: 0, refreshToken: 0 }),
-            TwitterProfile.find(
-                { UserId },
-                { _raw: 0, access_token_key: 0, access_token_secret: 0 }
-            ),
-        ])
-        let channelsFacebook = await FbPage.find({ UserId }, { token: 0 })
-        let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.find(
-            { userId: UserId },
-            { accessToken: 0, refreshToken: 0 }
-        )
-        networks.google = channelsGoogle
-        networks.twitter = channelsTwitter
-        networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin?.flatMap((item) =>
-            item?.pages.map((elem) => {
-                elem = elem.toJSON()
-                elem.linkedinId = item.linkedinId
-                return elem
-            })
-        )
+        const UserId = req.user._id;
+        let networks = {};
 
-        networks.tikTok = channelsTiktok || []
-        if (
-            !channelsGoogle?.length &&
-            !channelsLinkedin?.length &&
-            !channelsTwitter?.length &&
-            !channelsFacebook?.length &&
-            !channelsTiktok?.length
-        ) {
-            return makeResponseError(res, 204, 'No channel found')
+        // Generate the database queries.
+        const queries = Object.keys(networkModelMap).map(network => {
+            const { model, excludeFields } = networkModelMap[network];
+
+            const query = network === 'linkedin' || network === 'tikTok' && { userId: UserId } || { UserId };
+
+            return model.find(query, excludeFields);
+        });
+
+        // Run the queries concurrently.
+        const channels = await Promise.all(queries);
+
+        // Assign the results to the appropriate properties in the networks object.
+        Object.keys(networkModelMap).forEach((network, i) => {
+            networks[network] = channels[i];
+        });
+
+        // Process the LinkedIn channels separately.
+        networks.linkedin = networks.linkedin?.flatMap((item) =>
+            item?.pages.map((elem) => {
+                elem = elem.toJSON();
+                elem.linkedinId = item.linkedinId;
+                return elem;
+            })
+        );
+
+        // Check if all network channels are empty.
+        if (Object.values(networks).every(networkChannels => !networkChannels?.length)) {
+            return makeResponseError(res, 204, 'No channel found');
         }
-        return makeResponseData(res, 200, 'success', networks)
+        return makeResponseData(res, 200, 'success', networks);
     } catch (err) {
         return makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
-        )
+        );
     }
-}
+};
 
 module.exports.checkOnBoarding = async (req, res) => {
     try {
@@ -871,7 +892,7 @@ module.exports.verifyLink = async (req, response) => {
                         { UserId: userId },
                         { instagram_id: { $exists: true } },
                     ],
-                })
+                }).lean()
                 if (page) {
                     linked = true
                     res = await verifyInsta(userId, idPost)
@@ -880,7 +901,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '4':
-                var twitterProfile =await findTwitterProfile({UserId: userId},{access_token_key: 1, access_token_secret: 1})
+                var twitterProfile =await TwitterProfile.findOne({UserId: userId},{access_token_key: 1, access_token_secret: 1}).lean()
                 if (twitterProfile) {
                     linked = true
                     res = await verifyTwitter(twitterProfile, userId, idPost)
