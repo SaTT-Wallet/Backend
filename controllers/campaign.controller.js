@@ -633,7 +633,7 @@ exports.campaignDetails = async (req, res) => {
 
 exports.campaignPromp = async (req, res) => {
     try {
-        var {_id} = req.params
+        var {id : _id} = req.params
     
         const campaign = await fetchCampaign({ _id })
         var tronWeb
