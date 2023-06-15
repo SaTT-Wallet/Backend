@@ -118,11 +118,13 @@ const schemas = {
         shortUrl: Joi.string().required()
     }),
 
-    linkNotificationsSchema: Joi.object({
-        idCampaign: Joi.string().required(),
-        link: Joi.string().required(),
-        idProm: Joi.string().required()
-    }),
+    
+linkNotificationsSchema: Joi.object({
+    idCampaign: Joi.string().required(),
+    link: Joi.string().allow('').allow(null).required(),
+    idProm: Joi.string().required()
+}),
+
 
     gainsSchema: Joi.object({
         idProm: Joi.string().required(),
@@ -191,7 +193,7 @@ const schemas = {
         hash: Joi.string().required(),
         idCampaign: Joi.string().required(),
         idPost: Joi.string().required(),
-        idUser: Joi.string().required(),
+        idUser: Joi.alternatives().try(Joi.string().required(), Joi.number().required()),
         pass: validatePassword(),
         title: Joi.string().required(),
         typeSN: Joi.number().required(),

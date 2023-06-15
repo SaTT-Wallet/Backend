@@ -633,7 +633,7 @@ exports.campaignDetails = async (req, res) => {
 
 exports.campaignPromp = async (req, res) => {
     try {
-        var {_id} = req.params
+        var {id : _id} = req.params
     
         const campaign = await fetchCampaign({ _id })
         var tronWeb
@@ -797,6 +797,7 @@ exports.apply = async (req, res) => {
             id_campaign: hash,
             idPost,
         })
+        
         if (promExist) {
             return responseHandler.makeResponseError(
                 res,
