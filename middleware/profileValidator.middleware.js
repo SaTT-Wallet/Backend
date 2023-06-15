@@ -97,6 +97,9 @@ const schemas = {
                 countryCode: Joi.string().length(2).required(),
                 dialCode: Joi.string().required()
             }).allow(null).required()
+        }), 
+        Joi.object({
+            is2FA: Joi.boolean().required()
         }),
         Joi.object({
             photoUpdated: Joi.boolean().required()

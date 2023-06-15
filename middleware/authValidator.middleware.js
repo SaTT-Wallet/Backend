@@ -107,7 +107,7 @@ const schemas = {
     }),
 
     verifyQrCodeSchema: Joi.object({
-        code: Joi.number().required(),
+        code: Joi.string().required(),
     })
 }
 

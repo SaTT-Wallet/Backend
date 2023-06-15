@@ -826,7 +826,7 @@ module.exports.verifyQrCode = async (req, res) => {
         let user = await User.findOne({ _id })
         let secret = user.secret
         let code = req.body.code
-        let verified = speakeasy.totp.verify({
+        let verified = await speakeasy.totp.verify({
             secret: secret,
             encoding: 'ascii',
             token: code,
