@@ -569,6 +569,7 @@ exports.getPrices = async () => {
                 if (elem.name === 'SaTT') {
                     obj = {
                         id: elem.id,
+                        cmc_rank: elem.cmc_rank,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
                         tokenAddress: tokenAddress,
@@ -594,6 +595,7 @@ exports.getPrices = async () => {
                 } else
                     obj = {
                         id: elem.id,
+                        cmc_rank: elem.cmc_rank,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
                         tokenAddress: tokenAddress,
