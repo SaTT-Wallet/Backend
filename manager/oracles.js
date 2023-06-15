@@ -169,22 +169,16 @@ exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
 
 exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     try {
-        const linkedinData = {
-            url: config.linkedinActivityUrl(idPost),
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken,
-            },
-            json: true,
-        }
         let res = false
         let urn = `urn:li:activity:${idPost}`
-        let postData = await rp(linkedinData)
-        if (!Object.keys(postData.results).length) return res
+        let postData = await rp.get(config.linkedinActivityUrl(idPost) ,{headers:{
+            Authorization: 'Bearer ' + linkedinProfile.accessToken
+        }})
+        if (!Object.keys(postData.data.results).length) return res
 
         let owner =
-            postData.results[urn]['domainEntity~'].owner ??
-            postData.results[urn]['domainEntity~'].author
+            postData.data.results[urn]['domainEntity~'].owner ??
+            postData.data.results[urn]['domainEntity~'].author
         linkedinProfile.pages.forEach((element) => {
             if (element.organization === owner && !element.deactivate)
                 res = true
