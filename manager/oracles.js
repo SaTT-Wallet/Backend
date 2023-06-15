@@ -1,5 +1,5 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
-var rp = require('axios');
+var rp = require('axios')
 const child_process = require('child_process')
 const {
     FbPage,
@@ -35,7 +35,11 @@ const { responseHandler } = require('../helpers/response-handler')
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
     try {
         let linkInfo = {}
-        let postData = (await rp.get(linkedinActivityUrl(activityURN),{headers : {'Authorization': 'Bearer ' + accessToken}})).data
+        let postData = (
+            await rp.get(linkedinActivityUrl(activityURN), {
+                headers: { Authorization: 'Bearer ' + accessToken },
+            })
+        ).data
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??
@@ -55,16 +59,18 @@ exports.verifyFacebook = async (idPost, page) => {
         if (page) {
             var token = page.token
             var idPage = page.id
-            var res = (await rp.get(
+            var res = (
+                await rp.get(
                     'https://graph.facebook.com/' +
-                    process.env.FB_GRAPH_VERSION +
-                    '/' +
-                    idPage +
-                    '_' +
-                    idPost +
-                    '?access_token=' +
-                    token
-            )).data
+                        process.env.FB_GRAPH_VERSION +
+                        '/' +
+                        idPage +
+                        '_' +
+                        idPost +
+                        '?access_token=' +
+                        token
+                )
+            ).data
             if (res) return true
         } else {
             return false
@@ -76,15 +82,13 @@ exports.verifyFacebook = async (idPost, page) => {
 
 exports.verifyYoutube = async (userId, idPost, accessToken) => {
     try {
-        var res = await rp(
-            'https://www.googleapis.com/youtube/v3/videos',
-            {
-                params: {
-                    id: idPost,
-                    access_token: accessToken,
-                    part: 'snippet',
-                }
-            });
+        var res = await rp('https://www.googleapis.com/youtube/v3/videos', {
+            params: {
+                id: idPost,
+                access_token: accessToken,
+                part: 'snippet',
+            },
+        })
 
         if (res.data.items) {
             var channelId = res.data.items[0]?.snippet.channelId
@@ -149,19 +153,22 @@ exports.verifyInsta = async function (userId, idPost) {
 
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
-         const client = new Twitter({
-             consumer_key: process.env.TWITTER_CONSUMER_KEY,
-             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-             access_token_key: twitterProfile.access_token_key,
-             access_token_secret: twitterProfile.access_token_secret,
-             bearer_token: process.env.TWITTER_BEARER_TOKEN
-         })
-         const tweet = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`,  {params: {}});
-         var twitterProfile = await TwitterProfile.findOne({
-             id: tweet.data[0].author_id,
-             UserId: userId,
-         }).select('access_token_key access_token_secret id')
-         return twitterProfile ? true : false
+        const client = new Twitter({
+            consumer_key: process.env.TWITTER_CONSUMER_KEY,
+            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+            access_token_key: twitterProfile.access_token_key,
+            access_token_secret: twitterProfile.access_token_secret,
+            bearer_token: process.env.TWITTER_BEARER_TOKEN,
+        })
+        const tweet = await client.get(
+            `https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`,
+            { params: {} }
+        )
+        var twitterProfile = await TwitterProfile.findOne({
+            id: tweet.data[0].author_id,
+            UserId: userId,
+        }).select('access_token_key access_token_secret id')
+        return twitterProfile ? true : false
     } catch (err) {
         return 'lien_invalid'
     }
@@ -169,22 +176,18 @@ exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
 
 exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     try {
-        const linkedinData = {
-            url: config.linkedinActivityUrl(idPost),
-            method: 'GET',
+        let res = false
+        let urn = `urn:li:activity:${idPost}`
+        let postData = await rp.get(config.linkedinActivityUrl(idPost), {
             headers: {
                 Authorization: 'Bearer ' + linkedinProfile.accessToken,
             },
-            json: true,
-        }
-        let res = false
-        let urn = `urn:li:activity:${idPost}`
-        let postData = await rp(linkedinData)
-        if (!Object.keys(postData.results).length) return res
+        })
+        if (!Object.keys(postData.data.results).length) return res
 
         let owner =
-            postData.results[urn]['domainEntity~'].owner ??
-            postData.results[urn]['domainEntity~'].author
+            postData.data.results[urn]['domainEntity~'].owner ??
+            postData.data.results[urn]['domainEntity~'].author
         linkedinProfile.pages.forEach((element) => {
             if (element.organization === owner && !element.deactivate)
                 res = true
@@ -322,20 +325,23 @@ exports.answerAbos = async (
     } catch (error) {}
 }
 
-exports.facebookAbos = async pageName =>{
+exports.facebookAbos = async (pageName) => {
     try {
         var page = await FbPage.findOne({ username: pageName })
 
         if (page) {
             var token = page.token
-            var res = (await rp.get(
+            var res = (
+                await rp.get(
                     'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    pageName +
-                    '?access_token=' +
-                    token +
-                    '&fields=fan_count')).data
+                        oauth.facebook.fbGraphVersion +
+                        '/' +
+                        pageName +
+                        '?access_token=' +
+                        token +
+                        '&fields=fan_count'
+                )
+            ).data
 
             return res.fan_count
         } else {
@@ -344,22 +350,28 @@ exports.facebookAbos = async pageName =>{
     } catch (err) {}
 }
 
-exports.youtubeAbos = async  idPost => {
+exports.youtubeAbos = async (idPost) => {
     try {
-        var res = (await rp.get('https://www.googleapis.com/youtube/v3/videos',{params : {
-            id: idPost,
-                key: oauth.google.gdataApiKey,
-                part: 'snippet'
-        }})).data
+        var res = (
+            await rp.get('https://www.googleapis.com/youtube/v3/videos', {
+                params: {
+                    id: idPost,
+                    key: oauth.google.gdataApiKey,
+                    part: 'snippet',
+                },
+            })
+        ).data
         if (res.items.length > 0) {
             var channelId = res.items[0]?.snippet.channelId
-            var res = (await rp.get('https://www.googleapis.com/youtube/v3/channels', {
-                params : {
-                    id: channelId,
-                    key: oauth.google.gdataApiKey,
-                    part: 'statistics'
-                }
-            })).data
+            var res = (
+                await rp.get('https://www.googleapis.com/youtube/v3/channels', {
+                    params: {
+                        id: channelId,
+                        key: oauth.google.gdataApiKey,
+                        part: 'statistics',
+                    },
+                })
+            ).data
             let follwers_count = res.items[0].statistics.subscriberCount
             await GoogleProfile.updateMany(
                 { channelId },
@@ -407,14 +419,17 @@ exports.instagramAbos = async (idPost, id, userName) => {
                 UserId: userWallet?.UserId || id,
             })
             var token = fbProfile.accessToken
-            var res = (await rp.get(
+            var res = (
+                await rp.get(
                     'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    instagram_id +
-                    '?access_token=' +
-                    token +
-                    '&fields=followers_count')).data
+                        oauth.facebook.fbGraphVersion +
+                        '/' +
+                        instagram_id +
+                        '?access_token=' +
+                        token +
+                        '&fields=followers_count'
+                )
+            ).data
             if (res.followers_count) return (followers = res.followers_count)
             else return null
         }
@@ -429,7 +444,7 @@ exports.twitterAbos = async function (pageName, idPost) {
             consumer_secret: oauth.twitter.consumer_secret_alt,
             access_token_key: oauth?.twitter?.access_token_key,
             access_token_secret: oauth.twitter.access_token_secret,
-            bearer_token: process.env.TWITTER_BEARER_TOKEN
+            bearer_token: process.env.TWITTER_BEARER_TOKEN,
         })
         var twitterDetails = await tweet.get('statuses/show', { id: idPost })
         await TwitterProfile.updateMany(
@@ -445,11 +460,16 @@ exports.twitterAbos = async function (pageName, idPost) {
 
 exports.linkedinAbos = async (linkedinProfile, organization) => {
     try {
-        let postData = (await rp.get(`https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,{
-            headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken
-            }
-        })).data
+        let postData = (
+            await rp.get(
+                `https://api.linkedin.com/v2/networkSizes/${organization}?edgeType=CompanyFollowedByMember`,
+                {
+                    headers: {
+                        Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                    },
+                }
+            )
+        ).data
         var subscribers = postData.firstDegreeSize
         return subscribers
     } catch (err) {
@@ -472,11 +492,10 @@ exports.tiktokAbos = async (userId, access_token = null) => {
                 { userId: +userId },
                 { accessToken: 1 }
             ).lean()
-        ).accessToken   
+        ).accessToken
 
     try {
-
-         const runCmd = cmd => {
+        const runCmd = (cmd) => {
             let resp = child_process.execSync(cmd)
             return resp.toString('UTF8')
         }
@@ -484,9 +503,6 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         -H 'Authorization: Bearer ${accessToken}'`
         var result = JSON.parse(runCmd(cmd))
 
-    
-        
-          
         return result?.data?.user?.follower_count ?? 0
     } catch (err) {
         console.error('tiktokAbos', err.message ? err.message : err.error)
@@ -534,25 +550,30 @@ const facebook = async (pageName, idPost) => {
         if (page) {
             var token = page.token
             var idPage = page.id
-            var res2 = (await rp.get(
+            var res2 = (
+                await rp.get(
                     'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    idPage +
-                    '_' +
-                    idPost +
-                    '?fields=shares,full_picture&access_token=' +
-                    token)).data
-            var res3 = (await rp.get(
-
+                        oauth.facebook.fbGraphVersion +
+                        '/' +
+                        idPage +
+                        '_' +
+                        idPost +
+                        '?fields=shares,full_picture&access_token=' +
+                        token
+                )
+            ).data
+            var res3 = (
+                await rp.get(
                     'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    idPage +
-                    '_' +
-                    idPost +
-                    '/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token=' +
-                    token)).data
+                        oauth.facebook.fbGraphVersion +
+                        '/' +
+                        idPage +
+                        '_' +
+                        idPost +
+                        '/insights?metric=post_reactions_by_type_total,post_impressions&period=lifetime&access_token=' +
+                        token
+                )
+            ).data
 
             var shares = 0
             if (res2.shares) {
@@ -581,14 +602,16 @@ const youtube = async (idPost) => {
             idPost = idPost.split('&')[0]
         }
         var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
-  
-        var body = (await rp.get('https://www.googleapis.com/youtube/v3/videos', {
-            params : {
-                id: idPost,
-                key: oauth.google.gdataApiKey,
-                part: 'statistics,snippet'
-            }
-        })).data
+
+        var body = (
+            await rp.get('https://www.googleapis.com/youtube/v3/videos', {
+                params: {
+                    id: idPost,
+                    key: oauth.google.gdataApiKey,
+                    part: 'statistics,snippet',
+                },
+            })
+        ).data
         if (body.items && body.items[0]) {
             perf = {
                 shares: 0 /*res.items[0].statistics.commentCount*/,
@@ -601,9 +624,7 @@ const youtube = async (idPost) => {
         }
 
         return perf
-    } catch (err) {
-        
-    }
+    } catch (err) {}
 }
 const linkedin = async (organization, idPost, type, linkedinProfile) => {
     try {
@@ -625,9 +646,13 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
 
         let url = config.linkedinStatsUrl(type, idPost, organization)
 
-        var body = (await rp.get(url,{headers:{
-            Authorization: 'Bearer ' + accessToken
-        }})).data;
+        var body = (
+            await rp.get(url, {
+                headers: {
+                    Authorization: 'Bearer ' + accessToken,
+                },
+            })
+        ).data
         if (body.elements.length) {
             perf.views = body.elements[0]?.totalShareStatistics.impressionCount
             perf.likes = body.elements[0]?.totalShareStatistics.likeCount
@@ -664,7 +689,8 @@ const instagram = async (UserId, link) => {
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
-                var resMediaAccessToken = (await rp.get(mediaGetNewAccessToken)).data
+                var resMediaAccessToken = (await rp.get(mediaGetNewAccessToken))
+                    .data
                 var media =
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
@@ -686,7 +712,7 @@ const instagram = async (UserId, link) => {
                             '/insights?metric=impressions&access_token=' +
                             resMediaAccessToken.access_token
                         try {
-                            var resMediaViews = (await rp.get( mediaViews)).data
+                            var resMediaViews = (await rp.get(mediaViews)).data
                             let nbviews = JSON.stringify(resMediaViews)
                             perf.views =
                                 JSON.parse(nbviews).data[0].values[0].value || 0
@@ -714,9 +740,9 @@ const twitter = async (userName, idPost) => {
             consumer_secret: oauth.twitter.consumer_secret_alt,
             access_token_key: oauth.access_token_key,
             access_token_secret: oauth.access_token_secret,
-            bearer_token: process.env.TWITTER_BEARER_TOKEN
+            bearer_token: process.env.TWITTER_BEARER_TOKEN,
         })
-        
+
         var tweet_res = await tweet.get('statuses/show', { id: idPost })
         var twitterProfile = (
             await TwitterProfile.find({
@@ -729,9 +755,12 @@ const twitter = async (userName, idPost) => {
             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
             access_token_key: twitterProfile.access_token_key,
             access_token_secret: twitterProfile.access_token_secret,
-            bearer_token: process.env.TWITTER_BEARER_TOKEN
+            bearer_token: process.env.TWITTER_BEARER_TOKEN,
         })
-        const res = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text`,  {params: {}});
+        const res = await client.get(
+            `https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text`,
+            { params: {} }
+        )
         var perf = {
             shares: res.data[0]?.public_metrics.retweet_count,
             likes: res.data[0]?.public_metrics.like_count,
@@ -756,7 +785,11 @@ const tiktok = async (tiktokProfile, idPost) => {
 
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp.get(getUrl)
-        resMedia?.data?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.data.access_token})
+        resMedia?.data?.data?.access_token &&
+            (await TikTokProfile.updateOne(
+                { _id: tiktokProfile._id },
+                { accessToken: resMedia?.data?.data.access_token }
+            ))
         let videoInfoResponse = await axios
             .post('https://open-api.tiktok.com/video/query/', {
                 access_token: resMedia?.data?.data.access_token,
@@ -1064,7 +1097,7 @@ exports.answerOne = async (
 
 exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
     try {
-        let calculstats = {...stats}
+        let calculstats = { ...stats }
         if (!limit) {
             var limits = ratios[4]
             limit = limits[parseInt(typeSN) - 1]
@@ -1083,7 +1116,7 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
             }
         }
 
-        return calculstats 
+        return calculstats
     } catch (error) {
         console.error(error)
     }
@@ -1217,7 +1250,7 @@ exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
                             instagram_id +
                             '?fields=username&access_token=' +
                             accessToken
-                        var resMedia = (await rp.get( media)).data
+                        var resMedia = (await rp.get(media)).data
                         page.instagram_username = resMedia.username
                     }
                     await FbPage.updateOne(
