@@ -1066,10 +1066,10 @@ module.exports.ShareByActivity = async (req, res) => {
         let postData = await rp.get(process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN,{headers:{
             Authorization: 'Bearer ' + linkedinProfile.accessToken,
         }})
-        //let postData = await rp(linkedinData)
+       
         let urn = `urn:li:activity:${activityURN}`
 
-        let sharedId = postData.results[urn]['domainEntity']
+        let sharedId = postData.data.results[urn]['domainEntity']
         return makeResponseData(res, 200, 'success', sharedId)
     } catch (err) {
         return makeResponseError(
