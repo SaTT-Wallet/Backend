@@ -174,11 +174,13 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
         let postData = await rp.get(config.linkedinActivityUrl(idPost) ,{headers:{
             Authorization: 'Bearer ' + linkedinProfile.accessToken
         }})
-        if (!Object.keys(postData.data.results).length) return res
+         
+        const {data: {results}} = postData
+        if (!Object.keys(results).length) return res
 
         let owner =
-            postData.data.results[urn]['domainEntity~'].owner ??
-            postData.data.results[urn]['domainEntity~'].author
+            results[urn]['domainEntity~'].owner ??
+            results[urn]['domainEntity~'].author
         linkedinProfile.pages.forEach((element) => {
             if (element.organization === owner && !element.deactivate)
                 res = true

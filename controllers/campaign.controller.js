@@ -787,7 +787,7 @@ exports.campaignPromp = async (req, res) => {
 exports.apply = async (req, res) => {
     var id = req.user._id
     // var pass = req.body.pass
-    var { linkedinId, idCampaign, typeSN, idPost, idUser, title, pass } =
+    var { linkedinId, idCampaign, typeSN, idPost, idUser, title, pass,linkedinUserId } =
         req.body
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
@@ -859,7 +859,7 @@ exports.apply = async (req, res) => {
             ).lean()
             var linkedinInfo = await getLinkedinLinkInfo(
                 linkedinProfile.accessToken,
-                idPost.toString(),
+                linkedinUserId,
                 linkedinProfile
             )
 

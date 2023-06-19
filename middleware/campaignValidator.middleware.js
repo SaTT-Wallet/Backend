@@ -197,8 +197,9 @@ linkNotificationsSchema: Joi.object({
         pass: validatePassword(),
         title: Joi.string().required(),
         typeSN: Joi.number().required(),
-        version: validateVersion(['v1', 'v2'])
-
+        version: validateVersion(['v1', 'v2']),
+        linkedinId :Joi.string().allow("").allow(null),
+        linkedinUserId :Joi.string().allow("").allow(null)
     }),
 
     saveCampaignSchema: Joi.object({
