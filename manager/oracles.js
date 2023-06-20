@@ -193,7 +193,7 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     }
 }
 
-exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
+exports.verifytiktok = async function (tiktokProfile, idPost) {
     try {
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp.get(getUrl)

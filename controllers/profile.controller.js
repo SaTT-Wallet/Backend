@@ -998,7 +998,7 @@ module.exports.verifyLink = async (req, response) => {
                 }).lean()
                 if (tiktokProfile) {
                     linked = true
-                    res = await verifytiktok(tiktokProfile, userId, idPost)
+                    res = await verifytiktok(tiktokProfile, idPost)
                     if (res === 'deactivate') deactivate = true
                 }
 
