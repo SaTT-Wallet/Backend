@@ -390,6 +390,7 @@ exports.UpdateStats = async (obj, socialOracle) => {
 
         if(!(await CampaignLink.exists({ 'applyerSignature.messageHash': obj.applyerSignature.messageHash }))){
             await CampaignLink.create(obj)
+            return;
         } else {
             await CampaignLink.updateOne(
                 {
