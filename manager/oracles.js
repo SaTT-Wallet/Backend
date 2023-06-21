@@ -193,14 +193,14 @@ exports.verifyLinkedin = async (linkedinProfile, idPost) => {
     }
 }
 
-exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
+exports.verifytiktok = async function (tiktokProfile, idPost) {
     try {
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
-        let resMedia = (await rp.get(getUrl)).data
+        let resMedia = await rp.get(getUrl)
         let videoInfoResponse = await axios.post(
             'https://open-api.tiktok.com/video/query/',
             {
-                access_token: resMedia?.data.access_token,
+                access_token: resMedia?.data?.data?.access_token,
                 open_id: tiktokProfile.userTiktokId,
                 filters: {
                     video_ids: [idPost],
@@ -210,7 +210,7 @@ exports.verifytiktok = async function (tiktokProfile, userId, idPost) {
         )
         let username =
             videoInfoResponse?.data?.data?.videos?.length &&
-            videoInfoResponse.data.data.videos[0].embed_html.split('/')[3]
+            videoInfoResponse.data.data?.videos[0]?.embed_html?.split('/')[3]
         username &&
             (await TikTokProfile.updateOne(
                 { _id: tiktokProfile._id },

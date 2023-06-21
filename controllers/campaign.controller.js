@@ -846,7 +846,7 @@ exports.apply = async (req, res) => {
                 )
 
             signature = await cred.Web3BEP20.eth.accounts.sign(
-                req.body.idPost,
+                req.body.idPost + hash,
                 decryptAccount[0].privateKey
             )
             if (!cred) return

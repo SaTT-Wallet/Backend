@@ -388,32 +388,14 @@ exports.UpdateStats = async (obj, socialOracle) => {
             delete obj.totalToEarn
     }
 
-    // await CampaignLink.findOne(
-    //     { 'applyerSignature.signature': obj.applyerSignature.signature },
-    //     async (err, result) => {
-    //         if (!result) {
-    //             await CampaignLink.create(obj)
-    //         } else {
-    //             await CampaignLink.updateOne(
-    //                 {
-    //                     'applyerSignature.signature':
-    //                         obj.applyerSignature.signature,
-    //                 },
-    //                 { $set: obj }
-    //             )
-    //         }
-    //     }
-    // )
-
-    let cmpLink = await CampaignLink.findOne(
-        { 'applyerSignature.signature': obj.applyerSignature.signature }).lean()
-        if(!cmpLink){
+        if(!(await CampaignLink.exists({ 'applyerSignature.messageHash': obj.applyerSignature.messageHash }))){
             await CampaignLink.create(obj)
+            return;
         } else {
             await CampaignLink.updateOne(
                 {
-                    'applyerSignature.signature':
-                        obj.applyerSignature.signature,
+                    'applyerSignature.messageHash ':
+                        obj.applyerSignature.messageHash ,
                 },
                 { $set: obj }
             )
