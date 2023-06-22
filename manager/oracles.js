@@ -11,7 +11,6 @@ const {
     IgMedia,
     LinkedinProfile,
 } = require('../model/index')
-var Twitter2 = require('twitter-api-v2')
 var fs = require('fs')
 const axios = require('axios')
 
@@ -150,15 +149,15 @@ exports.verifyInsta = async function (userId, idPost) {
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
          const client = new Twitter({
-             consumer_key: process.env.TWITTER_CONSUMER_KEY,
-             consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-             access_token_key: twitterProfile.access_token_key,
-             access_token_secret: twitterProfile.access_token_secret,
-             bearer_token: process.env.TWITTER_BEARER_TOKEN
-         })
-         const tweet = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=author_id`,  {params: {}});
+            consumer_key: process.env.TWITTER_CONSUMER_KEY,
+            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+            access_token_key: twitterProfile.access_token_key,
+            access_token_secret: twitterProfile.access_token_secret,
+            bearer_token: process.env.TWITTER_BEARER_TOKEN
+          });
+         const tweet = await client.get('statuses/show', { id: idPost });
          var twitterProfile = await TwitterProfile.findOne({
-             id: tweet.data[0].author_id,
+             id: tweet.user.id_str,
              UserId: userId,
          }).select('access_token_key access_token_secret id')
          return twitterProfile ? true : false
@@ -705,6 +704,7 @@ const instagram = async (UserId, link) => {
 
 const twitter = async (userName, idPost) => {
     try {
+        
         var tweet = new Twitter({
             consumer_key: oauth.twitter.consumer_key_alt,
             consumer_secret: oauth.twitter.consumer_secret_alt,
@@ -712,29 +712,16 @@ const twitter = async (userName, idPost) => {
             access_token_secret: oauth.access_token_secret,
             bearer_token: process.env.TWITTER_BEARER_TOKEN
         })
-        
-        var tweet_res = await tweet.get('statuses/show', { id: idPost })
-        var twitterProfile = (
-            await TwitterProfile.find({
-                id: tweet_res.user.id_str,
-            })
-        )[0]
-
-        const client = new Twitter({
-            consumer_key: process.env.TWITTER_CONSUMER_KEY,
-            consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-            access_token_key: twitterProfile.access_token_key,
-            access_token_secret: twitterProfile.access_token_secret,
-            bearer_token: process.env.TWITTER_BEARER_TOKEN
-        })
-        const res = await client.get(`https://api.twitter.com/2/tweets?ids=${idPost}&tweet.fields=public_metrics&expansions=attachments.media_keys&media.fields=duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text`,  {params: {}});
+        const res = await tweet.get(`https://api.twitter.com/1.1/statuses/show.json?id=${idPost}&include_entities=true`, {params: {}});
         var perf = {
-            shares: res.data[0]?.public_metrics.retweet_count,
-            likes: res.data[0]?.public_metrics.like_count,
-            views: res.data[0]?.public_metrics.impression_count,
+            shares: res.retweet_count,
+            likes: res.favorite_count,
+            // views: No direct equivalent in API v1.1, impression count is not available
             date: Math.floor(Date.now() / 1000),
-            media_url: res.includes?.media[0]?.url || ' ',
-        }
+            // API v1.1 doesn't provide a 'media_url' in the same manner as API v2.
+            // Here we are trying to find it from the entities->media object if it exists.
+            media_url: res.extended_entities.media[0]?.media_url_https || ' ',
+        };
         return perf
     } catch (err) {
         console.error('error twittRate limit exceededer oracles', err)
@@ -873,7 +860,6 @@ exports.getButtonStatus = (link) => {
         link.payedAmount = link.payedAmount || '0'
 
         if (link.status === false) {
-            console.log('false')
             return 'waiting_for_validation'
         }
 
