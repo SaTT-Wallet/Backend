@@ -55,7 +55,7 @@ const {
     getQuoteValidation,
     sendTokenValidation,
     migrationWalletValidation,
-    cryptoListValidation
+    cryptoListValidation,
 } = require('../middleware/walletValidator.middleware')
 
 /**
@@ -84,8 +84,7 @@ const {
  *       "500":
  *          description: code:500,<br>error
  */
-router.post('/mywallet', verifyAuth, walletVersionValidation , mywallet)
-
+router.post('/mywallet', verifyAuth, walletVersionValidation, mywallet)
 
 /**
  * @swagger
@@ -135,8 +134,7 @@ router.get('/allwallets', verifyAuth, allwallets)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/userBalance', verifyAuth, walletVersionValidation ,userBalance)
-
+router.post('/userBalance', verifyAuth, walletVersionValidation, userBalance)
 
 /**
  * @swagger
@@ -159,16 +157,92 @@ router.post('/userBalance', verifyAuth, walletVersionValidation ,userBalance)
  *          description: error:"error"
  */
 
-router.get('/gasPrice/:network', networkValidation,getGasPrice)
+router.get('/gasPrice/:network', networkValidation, getGasPrice)
+
+// /**
+//  * @swagger
+//  * /wallet/Bep20GasPrice:
+//  *   get:
+//  *     tags:
+//  *     - "wallets"
+//  *     summary: get bnb gas price
+//  *     description: get bnb gas price <br> without access_token
+//  *     produces:
+//  *       - application/json
+//  *     responses:
+//  *       "200":
+//  *          description: code,<br>message:"success"
+//  *       "500":
+//  *          description: error:"error"
+//  */
+
+// router.get('/Bep20GasPrice', gasPriceBep20)
+
+// /**
+//  * @swagger
+//  * /wallet/BttGasPrice:
+//  *   get:
+//  *     tags:
+//  *     - "wallets"
+//  *     summary: get bnb gas price
+//  *     description: get btt gas price <br> without access_token
+//  *     produces:
+//  *       - application/json
+//  *     responses:
+//  *       "200":
+//  *          description: code,<br>message:"success"
+//  *       "500":
+//  *          description: error:"error"
+//  */
+
+// router.get('/BttGasPrice', gasPriceBtt)
+
+// /**
+//  * @swagger
+//  * /wallet/TrxGasPrice:
+//  *   get:
+//  *     tags:
+//  *     - "wallets"
+//  *     summary: get trx gas price
+//  *     description: get trx gas price <br> without access_token
+//  *     produces:
+//  *       - application/json
+//  *     responses:
+//  *       "200":
+//  *          description: code,<br>message:"success"
+//  *       "500":
+//  *          description: error:"error"
+//  */
+
+// router.get('/TrxGasPrice', gasPriceTrx)
+
+// /**
+//  * @swagger
+//  * /wallet/polygonGasPrice:
+//  *   get:
+//  *     tags:
+//  *     - "wallets"
+//  *     summary: get Matic gas price
+//  *     description: get Matic gas price <br> without access_token
+//  *     produces:
+//  *       - application/json
+//  *     responses:
+//  *       "200":
+//  *          description: code,<br>message:"success"
+//  *       "500":
+//  *          description: error:"error"
+//  */
+
+// router.get('/polygonGasPrice', gasPricePolygon)
 
 /**
  * @swagger
- * /wallet/Bep20GasPrice:
+ * /wallet/globalCryptoMarketInfo:
  *   get:
  *     tags:
  *     - "wallets"
- *     summary: get bnb gas price
- *     description: get bnb gas price <br> without access_token
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> without access_token
  *     produces:
  *       - application/json
  *     responses:
@@ -177,83 +251,6 @@ router.get('/gasPrice/:network', networkValidation,getGasPrice)
  *       "500":
  *          description: error:"error"
  */
-
-router.get('/Bep20GasPrice', gasPriceBep20)
-
-/**
- * @swagger
- * /wallet/BttGasPrice:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get bnb gas price
- *     description: get btt gas price <br> without access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "500":
- *          description: error:"error"
- */
-
-router.get('/BttGasPrice', gasPriceBtt)
-
-/**
- * @swagger
- * /wallet/TrxGasPrice:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get trx gas price
- *     description: get trx gas price <br> without access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "500":
- *          description: error:"error"
- */
-
-router.get('/TrxGasPrice', gasPriceTrx)
-
-/**
- * @swagger
- * /wallet/polygonGasPrice:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get Matic gas price
- *     description: get Matic gas price <br> without access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "500":
- *          description: error:"error"
- */
-
-router.get('/polygonGasPrice', gasPricePolygon)
-
-
-/**
-* @swagger
-* /wallet/globalCryptoMarketInfo:
-*   get:
-*     tags:
-*     - "wallets"
-*     summary: get crypto list details
-*     description: return detail of crypto list to user <br> without access_token
-*     produces:
-*       - application/json
-*     responses:
-*       "200":
-*          description: code,<br>message:"success"
-*       "500":
-*          description: error:"error"
-*/
 router.get('/globalCryptoMarketInfo', globalCryptoMarketInfo)
 
 /**
@@ -296,7 +293,7 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *         description: error:"error"
  */
-router.get('/cryptoPriceDetails',cryptoListValidation, cryptoPriceDetails);
+router.get('/cryptoPriceDetails', cryptoListValidation, cryptoPriceDetails)
 
 /**
  * @swagger
@@ -324,8 +321,7 @@ router.get('/cryptoPriceDetails',cryptoListValidation, cryptoPriceDetails);
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/totalBalance', verifyAuth, walletVersionValidation,totalBalances)
-
+router.post('/totalBalance', verifyAuth, walletVersionValidation, totalBalances)
 
 /**
  * @swagger
@@ -373,7 +369,12 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/checkWalletToken', verifyAuth, checkTokenValidation,checkWalletToken)
+router.post(
+    '/checkWalletToken',
+    verifyAuth,
+    checkTokenValidation,
+    checkWalletToken
+)
 
 /**
  * @swagger
@@ -409,7 +410,7 @@ router.post('/checkWalletToken', verifyAuth, checkTokenValidation,checkWalletTok
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/addNewToken', verifyAuth, addNewTokenValidation,addNewToken)
+router.post('/addNewToken', verifyAuth, addNewTokenValidation, addNewToken)
 
 /**
  * @swagger
@@ -450,7 +451,12 @@ router.post('/addNewToken', verifyAuth, addNewTokenValidation,addNewToken)
  *          description: code,<br>error:"error"
  *
  */
-router.post('/transferTokens', verifyAuth, sendTokenValidation ,transferTokensController)
+router.post(
+    '/transferTokens',
+    verifyAuth,
+    sendTokenValidation,
+    transferTokensController
+)
 
 /**
  * @swagger
@@ -484,7 +490,7 @@ router.post('/transferTokens', verifyAuth, sendTokenValidation ,transferTokensCo
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/getQuote', verifyAuthGetQuote, getQuoteValidation ,getQuote)
+router.post('/getQuote', verifyAuthGetQuote, getQuoteValidation, getQuote)
 
 /**
  * @swagger
@@ -514,9 +520,12 @@ router.post('/getQuote', verifyAuthGetQuote, getQuoteValidation ,getQuote)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/payementRequest', verifyAuth, paymentRequestValidation ,payementRequest)
-
-
+router.post(
+    '/payementRequest',
+    verifyAuth,
+    paymentRequestValidation,
+    payementRequest
+)
 
 /**
  * @swagger
@@ -586,7 +595,7 @@ router.post('/verifyMnemo', verifyAuth, verifyMnemo)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/create', verifyAuth, passwordCheckValidation,createNewWallet)
+router.post('/create', verifyAuth, passwordCheckValidation, createNewWallet)
 
 /**
  * @swagger
@@ -612,7 +621,7 @@ router.post('/create', verifyAuth, passwordCheckValidation,createNewWallet)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/verifySign', verifyAuth, passwordCheckValidation ,verifySign)
+router.post('/verifySign', verifyAuth, passwordCheckValidation, verifySign)
 
 /**
  * @swagger
@@ -638,8 +647,12 @@ router.post('/verifySign', verifyAuth, passwordCheckValidation ,verifySign)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/create/v2', verifyAuth, passwordCheckValidation ,createNewWalletV2)
-
+router.post(
+    '/create/v2',
+    verifyAuth,
+    passwordCheckValidation,
+    createNewWalletV2
+)
 
 /**
  * @swagger
@@ -665,7 +678,12 @@ router.post('/create/v2', verifyAuth, passwordCheckValidation ,createNewWalletV2
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/add-tron-wallet', verifyAuth, passwordCheckValidation, addTronWalletToExistingAccount)
+router.post(
+    '/add-tron-wallet',
+    verifyAuth,
+    passwordCheckValidation,
+    addTronWalletToExistingAccount
+)
 
 /**
  * @swagger
@@ -688,7 +706,12 @@ router.post('/add-tron-wallet', verifyAuth, passwordCheckValidation, addTronWall
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.delete('/removeToken/:address', verifyAuth, checkEVMValidation,removeToken)
+router.delete(
+    '/removeToken/:address',
+    verifyAuth,
+    checkEVMValidation,
+    removeToken
+)
 
 /**
  * @swagger
@@ -711,7 +734,11 @@ router.delete('/removeToken/:address', verifyAuth, checkEVMValidation,removeToke
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.get('/transaction_history/:address', checkEVMValidation,getTransactionHistory)
+router.get(
+    '/transaction_history/:address',
+    checkEVMValidation,
+    getTransactionHistory
+)
 
 /**
  * @swagger
@@ -748,27 +775,29 @@ router.get('/countWallets', countWallets)
  */
 router.get('/stats', verifyAuth, balanceStat)
 
-router.post('/transfertTokensBep20', verifyAuth, migrationWalletValidation,transfertAllTokensBEP20)
-
+router.post(
+    '/transfertTokensBep20',
+    verifyAuth,
+    migrationWalletValidation,
+    transfertAllTokensBEP20
+)
 
 router.get('/checkUserWalletV2', verifyAuth, checkUserWalletV2Exist)
 
-
-
 router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
 
+router.post(
+    '/code-export-keystore',
+    verifyAuth,
+    getCodeKeyStoreValidation,
+    getCodeKeyStore
+)
 
-
-router.post('/code-export-keystore', verifyAuth, getCodeKeyStoreValidation ,getCodeKeyStore)
-
-
-
-router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyStore)
-
-
-
-
-
-
+router.post(
+    '/export-keystore',
+    verifyAuth,
+    exportKeyStoreValidation,
+    exportKeyStore
+)
 
 module.exports = router

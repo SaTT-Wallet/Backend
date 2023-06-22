@@ -229,58 +229,6 @@ exports.gasPriceTrx = async (req, res) => {
         })
     }
 }
-////////////////////////////////////////////////////////////////////////////
-// exports.gasPricePolygon = async (req, res) => {
-//     let Web3ETH = await polygonConnexion()
-//     var gasPrice = await Web3ETH.eth.getGasPrice()
-//     return responseHandler.makeResponseData(res, 200, 'success', {
-//         gasPrice: gasPrice / 1000000000,
-//     })
-// }
-
-// exports.gasPriceBep20 = async (req, res) => {
-//     let Web3ETH = await bep20Connexion()
-//     var gasPrice = await Web3ETH.eth.getGasPrice()
-//     return responseHandler.makeResponseData(res, 200, 'success', {
-//         gasPrice: gasPrice / 1000000000,
-//     })
-// }
-
-// exports.gasPriceErc20 = async (req, res) => {
-//     let Web3BEP20 = await erc20Connexion()
-
-//     var gasPrice = await Web3BEP20.eth.getGasPrice()
-//     return responseHandler.makeResponseData(res, 200, 'success', {
-//         gasPrice: gasPrice / 1000000000,
-//     })
-// }
-
-// exports.gasPriceBtt = async (req, res) => {
-//     let Web3ETH = await bttConnexion()
-
-//     var gasPrice = await Web3ETH.eth.getGasPrice()
-//     return responseHandler.makeResponseData(res, 200, 'success', {
-//         gasPrice: (gasPrice * 280) / 1000000000,
-//     })
-// }
-
-// exports.gasPriceTrx = async (req, res) => {
-//     let tronWeb = await webTronInstance()
-
-//     var gasPrice = await tronWeb.trx.getChainParameters()
-//     return responseHandler.makeResponseData(res, 200, 'success', {
-//         gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
-//     })
-// }
-//////////////////////////////////////////////////////////////////////////////////////
-// exports.gasPriceTron = async (req, res) => {
-//     let Web3TRON = await tronConnexion()
-//     var gasPrice = await Web3TRON.eth.getGasPrice()
-
-//     return responseHandler.makeResponseData(res, 200, 'success', {
-//         gasPrice: gasPrice / 1000000000,
-//     })
-// }
 
 exports.cryptoDetails = async (req, res) => {
     let prices = await getPrices()
