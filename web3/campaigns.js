@@ -1102,7 +1102,7 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
 
 exports.filterLinks = (req, id_wallet) => {
     
-    let {oracles,status,campaign} = req.query;
+    let {oracles,status,campaign,state} = req.query;
    
     var query = { id_wallet }
     if (campaign && state === 'part') {
