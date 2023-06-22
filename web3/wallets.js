@@ -56,6 +56,7 @@ const {
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
 
+
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -512,9 +513,10 @@ exports.getPrices = async () => {
         ) {
             return cache.get('prices').data
         } else {
+          
             const options = {
                 method: 'GET',
-                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                url: process.env.CMC_URl,
                 params: {
                     start: '1',
                     limit: '200',
@@ -527,7 +529,7 @@ exports.getPrices = async () => {
 
             const options2 = {
                 method: 'GET',
-                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest',
+                url: process.env.CMC_CRYPTO_URL,
                 params: {
                     symbol: 'SATT,JET,BTT',
                     convert: 'USD',
@@ -536,13 +538,14 @@ exports.getPrices = async () => {
                     'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
                 },
             }
+        
 
             let result 
 
             try {
                 result = await Promise.all([
                     rp.request(options),
-                    rp.request(options2),
+                    rp.request(options2)
                 ])
 
             } catch (error) {
@@ -565,6 +568,8 @@ exports.getPrices = async () => {
                 }
                 if (elem.name === 'SaTT') {
                     obj = {
+                        id: elem.id,
+                        cmc_rank: elem.cmc_rank,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
                         tokenAddress: tokenAddress,
@@ -572,12 +577,13 @@ exports.getPrices = async () => {
                         name: elem.name,
                         price: elem?.quote.USD.price,
                         percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        percent_change_1h:elem?.quote.USD.percent_change_1h,
+                        percent_change_7d:elem?.quote.USD.percent_change_7d,
                         market_cap: elem?.quote.USD.market_cap,
                         volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
                         total_supply: elem.total_supply,
                         max_supply: elem.max_supply,
-
                         fully_diluted:
                             responseSattJet.data.SATT?.quote.USD
                                 .fully_diluted_market_cap,
@@ -588,6 +594,8 @@ exports.getPrices = async () => {
                     }
                 } else
                     obj = {
+                        id: elem.id,
+                        cmc_rank: elem.cmc_rank,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
                         tokenAddress: tokenAddress,
@@ -595,6 +603,8 @@ exports.getPrices = async () => {
                         name: elem.name,
                         price: elem?.quote.USD.price,
                         percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        percent_change_1h:elem?.quote.USD.percent_change_1h,
+                        percent_change_7d:elem?.quote.USD.percent_change_7d,
                         market_cap: elem?.quote.USD.market_cap,
                         volume_24h: elem?.quote.USD.volume_24h,
                         circulating_supply: elem.circulating_supply,
@@ -638,8 +648,88 @@ exports.getPrices = async () => {
     } catch (err) {}
 }
 
+exports.getChartVariation = async(cryptolist) => {
+    try{
+       
+        const endDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+        const startDate = endDate - (7 * 24 * 60 * 60);
+        const options = {
+            method: 'GET',
+            url:  process.env.CMC_HISTORY_URL,
+            params: {
+                id: cryptolist,
+                time_start:startDate,
+                time_end:endDate,
+                interval:'hourly',
+            },
+            headers: {
+                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+            },
+           
+        }
+        var results 
+        try {
+            results = await Promise.all([ rp.request(options)])
+         
+        } catch (error) {
+            throw new Error('Error fetching prices chart')
+        }
+        var result = await results[0]
+        var cryptoInfo
+        var priceVariation =[]
+      
+             
+     cryptoInfo =result.data.data
+     Object.values(cryptoInfo).forEach(innerObj => {
+       let sparkline_in_7d= innerObj.quotes.map((elem)=>{
+      return elem.quote.USD.price
+       })
+       priceVariation.push({
+        id: innerObj.id,
+        name: innerObj.name,
+        sparkline_in_7d : sparkline_in_7d,
+      })
+     
+     });
+
+      
+       
+       
+   
+return  priceVariation
+    } catch(err){
+  throw new Error('Error fetching prices char')
+    }
+
+}
+exports.getGlobalCryptoMarket = async () =>{
+    try {const options = {
+        method: 'GET',
+        url: process.env.CMC_GLOBL_URL,
+        params: {
+            convert: 'USD',
+        },
+        headers: {
+            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+        },
+    }
+    var result
+    try{
+        result = await Promise.all([rp.request(options) ])
+    } 
+    catch(err){
+        throw new Error('Error fetching Global Crypto Market Info')
+    }
+    return result[0]?.data?.data?.quote?.USD
+} catch(err){
+    throw new Error('Error fetching Global Crypto Market Info')
+}
+
+
+}
+
 exports.filterAmount = function (input, nbre = 10) {
-    if (input) {
+   try{ if (input) {
         var out = input
         let size = input.length
         let toAdd = parseInt(nbre) - parseInt(size)
@@ -674,6 +764,8 @@ exports.filterAmount = function (input, nbre = 10) {
         return out
     } else {
         return '-'
+    }} catch(err){
+        throw new Error('Error filterAmount')
     }
 }
 

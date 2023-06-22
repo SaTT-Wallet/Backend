@@ -49,6 +49,8 @@ const validateVersion = (validVersions) => Joi.string().required().custom((value
     
 });
 
+// Validation schema for cryptolist
+const validateCryptoList = () => Joi.string().pattern(/^(\d+(,\d+)*)?$/);
 
 // SCHEMAS OBJECT
 const schemas = {
@@ -127,6 +129,9 @@ const schemas = {
         tokens: Joi.array().required(),
         network:validateNetworks(["erc20", "bep20", "polygon", "btc", "tron", "bttc"]),
         pass: validatePassword(),
+    }),
+    cryptoListSchema: Joi.object({
+        cryptolist: validateCryptoList()
     })
 }
 
@@ -163,6 +168,7 @@ const validationCustomMiddleware = (schemaBody, schemaQuery) => (req, res, next)
 
 
 
+
 module.exports = {
     getCodeKeyStoreValidation: validationMiddleware(schemas.getCodeKeyStoreSchema, 'body'), 
     exportKeyStoreValidation: validationMiddleware(schemas.exportKeyStoreSchema, 'body'),
@@ -175,5 +181,6 @@ module.exports = {
     paymentRequestValidation: validationMiddleware(schemas.paymentRequestSchema, 'body'),
     getQuoteValidation: validationMiddleware(schemas.getQuoteSchema, 'body'),
     sendTokenValidation: validationCustomMiddleware(schemas.sendTokenSchema, schemas.maxSendTokenQuerySchema),
-    migrationWalletValidation: validationMiddleware(schemas.migrationWalletSchema, 'body')
+    migrationWalletValidation: validationMiddleware(schemas.migrationWalletSchema, 'body'),
+    cryptoListValidation :validationMiddleware(schemas.cryptoListSchema, 'query'),
 };

@@ -34,6 +34,8 @@ const {
     checkIsNewUser,
     getCodeKeyStore,
     exportKeyStore,
+    cryptoPriceDetails,
+    globalCryptoMarketInfo,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -52,7 +54,8 @@ const {
     paymentRequestValidation,
     getQuoteValidation,
     sendTokenValidation,
-    migrationWalletValidation
+    migrationWalletValidation,
+    cryptoListValidation
 } = require('../middleware/walletValidator.middleware')
 
 /**
@@ -234,6 +237,25 @@ router.get('/TrxGasPrice', gasPriceTrx)
 
 router.get('/polygonGasPrice', gasPricePolygon)
 
+
+/**
+* @swagger
+* /wallet/globalCryptoMarketInfo:
+*   get:
+*     tags:
+*     - "wallets"
+*     summary: get crypto list details
+*     description: return detail of crypto list to user <br> without access_token
+*     produces:
+*       - application/json
+*     responses:
+*       "200":
+*          description: code,<br>message:"success"
+*       "500":
+*          description: error:"error"
+*/
+router.get('/globalCryptoMarketInfo', globalCryptoMarketInfo)
+
 /**
  * @swagger
  * /wallet/cryptoDetails:
@@ -251,6 +273,30 @@ router.get('/polygonGasPrice', gasPricePolygon)
  *          description: error:"error"
  */
 router.get('/cryptoDetails', cryptoDetails)
+
+/**
+ * @swagger
+ * /wallet/cryptoPriceDetails:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: cryptolist
+ *         required: false
+ *         type: string
+ *         description: The list of cryptos to get details for, separated by commas
+ *     responses:
+ *       "200":
+ *         description: code,<br>message:"success"
+ *       "500":
+ *         description: error:"error"
+ */
+router.get('/cryptoPriceDetails',cryptoListValidation, cryptoPriceDetails);
 
 /**
  * @swagger

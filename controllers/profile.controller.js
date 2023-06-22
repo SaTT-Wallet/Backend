@@ -804,7 +804,7 @@ module.exports.getNotifications = async (req, res) => {
 
 module.exports.changeEmail = async (req, res) => {
     var pass = req.body.pass
-    var email = req.body.email
+    var email = req.body.email.toLowerCase()
     var user = req.user
 
     try {
