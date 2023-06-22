@@ -185,7 +185,6 @@ exports.getGasPrice = async (req, res) => {
             return gPTrx(req, res)
     }
 }
-//Best Practices
 
 const getGasPrice = async (res, connect, format) => {
     try {
