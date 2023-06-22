@@ -2447,16 +2447,19 @@ module.exports.campaignInvested = async (req, res) => {
 //REJECT influencer link controller by advertiser
 exports.rejectLink = async (req, res) => {
     const { lang = 'en', title = '', idCampaign, reason, email, link } = req.body;
-    const { idLink } = req.params;
-    const idUser = '0' + req.user._id;
-    
+   
+    const campaign = await fetchCampaign({_id: idCampaign});
+    const idUser =   '0' +req.user._id;
+    const idLink = req.params.id
+   
     configureTranslation(lang)
     let reqReason = reason.map(str => str)
 
-    const campaign = await fetchCampaign({_id:campaignId});
+
 
     try {
         if (idUser !== campaign?.idNode) {
+         
             return responseHandler.makeResponseError(res, 401, 'unauthorized');
         }
 
@@ -2472,6 +2475,7 @@ exports.rejectLink = async (req, res) => {
                 { returnOriginal: false }
             )
             let id = +req.body.idUser
+            
             const notificationPromise = notificationManager(id, 'cmp_candidate_reject_link', {
                 cmp_name: title,
                 action: 'link_rejected',
