@@ -44,6 +44,8 @@ const {
     saveFirebaseAccessToken,
     updateLastStep,
     authApple,
+    socialSignUp,
+    socialSignin,
     getQrCode,
     verifyQrCode,
     purgeAccount,
@@ -796,6 +798,75 @@ router.put('/updateLastStep', verifyAuth, updateLastStepValidation ,updateLastSt
  *          description: error
  */
 router.post('/apple', authAppleValidation,authApple)
+
+
+/**
+ * @swagger
+ * /auth/socialSignup:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: register with social for apple.
+ *     description: user enter his credentials to register , system check if email exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               lang:
+ *                 type: string
+ *               idSn:
+ *                 type: number
+ *               id:
+ *                 type: string
+ *               photo:
+ *                 type: string
+ *               givenName:
+ *                 type: string
+ *               familyName:
+ *                 type: string
+ *               newsLetter:
+ *                 type: boolean
+ *     responses:
+ *       "200":
+ *          description: code,<br>message,<br>data:{"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
+ *       "401":
+ *          description: code,<br>message:"account_exists"
+ *       "500":
+ *          description: error
+ */
+router.post('/socialSignup', socialSignUp)
+
+/**
+ * @swagger
+ * /auth/socialSignin:
+ *   post:
+ *     tags:
+ *     - "auth"
+ *     summary: auth with social for apple.
+ *     description: user enter his credentials to login , system check if id exist or not <br> without access_token.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               idSn:
+ *                 type: number
+ *               id:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message,<br>param:{"access_token":token,"expires_in":date,"token_type":"bearer","scope":"user"}
+ *       "401":
+ *          description: code,<br>message
+ *       "500":
+ *          description: error
+ */
+router.post('/socialSignin', socialSignin)
 
 
 /**
