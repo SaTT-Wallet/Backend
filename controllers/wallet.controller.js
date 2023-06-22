@@ -170,75 +170,109 @@ exports.userBalance = async (req, res) => {
 }
 
 exports.getGasPrice = async (req, res) => {
-    let network = req.params.network.toUpperCase()
-    if (network === 'TRON') {
-        let tronWeb = await webTronInstance()
+    const network = req.params.network.toUpperCase()
 
-        var gasPrice = await tronWeb.trx.getChainParameters()
+    switch (network) {
+        case 'POLYGON':
+            return exports.gasPricePolygon(req, res)
+        case 'BEP20':
+            return exports.gasPriceBep20(req, res)
+        case 'ERC20':
+            return exports.gasPriceErc20(req, res)
+        case 'BTTC':
+            return exports.gasPriceBtt(req, res)
+        case 'TRON':
+            return exports.gasPriceTrx(req, res)
+    }
+}
+//Best Practices
+
+const getGasPrice = async (res, connect, format) => {
+    try {
+        const web3Instance = await connect()
+        const gasPrice = await web3Instance.eth.getGasPrice()
+        const formattedGasPrice = format(gasPrice)
         return responseHandler.makeResponseData(res, 200, 'success', {
-            gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee')
-                .value,
+            gasPrice: formattedGasPrice,
         })
-    } else {
-        const provider = getHttpProvider(
-            networkProviders[network],
-            networkProvidersOptions[network]
-        )
-        let web3 = await new Web3(provider)
-        var gasPrice = await web3.eth.getGasPrice()
-        if (network === 'bttc') {
-            return responseHandler.makeResponseData(res, 200, 'success', {
-                gasPrice: (gasPrice * 280) / 1000000000,
-            })
-        }
-        return responseHandler.makeResponseData(res, 200, 'success', {
-            gasPrice: gasPrice / 1000000000,
+    } catch (error) {
+        console.error(error)
+        return responseHandler.makeResponseData(res, 500, 'failure', {
+            error: 'Unable to retrieve gas price.',
         })
     }
 }
-exports.gasPricePolygon = async (req, res) => {
-    let Web3ETH = await polygonConnexion()
-    var gasPrice = await Web3ETH.eth.getGasPrice()
-    return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
-    })
-}
 
-exports.gasPriceBep20 = async (req, res) => {
-    let Web3ETH = await bep20Connexion()
-    var gasPrice = await Web3ETH.eth.getGasPrice()
-    return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
-    })
-}
-
-exports.gasPriceErc20 = async (req, res) => {
-    let Web3BEP20 = await erc20Connexion()
-
-    var gasPrice = await Web3BEP20.eth.getGasPrice()
-    return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice / 1000000000,
-    })
-}
-
-exports.gasPriceBtt = async (req, res) => {
-    let Web3ETH = await bttConnexion()
-
-    var gasPrice = await Web3ETH.eth.getGasPrice()
-    return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: (gasPrice * 280) / 1000000000,
-    })
-}
+exports.gasPricePolygon = (req, res) =>
+    getGasPrice(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
+exports.gasPriceBep20 = (req, res) =>
+    getGasPrice(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
+exports.gasPriceErc20 = (req, res) =>
+    getGasPrice(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
+exports.gasPriceBtt = (req, res) =>
+    getGasPrice(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
 
 exports.gasPriceTrx = async (req, res) => {
-    let tronWeb = await webTronInstance()
-
-    var gasPrice = await tronWeb.trx.getChainParameters()
-    return responseHandler.makeResponseData(res, 200, 'success', {
-        gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
-    })
+    try {
+        const tronWeb = await webTronInstance()
+        const gasPriceData = await tronWeb.trx.getChainParameters()
+        const gasPrice = gasPriceData.find(
+            (elem) => elem.key === 'getEnergyFee'
+        ).value
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            gasPrice,
+        })
+    } catch (error) {
+        console.error(error)
+        return responseHandler.makeResponseData(res, 500, 'failure', {
+            error: 'Unable to retrieve gas price.',
+        })
+    }
 }
+////////////////////////////////////////////////////////////////////////////
+// exports.gasPricePolygon = async (req, res) => {
+//     let Web3ETH = await polygonConnexion()
+//     var gasPrice = await Web3ETH.eth.getGasPrice()
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice / 1000000000,
+//     })
+// }
 
+// exports.gasPriceBep20 = async (req, res) => {
+//     let Web3ETH = await bep20Connexion()
+//     var gasPrice = await Web3ETH.eth.getGasPrice()
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice / 1000000000,
+//     })
+// }
+
+// exports.gasPriceErc20 = async (req, res) => {
+//     let Web3BEP20 = await erc20Connexion()
+
+//     var gasPrice = await Web3BEP20.eth.getGasPrice()
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice / 1000000000,
+//     })
+// }
+
+// exports.gasPriceBtt = async (req, res) => {
+//     let Web3ETH = await bttConnexion()
+
+//     var gasPrice = await Web3ETH.eth.getGasPrice()
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: (gasPrice * 280) / 1000000000,
+//     })
+// }
+
+// exports.gasPriceTrx = async (req, res) => {
+//     let tronWeb = await webTronInstance()
+
+//     var gasPrice = await tronWeb.trx.getChainParameters()
+//     return responseHandler.makeResponseData(res, 200, 'success', {
+//         gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
+//     })
+// }
+//////////////////////////////////////////////////////////////////////////////////////
 // exports.gasPriceTron = async (req, res) => {
 //     let Web3TRON = await tronConnexion()
 //     var gasPrice = await Web3TRON.eth.getGasPrice()
@@ -384,18 +418,23 @@ exports.transferTokensController = async (req, res) => {
                     transactionHash: result.transactionHash,
                 })
 
-                
                 const wallet = await Wallet.findOne(
                     {
                         ...((network.toUpperCase() === 'TRON' && {
                             tronAddress: to,
-                        }) || {$or: [{'keystore.address': to.substring(2)}, {'walletV2.keystore.address': to.substring(2)}]}
-                       ),
+                        }) || {
+                            $or: [
+                                { 'keystore.address': to.substring(2) },
+                                {
+                                    'walletV2.keystore.address':
+                                        to.substring(2),
+                                },
+                            ],
+                        }),
                     },
                     { UserId: 1 }
                 ).lean()
-                   
-                 
+
                 if (wallet) {
                     await notificationManager(
                         wallet.UserId,
@@ -411,7 +450,7 @@ exports.transferTokensController = async (req, res) => {
                             transactionHash: result.transactionHash,
                         }
                     )
-                } 
+                }
                 return responseHandler.makeResponseData(
                     res,
                     200,
@@ -543,11 +582,14 @@ exports.addNewToken = async (req, res) => {
                     //     json: true,
                     //     gzip: true,
                     // }
-                    
-                    
-                    let metaData = (await rp(process.env.CMR_URL + symbol,{headers : {
-                        'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                    } })).data
+
+                    let metaData = (
+                        await rp(process.env.CMR_URL + symbol, {
+                            headers: {
+                                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                            },
+                        })
+                    ).data
                     customToken.picUrl = metaData.data[customToken.symbol].logo
                 }
                 await CustomToken.create(customToken)
@@ -609,9 +651,17 @@ exports.getQuote = async (req, res) => {
         //     },
         //     json: true,
         // }
-         var quote = (await rp.post(configSendBox + '/wallet/merchant/v2/quote',requestQuote, {headers :{
-            Authorization: `ApiKey ${process.env.SEND_BOX}`,
-        }})).data
+        var quote = (
+            await rp.post(
+                configSendBox + '/wallet/merchant/v2/quote',
+                requestQuote,
+                {
+                    headers: {
+                        Authorization: `ApiKey ${process.env.SEND_BOX}`,
+                    },
+                }
+            )
+        ).data
         //var quote = await rp(simplexQuote)
         if (!!quote.error) {
             return responseHandler.makeResponseError(res, 403, quote.error)
@@ -659,9 +709,17 @@ exports.payementRequest = async (req, res) => {
             request.idWallet = req.body.idWallet
             let payment = await payementRequest(request)
 
-             var paymentSubmitted = (await rp.post(configSendBox + '/wallet/merchant/v2/payments/partner/data',payment,{headers : {
-                Authorization: `ApiKey ${process.env.SEND_BOX}`,
-            }})).data
+            var paymentSubmitted = (
+                await rp.post(
+                    configSendBox + '/wallet/merchant/v2/payments/partner/data',
+                    payment,
+                    {
+                        headers: {
+                            Authorization: `ApiKey ${process.env.SEND_BOX}`,
+                        },
+                    }
+                )
+            ).data
             paymentSubmitted.payment_id = payment_id
             return responseHandler.makeResponseData(
                 res,
@@ -975,7 +1033,6 @@ module.exports.removeToken = async (req, res) => {
 
 module.exports.getTransactionHistory = async (req, res) => {
     var address = req.params.address
-   
 
     try {
         //ETH Network
@@ -991,10 +1048,13 @@ module.exports.getTransactionHistory = async (req, res) => {
             json: true,
             gzip: true,
         }
-        
 
-        const Eth_transactions = await rp.get(requestOptions_ETH_transactions.uri)
-        const ERC20_transactions = await rp.get(requestOptions_ERC20_transactions.uri)
+        const Eth_transactions = await rp.get(
+            requestOptions_ETH_transactions.uri
+        )
+        const ERC20_transactions = await rp.get(
+            requestOptions_ERC20_transactions.uri
+        )
         const all_Eth_transactions = FilterTransactionsByHash(
             Eth_transactions.data,
             ERC20_transactions.data,
@@ -1015,8 +1075,12 @@ module.exports.getTransactionHistory = async (req, res) => {
             gzip: true,
         }
 
-        const BNB_transactions = await rp.get(requestOptions_BNB_transactions.uri)
-        const BEP20_transactions = await rp.get(requestOptions_BEP20_transactions.uri)
+        const BNB_transactions = await rp.get(
+            requestOptions_BNB_transactions.uri
+        )
+        const BEP20_transactions = await rp.get(
+            requestOptions_BEP20_transactions.uri
+        )
         const all_BNB_transactions = FilterTransactionsByHash(
             BNB_transactions.data,
             BEP20_transactions.data,
@@ -1037,8 +1101,12 @@ module.exports.getTransactionHistory = async (req, res) => {
             json: true,
             gzip: true,
         }
-        const POLYGON_transactions = await rp.get(requestOptions_MATIC_transactions.uri)
-        const MATIC_transactions = await rp.get(requestOptions_POLYGON_transactions.uri)
+        const POLYGON_transactions = await rp.get(
+            requestOptions_MATIC_transactions.uri
+        )
+        const MATIC_transactions = await rp.get(
+            requestOptions_POLYGON_transactions.uri
+        )
         const all_POLYGON_transactions = FilterTransactionsByHash(
             POLYGON_transactions.data,
             MATIC_transactions.data,
@@ -1121,8 +1189,8 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
             )
 
         const accountData = await Wallet.findOne({ UserId: userId }).lean()
-        const transactionHash = [];
-        const errorTransaction = [];
+        const transactionHash = []
+        const errorTransaction = []
         if (accountData) {
             if (network === 'TRON') {
                 let tronWeb = await webTronInstance()
@@ -1140,24 +1208,24 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     privateKey,
                 })
                 if (send?.transactionHash) {
-                    transactionHash.push(send);
-                  }  else {
-                    errorTransaction.push(`Error sending TRX token: ${send.error}`); 
-                  }
+                    transactionHash.push(send)
+                } else {
+                    errorTransaction.push(
+                        `Error sending TRX token: ${send.error}`
+                    )
+                }
 
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'success',
-                    {transactionHash,errorTransaction}
-                )
+                return responseHandler.makeResponseData(res, 200, 'success', {
+                    transactionHash,
+                    errorTransaction,
+                })
             }
             // PROVIDER
             const provider = getHttpProvider(
                 networkProviders[network],
                 networkProvidersOptions[network]
             )
-            
+
             let nativeIndex = tokens.findIndex(
                 (elem) =>
                     elem.symbol == 'BNB' ||
@@ -1187,14 +1255,14 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                         max: false,
                     })
                     if (send?.transactionHash) {
-                        transactionHash.push(send);
-                      } 
+                        transactionHash.push(send)
+                    }
                     if (send?.error) {
-                         errorTransaction.push(`Error sending ${token.name} tokens: ${send.error}`); 
-                         break;
-                        }
-
-                    
+                        errorTransaction.push(
+                            `Error sending ${token.name} tokens: ${send.error}`
+                        )
+                        break
+                    }
                 } catch (err) {
                     continue
                 }
@@ -1238,20 +1306,27 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     network,
                 })
                 if (send?.transactionHash) {
-                    transactionHash.push(send);
-                  } 
+                    transactionHash.push(send)
+                }
                 if (send?.error) {
-                     errorTransaction.push(`Error sending ${network === "ERC20" ? "ETH" : ( network === "BEP20" ? "BNB" : (network === "BTTC" ? "BTT" : "MATIC"))} tokens: ${send.error}`); 
-                    
-                    }
+                    errorTransaction.push(
+                        `Error sending ${
+                            network === 'ERC20'
+                                ? 'ETH'
+                                : network === 'BEP20'
+                                ? 'BNB'
+                                : network === 'BTTC'
+                                ? 'BTT'
+                                : 'MATIC'
+                        } tokens: ${send.error}`
+                    )
+                }
             }
 
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'success',
-                {transactionHash,errorTransaction}
-            )
+            return responseHandler.makeResponseData(res, 200, 'success', {
+                transactionHash,
+                errorTransaction,
+            })
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1294,66 +1369,62 @@ exports.checkIsNewUser = async (req, res) => {
     }
 }
 
-
 exports.getCodeKeyStore = async (req, res) => {
     try {
         let walletAddr
 
         const { network, version } = req.body
-        
-            const _id = req.user._id
-            // let user = await User.findOne({ _id },{email :1}).lean()
 
-            // let wallet = await Wallet.findOne({
-            //     UserId: _id,
-            // }).lean()
+        const _id = req.user._id
+        // let user = await User.findOne({ _id },{email :1}).lean()
 
-            let [user, wallet] = await Promise.all([User.findOne({ _id },{email :1}).lean(),Wallet.findOne({
+        // let wallet = await Wallet.findOne({
+        //     UserId: _id,
+        // }).lean()
+
+        let [user, wallet] = await Promise.all([
+            User.findOne({ _id }, { email: 1 }).lean(),
+            Wallet.findOne({
                 UserId: _id,
-            }).lean()])
+            }).lean(),
+        ])
 
-            if (version === '1') {
-                walletAddr = '0x' +  wallet.keystore.address
-            } else {
-                walletAddr = '0x' +  wallet.walletV2.keystore.address
-            }
+        if (version === '1') {
+            walletAddr = '0x' + wallet.keystore.address
+        } else {
+            walletAddr = '0x' + wallet.walletV2.keystore.address
+        }
 
-            if (!user) {
-                return responseHandler.makeResponseError(
-                    res,
-                    204,
-                    'user not found',
-                    false
-                )
-            } else {
-                const code = Math.floor(100000 + Math.random() * 900000)
-                let secureCode = {}
-                ;(secureCode.code = code),
-                    (secureCode.expiring = Date.now() + 3600 * 20 * 5),
-                    (secureCode.attempts = 0),
-                    (secureCode.type = `keystore-v${version}-${network}`)
-                
-                await User.updateOne({ _id }, { $set: { secureCode } })
-                let lang = req.body.lang || 'en'
-                configureTranslation(lang)
-                readHTMLFileLogin(
-                    __dirname +
-                        '/../public/emailtemplate/email_validated_keystore_code.html',
-                    'exportKeystore',
-                    null,
-                    null,
-                    code,
-                    user,
-                    walletAddr
-                )
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'code sent',
-                    true
-                )
-            }
-       
+        if (!user) {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'user not found',
+                false
+            )
+        } else {
+            const code = Math.floor(100000 + Math.random() * 900000)
+            let secureCode = {}
+            ;(secureCode.code = code),
+                (secureCode.expiring = Date.now() + 3600 * 20 * 5),
+                (secureCode.attempts = 0),
+                (secureCode.type = `keystore-v${version}-${network}`)
+
+            await User.updateOne({ _id }, { $set: { secureCode } })
+            let lang = req.body.lang || 'en'
+            configureTranslation(lang)
+            readHTMLFileLogin(
+                __dirname +
+                    '/../public/emailtemplate/email_validated_keystore_code.html',
+                'exportKeystore',
+                null,
+                null,
+                code,
+                user,
+                walletAddr
+            )
+            return responseHandler.makeResponseData(res, 200, 'code sent', true)
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1369,123 +1440,120 @@ exports.exportKeyStore = async (req, res) => {
         const _id = req.user._id
         const { code, network, version } = req.body
 
+        const [user, wallet] = await Promise.all([
+            User.findOne({ _id }).lean(),
+            Wallet.findOne({ UserId: _id }).lean(),
+        ])
+        // CHECK WALLET VERSION
+        if (version === '1') {
+            /*****                    WALLET V1                        ******/
 
-            const [user,wallet] = await Promise.all([User.findOne({ _id }).lean(),Wallet.findOne({ UserId: _id }).lean()])
-            // CHECK WALLET VERSION
-            if (version === '1') {
-                /*****                    WALLET V1                        ******/
-
-                //CHECK FOR CODE VERIFICATION
-                if (
-                    parseInt(code) === user.secureCode.code &&
-                    user.secureCode.type.includes(network) &&
-                    user.secureCode.type.includes(version)
-                ) {
-                    // CHECK FOR EXPIRED CODE
-                    if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
-                        // CHECK USER WALLET V1 EXIST
-                        if (wallet.keystore && wallet.btc) {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                (network === 'eth' && wallet.keystore) ||
-                                    (network === 'btc' && wallet?.btc?.ek),
-                                true
-                            )
-                        } else {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                'wallet v1 not found',
-                                false
-                            )
-                        }
+            //CHECK FOR CODE VERIFICATION
+            if (
+                parseInt(code) === user.secureCode.code &&
+                user.secureCode.type.includes(network) &&
+                user.secureCode.type.includes(version)
+            ) {
+                // CHECK FOR EXPIRED CODE
+                if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
+                    // CHECK USER WALLET V1 EXIST
+                    if (wallet.keystore && wallet.btc) {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            (network === 'eth' && wallet.keystore) ||
+                                (network === 'btc' && wallet?.btc?.ek),
+                            true
+                        )
                     } else {
                         return responseHandler.makeResponseData(
                             res,
                             200,
-                            'code expired',
+                            'wallet v1 not found',
                             false
                         )
                     }
                 } else {
-                    await User.updateOne(
-                        { _id: user._id },
-                        {
-                            $set: {
-                                'secureCode.attempts':
-                                    user.secureCode.attempts + 1,
-                            },
-                        }
-                    )
                     return responseHandler.makeResponseData(
                         res,
                         200,
-                        code !== user.secureCode.code
-                            ? 'code wrong'
-                            : 'network or version wrong',
+                        'code expired',
                         false
                     )
                 }
             } else {
-                /*****                    WALLET V2                        ******/
+                await User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts + 1,
+                        },
+                    }
+                )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    code !== user.secureCode.code
+                        ? 'code wrong'
+                        : 'network or version wrong',
+                    false
+                )
+            }
+        } else {
+            /*****                    WALLET V2                        ******/
 
-                //CHECK FOR CODE VERIFICATION
-                if (
-                    parseInt(code) === user.secureCode.code &&
-                    user.secureCode.type.includes(network) &&
-                    user.secureCode.type.includes(version)
-                ) {
-                    // CHECK FOR EXPIRED CODE
-                    if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
-                        // CHECK USER WALLET V2 EXIST
-                        if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                (network === 'eth' &&
-                                    wallet.walletV2.keystore) ||
-                                    (network === 'btc' &&
-                                        wallet.walletV2?.btc.ek),
-                                true
-                            )
-                        } else {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                'wallet v2 not found',
-                                false
-                            )
-                        }
+            //CHECK FOR CODE VERIFICATION
+            if (
+                parseInt(code) === user.secureCode.code &&
+                user.secureCode.type.includes(network) &&
+                user.secureCode.type.includes(version)
+            ) {
+                // CHECK FOR EXPIRED CODE
+                if (Date.now() - user.secureCode.expiring < 5 * 60 * 1000) {
+                    // CHECK USER WALLET V2 EXIST
+                    if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            (network === 'eth' && wallet.walletV2.keystore) ||
+                                (network === 'btc' && wallet.walletV2?.btc.ek),
+                            true
+                        )
                     } else {
                         return responseHandler.makeResponseData(
                             res,
                             200,
-                            'code expired',
+                            'wallet v2 not found',
                             false
                         )
                     }
                 } else {
-                    await User.updateOne(
-                        { _id: user._id },
-                        {
-                            $set: {
-                                'secureCode.attempts':
-                                    user.secureCode.attempts + 1,
-                            },
-                        }
-                    )
                     return responseHandler.makeResponseData(
                         res,
                         200,
-                        code !== user.secureCode.code
-                            ? 'code wrong'
-                            : 'network or version wrong',
+                        'code expired',
                         false
                     )
                 }
+            } else {
+                await User.updateOne(
+                    { _id: user._id },
+                    {
+                        $set: {
+                            'secureCode.attempts': user.secureCode.attempts + 1,
+                        },
+                    }
+                )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    code !== user.secureCode.code
+                        ? 'code wrong'
+                        : 'network or version wrong',
+                    false
+                )
             }
-        
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
