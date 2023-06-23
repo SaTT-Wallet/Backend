@@ -84,7 +84,7 @@ const schemas = {
             birthday: Joi.string().allow('').required(),
             city: Joi.string().allow('').required(),
             country: Joi.string().allow('').required(),
-            zipCode: Joi.string().allow('').required(),
+            zipCode: Joi.string().allow(''),
             email: validateEmail(),
             firstName: Joi.string().allow('').required(),
             gender: Joi.string().allow('').required(),
