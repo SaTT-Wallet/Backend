@@ -186,7 +186,7 @@ exports.getGasPrice = async (req, res) => {
     }
 }
 
-const getGasPrice = async (res, connect, format) => {
+const getGasPriceToken = async (res, connect, format) => {
     try {
         const web3Instance = await connect()
         const gasPrice = await web3Instance.eth.getGasPrice()
@@ -203,13 +203,13 @@ const getGasPrice = async (res, connect, format) => {
 }
 
 const gPpolygon = (req, res) =>
-    getGasPrice(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
+getGasPriceToken(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
 const gPBep20 = (req, res) =>
-    getGasPrice(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
+getGasPriceToken(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
 const gPErc20 = (req, res) =>
-    getGasPrice(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
+getGasPriceToken(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
 const gPBtt = (req, res) =>
-    getGasPrice(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
+getGasPriceToken(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
 
 const gPTrx = async (req, res) => {
     try {
