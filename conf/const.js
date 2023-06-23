@@ -5739,8 +5739,8 @@ multicallConstants[TronNetworkConstant] =
     Constants.oracle.address.oracleBep20 =
         process.env.CONST_ORACLE_ADDRESS_BEP20
     Constants.wSaTT.address.token = process.env.CONST_WSATT_ADDRESS
-    Constants.priceGap.address.token =
-        process.env.CONST_PRICEGAP_ADDRESS
+    /*Constants.priceGap.address.token =
+        process.env.CONST_PRICEGAP_ADDRESS*/
     Constants.bep20.address.sattBep20 = process.env.CONST_BEP20_ADDRESS
     Constants.bep20.address.busd = process.env.CONST_BEP20_ADDRESS_BUSDMAINNET
     Constants.bep20.address.bnb = process.env.NODE_ENV === 'mainnet' && process.env.CONST_BEP20_ADDRESS_BUSDMAINNET || process.env.CONST_BEP20_ADDRESS_BUSDTESTNET;
