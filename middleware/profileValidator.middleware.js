@@ -84,6 +84,7 @@ const schemas = {
             birthday: Joi.string().allow('').required(),
             city: Joi.string().allow('').required(),
             country: Joi.string().allow('').required(),
+            zipCode: Joi.string().allow(''),
             email: validateEmail(),
             firstName: Joi.string().allow('').required(),
             gender: Joi.string().allow('').required(),
@@ -98,6 +99,9 @@ const schemas = {
                 dialCode: Joi.string().required()
             }).allow(null).required()
         }), 
+        Joi.object({
+            hasBiometrics: Joi.boolean().required()
+        }),
         Joi.object({
             is2FA: Joi.boolean().required()
         }),
