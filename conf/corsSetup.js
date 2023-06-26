@@ -16,7 +16,7 @@ const corsSetup = (req, res, next) =>{
             if (
                 req.url.includes('google') ||
                 req.url.includes('facebook') ||
-                req.url.includes('tiktok') ||
+                req.url.includes('tikTok') ||
                 req.url.includes('linkedin') ||
                 req.url.includes('twitter') ||
                 req.url.includes('telegram')
