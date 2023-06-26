@@ -402,15 +402,15 @@ exports.instagramAbos = async (idPost, id, userName) => {
                 UserId: userWallet?.UserId || id,
             })
             var token = fbProfile.accessToken
-            var res = (await rp.get(
+            var res = await rp.get(
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
                     '/' +
                     instagram_id +
                     '?access_token=' +
                     token +
-                    '&fields=followers_count')).data
-            if (res.followers_count) return (followers = res.followers_count)
+                    '&fields=followers_count')
+            if (res.data.followers_count) return (followers = res.data.followers_count)
             else return null
         }
         return followers
