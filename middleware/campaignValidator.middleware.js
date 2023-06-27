@@ -60,19 +60,19 @@ const schemas = {
     evmAllowSchema: Joi.object({
         campaignAddress: validateAddress("^0x[a-fA-F0-9]{40}$"),
         amount: Joi.number().unsafe().required(),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$").allow(null),
     }),
 
     tronApprovalSchema: Joi.object({
         version: validateVersion(["v1", "v2"]),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         tokenAddress: validateAddress("^T[A-Za-z1-9]{33}$"),
     }),
 
     tronAllowSchema: Joi.object({
         amount: Joi.number().unsafe().required(),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         tokenAddress: validateAddress("^T[A-Za-z1-9]{33}$"),
     }),
 
@@ -84,7 +84,7 @@ const schemas = {
         dataUrl: Joi.string().required(),
         endDate: Joi.number().unsafe().required(),
         network: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         ratios: Joi.array().required(),
         startDate: Joi.number().unsafe().required(),
         tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").allow(null),
@@ -99,7 +99,7 @@ const schemas = {
         dataUrl: Joi.string().required(),
         endDate: Joi.number().unsafe().required(),
         network: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         bounties: Joi.array(),
         startDate: Joi.number().unsafe().required(),
         tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
@@ -128,13 +128,13 @@ linkNotificationsSchema: Joi.object({
 
     gainsSchema: Joi.object({
         idProm: Joi.string().required(),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         hash: Joi.string().required()
     }),
 
     getFundsSchema: Joi.object({
         hash: Joi.string().required(),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         network: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"])
     }),
 
@@ -186,7 +186,7 @@ linkNotificationsSchema: Joi.object({
         idProm: Joi.string().allow('').required(),
         lang: Joi.string(),
         link: Joi.string().required(),
-        pass: validatePassword()
+        pass: Joi.string().required()
     }),
 
     applySchema: Joi.object({
@@ -194,7 +194,7 @@ linkNotificationsSchema: Joi.object({
         idCampaign: Joi.string().required(),
         idPost: Joi.string().required(),
         idUser: Joi.alternatives().try(Joi.string().required(), Joi.number().required()),
-        pass: validatePassword(),
+        pass: Joi.string().required(),
         title: Joi.string().required(),
         typeSN: Joi.number().required(),
         version: validateVersion(['v1', 'v2']),
