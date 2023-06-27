@@ -13,7 +13,6 @@ const {
 } = require('../model/index')
 var fs = require('fs')
 const axios = require('axios')
-
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
 const {
