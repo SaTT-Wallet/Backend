@@ -66,7 +66,7 @@ const schemas = {
     }),
 
     walletVersionSchema: Joi.object({
-        version: validateVersion(["v1", "v2"])
+        version: Joi.string().allow("").allow(null)
     }),
 
     networkSchema: Joi.object({
