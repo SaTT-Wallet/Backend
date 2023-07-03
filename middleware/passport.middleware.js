@@ -872,6 +872,7 @@ exports.addTikTokChannel = async (
     profile,
     cb
 ) => {
+ 
     let userId = +req.query.state.split('|')[0]
 
     try {
@@ -891,6 +892,11 @@ exports.addTikTokChannel = async (
                 profile.userTiktokId,
                 profile.refreshToken,
             ] = [accessToken, userId, profile.id, refreshToken]
+            
+            if(profile.username[0]!== '@')
+            {
+                profile.username= '@'+profile.username
+            }
             profile.followers = await tiktokAbos(userId, accessToken)
             await TikTokProfile.create(profile)
             return cb(null, profile, {
