@@ -637,39 +637,40 @@ const instagram = async (UserId, link) => {
         var fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
-
         if (fbPage && fbPage.instagram_id) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean()
             if (fbProfile) {
                 var accessToken = fbProfile.accessToken
                 var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
-                var resMediaAccessToken = (await rp.get(mediaGetNewAccessToken)).data
-                var media =
-                    'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    instagram_id +
-                    '/media?fields=like_count,shortcode,media_url&limit=50&access_token=' +
-                    resMediaAccessToken.access_token
-                var resMedia = (await rp.get(media)).data
-                var data = resMedia.data
+                var resMediaAccessToken = (await rp.get(mediaGetNewAccessToken))
+                var media = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${instagram_id}/media?fields=like_count,shortcode,media_url&limit=50&access_token=${resMediaAccessToken.data.access_token}`
+                var resMedia = (await rp.get(media))
+                var data = resMedia.data.data
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].shortcode == idPost) {
                         perf.likes = data[i].like_count
                         perf.media_url = data[i]?.media_url || ' '
-                        var mediaViews =
-                            'https://graph.facebook.com/' +
-                            oauth.facebook.fbGraphVersion +
-                            '/' +
-                            data[i].id +
-                            '/insights?metric=impressions&access_token=' +
-                            resMediaAccessToken.access_token
+                    // CHECK IF REEL 
+                    const mediaType = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}?fields=media_type,media_product_type&access_token=${resMediaAccessToken.data.access_token}`
+                    const mediaViews = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}/insights?metric=impressions,reach&access_token=${resMediaAccessToken.data.access_token}`
+                    const mediaViewReels = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}/insights?metric=plays&access_token=${resMediaAccessToken.data.access_token}`    
                         try {
-                            var resMediaViews = (await rp.get( mediaViews)).data
-                            let nbviews = JSON.stringify(resMediaViews)
-                            perf.views =
-                                JSON.parse(nbviews).data[0].values[0].value || 0
+
+                            // GET TYPE OF POST 
+                            var resMediaType = (await rp.get( mediaType))
+                            if(!!resMediaType.data) {
+                                if(resMediaType.data.media_type === 'VIDEO' && resMediaType.data.media_product_type === "REELS") {
+                                    var resMediaViews = (await rp.get( mediaViewReels))
+                                    perf.views = resMediaViews.data.data[0].values[0].value || 0
+                                } else {
+                                    var resMediaViews = (await rp.get( mediaViews))
+                                    perf.views = resMediaViews.data.data[0].values[0].value || 0
+                                }
+                            } else {
+                                var resMediaViews = (await rp.get( mediaViews))
+                                perf.views = resMediaViews.data.data[0].values[0].value || 0
+                            }
                         } catch (error) {
                             perf.views = 0
                             return perf
