@@ -174,20 +174,19 @@ exports.getGasPrice = async (req, res) => {
 
     switch (network) {
         case 'POLYGON':
-            return exports.gasPricePolygon(req, res)
+            return gPpolygon(req, res)
         case 'BEP20':
-            return exports.gasPriceBep20(req, res)
+            return gPBep20(req, res)
         case 'ERC20':
-            return exports.gasPriceErc20(req, res)
+            return gPErc20(req, res)
         case 'BTTC':
-            return exports.gasPriceBtt(req, res)
+            return gPBtt(req, res)
         case 'TRON':
-            return exports.gasPriceTrx(req, res)
+            return gPTrx(req, res)
     }
 }
-//Best Practices
 
-const getGasPrice = async (res, connect, format) => {
+const getGasPriceToken = async (res, connect, format) => {
     try {
         const web3Instance = await connect()
         const gasPrice = await web3Instance.eth.getGasPrice()
@@ -203,16 +202,16 @@ const getGasPrice = async (res, connect, format) => {
     }
 }
 
-exports.gasPricePolygon = (req, res) =>
-    getGasPrice(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
-exports.gasPriceBep20 = (req, res) =>
-    getGasPrice(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
-exports.gasPriceErc20 = (req, res) =>
-    getGasPrice(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
-exports.gasPriceBtt = (req, res) =>
-    getGasPrice(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
+const gPpolygon = (req, res) =>
+getGasPriceToken(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
+const gPBep20 = (req, res) =>
+getGasPriceToken(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
+const gPErc20 = (req, res) =>
+getGasPriceToken(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
+const gPBtt = (req, res) =>
+getGasPriceToken(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
 
-exports.gasPriceTrx = async (req, res) => {
+const gPTrx = async (req, res) => {
     try {
         const tronWeb = await webTronInstance()
         const gasPriceData = await tronWeb.trx.getChainParameters()
@@ -228,6 +227,49 @@ exports.gasPriceTrx = async (req, res) => {
             error: 'Unable to retrieve gas price.',
         })
     }
+}
+
+exports.gasPricePolygon = async (req, res) => {
+    let Web3ETH = await polygonConnexion()
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
+}
+
+exports.gasPriceBep20 = async (req, res) => {
+    let Web3ETH = await bep20Connexion()
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
+}
+
+exports.gasPriceErc20 = async (req, res) => {
+    let Web3BEP20 = await erc20Connexion()
+
+    var gasPrice = await Web3BEP20.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice / 1000000000,
+    })
+}
+
+exports.gasPriceBtt = async (req, res) => {
+    let Web3ETH = await bttConnexion()
+
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: (gasPrice * 280) / 1000000000,
+    })
+}
+
+exports.gasPriceTrx = async (req, res) => {
+    let tronWeb = await webTronInstance()
+
+    var gasPrice = await tronWeb.trx.getChainParameters()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: gasPrice.find((elem) => elem.key === 'getEnergyFee').value,
+    })
 }
 
 exports.cryptoDetails = async (req, res) => {

@@ -160,81 +160,81 @@ router.post('/userBalance', verifyAuth, walletVersionValidation, userBalance)
 
 router.get('/gasPrice/:network', networkValidation, getGasPrice)
 
-// /**
-//  * @swagger
-//  * /wallet/Bep20GasPrice:
-//  *   get:
-//  *     tags:
-//  *     - "wallets"
-//  *     summary: get bnb gas price
-//  *     description: get bnb gas price <br> without access_token
-//  *     produces:
-//  *       - application/json
-//  *     responses:
-//  *       "200":
-//  *          description: code,<br>message:"success"
-//  *       "500":
-//  *          description: error:"error"
-//  */
+/**
+ * @swagger
+ * /wallet/Bep20GasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get bnb gas price
+ *     description: get bnb gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
 
-// router.get('/Bep20GasPrice', gasPriceBep20)
+router.get('/Bep20GasPrice', gasPriceBep20)
 
-// /**
-//  * @swagger
-//  * /wallet/BttGasPrice:
-//  *   get:
-//  *     tags:
-//  *     - "wallets"
-//  *     summary: get bnb gas price
-//  *     description: get btt gas price <br> without access_token
-//  *     produces:
-//  *       - application/json
-//  *     responses:
-//  *       "200":
-//  *          description: code,<br>message:"success"
-//  *       "500":
-//  *          description: error:"error"
-//  */
+/**
+ * @swagger
+ * /wallet/BttGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get bnb gas price
+ *     description: get btt gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
 
-// router.get('/BttGasPrice', gasPriceBtt)
+router.get('/BttGasPrice', gasPriceBtt)
 
-// /**
-//  * @swagger
-//  * /wallet/TrxGasPrice:
-//  *   get:
-//  *     tags:
-//  *     - "wallets"
-//  *     summary: get trx gas price
-//  *     description: get trx gas price <br> without access_token
-//  *     produces:
-//  *       - application/json
-//  *     responses:
-//  *       "200":
-//  *          description: code,<br>message:"success"
-//  *       "500":
-//  *          description: error:"error"
-//  */
+/**
+ * @swagger
+ * /wallet/TrxGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get trx gas price
+ *     description: get trx gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
 
-// router.get('/TrxGasPrice', gasPriceTrx)
+router.get('/TrxGasPrice', gasPriceTrx)
 
-// /**
-//  * @swagger
-//  * /wallet/polygonGasPrice:
-//  *   get:
-//  *     tags:
-//  *     - "wallets"
-//  *     summary: get Matic gas price
-//  *     description: get Matic gas price <br> without access_token
-//  *     produces:
-//  *       - application/json
-//  *     responses:
-//  *       "200":
-//  *          description: code,<br>message:"success"
-//  *       "500":
-//  *          description: error:"error"
-//  */
+/**
+ * @swagger
+ * /wallet/polygonGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get Matic gas price
+ *     description: get Matic gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
 
-// router.get('/polygonGasPrice', gasPricePolygon)
+router.get('/polygonGasPrice', gasPricePolygon)
 
 /**
  * @swagger
