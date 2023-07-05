@@ -1519,3 +1519,65 @@ exports.exportKeyStore = async (req, res) => {
         )
     }
 }
+exports.exportKeyStoreMobile = async (req, res) => {
+    try {
+        // VARIABLES FROM REQUEST
+        const _id = req.user._id
+        const { code, network, version } = req.body
+
+
+            const [user,wallet] = await Promise.all([User.findOne({ _id }).lean(),Wallet.findOne({ UserId: _id }).lean()])
+            // CHECK WALLET VERSION
+            if (version === '1') {
+                /*****                    WALLET V1                        ******/
+                        // CHECK USER WALLET V1 EXIST
+                        if (wallet.keystore && wallet.btc) {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                (network === 'eth' && wallet.keystore) ||
+                                    (network === 'btc' && wallet?.btc?.ek),
+                                true
+                            )
+                        } else {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                'wallet v1 not found',
+                                false
+                            )
+                        }
+                    
+            } else {
+                /*****                    WALLET V2                        ******/
+
+                //CHECK FOR CODE VERIFICATION
+                        // CHECK USER WALLET V2 EXIST
+                        if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                (network === 'eth' &&
+                                    wallet.walletV2.keystore) ||
+                                    (network === 'btc' &&
+                                        wallet.walletV2?.btc.ek),
+                                true
+                            )
+                        } else {
+                            return responseHandler.makeResponseData(
+                                res,
+                                200,
+                                'wallet v2 not found',
+                                false
+                            )
+                        }  
+            }
+        
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}

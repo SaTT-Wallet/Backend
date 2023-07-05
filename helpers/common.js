@@ -255,16 +255,17 @@ exports.updateStatforUser = async (UserId) => {
         ],
     })
 
-    let eventLint = []
-    MyLinksCampaign.forEach((event) => {
-        const result = campaigns.find(
+    const eventLint = MyLinksCampaign.reduce((acc, event) => {
+        const campaign = campaigns.find(
             (campaign) => event.id_campaign === campaign.hash
-        )
+        );
 
-        if (result?.toObject()) {
-            eventLint.push({ ...event.toObject(), campaign: result.toObject() })
+        if (campaign?.toObject()) {
+            acc.push({ ...event.toObject(), campaign: campaign.toObject() });
         }
-    })
+
+        return acc;
+    }, []);
 
     for (const event of eventLint) {
         if (
@@ -382,10 +383,7 @@ exports.automaticRjectLink = async (_) => {
 
 exports.UpdateStats = async (obj, socialOracle) => {
     if (!socialOracle) {
-        delete obj.views,
-            delete obj.likes,
-            delete obj.shares,
-            delete obj.totalToEarn
+        ['views', 'likes', 'shares', 'totalToEarn'].forEach(field => delete obj[field]);
     }
 
         if(!(await CampaignLink.exists({ 'applyerSignature.messageHash': obj.applyerSignature.messageHash }))){
@@ -394,7 +392,7 @@ exports.UpdateStats = async (obj, socialOracle) => {
         } else {
             await CampaignLink.updateOne(
                 {
-                    'applyerSignature.messageHash ':
+                    'applyerSignature.messageHash':
                         obj.applyerSignature.messageHash ,
                 },
                 { $set: obj }

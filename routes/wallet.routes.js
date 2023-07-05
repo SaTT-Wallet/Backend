@@ -34,6 +34,7 @@ const {
     checkIsNewUser,
     getCodeKeyStore,
     exportKeyStore,
+    exportKeyStoreMobile,
     cryptoPriceDetails,
     globalCryptoMarketInfo,
 } = require('../controllers/wallet.controller')
@@ -799,5 +800,14 @@ router.post(
     exportKeyStoreValidation,
     exportKeyStore
 )
+
+router.post('/code-export-keystore', verifyAuth, getCodeKeyStoreValidation ,getCodeKeyStore)
+
+
+
+router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyStore)
+
+
+router.post('/export-keystore-mobile', verifyAuth ,exportKeyStoreMobile)
 
 module.exports = router

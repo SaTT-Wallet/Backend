@@ -4,7 +4,9 @@
 
 .env.testnet
 
-.env.prod
+.env.
+
+uploads
 # Logs
 logs
 *.log

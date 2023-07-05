@@ -13,7 +13,6 @@ const {
 } = require('../model/index')
 var fs = require('fs')
 const axios = require('axios')
-
 var Twitter = require('twitter')
 const { default: Big } = require('big.js')
 const {
@@ -228,10 +227,9 @@ exports.verifytiktok = async function (tiktokProfile, idPost) {
 
 exports.getInstagramUserName = async (shortcode, id) => {
     let userName
-    // let shortcode =req.params.shortcode
-    // let id= req.params.id
+
     try {
-        var fbProfile = await FbProfile.findOne({ UserId: id })
+        var fbProfile = await FbProfile.findOne({ UserId: id }).lean();
         if (fbProfile) {
             var accessToken = fbProfile.accessToken
             var media =
@@ -239,8 +237,8 @@ exports.getInstagramUserName = async (shortcode, id) => {
                 oauth.facebook.fbGraphVersion +
                 '/me/accounts?fields=id,instagram_business_account{id, name, username, media{shortcode, username}}&access_token=' +
                 accessToken
-            var resMedia = (await rp.get(media)).data
-            var data = resMedia.data
+            var resMedia = await rp.get(media)
+            var data = resMedia.data.data
             data = data.filter(
                 (element) => !!element.instagram_business_account
             )
@@ -373,25 +371,12 @@ exports.instagramAbos = async (idPost, id, userName) => {
     try {
         var followers = 0
         var campaign_link = await CampaignLink.findOne({ idPost }).lean()
-        var userWallet = await Wallet.findOne({
-            $or: [
-                {
-                    'keystore.address': campaign_link?.id_wallet
-                        .toLowerCase()
-                        .substring(2),
-                },
-                {
-                    'walletV2.keystore.address': campaign_link?.id_wallet
-                        .toLowerCase()
-                        .substring(2),
-                },
-            ],
-        })
+
 
         let instagramUserName = campaign_link?.instagramUserName || userName
         var fbPage = await FbPage.findOne({
             $and: [
-                { UserId: userWallet?.UserId || id },
+                { UserId: id },
                 { instagram_username: instagramUserName },
                 { instagram_id: { $exists: true } },
             ],
@@ -399,18 +384,18 @@ exports.instagramAbos = async (idPost, id, userName) => {
         if (fbPage) {
             var instagram_id = fbPage.instagram_id
             var fbProfile = await FbProfile.findOne({
-                UserId: userWallet?.UserId || id,
+                UserId: id,
             })
             var token = fbProfile.accessToken
-            var res = (await rp.get(
+            var res = await rp.get(
                     'https://graph.facebook.com/' +
                     oauth.facebook.fbGraphVersion +
                     '/' +
                     instagram_id +
                     '?access_token=' +
                     token +
-                    '&fields=followers_count')).data
-            if (res.followers_count) return (followers = res.followers_count)
+                    '&fields=followers_count')
+            if (res.data.followers_count) return (followers = res.data.followers_count)
             else return null
         }
         return followers

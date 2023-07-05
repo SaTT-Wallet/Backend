@@ -15,7 +15,9 @@ const corsSetup = (req, res, next) =>{
         } else {
             if (
                 req.url.includes('google') ||
+                req.url.includes('youtube') ||
                 req.url.includes('facebook') ||
+                req.url.includes('tikTok') ||
                 req.url.includes('tiktok') ||
                 req.url.includes('linkedin') ||
                 req.url.includes('twitter') ||
