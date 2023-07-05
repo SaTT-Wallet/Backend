@@ -629,56 +629,50 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
     } catch (err) {}
 }
 
+const getNewAccessTokenInstagram = async (accessToken, fbGraphVersion) => {
+    var mediaGetNewAccessToken = `https://graph.facebook.com/${fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
+    var resMediaAccessToken = (await rp.get(mediaGetNewAccessToken))
+    return resMediaAccessToken.data.access_token;
+}
+
 const instagram = async (UserId, link) => {
     try {
-        let idPost = link.idPost
-        var perf = { shares: 0, likes: 0, views: 0, media_url: '' }
-        let instagramUserName = link.instagramUserName
-        var fbPage = await FbPage.findOne({
+        const idPost = link.idPost
+        const postPerformanceData = { shares: 0, likes: 0, views: 0, media_url: '' }
+        const instagramUserName = link.instagramUserName
+        const fbPage = await FbPage.findOne({
             instagram_username: instagramUserName,
         })
         if (fbPage && fbPage.instagram_id) {
-            var instagram_id = fbPage.instagram_id
-            var fbProfile = await FbProfile.findOne({ UserId: UserId }).lean()
+            const instagram_id = fbPage.instagram_id
+            const fbProfile = await FbProfile.findOne({ UserId: UserId }).lean()
             if (fbProfile) {
-                var accessToken = fbProfile.accessToken
-                var mediaGetNewAccessToken = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.APPID}&client_secret=${process.env.APP_SECRET}&fb_exchange_token=${accessToken}`
-                var resMediaAccessToken = (await rp.get(mediaGetNewAccessToken))
-                var media = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${instagram_id}/media?fields=like_count,shortcode,media_url&limit=50&access_token=${resMediaAccessToken.data.access_token}`
-                var resMedia = (await rp.get(media))
-                var data = resMedia.data.data
+                const accessToken = await getNewAccessTokenInstagram(fbProfile.accessToken, oauth.facebook.fbGraphVersion);
+                const media = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${instagram_id}/media?fields=like_count,shortcode,media_url&limit=50&access_token=${accessToken}`
+                const resMedia = (await rp.get(media))
+                const data = resMedia.data.data
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].shortcode == idPost) {
-                        perf.likes = data[i].like_count
-                        perf.media_url = data[i]?.media_url || ' '
+                        postPerformanceData.likes = data[i].like_count
+                        postPerformanceData.media_url = data[i]?.media_url || ' '
                     // CHECK IF REEL 
-                    const mediaType = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}?fields=media_type,media_product_type&access_token=${resMediaAccessToken.data.access_token}`
-                    const mediaViews = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}/insights?metric=impressions,reach&access_token=${resMediaAccessToken.data.access_token}`
-                    const mediaViewReels = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}/insights?metric=plays&access_token=${resMediaAccessToken.data.access_token}`    
+                    const mediaType = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}?fields=media_type,media_product_type&access_token=${accessToken}`
+                    const mediaViews = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}/insights?metric=impressions,reach&access_token=${accessToken}`
+                    const mediaViewReels = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${data[i].id}/insights?metric=plays&access_token=${accessToken}`    
                         try {
 
                             // GET TYPE OF POST 
-                            var resMediaType = (await rp.get( mediaType))
-                            if(!!resMediaType.data) {
-                                if(resMediaType.data.media_type === 'VIDEO' && resMediaType.data.media_product_type === "REELS") {
-                                    var resMediaViews = (await rp.get( mediaViewReels))
-                                    perf.views = resMediaViews.data.data[0].values[0].value || 0
-                                } else {
-                                    var resMediaViews = (await rp.get( mediaViews))
-                                    perf.views = resMediaViews.data.data[0].values[0].value || 0
-                                }
-                            } else {
-                                var resMediaViews = (await rp.get( mediaViews))
-                                perf.views = resMediaViews.data.data[0].values[0].value || 0
-                            }
+                            const resMediaType = (await rp.get( mediaType))
+                            const resMediaViews = await rp.get((!!resMediaType.data && resMediaType.data.media_type === 'VIDEO' && resMediaType.data.media_product_type === "REELS") ? mediaViewReels :mediaViews)
+                            postPerformanceData.views = resMediaViews.data.data[0].values[0].value || 0
                         } catch (error) {
-                            perf.views = 0
-                            return perf
+                            postPerformanceData.views = 0
+                            return postPerformanceData
                         }
                         break
                     }
                 }
-                return perf
+                return postPerformanceData
             } else {
                 return 'indisponible'
             }
