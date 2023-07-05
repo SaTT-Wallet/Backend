@@ -667,6 +667,7 @@ const instagram = async (UserId, link) => {
                             postPerformanceData.views = resMediaViews.data.data[0].values[0].value || 0
                         } catch (error) {
                             postPerformanceData.views = 0
+                            console.error('Error when fetching Instagram data', error)
                             return postPerformanceData
                         }
                         break
