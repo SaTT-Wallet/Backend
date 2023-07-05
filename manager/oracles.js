@@ -644,11 +644,11 @@ const instagram = async (UserId, link) => {
             instagram_username: instagramUserName,
         })
         if (fbPage && fbPage.instagram_id) {
-            const instagram_id = fbPage.instagram_id
+            const instagramId = fbPage.instagram_id
             const fbProfile = await FbProfile.findOne({ UserId: UserId }).lean()
             if (fbProfile) {
                 const accessToken = await getNewAccessTokenInstagram(fbProfile.accessToken, oauth.facebook.fbGraphVersion);
-                const media = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${instagram_id}/media?fields=like_count,shortcode,media_url&limit=50&access_token=${accessToken}`
+                const media = `https://graph.facebook.com/${oauth.facebook.fbGraphVersion}/${instagramId}/media?fields=like_count,shortcode,media_url&limit=50&access_token=${accessToken}`
                 const resMedia = (await rp.get(media))
                 const data = resMedia.data.data
                 for (let i = 0; i < data.length; i++) {
