@@ -81,6 +81,8 @@ const {
     exportkeyBtcV2,
     exportkeyTronV2,
     getAccountV2,
+    getChartVariation,
+    getGlobalCryptoMarket,
 } = require('../web3/wallets')
 
 const {

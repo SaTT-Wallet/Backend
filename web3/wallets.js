@@ -650,7 +650,12 @@ exports.getPrices = async () => {
 
 exports.getChartVariation = async(cryptolist) => {
     try{
-       
+        if (
+            cache.get('chart') &&
+            Date.now() - new Date(cache.get('chart')?.date).getTime() < 86400000
+        ) {
+            return cache.get('chart').data
+        }else{
         const endDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
         const startDate = endDate - (7 * 24 * 60 * 60);
         const options = {
@@ -693,17 +698,25 @@ exports.getChartVariation = async(cryptolist) => {
      });
 
       
-       
+     chart = { data: priceVariation, date: Date.now() }
+     cache.put('chart', chart)
        
    
 return  priceVariation
-    } catch(err){
+    } }catch(err){
   throw new Error('Error fetching prices char')
     }
 
 }
 exports.getGlobalCryptoMarket = async () =>{
-    try {const options = {
+    try {
+       
+        if (
+            cache.get('market') &&
+            Date.now() - new Date(cache.get('market')?.date).getTime() < 86400000
+        ) {
+            return cache.get('market').data
+        } else{    const options = {
         method: 'GET',
         url: process.env.CMC_GLOBL_URL,
         params: {
@@ -720,7 +733,9 @@ exports.getGlobalCryptoMarket = async () =>{
     catch(err){
         throw new Error('Error fetching Global Crypto Market Info')
     }
-    return result[0]?.data?.data?.quote?.USD
+  market =  { data: result[0]?.data?.data?.quote?.USD, date: Date.now() }
+  cache.put('market', market)
+    return result[0]?.data?.data?.quote?.USD}
 } catch(err){
     throw new Error('Error fetching Global Crypto Market Info')
 }
