@@ -36,5 +36,5 @@ module.exports = {
     FbPage,
     Wallet,
     CustomToken,
-    WalletUserNode
+    WalletUserNode,
 }

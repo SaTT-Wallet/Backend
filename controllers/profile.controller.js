@@ -12,7 +12,6 @@ const {
     FbPage,
     TikTokProfile,
 } = require('../model/index')
-const axios = require('axios')
 
 const contentDisposition = require('content-disposition')
 
@@ -301,136 +300,83 @@ exports.FindUserLegalProfile = async (req, res) => {
         )
     }
 }
-exports.deleteTwitterChannels = async (req, res) => {
+const deleteChannel = async (model, condition, res) => {
     try {
-        const UserId = req.user._id
-        const result = await TwitterProfile.deleteMany({ UserId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
+      const result = await model.deleteMany(condition);
+      if (result.deletedCount === 0) {
+        return makeResponseError(res, 204, 'No channel found');
+      } else {
+        return makeResponseData(res, 200, 'deleted successfully');
+      }
     } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+      return makeResponseError(res, 500, err.message ? err.message : err.error);
     }
-}
+  };
 
-exports.deleteTwitterChannel = async (req, res) => {
-    try {
-        let UserId = req.user._id
-        let _id = req.params.id
-        let twitterProfile = await TwitterProfile.findOne({ _id })
-        if (twitterProfile?.UserId !== UserId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await TwitterProfile.deleteOne({ UserId })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
+  exports.deleteTwitterChannels = async (req, res) => {
+    const UserId = req.user._id;
+    return deleteChannel(TwitterProfile, { UserId }, res);
+  };
+  
+  exports.deleteGoogleChannels = async (req, res) => {
+    const UserId = req.user._id;
+    return deleteChannel(GoogleProfile, { UserId }, res);
+  };
 
-exports.deleteGoogleChannels = async (req, res) => {
-    try {
-        const UserId = req.user._id
-        const result = await GoogleProfile.deleteMany({ UserId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
+  exports.deleteFacebookChannels = async (req, res) => {
+    const UserId = req.user._id;
+    return deleteChannel(FbPage, { UserId }, res);
+  };
 
-exports.deleteGoogleChannel = async (req, res) => {
-    try {
-        let UserId = req.user._id
-        let _id = req.params.id
-        let googleProfile = await GoogleProfile.findOne({ _id }).lean()
-        if (googleProfile?.UserId !== UserId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await GoogleProfile.deleteOne({ _id })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.deleteFacebookChannels = async (req, res) => {
-    try {
-        const UserId = req.user._id
-        const result = await FbPage.deleteMany({ UserId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-
-exports.deleteFacebookChannel = async (req, res) => {
-    try {
-        let UserId = req.user._id
-        let _id = req.params.id
-        let facebookProfile = await FbPage.findOne({ _id })
-        if (facebookProfile?.UserId !== UserId)
-            return makeResponseError(res, 401, 'unauthorized')
-        else {
-            await FbPage.deleteOne({ _id })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
-exports.deleteLinkedinChannels = async (req, res) => {
-    try {
+  exports.deleteLinkedinChannels = async (req, res) => {
         const userId = req.user._id
-        const result = await LinkedinProfile.deleteMany({ userId })
-        if (result.deletedCount === 0) {
-            return makeResponseError(res, 204, 'No channel found')
-        } else {
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
+        return deleteChannel(LinkedinProfile, { userId }, res);
 }
+
+exports.deleteTiktokChannels = async (req, res) => {
+        let userId = req.user._id
+        return deleteChannel(TikTokProfile, { userId }, res);
+}
+  
+
+const deleteChannelById = async (model, condition, unauthorizedErrorMessage, res,UserId) => {
+    try {
+      const channel = await model.findOne(condition,{UserId:1}).lean();
+      if (!channel) {
+        return makeResponseError(res, 204, 'No channel found');
+      } else if (channel.UserId !== UserId) {
+        return makeResponseError(res, 401, unauthorizedErrorMessage);
+      } else {
+        await model.deleteOne(condition);
+        return makeResponseData(res, 200, 'deleted successfully');
+      }
+    } catch (err) {
+      return makeResponseError(res, 500, err.message ? err.message : err.error);
+    }
+  };
+
+  exports.deleteTwitterChannel = async (req, res) => {
+    const _id = req.params.id;
+    return deleteChannelById(TwitterProfile, {_id}, 'unauthorized', res,req.user._id);
+  };
+  
+
+  exports.deleteGoogleChannel = async (req, res) => {
+    const _id = req.params.id;
+    return deleteChannelById(GoogleProfile, {_id}, 'unauthorized', res,req.user._id);
+  };
+
+  exports.deleteFacebookChannel = async (req, res) => {
+    const _id = req.params.id;
+    return deleteChannelById(FbPage, { _id}, 'unauthorized', res,req.user._id);
+  }
+
+  exports.deleteTiktokChannel = async (req, res) => {
+        let userId = +req.user._id
+        return deleteChannelById(TikTokProfile, { userId}, 'unauthorized',res, userId);
+}
+
+
 
 exports.deleteLinkedinChannel = async (req, res) => {
     try {
@@ -459,57 +405,19 @@ exports.deleteLinkedinChannel = async (req, res) => {
     }
 }
 
-exports.deleteTiktokChannel = async (req, res) => {
-    try {
-        let userId = +req.user._id
-        let tiktokProfile = await TikTokProfile.findOneAndDelete({ userId })
-        if (!tiktokProfile) return makeResponseError(res, 401, 'unauthorized')
-        return makeResponseData(res, 200, 'deleted successfully')
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
 
-exports.deleteTiktokChannels = async (req, res) => {
-    try {
-        let userId = req.user._id
 
-        let tiktokProfiles = await TikTokProfile.find({ userId })
-
-        if (tiktokProfiles.length === 0)
-            return makeResponseError(res, 204, 'No channel found')
-        else {
-            await TikTokProfile.deleteMany({ userId })
-            return makeResponseData(res, 200, 'deleted successfully')
-        }
-    } catch (err) {
-        return makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
-    }
-}
 exports.UserInterstes = async (req, res) => {
     try {
-        const userId = req.user._id
-        let allInterests = []
+        const {_id :userId} = req.user
 
         const result = await Interests.find({ userId })
 
         if (!result.length) {
             return makeResponseError(res, 204, 'No interest found')
-        } else if (result.length >= 2) {
-            result.forEach((item, index) => {
-                allInterests = [...allInterests, ...item.interests]
-            })
-        } else {
-            allInterests = [...result[0].interests]
-        }
+        } 
+
+        const allInterests = results.flatMap(result => result.interests);
 
         return makeResponseData(res, 200, 'success', allInterests)
     } catch (err) {
@@ -559,75 +467,89 @@ exports.tiktokApiAbos = async (req, res) => {
     }
 }
 
+
+const networkModelMap = {
+    google: {
+        model: GoogleProfile,
+        excludeFields: { accessToken: 0, refreshToken: 0 }
+    },
+    twitter: {
+        model: TwitterProfile,
+        excludeFields: { _raw: 0, access_token_key: 0, access_token_secret: 0 }
+    },
+    facebook: {
+        model: FbPage,
+        excludeFields: { token: 0 }
+    },
+    linkedin: {
+        model: LinkedinProfile,
+        excludeFields: {accessToken : 0 , refreshToken : 0}
+    },
+    tikTok: {
+        model: TikTokProfile,
+        excludeFields: { accessToken: 0, refreshToken: 0 }
+    }
+};
+
 exports.socialAccounts = async (req, res) => {
     try {
-        let UserId = req.user._id
-        let networks = {}
-        let [channelsGoogle, channelsTwitter] = await Promise.all([
-            GoogleProfile.find({ UserId }, { accessToken: 0, refreshToken: 0 }),
-            TwitterProfile.find(
-                { UserId },
-                { _raw: 0, access_token_key: 0, access_token_secret: 0 }
-            ),
-        ])
-        let channelsFacebook = await FbPage.find({ UserId }, { token: 0 })
-        let channelsLinkedin = await LinkedinProfile.find({ userId: UserId })
-        let channelsTiktok = await TikTokProfile.find(
-            { userId: UserId },
-            { accessToken: 0, refreshToken: 0 }
-        )
-        networks.google = channelsGoogle
-        networks.twitter = channelsTwitter
-        networks.facebook = channelsFacebook
-        networks.linkedin = channelsLinkedin?.flatMap((item) =>
-            item?.pages.map((elem) => {
-                elem = elem.toJSON()
-                elem.linkedinId = item.linkedinId
-                return elem
-            })
-        )
+        const UserId = req.user._id;
+        let networks = {};
 
-        networks.tikTok = channelsTiktok || []
-        if (
-            !channelsGoogle?.length &&
-            !channelsLinkedin?.length &&
-            !channelsTwitter?.length &&
-            !channelsFacebook?.length &&
-            !channelsTiktok?.length
-        ) {
-            return makeResponseError(res, 204, 'No channel found')
+        // Generate the database queries.
+        const queries = Object.keys(networkModelMap).map(network => {
+            const { model, excludeFields } = networkModelMap[network];
+
+            const query = network === 'linkedin' || network === 'tikTok' && { userId: UserId } || { UserId };
+
+            return model.find(query, excludeFields);
+        });
+
+        // Run the queries concurrently.
+        const channels = await Promise.all(queries);
+
+        // Assign the results to the appropriate properties in the networks object.
+        Object.keys(networkModelMap).forEach((network, i) => {
+            networks[network] = channels[i];
+        });
+
+        // Process the LinkedIn channels separately.
+        networks.linkedin = networks.linkedin?.flatMap((item) =>
+            item?.pages.map((elem) => {
+                elem = elem.toJSON();
+                elem.linkedinId = item.linkedinId;
+                return elem;
+            })
+        );
+
+        // Check if all network channels are empty.
+        if (Object.values(networks).every(networkChannels => !networkChannels?.length)) {
+            return makeResponseError(res, 204, 'No channel found');
         }
-        return makeResponseData(res, 200, 'success', networks)
+        return makeResponseData(res, 200, 'success', networks);
     } catch (err) {
         return makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
-        )
+        );
     }
-}
+};
 
 module.exports.checkOnBoarding = async (req, res) => {
     try {
-        const _id = req.user._id
+        const {_id} = req.user;
         const userUpdated = User.updateOne(
             { _id },
             { $set: { onBoarding: true } }
         )
-        const firstNotif = notificationManager(_id, 'buy_some_gas', {
-            action: 'buy_some_gas',
-        })
-        const secondNotif = notificationManager(_id, 'invite_friends', {
-            action: 'Invite your friends',
-        })
-        const thirdNotif = notificationManager(_id, 'join_on_social', {
-            action: 'Join us on social',
-        })
+
+        const notifications = ['buy_some_gas', 'invite_friends', 'join_on_social'].map(notifType => 
+            notificationManager(_id, notifType, { action: notifType !=='buy_some_gas' && notifType.replace(/_/g, ' ') ||  notifType}));
+
         await Promise.allSettled([
             userUpdated,
-            firstNotif,
-            secondNotif,
-            thirdNotif,
+            ...notifications
         ])
         return makeResponseData(res, 201, 'onBoarding updated', true)
     } catch (err) {
@@ -952,7 +874,7 @@ module.exports.verifyLink = async (req, response) => {
                         { UserId: userId },
                         { instagram_id: { $exists: true } },
                     ],
-                })
+                }).lean()
                 if (page) {
                     linked = true
                     res = await verifyInsta(userId, idPost)
@@ -961,12 +883,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
             case '4':
-                var twitterProfile = await TwitterProfile.findOne(
-                    {
-                        UserId: userId,
-                    },
-                    { access_token_key: 1, access_token_secret: 1 }
-                ).lean()
+                var twitterProfile =await TwitterProfile.findOne({UserId: userId},{access_token_key: 1, access_token_secret: 1}).lean()
                 if (twitterProfile) {
                     linked = true
                     res = await verifyTwitter(twitterProfile, userId, idPost)

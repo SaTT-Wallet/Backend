@@ -473,6 +473,15 @@ exports.tiktokAbos = async (userId, access_token = null) => {
     }
 }
 
+const socialNetworkStrategies = {
+    facebook: async ({ link }) => await facebook(link.idUser, link.idPost),
+    twitter: async ({ link }) => await twitter(link.idUser, link.idPost),
+    youtube: async ({ link }) => await youtube(link.idPost),
+    instagram: async ({ link, id }) => await instagram(id, link),
+    linkedin: async ({ link, linkedinProfile }) => await linkedin(link.idUser, link.idPost, link.typeURL, linkedinProfile),
+    tiktok: async ({ link, tiktokProfile }) => await tiktok(tiktokProfile, link.idPost),
+}
+
 exports.getPromApplyStats = async (
     oracles,
     link,
@@ -481,32 +490,15 @@ exports.getPromApplyStats = async (
     tiktokProfile = null
 ) => {
     try {
-        let socialOracle = {}
-        if (oracles === 'facebook')
-            socialOracle = await facebook(link.idUser, link.idPost)
-        else if (oracles === 'twitter')
-            socialOracle = await twitter(link.idUser, link.idPost)
-        else if (oracles === 'youtube')
-            socialOracle = await youtube(link.idPost)
-        else if (oracles === 'instagram')
-            socialOracle = await instagram(id, link)
-        else if (oracles === 'linkedin') {
-            socialOracle = await linkedin(
-                link.idUser,
-                link.idPost,
-                link.typeURL,
-                linkedinProfile
-            )
-        } else if (oracles === 'tiktok') {
-            socialOracle = await tiktok(tiktokProfile, link.idPost)
-        }
+        let socialOracle = await socialNetworkStrategies[oracles]({ link, id, linkedinProfile, tiktokProfile });
 
-        delete socialOracle?.date
-        return socialOracle
+        delete socialOracle?.date;
+        return socialOracle;
     } catch (err) {
-        console.error('getPromApplyStats', err)
+        console.error('getPromApplyStats', err);
     }
-}
+};
+
 
 const facebook = async (pageName, idPost) => {
     try {
