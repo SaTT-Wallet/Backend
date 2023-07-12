@@ -36,6 +36,7 @@ const {
     updateFacebookPages,
     tiktokAbos,
     getFacebookUsername,
+    verifyThread,
 } = require('../manager/oracles')
 
 //var ejs = require('ejs')
@@ -999,6 +1000,19 @@ module.exports.verifyLink = async (req, response) => {
                 if (tiktokProfile) {
                     linked = true
                     res = await verifytiktok(tiktokProfile, idPost)
+                    if (res === 'deactivate') deactivate = true
+                }
+
+                break
+                case '7':
+                const {threads_id} = await FbPage.findOne({             
+                         UserId: userId, 
+                        instagram_id: { $exists: true } ,
+                        threads_id: { $exists: true }  
+                },{threads_id : 1}).lean()
+                if (threads_id) {
+                    linked = true
+                    res = await verifyThread(idPost,threads_id)
                     if (res === 'deactivate') deactivate = true
                 }
 

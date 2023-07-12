@@ -145,6 +145,48 @@ exports.verifyInsta = async function (userId, idPost) {
     }
 }
 
+exports.verifyThread = async (idPost, threads_id) => {
+    try {
+        const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+  
+        let text = res.data;
+        text = text.replace(/\s/g, '');
+        text = text.replace(/\n/g, '');
+    
+        const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
+        const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+
+    // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
+     const headers = {
+         'Authority': 'www.threads.net',
+         'Accept': '*/*',
+         'Accept-Language': 'en-US,en;q=0.9',
+         'Cache-Control': 'no-cache',
+         'Content-Type': 'application/x-www-form-urlencoded',
+         'Origin': 'https://www.threads.net',
+         'Pragma': 'no-cache',
+         'Sec-Fetch-Site': 'same-origin',
+         'X-ASBD-ID': '129477',
+         'X-FB-LSD': lsdToken,
+         'X-IG-App-ID': '238260118697367',
+     };
+    
+     const response = await axios.post("https://www.threads.net/api/graphql", {
+         'lsd': lsdToken,
+         'variables': JSON.stringify({
+             postID,
+         }),
+         'doc_id': '5587632691339264',
+     }, {
+         headers
+     });
+     let owner =response.data.data.data.containing_thread.thread_items[0].post.user.pk 
+      return threads_id === owner;
+    
+    } catch (err) {
+        return 'lien_invalid'
+    }
+}
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
          const client = new Twitter({
@@ -471,6 +513,42 @@ exports.tiktokAbos = async (userId, access_token = null) => {
     } catch (err) {
         console.error('tiktokAbos', err.message ? err.message : err.error)
     }
+}
+
+
+exports.threadsAbos = async (idPost, id, userName) => {
+    try {
+        var followers = 0
+        var campaign_link = await CampaignLink.findOne({ idPost }).lean()
+
+
+        let instagramUserName = campaign_link?.instagramUserName || userName
+        var fbPage = await FbPage.findOne({           
+                UserId: id ,
+                 instagram_username: instagramUserName ,
+                 instagram_id: { $exists: true } ,
+                 threads_id: { $exists: true } 
+        })
+
+        if (fbPage) {
+            const {threads_id} = fbPage
+            var fbProfile = await FbProfile.findOne({
+                UserId: id,
+            })
+            var token = fbProfile.accessToken
+            var res = await rp.get(
+                    'https://graph.facebook.com/' +
+                    oauth.facebook.fbGraphVersion +
+                    '/' +
+                    threads_id +
+                    '?access_token=' +
+                    token +
+                    '&fields=followers_count')
+            if (res.data.followers_count) return (followers = res.data.followers_count)
+            else return null
+        }
+        return followers
+    } catch (err) {}
 }
 
 exports.getPromApplyStats = async (

@@ -5,6 +5,7 @@ const fbPageSchema = mongoose.Schema(
         UserId: { type: Number, required: true, ref: 'user' },
         id: { type: String },
         instagram_id: { type: String },
+        threads_id : String,
         instagram_username: { type: String },
         name: { type: String },
         picture: { type: String },
