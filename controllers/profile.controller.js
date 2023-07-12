@@ -885,6 +885,20 @@ module.exports.confrimChangeMail = async (req, res) => {
     }
 }
 
+module.exports.checkInsta = async (req, res) => {
+ try{
+   let instaAccount = await FbPage.exists({UserId : req.user._id, instagram_username : {$exists : true}});
+   return makeResponseData(res, 201, instaAccount)
+
+ }catch (err) {
+    return makeResponseError(
+        res,
+        500,
+        err.message ? err.message : err.error
+    )
+ }
+}
+
 module.exports.verifyLink = async (req, response) => {
     try {
         var userId = req.user._id

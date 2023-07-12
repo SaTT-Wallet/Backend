@@ -78,6 +78,7 @@ const {
     ShareByActivity,
     tiktokApiAbos,
     ProfilPrivacy,
+    checkInsta
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -1392,5 +1393,7 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivityVal
  */
 router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
 
+
+router.get('/check/insta',verifyAuth,checkInsta)
 
 module.exports = router
