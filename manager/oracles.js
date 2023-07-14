@@ -348,6 +348,8 @@ exports.answerAbos = async (
                 tiktokProfile.followers = res ?? 0
                 await tiktokProfile.save()
                 break
+            case '7':
+                var res = await threadsAbos(idPost,id)
             default:
                 var res = 0
                 break
@@ -516,7 +518,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
 }
 
 
-exports.threadsAbos = async (idPost, id, userName) => {
+const threadsAbos = async (idPost, id, userName) => {
     try {
         var followers = 0
         var campaign_link = await CampaignLink.findOne({ idPost }).lean()
@@ -531,21 +533,7 @@ exports.threadsAbos = async (idPost, id, userName) => {
         })
 
         if (fbPage) {
-            const {threads_id} = fbPage
-            var fbProfile = await FbProfile.findOne({
-                UserId: id,
-            })
-            var token = fbProfile.accessToken
-            var res = await rp.get(
-                    'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    threads_id +
-                    '?access_token=' +
-                    token +
-                    '&fields=followers_count')
-            if (res.data.followers_count) return (followers = res.data.followers_count)
-            else return null
+
         }
         return followers
     } catch (err) {}
@@ -799,22 +787,24 @@ const tiktok = async (tiktokProfile, idPost) => {
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp.get(getUrl)
         resMedia?.data?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.data.access_token})
-        let videoInfoResponse = await axios
-            .post('https://open-api.tiktok.com/video/query/', {
-                access_token: resMedia?.data?.data.access_token,
-                open_id: tiktokProfile.userTiktokId,
-                filters: {
-                    video_ids: [idPost],
-                },
-                fields: [
-                    'like_count',
-                    'comment_count',
-                    'share_count',
-                    'view_count',
-                    'cover_image_url',
-                ],
-            })
-            .then((response) => response.data)
+        const data = {
+            filters: {
+              video_ids: [
+                idPost
+              ]
+            }
+          };
+
+        let videoInfoResponse = await axios({
+            method: 'post',
+            url: 'https://open.tiktokapis.com/v2/video/query/?fields=id,title',
+            headers: {
+              'Authorization': "Bearer " +resMedia?.data?.data.access_token,
+              'Content-Type': 'application/json'
+            },
+            data
+          }).then((response) => response.data)
+ 
 
         return {
             likes: videoInfoResponse.data.videos[0].like_count,
