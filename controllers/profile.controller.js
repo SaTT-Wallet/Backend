@@ -1159,9 +1159,9 @@ module.exports.addThreadsAccount = async (req,res) => {
                 instagram_username: instaAccount.instagram_username,
         
             }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url})
-            return makeResponseData(res, 200, true)
+            return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk})
         } 
-        return makeResponseData(res, 200, false)
+        return makeResponseData(res, 200, 'error')
     } catch(err) {
         return makeResponseError(
             res,
