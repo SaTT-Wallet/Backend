@@ -78,7 +78,9 @@ const {
     ShareByActivity,
     tiktokApiAbos,
     ProfilPrivacy,
-    checkInsta
+    checkThreads,
+    addThreadsAccount,
+    removeThreadsAccount
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -1394,6 +1396,11 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivityVal
 router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
 
 
-router.get('/check/insta',verifyAuth,checkInsta)
+router.get('/check/threads-account',verifyAuth,checkThreads)
+
+router.get('/add/threads-account', verifyAuth, addThreadsAccount)
+
+router.delete('/remove/threads-account', verifyAuth, removeThreadsAccount)
+
 
 module.exports = router
