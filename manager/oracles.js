@@ -145,6 +145,61 @@ exports.verifyInsta = async function (userId, idPost) {
     }
 }
 
+
+// Validate the idPost parameter
+function isValidIdPost(idPost) {
+    // Add your validation logic here
+    // For example, check if it's a non-empty string, or if it matches a specific format
+    return typeof idPost === 'string' && idPost.trim().length > 0;
+  }
+
+
+exports.verifyThread = async (idPost, threads_id) => {
+    try {
+        const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+
+        if (!isValidIdPost(idPost)) {
+            throw new Error('Invalid idPost');
+          }
+  
+        let text = res.data;
+        text = text.replace(/\s/g, '');
+        text = text.replace(/\n/g, '');
+    
+        const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
+        const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+
+    // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
+     const headers = {
+         'Authority': 'www.threads.net',
+         'Accept': '*/*',
+         'Accept-Language': 'en-US,en;q=0.9',
+         'Cache-Control': 'no-cache',
+         'Content-Type': 'application/x-www-form-urlencoded',
+         'Origin': 'https://www.threads.net',
+         'Pragma': 'no-cache',
+         'Sec-Fetch-Site': 'same-origin',
+         'X-ASBD-ID': '129477',
+         'X-FB-LSD': lsdToken,
+         'X-IG-App-ID': '238260118697367',
+     };
+    
+     const response = await axios.post("https://www.threads.net/api/graphql", {
+         'lsd': lsdToken,
+         'variables': JSON.stringify({
+             postID,
+         }),
+         'doc_id': '5587632691339264',
+     }, {
+         headers
+     });
+     let owner =response.data.data.data.containing_thread.thread_items[0].post.user.pk 
+      return threads_id === owner;
+    
+    } catch (err) {
+        return 'lien_invalid'
+    }
+}
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
          const client = new Twitter({
@@ -306,6 +361,8 @@ exports.answerAbos = async (
                 tiktokProfile.followers = res ?? 0
                 await tiktokProfile.save()
                 break
+            case '7':
+                var res = await threadsAbos(idPost,id)
             default:
                 var res = 0
                 break
@@ -471,6 +528,28 @@ exports.tiktokAbos = async (userId, access_token = null) => {
     } catch (err) {
         console.error('tiktokAbos', err.message ? err.message : err.error)
     }
+}
+
+
+const threadsAbos = async (idPost, id, userName) => {
+    try {
+        var followers = 0
+        var campaign_link = await CampaignLink.findOne({ idPost }).lean()
+
+
+        let instagramUserName = campaign_link?.instagramUserName || userName
+        var fbPage = await FbPage.findOne({           
+                UserId: id ,
+                 instagram_username: instagramUserName ,
+                 instagram_id: { $exists: true } ,
+                 threads_id: { $exists: true } 
+        })
+
+        if (fbPage) {
+
+        }
+        return followers
+    } catch (err) {}
 }
 
 exports.getPromApplyStats = async (
@@ -721,22 +800,24 @@ const tiktok = async (tiktokProfile, idPost) => {
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp.get(getUrl)
         resMedia?.data?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.data.access_token})
-        let videoInfoResponse = await axios
-            .post('https://open-api.tiktok.com/video/query/', {
-                access_token: resMedia?.data?.data.access_token,
-                open_id: tiktokProfile.userTiktokId,
-                filters: {
-                    video_ids: [idPost],
-                },
-                fields: [
-                    'like_count',
-                    'comment_count',
-                    'share_count',
-                    'view_count',
-                    'cover_image_url',
-                ],
-            })
-            .then((response) => response.data)
+        const data = {
+            filters: {
+              video_ids: [
+                idPost
+              ]
+            }
+          };
+
+        let videoInfoResponse = await axios({
+            method: 'post',
+            url: 'https://open.tiktokapis.com/v2/video/query/?fields=id,title',
+            headers: {
+              'Authorization': "Bearer " +resMedia?.data?.data.access_token,
+              'Content-Type': 'application/json'
+            },
+            data
+          }).then((response) => response.data)
+ 
 
         return {
             likes: videoInfoResponse.data.videos[0].like_count,

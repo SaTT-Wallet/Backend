@@ -78,6 +78,9 @@ const {
     ShareByActivity,
     tiktokApiAbos,
     ProfilPrivacy,
+    checkThreads,
+    addThreadsAccount,
+    removeThreadsAccount
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -110,7 +113,8 @@ const {
     deleteLinkedinChannelValidation,
     verifyLinkValidation,
     ShareByActivityValidation,
-    addUserLegalProfileValidation
+    addUserLegalProfileValidation,
+    idThreadsAccountValidation
 } = require('../middleware/profileValidator.middleware')
 const { sendNotificationTest } = require('../manager/notification')
 
@@ -1391,6 +1395,13 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivityVal
  *          description: error:<br> server error
  */
 router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
+
+
+router.get('/check/threads-account',verifyAuth,checkThreads)
+
+router.get('/add/threads-account', verifyAuth, addThreadsAccount)
+
+router.delete('/remove/threads-account/:id', verifyAuth, idThreadsAccountValidation,removeThreadsAccount)
 
 
 module.exports = router
