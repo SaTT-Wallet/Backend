@@ -1157,7 +1157,6 @@ module.exports.addThreadsAccount = async (req,res) => {
             const base64String = Buffer.from(userPicture.data, 'binary').toString('base64');
             await FbPage.updateOne({
                 instagram_username: instaAccount.instagram_username,
-        
             }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url})
             return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk})
         } 
@@ -1174,10 +1173,10 @@ module.exports.addThreadsAccount = async (req,res) => {
 
 
 module.exports.removeThreadsAccount = async (req,res) => {
-    const instaAccount = await FbPage.findOne({UserId : req.user._id, instagram_username : {$exists : true}});
+    const instaAccount = await FbPage.findOne({UserId : req.user._id, threads_id: req.params.id,instagram_username : {$exists : true}});
     if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
     if(instaAccount.threads_id) {
-        await FbPage.updateOne({ UserId: req.user._id }, {$unset: {threads_id:1, threads_picture:1}})
+        await FbPage.updateOne({ UserId: req.user._id,threads_id: req.params.id }, {$unset: {threads_id:1, threads_picture:1}})
         return makeResponseData(res, 200, 'deleted successfully')
     } return makeResponseData(res, 200,'no_threads_found')
 
