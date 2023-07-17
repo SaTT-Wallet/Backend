@@ -1,42 +1,43 @@
 require('dotenv').config()
-const corsSetup = (req, res, next) =>{
+const corsSetup = (req, res, next) => {
     const apiKey = req.headers['api-key'];
-    if(apiKey && apiKey === process.env.API_KEY) {
-        return next();
-    } else {
-        if (process.env.NODE_ENV == "mainnet") {
-            if (req.headers.origin) {
-                if (
-                    req.headers.origin === 'https://dapp.satt.com' ||
-                    req.headers.origin === 'https://satt-token.com' ||
-                    req.headers.origin === 'https://app.ihave.io' ||
-                    req.headers.origin === 'http://backoffice.atayen.us'
-                ) {
-                    return next()
-                } else return res.redirect("https://satt-token.com");
-                
-                    
-            } else {
-                if (
-                    req.url.includes('google') ||
-                    req.url.includes('youtube') ||
-                    req.url.includes('facebook') ||
-                    req.url.includes('tikTok') ||
-                    req.url.includes('tiktok') ||
-                    req.url.includes('linkedin') ||
-                    req.url.includes('twitter') ||
-                    req.url.includes('telegram')
-                ) {
-                    return next()
-                } else return res.redirect("https://satt-token.com");
-                
-                    
-                    
-            }
-        } else return next()
+  
+    if (apiKey && apiKey === process.env.API_KEY) {
+      return next();
     }
-    
-}
+  
+    if (process.env.NODE_ENV === "mainnet") {
+      const allowedOrigins = [
+        'https://dapp.satt.com',
+        'https://satt-token.com',
+        'https://app.ihave.io',
+        'http://backoffice.atayen.us'
+      ];
+  
+      if (req.headers.origin && allowedOrigins.includes(req.headers.origin)) {
+        return next();
+      }
+  
+      const blockedUrls = [
+        'google',
+        'youtube',
+        'facebook',
+        'tikTok',
+        'tiktok',
+        'linkedin',
+        'twitter',
+        'telegram'
+      ];
+  
+      if (blockedUrls.some(url => req.url.includes(url))) {
+        return next();
+      }
+  
+      return res.redirect("https://satt-token.com");
+    }
+  
+    return next();
+  };
 
 
 
