@@ -145,9 +145,22 @@ exports.verifyInsta = async function (userId, idPost) {
     }
 }
 
+
+// Validate the idPost parameter
+function isValidIdPost(idPost) {
+    // Add your validation logic here
+    // For example, check if it's a non-empty string, or if it matches a specific format
+    return typeof idPost === 'string' && idPost.trim().length > 0;
+  }
+
+
 exports.verifyThread = async (idPost, threads_id) => {
     try {
         const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+
+        if (!isValidIdPost(idPost)) {
+            throw new Error('Invalid idPost');
+          }
   
         let text = res.data;
         text = text.replace(/\s/g, '');
