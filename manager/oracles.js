@@ -145,9 +145,22 @@ exports.verifyInsta = async function (userId, idPost) {
     }
 }
 
+
+// Validate the idPost parameter
+function isValidIdPost(idPost) {
+    // Add your validation logic here
+    // For example, check if it's a non-empty string, or if it matches a specific format
+    return typeof idPost === 'string' && idPost.trim().length > 0;
+  }
+
+
 exports.verifyThread = async (idPost, threads_id) => {
     try {
         const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+
+        if (!isValidIdPost(idPost)) {
+            throw new Error('Invalid idPost');
+          }
   
         let text = res.data;
         text = text.replace(/\s/g, '');
@@ -348,6 +361,8 @@ exports.answerAbos = async (
                 tiktokProfile.followers = res ?? 0
                 await tiktokProfile.save()
                 break
+            case '7':
+                var res = await threadsAbos(idPost,id)
             default:
                 var res = 0
                 break
@@ -516,7 +531,7 @@ exports.tiktokAbos = async (userId, access_token = null) => {
 }
 
 
-exports.threadsAbos = async (idPost, id, userName) => {
+const threadsAbos = async (idPost, id, userName) => {
     try {
         var followers = 0
         var campaign_link = await CampaignLink.findOne({ idPost }).lean()
@@ -531,21 +546,7 @@ exports.threadsAbos = async (idPost, id, userName) => {
         })
 
         if (fbPage) {
-            const {threads_id} = fbPage
-            var fbProfile = await FbProfile.findOne({
-                UserId: id,
-            })
-            var token = fbProfile.accessToken
-            var res = await rp.get(
-                    'https://graph.facebook.com/' +
-                    oauth.facebook.fbGraphVersion +
-                    '/' +
-                    threads_id +
-                    '?access_token=' +
-                    token +
-                    '&fields=followers_count')
-            if (res.data.followers_count) return (followers = res.data.followers_count)
-            else return null
+
         }
         return followers
     } catch (err) {}
@@ -796,25 +797,43 @@ const tiktok = async (tiktokProfile, idPost) => {
     try {
         if (!tiktokProfile) return 'indisponible'
 
-        let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
-        let resMedia = await rp.get(getUrl)
-        resMedia?.data?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.data.access_token})
-        let videoInfoResponse = await axios
-            .post('https://open-api.tiktok.com/video/query/', {
-                access_token: resMedia?.data?.data.access_token,
-                open_id: tiktokProfile.userTiktokId,
-                filters: {
-                    video_ids: [idPost],
-                },
-                fields: [
-                    'like_count',
-                    'comment_count',
-                    'share_count',
-                    'view_count',
-                    'cover_image_url',
-                ],
-            })
-            .then((response) => response.data)
+
+    const url = 'https://open.tiktokapis.com/v2/oauth/token/';
+
+    const data1 = new URLSearchParams();
+    data1.append('client_key', process.env.TIKTOK_KEY);
+    data1.append('client_secret', process.env.TIKTOK_SECRET)
+    data1.append('grant_type', 'refresh_token');
+    data1.append('refresh_token', tiktokProfile.refreshToken);
+
+const config = {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache'
+    }
+  };
+  
+
+        let resMedia = await rp.post(url, data1, config)
+        resMedia?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.access_token})
+        const data = {
+            filters: {
+              video_ids: [
+                idPost
+              ]
+            }
+          };
+
+        let videoInfoResponse = await axios({
+            method: 'post',
+            url: 'https://open.tiktokapis.com/v2/video/query/?fields=id,title',
+            headers: {
+              'Authorization': "Bearer " +resMedia?.data?.access_token,
+              'Content-Type': 'application/json'
+            },
+            data
+          }).then((response) => response.data)
+ 
 
         return {
             likes: videoInfoResponse.data.videos[0].like_count,
