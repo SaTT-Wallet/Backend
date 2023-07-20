@@ -8,7 +8,6 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const { connect } = require('./conf/database');
-
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`
 });

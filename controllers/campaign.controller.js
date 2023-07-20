@@ -784,6 +784,51 @@ exports.campaignPromp = async (req, res) => {
     }
 }
 
+
+const getThreadsUserName = async idPost => {
+    const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+
+        if (!isValidIdPost(idPost)) {
+            throw new Error('Invalid idPost');
+          }
+  
+        let text = res.data;
+        text = text.replace(/\s/g, '');
+        text = text.replace(/\n/g, '');
+    
+        const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
+        const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+
+        const headers = {
+            'Authority': 'www.threads.net',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': 'https://www.threads.net',
+            'Pragma': 'no-cache',
+            'Sec-Fetch-Site': 'same-origin',
+            'X-ASBD-ID': '129477',
+            'X-FB-LSD': lsdToken,
+            'X-IG-App-ID': '238260118697367',
+        };
+       
+        const response = await axios.post("https://www.threads.net/api/graphql", {
+            'lsd': lsdToken,
+            'variables': JSON.stringify({
+                postID,
+            }),
+            'doc_id': '5587632691339264',
+        }, {
+             headers, transformRequest: [(data) => {
+                return Object.entries(data)
+                  .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+                  .join('&');
+              }],
+        });
+        return response?.data?.data?.containing_thread?.thread_items[0]?.post?.user.username
+}
+
 exports.apply = async (req, res) => {
     var id = req.user._id
     // var pass = req.body.pass
@@ -873,6 +918,8 @@ exports.apply = async (req, res) => {
         }
         if (typeSN == 3)
             prom.instagramUserName = await getInstagramUserName(idPost, id)
+
+            typeSN == 7 && (prom.instagramUserName = await getThreadsUserName(idPost))
 
         prom.abosNumber = await answerAbos(
             typeSN + '',
