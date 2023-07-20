@@ -793,59 +793,64 @@ const twitter = async (userName, idPost) => {
     }
 }
 
+
 const tiktok = async (tiktokProfile, idPost) => {
-    try {
-        if (!tiktokProfile) return 'indisponible'
+  if (!tiktokProfile) {
+    return 'indisponible';
+  }
 
-
+  try {
     const url = 'https://open.tiktokapis.com/v2/oauth/token/';
+    const data = new URLSearchParams();
+    data.append('client_key', process.env.TIKTOK_KEY);
+    data.append('client_secret', process.env.TIKTOK_SECRET);
+    data.append('grant_type', 'refresh_token');
+    data.append('refresh_token', tiktokProfile.refreshToken);
 
-    const data1 = new URLSearchParams();
-    data1.append('client_key', process.env.TIKTOK_KEY);
-    data1.append('client_secret', process.env.TIKTOK_SECRET)
-    data1.append('grant_type', 'refresh_token');
-    data1.append('refresh_token', tiktokProfile.refreshToken);
+    const config = {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cache-Control': 'no-cache',
+      },
+    };
 
-const config = {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Cache-Control': 'no-cache'
-    }
-  };
-  
+    const resMedia = await axios.post(url, data, config);
+    const accessToken = resMedia?.data?.access_token;
 
-        let resMedia = await rp.post(url, data1, config)
-        resMedia?.data?.access_token && await TikTokProfile.updateOne({_id:tiktokProfile._id},{accessToken : resMedia?.data?.access_token})
-        const data = {
-            filters: {
-              video_ids: [
-                idPost
-              ]
-            }
-          };
+    if (accessToken) 
+      await TikTokProfile.updateOne({ _id: tiktokProfile._id }, { accessToken });
+    
 
-        let videoInfoResponse = await axios({
-            method: 'post',
-            url: 'https://open.tiktokapis.com/v2/video/query/?fields=id,title',
-            headers: {
-              'Authorization': "Bearer " +resMedia?.data?.access_token,
-              'Content-Type': 'application/json'
-            },
-            data
-          }).then((response) => response.data)
- 
+    const queryData = {
+      filters: {
+        video_ids: [idPost],
+      },
+    };
 
-        return {
-            likes: videoInfoResponse.data.videos[0].like_count,
-            shares: videoInfoResponse.data.videos[0].share_count,
-            views: videoInfoResponse.data.videos[0].view_count,
-            media_url:
-                videoInfoResponse.data?.videos[0]?.cover_image_url || ' ',
-        }
-    } catch (error) {
-        console.error('tiktok fetch stats', error)
-    }
-}
+    const videoInfoResponse = await axios.post(
+      'https://open.tiktokapis.com/v2/video/query/?fields=id,title',
+      queryData,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const videoData = videoInfoResponse.data?.videos?.[0] || {};
+    return {
+      likes: videoData.like_count || 0,
+      shares: videoData.share_count || 0,
+      views: videoData.view_count || 0,
+      media_url: videoData.cover_image_url || ' ',
+    };
+  } catch (error) {
+    console.error('tiktok fetch stats', error);
+  }
+};
+
+
 exports.getReachLimit = (campaignRatio, oracle) => {
     try {
         let ratio = campaignRatio.find((item) => item.oracle == oracle)
