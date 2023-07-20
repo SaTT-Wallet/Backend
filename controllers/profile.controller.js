@@ -1140,6 +1140,25 @@ module.exports.ProfilPrivacy = async (req, res) => {
     }
 }
 
+let extractFollowerCount = str => {
+    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/;
+
+    const match = str.match(regex);
+  
+    if (match) {
+      let followerCount = parseFloat(match[1]);
+  
+      if (match[3] === 'K') {
+        followerCount *= 1000;
+      } else if (match[3] === 'M') {
+        followerCount *= 1000000;
+      }
+  
+      return parseInt(followerCount, 10);
+    }
+  
+    return 0;
+  }
 
 module.exports.addThreadsAccount = async (req,res) => {
     try {
@@ -1150,6 +1169,7 @@ module.exports.addThreadsAccount = async (req,res) => {
         let text = user.data.replace(/\s/g, '').replace(/\s/g, '');
         const userID = text.match(/"user_id":"(\d+)"/)?.[1]
         if(!userID) return makeResponseData(res, 200,'threads_not_found')
+        const followers = extractFollowerCount(user.data.split('Followers')[0].split("content=").at(-1).trim())
         const lsdToken = await getLsdToken(text)
         const currentUser = await fetchUserThreadData(lsdToken, userID);
         if(currentUser) {
@@ -1158,7 +1178,7 @@ module.exports.addThreadsAccount = async (req,res) => {
             await FbPage.updateOne({
                 instagram_username: instaAccount.instagram_username,
             }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url})
-            return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk})
+            return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk,threads_followers : followers})
         } 
         return makeResponseData(res, 200, 'error')
     } catch(err) {
