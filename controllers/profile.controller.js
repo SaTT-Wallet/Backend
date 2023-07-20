@@ -1177,7 +1177,7 @@ module.exports.addThreadsAccount = async (req,res) => {
             const base64String = Buffer.from(userPicture.data, 'binary').toString('base64');
             await FbPage.updateOne({
                 instagram_username: instaAccount.instagram_username,
-            }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url})
+            }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url, threads_followers : followers})
             return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk,threads_followers : followers})
         } 
         return makeResponseData(res, 200, 'error')
