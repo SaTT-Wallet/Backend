@@ -1,6 +1,7 @@
 var rp = require('axios');
 const validator = require('validator')
 
+
 const {
     User,
     GoogleProfile,
@@ -885,6 +886,21 @@ module.exports.confrimChangeMail = async (req, res) => {
     }
 }
 
+module.exports.checkThreads = async (req, res) => {
+ try{
+   let instaAccount = await FbPage.findOne({UserId : req.user._id, instagram_username : {$exists : true}});
+   if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
+   if(instaAccount.threads_id) return makeResponseData(res, 200, 'threads_already_added')
+   return makeResponseData(res, 200, true)
+ }catch (err) {
+    return makeResponseError(
+        res,
+        500,
+        err.message ? err.message : err.error
+    )
+ }
+}
+
 module.exports.verifyLink = async (req, response) => {
     try {
         var userId = req.user._id
@@ -1122,4 +1138,92 @@ module.exports.ProfilPrivacy = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
+}
+
+
+module.exports.addThreadsAccount = async (req,res) => {
+    try {
+        const instaAccount = await FbPage.findOne({UserId : req.user._id, instagram_username : {$exists : true}});
+        if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
+        if(instaAccount.threads_id) return makeResponseData(res, 200,'threads_already_added')
+        const user = await axios.get(`https://www.threads.net/@${instaAccount.instagram_username}`);
+        let text = user.data.replace(/\s/g, '').replace(/\s/g, '');
+        const userID = text.match(/"user_id":"(\d+)"/)?.[1]
+        if(!userID) return makeResponseData(res, 200,'threads_not_found')
+        const lsdToken = await getLsdToken(text)
+        const currentUser = await fetchUserThreadData(lsdToken, userID);
+        if(currentUser) {
+            const userPicture = await axios.get(currentUser.profile_pic_url, { responseType: 'arraybuffer' })
+            const base64String = Buffer.from(userPicture.data, 'binary').toString('base64');
+            await FbPage.updateOne({
+                instagram_username: instaAccount.instagram_username,
+            }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url})
+            return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk})
+        } 
+        return makeResponseData(res, 200, 'error')
+    } catch(err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+
+module.exports.removeThreadsAccount = async (req,res) => {
+    const instaAccount = await FbPage.findOne({UserId : req.user._id, threads_id: req.params.id,instagram_username : {$exists : true}});
+    if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
+    if(instaAccount.threads_id) {
+        await FbPage.updateOne({ UserId: req.user._id,threads_id: req.params.id }, {$unset: {threads_id:1, threads_picture:1}})
+        return makeResponseData(res, 200, 'deleted successfully')
+    } return makeResponseData(res, 200,'no_threads_found')
+
+}
+
+
+
+
+
+
+
+
+
+const getLsdToken = async (text) => {
+    const lsdTokenMatch = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+    return lsdTokenMatch;
+};
+
+const fetchUserThreadData = async (token, userID) => {
+  const data = {
+    lsd: token,
+    variables: `{"userID": ${userID}}`,
+    doc_id: '23996318473300828',
+  };
+
+  const headers = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+    'X-ASBD-ID': '129477',
+    'X-FB-LSD': token,
+    'X-IG-App-ID': '5587632691339264',
+  };
+
+  const response = await axios.post(
+    'https://www.threads.net/api/graphql',
+    data,
+    {
+      headers: headers,
+      transformRequest: [(data) => {
+        return Object.entries(data)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join('&');
+      }],
+    }
+    );
+
+    const user = response?.data?.data?.userData?.user
+    return user;
 }

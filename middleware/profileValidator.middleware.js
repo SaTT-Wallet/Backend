@@ -145,6 +145,9 @@ const schemas = {
     addUserLegalProfileSchema: Joi.object({
         type: Joi.string().required(),
         typeProof: Joi.string().allow('').required()
+    }),
+    idThreadsAccount: Joi.object({
+        id: Joi.string().required(),
     })
 
     
@@ -198,5 +201,6 @@ module.exports = {
     deleteLinkedinChannelValidation: validationMiddleware(schemas.deleteLinkedinChannelSchema, 'params'),
     verifyLinkValidation: validationMiddleware(schemas.verifyLinkSchema, 'params'),
     ShareByActivityValidation: validationMiddleware(schemas.ShareByActivitySchema, 'params'),
-    addUserLegalProfileValidation: validationCustomMiddleware(schemas.uploadFileLegalKycSchema, 'file', schemas.addUserLegalProfileSchema, 'body')
+    addUserLegalProfileValidation: validationCustomMiddleware(schemas.uploadFileLegalKycSchema, 'file', schemas.addUserLegalProfileSchema, 'body'),
+    idThreadsAccountValidation: validationMiddleware(schemas.idThreadsAccount, 'params')
 };
