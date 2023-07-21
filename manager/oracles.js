@@ -146,16 +146,9 @@ exports.verifyInsta = async function (userId, idPost) {
 }
 
 
-// Validate the idPost parameter
-function isValidIdPost(idPost) {
-    // Add your validation logic here
-    // For example, check if it's a non-empty string, or if it matches a specific format
-    return typeof idPost === 'string' && idPost.trim().length > 0;
-  }
 
-const fetchLSDToken = async (text) => {
-    return text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
-}
+
+
 exports.verifyThread = async (idPost, threads_id, instagram_username) => {
     try {
         console.log({idPost, threads_id, instagram_username})
@@ -565,8 +558,6 @@ let extractFollowerCount = str => {
 const threadsAbos = async (idPost,userName) => {
     try {
         var campaign_link = await CampaignLink.findOne({ idPost }).lean()
-
-
         let instagramUserName = campaign_link?.instagramUserName || userName
         const res = await axios.get(`https://www.threads.net/@${instagramUserName}`)
         return extractFollowerCount(res.data.split('Followers')[0].split("content=").at(-1).trim())
@@ -577,7 +568,6 @@ const threadsAbos = async (idPost,userName) => {
 
 const threads = async idPost => {
     const res = await axios.get(`https://www.threads.net/t/${idPost}`);
-
         if (!isValidIdPost(idPost)) {
             throw new Error('Invalid idPost');
           }
@@ -588,7 +578,7 @@ const threads = async idPost => {
     
         const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
         const lsdToken = await fetchLSDToken(text)
-
+          
     // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
      const headers = {
          'Authority': 'www.threads.net',
@@ -1470,3 +1460,20 @@ exports.isDefferent = (data, pages) => {
         return { message: e.message }
     }
 }
+
+
+
+
+// Validate the idPost parameter
+function isValidIdPost(idPost) {
+    // Add your validation logic here
+    // For example, check if it's a non-empty string, or if it matches a specific format
+    return typeof idPost === 'string' && idPost.trim().length > 0;
+  }
+
+const fetchLSDToken = async (text) => {
+    return text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+}
+
+
+
