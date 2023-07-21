@@ -153,11 +153,14 @@ function isValidIdPost(idPost) {
     return typeof idPost === 'string' && idPost.trim().length > 0;
   }
 
-
-exports.verifyThread = async (idPost, threads_id) => {
+const fetchLSDToken = async (text) => {
+    return text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+}
+exports.verifyThread = async (idPost, threads_id, instagram_username) => {
     try {
-        const res = await axios.get(`https://www.threads.net/t/${idPost}`);
-
+        console.log({idPost, threads_id, instagram_username})
+        const res = await axios.get(`https://www.threads.net/@${instagram_username}/post/${idPost}`);
+        
         if (!isValidIdPost(idPost)) {
             throw new Error('Invalid idPost');
           }
@@ -166,9 +169,10 @@ exports.verifyThread = async (idPost, threads_id) => {
         text = text.replace(/\s/g, '');
         text = text.replace(/\n/g, '');
     
-        const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
-        const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
-
+        var postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
+        //const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+        const lsdToken = await fetchLSDToken(text);
+        console.log({postID, lsdToken})
     // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
      const headers = {
          'Authority': 'www.threads.net',
@@ -197,11 +201,13 @@ exports.verifyThread = async (idPost, threads_id) => {
               .join('&');
           }],
      });
+    
      let owner =response.data.data.data.containing_thread.thread_items[0].post.user.pk 
       return threads_id === owner;
     
     } catch (err) {
-        return 'lien_invalid'
+        
+        return !!postID ? 'lien_invalid' : 'link_not_found'
     }
 }
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {

@@ -1021,14 +1021,16 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
                 case '7':
-                const {threads_id} = await FbPage.findOne({             
+                const threads = await FbPage.findOne({             
                          UserId: userId, 
                         instagram_id: { $exists: true } ,
                         threads_id: { $exists: true }  
-                },{threads_id : 1}).lean()
-                if (threads_id) {
+                },{threads_id : 1, instagram_username: 1}).lean()
+                console.log({threads})
+                if (threads) {
                     linked = true
-                    res = await verifyThread(idPost,threads_id)
+                    res = await verifyThread(idPost,threads.threads_id, threads.instagram_username)
+                    console.log({res})
                     if (res === 'deactivate') deactivate = true
                 }
 
@@ -1042,6 +1044,7 @@ module.exports.verifyLink = async (req, response) => {
             return makeResponseError(response, 406, 'invalid link')
         else if (deactivate)
             return makeResponseError(response, 405, 'account deactivated')
+        else if (res === 'link_not_found') return makeResponseError(response, 406, 'link not found')
         else
             return makeResponseData(
                 response,
