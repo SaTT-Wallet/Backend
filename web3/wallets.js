@@ -506,51 +506,41 @@ exports.getAllWallets = async (req, res) => {
     } else if (Object.keys(res).length !== 0)
         return res.status(401).end('Account not found')
 }
+
 const getNetworkByToken = async (idCrypto) => {
-
-    try{
-        if (
-            cache.get('networks') &&
-            Date.now() - new Date(cache.get('networks')?.date).getTime() < 604800000
-        ) {
-            return cache.get('networks').data
-        }else{
-    
+    try {
+      if (
+        cache.get('networks') &&
+        Date.now() - new Date(cache.get('networks').date).getTime() < 604800000
+      ) {
+        return cache.get('networks').data;
+      } else {
         const options = {
-            method: 'GET',
-            url: process.env.CMC_CRYPTO_DETAILS,
-            params: {
-                id: idCrypto
-            },
-            headers: {
-                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-            },
-           
-        }
-       
-        var results 
-        try {
-            results = await Promise.all([ rp.request(options)])
-
-        } catch (error) {
-            throw new Error('Error fetching  networks')
-        }
-   let networksContract = []
-     const  result = await results[0].data.data
-     Object.values(result).forEach(innerObj => {
-        networksContract.push({symbol: innerObj.symbol ,contract_address: innerObj.contract_address})
-        
-     })
-     networks = { data: networksContract, date: Date.now() }
-     cache.put('networks', networks)
- 
-return networksContract
+          method: 'GET',
+          url: process.env.CMC_CRYPTO_DETAILS,
+          params: {
+            id: idCrypto,
+          },
+          headers: {
+            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+          },
+        };
+  
+        const result = await rp.request(options);
+        const networksContract = Object.values(result.data.data).map((innerObj) => ({
+          symbol: innerObj.symbol,
+          contract_address: innerObj.contract_address,
+        }));
+  
+        const networks = { data: networksContract, date: Date.now() };
+        cache.put('networks', networks);
+  
+        return networksContract;
+      }
+    } catch (err) {
+      throw new Error('Error fetching networks');
     }
-}catch(err){
-  throw new Error('Error fetching networks')
-    }
-
-}
+  };
 exports.getPrices = async () => {
     try {
         if (
@@ -606,7 +596,7 @@ exports.getPrices = async () => {
             response.data.data.push(responseSattJet.data.data.JET)
             response.data.data.push(responseSattJet.data.data.BTT)
             let  priceMap
-            let networksContract
+          
             try {
              
     
@@ -679,26 +669,24 @@ exports.getPrices = async () => {
         }
 
             var finalMap = {}
-            var idcrypto =[]
-            for (var i = 0; i < priceMap.length; i++) {
-            
-              idcrypto.push(priceMap[i].id.toString())
-                finalMap[priceMap[i].symbol] = priceMap[i]
-        
-                delete finalMap[priceMap[i].symbol].symbol
-            }
-            
-    try{
-        networksContract= await   getNetworkByToken( idcrypto.join(','))
-        for (var i = 0; i < idcrypto?.length; i++) {
-            finalMap[networksContract[i].symbol].networkSupported = networksContract[i].contract_address 
-          
+  
+            const idcrypto = priceMap.map((token) => token.id.toString());
            
-         }
-    }catch(error){
-        throw new Error('Error fetching networks')
-    }
+            priceMap.forEach((token) => {
+                finalMap[token.symbol] = { ...token, networkSupported: '' };
+                delete finalMap[token.symbol].symbol;
+              });
+            
 
+      
+        const networksContract = await getNetworkByToken(idcrypto.join(','));
+        networksContract.forEach((network) => {
+          if (finalMap[network.symbol]) {
+            finalMap[network.symbol].networkSupported = network.contract_address;
+          }
+        });
+  
+   
 
 
             for (var i = 0; i < token200.length; i++) {
