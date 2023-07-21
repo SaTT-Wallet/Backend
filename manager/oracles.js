@@ -587,7 +587,7 @@ const threads = async idPost => {
         text = text.replace(/\n/g, '');
     
         const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
-        const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+        const lsdToken = await fetchLSDToken(text)
 
     // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
      const headers = {
@@ -617,7 +617,15 @@ const threads = async idPost => {
           .join('&');
       }],
      });
-    return {likes : response.data.data.data.containing_thread.thread_items[0].post?.like_count}
+     let media_url;
+     response.data.data.data.containing_thread.thread_items[0].post?.image_versions2?.candidates.forEach((element) => {
+        if(element.height == 320 && element.__typename == "XDTImageCandidate") {
+            media_url = element.url;
+        }
+     });
+     const postPicture = await axios.get(media_url, { responseType: 'arraybuffer' })
+    const base64String = Buffer.from(postPicture.data, 'binary').toString('base64');
+    return {likes : response.data.data.data.containing_thread.thread_items[0].post?.like_count, media_url: !!base64String ? base64String : media_url}
 
 }
 

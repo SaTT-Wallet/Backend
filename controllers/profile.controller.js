@@ -1021,7 +1021,7 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
                 case '7':
-                const threads = await FbPage.findOne({             
+                var threads = await FbPage.findOne({             
                          UserId: userId, 
                         instagram_id: { $exists: true } ,
                         threads_id: { $exists: true }  
@@ -1045,14 +1045,24 @@ module.exports.verifyLink = async (req, response) => {
         else if (deactivate)
             return makeResponseError(response, 405, 'account deactivated')
         else if (res === 'link_not_found') return makeResponseError(response, 406, 'link not found')
-        else
-            return makeResponseData(
+        else {
+            if(typeSN == '7') return makeResponseData(
+                response,
+                200,
+                'success',
+                res ? 'true' : 'false',
+                threads.instagram_username
+            )
+
+            else return makeResponseData(
                 response,
                 200,
                 'success',
                 res ? 'true' : 'false',
                 res === true && typeSN == '5' && profileLinedin?.linkedinId
             )
+        }
+            
     } catch (err) {
         return makeResponseError(
             response,
