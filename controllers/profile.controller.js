@@ -1157,6 +1157,7 @@ module.exports.ProfilPrivacy = async (req, res) => {
 
 module.exports.addThreadsAccount = async (req,res) => {
     try {
+        let tt = req.user._id
         const instaAccount = await FbPage.findOne({UserId : req.user._id, instagram_username : {$exists : true}});
         if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
         if(instaAccount.threads_id) return makeResponseData(res, 200,'threads_already_added')
@@ -1164,13 +1165,13 @@ module.exports.addThreadsAccount = async (req,res) => {
         let text = user.data.replace(/\s/g, '').replace(/\s/g, '');
         const userID = text.match(/"user_id":"(\d+)"/)?.[1]
         if(!userID) return makeResponseData(res, 200,'threads_not_found')
-        const followers = extractFollowerCount(user.data.split('Followers')[0].split("content=").at(-1).trim())
+        const followers = extractFollowerCount(user.data.split('Followers')[0].split("content=")[user.data.split('Followers')[0].split("content=").length - 1].trim())
         const lsdToken = await getLsdToken(text)
         const currentUser = await fetchUserThreadData(lsdToken, userID);
         if(currentUser) {
             const userPicture = await axios.get(currentUser.profile_pic_url, { responseType: 'arraybuffer' })
             const base64String = Buffer.from(userPicture.data, 'binary').toString('base64');
-            await FbPage.updateOne({
+            await FbPage.updateOne({UserId : req.user._id,
                 instagram_username: instaAccount.instagram_username,
             }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url, threads_followers : followers})
             return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk,threads_followers : followers})
@@ -1234,7 +1235,7 @@ module.exports.removeThreadsAccount = async (req, res) => {
 
 
 const getLsdToken = async (text) => {
-    const lsdTokenMatch = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+    const lsdTokenMatch = await text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
     return lsdTokenMatch;
 };
 
