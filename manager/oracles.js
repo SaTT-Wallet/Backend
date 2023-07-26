@@ -22,6 +22,7 @@ const {
 const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
+const {extractFollowerCount} = require('../helpers/common')
 const { TikTokProfile } = require('../model')
 const {
     getWeb3Connection,
@@ -534,26 +535,6 @@ exports.tiktokAbos = async (userId, access_token = null) => {
         console.error('tiktokAbos', err.message ? err.message : err.error)
     }
 }
-
-let extractFollowerCount = str => {
-    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/;
-
-    const match = str.match(regex);
-  
-    if (match) {
-      let followerCount = parseFloat(match[1]);
-  
-      if (match[3] === 'K') {
-        followerCount *= 1000;
-      } else if (match[3] === 'M') {
-        followerCount *= 1000000;
-      }
-  
-      return parseInt(followerCount, 10);
-    }
-  
-    return 0;
-  }
 
 const threadsAbos = async (idPost,userName) => {
     try {

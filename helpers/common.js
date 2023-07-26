@@ -466,3 +466,23 @@ exports.BalanceUsersStats = async (condition) => {
         }
     }
 }
+
+exports.extractFollowerCount = str => {
+    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/;
+
+    const match = str.match(regex);
+  
+    if (match) {
+      let followerCount = parseFloat(match[1]);
+  
+      if (match[3] === 'K') {
+        followerCount *= 1000;
+      } else if (match[3] === 'M') {
+        followerCount *= 1000000;
+      }
+  
+      return parseInt(followerCount, 10);
+    }
+  
+    return 0;
+  }
