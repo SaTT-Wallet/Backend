@@ -1196,7 +1196,7 @@ module.exports.removeThreadsAccount = async (req,res) => {
     const instaAccount = await FbPage.findOne({UserId : req.user._id, threads_id: req.params.id,instagram_username : {$exists : true}});
     if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
     if(instaAccount.threads_id) {
-        await FbPage.updateOne({ UserId: req.user._id,threads_id: req.params.id }, {$unset: {threads_id:1, threads_picture:1}})
+        await FbPage.updateOne({ UserId: req.user._id,threads_id: req.params.id }, {$unset: {threads_id:1, threads_picture:1,threads_followers:1}})
         return makeResponseData(res, 200, 'deleted successfully')
     } return makeResponseData(res, 200,'no_threads_found')
 
