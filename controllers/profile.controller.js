@@ -27,6 +27,8 @@ const {
     configureTranslation,
     readHTMLFileProfile,
 } = require('../helpers/utils')
+
+const  {extractFollowerCount}  = require('../helpers/common')
 const {
     verifyYoutube,
     verifyFacebook,
@@ -1153,26 +1155,6 @@ module.exports.ProfilPrivacy = async (req, res) => {
     }
 }
 
-let extractFollowerCount = str => {
-    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/;
-
-    const match = str.match(regex);
-  
-    if (match) {
-      let followerCount = parseFloat(match[1]);
-  
-      if (match[3] === 'K') {
-        followerCount *= 1000;
-      } else if (match[3] === 'M') {
-        followerCount *= 1000000;
-      }
-  
-      return parseInt(followerCount, 10);
-    }
-  
-    return 0;
-  }
-
 module.exports.addThreadsAccount = async (req,res) => {
     try {
         const instaAccount = await FbPage.findOne({UserId : req.user._id, instagram_username : {$exists : true}});
@@ -1205,15 +1187,43 @@ module.exports.addThreadsAccount = async (req,res) => {
 
 
 
-module.exports.removeThreadsAccount = async (req,res) => {
-    const instaAccount = await FbPage.findOne({UserId : req.user._id, threads_id: req.params.id,instagram_username : {$exists : true}});
-    if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
-    if(instaAccount.threads_id) {
-        await FbPage.updateOne({ UserId: req.user._id,threads_id: req.params.id }, {$unset: {threads_id:1, threads_picture:1,threads_followers:1}})
-        return makeResponseData(res, 200, 'deleted successfully')
-    } return makeResponseData(res, 200,'no_threads_found')
-
-}
+module.exports.removeThreadsAccount = async (req, res) => {
+    try {
+      // Find the instaAccount
+      const instaAccount = await FbPage.findOne({
+        UserId: req.user._id,
+        threads_id: req.params.id,
+        instagram_username: { $exists: true },
+      });
+  
+      // Set the default response data message
+      let responseDataMessage = 'no_threads_found';
+  
+      // Check if the instaAccount exists
+      if (!instaAccount) {
+        responseDataMessage = 'instagram_not_found';
+      } else if (instaAccount.threads_id) {
+        // Check if threads_id exists and update the FbPage document
+        await FbPage.updateOne(
+          {
+            UserId: req.user._id,
+            threads_id: req.params.id,
+          },
+          { $unset: { threads_id: 1, threads_picture: 1, threads_followers: 1 } }
+        );
+        responseDataMessage = 'deleted successfully';
+      }
+  
+      return makeResponseData(res, 200, responseDataMessage);
+    } catch (error) {
+      // Handle any errors that might occur during the process
+      return makeResponseError(
+        res,
+        500,
+        err.message ? err.message : err.error
+    );
+    }
+  };
 
 
 

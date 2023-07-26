@@ -22,6 +22,7 @@ const {
 const puppeteer = require('puppeteer')
 const { TronConstant } = require('../conf/const')
 const { timeout } = require('../helpers/utils')
+const {extractFollowerCount} = require('../helpers/common')
 const { TikTokProfile } = require('../model')
 const {
     getWeb3Connection,
@@ -147,53 +148,55 @@ exports.verifyInsta = async function (userId, idPost) {
 
 
 
+const fetchThreadData = async (res,idPost) => {
+    if (!isValidIdPost(idPost)) {
+        throw new Error('Invalid idPost');
+      }
+
+    const text = res.data.replace(/\s/g, '').replace(/\n/g, '');
+
+
+    const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
+    const lsdToken = fetchLSDToken(text)
+      
+// THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
+ const headers = {
+     'Authority': 'www.threads.net',
+     'Accept': '*/*',
+     'Accept-Language': 'en-US,en;q=0.9',
+     'Cache-Control': 'no-cache',
+     'Content-Type': 'application/x-www-form-urlencoded',
+     'Origin': 'https://www.threads.net',
+     'Pragma': 'no-cache',
+     'Sec-Fetch-Site': 'same-origin',
+     'X-ASBD-ID': '129477',
+     'X-FB-LSD': lsdToken,
+     'X-IG-App-ID': '238260118697367',
+ };
+
+ const response = await axios.post("https://www.threads.net/api/graphql", {
+     'lsd': lsdToken,
+     'variables': JSON.stringify({
+         postID,
+     }),
+     'doc_id': '5587632691339264',
+ }, {
+     headers, transformRequest: [(data) => {
+    return Object.entries(data)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+  }],
+ });
+ return response
+}
+
 
 
 exports.verifyThread = async (idPost, threads_id, instagram_username) => {
     try {
-        console.log({idPost, threads_id, instagram_username})
-        const res = await axios.get(`https://www.threads.net/@${instagram_username}/post/${idPost}`);
         
-        if (!isValidIdPost(idPost)) {
-            throw new Error('Invalid idPost');
-          }
-  
-        let text = res.data;
-        text = text.replace(/\s/g, '');
-        text = text.replace(/\n/g, '');
-    
-        var postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
-        //const lsdToken = text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
-        const lsdToken = await fetchLSDToken(text);
-        console.log({postID, lsdToken})
-    // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
-     const headers = {
-         'Authority': 'www.threads.net',
-         'Accept': '*/*',
-         'Accept-Language': 'en-US,en;q=0.9',
-         'Cache-Control': 'no-cache',
-         'Content-Type': 'application/x-www-form-urlencoded',
-         'Origin': 'https://www.threads.net',
-         'Pragma': 'no-cache',
-         'Sec-Fetch-Site': 'same-origin',
-         'X-ASBD-ID': '129477',
-         'X-FB-LSD': lsdToken,
-         'X-IG-App-ID': '238260118697367',
-     };
-    
-     const response = await axios.post("https://www.threads.net/api/graphql", {
-         'lsd': lsdToken,
-         'variables': JSON.stringify({
-             postID,
-         }),
-         'doc_id': '5587632691339264',
-     }, {
-         headers, transformRequest: [(data) => {
-            return Object.entries(data)
-              .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-              .join('&');
-          }],
-     });
+        const res = await axios.get(`https://www.threads.net/@${instagram_username}/post/${idPost}`);     
+        const response = await fetchThreadData(res,idPost)
     
      let owner =response.data.data.data.containing_thread.thread_items[0].post.user.pk 
       return threads_id === owner;
@@ -535,26 +538,6 @@ exports.tiktokAbos = async (userId, access_token = null) => {
     }
 }
 
-let extractFollowerCount = str => {
-    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/;
-
-    const match = str.match(regex);
-  
-    if (match) {
-      let followerCount = parseFloat(match[1]);
-  
-      if (match[3] === 'K') {
-        followerCount *= 1000;
-      } else if (match[3] === 'M') {
-        followerCount *= 1000000;
-      }
-  
-      return parseInt(followerCount, 10);
-    }
-  
-    return 0;
-  }
-
 const threadsAbos = async (idPost,userName) => {
     try {
         var campaign_link = await CampaignLink.findOne({ idPost }).lean()
@@ -567,46 +550,9 @@ const threadsAbos = async (idPost,userName) => {
 }
 
 const threads = async idPost => {
-    const res = await axios.get(`https://www.threads.net/t/${idPost}`);
-        if (!isValidIdPost(idPost)) {
-            throw new Error('Invalid idPost');
-          }
-  
-        let text = res.data;
-        text = text.replace(/\s/g, '');
-        text = text.replace(/\n/g, '');
-    
-        const postID = text.match(/{"post_id":"(.*?)"}/)?.[1];
-        const lsdToken = await fetchLSDToken(text)
-          
-    // THIS FUNCTION WILL GIVE US IF ACCOUNT EXIST OR NO  ( TO LINK SATT ACCOUNT TO THREAD ACCOUNT )
-     const headers = {
-         'Authority': 'www.threads.net',
-         'Accept': '*/*',
-         'Accept-Language': 'en-US,en;q=0.9',
-         'Cache-Control': 'no-cache',
-         'Content-Type': 'application/x-www-form-urlencoded',
-         'Origin': 'https://www.threads.net',
-         'Pragma': 'no-cache',
-         'Sec-Fetch-Site': 'same-origin',
-         'X-ASBD-ID': '129477',
-         'X-FB-LSD': lsdToken,
-         'X-IG-App-ID': '238260118697367',
-     };
-    
-     const response = await axios.post("https://www.threads.net/api/graphql", {
-         'lsd': lsdToken,
-         'variables': JSON.stringify({
-             postID,
-         }),
-         'doc_id': '5587632691339264',
-     }, {
-         headers, transformRequest: [(data) => {
-        return Object.entries(data)
-          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-          .join('&');
-      }],
-     });
+     const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+     const response = await fetchThreadData(res,idPost);
+
      let media_url;
      response.data.data.data.containing_thread.thread_items[0].post?.image_versions2?.candidates.forEach((element) => {
         if(element.height == 320 && element.__typename == "XDTImageCandidate") {
@@ -1186,6 +1132,9 @@ exports.answerOne = async (
                 var res = await tiktok(tiktokProfile, idPost)
 
                 break
+            case '7':
+             var res = await threads(idPost)
+            break
             default:
                 var res = { likes: 0, shares: 0, views: 0, date: Date.now() }
                 break
@@ -1471,9 +1420,8 @@ function isValidIdPost(idPost) {
     return typeof idPost === 'string' && idPost.trim().length > 0;
   }
 
-const fetchLSDToken = async (text) => {
-    return text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
-}
+const fetchLSDToken = text =>  text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+
 
 
 
