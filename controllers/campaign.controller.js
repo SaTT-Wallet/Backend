@@ -22,6 +22,7 @@ const {
     Event,
     Request,
     User,
+    FbPage,
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -784,7 +785,12 @@ exports.campaignPromp = async (req, res) => {
     }
 }
 
-
+// Validate the idPost parameter
+function isValidIdPost(idPost) {
+    // Add your validation logic here
+    // For example, check if it's a non-empty string, or if it matches a specific format
+    return typeof idPost === 'string' && idPost.trim().length > 0;
+  }
 const getThreadsUserName = async idPost => {
     const res = await axios.get(`https://www.threads.net/t/${idPost}`);
 
@@ -919,7 +925,14 @@ exports.apply = async (req, res) => {
         if (typeSN == 3)
             prom.instagramUserName = await getInstagramUserName(idPost, id)
 
-            typeSN == 7 && (prom.instagramUserName = await getThreadsUserName(idPost))
+        if(typeSN == 7) {
+            var threads = await FbPage.findOne({             
+                UserId: id, 
+                instagram_id: { $exists: true } ,
+                threads_id: { $exists: true }  
+                },{threads_id : 1, instagram_username: 1}).lean();
+                prom.instagramUserName = threads.instagram_username;
+        }   
 
         prom.abosNumber = await answerAbos(
             typeSN + '',

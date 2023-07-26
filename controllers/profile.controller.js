@@ -1021,14 +1021,16 @@ module.exports.verifyLink = async (req, response) => {
 
                 break
                 case '7':
-                const {threads_id} = await FbPage.findOne({             
+                var threads = await FbPage.findOne({             
                          UserId: userId, 
                         instagram_id: { $exists: true } ,
                         threads_id: { $exists: true }  
-                },{threads_id : 1}).lean()
-                if (threads_id) {
+                },{threads_id : 1, instagram_username: 1}).lean()
+                console.log({threads})
+                if (threads) {
                     linked = true
-                    res = await verifyThread(idPost,threads_id)
+                    res = await verifyThread(idPost,threads.threads_id, threads.instagram_username)
+                    console.log({res})
                     if (res === 'deactivate') deactivate = true
                 }
 
@@ -1042,14 +1044,25 @@ module.exports.verifyLink = async (req, response) => {
             return makeResponseError(response, 406, 'invalid link')
         else if (deactivate)
             return makeResponseError(response, 405, 'account deactivated')
-        else
-            return makeResponseData(
+        else if (res === 'link_not_found') return makeResponseError(response, 406, 'link not found')
+        else {
+            if(typeSN == '7') return makeResponseData(
+                response,
+                200,
+                'success',
+                res ? 'true' : 'false',
+                threads.instagram_username
+            )
+
+            else return makeResponseData(
                 response,
                 200,
                 'success',
                 res ? 'true' : 'false',
                 res === true && typeSN == '5' && profileLinedin?.linkedinId
             )
+        }
+            
     } catch (err) {
         return makeResponseError(
             response,
@@ -1177,7 +1190,7 @@ module.exports.addThreadsAccount = async (req,res) => {
             const base64String = Buffer.from(userPicture.data, 'binary').toString('base64');
             await FbPage.updateOne({
                 instagram_username: instaAccount.instagram_username,
-            }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url})
+            }, {threads_id: currentUser.pk, threads_picture: base64String ? base64String : currentUser.profile_pic_url, threads_followers : followers})
             return makeResponseData(res, 200, 'threads_account_added', {username: instaAccount.instagram_username, picture: base64String ? base64String : currentUser.profile_pic_url, id: currentUser.pk,threads_followers : followers})
         } 
         return makeResponseData(res, 200, 'error')

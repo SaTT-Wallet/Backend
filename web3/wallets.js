@@ -57,6 +57,7 @@ const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
 
 
+
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -505,6 +506,41 @@ exports.getAllWallets = async (req, res) => {
     } else if (Object.keys(res).length !== 0)
         return res.status(401).end('Account not found')
 }
+
+const getNetworkByToken = async (idCrypto) => {
+    try {
+      if (
+        cache.get('networks') &&
+        Date.now() - new Date(cache.get('networks').date).getTime() < 604800000
+      ) {
+        return cache.get('networks').data;
+      } else {
+        const options = {
+          method: 'GET',
+          url: process.env.CMC_CRYPTO_DETAILS,
+          params: {
+            id: idCrypto,
+          },
+          headers: {
+            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+          },
+        };
+  
+        const result = await rp.request(options);
+        const networksContract = Object.values(result.data.data).map((innerObj) => ({
+          symbol: innerObj.symbol,
+          contract_address: innerObj.contract_address,
+        }));
+  
+        const networks = { data: networksContract, date: Date.now() };
+        cache.put('networks', networks);
+  
+        return networksContract;
+      }
+    } catch (err) {
+      throw new Error('Error fetching networks');
+    }
+  };
 exports.getPrices = async () => {
     try {
         if (
@@ -538,6 +574,7 @@ exports.getPrices = async () => {
                     'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
                 },
             }
+            
         
 
             let result 
@@ -559,8 +596,14 @@ exports.getPrices = async () => {
             response.data.data.push(responseSattJet.data.data.JET)
             response.data.data.push(responseSattJet.data.data.BTT)
             let  priceMap
+          
             try {
-             priceMap = response.data.data.map((elem) => {
+             
+    
+                
+               
+             priceMap = response.data.data.map( (elem) => {
+           
                 var obj = {}
                 let tokenAddress = null
                 if (elem.platform?.name === 'BNB') {
@@ -572,6 +615,7 @@ exports.getPrices = async () => {
                         cmc_rank: elem.cmc_rank,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                        networkSupported: [],
                         tokenAddress: tokenAddress,
                         symbol: elem.symbol,
                         name: elem.name,
@@ -598,6 +642,7 @@ exports.getPrices = async () => {
                         cmc_rank: elem.cmc_rank,
                         network:
                             (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                        networkSupported:[],
                         tokenAddress: tokenAddress,
                         symbol: elem.symbol,
                         name: elem.name,
@@ -624,12 +669,28 @@ exports.getPrices = async () => {
         }
 
             var finalMap = {}
-            for (var i = 0; i < priceMap.length; i++) {
-                finalMap[priceMap[i].symbol] = priceMap[i]
-                delete finalMap[priceMap[i].symbol].symbol
-            }
+  
+            const idcrypto = priceMap.map((token) => token.id.toString());
+           
+            priceMap.forEach((token) => {
+                finalMap[token.symbol] = { ...token, networkSupported: '' };
+                delete finalMap[token.symbol].symbol;
+              });
+            
+
+      
+        const networksContract = await getNetworkByToken(idcrypto.join(','));
+        networksContract.forEach((network) => {
+          if (finalMap[network.symbol]) {
+            finalMap[network.symbol].networkSupported = network.contract_address;
+          }
+        });
+  
+   
+
 
             for (var i = 0; i < token200.length; i++) {
+            
                 var token = token200[i]
                 if (finalMap[token.symbol]) {
                     finalMap[token.symbol].network =
@@ -645,7 +706,10 @@ exports.getPrices = async () => {
             cache.put('prices', prices)
             return finalMap
         }
-    } catch (err) {}
+
+    } catch (err) {
+        throw new Error('Error fetching prices ')   
+    }
 }
 
 exports.getChartVariation = async(cryptolist) => {
@@ -672,6 +736,7 @@ exports.getChartVariation = async(cryptolist) => {
             },
            
         }
+       
         var results 
         try {
             results = await Promise.all([ rp.request(options)])
@@ -680,6 +745,7 @@ exports.getChartVariation = async(cryptolist) => {
             throw new Error('Error fetching prices chart')
         }
         var result = await results[0]
+    
         var cryptoInfo
         var priceVariation =[]
       
