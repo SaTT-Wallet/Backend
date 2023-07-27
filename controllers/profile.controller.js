@@ -1165,7 +1165,7 @@ module.exports.addThreadsAccount = async (req,res) => {
         const userID = text.match(/"user_id":"(\d+)"/)?.[1]
         if(!userID) return makeResponseData(res, 200,'threads_not_found')
         const followers = extractFollowerCount(user.data.split('Followers')[0].split("content=")[user.data.split('Followers')[0].split("content=").length - 1].trim())
-        const lsdToken = await getLsdToken(text)
+        const lsdToken = getLsdToken(text)
         const currentUser = await fetchUserThreadData(lsdToken, userID);
         if(currentUser) {
             const userPicture = await axios.get(currentUser.profile_pic_url, { responseType: 'arraybuffer' })
@@ -1233,10 +1233,8 @@ module.exports.removeThreadsAccount = async (req, res) => {
 
 
 
-const getLsdToken = async (text) => {
-    const lsdTokenMatch = await text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
-    return lsdTokenMatch;
-};
+const getLsdToken = text => text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1];
+
 
 const fetchUserThreadData = async (token, userID) => {
   const data = {
