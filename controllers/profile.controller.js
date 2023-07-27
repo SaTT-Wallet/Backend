@@ -1157,7 +1157,6 @@ module.exports.ProfilPrivacy = async (req, res) => {
 
 module.exports.addThreadsAccount = async (req,res) => {
     try {
-        let tt = req.user._id
         const instaAccount = await FbPage.findOne({UserId : req.user._id, instagram_username : {$exists : true}});
         if(!instaAccount) return makeResponseData(res, 200,'instagram_not_found')
         if(instaAccount.threads_id) return makeResponseData(res, 200,'threads_already_added')
