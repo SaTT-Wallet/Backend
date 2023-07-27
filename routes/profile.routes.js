@@ -1396,10 +1396,26 @@ router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivityVal
  */
 router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
 
-
-router.get('/check/threads-account',verifyAuth,checkThreads)
+/**
+ * @swagger
+ * /profile/add/threads-account:
+ *   get:
+ *     tags:
+ *     - "profile"
+ *     summary: add threads account.
+ *     responses:
+ *       "200":
+ *          description: data:{"code":"200","message":"success","data":""}
+ *       "401":
+ *          description: error:<br> Invalid Access Token
+ *       "500":
+ *          description: error:<br> server error
+ */
 
 router.get('/add/threads-account', verifyAuth, addThreadsAccount)
+router.get('/check/threads-account',verifyAuth,checkThreads)
+
+
 
 router.delete('/remove/threads-account/:id', verifyAuth, idThreadsAccountValidation,removeThreadsAccount)
 
