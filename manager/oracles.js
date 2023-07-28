@@ -568,8 +568,8 @@ const threadsAbos = async (idPost,userName) => {
     }
 }
 
-const threads = async idPost => {
-     const res = await axios.get(`https://www.threads.net/t/${idPost}`);
+const threads = async (idPost,instagramUserName) => {
+     const res = await axios.get(`https://www.threads.net/@${instagramUserName}/post/${idPost}`);  
      const response = await fetchThreadData(res,idPost);
 
      let media_url;
@@ -611,7 +611,7 @@ exports.getPromApplyStats = async (
         } else if (oracles === 'tiktok') {
             socialOracle = await tiktok(tiktokProfile, link.idPost)
         }
-        else if(oracles === 'threads') socialOracle = await threads(link.idPost)
+        else if(oracles === 'threads') socialOracle = await threads(link.idPost,link.instagramUserName)
 
         delete socialOracle?.date
         return socialOracle
