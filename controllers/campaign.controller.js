@@ -1066,7 +1066,7 @@ exports.validateCampaign = async (req, res) => {
             var tronWeb
             var cred
 
-            let campaignLink = await CampaignLink.findOne({ _id: idLink })
+            let campaignLink = await CampaignLink.findOne({ _id: idLink }).lean();
 
             signature = campaignLink.applyerSignature
 
@@ -1185,9 +1185,9 @@ exports.validateCampaign = async (req, res) => {
                 link.status = true
                 if (socialOracle.views === 'old')
                     socialOracle.views = link.views || '0'
-                link.likes = socialOracle.likes
-                link.views = socialOracle.views
-                link.shares = socialOracle.shares
+                link.likes = socialOracle.likes ?? "0"
+                link.views = socialOracle.views ?? "0"
+                link.shares = socialOracle.shares ?? "0"
                 link.campaign = campaign
                 link.totalToEarn = campaign.ratios.length
                     ? getTotalToEarn(link, campaign.ratios)
