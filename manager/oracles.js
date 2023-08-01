@@ -562,7 +562,7 @@ const threadsAbos = async (idPost,userName) => {
         var campaign_link = await CampaignLink.findOne({ idPost }).lean()
         let instagramUserName = campaign_link?.instagramUserName || userName
         const res = await axios.get(`https://www.threads.net/@${instagramUserName}`)
-        return extractFollowerCount(res.data.split('Followers')[0].split("content=").at(-1).trim())
+        return extractFollowerCount(res.data.split('Followers')[0].split("content=")[user.data.split('Followers')[0].split("content=").length - 1].trim())
     } catch (err) {
         return 0
     }
@@ -580,10 +580,9 @@ const threads = async (idPost,instagramUserName) => {
      });
      const postPicture = await axios.get(media_url, { responseType: 'arraybuffer' })
     const base64String = Buffer.from(postPicture.data, 'binary').toString('base64');
-    return {likes : response.data.data.data.containing_thread.thread_items[0].post?.like_count, media_url: !!base64String ? base64String : media_url}
+    return {likes : response.data.data.data.containing_thread.thread_items[0].post?.like_count, media_url: !!base64String ? base64String : media_url/*, views :response.data.data.data.containing_thread.thread_items[0].post?.view_count*/}
 
 }
-
 exports.getPromApplyStats = async (
     oracles,
     link,
@@ -1104,7 +1103,8 @@ exports.answerOne = async (
     idUser,
     type = null,
     linkedinProfile = null,
-    tiktokProfile = null
+    tiktokProfile = null,
+    instagramUserName
 ) => {
     try {
         switch (typeSN) {
@@ -1152,7 +1152,7 @@ exports.answerOne = async (
 
                 break
             case '7':
-             var res = await threads(idPost)
+             var res = await threads(idPost,instagramUserName)
             break
             default:
                 var res = { likes: 0, shares: 0, views: 0, date: Date.now() }
@@ -1173,13 +1173,13 @@ exports.limitStats = (typeSN, stats, ratios, abos, limit = '') => {
         if (limit > 0) {
             limit = parseFloat(limit)
             var max = Math.ceil((limit * parseFloat(abos)) / 100)
-            if (+stats.views > max) {
+            if (+stats?.views > max) {
                 calculstats.views = max
             }
-            if (+stats.likes > max) {
+            if (+stats?.likes > max) {
                 calculstats.likes = max
             }
-            if (+stats.shares > max) {
+            if (+stats?.shares > max) {
                 calculstats.shares = max
             }
         }
