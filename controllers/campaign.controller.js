@@ -1186,7 +1186,7 @@ exports.validateCampaign = async (req, res) => {
                 if (socialOracle.views === 'old')
                     socialOracle.views = link.views || '0'
                 link.likes = socialOracle.likes ?? "0"
-                link.views = socialOracle.views ?? "0"
+                link.views = socialOracle?.views ?? "0"
                 link.shares = socialOracle.shares ?? "0"
                 link.campaign = campaign
                 link.totalToEarn = campaign.ratios.length
@@ -1402,7 +1402,8 @@ exports.gains = async (req, res) => {
                 prom.idUser + '',
                 link.typeURL,
                 linkedinData,
-                tiktokProfile
+                tiktokProfile, 
+                prom.instagramUserName
             )
             var copyStats = {...stats}
             var ratios =
@@ -1483,7 +1484,7 @@ exports.gains = async (req, res) => {
                         ctr.options.address,
                     idRequest: requests[0].id,
                     likes: stats.likes,
-                    shares: stats.shares,
+                    shares: stats?.shares,
                     views: stats?.views,
                 })
             }
