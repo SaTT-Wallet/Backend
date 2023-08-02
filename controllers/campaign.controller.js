@@ -1832,7 +1832,6 @@ module.exports.linkStats = async (req, res) => {
             return responseHandler.makeResponseError(res, 204, 'link not found')
         }
     } catch (err) {
-        console.log({err})
         return responseHandler.makeResponseError(
             res,
             500,
