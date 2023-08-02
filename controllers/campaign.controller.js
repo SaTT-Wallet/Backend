@@ -1781,20 +1781,27 @@ module.exports.linkStats = async (req, res) => {
                         abosNumber,
                         reachLimit
                     )
-                ratio.forEach((elem) => {
-                    if (elem.oracle === info.oracle) {
-                        let view = new Big(elem['view']).times(
-                            socialStats.views || '0'
-                        )
-                        let like = new Big(elem['like']).times(
-                            socialStats.likes || '0'
-                        )
-                        let share = new Big(elem['share']).times(
-                            socialStats.shares || '0'
-                        )
-                        totalToEarn = view.plus(like).plus(share).toFixed()
-                    }
-                })
+                    ratio.forEach((elem) => {
+                        if (elem.oracle === info.oracle) {
+                            if(elem.oracle === 'threads') {
+                                let like = new Big(elem['like']).times(
+                                    socialStats.likes || '0'
+                                )
+                                totalToEarn = like.toFixed()
+                            } else {
+                                let view = new Big(elem['view']).times(
+                                    socialStats.views || '0'
+                                )
+                                let like = new Big(elem['like']).times(
+                                    socialStats.likes || '0'
+                                )
+                                let share = new Big(elem['share']).times(
+                                    socialStats.shares || '0'
+                                )
+                                totalToEarn = view.plus(like).plus(share).toFixed()
+                            }
+                        }
+                    })
                 info.totalToEarn = new Big(totalToEarn).gte(
                     new Big(payedAmount)
                 )
@@ -1825,6 +1832,7 @@ module.exports.linkStats = async (req, res) => {
             return responseHandler.makeResponseError(res, 204, 'link not found')
         }
     } catch (err) {
+        console.log({err})
         return responseHandler.makeResponseError(
             res,
             500,
