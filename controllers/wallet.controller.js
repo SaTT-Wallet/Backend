@@ -484,38 +484,50 @@ exports.checkWalletToken = async (req, res) => {
         let Web3BEP20 = await bep20Connexion()
         let Web3ETH = await erc20Connexion()
         let web3MATIC = await polygonConnexion()
-        let [tokenAdress, network] = [req.body.tokenAdress, req.body.network]
-        let abi =
-            network === 'bep20' ? Constants.bep20.abi : Constants.token.abi
-        let networkToken =
-            network === 'bep20'
-                ? Web3BEP20.eth
-                : network === 'polygon'
-                ? web3MATIC.eth
-                : Web3ETH.eth
+        let web3BTT = await bttConnexion()
+       
+        const networks = [
+            { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.bep20.abi },
+            { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi },
+            { name: 'polygon', web3: web3MATIC.eth, abi: Constants.bep20.abi },
+            // Add more networks here if needed
+        ];
 
-        let code = await networkToken.getCode(tokenAdress)
+        let [tokenAdress] = [req.body.tokenAdress];
+        
+        let found = false;
+        let result;
 
-        if (code === '0x') {
+        for (const networkObj of networks) {
+            let code = await networkObj.web3.getCode(tokenAdress);
+
+            if (code !== '0x') {
+                let contract = new networkObj.web3.Contract(networkObj.abi, tokenAdress);
+                decimal = await contract.methods.decimals().call();
+                tokenName = await contract.methods.name().call();
+                network = networkObj.name.toUpperCase();
+                symbol = await contract.methods.symbol().call();
+
+                result = {
+                    tokenName,
+                    symbol,
+                    decimal,
+                    tokenAdress,
+                    network,
+                };
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
             return responseHandler.makeResponseError(
                 res,
                 204,
-                'not a token address'
-            )
+                'Not a token address on any network'
+            );
         } else {
-            let contract = new networkToken.Contract(abi, tokenAdress)
-            decimal = await contract.methods.decimals().call()
-            tokenName = await contract.methods.name().call()
-            network = network.toUpperCase()
-            symbol = await contract.methods.symbol().call()
-
-            return responseHandler.makeResponseData(res, 200, 'Token found', {
-                tokenName,
-                symbol,
-                decimal,
-                tokenAdress,
-                network,
-            })
+            return responseHandler.makeResponseData(res, 200, 'Token found', result);
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -525,6 +537,7 @@ exports.checkWalletToken = async (req, res) => {
         )
     }
 }
+
 
 exports.addNewToken = async (req, res) => {
     try {
