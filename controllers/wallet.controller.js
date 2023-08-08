@@ -275,8 +275,8 @@ exports.gasPriceTrx = async (req, res) => {
 }
 
 exports.cryptoDetails = async (req, res) => {
-    //let prices = await getPrices()
-    return responseHandler.makeResponseData(res, 200, 'success', "prices")
+    let prices = await getPrices()
+    return responseHandler.makeResponseData(res, 200, 'success', prices)
 }
 exports.cryptoPriceDetails = async (req, res) => {
     let chart = await getChartVariation(req.query.cryptolist)
