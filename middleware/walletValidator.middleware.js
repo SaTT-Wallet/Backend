@@ -83,7 +83,7 @@ const schemas = {
     }),
 
     tokenSchema: Joi.object({
-        tokenAdress:validateAddress("^0x[a-fA-F0-9]{40}$"),
+        tokenAdress:validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
         decimal: Joi.number().required(),
         symbol: Joi.string().required(),
         network: validateNetworks(["erc20", "bep20", "polygon"]),
