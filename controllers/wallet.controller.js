@@ -46,7 +46,7 @@ const {
 
 var connection
 const { responseHandler } = require('../helpers/response-handler')
-const { Constants } = require('../conf/const')
+const { Constants, TronConstant } = require('../conf/const')
 const {
     unlock,
     unlockV2,
@@ -275,8 +275,8 @@ exports.gasPriceTrx = async (req, res) => {
 }
 
 exports.cryptoDetails = async (req, res) => {
-    let prices = await getPrices()
-    return responseHandler.makeResponseData(res, 200, 'success', prices)
+    //let prices = await getPrices()
+    return responseHandler.makeResponseData(res, 200, 'success', "prices")
 }
 exports.cryptoPriceDetails = async (req, res) => {
     let chart = await getChartVariation(req.query.cryptolist)
@@ -473,6 +473,7 @@ exports.transferTokensController = async (req, res) => {
 
 exports.checkWalletToken = async (req, res) => {
     try {
+        console.log({user: req.user})
         if (req.user.hasWallet == true) {
         } else {
             return responseHandler.makeResponseError(
@@ -481,44 +482,75 @@ exports.checkWalletToken = async (req, res) => {
                 'Wallet not found'
             )
         }
-        let Web3BEP20 = await bep20Connexion()
-        let Web3ETH = await erc20Connexion()
-        let web3MATIC = await polygonConnexion()
-        let web3BTT = await bttConnexion()
-       
+        
+        let [tokenAdress] = [req.body.tokenAdress.trim()];
+        const Web3BEP20 = await bep20Connexion()
+        const Web3ETH = await erc20Connexion()
+        const web3MATIC = await polygonConnexion()
+        const web3BTT = await bttConnexion()
+        const tronWeb = await webTronInstance()
+        
         const networks = [
             { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.bep20.abi },
             { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi },
             { name: 'polygon', web3: web3MATIC.eth, abi: Constants.bep20.abi },
-            // Add more networks here if needed
+            { name: 'bttc', web3: web3BTT.eth, abi: Constants.token.abi },
+           
+            // Add more EVM networks here if needed
         ];
 
-        let [tokenAdress] = [req.body.tokenAdress];
+        
         
         let found = false;
         let result;
-
-        for (const networkObj of networks) {
-            let code = await networkObj.web3.getCode(tokenAdress);
-
-            if (code !== '0x') {
-                let contract = new networkObj.web3.Contract(networkObj.abi, tokenAdress);
-                decimal = await contract.methods.decimals().call();
-                tokenName = await contract.methods.name().call();
-                network = networkObj.name.toUpperCase();
-                symbol = await contract.methods.symbol().call();
-
-                result = {
-                    tokenName,
-                    symbol,
-                    decimal,
-                    tokenAdress,
-                    network,
-                };
-                found = true;
-                break;
-            }
+        const tronAddressRegex = /^T[A-Za-z1-9]{33}$/;
+        if(tronAddressRegex.test(tokenAdress)) {
+            const wallet = await Wallet.findOne({UserId: req.user._id});
+            if(!!wallet && (wallet.tronAddress || wallet.walletV2.tronAddress)) {
+                const contract = await tronWeb.contract().at(tokenAdress);
+                tronWeb.setAddress(wallet.tronAddress ? wallet.tronAddress : wallet.walletV2.tronAddress)
+                const tokenName = await contract.name().call();
+            const decimals = await contract.decimals().call();
+            const symbol = await contract.symbol().call();
+            const network = "TRON";
+            result = {
+                tokenName,
+                symbol,
+                decimals,
+                tokenAdress,
+                network,
+            };
+            found = true;
+            console.log({result})
+            } else found = false;
+            
+        } else {
+            for (const networkObj of networks) {
+            
+                let code = await networkObj.web3.getCode(tokenAdress);
+                if (code !== '0x') {
+                    let contract = new networkObj.web3.Contract(networkObj.abi, tokenAdress);
+                    const decimals = await contract.methods.decimals().call();
+                    const tokenName =  await contract.methods.name().call();
+                    const network = networkObj.name.toUpperCase();
+                    const symbol = await contract.methods.symbol().call();
+    
+    
+                    result = {
+                        tokenName,
+                        symbol,
+                        decimals,
+                        tokenAdress,
+                        network,
+                    };
+                    found = true;
+                    break;
+                }
+         
+           
         }
+        }
+       
 
         if (!found) {
             return responseHandler.makeResponseError(
@@ -530,6 +562,7 @@ exports.checkWalletToken = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'Token found', result);
         }
     } catch (err) {
+        console.log({err})
         return responseHandler.makeResponseError(
             res,
             500,
