@@ -74,8 +74,8 @@ const schemas = {
     }),
 
     checkTokenSchema: Joi.object({
-        network: validateNetworks(["erc20", "bep20", "polygon"]),
-        tokenAdress: validateAddress("^0x[a-fA-F0-9]{40}$")
+        network: validateNetworks(["erc20", "bep20", "polygon", "bttc", "tron"]),
+        tokenAdress: validateAddress("^0x[a-fA-F0-9]{40}$|T[A-Za-z1-9]{33}$"),
     }),
 
     checkEVMAddressSchema: Joi.object({
