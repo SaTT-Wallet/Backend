@@ -473,7 +473,6 @@ exports.transferTokensController = async (req, res) => {
 
 exports.checkWalletToken = async (req, res) => {
     try {
-        console.log({user: req.user})
         if (req.user.hasWallet == true) {
         } else {
             return responseHandler.makeResponseError(
@@ -521,7 +520,6 @@ exports.checkWalletToken = async (req, res) => {
                 network,
             };
             found = true;
-            console.log({result})
             } else found = false;
             
         } else {
@@ -562,7 +560,6 @@ exports.checkWalletToken = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'Token found', result);
         }
     } catch (err) {
-        console.log({err})
         return responseHandler.makeResponseError(
             res,
             500,
