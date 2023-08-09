@@ -1,7 +1,15 @@
 var rp = require('axios');
 const validator = require('validator')
-
-
+const { Constants, TronConstant } = require('../conf/const')
+const Big = require('big.js')
+const {
+    erc20Connexion,
+    bep20Connexion,
+    polygonConnexion,
+    bttConnexion,
+    tronConnexion,
+    webTronInstance,
+} = require('../blockchainConnexion')
 const {
     User,
     GoogleProfile,
@@ -12,6 +20,7 @@ const {
     Notification,
     FbPage,
     TikTokProfile,
+    Wallet
 } = require('../model/index')
 const axios = require('axios')
 
@@ -41,7 +50,9 @@ const {
     getFacebookUsername,
     verifyThread,
 } = require('../manager/oracles')
-
+const {
+    getListCryptoByUid
+} = require('../web3/wallets')
 //var ejs = require('ejs')
 const QRCode = require('qrcode')
 
@@ -114,6 +125,7 @@ module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
 
 exports.account = async (req, res) => {
     try {
+        
         if (req.user) {
             let {
                 password,
@@ -123,6 +135,7 @@ exports.account = async (req, res) => {
                 fireBaseAccessToken,
                 ...user
             } = req.user.toObject()
+            console.log({user})
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 204, 'user not found')
@@ -136,6 +149,68 @@ exports.account = async (req, res) => {
     }
 }
 
+
+exports.notificationDecision = async (req, res) => {
+    try {
+        if (!req.user) {
+            return makeResponseData(res, 200, 'success', 'user not found');
+        }
+        
+        const user = req.user.toObject();
+        const requiredFields = [
+            'firstName', 'lastName', 'address', 'email',
+            'phone', 'gender', 'city', 'zipCode',
+            'country', 'birthday'
+        ];
+        console.log({user})
+        const count = requiredFields.reduce((acc, field) => {
+            if (user[field] && user[field] !== '') {
+                return acc + 1;
+            }
+            return acc;
+        }, 0);
+
+        const percentProf = (count * 100) / requiredFields.length;
+
+        if (percentProf === 100) {
+            return makeResponseData(res, 200, 'success', 'profile showing');
+        } else {
+                const wallet = await Wallet.findOne({UserId: req.user._id});
+                if(!!wallet) {
+                    // GET SATT BALANCE
+                    let sattBalance = Big(0);
+                    const Web3BEP20 = await bep20Connexion()
+                    const Web3ETH = await erc20Connexion()
+                    const networks = [
+                        { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.token.abi, smarContract:  process.env.TOKEN_SATT_BEP20_CONTRACT },
+                        { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi , smarContract:  process.env.TOKEN_SATT_CONTRACT},
+                    ];
+                    for (const networkObj of networks) {
+                        let contract = new networkObj.web3.Contract(networkObj.abi, networkObj.smarContract);
+                        const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
+                        sattBalance += Big(balance);
+                    }
+                    if(Number(sattBalance) === 0) {
+                        return makeResponseData(res, 200, 'success', 'showing buy satt');
+                    } else {
+                        // CHECK THE GAS FEES BALANCE FOR ERC20 / BEP20
+                        
+                        
+                    }
+               
+                } else {
+                    return makeResponseData(res, 200, 'success', 'wallet not found');
+                }
+        }
+    } catch (err) {
+        console.log({err})
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        );
+    }
+};
 exports.profilePicture = async (req, response) => {
     try {
         const idUser = req.query.id ? +req.query.id : req.user._id;

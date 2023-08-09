@@ -80,7 +80,8 @@ const {
     ProfilPrivacy,
     checkThreads,
     addThreadsAccount,
-    removeThreadsAccount
+    removeThreadsAccount,
+    notificationDecision
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -1419,5 +1420,8 @@ router.get('/check/threads-account',verifyAuth,checkThreads)
 
 router.delete('/remove/threads-account/:id', verifyAuth, idThreadsAccountValidation,removeThreadsAccount)
 
+
+
+router.get('/notifications/decision', verifyAuth, notificationDecision)
 
 module.exports = router
