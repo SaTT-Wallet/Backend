@@ -812,6 +812,6 @@ router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyS
 router.post('/export-keystore-mobile', verifyAuth ,exportKeyStoreMobile)
 
 
-router.get('/nfts/:address', getNftByAddress)
+router.get('/nfts/:address', checkEVMValidation,getNftByAddress)
 
 module.exports = router
