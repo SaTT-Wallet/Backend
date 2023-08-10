@@ -174,7 +174,6 @@ exports.notificationDecision = async (req, res) => {
         } else {
                 const wallet = await Wallet.findOne({UserId: req.user._id});
                 if(!!wallet) {
-                    console.log({wallet})
                     // GET SATT BALANCE
                     let sattBalance = Big(0);
                     const Web3BEP20 = await bep20Connexion()
@@ -184,7 +183,6 @@ exports.notificationDecision = async (req, res) => {
                         { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi , smarContract:  process.env.TOKEN_SATT_CONTRACT},
                     ];
                     for (const networkObj of networks) {
-                        console.log({user})
                         let contract = new networkObj.web3.Contract(networkObj.abi, networkObj.smarContract);
                         if(user.hasWallet) {
                             const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
@@ -227,7 +225,6 @@ exports.notificationDecision = async (req, res) => {
                 }
         }
     } catch (err) {
-        console.log({err})
         return makeResponseError(
             res,
             500,
