@@ -1,7 +1,15 @@
 var rp = require('axios');
 const validator = require('validator')
-
-
+const { Constants, TronConstant } = require('../conf/const')
+const Big = require('big.js')
+const {
+    erc20Connexion,
+    bep20Connexion,
+    polygonConnexion,
+    bttConnexion,
+    tronConnexion,
+    webTronInstance,
+} = require('../blockchainConnexion')
 const {
     User,
     GoogleProfile,
@@ -12,6 +20,8 @@ const {
     Notification,
     FbPage,
     TikTokProfile,
+    Wallet,
+    Campaigns
 } = require('../model/index')
 const axios = require('axios')
 
@@ -41,7 +51,9 @@ const {
     getFacebookUsername,
     verifyThread,
 } = require('../manager/oracles')
-
+const {
+    getListCryptoByUid
+} = require('../web3/wallets')
 //var ejs = require('ejs')
 const QRCode = require('qrcode')
 
@@ -114,6 +126,7 @@ module.exports.uploadUserLegal = multer({ storage: storageUserLegal }).single(
 
 exports.account = async (req, res) => {
     try {
+        
         if (req.user) {
             let {
                 password,
@@ -123,6 +136,7 @@ exports.account = async (req, res) => {
                 fireBaseAccessToken,
                 ...user
             } = req.user.toObject()
+            console.log({user})
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 204, 'user not found')
@@ -135,6 +149,91 @@ exports.account = async (req, res) => {
         )
     }
 }
+
+
+exports.notificationDecision = async (req, res) => {
+    try {
+        if (!req.user) {
+            return makeResponseData(res, 200, 'success', 'user not found');
+        }
+        const user = req.user.toObject();
+        const requiredFields = [
+            'firstName', 'lastName', 'address', 'email',
+            'phone', 'gender', 'city', 'zipCode',
+            'country', 'birthday'
+        ];
+        const count = requiredFields.reduce((acc, field) => {
+            if (user[field] && user[field] !== '') {
+                return acc + 1;
+            }
+            return acc;
+        }, 0);
+        const percentProf = (count * 100) / requiredFields.length;
+        if (percentProf === 100) {
+            return makeResponseData(res, 200, 'success', 'showing-complete-profile');
+        } else {
+                const wallet = await Wallet.findOne({UserId: req.user._id});
+                if(!!wallet) {
+                    // GET SATT BALANCE
+                    let sattBalance = Big(0);
+                    const Web3BEP20 = await bep20Connexion()
+                    const Web3ETH = await erc20Connexion()
+                    const networks = [
+                        { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.token.abi, smarContract:  process.env.TOKEN_SATT_BEP20_CONTRACT },
+                        { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi , smarContract:  process.env.TOKEN_SATT_CONTRACT},
+                    ];
+                    for (const networkObj of networks) {
+                        let contract = new networkObj.web3.Contract(networkObj.abi, networkObj.smarContract);
+                        if(user.hasWallet) {
+                            const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
+                            sattBalance += Big(balance);
+                        }
+                        if(user.hasWalletV2) {
+                            const balance = await contract.methods.balanceOf(`0x${wallet.walletV2.keystore.address}`).call();
+                            sattBalance += Big(balance);
+                        }
+                    }
+                    if(Number(sattBalance) === 0) {
+                        return makeResponseData(res, 200, 'success', 'showing-buy-satt');
+                    } else {
+                        let gasBalance = 0;
+                        for (const networkObj of networks) {
+                            if(user.hasWallet) {
+                                const balance = await networkObj.web3.getBalance(`0x${wallet.keystore.address}`);
+                                gasBalance += Big(balance);
+                            }
+                            if(user.hasWalletV2) {
+                                const balance = await networkObj.web3.getBalance(`0x${wallet.walletV2.keystore.address}`);
+                                gasBalance += Big(balance);
+                            }
+                        }
+                        if(Number(gasBalance) === 0) {
+                            return makeResponseData(res, 200, 'success', 'showing-buy-fees');
+                        } else {
+                            // CHECK NEW AD POOLS
+                            const campaignActive = await Campaigns.findOne({type: 'apply'}).sort({ _id: -1 });
+                            if(!!campaignActive) return makeResponseData(res, 200, 'success', campaignActive);
+                            else {
+                                const randomNum = Math.floor(Math.random() * 3) + 1;
+                                return makeResponseData(res, 200, 'success', randomNum);
+                            }   
+                        } 
+                    }
+               
+                } else {
+                    return makeResponseData(res, 200, 'success', 'wallet not found');
+                }
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        );
+    }
+};
+
+
 
 exports.profilePicture = async (req, response) => {
     try {
