@@ -20,7 +20,8 @@ const {
     Notification,
     FbPage,
     TikTokProfile,
-    Wallet
+    Wallet,
+    Campaigns
 } = require('../model/index')
 const axios = require('axios')
 
@@ -155,28 +156,25 @@ exports.notificationDecision = async (req, res) => {
         if (!req.user) {
             return makeResponseData(res, 200, 'success', 'user not found');
         }
-        
         const user = req.user.toObject();
         const requiredFields = [
             'firstName', 'lastName', 'address', 'email',
             'phone', 'gender', 'city', 'zipCode',
             'country', 'birthday'
         ];
-        console.log({user})
         const count = requiredFields.reduce((acc, field) => {
             if (user[field] && user[field] !== '') {
                 return acc + 1;
             }
             return acc;
         }, 0);
-
         const percentProf = (count * 100) / requiredFields.length;
-
         if (percentProf === 100) {
-            return makeResponseData(res, 200, 'success', 'profile showing');
+            return makeResponseData(res, 200, 'success', 'showing-complete-profile');
         } else {
                 const wallet = await Wallet.findOne({UserId: req.user._id});
                 if(!!wallet) {
+                    console.log({wallet})
                     // GET SATT BALANCE
                     let sattBalance = Big(0);
                     const Web3BEP20 = await bep20Connexion()
@@ -186,28 +184,42 @@ exports.notificationDecision = async (req, res) => {
                         { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi , smarContract:  process.env.TOKEN_SATT_CONTRACT},
                     ];
                     for (const networkObj of networks) {
+                        console.log({user})
                         let contract = new networkObj.web3.Contract(networkObj.abi, networkObj.smarContract);
-                        const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
-                        sattBalance += Big(balance);
+                        if(user.hasWallet) {
+                            const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
+                            sattBalance += Big(balance);
+                        }
+                        if(user.hasWalletV2) {
+                            const balance = await contract.methods.balanceOf(`0x${wallet.walletV2.keystore.address}`).call();
+                            sattBalance += Big(balance);
+                        }
                     }
                     if(Number(sattBalance) === 0) {
-                        return makeResponseData(res, 200, 'success', 'showing buy satt');
+                        return makeResponseData(res, 200, 'success', 'showing-buy-satt');
                     } else {
                         let gasBalance = 0;
-                        // CHECK THE GAS FEES BALANCE FOR ERC20 / BEP20
                         for (const networkObj of networks) {
-                        const balance = await networkObj.web3.getBalance(`0x${wallet.keystore.address}`);
-                        gasBalance += Big(balance);
-                        
-                    }
-                    if(Number(gasBalance) === 0) {
-                        console.log({gasBalance})
-                        return makeResponseData(res, 200, 'success', 'showing buy fees');
-                    } else {
-                        // CHECK NEW AD POOLS
-                    }
-                    
-                        
+                            if(user.hasWallet) {
+                                const balance = await networkObj.web3.getBalance(`0x${wallet.keystore.address}`);
+                                gasBalance += Big(balance);
+                            }
+                            if(user.hasWalletV2) {
+                                const balance = await networkObj.web3.getBalance(`0x${wallet.walletV2.keystore.address}`);
+                                gasBalance += Big(balance);
+                            }
+                        }
+                        if(Number(gasBalance) === 0) {
+                            return makeResponseData(res, 200, 'success', 'showing-buy-fees');
+                        } else {
+                            // CHECK NEW AD POOLS
+                            const campaignActive = await Campaigns.findOne({type: 'apply'}).sort({ _id: -1 });
+                            if(!!campaignActive) return makeResponseData(res, 200, 'success', campaignActive);
+                            else {
+                                const randomNum = Math.floor(Math.random() * 3) + 1;
+                                return makeResponseData(res, 200, 'success', randomNum);
+                            }   
+                        } 
                     }
                
                 } else {
@@ -223,6 +235,9 @@ exports.notificationDecision = async (req, res) => {
         );
     }
 };
+
+
+
 exports.profilePicture = async (req, response) => {
     try {
         const idUser = req.query.id ? +req.query.id : req.user._id;
