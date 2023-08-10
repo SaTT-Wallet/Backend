@@ -1,5 +1,5 @@
 const { User, Wallet, CustomToken, WalletUserNode } = require('../model/index')
-
+const nftContractAbi = require('./../conf/nftContractAbi.json')
 const rp = require('axios')
 const path = require('path')
 const { randomUUID } = require('crypto')
@@ -1470,6 +1470,33 @@ exports.getCodeKeyStore = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'code sent', true)
         }
     } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+exports.getNftByAddress = async (req, res) => {
+    try {
+        
+        const NFT_ADDRESS = process.env.NFT_SMART_CONTRACT_ADDRESS
+        const address = req.params.address;
+        const web3ETH = await erc20Connexion();
+        const nftContract = new web3ETH.eth.Contract(nftContractAbi, NFT_ADDRESS);
+        const nftList = [];
+        const totalSupply = await nftContract.methods.totalSupply().call()
+        for (let i = 1; i <= totalSupply; i++) {
+            const owner = await nftContract.methods.ownerOf(i).call();
+            if(owner == address) {
+                const nftUri = await nftContract.methods.tokenURI(i).call();
+                nftList.push(nftUri);
+            }
+        }
+        return responseHandler.makeResponseData(res, 200, 'success', nftList)
+    } catch(err) {
         return responseHandler.makeResponseError(
             res,
             500,

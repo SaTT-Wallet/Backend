@@ -37,6 +37,7 @@ const {
     exportKeyStoreMobile,
     cryptoPriceDetails,
     globalCryptoMarketInfo,
+    getNftByAddress
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -809,5 +810,8 @@ router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyS
 
 
 router.post('/export-keystore-mobile', verifyAuth ,exportKeyStoreMobile)
+
+
+router.get('/nfts/:address', getNftByAddress)
 
 module.exports = router
