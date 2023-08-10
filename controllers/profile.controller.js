@@ -193,8 +193,20 @@ exports.notificationDecision = async (req, res) => {
                     if(Number(sattBalance) === 0) {
                         return makeResponseData(res, 200, 'success', 'showing buy satt');
                     } else {
+                        let gasBalance = 0;
                         // CHECK THE GAS FEES BALANCE FOR ERC20 / BEP20
+                        for (const networkObj of networks) {
+                        const balance = await networkObj.web3.getBalance(`0x${wallet.keystore.address}`);
+                        gasBalance += Big(balance);
                         
+                    }
+                    if(Number(gasBalance) === 0) {
+                        console.log({gasBalance})
+                        return makeResponseData(res, 200, 'success', 'showing buy fees');
+                    } else {
+                        // CHECK NEW AD POOLS
+                    }
+                    
                         
                     }
                
