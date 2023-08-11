@@ -886,6 +886,36 @@ exports.multicall = async (tokens, addresses, network, web3) => {
     }
 }
 
+// Helper function to get the Web3 instance based on the network
+exports.getWeb3Instance = async (network) => {
+    switch (network) {
+        case 'bep20':
+            return await bep20Connexion();
+        case 'erc20':
+            return await erc20Connexion();
+        case 'polygon':
+            return await polygonConnexion();
+        case 'bttc':
+            return await bttConnexion();
+        case 'tron':
+            return await webTronInstance();
+        default:
+            throw new Error(`Invalid network: ${network}`);
+    }
+};
+
+// Helper function to format token balance with decimals
+exports.formatTokenBalance = (balance, decimals) => {
+    return balance / 10 ** decimals;
+};
+
+// Helper function to get native balance (ETH, TRX, etc.) and format it
+exports.getNativeBalance = async (web3Instance, walletAddress) => {
+    const balanceWei = await web3Instance.eth.getBalance(walletAddress);
+    const balanceFormatted = web3Instance.utils.fromWei(balanceWei, 'ether');
+    return balanceFormatted;
+};
+
 exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
     try {
         if (isTrx) {

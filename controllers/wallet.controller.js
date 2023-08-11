@@ -83,6 +83,9 @@ const {
     getAccountV2,
     getChartVariation,
     getGlobalCryptoMarket,
+    getWeb3Instance,
+    formatTokenBalance,
+    getNativeBalance
 } = require('../web3/wallets')
 
 const {
@@ -287,6 +290,34 @@ exports.globalCryptoMarketInfo = async (req, res) => {
     const global = await getGlobalCryptoMarket()
     return responseHandler.makeResponseData(res, 200, 'success', global)
 }
+
+exports.getBalanceByToken = async (req, res) => {
+    try {
+        const { network, walletAddress, smartContract, isNative } = req.body;
+
+        // Initialize the appropriate Web3 instance based on the network
+        const web3Instance = await getWeb3Instance(network);
+
+        if (!isNative) {
+            const contract = new web3Instance.eth.Contract(Constants.token.abi, smartContract);
+            const [balance, decimals] = await Promise.all([
+                contract.methods.balanceOf(walletAddress).call(),
+                contract.methods.decimals().call(),
+            ]);
+            const balanceFormatted = formatTokenBalance(balance, decimals);
+            return responseHandler.makeResponseData(res, 200, 'success', balanceFormatted);
+        } else {
+            const balance = await getNativeBalance(web3Instance, walletAddress);
+            return responseHandler.makeResponseData(res, 200, 'success', balance);
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        );
+    }
+};
 
 exports.totalBalances = async (req, res) => {
     try {
