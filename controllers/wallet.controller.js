@@ -1521,7 +1521,7 @@ exports.getNftByAddress = async (req, res) => {
         const totalSupply = await nftContract.methods.totalSupply().call()
         for (let i = 1; i <= totalSupply; i++) {
             const owner = await nftContract.methods.ownerOf(i).call();
-            if(owner == address) {
+            if(owner.toLowerCase() == address.toLowerCase()) {
                 const nftUri = await nftContract.methods.tokenURI(i).call();
                 nftList.push(nftUri);
             }
