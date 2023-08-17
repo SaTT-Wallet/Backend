@@ -2796,6 +2796,7 @@ module.exports.statLinkCampaign = async (req, res) => {
             youtube: initStat(),
             linkedin: initStat(),
             tiktok: initStat(),
+            threads: initStat(),
         };
 
         const links = await CampaignLink.find({ id_campaign });
