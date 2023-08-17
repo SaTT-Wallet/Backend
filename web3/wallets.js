@@ -910,15 +910,28 @@ exports.formatTokenBalance = (balance, decimals) => {
 };
 
 // Helper function to get native balance (ETH, TRX, etc.) and format it
-exports.getNativeBalance = async (web3Instance, walletAddress) => {
-    const balanceWei = await web3Instance.eth.getBalance(walletAddress);
-    const balanceFormatted = web3Instance.utils.fromWei(balanceWei, 'ether');
-    return balanceFormatted;
+exports.getNativeBalance = async (web3Instance, walletAddress, network) => {
+        if(network === 'tron') {
+            const account = await web3Instance.trx.getAccount(walletAddress);
+            if (account && account.balance) {
+                const balanceFormatted = web3Instance.fromSun(account.balance);
+                return balanceFormatted;
+            }
+            return '0';
+        } else {
+            const balanceWei = await web3Instance.eth.getBalance(walletAddress);
+            const balanceFormatted = web3Instance.utils.fromWei(balanceWei, 'ether');
+            return balanceFormatted;
+        }
+       
+   
+    
 };
 
 exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
     try {
         if (isTrx) {
+            console.log({trx: webTron.trx})
             let amount = await webTron.trx.getBalance(address)
             return amount.toString()
         }

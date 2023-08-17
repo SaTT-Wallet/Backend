@@ -23,7 +23,7 @@ const validatePassword = () => Joi.string().min(8).required().custom((value) => 
 
 
 // VALIDATION NETWORK 
-const validateNetworks = (validNetworks) => Joi.string().required().custom((value) => {
+const validateNetworks = (validNetworks) => Joi.string().allow(null).required().custom((value) => {
     for(let i = 0; i < validNetworks.length ; i++) {
         if(validNetworks[i] === value.toString().toLowerCase()) {
             return value;
