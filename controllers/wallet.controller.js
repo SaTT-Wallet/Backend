@@ -307,7 +307,7 @@ exports.getBalanceByToken = async (req, res) => {
             const balanceFormatted = formatTokenBalance(balance, decimals);
             return responseHandler.makeResponseData(res, 200, 'success', balanceFormatted);
         } else {
-            const balance = await getNativeBalance(web3Instance, walletAddress);
+            const balance = await getNativeBalance(web3Instance, walletAddress, network);
             return responseHandler.makeResponseData(res, 200, 'success', balance);
         }
     } catch (err) {
@@ -521,9 +521,9 @@ exports.checkWalletToken = async (req, res) => {
         const tronWeb = await webTronInstance()
         
         const networks = [
-            { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.bep20.abi },
+            { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.token.abi },
             { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi },
-            { name: 'polygon', web3: web3MATIC.eth, abi: Constants.bep20.abi },
+            { name: 'polygon', web3: web3MATIC.eth, abi: Constants.token.abi },
             { name: 'bttc', web3: web3BTT.eth, abi: Constants.token.abi },
            
             // Add more EVM networks here if needed
