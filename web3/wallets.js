@@ -555,7 +555,7 @@ exports.getPrices = async () => {
                 url: process.env.CMC_URl,
                 params: {
                     start: '1',
-                    limit: '200',
+                    limit: '1200',
                     convert: 'USD',
                 },
                 headers: {
