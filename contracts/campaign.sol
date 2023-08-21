@@ -1,5 +1,9 @@
+/**
+ *Submitted for verification at BscScan.com on 2023-08-21
+*/
+
 //SPDX-License-Identifier: Unlicense
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 
 abstract contract owned {
     address payable public owner;
@@ -30,8 +34,8 @@ abstract contract owned {
 
     constructor() {
         owner = payable(msg.sender);
-        treasory = 0x75e6ef3113266F7116B219f05Caede20889ddDf3;
-        oracle = 0xd99884038A064466961bB0CE6e32646abD11bA9B;
+        treasory = 0xCA6C8E85804d7dC2CA7EcA018de77Aa2Ab8bE52C;
+        oracle = 0x5F8f3Efd4118136626eE5A240139ECa7cA22C72A;
     }
 
     function transferOwnership(address payable newOwner) public notPaused onlyOwner {
@@ -129,6 +133,7 @@ contract campaign is oracleClient {
         Fund funds;
         mapping(uint8 => cpRatio) ratios;
         bountyUnit[] bounties;
+        uint64 participationLimit; // Optional property to limit number of participation by influencer default value is 0
     }
 
     struct Fund {
@@ -165,18 +170,26 @@ contract campaign is oracleClient {
     mapping(bytes32 => promElement) public proms;
     mapping(bytes32 => Result) public results;
     mapping(bytes32 => bool) public isAlreadyUsed;
+    mapping(bytes32 => mapping(address => uint64)) public influencerProms;
+
 
     event CampaignCreated(
         bytes32 indexed id,
         uint64 startDate,
         uint64 endDate,
-        string dataUrl
+        string dataUrl,
+        uint64  limit
     );
     event CampaignFundsSpent(bytes32 indexed id);
     event CampaignApplied(bytes32 indexed id, bytes32 indexed prom);
     event PromAccepted(bytes32 indexed id);
     event PromPayed(bytes32 indexed id, uint256 amount);
     event CampaignFunded(bytes32 indexed id, uint256 amount);
+    
+    modifier onlyInfluencer(bytes32 idProm) {
+    require(proms[idProm].influencer == msg.sender, "Only influencer can call this function");
+    _;
+}
 
     function priceRatioCampaign(
         bytes32 idCampaign,
@@ -198,6 +211,8 @@ contract campaign is oracleClient {
         );
     }
 
+
+
     function fundCampaign(
         bytes32 idCampaign,
         address token,
@@ -218,7 +233,7 @@ contract campaign is oracleClient {
         uint256 added_amount;
         uint256 trisory_amount;
 
-        if (token == 0x448bee2d93be708b54ee6353a7cc35c4933f1156) {
+        if (token == 0x6fAc729f346A46fC0093126f237b4A520c40eb89) {
             added_amount = (amount * 95) / 100;
             trisory_amount = amount - added_amount;
         } else {
@@ -239,7 +254,8 @@ contract campaign is oracleClient {
         uint64 endDate,
         uint256[] memory ratios,
         address token,
-        uint256 amount
+        uint256 amount,
+        uint64 limit
     ) public notPaused returns (bytes32 idCampaign) {
         require(endDate > block.timestamp, "end date too early");
         require(endDate > startDate, "end date early than start");
@@ -258,11 +274,12 @@ contract campaign is oracleClient {
         c.dataUrl = dataUrl;
         c.startDate = startDate;
         c.endDate = endDate;
+        c.participationLimit = limit;
         c.nbProms = 0;
         c.nbValidProms = 0;
         c.funds = Fund(address(0), 0);
         //campaigns[campaignId] = Campaign(msg.sender,dataUrl,startDate,endDate,0,0,Fund(address(0),0));
-        emit CampaignCreated(campaignId, startDate, endDate, dataUrl);
+        emit CampaignCreated(campaignId, startDate, endDate, dataUrl,limit);
 
         for (uint8 i = 0; i < ratios.length; i = i + 4) {
             priceRatioCampaign(
@@ -285,7 +302,8 @@ contract campaign is oracleClient {
         uint64 endDate,
         uint256[] memory bounties,
         address token,
-        uint256 amount
+        uint256 amount,
+         uint64 limit
     ) public notPaused returns (bytes32 idCampaign) {
         require(endDate > block.timestamp, "end date too early");
         require(endDate > startDate, "end date early than start");
@@ -304,6 +322,7 @@ contract campaign is oracleClient {
         c.dataUrl = dataUrl;
         c.startDate = startDate;
         c.endDate = endDate;
+        c.participationLimit = limit;
         c.nbProms = 0;
         c.nbValidProms = 0;
         c.funds = Fund(address(0), 0);
@@ -318,7 +337,7 @@ contract campaign is oracleClient {
             );
         }
 
-        emit CampaignCreated(campaignId, startDate, endDate, dataUrl);
+        emit CampaignCreated(campaignId, startDate, endDate, dataUrl, limit);
 
         fundCampaign(campaignId, token, amount);
         return campaignId;
@@ -335,6 +354,10 @@ contract campaign is oracleClient {
 
         address signer = ecrecover(_hashedMessage, _v, _r, _s);
         return signer;
+    }
+  
+    function incrementPromotionCount(bytes32 idCampaign, address ownerLink) internal {
+      influencerProms[idCampaign][ownerLink]++;
     }
 
     function validateProm(
@@ -363,7 +386,14 @@ contract campaign is oracleClient {
                 block.timestamp
             )
         );
+
+        // Ensure the promotion link has not been used before
         require(!isAlreadyUsed[prom], "link already sent");
+
+        // Get the current number of promotions used by the influencer for this campaign
+       uint64 influencerPromCount = influencerProms[idCampaign][ownerLink];
+       require(influencerPromCount < cmp.participationLimit, "Participation limit exceeded");
+
         promElement storage p = proms[prom];
         p.influencer = ownerLink;
         p.idCampaign = idCampaign;
@@ -377,28 +407,36 @@ contract campaign is oracleClient {
         p.prevResult = 0;
         p.validate = block.timestamp;
         cmp.nbValidProms++;
+        
+        // Increment the influencer's promotion count for this campaign
+        incrementPromotionCount(idCampaign, ownerLink);
 
         emit PromAccepted(prom);
     }
 
     function updateCampaignStats(bytes32 idCampaign) public notPaused {
-        for (uint64 i = 0; i < campaigns[idCampaign].nbProms; i++) {
-            bytes32 idProm = campaigns[idCampaign].proms[i];
-            if (proms[idProm].isAccepted) {
+        Campaign storage cmp = campaigns[idCampaign];
+
+        for (uint64 i = 0; i < cmp.nbProms; i++) {
+            bytes32 idProm = cmp.proms[i];
+            // Retrieve the prom element associated with the given idProm from the proms mapping
+            promElement storage prom = proms[idProm];
+
+            if (prom.isAccepted) {
                 bytes32 idRequest = keccak256(
                     abi.encodePacked(
-                        proms[idProm].typeSN,
-                        proms[idProm].idPost,
-                        proms[idProm].idUser,
+                        prom.typeSN,
+                        prom.idPost,
+                        prom.idUser,
                         block.timestamp
                     )
                 );
                 results[idRequest] = Result(idProm, 0, 0, 0);
-                proms[idProm].results[proms[idProm].nbResults++] = idRequest;
+                prom.results[prom.nbResults++] = idRequest;
                 ask(
-                    proms[idProm].typeSN,
-                    proms[idProm].idPost,
-                    proms[idProm].idUser,
+                    prom.typeSN,
+                    prom.idPost,
+                    prom.idUser,
                     idRequest
                 );
             }
@@ -410,32 +448,35 @@ contract campaign is oracleClient {
         notPaused
         returns (bytes32 requestId)
     {
-        require(proms[idProm].isAccepted, "link not validated");
+        promElement storage prom = proms[idProm]; // Store the prom element for efficient access
+
+        require(prom.isAccepted, "link not validated");
         bytes32 idRequest = keccak256(
             abi.encodePacked(
-                proms[idProm].typeSN,
-                proms[idProm].idPost,
-                proms[idProm].idUser,
+                prom.typeSN,
+                prom.idPost,
+                prom.idUser,
                 block.timestamp
             )
         );
         results[idRequest] = Result(idProm, 0, 0, 0);
-        proms[idProm].results[proms[idProm].nbResults++] = idRequest;
+        prom.results[prom.nbResults++] = idRequest;
         ask(
-            proms[idProm].typeSN,
-            proms[idProm].idPost,
-            proms[idProm].idUser,
+            prom.typeSN,
+            prom.idPost,
+            prom.idUser,
             idRequest
         );
         return idRequest;
     }
 
     function updateBounty(bytes32 idProm) public notPaused {
-        require(proms[idProm].isAccepted, "link not validated");
+        promElement storage prom = proms[idProm]; // Store the prom element for efficient access
+        require(prom.isAccepted, "link not validated");
         askBounty(
-            proms[idProm].typeSN,
-            proms[idProm].idPost,
-            proms[idProm].idUser,
+            prom.typeSN,
+            prom.idPost,
+            prom.idUser,
             idProm
         );
     }
@@ -460,40 +501,52 @@ contract campaign is oracleClient {
         o.askBounty(typeSN, idPost, idUser, idProm);
     }
 
+/**
+ * @dev Updates the bounty payment status for a specific campaign promotion (idProm).
+ * The function calculates the gain for the influencer based on the number of subscribers (nbAbos) and campaign bounties.
+ * If the gain is sufficient, the payment is processed, otherwise, the funds are added to the promotion's balance.
+ * @param idProm The unique identifier of the campaign promotion.
+ * @param nbAbos The number of subscribers for the promotion.
+ * @return ok True if the operation is successful.
+ */
     function updateBounty(bytes32 idProm, uint256 nbAbos)
         external notPaused
         returns (bool ok)
     {
         require(msg.sender == oracle, "oracle mismatch");
-
+        
+        // Store the prom element for efficient access
         promElement storage prom = proms[idProm];
         require(!prom.isPayed, "link already paid");
         prom.isPayed = true;
-        prom.funds.token = campaigns[prom.idCampaign].funds.token;
+         // Store the campaign element for efficient access
+        Campaign storage cmp = campaigns[prom.idCampaign];
+        
+        prom.funds.token = cmp.funds.token;
 
         uint256 gain = 0;
         for (
             uint256 i = 0;
-            i < campaigns[prom.idCampaign].bounties.length;
+            i < cmp.bounties.length;
             i++
         ) {
             if (
-                nbAbos >= campaigns[prom.idCampaign].bounties[i].minRange &&
-                nbAbos < campaigns[prom.idCampaign].bounties[i].maxRange &&
-                prom.typeSN == campaigns[prom.idCampaign].bounties[i].typeSN
+                nbAbos >= cmp.bounties[i].minRange &&
+                nbAbos < cmp.bounties[i].maxRange &&
+                prom.typeSN == cmp.bounties[i].typeSN
             ) {
-                gain = campaigns[prom.idCampaign].bounties[i].amount;
+                gain = cmp.bounties[i].amount;
             }
         }
 
-        if (campaigns[prom.idCampaign].funds.amount <= gain) {
-            //campaigns[prom.idCampaign].endDate = uint64(block.timestamp);
-            prom.funds.amount += campaigns[prom.idCampaign].funds.amount;
-            campaigns[prom.idCampaign].funds.amount = 0;
+        if (cmp.funds.amount <= gain) {
+            //cmp.endDate = uint64(block.timestamp);
+            prom.funds.amount += cmp.funds.amount;
+            cmp.funds.amount = 0;
             emit CampaignFundsSpent(prom.idCampaign);
             return true;
         }
-        campaigns[prom.idCampaign].funds.amount -= gain;
+        cmp.funds.amount -= gain;
         prom.funds.amount += gain;
         return true;
     }
@@ -547,21 +600,29 @@ contract campaign is oracleClient {
         return true;
     }
 
-    function getGains(bytes32 idProm) public notPaused {
-        require(proms[idProm].influencer == msg.sender, "link owner mismatch");
-        uint256 diff = block.timestamp - proms[idProm].appliedDate;
-        require(diff > 86400, "less than 24h");
+    function getGains(bytes32 idProm) public notPaused onlyInfluencer(idProm) {
+        promElement storage prom = proms[idProm];
+        require(prom.influencer == msg.sender, "link owner mismatch");
+
+        Campaign storage cmp = campaigns[prom.idCampaign];
+         // Check if the campaign is a bounty campaign
+       if (cmp.bounties.length > 0) {
+         require(cmp.endDate < block.timestamp, "Bounty campaign has not ended yet");
+       }
+
+        uint256 diff = block.timestamp - prom.appliedDate;
+        require(diff > 300, "less than 15min");
 
         require(
-            block.timestamp - proms[idProm].lastHarvest > 86400,
-            "less than 24h to harvest again"
+            block.timestamp - prom.lastHarvest > 300,
+            "less than 15min to harvest again"
         );
 
-        IBEP20 erc20 = IBEP20(proms[idProm].funds.token);
-        uint256 amount = proms[idProm].funds.amount;
-        proms[idProm].funds.amount = 0;
-        proms[idProm].lastHarvest = block.timestamp;
-        erc20.transfer(proms[idProm].influencer, amount);
+        IBEP20 erc20 = IBEP20(prom.funds.token);
+        uint256 amount = prom.funds.amount;
+        prom.funds.amount = 0;
+        prom.lastHarvest = block.timestamp;
+        erc20.transfer(prom.influencer, amount);
 
         emit PromPayed(idProm, amount);
     }
@@ -576,7 +637,7 @@ contract campaign is oracleClient {
             "campaign not ended"
         );
         require(
-            block.timestamp - campaigns[idCampaign].endDate > 1296000,
+            block.timestamp - campaigns[idCampaign].endDate > 300,
             "Withdraw not allowed under 15 days"
         );
 
@@ -600,6 +661,15 @@ contract campaign is oracleClient {
         return cproms;
     }
 
+/**
+ * @dev Retrieves various ratios and limits associated with a campaign.
+ * @param idCampaign The unique identifier of the campaign.
+ * @return types An array of promotion types.
+ * @return likeRatios An array of like ratios for each promotion type.
+ * @return shareRatios An array of share ratios for each promotion type.
+ * @return viewRatios An array of view ratios for each promotion type.
+ * @return limits An array of reach limits for each promotion type.
+ */
     function getRatios(bytes32 idCampaign)
         public notPaused
         view
@@ -611,6 +681,10 @@ contract campaign is oracleClient {
             uint256[] memory limits
         )
     {
+
+        // Store the campaign element for efficient access
+        Campaign storage cmp = campaigns[idCampaign];
+
         uint8 l = 10;
         types = new uint8[](l);
         likeRatios = new uint256[](l);
@@ -619,25 +693,34 @@ contract campaign is oracleClient {
         limits = new uint256[](l);
         for (uint8 i = 0; i < l; i++) {
             types[i] = i + 1;
-            likeRatios[i] = campaigns[idCampaign].ratios[i + 1].likeRatio;
-            shareRatios[i] = campaigns[idCampaign].ratios[i + 1].shareRatio;
-            viewRatios[i] = campaigns[idCampaign].ratios[i + 1].viewRatio;
-            limits[i] = campaigns[idCampaign].ratios[i + 1].reachLimit;
+            likeRatios[i] = cmp.ratios[i + 1].likeRatio;
+            shareRatios[i] = cmp.ratios[i + 1].shareRatio;
+            viewRatios[i] = cmp.ratios[i + 1].viewRatio;
+            limits[i] = cmp.ratios[i + 1].reachLimit;
         }
         return (types, likeRatios, shareRatios, viewRatios, limits);
     }
 
+/**
+ * @dev Retrieves bounty details for a campaign.
+ * @param idCampaign The unique identifier of the campaign.
+ * @return bounty An array containing minRange, maxRange, typeSN, and amount for each bounty.
+ */
     function getBounties(bytes32 idCampaign)
         public notPaused
         view
         returns (uint256[] memory bounty)
     {
-        bounty = new uint256[](campaigns[idCampaign].bounties.length * 4);
-        for (uint8 i = 0; i < campaigns[idCampaign].bounties.length; i++) {
-            bounty[i * 4] = campaigns[idCampaign].bounties[i].minRange;
-            bounty[i * 4 + 1] = campaigns[idCampaign].bounties[i].maxRange;
-            bounty[i * 4 + 2] = campaigns[idCampaign].bounties[i].typeSN;
-            bounty[i * 4 + 3] = campaigns[idCampaign].bounties[i].amount;
+
+    Campaign storage cmp = campaigns[idCampaign];
+    uint256 bountyCount = cmp.bounties.length;
+    bounty = new uint256[](bountyCount * 4);
+    
+        for (uint8 i = 0; i < bountyCount; i++) {
+            bounty[i * 4] = cmp.bounties[i].minRange;
+            bounty[i * 4 + 1] = cmp.bounties[i].maxRange;
+            bounty[i * 4 + 2] = cmp.bounties[i].typeSN;
+            bounty[i * 4 + 3] = cmp.bounties[i].amount;
         }
         return bounty;
     }
@@ -647,10 +730,11 @@ contract campaign is oracleClient {
         view
         returns (bytes32[] memory creq)
     {
-        uint256 nbResults = proms[idProm].nbResults;
+        promElement storage prom = proms[idProm];
+        uint256 nbResults = prom.nbResults;
         creq = new bytes32[](nbResults);
         for (uint64 i = 0; i < nbResults; i++) {
-            creq[i] = proms[idProm].results[i];
+            creq[i] = prom.results[i];
         }
         return creq;
     }
