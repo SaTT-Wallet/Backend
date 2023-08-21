@@ -154,7 +154,7 @@ exports.account = async (req, res) => {
 exports.notificationDecision = async (req, res) => {
     try {
         if (!req.user) {
-            return makeResponseData(res, 200, 'success', 'user not found');
+            return makeResponseData(res, 200, 'user-not-found', false);
         }
         const user = req.user.toObject();
         const requiredFields = [
@@ -169,8 +169,8 @@ exports.notificationDecision = async (req, res) => {
             return acc;
         }, 0);
         const percentProf = (count * 100) / requiredFields.length;
-        if (percentProf === 100) {
-            return makeResponseData(res, 200, 'success', 'showing-complete-profile');
+        if (percentProf < 100) {
+            return makeResponseData(res, 200, 'showing-complete-profile', percentProf);
         } else {
                 const wallet = await Wallet.findOne({UserId: req.user._id});
                 if(!!wallet) {
@@ -194,7 +194,7 @@ exports.notificationDecision = async (req, res) => {
                         }
                     }
                     if(Number(sattBalance) === 0) {
-                        return makeResponseData(res, 200, 'success', 'showing-buy-satt');
+                        return makeResponseData(res, 200, 'showing-buy-satt', true);
                     } else {
                         let gasBalance = 0;
                         for (const networkObj of networks) {
@@ -208,20 +208,20 @@ exports.notificationDecision = async (req, res) => {
                             }
                         }
                         if(Number(gasBalance) === 0) {
-                            return makeResponseData(res, 200, 'success', 'showing-buy-fees');
+                            return makeResponseData(res, 200, 'showing-buy-fees', true);
                         } else {
                             // CHECK NEW AD POOLS
                             const campaignActive = await Campaigns.findOne({type: 'apply'}).sort({ _id: -1 });
-                            if(!!campaignActive) return makeResponseData(res, 200, 'success', campaignActive);
+                            if(!!campaignActive) return makeResponseData(res, 200, 'showing-campaign', campaignActive.coverMobile);
                             else {
                                 const randomNum = Math.floor(Math.random() * 3) + 1;
-                                return makeResponseData(res, 200, 'success', randomNum);
+                                return makeResponseData(res, 200, 'showing-random-number', randomNum);
                             }   
                         } 
                     }
                
                 } else {
-                    return makeResponseData(res, 200, 'success', 'wallet not found');
+                    return makeResponseData(res, 200, 'wallet-not-found', false);
                 }
         }
     } catch (err) {
@@ -232,7 +232,6 @@ exports.notificationDecision = async (req, res) => {
         );
     }
 };
-
 
 
 exports.profilePicture = async (req, response) => {
