@@ -1,7 +1,15 @@
+/**
+ *Submitted for verification at BscScan.com on 2023-08-23
+*/
+
+/**
+ *Submitted for verification at BscScan.com on 2023-01-17
+*/
+
 //SPDX-License-Identifier: Unlicense
 
 
-pragma solidity ^0.8.17;
+pragma solidity 0.8.19;
 
 contract owned {
     address payable public owner;
@@ -62,8 +70,29 @@ contract oracle is limited {
         _;
     }
     
-    function changeAnswer (address a,bool allow,address token,uint256 fee) onlyOwner public {
-        oracleList[a] = oracleUnit(allow,token,fee);
+    /**
+    * @dev Modifier to prevent reentrancy attacks during function execution.
+    * It sets a flag before the function body and resets it after execution.
+    */
+    modifier noReentrancy() {
+        // Ensure that reentrancy is not already in progress
+        require(!_withdrawalInProgress, "Reentrant call");
+
+        _withdrawalInProgress = true; // Set the flag to prevent reentrancy
+        _; // This underscores the location where the modified function's body will be placed.
+        _withdrawalInProgress = false; // Reset the flag after the function completes
+    }
+    
+    modifier validCampaignAddress(address campaignContract){
+        require(campaignContract != address(0), "Invalid campaign address");
+        _;
+    }
+    bool private _withdrawalInProgress; // Reentrancy guard
+
+    function changeAnswer (address oracleAddress,bool allow,address token,uint256 fee) onlyOwner validCampaignAddress(oracleAddress) public {
+        oracleList[oracleAddress] = oracleUnit(allow,token,fee);
+
+         emit OracleInfoUpdated(oracleAddress, allow, token, fee);
     }
     
     event AskRequest(bytes32 indexed idRequest, uint8 typeSN, string idPost,string idUser);
@@ -71,7 +100,8 @@ contract oracle is limited {
     
     event AskRequestBounty( uint8 typeSN, string idPost,string idUser,bytes32 idProm);
     event AnswerRequestBounty(bytes32 indexed idProm,uint256 nbAbos);
-   
+    event OracleInfoUpdated(address indexed oracleAddress, bool allow, address token, uint256 fee);
+
     
     function  ask (uint8 typeSN,string memory idPost,string memory idUser, bytes32 idRequest) public onlyCanAsk
     {
@@ -83,20 +113,20 @@ contract oracle is limited {
         emit AskRequestBounty( typeSN, idPost, idUser, idProm);
     }
     
-    function answer(address campaignContract,bytes32 idRequest,uint64 likes,uint64 shares, uint64 views) public onlyOwner {
+    function answer(address campaignContract,bytes32 idRequest,uint64 likes,uint64 shares, uint64 views) public onlyOwner validCampaignAddress(campaignContract){
         ICampaign campaign = ICampaign(campaignContract);
         campaign.update(idRequest,likes,shares,views);
         emit AnswerRequest(idRequest,likes,shares,views);
     }
     
-    function answerBounty(address campaignContract,bytes32 idProm,uint256 nbAbos) public onlyOwner {
+    function answerBounty(address campaignContract,bytes32 idProm,uint256 nbAbos) public onlyOwner validCampaignAddress(campaignContract){
         ICampaign campaign = ICampaign(campaignContract);
         campaign.updateBounty(idProm,nbAbos);
         emit AnswerRequestBounty(idProm,nbAbos);
     }
     
     
-     function thirdPartyAnswer(address campaignContract,bytes32 idRequest,uint64 likes,uint64 shares, uint64 views) public onlyCanAnswer {
+     function thirdPartyAnswer(address campaignContract,bytes32 idRequest,uint64 likes,uint64 shares, uint64 views) public onlyCanAnswer validCampaignAddress(campaignContract) {
         ICampaign campaign = ICampaign(campaignContract);
         campaign.update(idRequest,likes,shares,views);
         emit AnswerRequest(idRequest,likes,shares,views);
@@ -106,8 +136,8 @@ contract oracle is limited {
         erc20.transfer(msg.sender,oracleList[msg.sender].fee);
      }
        
-    function withdraw() onlyOwner public {
-        owner.transfer(address(this).balance);
+    function withdraw() onlyOwner noReentrancy public {
+      owner.transfer(address(this).balance);
     }
     
     function transferToken (address token,address to,uint256 val) public onlyOwner {
