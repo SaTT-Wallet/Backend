@@ -1,4 +1,6 @@
-
+/**
+ *Submitted for verification at BscScan.com on 2023-08-24
+*/
 
 //SPDX-License-Identifier: Unlicense
 pragma solidity 0.8.19;
@@ -120,7 +122,7 @@ contract campaign is oracleClient {
         uint256 amount;
     }
 
-    struct Campaign {
+    struct AdPool {
         address advertiser;
         string dataUrl;
         uint64 startDate;
@@ -164,7 +166,7 @@ contract campaign is oracleClient {
         uint256 validate;
     }
 
-    mapping(bytes32 => Campaign) public campaigns;
+    mapping(bytes32 => AdPool) public campaigns;
     mapping(bytes32 => SocialMediaPostData) public proms;
     mapping(bytes32 => PostStatistics) public results;
     mapping(bytes32 => bool) public isAlreadyUsed;
@@ -267,7 +269,7 @@ contract campaign is oracleClient {
                 block.timestamp
             )
         );
-        Campaign storage campaignData = campaigns[campaignId];
+        AdPool storage campaignData = campaigns[campaignId];
         campaignData.advertiser = msg.sender;
         campaignData.dataUrl = dataUrl;
         campaignData.startDate = startDate;
@@ -276,7 +278,7 @@ contract campaign is oracleClient {
         campaignData.nbProms = 0;
         campaignData.nbValidProms = 0;
         campaignData.funds = Fund(address(0), 0);
-        //campaigns[campaignId] = Campaign(msg.sender,dataUrl,startDate,endDate,0,0,Fund(address(0),0));
+        //campaigns[campaignId] = AdPool(msg.sender,dataUrl,startDate,endDate,0,0,Fund(address(0),0));
         emit CampaignCreated(campaignId, startDate, endDate, dataUrl,limit);
 
         for (uint8 i = 0; i < ratios.length; i = i + 4) {
@@ -315,7 +317,7 @@ contract campaign is oracleClient {
                 block.timestamp
             )
         );
-        Campaign storage campaignData = campaigns[campaignId];
+        AdPool storage campaignData = campaigns[campaignId];
         campaignData.advertiser = msg.sender;
         campaignData.dataUrl = dataUrl;
         campaignData.startDate = startDate;
@@ -370,7 +372,7 @@ contract campaign is oracleClient {
         bytes32 _r,
         bytes32 _s
     ) public notPaused {
-        Campaign storage campaignData = campaigns[idCampaign];
+        AdPool storage campaignData = campaigns[idCampaign];
         require(campaignData.endDate > block.timestamp, "campaign ended");
         address signer = VerifyMessage(_hashedMessage, _v, _r, _s);
         require(signer == ownerLink, "campaign applayer is mismatch");
@@ -413,7 +415,7 @@ contract campaign is oracleClient {
     }
 
     function updateCampaignStats(bytes32 idCampaign) public notPaused {
-        Campaign storage campaignData = campaigns[idCampaign];
+        AdPool storage campaignData = campaigns[idCampaign];
 
         for (uint64 i = 0; i < campaignData.nbProms; i++) {
             bytes32 idProm = campaignData.proms[i];
@@ -518,7 +520,7 @@ contract campaign is oracleClient {
         require(!post.isPayed, "link already paid");
         post.isPayed = true;
          // Store the campaign element for efficient access
-        Campaign storage campaignData = campaigns[post.idCampaign];
+        AdPool storage campaignData = campaigns[post.idCampaign];
         
         post.funds.token = campaignData.funds.token;
 
@@ -602,7 +604,7 @@ contract campaign is oracleClient {
         SocialMediaPostData storage post = proms[idProm];
         require(post.influencer == msg.sender, "link owner mismatch");
 
-        Campaign storage campaignData = campaigns[post.idCampaign];
+        AdPool storage campaignData = campaigns[post.idCampaign];
          // Check if the campaign is a bounty campaign
        if (campaignData.bounties.length > 0) {
          require(campaignData.endDate < block.timestamp, "Bounty campaign has not ended yet");
@@ -681,7 +683,7 @@ contract campaign is oracleClient {
     {
 
         // Store the campaign element for efficient access
-        Campaign storage campaignData = campaigns[idCampaign];
+        AdPool storage campaignData = campaigns[idCampaign];
 
         uint8 l = 10;
         types = new uint8[](l);
@@ -710,7 +712,7 @@ contract campaign is oracleClient {
         returns (uint256[] memory bounty)
     {
 
-    Campaign storage campaignData = campaigns[idCampaign];
+    AdPool storage campaignData = campaigns[idCampaign];
     uint256 bountyCount = campaignData.bounties.length;
     bounty = new uint256[](bountyCount * 4);
     
