@@ -274,6 +274,7 @@ module.exports.campaignsPictureUpload = multer({
 }).single('cover')
 
 module.exports.launchCampaign = async (req, res) => {
+    const id = req.user._id
     var dataUrl = req.body.dataUrl
     var startDate = req.body.startDate
     var endDate = req.body.endDate
@@ -375,6 +376,9 @@ module.exports.launchCampaign = async (req, res) => {
                 contract: contract.toLowerCase(),
             }
             await Event.create(event)
+            await notificationManager(id, 'create_campaign', {
+                cmp:campaign
+            })
         }
     }
 }
@@ -959,12 +963,6 @@ exports.apply = async (req, res) => {
         prom.oracle = findBountyOracle(prom.typeSN)
         var insert = await CampaignLink.create(prom)
 
-        await notificationManager(id, 'apply_campaign', {
-            cmp_name: title,
-            cmp_hash: idCampaign,
-            hash,
-            network: campaignDetails.token.type,
-        })
         let socialOracle = await getPromApplyStats(
             prom.oracle,
             prom,
@@ -981,7 +979,12 @@ exports.apply = async (req, res) => {
         await Promise.allSettled([
             CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
         ])
-
+        await notificationManager(id, 'apply_campaign', {
+            cmp_name: title,
+            cmp_hash: idCampaign,
+            hash,
+            network: campaignDetails.token.type,
+        })
         return responseHandler.makeResponseData(res, 200, 'success', insert)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1004,14 +1007,12 @@ exports.linkNotifications = async (req, res) => {
     try {
         // Fetch the campaign
         const element =  await fetchCampaign({_id:campaignId});
-        let owner = Number(element.idNode.substring(1))
-
-        // Notify the campaign owner
+        let owner = Number(element.idNode.substring(1))   
         await notificationManager(owner, 'cmp_candidate_insert_link', {
             cmp_name: element.title,
             cmp_hash: campaignId,
             linkHash: idProm,
-        })
+        }) 
 
         let user = await User.findOne({ _id: owner },{email:1}).lean();
 
