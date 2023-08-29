@@ -45,6 +45,6 @@ const campaignLinkSchema = mongoose.Schema(
         collection: 'campaign_link',
     }
 )
-
+campaignLinkSchema.index({ 'applyerSignature.signature': 1 });
 const CampaignLink = mongoose.model('campaign_link', campaignLinkSchema)
 module.exports = CampaignLink

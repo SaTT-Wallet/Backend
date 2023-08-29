@@ -21,7 +21,8 @@ const {
     FbPage,
     TikTokProfile,
     Wallet,
-    Campaigns
+    Campaigns,
+    CampaignLink
 } = require('../model/index')
 const axios = require('axios')
 
@@ -868,6 +869,7 @@ module.exports.getNotifications = async (req, res) => {
         }
 
         const limit = parseInt(req.query.limit) || 10000000
+        //const limit = 10;
         const page = parseInt(req.query.page) || 1
         const startIndex = (page - 1) * limit
         const endIndex = page * limit
@@ -894,6 +896,24 @@ module.exports.getNotifications = async (req, res) => {
             startIndex,
             endIndex
         )
+        
+        const notificationTasks =  notifications.notifications.map(async notification => {
+            if (notification.type === 'cmp_candidate_insert_link') {
+              const link = await CampaignLink.findOne(
+                { 'applyerSignature.signature': notification.label.linkHash },
+                { applyerSignature: 0 } // Exclude unnecessary fields from the result
+              );
+          
+              if (link) {
+                notification.label.linkExist = true;
+                notification.label.link = link;
+              } else notification.label.linkExist = false;
+              
+            }
+          });
+          
+          // Wait for all tasks to complete
+        await Promise.all(notificationTasks);
         return makeResponseData(res, 200, 'success', notifications)
     } catch (err) {
         return makeResponseError(
