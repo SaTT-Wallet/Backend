@@ -909,11 +909,17 @@ module.exports.getNotifications = async (req, res) => {
                 notification.label.link = link;
               } else notification.label.linkExist = false;
               
+            } else if(notification.type === 'create_campaign') {
+                const campaign = await Campaigns.findOne({ hash: notification.label.cmp.hash });
+                notification.label.cmp_update = campaign;
             }
           });
           
           // Wait for all tasks to complete
         await Promise.all(notificationTasks);
+
+
+        
         return makeResponseData(res, 200, 'success', notifications)
     } catch (err) {
         return makeResponseError(
