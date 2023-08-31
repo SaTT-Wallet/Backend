@@ -58,6 +58,7 @@ const { list } = require('tar')
 
 
 
+
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -541,6 +542,109 @@ const getNetworkByToken = async (idCrypto) => {
       throw new Error('Error fetching networks');
     }
   };
+  const getCryptoMarketPlace = async (startVariable)=> {
+    const options = {
+        method: 'GET',
+        url: process.env.CMC_URl,
+        params: {
+            start: startVariable.toString(),
+            limit: '1000',
+            convert: 'USD',
+        },
+        headers: {
+            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+        },
+    }
+    let result 
+
+    try {
+        result = await Promise.all([ rp.request(options) ])
+
+    } catch (error) {
+        throw new Error('Error fetching prices')
+    }
+    var response = result[0]
+
+    let  priceMap
+  
+    try {
+    
+     priceMap = response.data.data.map( (elem) => {
+   
+        var obj = {}
+  
+       
+            obj = {
+                id: elem.id,
+                cmc_rank: elem.cmc_rank,
+                network:
+                    (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                networkSupported:[],
+                tokenAddress:  (elem.platform?.name === 'BNB' && 'BEP20') || null,
+                symbol: elem.symbol,
+                name: elem.name,
+                price: elem?.quote.USD.price,
+                percent_change_24h: elem?.quote.USD.percent_change_24h,
+                percent_change_1h:elem?.quote.USD.percent_change_1h,
+                percent_change_7d:elem?.quote.USD.percent_change_7d,
+                market_cap: elem?.quote.USD.market_cap,
+                volume_24h: elem?.quote.USD.volume_24h,
+                circulating_supply: elem.circulating_supply,
+                total_supply: elem.total_supply,
+                max_supply: elem.max_supply,
+                logo:
+                    'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                    elem.id +
+                    '.png',
+            }
+
+        return obj
+    })
+
+} catch (error) {
+    throw new Error('Error fetching prices')
+}
+
+    var finalMap = {}
+
+    const idcrypto = priceMap.map((token) => token.id.toString());
+   
+    priceMap.forEach((token) => {
+
+        finalMap[token.symbol] = { ...token, networkSupported: '' };
+        delete finalMap[token.symbol].symbol;
+      });
+    
+
+
+const networksContract = await getNetworkByToken(idcrypto.join(','));
+networksContract.forEach((network) => {
+  if (finalMap[network.symbol]) {
+    finalMap[network.symbol].networkSupported = network.contract_address;
+  }
+});
+
+
+
+
+    for (var i = 0; i < token200.length; i++) {
+    
+        var token = token200[i]
+        if (finalMap[token.symbol]) {
+            finalMap[token.symbol].network =
+                (finalMap[token.symbol].network &&
+                    finalMap[token.symbol].network) ||
+                token.platform.network
+            finalMap[token.symbol].tokenAddress =
+                token.platform.token_address
+            finalMap[token.symbol].decimals = token.platform.decimals
+        }
+    }
+    prices = { data: finalMap, date: Date.now() }
+    cache.put('prices', prices)
+   
+    return finalMap
+  }
 exports.getPrices = async () => {
     try {
         if (
@@ -549,162 +653,19 @@ exports.getPrices = async () => {
         ) {
             return cache.get('prices').data
         } else {
-          
-            const options = {
-                method: 'GET',
-                url: process.env.CMC_URl,
-                params: {
-                    start: '1',
-                    limit: '1200',
-                    convert: 'USD',
-                },
-                headers: {
-                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                },
-            }
-
-            const options2 = {
-                method: 'GET',
-                url: process.env.CMC_CRYPTO_URL,
-                params: {
-                    symbol: 'SATT,JET,BTT',
-                    convert: 'USD',
-                },
-                headers: {
-                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                },
-            }
             
-        
-
-            let result 
-
-            try {
-                result = await Promise.all([
-                    rp.request(options),
-                    rp.request(options2)
-                ])
-
-            } catch (error) {
-                throw new Error('Error fetching prices')
-            }
-
-            var response = result[0]
-
-            var responseSattJet = result[1]
-            response.data.data.push(responseSattJet.data.data.SATT)
-            response.data.data.push(responseSattJet.data.data.JET)
-            response.data.data.push(responseSattJet.data.data.BTT)
-            let  priceMap
+            let cryptoMarketPlaceResults = await getCryptoMarketPlace(1)
           
-            try {
-             
-    
-                
+            for (var i = 1; i < 6;  i ++){
                
-             priceMap = response.data.data.map( (elem) => {
-           
-                var obj = {}
-                let tokenAddress = null
-                if (elem.platform?.name === 'BNB') {
-                    tokenAddress = elem.platform?.token_address
-                }
-                if (elem.name === 'SaTT') {
-                    obj = {
-                        id: elem.id,
-                        cmc_rank: elem.cmc_rank,
-                        network:
-                            (elem.platform?.name === 'BNB' && 'BEP20') || null,
-                        networkSupported: [],
-                        tokenAddress: tokenAddress,
-                        symbol: elem.symbol,
-                        name: elem.name,
-                        price: elem?.quote.USD.price,
-                        percent_change_24h: elem?.quote.USD.percent_change_24h,
-                        percent_change_1h:elem?.quote.USD.percent_change_1h,
-                        percent_change_7d:elem?.quote.USD.percent_change_7d,
-                        market_cap: elem?.quote.USD.market_cap,
-                        volume_24h: elem?.quote.USD.volume_24h,
-                        circulating_supply: elem.circulating_supply,
-                        total_supply: elem.total_supply,
-                        max_supply: elem.max_supply,
-                        fully_diluted:
-                            responseSattJet.data.SATT?.quote.USD
-                                .fully_diluted_market_cap,
-                        logo:
-                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-                            elem.id +
-                            '.png',
-                    }
-                } else
-                    obj = {
-                        id: elem.id,
-                        cmc_rank: elem.cmc_rank,
-                        network:
-                            (elem.platform?.name === 'BNB' && 'BEP20') || null,
-                        networkSupported:[],
-                        tokenAddress: tokenAddress,
-                        symbol: elem.symbol,
-                        name: elem.name,
-                        price: elem?.quote.USD.price,
-                        percent_change_24h: elem?.quote.USD.percent_change_24h,
-                        percent_change_1h:elem?.quote.USD.percent_change_1h,
-                        percent_change_7d:elem?.quote.USD.percent_change_7d,
-                        market_cap: elem?.quote.USD.market_cap,
-                        volume_24h: elem?.quote.USD.volume_24h,
-                        circulating_supply: elem.circulating_supply,
-                        total_supply: elem.total_supply,
-                        max_supply: elem.max_supply,
-                        logo:
-                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-                            elem.id +
-                            '.png',
-                    }
-
-                return obj
-            })
-
-        } catch (error) {
-            throw new Error('Error fetching prices')
-        }
-
-            var finalMap = {}
-  
-            const idcrypto = priceMap.map((token) => token.id.toString());
-           
-            priceMap.forEach((token) => {
-                finalMap[token.symbol] = { ...token, networkSupported: '' };
-                delete finalMap[token.symbol].symbol;
-              });
-            
-
-      
-        const networksContract = await getNetworkByToken(idcrypto.join(','));
-        networksContract.forEach((network) => {
-          if (finalMap[network.symbol]) {
-            finalMap[network.symbol].networkSupported = network.contract_address;
-          }
-        });
-  
-   
-
-
-            for (var i = 0; i < token200.length; i++) {
-            
-                var token = token200[i]
-                if (finalMap[token.symbol]) {
-                    finalMap[token.symbol].network =
-                        (finalMap[token.symbol].network &&
-                            finalMap[token.symbol].network) ||
-                        token.platform.network
-                    finalMap[token.symbol].tokenAddress =
-                        token.platform.token_address
-                    finalMap[token.symbol].decimals = token.platform.decimals
-                }
+           let  cryptoMarketPlaceResult =   await getCryptoMarketPlace((1000*i+1 ))
+         
+           Object.assign(cryptoMarketPlaceResults, cryptoMarketPlaceResult)
+        
             }
-            prices = { data: finalMap, date: Date.now() }
-            cache.put('prices', prices)
-            return finalMap
+       
+        return cryptoMarketPlaceResults
+
         }
 
     } catch (err) {
