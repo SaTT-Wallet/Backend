@@ -904,7 +904,7 @@ module.exports.getNotifications = async (req, res) => {
                 { applyerSignature: 0 } // Exclude unnecessary fields from the result
               );
           
-              if (link) {
+              if (link && link.type === 'waiting_for_validation') {
                 notification.label.linkExist = true;
                 notification.label.link = link;
               } else notification.label.linkExist = false;
