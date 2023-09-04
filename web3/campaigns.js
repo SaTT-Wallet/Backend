@@ -347,7 +347,8 @@ exports.createPerformanceCampaign = async (
     amount,
     credentials,
     tronWeb,
-    res
+    res,
+    limit = 0
 ) => {
     try {
         /**   CHECK IF COMPAGNE NETWORK IS TRON */
@@ -426,7 +427,8 @@ exports.createPerformanceCampaign = async (
                 endDate,
                 ratios,
                 token,
-                amount + ''
+                amount + '',
+                limit
             )
             .send({
                 from: credentials.address,
@@ -456,7 +458,8 @@ exports.createBountiesCampaign = async (
     amount,
     credentials,
     tronWeb,
-    res
+    res,
+    limit = 0
 ) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
@@ -513,7 +516,8 @@ exports.createBountiesCampaign = async (
                 endDate,
                 bounties,
                 token,
-                amount
+                amount,
+                limit
             )
             .send({
                 from: credentials.address,

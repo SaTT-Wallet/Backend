@@ -274,16 +274,10 @@ module.exports.campaignsPictureUpload = multer({
 }).single('cover')
 
 module.exports.launchCampaign = async (req, res) => {
-    var dataUrl = req.body.dataUrl
-    var startDate = req.body.startDate
-    var endDate = req.body.endDate
-    var tokenAddress = req.body.tokenAddress
-    var amount = req.body.amount
-    var ratios = req.body.ratios
-    var contract = req.body.contract
-    let _id = req.body.idCampaign
-    let currency = req.body.currency
-    let network = req.body.network
+    
+    var {limit : limitParticipation, contract,ratios, amount, tokenAddress, endDate, startDate, dataUrl } = req.body
+    let { idCampaign : _id , currency, network} = req.body
+    
     try {
         var tronWeb
         var cred
@@ -318,7 +312,8 @@ module.exports.launchCampaign = async (req, res) => {
             amount,
             cred,
             tronWeb,
-            res
+            res,
+            limitParticipation
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -342,6 +337,7 @@ module.exports.launchCampaign = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
+                limitParticipation,
                 token: {
                     name: currency,
                     type: network,
@@ -380,15 +376,10 @@ module.exports.launchCampaign = async (req, res) => {
 }
 
 module.exports.launchBounty = async (req, res) => {
-    var dataUrl = req.body.dataUrl
-    var startDate = req.body.startDate
-    var endDate = req.body.endDate
-    var tokenAddress = req.body.tokenAddress
-    var amount = req.body.amount
+
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
-    var bounties = req.body.bounties
-    let network = req.body.network
-    let currency = req.body.currency
+    var {limit : limitParticipation,bounties, amount, tokenAddress, endDate, startDate, dataUrl } = req.body
+    let {network, currency} = req.body;
     let id = req.user._id
 
     try {
@@ -420,7 +411,8 @@ module.exports.launchBounty = async (req, res) => {
             amount,
             cred,
             tronWeb,
-            res
+            res,
+            limitParticipation
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -443,6 +435,7 @@ module.exports.launchBounty = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
+                limitParticipation,
                 token: {
                     name: currency,
                     type: network,
