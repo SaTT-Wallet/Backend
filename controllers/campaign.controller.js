@@ -468,6 +468,9 @@ module.exports.launchBounty = async (req, res) => {
                 contract: contract.toLowerCase(),
             }
             await Event.create(event)
+            await notificationManager(id, 'create_campaign', {
+                cmp:campaign
+            })
         }
     }
 }
@@ -973,8 +976,15 @@ exports.apply = async (req, res) => {
 
         await Promise.allSettled([
             CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+            notificationManager(id, 'apply_campaign', {
+                cmp_name: title,
+                cmp_hash: idCampaign,
+                linkId: insert._id,
+                prom: {oracle: prom.oracle, type: 'waiting_for_validation'},
+                network: campaignDetails.token.type,
+            })
         ])
-
+         
         return responseHandler.makeResponseData(res, 200, 'success', insert)
     } catch (err) {
         return responseHandler.makeResponseError(
