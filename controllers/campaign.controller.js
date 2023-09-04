@@ -467,10 +467,11 @@ module.exports.launchBounty = async (req, res) => {
                 txhash: ret.transactionHash,
                 contract: contract.toLowerCase(),
             }
-            await Event.create(event)
-            await notificationManager(id, 'create_campaign', {
+
+            await Promise.allSettled([Event.create(event), notificationManager(id, 'create_campaign', {
                 cmp:campaign
-            })
+            })])
+        
         }
     }
 }
