@@ -955,12 +955,6 @@ exports.apply = async (req, res) => {
         prom.oracle = findBountyOracle(prom.typeSN)
         var insert = await CampaignLink.create(prom)
 
-        await notificationManager(id, 'apply_campaign', {
-            cmp_name: title,
-            cmp_hash: idCampaign,
-            hash,
-            network: campaignDetails.token.type,
-        })
         let socialOracle = await getPromApplyStats(
             prom.oracle,
             prom,
