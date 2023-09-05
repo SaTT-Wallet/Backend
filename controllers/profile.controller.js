@@ -226,7 +226,6 @@ exports.notificationDecision = async (req, res) => {
                 }
         }
     } catch (err) {
-        console.log({err})
         return makeResponseError(
             res,
             500,
