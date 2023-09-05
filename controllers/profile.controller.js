@@ -185,11 +185,11 @@ exports.notificationDecision = async (req, res) => {
                     ];
                     for (const networkObj of networks) {
                         let contract = new networkObj.web3.Contract(networkObj.abi, networkObj.smarContract);
-                        if(user.hasWallet) {
+                        if(user.hasWallet && !!wallet.keystore.address) {
                             const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
                             sattBalance += Big(balance);
                         }
-                        if(user.hasWalletV2) {
+                        if(user.hasWalletV2 && !!wallet.walletV2.keystore.address) {
                             const balance = await contract.methods.balanceOf(`0x${wallet.walletV2.keystore.address}`).call();
                             sattBalance += Big(balance);
                         }
@@ -199,11 +199,11 @@ exports.notificationDecision = async (req, res) => {
                     } else {
                         let gasBalance = 0;
                         for (const networkObj of networks) {
-                            if(user.hasWallet) {
+                            if(user.hasWallet && !!wallet.keystore.address) {
                                 const balance = await networkObj.web3.getBalance(`0x${wallet.keystore.address}`);
                                 gasBalance += Big(balance);
                             }
-                            if(user.hasWalletV2) {
+                            if(user.hasWalletV2 && !!wallet.walletV2.keystore.address) {
                                 const balance = await networkObj.web3.getBalance(`0x${wallet.walletV2.keystore.address}`);
                                 gasBalance += Big(balance);
                             }
@@ -226,6 +226,7 @@ exports.notificationDecision = async (req, res) => {
                 }
         }
     } catch (err) {
+        console.log({err})
         return makeResponseError(
             res,
             500,
