@@ -1397,7 +1397,7 @@ exports.transfertAllTokensBEP20 = async (req, res) => {
                     )
                 }
             }
-
+            await User.updateOne({ _id: userId }, { $set: { migrated: true } })
             return responseHandler.makeResponseData(res, 200, 'success', {
                 transactionHash,
                 errorTransaction,
