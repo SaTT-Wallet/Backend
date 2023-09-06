@@ -97,6 +97,8 @@ const userSchema = mongoose.Schema(
             countryCode: { type: String },
             dialCode: { type: String },
         },
+
+        migrated: { type: Boolean, default: false },
     },
     { timestamps: true, strict: false, collection: 'user' }
 )

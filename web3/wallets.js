@@ -51,12 +51,10 @@ const {
     pathBtcSegwitCompat,
     pathBtcSegwit,
     pathEth,
-    pathTron
+    pathTron,
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
-
-
 
 exports.unlock = async (req, res) => {
     try {
@@ -393,12 +391,16 @@ exports.getAccount = async (req, res) => {
     let account = await Wallet.findOne({ UserId }).lean()
 
     if (account) {
-        var address = account.keystore && '0x' + account.keystore?.address || '0x' + account.walletV2?.keystore?.address 
+        var address =
+            (account.keystore && '0x' + account.keystore?.address) ||
+            '0x' + account.walletV2?.keystore?.address
 
-        let tronAddress = account?.tronAddress || account.walletV2?.tronAddress 
+        let tronAddress = account?.tronAddress || account.walletV2?.tronAddress
 
-        let btcAddress = account.btc && account?.btc?.addressSegWitCompat ||  account.walletV2?.btc?.addressSegWitCompat;
-        
+        let btcAddress =
+            (account.btc && account?.btc?.addressSegWitCompat) ||
+            account.walletV2?.btc?.addressSegWitCompat
+
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
         let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
@@ -409,10 +411,19 @@ exports.getAccount = async (req, res) => {
                 bttConnexion(),
                 webTronInstance(),
             ])
-      
-  const contractSatt = Web3ETH ? new Web3ETH.eth.Contract(Constants.token.abi, Constants.token.satt) : null;
-  const tronPromise = tronAddress ? tronWeb?.trx.getBalance(tronAddress) : Promise.resolve(null);
-  const sattPromise = contractSatt ? contractSatt.methods.balanceOf(address).call() : Promise.resolve(null);
+
+        const contractSatt = Web3ETH
+            ? new Web3ETH.eth.Contract(
+                  Constants.token.abi,
+                  Constants.token.satt
+              )
+            : null
+        const tronPromise = tronAddress
+            ? tronWeb?.trx.getBalance(tronAddress)
+            : Promise.resolve(null)
+        const sattPromise = contractSatt
+            ? contractSatt.methods.balanceOf(address).call()
+            : Promise.resolve(null)
 
         let [
             ether_balance,
@@ -445,10 +456,7 @@ exports.getAccount = async (req, res) => {
             version: account.mnemo ? 2 : 1,
         }
         result.btc_balance = 0
-        if (
-            process.env.NODE_ENV === 'mainnet' &&
-            btcAddress
-        ) {
+        if (process.env.NODE_ENV === 'mainnet' && btcAddress) {
             result.btc = btcAddress
 
             try {
@@ -509,38 +517,41 @@ exports.getAllWallets = async (req, res) => {
 
 const getNetworkByToken = async (idCrypto) => {
     try {
-      if (
-        cache.get('networks') &&
-        Date.now() - new Date(cache.get('networks').date).getTime() < 604800000
-      ) {
-        return cache.get('networks').data;
-      } else {
-        const options = {
-          method: 'GET',
-          url: process.env.CMC_CRYPTO_DETAILS,
-          params: {
-            id: idCrypto,
-          },
-          headers: {
-            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-          },
-        };
-  
-        const result = await rp.request(options);
-        const networksContract = Object.values(result.data.data).map((innerObj) => ({
-          symbol: innerObj.symbol,
-          contract_address: innerObj.contract_address,
-        }));
-  
-        const networks = { data: networksContract, date: Date.now() };
-        cache.put('networks', networks);
-  
-        return networksContract;
-      }
+        if (
+            cache.get('networks') &&
+            Date.now() - new Date(cache.get('networks').date).getTime() <
+                604800000
+        ) {
+            return cache.get('networks').data
+        } else {
+            const options = {
+                method: 'GET',
+                url: process.env.CMC_CRYPTO_DETAILS,
+                params: {
+                    id: idCrypto,
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            }
+
+            const result = await rp.request(options)
+            const networksContract = Object.values(result.data.data).map(
+                (innerObj) => ({
+                    symbol: innerObj.symbol,
+                    contract_address: innerObj.contract_address,
+                })
+            )
+
+            const networks = { data: networksContract, date: Date.now() }
+            cache.put('networks', networks)
+
+            return networksContract
+        }
     } catch (err) {
-      throw new Error('Error fetching networks');
+        throw new Error('Error fetching networks')
     }
-  };
+}
 exports.getPrices = async () => {
     try {
         if (
@@ -549,7 +560,6 @@ exports.getPrices = async () => {
         ) {
             return cache.get('prices').data
         } else {
-          
             const options = {
                 method: 'GET',
                 url: process.env.CMC_URl,
@@ -574,17 +584,14 @@ exports.getPrices = async () => {
                     'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
                 },
             }
-            
-        
 
-            let result 
+            let result
 
             try {
                 result = await Promise.all([
                     rp.request(options),
-                    rp.request(options2)
+                    rp.request(options2),
                 ])
-
             } catch (error) {
                 throw new Error('Error fetching prices')
             }
@@ -595,102 +602,99 @@ exports.getPrices = async () => {
             response.data.data.push(responseSattJet.data.data.SATT)
             response.data.data.push(responseSattJet.data.data.JET)
             response.data.data.push(responseSattJet.data.data.BTT)
-            let  priceMap
-          
+            let priceMap
+
             try {
-             
-    
-                
-               
-             priceMap = response.data.data.map( (elem) => {
-           
-                var obj = {}
-                let tokenAddress = null
-                if (elem.platform?.name === 'BNB') {
-                    tokenAddress = elem.platform?.token_address
-                }
-                if (elem.name === 'SaTT') {
-                    obj = {
-                        id: elem.id,
-                        cmc_rank: elem.cmc_rank,
-                        network:
-                            (elem.platform?.name === 'BNB' && 'BEP20') || null,
-                        networkSupported: [],
-                        tokenAddress: tokenAddress,
-                        symbol: elem.symbol,
-                        name: elem.name,
-                        price: elem?.quote.USD.price,
-                        percent_change_24h: elem?.quote.USD.percent_change_24h,
-                        percent_change_1h:elem?.quote.USD.percent_change_1h,
-                        percent_change_7d:elem?.quote.USD.percent_change_7d,
-                        market_cap: elem?.quote.USD.market_cap,
-                        volume_24h: elem?.quote.USD.volume_24h,
-                        circulating_supply: elem.circulating_supply,
-                        total_supply: elem.total_supply,
-                        max_supply: elem.max_supply,
-                        fully_diluted:
-                            responseSattJet.data.SATT?.quote.USD
-                                .fully_diluted_market_cap,
-                        logo:
-                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-                            elem.id +
-                            '.png',
+                priceMap = response.data.data.map((elem) => {
+                    var obj = {}
+                    let tokenAddress = null
+                    if (elem.platform?.name === 'BNB') {
+                        tokenAddress = elem.platform?.token_address
                     }
-                } else
-                    obj = {
-                        id: elem.id,
-                        cmc_rank: elem.cmc_rank,
-                        network:
-                            (elem.platform?.name === 'BNB' && 'BEP20') || null,
-                        networkSupported:[],
-                        tokenAddress: tokenAddress,
-                        symbol: elem.symbol,
-                        name: elem.name,
-                        price: elem?.quote.USD.price,
-                        percent_change_24h: elem?.quote.USD.percent_change_24h,
-                        percent_change_1h:elem?.quote.USD.percent_change_1h,
-                        percent_change_7d:elem?.quote.USD.percent_change_7d,
-                        market_cap: elem?.quote.USD.market_cap,
-                        volume_24h: elem?.quote.USD.volume_24h,
-                        circulating_supply: elem.circulating_supply,
-                        total_supply: elem.total_supply,
-                        max_supply: elem.max_supply,
-                        logo:
-                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
-                            elem.id +
-                            '.png',
-                    }
+                    if (elem.name === 'SaTT') {
+                        obj = {
+                            id: elem.id,
+                            cmc_rank: elem.cmc_rank,
+                            network:
+                                (elem.platform?.name === 'BNB' && 'BEP20') ||
+                                null,
+                            networkSupported: [],
+                            tokenAddress: tokenAddress,
+                            symbol: elem.symbol,
+                            name: elem.name,
+                            price: elem?.quote.USD.price,
+                            percent_change_24h:
+                                elem?.quote.USD.percent_change_24h,
+                            percent_change_1h:
+                                elem?.quote.USD.percent_change_1h,
+                            percent_change_7d:
+                                elem?.quote.USD.percent_change_7d,
+                            market_cap: elem?.quote.USD.market_cap,
+                            volume_24h: elem?.quote.USD.volume_24h,
+                            circulating_supply: elem.circulating_supply,
+                            total_supply: elem.total_supply,
+                            max_supply: elem.max_supply,
+                            fully_diluted:
+                                responseSattJet.data.SATT?.quote.USD
+                                    .fully_diluted_market_cap,
+                            logo:
+                                'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                                elem.id +
+                                '.png',
+                        }
+                    } else
+                        obj = {
+                            id: elem.id,
+                            cmc_rank: elem.cmc_rank,
+                            network:
+                                (elem.platform?.name === 'BNB' && 'BEP20') ||
+                                null,
+                            networkSupported: [],
+                            tokenAddress: tokenAddress,
+                            symbol: elem.symbol,
+                            name: elem.name,
+                            price: elem?.quote.USD.price,
+                            percent_change_24h:
+                                elem?.quote.USD.percent_change_24h,
+                            percent_change_1h:
+                                elem?.quote.USD.percent_change_1h,
+                            percent_change_7d:
+                                elem?.quote.USD.percent_change_7d,
+                            market_cap: elem?.quote.USD.market_cap,
+                            volume_24h: elem?.quote.USD.volume_24h,
+                            circulating_supply: elem.circulating_supply,
+                            total_supply: elem.total_supply,
+                            max_supply: elem.max_supply,
+                            logo:
+                                'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                                elem.id +
+                                '.png',
+                        }
 
-                return obj
-            })
-
-        } catch (error) {
-            throw new Error('Error fetching prices')
-        }
+                    return obj
+                })
+            } catch (error) {
+                throw new Error('Error fetching prices')
+            }
 
             var finalMap = {}
-  
-            const idcrypto = priceMap.map((token) => token.id.toString());
-           
+
+            const idcrypto = priceMap.map((token) => token.id.toString())
+
             priceMap.forEach((token) => {
-                finalMap[token.symbol] = { ...token, networkSupported: '' };
-                delete finalMap[token.symbol].symbol;
-              });
-            
+                finalMap[token.symbol] = { ...token, networkSupported: '' }
+                delete finalMap[token.symbol].symbol
+            })
 
-      
-        const networksContract = await getNetworkByToken(idcrypto.join(','));
-        networksContract.forEach((network) => {
-          if (finalMap[network.symbol]) {
-            finalMap[network.symbol].networkSupported = network.contract_address;
-          }
-        });
-  
-   
-
+            const networksContract = await getNetworkByToken(idcrypto.join(','))
+            networksContract.forEach((network) => {
+                if (finalMap[network.symbol]) {
+                    finalMap[network.symbol].networkSupported =
+                        network.contract_address
+                }
+            })
 
             for (var i = 0; i < token200.length; i++) {
-            
                 var token = token200[i]
                 if (finalMap[token.symbol]) {
                     finalMap[token.symbol].network =
@@ -706,146 +710,143 @@ exports.getPrices = async () => {
             cache.put('prices', prices)
             return finalMap
         }
-
     } catch (err) {
-        throw new Error('Error fetching prices ')   
+        throw new Error('Error fetching prices ')
     }
 }
 
-exports.getChartVariation = async(cryptolist) => {
-    try{
+exports.getChartVariation = async (cryptolist) => {
+    try {
         if (
             cache.get('chart') &&
             Date.now() - new Date(cache.get('chart')?.date).getTime() < 86400000
         ) {
             return cache.get('chart').data
-        }else{
-        const endDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-        const startDate = endDate - (7 * 24 * 60 * 60);
-        const options = {
-            method: 'GET',
-            url:  process.env.CMC_HISTORY_URL,
-            params: {
-                id: cryptolist,
-                time_start:startDate,
-                time_end:endDate,
-                interval:'hourly',
-            },
-            headers: {
-                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-            },
-           
-        }
-       
-        var results 
-        try {
-            results = await Promise.all([ rp.request(options)])
-         
-        } catch (error) {
-            throw new Error('Error fetching prices chart')
-        }
-        var result = await results[0]
-    
-        var cryptoInfo
-        var priceVariation =[]
-      
-             
-     cryptoInfo =result.data.data
-     Object.values(cryptoInfo).forEach(innerObj => {
-       let sparkline_in_7d= innerObj.quotes.map((elem)=>{
-      return elem.quote.USD.price
-       })
-       priceVariation.push({
-        id: innerObj.id,
-        name: innerObj.name,
-        sparkline_in_7d : sparkline_in_7d,
-      })
-     
-     });
+        } else {
+            const endDate = Math.floor(Date.now() / 1000) // Current timestamp in seconds
+            const startDate = endDate - 7 * 24 * 60 * 60
+            const options = {
+                method: 'GET',
+                url: process.env.CMC_HISTORY_URL,
+                params: {
+                    id: cryptolist,
+                    time_start: startDate,
+                    time_end: endDate,
+                    interval: 'hourly',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            }
 
-      
-     chart = { data: priceVariation, date: Date.now() }
-     cache.put('chart', chart)
-       
-   
-return  priceVariation
-    } }catch(err){
-  throw new Error('Error fetching prices char')
+            var results
+            try {
+                results = await Promise.all([rp.request(options)])
+            } catch (error) {
+                throw new Error('Error fetching prices chart')
+            }
+            var result = await results[0]
+
+            var cryptoInfo
+            var priceVariation = []
+
+            cryptoInfo = result.data.data
+            Object.values(cryptoInfo).forEach((innerObj) => {
+                let sparkline_in_7d = innerObj.quotes.map((elem) => {
+                    return elem.quote.USD.price
+                })
+                priceVariation.push({
+                    id: innerObj.id,
+                    name: innerObj.name,
+                    sparkline_in_7d: sparkline_in_7d,
+                })
+            })
+
+            chart = { data: priceVariation, date: Date.now() }
+            cache.put('chart', chart)
+
+            return priceVariation
+        }
+    } catch (err) {
+        throw new Error('Error fetching prices char')
     }
-
 }
-exports.getGlobalCryptoMarket = async () =>{
+exports.getGlobalCryptoMarket = async () => {
     try {
-       
         if (
             cache.get('market') &&
-            Date.now() - new Date(cache.get('market')?.date).getTime() < 86400000
+            Date.now() - new Date(cache.get('market')?.date).getTime() <
+                86400000
         ) {
             return cache.get('market').data
-        } else{    const options = {
-        method: 'GET',
-        url: process.env.CMC_GLOBL_URL,
-        params: {
-            convert: 'USD',
-        },
-        headers: {
-            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-        },
-    }
-    var result
-    try{
-        result = await Promise.all([rp.request(options) ])
-    } 
-    catch(err){
+        } else {
+            const options = {
+                method: 'GET',
+                url: process.env.CMC_GLOBL_URL,
+                params: {
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            }
+            var result
+            try {
+                result = await Promise.all([rp.request(options)])
+            } catch (err) {
+                throw new Error('Error fetching Global Crypto Market Info')
+            }
+            market = {
+                data: result[0]?.data?.data?.quote?.USD,
+                date: Date.now(),
+            }
+            cache.put('market', market)
+            return result[0]?.data?.data?.quote?.USD
+        }
+    } catch (err) {
         throw new Error('Error fetching Global Crypto Market Info')
     }
-  market =  { data: result[0]?.data?.data?.quote?.USD, date: Date.now() }
-  cache.put('market', market)
-    return result[0]?.data?.data?.quote?.USD}
-} catch(err){
-    throw new Error('Error fetching Global Crypto Market Info')
-}
-
-
 }
 
 exports.filterAmount = function (input, nbre = 10) {
-   try{ if (input) {
-        var out = input
-        let size = input.length
-        let toAdd = parseInt(nbre) - parseInt(size)
+    try {
+        if (input) {
+            var out = input
+            let size = input.length
+            let toAdd = parseInt(nbre) - parseInt(size)
 
-        if (input == 0) {
-            toAdd--
-        }
-        if (toAdd > 0) {
-            if (input.includes('.')) {
-                for (let i = 0; i < toAdd; i++) {
-                    out += '0'
-                }
-            } else {
-                out += '.'
-                for (let i = 0; i < toAdd; i++) {
-                    out += '0'
-                }
+            if (input == 0) {
+                toAdd--
             }
-        } else if (toAdd < 0) {
-            if (input.includes('.')) {
-                if (input.split('.')[0].length > nbre) {
-                    out = input.substring(0, nbre)
+            if (toAdd > 0) {
+                if (input.includes('.')) {
+                    for (let i = 0; i < toAdd; i++) {
+                        out += '0'
+                    }
                 } else {
-                    out = input.substring(0, nbre)
-                    if (out[nbre - 1] == '.') {
-                        out = input.substring(0, nbre - 1)
+                    out += '.'
+                    for (let i = 0; i < toAdd; i++) {
+                        out += '0'
+                    }
+                }
+            } else if (toAdd < 0) {
+                if (input.includes('.')) {
+                    if (input.split('.')[0].length > nbre) {
+                        out = input.substring(0, nbre)
+                    } else {
+                        out = input.substring(0, nbre)
+                        if (out[nbre - 1] == '.') {
+                            out = input.substring(0, nbre - 1)
+                        }
                     }
                 }
             }
-        }
 
-        return out
-    } else {
-        return '-'
-    }} catch(err){
+            return out
+        } else {
+            return '-'
+        }
+    } catch (err) {
         throw new Error('Error filterAmount')
     }
 }
@@ -890,48 +891,45 @@ exports.multicall = async (tokens, addresses, network, web3) => {
 exports.getWeb3Instance = async (network) => {
     switch (network) {
         case 'bep20':
-            return await bep20Connexion();
+            return await bep20Connexion()
         case 'erc20':
-            return await erc20Connexion();
+            return await erc20Connexion()
         case 'polygon':
-            return await polygonConnexion();
+            return await polygonConnexion()
         case 'bttc':
-            return await bttConnexion();
+            return await bttConnexion()
         case 'tron':
-            return await webTronInstance();
+            return await webTronInstance()
         default:
-            throw new Error(`Invalid network: ${network}`);
+            throw new Error(`Invalid network: ${network}`)
     }
-};
+}
 
 // Helper function to format token balance with decimals
 exports.formatTokenBalance = (balance, decimals) => {
-    return balance / 10 ** decimals;
-};
+    return balance / 10 ** decimals
+}
 
 // Helper function to get native balance (ETH, TRX, etc.) and format it
 exports.getNativeBalance = async (web3Instance, walletAddress, network) => {
-        if(network === 'tron') {
-            const account = await web3Instance.trx.getAccount(walletAddress);
-            if (account && account.balance) {
-                const balanceFormatted = web3Instance.fromSun(account.balance);
-                return balanceFormatted;
-            }
-            return '0';
-        } else {
-            const balanceWei = await web3Instance.eth.getBalance(walletAddress);
-            const balanceFormatted = web3Instance.utils.fromWei(balanceWei, 'ether');
-            return balanceFormatted;
+    if (network === 'tron') {
+        const account = await web3Instance.trx.getAccount(walletAddress)
+        if (account && account.balance) {
+            const balanceFormatted = web3Instance.fromSun(account.balance)
+            return balanceFormatted
         }
-       
-   
-    
-};
+        return '0'
+    } else {
+        const balanceWei = await web3Instance.eth.getBalance(walletAddress)
+        const balanceFormatted = web3Instance.utils.fromWei(balanceWei, 'ether')
+        return balanceFormatted
+    }
+}
 
 exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
     try {
         if (isTrx) {
-            console.log({trx: webTron.trx})
+            console.log({ trx: webTron.trx })
             let amount = await webTron.trx.getBalance(address)
             return amount.toString()
         }
@@ -946,6 +944,7 @@ exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
 
 exports.getListCryptoByUid = async (req, res) => {
     let id = req.user._id
+    var user = await User.findOne({ _id: id })
 
     let crypto = await this.getPrices()
     //list of first 200 crypto from coinmarketcap + satt + jet
@@ -958,10 +957,15 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        let ret =
-            req.body.version === 'v1'
-                ? await this.getAccount(req, res)
-                : await this.getAccountV2(req, res)
+        var ret = (
+            req.body.version === null
+                ? !user.migrated
+                : req.body.version === 'v1'
+        )
+            ? await this.getAccount(req, res)
+            : await this.getAccountV2(req, res)
+
+        const a = await this.getAccount(req, res)
         let tronAddress = ret.tronAddress
         delete ret.btc
         delete ret.version
@@ -1074,7 +1078,7 @@ exports.getListCryptoByUid = async (req, res) => {
 
                 for (var i = 0; i < balancesBynetwork[T_network].length; i++) {
                     let crypto = tokensInfosByNetwork[T_network][i]
-                   
+
                     crypto.balance = balancesBynetwork[T_network][i]
                         ? web3s[Erc20NetworkConstant].utils
                               .toBN(balancesBynetwork[T_network][i])
@@ -1164,6 +1168,8 @@ exports.getListCryptoByUid = async (req, res) => {
 exports.getBalanceByUid = async (req, res) => {
     try {
         var userId = req.user._id
+        var user = await User.findOne({ _id: userId })
+
         let crypto = req.prices || (await this.getPrices())
 
         var [Total_balance, CryptoPrices] = [0, crypto]
@@ -1185,10 +1191,14 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['MATIC']
         // delete token_info['BTT']
 
-        var ret =
-            req.body.version === 'v1'
-                ? await this.getAccount(req, res)
-                : await this.getAccountV2(req, res)
+        var ret = (
+            req.body.version === null
+                ? !user.migrated
+                : req.body.version === 'v1'
+        )
+            ? await this.getAccount(req, res)
+            : await this.getAccountV2(req, res)
+
         let tronAddress = ret?.tronAddress
         delete ret?.btc
         delete ret?.tronAddress
@@ -1490,7 +1500,7 @@ exports.getCount = async function () {
     } catch (err) {}
 }
 
-exports.getCountV2 = async  () => {
+exports.getCountV2 = async () => {
     try {
         var count = await Wallet.find({ walletV2: { $exists: true } }).count()
         return count + 1
@@ -1683,7 +1693,7 @@ exports.createSeedV2 = async (req, res) => {
         return { error: error.message }
     }
 }
-exports.addWalletTron = async ({user:{_id : UserId},body:{pass}}) => {
+exports.addWalletTron = async ({ user: { _id: UserId }, body: { pass } }) => {
     try {
         let TronWallet = await this.getWalletTron(UserId, pass)
         await Wallet.updateOne(
