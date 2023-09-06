@@ -946,7 +946,7 @@ exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
 
 exports.getListCryptoByUid = async (req, res) => {
     let id = req.user._id
-
+    const user = await User.findOne({ _id: id })
     let crypto = await this.getPrices()
     //list of first 200 crypto from coinmarketcap + satt + jet
     var listOfCrypto = []
@@ -958,10 +958,13 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        let ret =
-            req.body.version === 'v1'
-                ? await this.getAccount(req, res)
-                : await this.getAccountV2(req, res)
+        var ret = (
+            req.body.version === null
+                ? !user.migrated
+                : req.body.version === 'v1'
+        )
+            ? await this.getAccount(req, res)
+            : await this.getAccountV2(req, res)
         let tronAddress = ret.tronAddress
         delete ret.btc
         delete ret.version
@@ -1165,7 +1168,7 @@ exports.getBalanceByUid = async (req, res) => {
     try {
         var userId = req.user._id
         let crypto = req.prices || (await this.getPrices())
-
+        var user = await User.findOne({ _id: userId })
         var [Total_balance, CryptoPrices] = [0, crypto]
         var {
             SATT,
@@ -1185,10 +1188,13 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['MATIC']
         // delete token_info['BTT']
 
-        var ret =
-            req.body.version === 'v1'
-                ? await this.getAccount(req, res)
-                : await this.getAccountV2(req, res)
+        var ret = (
+            req.body.version === null
+                ? !user.migrated
+                : req.body.version === 'v1'
+        )
+            ? await this.getAccount(req, res)
+            : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
         delete ret?.btc
         delete ret?.tronAddress
