@@ -63,6 +63,7 @@ const campaignsSchema = mongoose.Schema(
         coverMobile: { type: String },
         coverSrcMobile: { type: String },
         contract: { type: String },
+        limitParticipation : {type : Number, default : 0},
         dataUrl: { type: String },
         funds: [{ type: String }, { type: String }],
         hash: { type: String },
