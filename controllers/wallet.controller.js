@@ -85,7 +85,8 @@ const {
     getGlobalCryptoMarket,
     getWeb3Instance,
     formatTokenBalance,
-    getNativeBalance
+    getNativeBalance,
+    getallCryptoMarket
 } = require('../web3/wallets')
 
 const {
@@ -285,6 +286,10 @@ exports.cryptoPriceDetails = async (req, res) => {
     let chart = await getChartVariation(req.query.cryptolist)
 
     return responseHandler.makeResponseData(res, 200, 'success', chart)
+}
+exports.getallCrypto = async (req, res) => {
+    let crypto = await getallCryptoMarket(req.query.cryptochunk)
+    return responseHandler.makeResponseData(res, 200, 'success', crypto)
 }
 exports.globalCryptoMarketInfo = async (req, res) => {
     const global = await getGlobalCryptoMarket()
