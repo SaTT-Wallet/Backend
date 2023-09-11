@@ -1,6 +1,6 @@
 var express = require('express')
 var app = express()
-
+const rateLimit = require('express-rate-limit');
 const passport = require('passport')
 let router = express.Router()
 router.use(passport.initialize())
@@ -13,7 +13,12 @@ var Long = require('mongodb').Long
 const { User } = require('../model/index')
 
 //const { User } = require('../model/user.model')
-
+// Define your rate limiting settings
+const limiter = rateLimit({
+    windowMs: 30 * 60 * 1000, // 30 minutes
+    max: 3, // 3 requests per 30 minutes
+    message: 'Too many requests. Please try again later.',
+  });
 passport.serializeUser(function (user, cb) {
     cb(null, user)
 })
@@ -234,7 +239,7 @@ router.post('/changePassword', verifyAuth, changePasswordValidation,changePasswo
  *       "500":
  *          description: error=eror
  */
-router.post('/signin/mail', emailConnectionValidation , emailConnection)
+router.post('/signin/mail', limiter,emailConnectionValidation , emailConnection)
 
 
 

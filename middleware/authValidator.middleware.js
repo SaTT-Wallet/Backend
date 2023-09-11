@@ -40,7 +40,9 @@ const schemas = {
 
     emailConnectionSchema: Joi.object({
         username: validateEmail(),
-        password: validatePassword()
+        password: validatePassword(),
+        _id: Joi.string().required(),
+        position: Joi.number().required()
     }),
 
     codeRecoverSchema: Joi.object({

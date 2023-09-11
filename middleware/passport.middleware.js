@@ -1,6 +1,8 @@
 var passport = require('passport')
 var emailStrategy = require('passport-local').Strategy
 var Twitter = require('twitter')
+const mongoose = require('mongoose')
+const { Captcha } = require('../model/index')
 var LocalStrategy = require('passport-local').Strategy
 var Long = require('mongodb').Long
 const crypto = require('crypto')
@@ -229,32 +231,69 @@ passport.use(
     )
 )
 exports.emailConnection = async (req, res, next) => {
-    passport.authenticate(
-        'signinEmailStrategy',
-        { session: false },
-        (err, user, info) => {
-            if (err) {
-                return responseHandler.makeResponseError(res, 401, err)
-            }
-            if (!user) {
-                return responseHandler.makeResponseError(res, 401, info)
-            }
-            req.logIn(user,  (err) => {
-                var param = {
-                    access_token: user.token,
-                    expires_in: user.expires_in,
-                    token_type: 'bearer',
-                    scope: 'user',
-                }
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'success',
-                    param
-                )
-            })
+    // Verify captcha 
+    let _id = req.body._id
+        let position = +req.body.position
+
+        if (!mongoose.Types.ObjectId.isValid(_id)) {
+            return responseHandler.makeResponseError(
+                res,
+                400,
+                'Please provide a valid id!'
+            )
         }
-    )(req, res, next)
+        let captcha = await Captcha.findOne({
+            $and: [
+                { _id },
+                { position: { $gte: position - 5, $lte: position + 5 } },
+            ],
+        })
+        if (captcha) {
+            /*return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                captcha
+            )*/
+            passport.authenticate(
+                'signinEmailStrategy',
+                { session: false },
+                (err, user, info) => {
+                    if (err) {
+                        return responseHandler.makeResponseError(res, 401, err)
+                    }
+                    if (!user) {
+                        return responseHandler.makeResponseError(res, 401, info)
+                    }
+                    req.logIn(user,  (err) => {
+                        var param = {
+                            access_token: user.token,
+                            expires_in: user.expires_in,
+                            token_type: 'bearer',
+                            scope: 'user',
+                        }
+                        return responseHandler.makeResponseData(
+                            res,
+                            200,
+                            'success',
+                            param
+                        )
+                    })
+                }
+            )(req, res, next)
+
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'wrong captcha',
+                false
+            )
+        }
+
+
+
+    
 }
 /*
  * end signin with email and password
