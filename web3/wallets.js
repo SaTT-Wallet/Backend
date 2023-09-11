@@ -723,7 +723,79 @@ exports.getPrices = async () => {
         throw new Error('Error fetching prices ')
     }
 }
+exports.getallCryptoMarket = async (startVariable) => {
+    try {
+        if (
+            cache.get('prices' + startVariable) &&
+            Date.now() -
+                new Date(cache.get('prices' + startVariable)?.date).getTime() <
+                1200000
+        ) {
+            return cache.get('prices' + startVariable).data
+        } else {
+            const options = {
+                method: 'GET',
+                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                params: {
+                    start: startVariable.toString(),
+                    limit: '100',
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            }
+            let result
 
+            try {
+                result = await rp.request(options)
+            } catch (error) {
+                throw new Error('Error fetching prices')
+            }
+
+            let priceMap
+            try {
+                priceMap = result.data.data.map((elem) => {
+                    var obj = {}
+
+                    obj = {
+                        id: elem.id,
+                        cmc_rank: elem.cmc_rank,
+                        symbol: elem.symbol,
+                        name: elem.name,
+                        price: elem?.quote.USD.price,
+                        percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        percent_change_1h: elem?.quote.USD.percent_change_1h,
+                        percent_change_7d: elem?.quote.USD.percent_change_7d,
+                        market_cap: elem?.quote.USD.market_cap,
+                        volume_24h: elem?.quote.USD.volume_24h,
+                        circulating_supply: elem.circulating_supply,
+                        total_supply: elem.total_supply,
+                        max_supply: elem.max_supply,
+                        logo:
+                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                            elem.id +
+                            '.png',
+                    }
+
+                    return obj
+                })
+            } catch (error) {
+                throw new Error('Error fetching prices')
+            }
+
+            var finalMap = {}
+            for (var i = 0; i < priceMap.length; i++) {
+                finalMap[priceMap[i].symbol] = priceMap[i]
+                delete finalMap[priceMap[i].symbol].symbol
+            }
+
+            prices = { data: finalMap, date: Date.now() }
+            cache.put('prices' + startVariable, prices)
+            return finalMap
+        }
+    } catch (err) {}
+}
 exports.getChartVariation = async (cryptolist) => {
     try {
         if (
@@ -975,7 +1047,6 @@ exports.getListCryptoByUid = async (req, res) => {
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
 
-        const a = await this.getAccount(req, res)
         let tronAddress = ret.tronAddress
         delete ret.btc
         delete ret.version
@@ -1182,7 +1253,7 @@ exports.getBalanceByUid = async (req, res) => {
         var user = await User.findOne({ _id: userId })
 
         let crypto = req.prices || (await this.getPrices())
-
+        var user = await User.findOne({ _id: userId })
         var [Total_balance, CryptoPrices] = [0, crypto]
         var {
             SATT,

@@ -275,17 +275,18 @@ module.exports.campaignsPictureUpload = multer({
 }).single('cover')
 
 module.exports.launchCampaign = async (req, res) => {
-    const id = req.user._id
-    var dataUrl = req.body.dataUrl
-    var startDate = req.body.startDate
-    var endDate = req.body.endDate
-    var tokenAddress = req.body.tokenAddress
-    var amount = req.body.amount
-    var ratios = req.body.ratios
-    var contract = req.body.contract
-    let _id = req.body.idCampaign
-    let currency = req.body.currency
-    let network = req.body.network
+    var {
+        limit: limitParticipation,
+        contract,
+        ratios,
+        amount,
+        tokenAddress,
+        endDate,
+        startDate,
+        dataUrl,
+    } = req.body
+    let { idCampaign: _id, currency, network } = req.body
+
     try {
         var tronWeb
         var cred
@@ -320,7 +321,8 @@ module.exports.launchCampaign = async (req, res) => {
             amount,
             cred,
             tronWeb,
-            res
+            res,
+            limitParticipation
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -344,6 +346,7 @@ module.exports.launchCampaign = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
+                limitParticipation,
                 token: {
                     name: currency,
                     type: network,
@@ -377,23 +380,22 @@ module.exports.launchCampaign = async (req, res) => {
                 contract: contract.toLowerCase(),
             }
             await Event.create(event)
-            await notificationManager(id, 'create_campaign', {
-                cmp: campaign,
-            })
         }
     }
 }
 
 module.exports.launchBounty = async (req, res) => {
-    var dataUrl = req.body.dataUrl
-    var startDate = req.body.startDate
-    var endDate = req.body.endDate
-    var tokenAddress = req.body.tokenAddress
-    var amount = req.body.amount
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
-    var bounties = req.body.bounties
-    let network = req.body.network
-    let currency = req.body.currency
+    var {
+        limit: limitParticipation,
+        bounties,
+        amount,
+        tokenAddress,
+        endDate,
+        startDate,
+        dataUrl,
+    } = req.body
+    let { network, currency } = req.body
     let id = req.user._id
 
     try {
@@ -425,7 +427,8 @@ module.exports.launchBounty = async (req, res) => {
             amount,
             cred,
             tronWeb,
-            res
+            res,
+            limitParticipation
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -448,6 +451,7 @@ module.exports.launchBounty = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
+                limitParticipation,
                 token: {
                     name: currency,
                     type: network,
@@ -479,10 +483,13 @@ module.exports.launchBounty = async (req, res) => {
                 txhash: ret.transactionHash,
                 contract: contract.toLowerCase(),
             }
-            await Event.create(event)
-            await notificationManager(id, 'create_campaign', {
-                cmp: campaign,
-            })
+
+            await Promise.allSettled([
+                Event.create(event),
+                notificationManager(id, 'create_campaign', {
+                    cmp: campaign,
+                }),
+            ])
         }
     }
 }
@@ -1008,14 +1015,15 @@ exports.apply = async (req, res) => {
 
         await Promise.allSettled([
             CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+            notificationManager(id, 'apply_campaign', {
+                cmp_name: title,
+                cmp_hash: idCampaign,
+                linkId: insert._id,
+                prom: { oracle: prom.oracle, type: 'waiting_for_validation' },
+                network: campaignDetails.token.type,
+            }),
         ])
-        await notificationManager(id, 'apply_campaign', {
-            cmp_name: title,
-            cmp_hash: idCampaign,
-            linkId: insert._id,
-            prom: { oracle: prom.oracle, type: 'waiting_for_validation' },
-            network: campaignDetails.token.type,
-        })
+
         return responseHandler.makeResponseData(res, 200, 'success', insert)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1039,6 +1047,8 @@ exports.linkNotifications = async (req, res) => {
         // Fetch the campaign
         const element = await fetchCampaign({ _id: campaignId })
         let owner = Number(element.idNode.substring(1))
+
+        // Notify the campaign owner
         await notificationManager(owner, 'cmp_candidate_insert_link', {
             cmp_name: element.title,
             cmp_hash: campaignId,
