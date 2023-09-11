@@ -340,6 +340,14 @@ exports.getAccountV2 = async (req, res) => {
             sattPromise,
         ])
 
+        let totalBalance =
+            ether_balance +
+            bnb_balance +
+            polygon_balance +
+            btt_balance +
+            trx_balance +
+            satt_balance
+
         var result = {
             btc: account.btc ? btcAddress : '',
             address: address,
@@ -353,6 +361,7 @@ exports.getAccountV2 = async (req, res) => {
             btt_balance: btt_balance,
             trx_balance: trx_balance,
             version: account.mnemo ? 2 : 1,
+            totalBalance: totalBalance,
         }
         result.btc_balance = 0
         if (process.env.NODE_ENV === 'mainnet' && btcAddress) {
@@ -957,13 +966,14 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        var ret = (
-            req.body.version === null
-                ? !user.migrated
-                : req.body.version === 'v1'
-        )
-            ? await this.getAccount(req, res)
-            : await this.getAccountV2(req, res)
+        const totalBalanceV2 = await this.getAccountV2(req, res)
+
+        req.body.version === 'v1'
+
+        var ret =
+            req.body.version === 'v1' || totalBalanceV2.totalBalance <= 0
+                ? await this.getAccount(req, res)
+                : await this.getAccountV2(req, res)
 
         const a = await this.getAccount(req, res)
         let tronAddress = ret.tronAddress
@@ -1121,6 +1131,7 @@ exports.getListCryptoByUid = async (req, res) => {
         delete ret.matic_balance
         delete ret.btt_balance
         delete ret.trx_balance
+        delete ret.totalBalance
 
         for (const Amount in ret) {
             let crypto = {}
@@ -1191,13 +1202,11 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['MATIC']
         // delete token_info['BTT']
 
-        var ret = (
-            req.body.version === null
-                ? !user.migrated
-                : req.body.version === 'v1'
-        )
-            ? await this.getAccount(req, res)
-            : await this.getAccountV2(req, res)
+        const totalBalanceV2 = await this.getAccountV2(req, res)
+        var ret =
+            req.body.version === 'v1' || totalBalanceV2.totalBalance <= 0
+                ? await this.getAccount(req, res)
+                : await this.getAccountV2(req, res)
 
         let tronAddress = ret?.tronAddress
         delete ret?.btc
@@ -1323,6 +1332,7 @@ exports.getBalanceByUid = async (req, res) => {
         }
 
         delete ret?.address
+        delete ret?.totalBalance
 
         for (const Amount in ret) {
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
