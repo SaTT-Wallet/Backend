@@ -524,30 +524,51 @@ exports.getAllWallets = async (req, res) => {
 
 const getNetworkByToken = async (idCrypto) => {
     try {
-        if (
-            cache.get('networks') &&
-            Date.now() - new Date(cache.get('networks').date).getTime() <
-                604800000
-        ) {
+        if (cache.get('networks')) {
             return cache.get('networks').data
         } else {
-            const options = {
-                method: 'GET',
-                url: process.env.CMC_CRYPTO_DETAILS,
-                params: {
-                    id: idCrypto,
-                },
-                headers: {
-                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                },
+            const idCryptoArray = idCrypto.split(',')
+            const batchSize = 1300 // Number of cryptos per batch
+
+            // Split the idCryptoArray into batches
+            const batches = []
+            for (let i = 0; i < idCryptoArray.length; i += batchSize) {
+                const batch = idCryptoArray.slice(i, i + batchSize).join(',')
+                batches.push(batch)
             }
 
-            const result = await rp.request(options)
-            const networksContract = Object.values(result.data.data).map(
-                (innerObj) => ({
+            const results = []
+
+            // Send requests for each batch concurrently using Promise.all
+            await Promise.all(
+                batches.map(async (batch) => {
+                    const options = {
+                        method: 'GET',
+                        url: process.env.CMC_CRYPTO_DETAILS,
+                        params: {
+                            id: batch,
+                        },
+                        headers: {
+                            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                        },
+                    }
+
+                    try {
+                        const result = await rp.request(options)
+                        results.push(result)
+                    } catch (err) {
+                        console.error('Error fetching data for batch:', err)
+                        // Handle the error as needed, e.g., retry or skip
+                    }
+                })
+            )
+
+            // Process the results
+            const networksContract = results.flatMap((result) =>
+                Object.values(result.data.data).map((innerObj) => ({
                     symbol: innerObj.symbol,
                     contract_address: innerObj.contract_address,
-                })
+                }))
             )
 
             const networks = { data: networksContract, date: Date.now() }
@@ -559,6 +580,7 @@ const getNetworkByToken = async (idCrypto) => {
         throw new Error('Error fetching networks')
     }
 }
+
 exports.getPrices = async () => {
     try {
         if (
@@ -572,7 +594,7 @@ exports.getPrices = async () => {
                 url: process.env.CMC_URl,
                 params: {
                     start: '1',
-                    limit: '1200',
+                    limit: '5000',
                     convert: 'USD',
                 },
                 headers: {
@@ -687,7 +709,6 @@ exports.getPrices = async () => {
             var finalMap = {}
 
             const idcrypto = priceMap.map((token) => token.id.toString())
-
             priceMap.forEach((token) => {
                 finalMap[token.symbol] = { ...token, networkSupported: '' }
                 delete finalMap[token.symbol].symbol
