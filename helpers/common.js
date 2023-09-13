@@ -452,7 +452,7 @@ exports.BalanceUsersStats = async (condition) => {
         ) {
             counter++
         } else {
-            console.log('user balance: ' + result.Balance, 'userId: ' + id)
+         
             user[condition].unshift(result)
             if (user[condition].length > 7) {
                 user[condition].pop()
