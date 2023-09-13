@@ -348,7 +348,7 @@ exports.createPerformanceCampaign = async (
     credentials,
     tronWeb,
     res,
-    limit = 0
+    limit = 100
 ) => {
     try {
         /**   CHECK IF COMPAGNE NETWORK IS TRON */
@@ -369,7 +369,8 @@ exports.createPerformanceCampaign = async (
                     endDate,
                     ratios,
                     token,
-                    amount
+                    amount,
+                    limit || 100
                 )
                 .send({
                     feeLimit: 1e9,
@@ -428,7 +429,7 @@ exports.createPerformanceCampaign = async (
                 ratios,
                 token,
                 amount + '',
-                limit
+                limit || 100
             )
             .send({
                 from: credentials.address,
