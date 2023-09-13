@@ -51,7 +51,7 @@ const {
     purgeAccount,
     logout,
     setVisitSignUpStep,
-    verifyExpiredToken
+    verifyExpiredToken,
 } = require('../controllers/login.controller')
 const {
     emailConnection,
@@ -65,7 +65,7 @@ const {
     signup_telegram_function,
     signin_telegram_function,
     verifyAuth,
-    sattConnect
+    sattConnect,
 } = require('../middleware/passport.middleware')
 const {
     persmissionsObjFb,
@@ -87,7 +87,7 @@ const {
     socialdisconnectValidation,
     saveFirebaseAccessTokenValidation,
     updateLastStepValidation,
-    verifyQrCodeValidation
+    verifyQrCodeValidation,
 } = require('../middleware/authValidator.middleware')
 const { profile } = require('winston')
 
@@ -177,7 +177,7 @@ router.post('/verifyCaptcha', verifyCaptcha)
  *       "500":
  *          description: code,<br>error
  */
-router.post('/purge', verifyAuth, purgeAccountValidation,purgeAccount)
+router.post('/purge', verifyAuth, purgeAccountValidation, purgeAccount)
 
 /**
  * @swagger
@@ -207,7 +207,12 @@ router.post('/purge', verifyAuth, purgeAccountValidation,purgeAccount)
  *       "500":
  *          description: error:"error"
  */
-router.post('/changePassword', verifyAuth, changePasswordValidation,changePassword)
+router.post(
+    '/changePassword',
+    verifyAuth,
+    changePasswordValidation,
+    changePassword
+)
 /**
  * @swagger
  * /auth/signin/mail:
@@ -234,9 +239,7 @@ router.post('/changePassword', verifyAuth, changePasswordValidation,changePasswo
  *       "500":
  *          description: error=eror
  */
-router.post('/signin/mail', emailConnectionValidation , emailConnection)
-
-
+router.post('/signin/mail', emailConnectionValidation, emailConnection)
 
 /**
  * @swagger
@@ -266,8 +269,7 @@ router.post('/signin/mail', emailConnectionValidation , emailConnection)
  *       "500":
  *          description: error=eror
  */
-router.post('/passlost', codeRecoverValidation,codeRecover)
-
+router.post('/passlost', codeRecoverValidation, codeRecover)
 
 /**
  * @swagger
@@ -299,7 +301,7 @@ router.post('/passlost', codeRecoverValidation,codeRecover)
  *       "500":
  *          description: error=eror
  */
-router.post('/confirmCode', confirmCodeValidation,confirmCode)
+router.post('/confirmCode', confirmCodeValidation, confirmCode)
 
 /**
  * @swagger
@@ -330,7 +332,7 @@ router.post('/confirmCode', confirmCodeValidation,confirmCode)
  *       "500":
  *          description: error=eror
  */
-router.post('/passrecover', passRecovervalidation , passRecover)
+router.post('/passrecover', passRecovervalidation, passRecover)
 
 /**
  * @swagger
@@ -362,7 +364,7 @@ router.post('/passrecover', passRecovervalidation , passRecover)
  *       "500":
  *          description: error=eror
  */
-router.post('/signup/mail', emailSignupValidation , emailSignup)
+router.post('/signup/mail', emailSignupValidation, emailSignup)
 
 /**
  * @swagger
@@ -389,7 +391,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('auth/callback/facebook/signup'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            facebookAuthSignup(req,profile, cb)
+            facebookAuthSignup(req, profile, cb)
         }
     )
 )
@@ -409,7 +411,6 @@ passport.use(
 router.get('/signup/twitter', async (req, res, next) => {
     passport.authenticate('twitter')(req, res, next)
 })
-
 
 router.get(
     '/twitter/callback',
@@ -474,7 +475,6 @@ router.get(
 router.get('/signin/twitter', async (req, res, next) => {
     passport.authenticate('twitter-signin')(req, res, next)
 })
-
 
 /**
  * @swagger
@@ -641,7 +641,6 @@ passport.use(
             passReqToCallback: true,
         },
         async function (req, profile, cb) {
-            console.log('signup_telegram_function passport')
             signup_telegram_function(req, profile, cb)
         }
     )
@@ -705,7 +704,11 @@ passport.use(
  *       "500":
  *          description: error=eror
  */
-router.post('/resend/confirmationToken', resendConfirmationTokenValidation , resendConfirmationToken)
+router.post(
+    '/resend/confirmationToken',
+    resendConfirmationTokenValidation,
+    resendConfirmationToken
+)
 
 /**
  * @swagger
@@ -733,7 +736,12 @@ router.post('/resend/confirmationToken', resendConfirmationTokenValidation , res
  *       "500":
  *          description: error:error message
  */
-router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessTokenValidation,saveFirebaseAccessToken)
+router.post(
+    '/save/firebaseAccessToken',
+    verifyAuth,
+    saveFirebaseAccessTokenValidation,
+    saveFirebaseAccessToken
+)
 
 /**
  * @swagger
@@ -765,7 +773,12 @@ router.post('/save/firebaseAccessToken', verifyAuth, saveFirebaseAccessTokenVali
  *       "500":
  *          description: error
  */
-router.put('/updateLastStep', verifyAuth, updateLastStepValidation ,updateLastStep)
+router.put(
+    '/updateLastStep',
+    verifyAuth,
+    updateLastStepValidation,
+    updateLastStep
+)
 
 /**
  * @swagger
@@ -797,8 +810,7 @@ router.put('/updateLastStep', verifyAuth, updateLastStepValidation ,updateLastSt
  *       "500":
  *          description: error
  */
-router.post('/apple', authAppleValidation,authApple)
-
+router.post('/apple', authAppleValidation, authApple)
 
 /**
  * @swagger
@@ -868,7 +880,6 @@ router.post('/socialSignup', socialSignUp)
  */
 router.post('/socialSignin', socialSignin)
 
-
 /**
  * @swagger
  * /auth/disconnect/{social}:
@@ -888,9 +899,12 @@ router.post('/socialSignin', socialSignin)
  *       "500":
  *          description: error:"error"
  */
-router.put('/disconnect/:social', verifyAuth, socialdisconnectValidation , socialdisconnect)
-
-
+router.put(
+    '/disconnect/:social',
+    verifyAuth,
+    socialdisconnectValidation,
+    socialdisconnect
+)
 
 /**
  * @swagger
@@ -930,7 +944,7 @@ router.get('/qrCode', verifyAuth, getQrCode)
  *       "500":
  *          description: error
  */
-router.post('/verifyQrCode', verifyAuth, verifyQrCodeValidation,verifyQrCode)
+router.post('/verifyQrCode', verifyAuth, verifyQrCodeValidation, verifyQrCode)
 
 /**
  * @swagger
@@ -946,7 +960,7 @@ router.post('/verifyQrCode', verifyAuth, verifyQrCodeValidation,verifyQrCode)
  *       "500":
  *          description: error
  */
-router.get('/logout/:idUser', logoutValidation ,logout)
+router.get('/logout/:idUser', logoutValidation, logout)
 
 /**
  * @swagger
@@ -974,7 +988,7 @@ router.get('/logout/:idUser', logoutValidation ,logout)
  *       "500":
  *          description: error=eror
  */
-router.post('/satt-connect', emailConnectionValidation,sattConnect)
+router.post('/satt-connect', emailConnectionValidation, sattConnect)
 
 /**
  * @swagger
@@ -1002,15 +1016,12 @@ router.post('/satt-connect', emailConnectionValidation,sattConnect)
  *       "500":
  *          description: error=eror
  */
-router.post('/setVisitSignUpStep', setVisitSignUpStepValidation,setVisitSignUpStep)
-
-
-
-
-
-
+router.post(
+    '/setVisitSignUpStep',
+    setVisitSignUpStepValidation,
+    setVisitSignUpStep
+)
 
 router.get('/verify-token', verifyAuth, verifyExpiredToken)
-
 
 module.exports = router

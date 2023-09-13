@@ -339,7 +339,6 @@ exports.getAccountV2 = async (req, res) => {
             tronPromise,
             sattPromise,
         ])
-
         let totalBalance =
             ether_balance +
             bnb_balance +
@@ -347,7 +346,6 @@ exports.getAccountV2 = async (req, res) => {
             btt_balance +
             trx_balance +
             satt_balance
-
         var result = {
             btc: account.btc ? btcAddress : '',
             address: address,
@@ -1052,6 +1050,7 @@ exports.getListCryptoByUid = async (req, res) => {
         delete ret.version
         delete ret.tronAddress
         delete ret.tronValue
+
         // => userTokens : token ajoutés manuellemnt
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
@@ -1404,7 +1403,6 @@ exports.getBalanceByUid = async (req, res) => {
 
         delete ret?.address
         delete ret?.totalBalance
-
         for (const Amount in ret) {
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol
