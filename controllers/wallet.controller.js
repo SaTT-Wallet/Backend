@@ -539,6 +539,23 @@ exports.checkWalletToken = async (req, res) => {
         let found = false;
         let result;
         const tronAddressRegex = /^T[A-Za-z1-9]{33}$/;
+        let metaData // Declare with 'let' to allow reassignment
+        let logoimg
+        try {
+            const response = await rp(process.env.CMR_URL_ADDRR + tokenAdress, {
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            })
+
+            metaData = response.data
+            // Process metaData here
+        } catch (error) {
+            logoimg = 'not img found'
+        }
+
+        if (metaData)
+            logoimg = metaData.data[Object.keys(metaData.data)[0]].logo
         if(tronAddressRegex.test(tokenAdress)) {
             const wallet = await Wallet.findOne({UserId: req.user._id});
             if(!!wallet && (wallet.tronAddress || wallet.walletV2.tronAddress)) {
@@ -554,6 +571,7 @@ exports.checkWalletToken = async (req, res) => {
                 decimals,
                 tokenAdress,
                 network,
+                logoimg
             };
             found = true;
             } else found = false;
@@ -576,6 +594,7 @@ exports.checkWalletToken = async (req, res) => {
                         decimals,
                         tokenAdress,
                         network,
+                        logoimg
                     };
                     found = true;
                     break;
