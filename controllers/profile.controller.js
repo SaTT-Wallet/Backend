@@ -134,7 +134,7 @@ exports.account = async (req, res) => {
                 fireBaseAccessToken,
                 ...user
             } = req.user.toObject()
-            console.log({ user })
+
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 204, 'user not found')
@@ -1216,7 +1216,7 @@ module.exports.verifyLink = async (req, response) => {
                     },
                     { threads_id: 1, instagram_username: 1 }
                 ).lean()
-                console.log({ threads })
+
                 if (threads) {
                     linked = true
                     res = await verifyThread(
@@ -1224,7 +1224,7 @@ module.exports.verifyLink = async (req, response) => {
                         threads.threads_id,
                         threads.instagram_username
                     )
-                    console.log({ res })
+
                     if (res === 'deactivate') deactivate = true
                 }
 
