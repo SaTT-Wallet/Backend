@@ -475,7 +475,8 @@ exports.createBountiesCampaign = async (
                 endDate,
                 bounties,
                 token,
-                amount
+                amount,
+                limit || 100
             )
             .send({
                 feeLimit: 1e9,
@@ -518,7 +519,7 @@ exports.createBountiesCampaign = async (
                 bounties,
                 token,
                 amount,
-                limit
+                limit || 100
             )
             .send({
                 from: credentials.address,
