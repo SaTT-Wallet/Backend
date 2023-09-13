@@ -1017,7 +1017,7 @@ exports.getNativeBalance = async (web3Instance, walletAddress, network) => {
 exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
     try {
         if (isTrx) {
-            console.log({trx: webTron.trx})
+          
             let amount = await webTron.trx.getBalance(address)
             return amount.toString()
         }
