@@ -542,9 +542,9 @@ exports.checkWalletToken = async (req, res) => {
         let metaData // Declare with 'let' to allow reassignment
         let logoimg
         try {
-            const response = await rp(CMR_URL_ADDRR + tokenAdress, {
+            const response = await rp(process.env.CMR_URL_ADDRR + tokenAdress, {
                 headers: {
-                    'X-CMC_PRO_API_KEY': CMCAPIKEY,
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
                 },
             })
 
