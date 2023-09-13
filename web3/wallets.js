@@ -341,7 +341,13 @@ exports.getAccountV2 = async (req, res) => {
             tronPromise,
             sattPromise,
         ])
-
+        let totalBalance =
+        ether_balance +
+        bnb_balance +
+        polygon_balance +
+        btt_balance +
+        trx_balance +
+        satt_balance
         var result = {
             btc: account.btc ? btcAddress : '',
             address: address,
@@ -355,6 +361,7 @@ exports.getAccountV2 = async (req, res) => {
             btt_balance: btt_balance,
             trx_balance: trx_balance,
             version: account.mnemo ? 2 : 1,
+            totalBalance: totalBalance,
         }
         result.btc_balance = 0
         if (process.env.NODE_ENV === 'mainnet' && btcAddress) {
@@ -507,30 +514,56 @@ exports.getAllWallets = async (req, res) => {
         return res.status(401).end('Account not found')
 }
 
+
 const getNetworkByToken = async (idCrypto) => {
     try {
       if (
-        cache.get('networks') &&
-        Date.now() - new Date(cache.get('networks').date).getTime() < 604800000
-      ) {
+        cache.get('networks') ) {
         return cache.get('networks').data;
       } else {
-        const options = {
-          method: 'GET',
-          url: process.env.CMC_CRYPTO_DETAILS,
-          params: {
-            id: idCrypto,
-          },
-          headers: {
-            'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-          },
-        };
+        const idCryptoArray = idCrypto.split(',');
+        const batchSize = 1300; // Number of cryptos per batch
   
-        const result = await rp.request(options);
-        const networksContract = Object.values(result.data.data).map((innerObj) => ({
-          symbol: innerObj.symbol,
-          contract_address: innerObj.contract_address,
-        }));
+        // Split the idCryptoArray into batches
+        const batches = [];
+        for (let i = 0; i < idCryptoArray.length; i += batchSize) {
+          const batch = idCryptoArray.slice(i, i + batchSize).join(',');
+          batches.push(batch);
+        }
+  
+        const results = [];
+  
+        // Send requests for each batch concurrently using Promise.all
+        await Promise.all(
+          batches.map(async (batch) => {
+            const options = {
+              method: 'GET',
+              url: process.env.CMC_CRYPTO_DETAILS,
+              params: {
+                id: batch,
+              },
+              headers: {
+                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+              },
+            };
+  
+            try {
+              const result = await rp.request(options);
+              results.push(result);
+            } catch (err) {
+              console.error('Error fetching data for batch:', err);
+              // Handle the error as needed, e.g., retry or skip
+            }
+          })
+        );
+  
+        // Process the results
+        const networksContract = results.flatMap((result) =>
+          Object.values(result.data.data).map((innerObj) => ({
+            symbol: innerObj.symbol,
+            contract_address: innerObj.contract_address,
+          }))
+        );
   
         const networks = { data: networksContract, date: Date.now() };
         cache.put('networks', networks);
@@ -541,6 +574,7 @@ const getNetworkByToken = async (idCrypto) => {
       throw new Error('Error fetching networks');
     }
   };
+
 exports.getPrices = async () => {
     try {
         if (
@@ -555,7 +589,7 @@ exports.getPrices = async () => {
                 url: process.env.CMC_URl,
                 params: {
                     start: '1',
-                    limit: '1200',
+                    limit: '5000',
                     convert: 'USD',
                 },
                 headers: {
@@ -671,7 +705,6 @@ exports.getPrices = async () => {
             var finalMap = {}
   
             const idcrypto = priceMap.map((token) => token.id.toString());
-           
             priceMap.forEach((token) => {
                 finalMap[token.symbol] = { ...token, networkSupported: '' };
                 delete finalMap[token.symbol].symbol;
@@ -711,7 +744,86 @@ exports.getPrices = async () => {
         throw new Error('Error fetching prices ')   
     }
 }
+exports.getallCryptoMarket = async (startVariable) =>{
+    try {
+        if (
+            cache.get('prices'+startVariable) &&
+            Date.now() - new Date(cache.get('prices'+startVariable)?.date).getTime() < 1200000
+        ) {
+            return cache.get('prices'+startVariable).data
+        } else {
+          
+            const options = {
+                method: 'GET',
+                url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                params: {
+                    start: startVariable.toString(),
+                    limit: '100',
+                    convert: 'USD',
+                },
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            }
+            let result 
 
+            try {
+                result = await rp.request(options)
+
+            } catch (error) {
+                throw new Error('Error fetching prices')
+            }
+
+           
+
+         
+            let  priceMap
+            try {
+             priceMap =  result.data.data.map((elem) => {
+                var obj = {}
+            
+           
+                    obj = {
+                        id: elem.id,
+                        cmc_rank: elem.cmc_rank,
+                        symbol: elem.symbol,
+                        name: elem.name,
+                        price: elem?.quote.USD.price,
+                        percent_change_24h: elem?.quote.USD.percent_change_24h,
+                        percent_change_1h:elem?.quote.USD.percent_change_1h,
+                        percent_change_7d:elem?.quote.USD.percent_change_7d,
+                        market_cap: elem?.quote.USD.market_cap,
+                        volume_24h: elem?.quote.USD.volume_24h,
+                        circulating_supply: elem.circulating_supply,
+                        total_supply: elem.total_supply,
+                        max_supply: elem.max_supply,
+                        logo:
+                            'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
+                            elem.id +
+                            '.png',
+                    }
+
+                return obj
+            })
+
+        } catch (error) {
+            throw new Error('Error fetching prices')
+        }
+
+            var finalMap = {}
+            for (var i = 0; i < priceMap.length; i++) {
+                finalMap[priceMap[i].symbol] = priceMap[i]
+                delete finalMap[priceMap[i].symbol].symbol
+            }
+
+  
+            prices = { data: finalMap, date: Date.now() }
+            cache.put('prices'+startVariable, prices)
+            return finalMap
+        }
+    } catch (err) {}
+
+}
 exports.getChartVariation = async(cryptolist) => {
     try{
         if (
@@ -931,7 +1043,7 @@ exports.getNativeBalance = async (web3Instance, walletAddress, network) => {
 exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
     try {
         if (isTrx) {
-            console.log({trx: webTron.trx})
+            
             let amount = await webTron.trx.getBalance(address)
             return amount.toString()
         }
@@ -946,7 +1058,7 @@ exports.getTronBalance = async (webTron, token, address, isTrx = false) => {
 
 exports.getListCryptoByUid = async (req, res) => {
     let id = req.user._id
-
+    const user = await User.findOne({ _id: id })
     let crypto = await this.getPrices()
     //list of first 200 crypto from coinmarketcap + satt + jet
     var listOfCrypto = []
@@ -958,15 +1070,21 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        let ret =
-            req.body.version === 'v1'
+        const totalBalanceV2 = await this.getAccountV2(req, res)
+
+        req.body.version === 'v1'
+
+        var ret =
+            req.body.version === 'v1' || totalBalanceV2.totalBalance <= 0
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
+
         let tronAddress = ret.tronAddress
         delete ret.btc
         delete ret.version
         delete ret.tronAddress
         delete ret.tronValue
+        
         // => userTokens : token ajoutés manuellemnt
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
@@ -1117,6 +1235,7 @@ exports.getListCryptoByUid = async (req, res) => {
         delete ret.matic_balance
         delete ret.btt_balance
         delete ret.trx_balance
+        delete ret.totalBalance
 
         for (const Amount in ret) {
             let crypto = {}
@@ -1165,7 +1284,7 @@ exports.getBalanceByUid = async (req, res) => {
     try {
         var userId = req.user._id
         let crypto = req.prices || (await this.getPrices())
-
+        var user = await User.findOne({ _id: userId })
         var [Total_balance, CryptoPrices] = [0, crypto]
         var {
             SATT,
@@ -1185,10 +1304,13 @@ exports.getBalanceByUid = async (req, res) => {
         // delete token_info['MATIC']
         // delete token_info['BTT']
 
-        var ret =
-            req.body.version === 'v1'
-                ? await this.getAccount(req, res)
-                : await this.getAccountV2(req, res)
+        var ret = (
+            req.body.version === null
+                ? !user.migrated
+                : req.body.version === 'v1'
+        )
+            ? await this.getAccount(req, res)
+            : await this.getAccountV2(req, res)
         let tronAddress = ret?.tronAddress
         delete ret?.btc
         delete ret?.tronAddress
@@ -1313,7 +1435,7 @@ exports.getBalanceByUid = async (req, res) => {
         }
 
         delete ret?.address
-
+        delete ret?.totalBalance
         for (const Amount in ret) {
             let tokenSymbol = Amount.split('_')[0].toUpperCase()
             tokenSymbol = tokenSymbol === 'ETHER' ? 'ETH' : tokenSymbol

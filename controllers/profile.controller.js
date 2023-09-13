@@ -137,7 +137,7 @@ exports.account = async (req, res) => {
                 fireBaseAccessToken,
                 ...user
             } = req.user.toObject()
-            console.log({user})
+       
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 204, 'user not found')
@@ -185,11 +185,11 @@ exports.notificationDecision = async (req, res) => {
                     ];
                     for (const networkObj of networks) {
                         let contract = new networkObj.web3.Contract(networkObj.abi, networkObj.smarContract);
-                        if(user.hasWallet) {
+                        if(user.hasWallet && !!wallet.keystore.address) {
                             const balance = await contract.methods.balanceOf(`0x${wallet.keystore.address}`).call();
                             sattBalance += Big(balance);
                         }
-                        if(user.hasWalletV2) {
+                        if(user.hasWalletV2 && !!wallet.walletV2.keystore.address) {
                             const balance = await contract.methods.balanceOf(`0x${wallet.walletV2.keystore.address}`).call();
                             sattBalance += Big(balance);
                         }
@@ -199,11 +199,11 @@ exports.notificationDecision = async (req, res) => {
                     } else {
                         let gasBalance = 0;
                         for (const networkObj of networks) {
-                            if(user.hasWallet) {
+                            if(user.hasWallet && !!wallet.keystore.address) {
                                 const balance = await networkObj.web3.getBalance(`0x${wallet.keystore.address}`);
                                 gasBalance += Big(balance);
                             }
-                            if(user.hasWalletV2) {
+                            if(user.hasWalletV2 && !!wallet.walletV2.keystore.address) {
                                 const balance = await networkObj.web3.getBalance(`0x${wallet.walletV2.keystore.address}`);
                                 gasBalance += Big(balance);
                             }
@@ -1152,11 +1152,11 @@ module.exports.verifyLink = async (req, response) => {
                         instagram_id: { $exists: true } ,
                         threads_id: { $exists: true }  
                 },{threads_id : 1, instagram_username: 1}).lean()
-                console.log({threads})
+     
                 if (threads) {
                     linked = true
                     res = await verifyThread(idPost,threads.threads_id, threads.instagram_username)
-                    console.log({res})
+                
                     if (res === 'deactivate') deactivate = true
                 }
 
