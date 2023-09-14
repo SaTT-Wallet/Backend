@@ -88,7 +88,8 @@ const schemas = {
         ratios: Joi.array().required(),
         startDate: Joi.number().unsafe().required(),
         tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$").allow(null),
-        idCampaign: Joi.string().required()
+        idCampaign: Joi.string().required(),
+        limit : Joi.number().allow(null)
     }),
 
 
@@ -103,7 +104,8 @@ const schemas = {
         bounties: Joi.array(),
         startDate: Joi.number().unsafe().required(),
         tokenAddress: validateAddress("^0x[a-fA-F0-9]{40}$|^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$|T[A-Za-z1-9]{33}$"),
-        idCampaign: Joi.string().required()
+        idCampaign: Joi.string().required(),
+        limit : Joi.number().allow(null)
     }),
 
     idCheckSchema: Joi.object({
@@ -218,6 +220,7 @@ linkNotificationsSchema: Joi.object({
         startDate: Joi.number().unsafe().required(),
         tags: Joi.array().required(),
         title: Joi.string().allow('').required(),
+        limit : Joi.number().allow(null),
         token: Joi.object({
             name: Joi.string().required(),
             type: validateNetworks(["erc20", "bep20", "polygon", "tron", "bttc"]),
@@ -252,7 +255,8 @@ linkNotificationsSchema: Joi.object({
         cover: Joi.string().allow(''),
         coverMobile: Joi.string().allow(''),
         coverSrc:Joi.string().allow(''),
-        coverSrcMobile: Joi.string().allow('')
+        coverSrcMobile: Joi.string().allow(''),
+        limit : Joi.number().allow(null)
     }),
 
     checkFileSchema: Joi.object({

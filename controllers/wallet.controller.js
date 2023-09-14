@@ -555,37 +555,48 @@ exports.checkWalletToken = async (req, res) => {
             { name: 'polygon', web3: web3MATIC.eth, abi: Constants.token.abi },
             { name: 'bttc', web3: web3BTT.eth, abi: Constants.token.abi },
 
-            // Add more EVM networks here if needed
         ]
+        
+        let found = false;
+        let result;
+        const tronAddressRegex = /^T[A-Za-z1-9]{33}$/;
+        let metaData // Declare with 'let' to allow reassignment
+        let logoimg
+        try {
+            const response = await rp(process.env.CMR_URL_ADDRR + tokenAdress, {
+                headers: {
+                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+                },
+            })
 
-        let found = false
-        let result
-        const tronAddressRegex = /^T[A-Za-z1-9]{33}$/
-        if (tronAddressRegex.test(tokenAdress)) {
-            const wallet = await Wallet.findOne({ UserId: req.user._id })
-            if (
-                !!wallet &&
-                (wallet.tronAddress || wallet.walletV2.tronAddress)
-            ) {
-                const contract = await tronWeb.contract().at(tokenAdress)
-                tronWeb.setAddress(
-                    wallet.tronAddress
-                        ? wallet.tronAddress
-                        : wallet.walletV2.tronAddress
-                )
-                const tokenName = await contract.name().call()
-                const decimals = await contract.decimals().call()
-                const symbol = await contract.symbol().call()
-                const network = 'TRON'
-                result = {
-                    tokenName,
-                    symbol,
-                    decimals,
-                    tokenAdress,
-                    network,
-                }
-                found = true
-            } else found = false
+            metaData = response.data
+            // Process metaData here
+        } catch (error) {
+            logoimg = 'not img found'
+        }
+
+        if (metaData)
+            logoimg = metaData.data[Object.keys(metaData.data)[0]].logo
+        if(tronAddressRegex.test(tokenAdress)) {
+            const wallet = await Wallet.findOne({UserId: req.user._id});
+            if(!!wallet && (wallet.tronAddress || wallet.walletV2.tronAddress)) {
+                const contract = await tronWeb.contract().at(tokenAdress);
+                tronWeb.setAddress(wallet.tronAddress ? wallet.tronAddress : wallet.walletV2.tronAddress)
+                const tokenName = await contract.name().call();
+            const decimals = await contract.decimals().call();
+            const symbol = await contract.symbol().call();
+            const network = "TRON";
+            result = {
+                tokenName,
+                symbol,
+                decimals,
+                tokenAdress,
+                network,
+                logoimg
+            };
+            found = true;
+            } else found = false;
+            
         } else {
             for (const networkObj of networks) {
                 let code = await networkObj.web3.getCode(tokenAdress)
@@ -605,9 +616,10 @@ exports.checkWalletToken = async (req, res) => {
                         decimals,
                         tokenAdress,
                         network,
-                    }
-                    found = true
-                    break
+                        logoimg
+                    };
+                    found = true;
+                    break;
                 }
             }
         }

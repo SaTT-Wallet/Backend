@@ -275,7 +275,7 @@ module.exports.campaignsPictureUpload = multer({
 
 module.exports.launchCampaign = async (req, res) => {
     
-    var {limit : limitParticipation, contract,ratios, amount, tokenAddress, endDate, startDate, dataUrl } = req.body
+    var {limit, contract,ratios, amount, tokenAddress, endDate, startDate, dataUrl } = req.body
     let { idCampaign : _id , currency, network} = req.body
     
     try {
@@ -313,7 +313,7 @@ module.exports.launchCampaign = async (req, res) => {
             cred,
             tronWeb,
             res,
-            limitParticipation
+            limit
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -337,7 +337,7 @@ module.exports.launchCampaign = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
-                limitParticipation,
+                limit,
                 token: {
                     name: currency,
                     type: network,
@@ -378,7 +378,7 @@ module.exports.launchCampaign = async (req, res) => {
 module.exports.launchBounty = async (req, res) => {
 
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
-    var {limit : limitParticipation,bounties, amount, tokenAddress, endDate, startDate, dataUrl } = req.body
+    var {limit,bounties, amount, tokenAddress, endDate, startDate, dataUrl } = req.body
     let {network, currency} = req.body;
     let id = req.user._id
 
@@ -412,7 +412,7 @@ module.exports.launchBounty = async (req, res) => {
             cred,
             tronWeb,
             res,
-            limitParticipation
+            limit
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -435,7 +435,7 @@ module.exports.launchBounty = async (req, res) => {
                 transactionHash: ret.transactionHash,
                 startDate,
                 endDate,
-                limitParticipation,
+                limit,
                 token: {
                     name: currency,
                     type: network,
