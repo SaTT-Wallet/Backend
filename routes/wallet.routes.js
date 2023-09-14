@@ -11,6 +11,7 @@ const {
     mywallet,
     transferTokensController,
     totalBalances,
+    searchCryptoMarket,
     userBalance,
     gasPriceBep20,
     gasPriceBtt,
@@ -39,7 +40,7 @@ const {
     globalCryptoMarketInfo,
     getNftByAddress,
     getBalanceByToken,
-    getallCrypto
+    getallCrypto,
 } = require('../controllers/wallet.controller')
 const {
     verifyAuth,
@@ -322,6 +323,66 @@ router.get('/cryptoPriceDetails', cryptoListValidation, cryptoPriceDetails)
  *         description: error:"error"
  */
 router.get('/getallCrypto', getallCrypto)
+
+/**
+ * @swagger
+ * /wallet/searchCryptoMarket:
+ *   post:
+ *     tags:
+ *     - "searchCryptoMarket"
+ *     summary: Search for tokens in the crypto market.
+ *     description: This API allows you to search for tokens in the crypto market and retrieve their price details.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               value:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Success response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Success"
+ *       "204":
+ *         description: Token not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 204
+ *                 error:
+ *                   type: string
+ *                   example: "Token not found"
+ *       "500":
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: integer
+ *                   example: 500
+ *                 error:
+ *                   type: string
+ *                   example: "Error"
+ */
+router.post('/searchCryptoMarket', searchCryptoMarket)
 
 /**
  * @swagger
@@ -828,19 +889,23 @@ router.post(
     exportKeyStore
 )
 
-router.post('/code-export-keystore', verifyAuth, getCodeKeyStoreValidation ,getCodeKeyStore)
+router.post(
+    '/code-export-keystore',
+    verifyAuth,
+    getCodeKeyStoreValidation,
+    getCodeKeyStore
+)
 
+router.post(
+    '/export-keystore',
+    verifyAuth,
+    exportKeyStoreValidation,
+    exportKeyStore
+)
 
+router.post('/export-keystore-mobile', verifyAuth, exportKeyStoreMobile)
 
-router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyStore)
-
-
-router.post('/export-keystore-mobile', verifyAuth ,exportKeyStoreMobile)
-
-
-router.get('/nfts/:address', checkEVMValidation,getNftByAddress)
-
-
+router.get('/nfts/:address', checkEVMValidation, getNftByAddress)
 
 router.post('/getBalance', verifyAuth, getBalanceByToken)
 
