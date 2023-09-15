@@ -621,7 +621,6 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         let user = await new User(createdUser).save()
         createdUser._id = user._id
         let token = generateAccessToken({_id : user._id})
-        console.log('create user telegram')
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }

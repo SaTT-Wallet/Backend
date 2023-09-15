@@ -1011,7 +1011,6 @@ exports.applyCampaign = async (
             idProm: prom,
         }
     } catch (err) {
-        console.log('err: ', err)
         return { error: err.message }
     }
 }
@@ -1377,7 +1376,6 @@ exports.updatePromStats = async (idProm, credentials, tronWeb, res = null) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log(err)
         return { error: err }
     }
 }

@@ -860,7 +860,13 @@ module.exports.changeNotificationsStatus = async (req, res) => {
 module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const arrayNotifications = await Notification.find({ idNode }).sort({
+        const typesToExclude = ['buy_some_gas', 'invite_friends', 'join_on_social'];
+        const arrayNotifications = await Notification.find({ 
+            idNode,
+            $and: [
+                {type: { $nin: typesToExclude}}
+            ]
+        }).sort({
             createdAt: 'desc',
         })
 
@@ -903,7 +909,7 @@ module.exports.getNotifications = async (req, res) => {
                 { 'applyerSignature.signature': notification.label.linkHash },
                 { applyerSignature: 0 } // Exclude unnecessary fields from the result
               );
-          
+                
               if (link) {
                 notification.label.linkExist = true;
                 notification.label.link = link;
@@ -912,6 +918,27 @@ module.exports.getNotifications = async (req, res) => {
             } else if(notification.type === 'create_campaign') {
                 const campaign = await Campaigns.findOne({ hash: notification.label.cmp.hash });
                 notification.label.cmp_update = campaign;
+            } else if(notification.type === 'cmp_candidate_reject_link') {
+                try {
+                    const link = await CampaignLink.findOne({_id: notification.label.promHash});
+                    
+                    if (link) {
+                      
+                      notification.label.linkExist = true;
+                      notification.label.link = link;
+                    } else notification.label.linkExist = false;
+                } catch(err) {
+                    console.log({err})
+                }
+               
+            } else if(notification.type === 'apply_campaign') {
+                const link = await CampaignLink.findOne({_id: notification.label.linkId});
+                    
+                    if (link) {
+                      
+                      notification.label.linkExist = true;
+                      notification.label.link = link;
+                    } else notification.label.linkExist = false;
             }
           });
           

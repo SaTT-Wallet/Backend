@@ -318,7 +318,6 @@ module.exports.launchCampaign = async (req, res) => {
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
     } catch (err) {
-        console.error({err})
         return responseHandler.makeResponseError(
             res,
             500,
@@ -975,7 +974,6 @@ exports.apply = async (req, res) => {
                 cmp_name: title,
                 cmp_hash: idCampaign,
                 linkId: insert._id,
-                prom: {oracle: prom.oracle, type: 'waiting_for_validation'},
                 network: campaignDetails.token.type,
             })
         ])
@@ -1205,7 +1203,7 @@ exports.validateCampaign = async (req, res) => {
                     cmp_link: linkProm,
                     cmp_hash: _id,
                     hash: ret.transactionHash,
-                    promHash: idApply,
+                    promHash: idLink,
                 })
                 readHTMLFileCampaign(
                     __dirname +
@@ -2541,9 +2539,14 @@ exports.rejectLink = async (req, res) => {
                 { returnOriginal: false }
             )
             let id = +req.body.idUser
-            
-            const notificationPromise = notificationManager(id, 'cmp_candidate_reject_link', {
-                cmp_name: title,
+            const wallet = await Wallet.findOne({
+                $or: [
+                    { 'keystore.address': rejectedLink.id_wallet.substring(2) },
+                    { 'walletV2.keystore.address': rejectedLink.id_wallet.substring(2) }
+                  ]
+            })
+            const notificationPromise = notificationManager(!!wallet ? wallet.UserId : id, 'cmp_candidate_reject_link', {
+                cmp_name: campaign.title,
                 action: 'link_rejected',
                 cmp_link: link,
                 cmp_hash: idCampaign,
@@ -2571,7 +2574,10 @@ exports.rejectLink = async (req, res) => {
         )
     }
 }
+const getIdUser = async (walletId) => {
 
+
+}
 module.exports.updateStatistics = async (req, res) => {
     try {
         await updateStat()

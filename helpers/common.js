@@ -166,7 +166,7 @@ module.exports.updateStat = async () => {
                     tiktokProfile
                 )
             } catch (e) {
-                console.error(e)
+
                 continue
             }
 
@@ -320,7 +320,6 @@ exports.updateStatforUser = async (UserId) => {
                 tiktokProfile
             )
         } catch (e) {
-            console.error(e)
             continue
         }
 
@@ -439,7 +438,6 @@ exports.BalanceUsersStats = async (condition) => {
             let res = {}
             balance = await getBalanceByUid(req, res)
         } catch (err) {
-            console.error(err)
             continue
         }
         // !balance['Total_balance'] && counter++
