@@ -551,7 +551,7 @@ const getNetworkByToken = async (idCrypto) => {
               const result = await rp.request(options);
               results.push(result);
             } catch (err) {
-              console.error('Error fetching data for batch:', err);
+              
               // Handle the error as needed, e.g., retry or skip
             }
           })

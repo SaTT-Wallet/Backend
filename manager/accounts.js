@@ -19,12 +19,10 @@ exports.notificationManager = async (id, NotifType, label) => {
             created: new Date(),
         }
 
-        await Notification.create(notification)
-
+        const notif = await Notification.create(notification)
         let user = await User.findOne({ _id: +id }).select(
             'fireBaseAccessToken '
         )
-
         if (user.fireBaseAccessToken) {
             let data = {
                 message: {
@@ -36,8 +34,9 @@ exports.notificationManager = async (id, NotifType, label) => {
             }
             await sendNotification(data)
         }
+
     } catch (error) {
-        // console.log('err', error)
+        console.log('err', error)
     }
 }
 

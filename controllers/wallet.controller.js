@@ -201,7 +201,6 @@ const getGasPriceToken = async (res, connect, format) => {
             gasPrice: formattedGasPrice,
         })
     } catch (error) {
-        console.error(error)
         return responseHandler.makeResponseData(res, 500, 'failure', {
             error: 'Unable to retrieve gas price.',
         })
@@ -228,7 +227,6 @@ const gPTrx = async (req, res) => {
             gasPrice,
         })
     } catch (error) {
-        console.error(error)
         return responseHandler.makeResponseData(res, 500, 'failure', {
             error: 'Unable to retrieve gas price.',
         })

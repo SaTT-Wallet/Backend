@@ -860,10 +860,19 @@ module.exports.changeNotificationsStatus = async (req, res) => {
 module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const arrayNotifications = await Notification.find({ idNode }).sort({
+        const typesToExclude = ['buy_some_gas', 'invite_friends', 'join_on_social'];
+        const startDate = new Date(process.env.STARTDATE_NOTIFICATION);
+        const arrayNotifications = await Notification.find({ 
+            idNode,
+            createdAt: { $gte: startDate },
+            $and: [
+                {type: { $nin: typesToExclude}}
+            ]
+        }).sort({
             createdAt: 'desc',
         })
-
+        
+        
         if (arrayNotifications.length === 0) {
             return makeResponseError(res, 204, 'No notifications found')
         }
@@ -898,20 +907,21 @@ module.exports.getNotifications = async (req, res) => {
         )
         
         const notificationTasks =  notifications.notifications.map(async notification => {
-            if (notification.type === 'cmp_candidate_insert_link') {
-              const link = await CampaignLink.findOne(
-                { 'applyerSignature.signature': notification.label.linkHash },
-                { applyerSignature: 0 } // Exclude unnecessary fields from the result
-              );
-          
-              if (link) {
-                notification.label.linkExist = true;
-                notification.label.link = link;
-              } else notification.label.linkExist = false;
-              
-            } else if(notification.type === 'create_campaign') {
-                const campaign = await Campaigns.findOne({ hash: notification.label.cmp.hash });
-                notification.label.cmp_update = campaign;
+
+            switch (notification.type) {
+                case 'cmp_candidate_insert_link':
+                case 'cmp_candidate_reject_link':
+                case 'apply_campaign':
+                case 'cmp_candidate_accept_link':
+                    const link = await CampaignLink.findOne({ _id: notification.label.linkHash || notification.label.promHash || notification.label.linkId });
+                    notification.label.linkExist = Boolean(link);
+                    notification.label.link = link || null;
+                    break;
+        
+                case 'create_campaign':
+                    const campaign = await Campaigns.findOne({ hash: notification.label.cmp.hash });
+                    notification.label.cmp_update = campaign || null;
+                    break;
             }
           });
           
