@@ -22,10 +22,7 @@ const { config } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
 
-const {
-    getHttpProvider,
-    networkProviders
-} = require('../web3/web3-connection')
+const { getHttpProvider, networkProviders } = require('../web3/web3-connection')
 const Web3 = require('web3')
 
 exports.unlock = async (req, res) => {
@@ -271,7 +268,10 @@ exports.getAccount = async (req, res) => {
 
     if (account) {
         var address = '0x' + account.keystore.address
-        const [Web3ETH, Web3BEP20] = await Promise.all([erc20Connexion(), bep20Connexion()]);
+        const [Web3ETH, Web3BEP20] = await Promise.all([
+            erc20Connexion(),
+            bep20Connexion(),
+        ])
         var ether_balance = Web3ETH.eth.getBalance(address)
 
         var bnb_balance = Web3BEP20.eth.getBalance(address)
@@ -353,13 +353,11 @@ exports.createPerformanceCampaign = async (
     try {
         /**   CHECK IF COMPAGNE NETWORK IS TRON */
         if (tronWeb !== null && tronWeb !== undefined) {
-
             /**  GET CAMPAGNE CONTRACT */
             const contract = await tronWeb.contract(
                 TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
-            
 
             /**   CALL METHOD CREATE PRICE FUND ALL FROM CONTRACT*/
             const transactionReceipt = await contract
@@ -380,7 +378,6 @@ exports.createPerformanceCampaign = async (
 
             await timeout(10000)
 
-
             /**  CHECK TRANSACTION STATUS  */
             const result = await tronWeb.trx.getUnconfirmedTransactionInfo(
                 transactionReceipt
@@ -399,7 +396,6 @@ exports.createPerformanceCampaign = async (
             }
         }
 
-
         /** CHECK TOKEN IS NATIVE OR NO (BNB for BEP20 / ETH for ERC20 ) */
         if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
@@ -407,18 +403,14 @@ exports.createPerformanceCampaign = async (
             await wrapNative(amount, credentials)
         }
 
-
-
         /** GET CONTRACT  */
         const contract = await getContractByNetwork(credentials)
-
 
         /** GET GAS PRICE  */
         const gasPrice = await contract.getGasPrice()
 
         /** GET GAS LIMIT FROM .env */
         const gas = process.env.GAS_LIMIT
-
 
         /**   CALL METHOD CREATE PRICE FUND ALL FROM CONTRACT*/
         const transactionReceipt = await contract.methods
@@ -437,10 +429,11 @@ exports.createPerformanceCampaign = async (
                 gasPrice: gasPrice,
             })
 
-            transactionReceipt.transactionHash
+        transactionReceipt.transactionHash
         return {
             hash: transactionReceipt.events.CampaignCreated.returnValues.id,
-            transactionHash: transactionReceipt.events.CampaignCreated.transactionHash,
+            transactionHash:
+                transactionReceipt.events.CampaignCreated.transactionHash,
         }
     } catch (err) {
         res.status(500).send({
@@ -988,7 +981,6 @@ exports.applyCampaign = async (
         //         gasPrice: gasPrice,
         //     })
 
-
         var gasPrice = await web3.getGasPrice()
 
         var receipt = await web3.methods
@@ -1106,18 +1098,16 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
 }
 
 exports.filterLinks = (req, id_wallet) => {
-    
-    let {oracles,status,campaign,state} = req.query;
-   
+    let { oracles, status, campaign, state } = req.query
+
     var query = { id_wallet }
     if (campaign && state === 'part') {
         query = { id_wallet, id_campaign: campaign }
-    } else if (campaign && state === 'owner')
-        query = { id_campaign: campaign }
-    else if (!campaign && !state)
-        query = { id_wallet: id_wallet }
+    } else if (campaign && state === 'owner') query = { id_campaign: campaign }
+    else if (!campaign && !state) query = { id_wallet: id_wallet }
 
-    if (oracles) query.oracle = { $in: Array.isArray(oracles) ? oracles : [oracles] };
+    if (oracles)
+        query.oracle = { $in: Array.isArray(oracles) ? oracles : [oracles] }
 
     if (status == 'false') {
         query.status = false
@@ -1268,8 +1258,6 @@ exports.validateProm = async (
     credentials,
     tronWeb
 ) => {
-
-
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,

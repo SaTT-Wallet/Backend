@@ -166,7 +166,6 @@ module.exports.updateStat = async () => {
                     tiktokProfile
                 )
             } catch (e) {
-
                 continue
             }
 
@@ -258,14 +257,14 @@ exports.updateStatforUser = async (UserId) => {
     const eventLint = MyLinksCampaign.reduce((acc, event) => {
         const campaign = campaigns.find(
             (campaign) => event.id_campaign === campaign.hash
-        );
+        )
 
         if (campaign?.toObject()) {
-            acc.push({ ...event.toObject(), campaign: campaign.toObject() });
+            acc.push({ ...event.toObject(), campaign: campaign.toObject() })
         }
 
-        return acc;
-    }, []);
+        return acc
+    }, [])
 
     for (const event of eventLint) {
         if (
@@ -382,22 +381,27 @@ exports.automaticRjectLink = async (_) => {
 
 exports.UpdateStats = async (obj, socialOracle) => {
     if (!socialOracle) {
-        ['views', 'likes', 'shares', 'totalToEarn'].forEach(field => delete obj[field]);
+        ;['views', 'likes', 'shares', 'totalToEarn'].forEach(
+            (field) => delete obj[field]
+        )
     }
 
-        if(!(await CampaignLink.exists({ 'applyerSignature.messageHash': obj.applyerSignature.messageHash }))){
-            await CampaignLink.create(obj)
-            return;
-        } else {
-            await CampaignLink.updateOne(
-                {
-                    'applyerSignature.messageHash':
-                        obj.applyerSignature.messageHash ,
-                },
-                { $set: obj }
-            )
-        }
-
+    if (
+        !(await CampaignLink.exists({
+            'applyerSignature.messageHash': obj.applyerSignature.messageHash,
+        }))
+    ) {
+        await CampaignLink.create(obj)
+        return
+    } else {
+        await CampaignLink.updateOne(
+            {
+                'applyerSignature.messageHash':
+                    obj.applyerSignature.messageHash,
+            },
+            { $set: obj }
+        )
+    }
 }
 
 exports.BalanceUsersStats = async (condition) => {
@@ -450,7 +454,6 @@ exports.BalanceUsersStats = async (condition) => {
         ) {
             counter++
         } else {
-         
             user[condition].unshift(result)
             if (user[condition].length > 7) {
                 user[condition].pop()
@@ -465,22 +468,22 @@ exports.BalanceUsersStats = async (condition) => {
     }
 }
 
-exports.extractFollowerCount = str => {
-    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/;
+exports.extractFollowerCount = (str) => {
+    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/
 
-    const match = str.match(regex);
-  
+    const match = str.match(regex)
+
     if (match) {
-      let followerCount = parseFloat(match[1]);
-  
-      if (match[3] === 'K') {
-        followerCount *= 1000;
-      } else if (match[3] === 'M') {
-        followerCount *= 1000000;
-      }
-  
-      return parseInt(followerCount, 10);
+        let followerCount = parseFloat(match[1])
+
+        if (match[3] === 'K') {
+            followerCount *= 1000
+        } else if (match[3] === 'M') {
+            followerCount *= 1000000
+        }
+
+        return parseInt(followerCount, 10)
     }
-  
-    return 0;
-  }
+
+    return 0
+}

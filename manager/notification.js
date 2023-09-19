@@ -32,11 +32,11 @@ exports.sendNotification = async (data) => {
             'Content-Type': 'application/json',
             Authorization: 'Bearer ' + fireBaseAccessToken,
         },
-        data: JSON.stringify(data)
+        data: JSON.stringify(data),
     }
-    axios(axiosOptions).then((response) => {
-    }).catch((error) => {
-    })
+    axios(axiosOptions)
+        .then((response) => {})
+        .catch((error) => {})
 }
 
 exports.sendNotificationTest = async (req, res) => {
@@ -83,6 +83,5 @@ exports.sendNotificationTest = async (req, res) => {
             console.error(error)
         })
 }
-
 
 // module.exports = { sendNotification }

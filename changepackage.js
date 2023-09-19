@@ -22,5 +22,4 @@ file.version = version[0] + '.' + version[1] + '.' + version[2]
 
 fs.writeFile(fileName, JSON.stringify(file, null, 4), function writeJSON(err) {
     if (err) return console.log(err)
-    
 })

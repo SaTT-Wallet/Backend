@@ -34,7 +34,6 @@ exports.notificationManager = async (id, NotifType, label) => {
             }
             await sendNotification(data)
         }
-
     } catch (error) {
         console.log('err', error)
     }
@@ -70,51 +69,59 @@ exports.updateAndGenerateCode = async (_id, type) => {
 }
 
 exports.isBlocked = async (user, isAuthAttempt = false) => {
-    const currentTime = Math.floor(Date.now() / 1000);
-    let [isBlocked,updateFields] = [false,{}];
+    const currentTime = Math.floor(Date.now() / 1000)
+    let [isBlocked, updateFields] = [false, {}]
 
     if (isAuthAttempt) {
-        if (user.account_locked && this.differenceBetweenDates(user.date_locked, currentTime) < process.env.lockedPeriod) {
+        if (
+            user.account_locked &&
+            this.differenceBetweenDates(user.date_locked, currentTime) <
+                process.env.lockedPeriod
+        ) {
             // If the user is locked and the locked period hasn't passed yet, reset the failed attempts and keep the account locked
-            updateFields.date_locked = currentTime;
-            updateFields.failed_count = 0;
-            isBlocked = true;
+            updateFields.date_locked = currentTime
+            updateFields.failed_count = 0
+            isBlocked = true
         } else {
             // If the locked period has passed, unlock the account
-            updateFields.failed_count = 0;
-            updateFields.account_locked = false;
-            isBlocked = false;
+            updateFields.failed_count = 0
+            updateFields.account_locked = false
+            isBlocked = false
         }
     } else {
-        let failedAttempts = user.failed_count ? user.failed_count + 1 : 1;
-        updateFields.failed_count = failedAttempts;
+        let failedAttempts = user.failed_count ? user.failed_count + 1 : 1
+        updateFields.failed_count = failedAttempts
 
         if (failedAttempts === 1) {
-            updateFields.dateFirstAttempt = currentTime;
+            updateFields.dateFirstAttempt = currentTime
         }
 
         if (user.account_locked) {
             // If the user is already locked, reset the failed attempts and update the locked date
-            updateFields.date_locked = currentTime;
-            updateFields.failed_count = 0;
-            isBlocked = true;
-        } else if (!user.account_locked && failedAttempts >= process.env.bad_login_limit &&
-            this.differenceBetweenDates(user.dateFirstAttempt, currentTime) < process.env.failInterval) {
+            updateFields.date_locked = currentTime
+            updateFields.failed_count = 0
+            isBlocked = true
+        } else if (
+            !user.account_locked &&
+            failedAttempts >= process.env.bad_login_limit &&
+            this.differenceBetweenDates(user.dateFirstAttempt, currentTime) <
+                process.env.failInterval
+        ) {
             // If the user is not locked, and they've reached the limit of failed attempts in the given interval, lock the account
-            updateFields.account_locked = true;
-            updateFields.failed_count = 0;
-            updateFields.date_locked = currentTime;
-            isBlocked = true;
+            updateFields.account_locked = true
+            updateFields.failed_count = 0
+            updateFields.date_locked = currentTime
+            isBlocked = true
         } else if (failedAttempts >= process.env.bad_login_limit) {
             // If the user has reached the limit of failed attempts but not in the given interval, reset the failed attempts count
-            updateFields.failed_count = 1;
+            updateFields.failed_count = 1
         }
     }
-        // If there are any changes, update the user record in the database
-        Object.keys(updateFields).length && await User.updateOne({ _id: user._id }, { $set: updateFields });
-    
+    // If there are any changes, update the user record in the database
+    Object.keys(updateFields).length &&
+        (await User.updateOne({ _id: user._id }, { $set: updateFields }))
 
-    return { res: isBlocked, blockedDate: currentTime, auth: isAuthAttempt };
+    return { res: isBlocked, blockedDate: currentTime, auth: isAuthAttempt }
 }
 exports.getDecimal = (symbol) => {
     try {

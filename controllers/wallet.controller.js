@@ -86,7 +86,7 @@ const {
     getWeb3Instance,
     formatTokenBalance,
     getNativeBalance,
-    getallCryptoMarket
+    getallCryptoMarket,
 } = require('../web3/wallets')
 
 const {
@@ -208,13 +208,13 @@ const getGasPriceToken = async (res, connect, format) => {
 }
 
 const gPpolygon = (req, res) =>
-getGasPriceToken(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
+    getGasPriceToken(res, polygonConnexion, (gasPrice) => gasPrice / 1e9)
 const gPBep20 = (req, res) =>
-getGasPriceToken(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
+    getGasPriceToken(res, bep20Connexion, (gasPrice) => gasPrice / 1e9)
 const gPErc20 = (req, res) =>
-getGasPriceToken(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
+    getGasPriceToken(res, erc20Connexion, (gasPrice) => gasPrice / 1e9)
 const gPBtt = (req, res) =>
-getGasPriceToken(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
+    getGasPriceToken(res, bttConnexion, (gasPrice) => (gasPrice * 280) / 1e9)
 
 const gPTrx = async (req, res) => {
     try {
@@ -296,31 +296,48 @@ exports.globalCryptoMarketInfo = async (req, res) => {
 
 exports.getBalanceByToken = async (req, res) => {
     try {
-        const { network, walletAddress, smartContract, isNative } = req.body;
+        const { network, walletAddress, smartContract, isNative } = req.body
 
         // Initialize the appropriate Web3 instance based on the network
-        const web3Instance = await getWeb3Instance(network);
+        const web3Instance = await getWeb3Instance(network)
 
         if (!isNative) {
-            const contract = new web3Instance.eth.Contract(Constants.token.abi, smartContract);
+            const contract = new web3Instance.eth.Contract(
+                Constants.token.abi,
+                smartContract
+            )
             const [balance, decimals] = await Promise.all([
                 contract.methods.balanceOf(walletAddress).call(),
                 contract.methods.decimals().call(),
-            ]);
-            const balanceFormatted = formatTokenBalance(balance, decimals);
-            return responseHandler.makeResponseData(res, 200, 'success', balanceFormatted);
+            ])
+            const balanceFormatted = formatTokenBalance(balance, decimals)
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                balanceFormatted
+            )
         } else {
-            const balance = await getNativeBalance(web3Instance, walletAddress, network);
-            return responseHandler.makeResponseData(res, 200, 'success', balance);
+            const balance = await getNativeBalance(
+                web3Instance,
+                walletAddress,
+                network
+            )
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                balance
+            )
         }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
-        );
+        )
     }
-};
+}
 
 exports.totalBalances = async (req, res) => {
     try {
@@ -515,28 +532,26 @@ exports.checkWalletToken = async (req, res) => {
                 'Wallet not found'
             )
         }
-        
-        let [tokenAdress] = [req.body.tokenAdress.trim()];
+
+        let [tokenAdress] = [req.body.tokenAdress.trim()]
         const Web3BEP20 = await bep20Connexion()
         const Web3ETH = await erc20Connexion()
         const web3MATIC = await polygonConnexion()
         const web3BTT = await bttConnexion()
         const tronWeb = await webTronInstance()
-        
+
         const networks = [
             { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.token.abi },
             { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi },
             { name: 'polygon', web3: web3MATIC.eth, abi: Constants.token.abi },
             { name: 'bttc', web3: web3BTT.eth, abi: Constants.token.abi },
-           
-            // Add more EVM networks here if needed
-        ];
 
-        
-        
-        let found = false;
-        let result;
-        const tronAddressRegex = /^T[A-Za-z1-9]{33}$/;
+            // Add more EVM networks here if needed
+        ]
+
+        let found = false
+        let result
+        const tronAddressRegex = /^T[A-Za-z1-9]{33}$/
         let metaData // Declare with 'let' to allow reassignment
         let logoimg
         try {
@@ -554,63 +569,72 @@ exports.checkWalletToken = async (req, res) => {
 
         if (metaData)
             logoimg = metaData.data[Object.keys(metaData.data)[0]].logo
-        if(tronAddressRegex.test(tokenAdress)) {
-            const wallet = await Wallet.findOne({UserId: req.user._id});
-            if(!!wallet && (wallet.tronAddress || wallet.walletV2.tronAddress)) {
-                const contract = await tronWeb.contract().at(tokenAdress);
-                tronWeb.setAddress(wallet.tronAddress ? wallet.tronAddress : wallet.walletV2.tronAddress)
-                const tokenName = await contract.name().call();
-            const decimals = await contract.decimals().call();
-            const symbol = await contract.symbol().call();
-            const network = "TRON";
-            result = {
-                tokenName,
-                symbol,
-                decimals,
-                tokenAdress,
-                network,
-                logoimg
-            };
-            found = true;
-            } else found = false;
-            
+        if (tronAddressRegex.test(tokenAdress)) {
+            const wallet = await Wallet.findOne({ UserId: req.user._id })
+            if (
+                !!wallet &&
+                (wallet.tronAddress || wallet.walletV2.tronAddress)
+            ) {
+                const contract = await tronWeb.contract().at(tokenAdress)
+                tronWeb.setAddress(
+                    wallet.tronAddress
+                        ? wallet.tronAddress
+                        : wallet.walletV2.tronAddress
+                )
+                const tokenName = await contract.name().call()
+                const decimals = await contract.decimals().call()
+                const symbol = await contract.symbol().call()
+                const network = 'TRON'
+                result = {
+                    tokenName,
+                    symbol,
+                    decimals,
+                    tokenAdress,
+                    network,
+                    logoimg,
+                }
+                found = true
+            } else found = false
         } else {
             for (const networkObj of networks) {
-            
-                let code = await networkObj.web3.getCode(tokenAdress);
+                let code = await networkObj.web3.getCode(tokenAdress)
                 if (code !== '0x') {
-                    let contract = new networkObj.web3.Contract(networkObj.abi, tokenAdress);
-                    const decimals = await contract.methods.decimals().call();
-                    const tokenName =  await contract.methods.name().call();
-                    const network = networkObj.name.toUpperCase();
-                    const symbol = await contract.methods.symbol().call();
-    
-    
+                    let contract = new networkObj.web3.Contract(
+                        networkObj.abi,
+                        tokenAdress
+                    )
+                    const decimals = await contract.methods.decimals().call()
+                    const tokenName = await contract.methods.name().call()
+                    const network = networkObj.name.toUpperCase()
+                    const symbol = await contract.methods.symbol().call()
+
                     result = {
                         tokenName,
                         symbol,
                         decimals,
                         tokenAdress,
                         network,
-                        logoimg
-                    };
-                    found = true;
-                    break;
+                        logoimg,
+                    }
+                    found = true
+                    break
                 }
-         
-           
+            }
         }
-        }
-       
 
         if (!found) {
             return responseHandler.makeResponseError(
                 res,
                 204,
                 'Not a token address on any network'
-            );
+            )
         } else {
-            return responseHandler.makeResponseData(res, 200, 'Token found', result);
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'Token found',
+                result
+            )
         }
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -620,7 +644,6 @@ exports.checkWalletToken = async (req, res) => {
         )
     }
 }
-
 
 exports.addNewToken = async (req, res) => {
     try {
@@ -1531,25 +1554,26 @@ exports.getCodeKeyStore = async (req, res) => {
     }
 }
 
-
 exports.getNftByAddress = async (req, res) => {
     try {
-        
         const NFT_ADDRESS = process.env.NFT_SMART_CONTRACT_ADDRESS
-        const address = req.params.address;
-        const web3ETH = await erc20Connexion();
-        const nftContract = new web3ETH.eth.Contract(nftContractAbi, NFT_ADDRESS);
-        const nftList = [];
+        const address = req.params.address
+        const web3ETH = await erc20Connexion()
+        const nftContract = new web3ETH.eth.Contract(
+            nftContractAbi,
+            NFT_ADDRESS
+        )
+        const nftList = []
         const totalSupply = await nftContract.methods.totalSupply().call()
         for (let i = 1; i <= totalSupply; i++) {
-            const owner = await nftContract.methods.ownerOf(i).call();
-            if(owner.toLowerCase() == address.toLowerCase()) {
-                const nftUri = await nftContract.methods.tokenURI(i).call();
-                nftList.push(nftUri);
+            const owner = await nftContract.methods.ownerOf(i).call()
+            if (owner.toLowerCase() == address.toLowerCase()) {
+                const nftUri = await nftContract.methods.tokenURI(i).call()
+                nftList.push(nftUri)
             }
         }
         return responseHandler.makeResponseData(res, 200, 'success', nftList)
-    } catch(err) {
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1692,54 +1716,52 @@ exports.exportKeyStoreMobile = async (req, res) => {
         const _id = req.user._id
         const { code, network, version } = req.body
 
-
-            const [user,wallet] = await Promise.all([User.findOne({ _id }).lean(),Wallet.findOne({ UserId: _id }).lean()])
-            // CHECK WALLET VERSION
-            if (version === '1') {
-                /*****                    WALLET V1                        ******/
-                        // CHECK USER WALLET V1 EXIST
-                        if (wallet.keystore && wallet.btc) {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                (network === 'eth' && wallet.keystore) ||
-                                    (network === 'btc' && wallet?.btc?.ek),
-                                true
-                            )
-                        } else {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                'wallet v1 not found',
-                                false
-                            )
-                        }
-                    
+        const [user, wallet] = await Promise.all([
+            User.findOne({ _id }).lean(),
+            Wallet.findOne({ UserId: _id }).lean(),
+        ])
+        // CHECK WALLET VERSION
+        if (version === '1') {
+            /*****                    WALLET V1                        ******/
+            // CHECK USER WALLET V1 EXIST
+            if (wallet.keystore && wallet.btc) {
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    (network === 'eth' && wallet.keystore) ||
+                        (network === 'btc' && wallet?.btc?.ek),
+                    true
+                )
             } else {
-                /*****                    WALLET V2                        ******/
-
-                //CHECK FOR CODE VERIFICATION
-                        // CHECK USER WALLET V2 EXIST
-                        if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                (network === 'eth' &&
-                                    wallet.walletV2.keystore) ||
-                                    (network === 'btc' &&
-                                        wallet.walletV2?.btc.ek),
-                                true
-                            )
-                        } else {
-                            return responseHandler.makeResponseData(
-                                res,
-                                200,
-                                'wallet v2 not found',
-                                false
-                            )
-                        }  
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'wallet v1 not found',
+                    false
+                )
             }
-        
+        } else {
+            /*****                    WALLET V2                        ******/
+
+            //CHECK FOR CODE VERIFICATION
+            // CHECK USER WALLET V2 EXIST
+            if (wallet.walletV2?.keystore && wallet.walletV2?.btc) {
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    (network === 'eth' && wallet.walletV2.keystore) ||
+                        (network === 'btc' && wallet.walletV2?.btc.ek),
+                    true
+                )
+            } else {
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'wallet v2 not found',
+                    false
+                )
+            }
+        }
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
