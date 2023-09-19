@@ -370,7 +370,7 @@ module.exports.launchCampaign = async (req, res) => {
                 contract: contract.toLowerCase(),
             }
             await Promise.allSettled([Event.create(event), notificationManager(req.user._id, 'create_campaign', {
-                cmp:campaignData
+                cmp:campaign
             })])
         }
     }
