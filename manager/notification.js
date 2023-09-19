@@ -1,6 +1,6 @@
 const { JWT } = require('google-auth-library')
 const serviceAccount = require('../conf/satt-token-firebase-adminsdk-fwxcj-2215bda3fa.json')
-const request = require('axios')
+const axios = require('axios')
 
 const getAccessToken = () => {
     return new Promise((resolve, reject) => {
