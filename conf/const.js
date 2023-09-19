@@ -1623,1016 +1623,1057 @@ Constants.token.abi = [
     },
 ]
 Constants.campaign.abi = [
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'id',
-                type: 'bytes32',
-            },
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'prom',
-                type: 'bytes32',
-            },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32"
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "prom",
+        type: "bytes32"
+      }
+    ],
+    name: "CampaignApplied",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32"
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "startDate",
+        type: "uint64"
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "endDate",
+        type: "uint64"
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "dataUrl",
+        type: "string"
+      },
+      {
+        indexed: false,
+        internalType: "uint64",
+        name: "limit",
+        type: "uint64"
+      }
+    ],
+    name: "CampaignCreated",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "CampaignFunded",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32"
+      }
+    ],
+    name: "CampaignFundsSpent",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32"
+      }
+    ],
+    name: "PromAccepted",
+    type: "event"
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32"
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "PromPayed",
+    type: "event"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_hashedMessage",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint8",
+        name: "_v",
+        type: "uint8"
+      },
+      {
+        internalType: "bytes32",
+        name: "_r",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes32",
+        name: "_s",
+        type: "bytes32"
+      }
+    ],
+    name: "VerifyMessage",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    name: "acceptedTokens",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "typeSN",
+        type: "uint8"
+      },
+      {
+        internalType: "string",
+        name: "idPost",
+        type: "string"
+      },
+      {
+        internalType: "string",
+        name: "idUser",
+        type: "string"
+      },
+      {
+        internalType: "bytes32",
+        name: "idRequest",
+        type: "bytes32"
+      }
+    ],
+    name: "ask",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "typeSN",
+        type: "uint8"
+      },
+      {
+        internalType: "string",
+        name: "idPost",
+        type: "string"
+      },
+      {
+        internalType: "string",
+        name: "idUser",
+        type: "string"
+      },
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      }
+    ],
+    name: "askBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    name: "campaigns",
+    outputs: [
+      {
+        internalType: "address",
+        name: "advertiser",
+        type: "address"
+      },
+      {
+        internalType: "string",
+        name: "dataUrl",
+        type: "string"
+      },
+      {
+        internalType: "uint64",
+        name: "startDate",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "endDate",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "nbProms",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "nbValidProms",
+        type: "uint64"
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address"
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256"
+          }
         ],
-        name: 'CampaignApplied',
-        type: 'event',
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'id',
-                type: 'bytes32',
-            },
-            {
-                indexed: false,
-                internalType: 'uint64',
-                name: 'startDate',
-                type: 'uint64',
-            },
-            {
-                indexed: false,
-                internalType: 'uint64',
-                name: 'endDate',
-                type: 'uint64',
-            },
-            {
-                indexed: false,
-                internalType: 'string',
-                name: 'dataUrl',
-                type: 'string',
-            },
+        internalType: "struct campaign.Fund",
+        name: "funds",
+        type: "tuple"
+      },
+      {
+        internalType: "uint64",
+        name: "participationLimit",
+        type: "uint64"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "dataUrl",
+        type: "string"
+      },
+      {
+        internalType: "uint64",
+        name: "startDate",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "endDate",
+        type: "uint64"
+      },
+      {
+        internalType: "uint256[]",
+        name: "ratios",
+        type: "uint256[]"
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      },
+      {
+        internalType: "uint64",
+        name: "limit",
+        type: "uint64"
+      }
+    ],
+    name: "createPriceFundAll",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "dataUrl",
+        type: "string"
+      },
+      {
+        internalType: "uint64",
+        name: "startDate",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "endDate",
+        type: "uint64"
+      },
+      {
+        internalType: "uint256[]",
+        name: "bounties",
+        type: "uint256[]"
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      },
+      {
+        internalType: "uint64",
+        name: "limit",
+        type: "uint64"
+      }
+    ],
+    name: "createPriceFundBounty",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "fundCampaign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    name: "getBounties",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "bounty",
+        type: "uint256[]"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      }
+    ],
+    name: "getGains",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint8",
+        name: "typeSN",
+        type: "uint8"
+      },
+      {
+        internalType: "string",
+        name: "idPost",
+        type: "string"
+      },
+      {
+        internalType: "string",
+        name: "idUser",
+        type: "string"
+      }
+    ],
+    name: "getIsUsed",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    name: "getProms",
+    outputs: [
+      {
+        internalType: "bytes32[]",
+        name: "cproms",
+        type: "bytes32[]"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    name: "getRatios",
+    outputs: [
+      {
+        internalType: "uint8[]",
+        name: "types",
+        type: "uint8[]"
+      },
+      {
+        internalType: "uint256[]",
+        name: "likeRatios",
+        type: "uint256[]"
+      },
+      {
+        internalType: "uint256[]",
+        name: "shareRatios",
+        type: "uint256[]"
+      },
+      {
+        internalType: "uint256[]",
+        name: "viewRatios",
+        type: "uint256[]"
+      },
+      {
+        internalType: "uint256[]",
+        name: "limits",
+        type: "uint256[]"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    name: "getRemainingFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      }
+    ],
+    name: "getResults",
+    outputs: [
+      {
+        internalType: "bytes32[]",
+        name: "creq",
+        type: "bytes32[]"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    name: "influencerProms",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "",
+        type: "uint64"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    name: "isAlreadyUsed",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      },
+      {
+        internalType: "bool",
+        name: "accepted",
+        type: "bool"
+      }
+    ],
+    name: "modToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "oracle",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "owner",
+    outputs: [
+      {
+        internalType: "address payable",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "pause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "paused",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    name: "proms",
+    outputs: [
+      {
+        internalType: "address",
+        name: "influencer",
+        type: "address"
+      },
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      },
+      {
+        internalType: "bool",
+        name: "isAccepted",
+        type: "bool"
+      },
+      {
+        internalType: "bool",
+        name: "isPayed",
+        type: "bool"
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address"
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256"
+          }
         ],
-        name: 'CampaignCreated',
-        type: 'event',
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'id',
-                type: 'bytes32',
-            },
-            {
-                indexed: false,
-                internalType: 'uint256',
-                name: 'amount',
-                type: 'uint256',
-            },
-        ],
-        name: 'CampaignFunded',
-        type: 'event',
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'id',
-                type: 'bytes32',
-            },
-        ],
-        name: 'CampaignFundsSpent',
-        type: 'event',
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'id',
-                type: 'bytes32',
-            },
-        ],
-        name: 'PromAccepted',
-        type: 'event',
-    },
-    {
-        anonymous: false,
-        inputs: [
-            {
-                indexed: true,
-                internalType: 'bytes32',
-                name: 'id',
-                type: 'bytes32',
-            },
-            {
-                indexed: false,
-                internalType: 'uint256',
-                name: 'amount',
-                type: 'uint256',
-            },
-        ],
-        name: 'PromPayed',
-        type: 'event',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: '_hashedMessage',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint8',
-                name: '_v',
-                type: 'uint8',
-            },
-            {
-                internalType: 'bytes32',
-                name: '_r',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'bytes32',
-                name: '_s',
-                type: 'bytes32',
-            },
-        ],
-        name: 'VerifyMessage',
-        outputs: [
-            {
-                internalType: 'address',
-                name: '',
-                type: 'address',
-            },
-        ],
-        stateMutability: 'pure',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint8',
-                name: 'typeSN',
-                type: 'uint8',
-            },
-            {
-                internalType: 'string',
-                name: 'idPost',
-                type: 'string',
-            },
-            {
-                internalType: 'string',
-                name: 'idUser',
-                type: 'string',
-            },
-            {
-                internalType: 'uint64',
-                name: 'abosNumber',
-                type: 'uint64',
-            },
-        ],
-        name: 'applyCampaign',
-        outputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'uint8',
-                name: 'typeSN',
-                type: 'uint8',
-            },
-            {
-                internalType: 'string',
-                name: 'idPost',
-                type: 'string',
-            },
-            {
-                internalType: 'string',
-                name: 'idUser',
-                type: 'string',
-            },
-            {
-                internalType: 'bytes32',
-                name: 'idRequest',
-                type: 'bytes32',
-            },
-        ],
-        name: 'ask',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'uint8',
-                name: 'typeSN',
-                type: 'uint8',
-            },
-            {
-                internalType: 'string',
-                name: 'idPost',
-                type: 'string',
-            },
-            {
-                internalType: 'string',
-                name: 'idUser',
-                type: 'string',
-            },
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        name: 'askBounty',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: '',
-                type: 'bytes32',
-            },
-        ],
-        name: 'campaigns',
-        outputs: [
-            {
-                internalType: 'address',
-                name: 'advertiser',
-                type: 'address',
-            },
-            {
-                internalType: 'string',
-                name: 'dataUrl',
-                type: 'string',
-            },
-            {
-                internalType: 'uint64',
-                name: 'startDate',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'endDate',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'nbProms',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'nbValidProms',
-                type: 'uint64',
-            },
-            {
-                components: [
-                    {
-                        internalType: 'address',
-                        name: 'token',
-                        type: 'address',
-                    },
-                    {
-                        internalType: 'uint256',
-                        name: 'amount',
-                        type: 'uint256',
-                    },
-                ],
-                internalType: 'struct campaign.Fund',
-                name: 'funds',
-                type: 'tuple',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'string',
-                name: 'dataUrl',
-                type: 'string',
-            },
-            {
-                internalType: 'uint64',
-                name: 'startDate',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'endDate',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint256[]',
-                name: 'ratios',
-                type: 'uint256[]',
-            },
-            {
-                internalType: 'address',
-                name: 'token',
-                type: 'address',
-            },
-            {
-                internalType: 'uint256',
-                name: 'amount',
-                type: 'uint256',
-            },
-        ],
-        name: 'createPriceFundAll',
-        outputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'string',
-                name: 'dataUrl',
-                type: 'string',
-            },
-            {
-                internalType: 'uint64',
-                name: 'startDate',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'endDate',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint256[]',
-                name: 'bounties',
-                type: 'uint256[]',
-            },
-            {
-                internalType: 'address',
-                name: 'token',
-                type: 'address',
-            },
-            {
-                internalType: 'uint256',
-                name: 'amount',
-                type: 'uint256',
-            },
-        ],
-        name: 'createPriceFundBounty',
-        outputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'address',
-                name: 'token',
-                type: 'address',
-            },
-            {
-                internalType: 'uint256',
-                name: 'amount',
-                type: 'uint256',
-            },
-        ],
-        name: 'fundCampaign',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        name: 'getBounties',
-        outputs: [
-            {
-                internalType: 'uint256[]',
-                name: 'bounty',
-                type: 'uint256[]',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        name: 'getGains',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint8',
-                name: 'typeSN',
-                type: 'uint8',
-            },
-            {
-                internalType: 'string',
-                name: 'idPost',
-                type: 'string',
-            },
-            {
-                internalType: 'string',
-                name: 'idUser',
-                type: 'string',
-            },
-        ],
-        name: 'getIsUsed',
-        outputs: [
-            {
-                internalType: 'bool',
-                name: '',
-                type: 'bool',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        name: 'getProms',
-        outputs: [
-            {
-                internalType: 'bytes32[]',
-                name: 'cproms',
-                type: 'bytes32[]',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        name: 'getRatios',
-        outputs: [
-            {
-                internalType: 'uint8[]',
-                name: 'types',
-                type: 'uint8[]',
-            },
-            {
-                internalType: 'uint256[]',
-                name: 'likeRatios',
-                type: 'uint256[]',
-            },
-            {
-                internalType: 'uint256[]',
-                name: 'shareRatios',
-                type: 'uint256[]',
-            },
-            {
-                internalType: 'uint256[]',
-                name: 'viewRatios',
-                type: 'uint256[]',
-            },
-            {
-                internalType: 'uint256[]',
-                name: 'limits',
-                type: 'uint256[]',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        name: 'getRemainingFunds',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        name: 'getResults',
-        outputs: [
-            {
-                internalType: 'bytes32[]',
-                name: 'creq',
-                type: 'bytes32[]',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: '',
-                type: 'bytes32',
-            },
-        ],
-        name: 'isAlreadyUsed',
-        outputs: [
-            {
-                internalType: 'bool',
-                name: '',
-                type: 'bool',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'address',
-                name: 'token',
-                type: 'address',
-            },
-            {
-                internalType: 'bool',
-                name: 'accepted',
-                type: 'bool',
-            },
-        ],
-        name: 'modToken',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [],
-        name: 'oracle',
-        outputs: [
-            {
-                internalType: 'address',
-                name: '',
-                type: 'address',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [],
-        name: 'owner',
-        outputs: [
-            {
-                internalType: 'address payable',
-                name: '',
-                type: 'address',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: '',
-                type: 'bytes32',
-            },
-        ],
-        name: 'proms',
-        outputs: [
-            {
-                internalType: 'address',
-                name: 'influencer',
-                type: 'address',
-            },
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'bool',
-                name: 'isAccepted',
-                type: 'bool',
-            },
-            {
-                internalType: 'bool',
-                name: 'isPayed',
-                type: 'bool',
-            },
-            {
-                components: [
-                    {
-                        internalType: 'address',
-                        name: 'token',
-                        type: 'address',
-                    },
-                    {
-                        internalType: 'uint256',
-                        name: 'amount',
-                        type: 'uint256',
-                    },
-                ],
-                internalType: 'struct campaign.Fund',
-                name: 'funds',
-                type: 'tuple',
-            },
-            {
-                internalType: 'uint8',
-                name: 'typeSN',
-                type: 'uint8',
-            },
-            {
-                internalType: 'uint256',
-                name: 'appliedDate',
-                type: 'uint256',
-            },
-            {
-                internalType: 'uint64',
-                name: 'abosNumber',
-                type: 'uint64',
-            },
-            {
-                internalType: 'string',
-                name: 'idPost',
-                type: 'string',
-            },
-            {
-                internalType: 'string',
-                name: 'idUser',
-                type: 'string',
-            },
-            {
-                internalType: 'uint64',
-                name: 'nbResults',
-                type: 'uint64',
-            },
-            {
-                internalType: 'bytes32',
-                name: 'prevResult',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint256',
-                name: 'lastHarvest',
-                type: 'uint256',
-            },
-            {
-                internalType: 'uint256',
-                name: 'validate',
-                type: 'uint256',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: '',
-                type: 'bytes32',
-            },
-        ],
-        name: 'results',
-        outputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint64',
-                name: 'likes',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'shares',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'views',
-                type: 'uint64',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'address',
-                name: 'a',
-                type: 'address',
-            },
-        ],
-        name: 'setOracle',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'address',
-                name: '_from',
-                type: 'address',
-            },
-            {
-                internalType: 'uint256',
-                name: '_value',
-                type: 'uint256',
-            },
-            {
-                internalType: 'bytes32',
-                name: '_data',
-                type: 'bytes32',
-            },
-        ],
-        name: 'tokenFallback',
-        outputs: [
-            {
-                internalType: 'bytes32',
-                name: 'hash',
-                type: 'bytes32',
-            },
-        ],
-        stateMutability: 'pure',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'address payable',
-                name: 'newOwner',
-                type: 'address',
-            },
-        ],
-        name: 'transferOwnership',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'address payable',
-                name: 'newTreasory',
-                type: 'address',
-            },
-        ],
-        name: 'transferTreasoryOwnership',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [],
-        name: 'treasory',
-        outputs: [
-            {
-                internalType: 'address',
-                name: '',
-                type: 'address',
-            },
-        ],
-        stateMutability: 'view',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idRequest',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint64',
-                name: 'likes',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'shares',
-                type: 'uint64',
-            },
-            {
-                internalType: 'uint64',
-                name: 'views',
-                type: 'uint64',
-            },
-        ],
-        name: 'update',
-        outputs: [
-            {
-                internalType: 'bool',
-                name: 'ok',
-                type: 'bool',
-            },
-        ],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        name: 'updateBounty',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint256',
-                name: 'nbAbos',
-                type: 'uint256',
-            },
-        ],
-        name: 'updateBounty',
-        outputs: [
-            {
-                internalType: 'bool',
-                name: 'ok',
-                type: 'bool',
-            },
-        ],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-        ],
-        name: 'updateCampaignStats',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idProm',
-                type: 'bytes32',
-            },
-        ],
-        name: 'updatePromStats',
-        outputs: [
-            {
-                internalType: 'bytes32',
-                name: 'requestId',
-                type: 'bytes32',
-            },
-        ],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        inputs: [
-            {
-                internalType: 'bytes32',
-                name: 'idCampaign',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint8',
-                name: 'typeSN',
-                type: 'uint8',
-            },
-            {
-                internalType: 'string',
-                name: 'idPost',
-                type: 'string',
-            },
-            {
-                internalType: 'string',
-                name: 'idUser',
-                type: 'string',
-            },
-            {
-                internalType: 'uint64',
-                name: 'abosNumber',
-                type: 'uint64',
-            },
-            {
-                internalType: 'address',
-                name: 'ownerLink',
-                type: 'address',
-            },
-            {
-                internalType: 'bytes32',
-                name: '_hashedMessage',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'uint8',
-                name: '_v',
-                type: 'uint8',
-            },
-            {
-                internalType: 'bytes32',
-                name: '_r',
-                type: 'bytes32',
-            },
-            {
-                internalType: 'bytes32',
-                name: '_s',
-                type: 'bytes32',
-            },
-        ],
-        name: 'validateProm',
-        outputs: [],
-        stateMutability: 'nonpayable',
-        type: 'function',
-    },
-    {
-        stateMutability: 'payable',
-        type: 'receive',
-    },
+        internalType: "struct campaign.Fund",
+        name: "funds",
+        type: "tuple"
+      },
+      {
+        internalType: "uint8",
+        name: "typeSN",
+        type: "uint8"
+      },
+      {
+        internalType: "uint256",
+        name: "appliedDate",
+        type: "uint256"
+      },
+      {
+        internalType: "uint64",
+        name: "abosNumber",
+        type: "uint64"
+      },
+      {
+        internalType: "string",
+        name: "idPost",
+        type: "string"
+      },
+      {
+        internalType: "string",
+        name: "idUser",
+        type: "string"
+      },
+      {
+        internalType: "uint64",
+        name: "nbResults",
+        type: "uint64"
+      },
+      {
+        internalType: "bytes32",
+        name: "prevResult",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint256",
+        name: "lastHarvest",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "validate",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256"
+      }
+    ],
+    name: "receiveToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32"
+      }
+    ],
+    name: "results",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint64",
+        name: "likes",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "shares",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "views",
+        type: "uint64"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "a",
+        type: "address"
+      }
+    ],
+    name: "setOracle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address payable",
+        name: "newOwner",
+        type: "address"
+      }
+    ],
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address payable",
+        name: "newTreasory",
+        type: "address"
+      }
+    ],
+    name: "transferTreasoryOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "treasory",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "unpause",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idRequest",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint64",
+        name: "likes",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "shares",
+        type: "uint64"
+      },
+      {
+        internalType: "uint64",
+        name: "views",
+        type: "uint64"
+      }
+    ],
+    name: "update",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "ok",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      }
+    ],
+    name: "updateBounty",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint256",
+        name: "nbAbos",
+        type: "uint256"
+      }
+    ],
+    name: "updateBounty",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "ok",
+        type: "bool"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      }
+    ],
+    name: "updateCampaignStats",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idProm",
+        type: "bytes32"
+      }
+    ],
+    name: "updatePromStats",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "requestId",
+        type: "bytes32"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "idCampaign",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint8",
+        name: "typeSN",
+        type: "uint8"
+      },
+      {
+        internalType: "string",
+        name: "idPost",
+        type: "string"
+      },
+      {
+        internalType: "string",
+        name: "idUser",
+        type: "string"
+      },
+      {
+        internalType: "uint64",
+        name: "abosNumber",
+        type: "uint64"
+      },
+      {
+        internalType: "address",
+        name: "ownerLink",
+        type: "address"
+      },
+      {
+        internalType: "bytes32",
+        name: "_hashedMessage",
+        type: "bytes32"
+      },
+      {
+        internalType: "uint8",
+        name: "_v",
+        type: "uint8"
+      },
+      {
+        internalType: "bytes32",
+        name: "_r",
+        type: "bytes32"
+      },
+      {
+        internalType: "bytes32",
+        name: "_s",
+        type: "bytes32"
+      }
+    ],
+    name: "validateProm",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    stateMutability: "payable",
+    type: "receive"
+  }
 ]
 
 Constants.oracle.abi = [
