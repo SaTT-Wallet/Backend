@@ -370,6 +370,9 @@ module.exports.launchCampaign = async (req, res) => {
                 contract: contract.toLowerCase(),
             }
             await Event.create(event)
+            await notificationManager(id, 'create_campaign', {
+                cmp:campaignData
+            })
         }
     }
 }
