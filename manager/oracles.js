@@ -870,7 +870,7 @@ const tiktok = async (tiktokProfile, idPost) => {
       }
     );
 
-    const videoData = videoInfoResponse.data?.videos?.[0] || {};
+    const videoData = videoInfoResponse.data.data?.videos?.[0] || {};
     return {
       likes: videoData.like_count || 0,
       shares: videoData.share_count || 0,
