@@ -1072,9 +1072,9 @@ exports.getListCryptoByUid = async (req, res) => {
         
 
         var ret =
-            req.body.version === 'v1' 
-                ? await this.getAccount(req, res)
-                : await this.getAccountV2(req, res)
+            req.body.version === 'v2' 
+                ? await this.getAccountV2(req, res)
+                : await this.getAccount(req, res)
 
         let tronAddress = ret.tronAddress
         delete ret.btc
