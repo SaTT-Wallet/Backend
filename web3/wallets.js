@@ -1067,12 +1067,12 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        const totalBalanceV2 = await this.getAccountV2(req, res)
+        
 
-        req.body.version === 'v1'
+        
 
         var ret =
-            req.body.version === 'v1' || totalBalanceV2.totalBalance <= 0
+            req.body.version === 'v1' 
                 ? await this.getAccount(req, res)
                 : await this.getAccountV2(req, res)
 
