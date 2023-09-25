@@ -1067,15 +1067,21 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        
-        
         const migrated = !!req.user.migrated ? req.user.migrated : false;
+        let userIsNew = false;
+        if(req.body.version != 'v1' && req.body.version != 'v2' && !migrated) {
+            const userWallet = await Wallet.findOne({ UserId: req.user._id }).lean()
+            if (userWallet?.walletV2?.keystore?.address && !userWallet?.keystore?.address) userIsNew = true;
+            else userIsNew = false;
+        }
+        
+       
         
 
         var ret =
             req.body.version === 'v2' 
                 ? await this.getAccountV2(req, res)
-                :(req.body.version === 'v1' ? await this.getAccount(req, res) : (migrated ?await this.getAccountV2(req, res) : await this.getAccount(req, res) )) 
+                :(req.body.version === 'v1' ? await this.getAccount(req, res) : (migrated ?await this.getAccountV2(req, res) : (userIsNew ? await this.getAccountV2(req,res) : await this.getAccount(req,res)) )) 
 
         let tronAddress = ret.tronAddress
         delete ret.btc
