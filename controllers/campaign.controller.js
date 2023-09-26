@@ -880,7 +880,7 @@ exports.apply = async (req, res) => {
     let limit = campaignDetails.limit;
     let userWallet = await Wallet.findOne({ UserId: req.user._id })
     let numberParticipation = await CampaignLink.find({ id_campaign: hash,id_wallet:"0x"+userWallet.walletV2.keystore.address}).count()
-    if (limit=== numberParticipation){
+    if (limit > 0 && limit === numberParticipation){
         return responseHandler.makeResponseError(
             res,
             401,
