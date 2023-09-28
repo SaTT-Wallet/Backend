@@ -860,7 +860,7 @@ const tiktok = async (tiktokProfile, idPost) => {
     };
 
     const videoInfoResponse = await axios.post(
-      'https://open.tiktokapis.com/v2/video/query/?fields=id,title',
+        'https://open.tiktokapis.com/v2/video/query/?fields=id,title,view_count,share_count,like_count,cover_image_url',
       queryData,
       {
         headers: {
@@ -870,7 +870,7 @@ const tiktok = async (tiktokProfile, idPost) => {
       }
     );
 
-    const videoData = videoInfoResponse.data?.videos?.[0] || {};
+    const videoData = videoInfoResponse.data.data?.videos?.[0] || {};
     return {
       likes: videoData.like_count || 0,
       shares: videoData.share_count || 0,

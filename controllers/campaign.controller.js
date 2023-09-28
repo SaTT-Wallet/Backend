@@ -877,6 +877,16 @@ exports.apply = async (req, res) => {
     } = req.body
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
+    let limit = campaignDetails.limit;
+    let userWallet = await Wallet.findOne({ UserId: req.user._id })
+    let numberParticipation = await CampaignLink.find({ id_campaign: hash,id_wallet:"0x"+userWallet.walletV2.keystore.address}).count()
+    if (limit > 0 && limit === numberParticipation){
+        return responseHandler.makeResponseError(
+            res,
+            401,
+            'Limit participation reached'
+        )
+    }
 
     try {
         let promExist = await CampaignLink.exists({
@@ -924,7 +934,7 @@ exports.apply = async (req, res) => {
                 )
             cred = await unlockV2(req, res)
 
-            let userWallet = await Wallet.findOne({ UserId: req.user._id })
+            
             let decryptAccount =
                 await cred.Web3BEP20.eth.accounts.wallet.decrypt(
                     [userWallet.walletV2.keystore],
@@ -2431,7 +2441,9 @@ exports.getLinks = async (req, res) => {
                     (cmp.title = campaign.title),
                     (cmp.remaining = funds),
                     (cmp.ratio = campaign.ratios),
-                    (cmp.bounties = campaign.bounties)
+                    (cmp.bounties = campaign.bounties),
+                    (cmp.remuneration = campaign.remuneration),
+                    (cmp.endDate = campaign.endDate),
                 result.campaign = cmp
                 arrayOfLinks.push(result)
             }
@@ -2466,7 +2478,9 @@ exports.getLinks = async (req, res) => {
                     (cmp.title = campaign.title),
                     (cmp.remaining = funds),
                     (cmp.ratio = campaign.ratios),
-                    (cmp.bounties = campaign.bounties)
+                    (cmp.bounties = campaign.bounties),
+                    (cmp.remuneration = campaign.remuneration),
+                    (cmp.endDate = campaign.endDate),
                 result.campaign = cmp
                 arrayOfTronLinks.push(result)
             }
