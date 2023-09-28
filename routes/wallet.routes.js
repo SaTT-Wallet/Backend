@@ -16,6 +16,7 @@ const {
     gasPriceBtt,
     gasPricePolygon,
     cryptoDetails,
+    getCharts,
     getMnemo,
     verifyMnemo,
     verifySign,
@@ -274,6 +275,37 @@ router.get('/globalCryptoMarketInfo', globalCryptoMarketInfo)
  *          description: error:"error"
  */
 router.get('/cryptoDetails', cryptoDetails)
+
+
+/**
+ * @swagger
+ * /wallet/getCharts:
+ *   post:
+ *     tags:
+ *     - "getCharts"
+ *     summary: get charts crypto for token info .
+ *     description: return the charts of tokens
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               range:
+ *                 type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/getCharts', getCharts)
 
 /**
  * @swagger

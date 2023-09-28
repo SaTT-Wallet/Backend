@@ -567,7 +567,10 @@ const getNetworkByToken = async (idCrypto) => {
             const networksContract = results.flatMap((result) =>
                 Object.values(result.data.data).map((innerObj) => ({
                     symbol: innerObj.symbol,
-                    contract_address: innerObj.contract_address,
+                    contract_address: innerObj.contract_address, 
+                    description :innerObj.description,
+                    urls : innerObj.urls.website
+                    
                 }))
             )
 
@@ -663,9 +666,8 @@ exports.getPrices = async () => {
                             circulating_supply: elem.circulating_supply,
                             total_supply: elem.total_supply,
                             max_supply: elem.max_supply,
-                            fully_diluted:
-                                responseSattJet.data.SATT?.quote.USD
-                                    .fully_diluted_market_cap,
+                            volume_change_24h: elem.quote.USD.volume_change_24h,
+                            fully_diluted: elem.quote.USD.fully_diluted_market_cap,
                             logo:
                                 'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
                                 elem.id +
@@ -694,6 +696,10 @@ exports.getPrices = async () => {
                             circulating_supply: elem.circulating_supply,
                             total_supply: elem.total_supply,
                             max_supply: elem.max_supply,
+                            fully_diluted: elem.quote.USD.fully_diluted_market_cap,
+                            market_cap: elem.quote.USD.market_cap,
+                            percent_change_24h: elem.quote.USD.percent_change_24h,
+                            volume_change_24h: elem.quote.USD.volume_change_24h,
                             logo:
                                 'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
                                 elem.id +
@@ -710,25 +716,30 @@ exports.getPrices = async () => {
 
             const idcrypto = priceMap.map((token) => token.id.toString())
             priceMap.forEach((token) => {
-                finalMap[token.symbol] = { ...token, networkSupported: '' }
+                finalMap[token.symbol] = { ...token, networkSupported: '',description: '', urls: '', network: '' }
                 delete finalMap[token.symbol].symbol
             })
 
             const networksContract = await getNetworkByToken(idcrypto.join(','))
             networksContract.forEach((network) => {
                 if (finalMap[network.symbol]) {
+                    const networkItem = (network.contract_address || []).find(item =>
+                        ["Ethereum", "BNB Smart Chain (BEP20)", "Polygon", "Tron20"].includes(item?.platform?.name)
+                      );
+                    const networkname = networkItem?.platform?.name || null;
+                    finalMap[network.symbol].network = networkname 
                     finalMap[network.symbol].networkSupported =
                         network.contract_address
+                        finalMap[network.symbol].description =
+                        network.description
+                        finalMap[network.symbol].urls =
+                        network.urls
                 }
             })
 
             for (var i = 0; i < token200.length; i++) {
                 var token = token200[i]
                 if (finalMap[token.symbol]) {
-                    finalMap[token.symbol].network =
-                        (finalMap[token.symbol].network &&
-                            finalMap[token.symbol].network) ||
-                        token.platform.network
                     finalMap[token.symbol].tokenAddress =
                         token.platform.token_address
                     finalMap[token.symbol].decimals = token.platform.decimals
@@ -742,6 +753,43 @@ exports.getPrices = async () => {
         throw new Error('Error fetching prices ')
     }
 }
+
+
+exports.getChart = async (id, range) => {
+    try {
+
+        const options = {
+            method: 'GET',
+            url: CMC_CRYPTO_CHART,
+            params: {
+                id: id,
+                range: range,
+            },
+            headers: {
+                'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
+            },
+        }
+
+        try {
+            result = await rp.request(options);
+
+            return result.data.data.points
+        } catch (error) {
+            throw new Error('Error fetching charts')
+        }
+
+
+
+        }
+    catch (err) {
+        throw new Error('Error fetching prices ')
+    }
+
+}
+
+
+
+
 exports.getallCryptoMarket = async (startVariable) => {
     try {
         if (
@@ -757,7 +805,7 @@ exports.getallCryptoMarket = async (startVariable) => {
             for (let i = 0; i < 2; i++) {
                 const options = {
                     method: 'GET',
-                    url: 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+                    url: CMC_URl,
                     params: {
                         start: i * 5000 + 1,
                         limit: '5000',
@@ -871,6 +919,7 @@ exports.getChartVariation = async (cryptolist) => {
                     id: innerObj.id,
                     name: innerObj.name,
                     sparkline_in_7d: sparkline_in_7d,
+
                 })
             })
 
