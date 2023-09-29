@@ -760,7 +760,7 @@ exports.getChart = async (id, range) => {
 
         const options = {
             method: 'GET',
-            url: CMC_CRYPTO_CHART,
+            url: process.env.CMC_CRYPTO_CHART,
             params: {
                 id: id,
                 range: range,
@@ -805,7 +805,7 @@ exports.getallCryptoMarket = async (startVariable) => {
             for (let i = 0; i < 2; i++) {
                 const options = {
                     method: 'GET',
-                    url: CMC_URl,
+                    url: process.env.CMC_URl,
                     params: {
                         start: i * 5000 + 1,
                         limit: '5000',
