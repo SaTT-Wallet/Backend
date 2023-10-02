@@ -2444,6 +2444,7 @@ exports.getLinks = async (req, res) => {
                     (cmp.bounties = campaign.bounties),
                     (cmp.remuneration = campaign.remuneration),
                     (cmp.endDate = campaign.endDate),
+                    (cmp.type = campaign.type)
                 result.campaign = cmp
                 arrayOfLinks.push(result)
             }
@@ -2481,6 +2482,7 @@ exports.getLinks = async (req, res) => {
                     (cmp.bounties = campaign.bounties),
                     (cmp.remuneration = campaign.remuneration),
                     (cmp.endDate = campaign.endDate),
+                    (cmp.type = campaign.type)
                 result.campaign = cmp
                 arrayOfTronLinks.push(result)
             }
