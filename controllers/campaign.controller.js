@@ -2997,10 +2997,10 @@ exports.generateBrief = async  (req, res) => {
             headers,
             
         })
-        console.log({request})
+        
         return responseHandler.makeResponseData(res, 200, 'success', request.data)
     }catch(err) {
-        console.log({err: err.response.data})
+       
         return responseHandler.makeResponseError(
             res,
             500,
