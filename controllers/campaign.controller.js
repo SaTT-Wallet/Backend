@@ -2969,3 +2969,42 @@ module.exports.totalInvested = async (req, res) => {
         )
     }
 }
+
+
+exports.generateBrief = async  (req, res) => {
+    try {
+        const openIAURL = process.env.OPEN_IA_URL
+        const apiKey = process.env.OPEN_IA_API_KEY;
+        const title= req.body.title;
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' +  apiKey,
+        }
+        const body = {
+            model: "gpt-3.5-turbo",
+            messages: [
+                {
+                    role: "user",
+                    content: `please create a comprehensive Influencer Campaign Brief for me that will serve as an explanatory sheet for integration into a campaign presentation platform. We need title, description, short description, rules, and examples. ${title}` 
+                }
+                ],
+            temperature: 0.7
+        }
+        const request = await axios.post(
+            openIAURL,
+            body,
+            {
+            headers,
+            
+        })
+        console.log({request})
+        return responseHandler.makeResponseData(res, 200, 'success', request.data)
+    }catch(err) {
+        console.log({err: err.response.data})
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}

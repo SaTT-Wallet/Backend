@@ -38,7 +38,8 @@ const {
     tronApproval,
     tronAllow,
     uploadPictureToIPFS,
-    campaignsPictureUpload
+    campaignsPictureUpload,
+    generateBrief
 } = require('../controllers/campaign.controller')
 const {
     evmApprovalValidation,
@@ -61,7 +62,8 @@ const {
     applyValidation,
     saveCampaignValidation,
     updateCampaignValidation,
-    addKitsValidation
+    addKitsValidation,
+    titleCheckValidation
 } = require('../middleware/campaignValidator.middleware')
 const { verifyAuth } = require('../middleware/passport.middleware')
 
@@ -1286,5 +1288,6 @@ router.get('/statistics', campaignsStatistics)
 router.delete('/deleteDraft/:id', verifyAuth, idCheckValidation,deleteDraft)
 
 
+router.post('/generate-brief', verifyAuth, titleCheckValidation,generateBrief)
 
 module.exports = router

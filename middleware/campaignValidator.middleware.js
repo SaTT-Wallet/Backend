@@ -270,7 +270,12 @@ linkNotificationsSchema: Joi.object({
     addKitsSchema: Joi.object({
         link: Joi.string(),
         campaign: Joi.string().required()
-    })
+    }),
+
+    titleCheckSchema: Joi.object({
+        title: Joi.string().required(),
+        
+    }),
 }
 
 
@@ -327,5 +332,6 @@ module.exports = {
     applyValidation: validationMiddleware(schemas.applySchema, 'body'),
     saveCampaignValidation: validationMiddleware(schemas.saveCampaignSchema, 'body'),
     updateCampaignValidation: validationCustomMiddleware(schemas.idCheckSchema, 'params', schemas.updateCampaignSchema, 'body'),
-    addKitsValidation: validationCustomMiddleware(schemas.checkFileSchema, 'file', schemas.addKitsSchema, 'body')
+    addKitsValidation: validationCustomMiddleware(schemas.checkFileSchema, 'file', schemas.addKitsSchema, 'body'),
+    titleCheckValidation: validationMiddleware(schemas.titleCheckSchema, 'body')
 };
