@@ -2981,14 +2981,14 @@ exports.generateBrief = async  (req, res) => {
             Authorization: 'Bearer ' +  apiKey,
         }
         const body = {
-            model: "gpt-3.5-turbo",
+            model: process.env.MODEL_GPT,
             messages: [
                 {
-                    role: "user",
-                    content: `please create a comprehensive Influencer Campaign Brief for me that will serve as an explanatory sheet for integration into a campaign presentation platform. We need title, description, short description, rules, and examples. ${title}` 
+                    role: process.env.ROLE_OPEN_IA,
+                    content: process.env.PROMPT_OPEN_IA + title 
                 }
                 ],
-            temperature: 0.7
+            temperature: Number(process.env.TEMPERATURE_OPEN_IA)
         }
         const request = await axios.post(
             openIAURL,
@@ -2997,10 +2997,8 @@ exports.generateBrief = async  (req, res) => {
             headers,
             
         })
-        
         return responseHandler.makeResponseData(res, 200, 'success', request.data)
     }catch(err) {
-       
         return responseHandler.makeResponseError(
             res,
             500,
