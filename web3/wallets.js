@@ -1160,6 +1160,8 @@ exports.getListCryptoByUid = async (req, res) => {
                     name: userTokens[i].tokenName,
                     picUrl: userTokens[i].picUrl,
                     addedToken: true,
+                    purchase:userTokens[i].purchase,
+
                 }
             }
             // we have updated tokens env by custom tokens
@@ -1199,6 +1201,7 @@ exports.getListCryptoByUid = async (req, res) => {
             crypto.balance = 0
             crypto.undername = token_info[T_name].undername
             crypto.undername2 = token_info[T_name].undername2
+            crypto.purchase = token_info[T_name].purchase
             ;[crypto.price, crypto.total_balance] = Array(2).fill(0.0)
 
             let key = T_name.split('_')[0]
