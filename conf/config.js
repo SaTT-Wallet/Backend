@@ -56,6 +56,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_SATT_CONTRACT,
             dicimal: process.env.TOKEN_SATT_DICIMAL,
             network: process.env.TOKEN_SATT_NETWORK,
+            purchase: true
         },
     
         WSATT: {
@@ -66,6 +67,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_WSATT_CONTRACT,
             dicimal: process.env.TOKEN_WSATT_DICIMAL,
             network: process.env.TOKEN_WSATT_NETWORK,
+            purchase: false
         },
     
         SATT_BEP20: {
@@ -76,6 +78,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_SATT_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_SATT_BEP20_DICIMAL,
             network: process.env.TOKEN_SATT_BEP20_NETWORK,
+            purchase: true
         },
         
         DAI: {
@@ -86,6 +89,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_DAI_CONTRACT,
             dicimal: process.env.TOKEN_DAI_DICIMAL,
             network: process.env.TOKEN_DAI_NETWORK,
+            purchase: true
         },
     
         DAI_BEP20: {
@@ -96,6 +100,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_DAI_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_DAI_DICIMAL,
             network: process.env.TOKEN_DAI_BEP20_NETWORK,
+            purchase: false
         },
     
         DAI_POLYGON: {
@@ -106,6 +111,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_DAI_POLYGON_CONTRACT,
             dicimal: process.env.TOKEN_DAI_DICIMAL,
             network: process.env.TOKEN_DAI_POLYGON_NETWORK,
+            purchase: false
         },
     
         USDT: {
@@ -116,6 +122,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_USDT_CONTRACT,
             dicimal: process.env.TOKEN_USDT_DICIMAL,
             network: process.env.TOKEN_USDT_NETWORK,
+            purchase: true
         },
     
         USDT_BEP20: {
@@ -126,6 +133,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_USDT_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_USDT_DICIMAL,
             network: process.env.TOKEN_USDT_BEP20_NETWORK,
+            purchase: false
         },
     
         USDT_POLYGON: {
@@ -136,6 +144,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_USDT_POLYGON_CONTRACT,
             dicimal: process.env.TOKEN_USDT_DICIMAL,
             network: process.env.TOKEN_USDT_POLYGON_NETWORK,
+            purchase: false
         },
     
         MKR: {
@@ -146,6 +155,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_MKR_CONTRACT,
             dicimal: process.env.TOKEN_MKR_DICIMAL,
             network: process.env.TOKEN_MKR_NETWORK,
+            purchase: true
         },
     
         BNB: {
@@ -156,6 +166,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_BNB_CONTRACT,
             dicimal: process.env.TOKEN_BNB_DICIMAL,
             network: process.env.TOKEN_BNB_NETWORK,
+            purchase: true
         },
     
         BNB_ERC20: {
@@ -166,6 +177,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_BNB_ERC0_CONTRACT,
             dicimal: process.env.TOKEN_BNB_DICIMAL,
             network: process.env.TOKEN_BNB_ERC20_NETWORK,
+            purchase: false
         },
     
         CAKE: {
@@ -176,6 +188,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_CAKE_CONTRACT,
             dicimal: process.env.TOKEN_CAKE_DICIMAL,
             network: process.env.TOKEN_CAKE_NETWORK,
+            purchase: true
         },
     
         CAKE_ERC20: {
@@ -186,6 +199,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_CAKE_ERC20_CONTRACT,
             dicimal: process.env.TOKEN_CAKE_DICIMAL,
             network: process.env.TOKEN_CAKE_ERC20_NETWORK,
+            purchase: false
         },
     
         SOL: {
@@ -196,6 +210,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_SOL_CONTRACT,
             dicimal: process.env.TOKEN_SOL_DICIMAL,
             network: process.env.TOKEN_SOL_NETWORK,
+            purchase: false
         },
     
         SOL_POLYGON: {
@@ -206,6 +221,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_SOL_POLYGON_CONTRACT,
             dicimal: process.env.TOKEN_SOL_DICIMAL,
             network: process.env.TOKEN_SOL_POLYGON_NETWORK,
+            purchase: false
         },
     
         SOL_BEP20: {
@@ -216,6 +232,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_SOL_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_SOL_DICIMAL,
             network: process.env.TOKEN_SOL_BEP20_NETWORK,
+            purchase: false
         },
     
         USDC: {
@@ -226,6 +243,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_USDC_CONTRACT,
             dicimal: process.env.TOKEN_USDC_DICIMAL,
             network: process.env.TOKEN_USDC_NETWORK,
+            purchase: false
         },
     
         USDC_ERC20: {
@@ -236,6 +254,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_USDC_ERC20_CONTRACT,
             dicimal: process.env.TOKEN_USDC_DICIMAL,
             network: process.env.TOKEN_USDC_ERC20_NETWORK,
+            purchase: false
         },
     
         USDC_POLYGON: {
@@ -246,6 +265,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_USDC_POLYGON_CONTRACT,
             dicimal: process.env.TOKEN_USDC_DICIMAL,
             network: process.env.TOKEN_USDC_POLYGON_NETWORK,
+            purchase: false
         },
     
         MATIC: {
@@ -256,6 +276,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_MATIC_CONTRACT,
             dicimal: process.env.TOKEN_MATIC_DICIMAL,
             network: process.env.TOKEN_MATIC_NETWORK,
+            purchase: true
         },
     
         ADA: {
@@ -266,6 +287,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_ADA_CONTRACT,
             dicimal: process.env.TOKEN_ADA_DICIMAL,
             network: process.env.TOKEN_ADA_NETWORK,
+            purchase: false
         },
     
         LINK: {
@@ -276,6 +298,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_LINK_CONTRACT,
             dicimal: process.env.TOKEN_LINK_DICIMAL,
             network: process.env.TOKEN_LINK_NETWORK,
+            purchase: false
         },
     
         LINK_BEP20: {
@@ -286,6 +309,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_LINK_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_LINK_DICIMAL,
             network: process.env.TOKEN_LINK_BEP20_NETWORK,
+            purchase: false
         },
     
         LINK_POLYGON: {
@@ -296,6 +320,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_LINK_POLYGON_CONTRACT,
             dicimal: process.env.TOKEN_LINK_DICIMAL,
             network: process.env.TOKEN_LINK_POLYGON_NETWORK,
+            purchase: false
         },
     
         MATIC_ERC20: {
@@ -306,6 +331,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_MATIC_ERC20_CONTRACT,
             dicimal: process.env.TOKEN_MATIC_DICIMAL,
             network: process.env.TOKEN_MATIC_ERC20_NETWORK,
+            purchase: false
         },
     
         MATIC_BEP20: {
@@ -316,6 +342,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_MATIC_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_MATIC_DICIMAL,
             network: process.env.TOKEN_MATIC_BEP20_NETWORK,
+            purchase: false
         },
     
         ETH_BEP20: {
@@ -326,6 +353,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_ETH_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_ETH_DICIMAL,
             network: process.env.TOKEN_ETH_BEP20_NETWORK,
+            purchase: false
         },
     
         ETH_POLYGON: {
@@ -336,6 +364,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_ETH_POLYGON_CONTRACT,
             dicimal: process.env.TOKEN_ETH_DICIMAL,
             network: process.env.TOKEN_ETH_POLYGON_NETWORK,
+            purchase: false
         },
     
         BTT: {
@@ -346,6 +375,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_BTT_CONTRACT,
             dicimal: process.env.TOKEN_BTT_DICIMAL,
             network: process.env.TOKEN_BTT_NETWORK,
+            purchase: false
         },
     
         BTT_ERC20: {
@@ -356,6 +386,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_BTT_ERC20_CONTRACT,
             dicimal: process.env.TOKEN_BTT_DICIMAL,
             network: process.env.TOKEN_BTT_ERC20_NETWORK,
+            purchase: false
         },
     
         BTT_TRON: {
@@ -366,6 +397,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_BTT_TRON_CONTRACT,
             dicimal: process.env.TOKEN_BTT_DICIMAL,
             network: process.env.TOKEN_BTT_TRON_NETWORK,
+            purchase: false
         },
     
         BTT_BEP20: {
@@ -376,6 +408,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_BTT_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_BTT_DICIMAL,
             network: process.env.TOKEN_BTT_BEP20_NETWORK,
+            purchase: false
         },
         
         TRX: {
@@ -386,6 +419,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_TRON_CONTRACT,
             dicimal: process.env.TOKEN_TRON_DICIMAL,
             network: process.env.TOKEN_TRON_NETWORK,
+            purchase: true
         },
     
         TRX_BEP20: {
@@ -396,6 +430,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_TRON_BEP20_CONTRACT,
             dicimal: process.env.TOKEN_TRON_DICIMAL,
             network: process.env.TOKEN_TRON_BEP20_NETWORK,
+            purchase: false
         },
     
         TRX_ERC20: {
@@ -406,6 +441,7 @@ let sattTRONCONTRACT,
             contract: process.env.TOKEN_TRON_ERC20_CONTRACT,
             dicimal: process.env.TOKEN_TRON_DICIMAL,
             network: process.env.TOKEN_TRON_ERC20_NETWORK,
+            purchase: false
         },
     }
 
