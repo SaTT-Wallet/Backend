@@ -1309,7 +1309,7 @@ module.exports.ShareByActivity = async (req, res) => {
         ).lean()
 
         let postData = await rp.get(
-            process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN,
+            process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN + '&projection=(results(*(domainEntity~)))',
             {
                 headers: {
                     Authorization: 'Bearer ' + linkedinProfile.accessToken,

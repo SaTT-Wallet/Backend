@@ -79,7 +79,7 @@ const schemas = {
     }),
 
     checkEVMAddressSchema: Joi.object({
-        address: validateAddress("^0x[a-fA-F0-9]{40}$")
+        address: validateAddress("^0x[a-fA-F0-9]{40}$|T[A-Za-z1-9]{33}$")
     }),
 
     tokenSchema: Joi.object({

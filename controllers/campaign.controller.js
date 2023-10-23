@@ -2975,3 +2975,40 @@ module.exports.totalInvested = async (req, res) => {
         )
     }
 }
+
+
+exports.generateBrief = async  (req, res) => {
+    try {
+        const openIAURL = process.env.OPEN_IA_URL
+        const apiKey = process.env.OPEN_IA_API_KEY;
+        const title= req.body.title;
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' +  apiKey,
+        }
+        const body = {
+            model: process.env.MODEL_GPT,
+            messages: [
+                {
+                    role: process.env.ROLE_OPEN_IA,
+                    content: process.env.PROMPT_OPEN_IA + title 
+                }
+                ],
+            temperature: Number(process.env.TEMPERATURE_OPEN_IA)
+        }
+        const request = await axios.post(
+            openIAURL,
+            body,
+            {
+            headers,
+            
+        })
+        return responseHandler.makeResponseData(res, 200, 'success', request.data)
+    }catch(err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
