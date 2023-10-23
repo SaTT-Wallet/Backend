@@ -1336,13 +1336,17 @@ exports.gains = async (req, res) => {
             let prom =
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
-            if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
-                return responseHandler.makeResponseError(
-                    res,
-                    403,
-                    "You didn't exceed the limits timing to harvest between 24H"
-                )
-            }
+
+                
+                await CampaignLink.updateOne( { id_prom: idProm }, { $set: {lastHarvestDate: prom.lastHarvest} } )
+
+             if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
+                 return responseHandler.makeResponseError(
+                     res,
+                     403,
+                     "You didn't exceed the limits timing to harvest between 24H"
+                 )
+             }
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
@@ -2391,6 +2395,8 @@ exports.getLinks = async (req, res) => {
             .skip(skip)
             .limit(limit)
 
+
+            
         let tronUserLinks =
             (!!accountData.tronAddress &&
                 !!accountData.walletV2?.tronAddress &&
