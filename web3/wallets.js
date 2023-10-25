@@ -1221,22 +1221,17 @@ exports.getListCryptoByUid = async (req, res) => {
         for (let T_network in web3s) {
             if (web3s[T_network]) {
                 if (T_network == 'TRON') {
-                    balancesBynetwork[T_network] = [
-                        await this.getTronBalance(
+                    const balanceTronList = [];
+                    for(let token of tokensInfosByNetwork[T_network]) {
+                        const tronBalance = await this.getTronBalance(
                             await webTronInstance(),
-                            false,
+                            token.contract,
                             tronAddress,
-                            true
-                        ),
-                    ]
-                    /*  balancesBynetwork[T_network] = balancesBynetwork[T_network].concat(balancesBynetwork[T_network],await this.multicall(
-                        tokensByNetwork[T_network],
-                        addressesByNetwork[T_network],
-                        T_network,
-                        web3s[T_network]
-                        
-                    ))
-                    console.log(balancesBynetwork[T_network])*/
+                            token.key === 'TRX' ? true : false
+                        )
+                        balanceTronList.push(tronBalance)   
+                    }
+                    balancesBynetwork[T_network] = balanceTronList
                 } else {
                     balancesBynetwork[T_network] = await this.multicall(
                         tokensByNetwork[T_network],
