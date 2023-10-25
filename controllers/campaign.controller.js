@@ -1338,7 +1338,6 @@ exports.gains = async (req, res) => {
                 (await ctr.methods.proms(idProm).call())
 
                 
-                await CampaignLink.updateOne( { id_prom: idProm }, { $set: {lastHarvestDate: prom.lastHarvest} } )
 
              if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
                  return responseHandler.makeResponseError(
@@ -1558,6 +1557,8 @@ exports.gains = async (req, res) => {
             )
 
             if (ret) {
+                await CampaignLink.updateOne( { id_prom: idProm }, { $set: {lastHarvestDate:  Math.floor(new Date().getTime() / 1000)} } )
+
                 await User.updateOne(
                     { _id: req.user._id },
                     {
