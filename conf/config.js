@@ -174,7 +174,7 @@ let sattTRONCONTRACT,
             symbol: process.env.TOKEN_BNB_SYMBOL,
             undername: process.env.TOKEN_BNB_UNDERNAME,
             undername2: process.env.TOKEN_BNB_UNDERNAME2,
-            contract: process.env.TOKEN_BNB_ERC0_CONTRACT,
+            contract: process.env.TOKEN_BNB_ERC20_CONTRACT,
             dicimal: process.env.TOKEN_BNB_DICIMAL,
             network: process.env.TOKEN_BNB_ERC20_NETWORK,
             purchase: false
@@ -356,16 +356,6 @@ let sattTRONCONTRACT,
             purchase: false
         },
     
-        ETH_POLYGON: {
-            name: process.env.TOKEN_ETH_NAME,
-            symbol: process.env.TOKEN_ETH_SYMBOL,
-            undername: process.env.TOKEN_ETH_UNDERNAME,
-            undername2: process.env.TOKEN_ETH_UNDERNAME2,
-            contract: process.env.TOKEN_ETH_POLYGON_CONTRACT,
-            dicimal: process.env.TOKEN_ETH_DICIMAL,
-            network: process.env.TOKEN_ETH_POLYGON_NETWORK,
-            purchase: false
-        },
     
         BTT: {
             name: process.env.TOKEN_BTT_NAME,
