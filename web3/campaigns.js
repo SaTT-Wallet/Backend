@@ -9,6 +9,10 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
+const {
+    Campaigns,
+} = require('../model/index')
+
 const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
 const {
@@ -1017,6 +1021,11 @@ exports.getRemainingFunds = async (hash, credentials, advertiser = null) => {
             gas,
             gasPrice,
         })
+
+        await Campaigns.updateOne(
+            { hash: hash },
+            { $set: { retrieved: true } }
+        )
         return {
             transactionHash: receipt.transactionHash,
             hash,
