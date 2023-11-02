@@ -1321,11 +1321,13 @@ exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
                         var resMedia = (await rp.get( media)).data
                         page.instagram_username = resMedia.username
                     }
-                    await FbPage.updateOne(
-                        { id: res.data[i].id, UserId },
-                        { $set: page },
-                        { upsert: true }
-                    )
+                    const existingPage = await FbPage.findOne({ id: res.data[i].id, UserId });
+                    existingPage && await FbPage.updateOne(
+                            { id: res.data[i].id, UserId },
+                            { $set: page },
+                            { upsert: true }
+                        )
+                   
                 }
                 if (!res.paging || !res.paging.next) {
                     break
@@ -1392,11 +1394,12 @@ exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
                         var resMedia = (await rp.get(media)).data
                         page.instagram_username = resMedia.username
                     }
-                    await FbPage.updateOne(
-                        { id: res.data[i].id, UserId },
-                        { $set: page },
-                        { upsert: true }
-                    )
+                    const existingPage = await FbPage.findOne({ id: res.data[i].id, UserId });
+                    existingPage && await FbPage.updateOne(
+                            { id: res.data[i].id, UserId },
+                            { $set: page },
+                            { upsert: true }
+                        )
                 }
                 if (!res.paging || !res.paging.next) {
                     break
