@@ -1321,8 +1321,7 @@ exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
                         var resMedia = (await rp.get( media)).data
                         page.instagram_username = resMedia.username
                     }
-                    const existingPage = await FbPage.findOne({ id: res.data[i].id, UserId });
-                    existingPage && await FbPage.updateOne(
+                    await FbPage.updateOne(
                             { id: res.data[i].id, UserId },
                             { $set: page },
                             { upsert: true }
@@ -1394,8 +1393,7 @@ exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
                         var resMedia = (await rp.get(media)).data
                         page.instagram_username = resMedia.username
                     }
-                    const existingPage = await FbPage.findOne({ id: res.data[i].id, UserId });
-                    existingPage && await FbPage.updateOne(
+                    await FbPage.updateOne(
                             { id: res.data[i].id, UserId },
                             { $set: page },
                             { upsert: true }
