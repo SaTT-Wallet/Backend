@@ -2761,7 +2761,7 @@ module.exports.campaignsStatistics = async (req, res) => {
 
                     const payedAmountInCryptoCurrency = new Big(
                         link.payedAmount
-                    ).div(decimalPower.pow(getDecimal(tokenName)))
+                    ).div(decimalPower.pow(getDecimal(tokenName) ?? 18))
                     const cryptoUnitPriceInUSD = new Big(
                         Crypto[tokenName].price
                     )
