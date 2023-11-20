@@ -11,7 +11,7 @@ var bip32 = require('bip32')
 var bip38 = require('bip38')
 const { ethers } = require('ethers');
 
-const UserExternalWallet = require('../model/userwxternalwallet.model'); // Adjust the path as needed
+const UserExternalWallet = require('./../model/userxternalwallet.model.js'); // Adjust the path as needed
 
 const Web3 = require('web3')
 const {
