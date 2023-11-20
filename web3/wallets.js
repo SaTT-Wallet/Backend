@@ -15,6 +15,7 @@ const {
     networkProvidersOptions,
 } = require('./web3-connection')
 var cache = require('memory-cache')
+const { ethers } = require('ethers');
 
 var rp = require('axios')
 const Big = require('big.js')
@@ -567,10 +568,9 @@ const getNetworkByToken = async (idCrypto) => {
             const networksContract = results.flatMap((result) =>
                 Object.values(result.data.data).map((innerObj) => ({
                     symbol: innerObj.symbol,
-                    contract_address: innerObj.contract_address, 
-                    description :innerObj.description,
-                    urls : innerObj.urls.website
-                    
+                    contract_address: innerObj.contract_address,
+                    description: innerObj.description,
+                    urls: innerObj.urls.website,
                 }))
             )
 
@@ -667,7 +667,8 @@ exports.getPrices = async () => {
                             total_supply: elem.total_supply,
                             max_supply: elem.max_supply,
                             volume_change_24h: elem.quote.USD.volume_change_24h,
-                            fully_diluted: elem.quote.USD.fully_diluted_market_cap,
+                            fully_diluted:
+                                elem.quote.USD.fully_diluted_market_cap,
                             logo:
                                 'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
                                 elem.id +
@@ -696,9 +697,11 @@ exports.getPrices = async () => {
                             circulating_supply: elem.circulating_supply,
                             total_supply: elem.total_supply,
                             max_supply: elem.max_supply,
-                            fully_diluted: elem.quote.USD.fully_diluted_market_cap,
+                            fully_diluted:
+                                elem.quote.USD.fully_diluted_market_cap,
                             market_cap: elem.quote.USD.market_cap,
-                            percent_change_24h: elem.quote.USD.percent_change_24h,
+                            percent_change_24h:
+                                elem.quote.USD.percent_change_24h,
                             volume_change_24h: elem.quote.USD.volume_change_24h,
                             logo:
                                 'https://s2.coinmarketcap.com/static/img/coins/128x128/' +
@@ -716,24 +719,34 @@ exports.getPrices = async () => {
 
             const idcrypto = priceMap.map((token) => token.id.toString())
             priceMap.forEach((token) => {
-                finalMap[token.symbol] = { ...token, networkSupported: '',description: '', urls: '', network: '' }
+                finalMap[token.symbol] = {
+                    ...token,
+                    networkSupported: '',
+                    description: '',
+                    urls: '',
+                    network: '',
+                }
                 delete finalMap[token.symbol].symbol
             })
 
             const networksContract = await getNetworkByToken(idcrypto.join(','))
             networksContract.forEach((network) => {
                 if (finalMap[network.symbol]) {
-                    const networkItem = (network.contract_address || []).find(item =>
-                        ["Ethereum", "BNB Smart Chain (BEP20)", "Polygon", "Tron20"].includes(item?.platform?.name)
-                      );
-                    const networkname = networkItem?.platform?.name || null;
-                    finalMap[network.symbol].network = networkname 
+                    const networkItem = (network.contract_address || []).find(
+                        (item) =>
+                            [
+                                'Ethereum',
+                                'BNB Smart Chain (BEP20)',
+                                'Polygon',
+                                'Tron20',
+                            ].includes(item?.platform?.name)
+                    )
+                    const networkname = networkItem?.platform?.name || null
+                    finalMap[network.symbol].network = networkname
                     finalMap[network.symbol].networkSupported =
                         network.contract_address
-                        finalMap[network.symbol].description =
-                        network.description
-                        finalMap[network.symbol].urls =
-                        network.urls
+                    finalMap[network.symbol].description = network.description
+                    finalMap[network.symbol].urls = network.urls
                 }
             })
 
@@ -754,10 +767,8 @@ exports.getPrices = async () => {
     }
 }
 
-
 exports.getChart = async (id, range) => {
     try {
-
         const options = {
             method: 'GET',
             url: process.env.CMC_CRYPTO_CHART,
@@ -771,24 +782,16 @@ exports.getChart = async (id, range) => {
         }
 
         try {
-            result = await rp.request(options);
+            result = await rp.request(options)
 
             return result.data.data.points
         } catch (error) {
             throw new Error('Error fetching charts')
         }
-
-
-
-        }
-    catch (err) {
+    } catch (err) {
         throw new Error('Error fetching prices ')
     }
-
 }
-
-
-
 
 exports.getallCryptoMarket = async (startVariable) => {
     try {
@@ -919,7 +922,6 @@ exports.getChartVariation = async (cryptolist) => {
                     id: innerObj.id,
                     name: innerObj.name,
                     sparkline_in_7d: sparkline_in_7d,
-
                 })
             })
 
@@ -1023,6 +1025,52 @@ exports.getBalance = async (Web3, token, address) => {
     }
 }
 
+
+
+exports.getBalanceExternalWallet = async (req, res) => {
+    try {
+        const { token, walletAddress } = req.body;
+
+        const networks = [
+            { name: 'ethereum', providerUrl: process.env.WEB3_URL},
+            { name: 'bsc', providerUrl: process.env.WEB3_URL_BEP20 },
+            { name: 'polygon', providerUrl: process.env.WEB3_URL_POLYGON },
+            { name: 'bttc', providerUrl: process.env.WEB3_URL_BTT }, 
+        ];
+
+        let balanceResponse;
+
+        for (const networkObj of networks) {
+            try {
+                const provider = new ethers.providers.JsonRpcProvider(networkObj.providerUrl);
+                const contract = new ethers.Contract(
+                    token,
+                    ['function balanceOf(address) view returns (uint256)'],
+                    provider
+                );
+
+                const balance = await contract.balanceOf(walletAddress);
+                const formattedBalance = ethers.utils.formatUnits(balance, 18); 
+                balanceResponse = { balance: formattedBalance, network: networkObj.name };
+                res.json(balanceResponse);
+                return; 
+            } catch (error) {
+                console.error(`Error fetching balance for ${networkObj.name}: ${error.message}`);
+            }
+        }
+
+        res.status(500).json({
+            error: 'An error occurred while fetching the balance for all networks.',
+        });
+    } catch (err) {
+        res.status(500).json({
+            error: 'An error occurred while setting up network connections.',
+        });
+    }
+};
+
+
+
 exports.multicall = async (tokens, addresses, network, web3) => {
     try {
         let contract = new web3.eth.Contract(
@@ -1116,21 +1164,30 @@ exports.getListCryptoByUid = async (req, res) => {
 
         // CryptoPrices =>  200 cryptos
         var CryptoPrices = crypto
-        const migrated = !!req.user.migrated ? req.user.migrated : false;
-        let userIsNew = false;
-        if(req.body.version != 'v1' && req.body.version != 'v2' && !migrated) {
-            const userWallet = await Wallet.findOne({ UserId: req.user._id }).lean()
-            if (userWallet?.walletV2?.keystore?.address && !userWallet?.keystore?.address) userIsNew = true;
-            else userIsNew = false;
+        const migrated = !!req.user.migrated ? req.user.migrated : false
+        let userIsNew = false
+        if (req.body.version != 'v1' && req.body.version != 'v2' && !migrated) {
+            const userWallet = await Wallet.findOne({
+                UserId: req.user._id,
+            }).lean()
+            if (
+                userWallet?.walletV2?.keystore?.address &&
+                !userWallet?.keystore?.address
+            )
+                userIsNew = true
+            else userIsNew = false
         }
-        
-       
-        
 
         var ret =
-            req.body.version === 'v2' 
+            req.body.version === 'v2'
                 ? await this.getAccountV2(req, res)
-                :(req.body.version === 'v1' ? await this.getAccount(req, res) : (migrated ?await this.getAccountV2(req, res) : (userIsNew ? await this.getAccountV2(req,res) : await this.getAccount(req,res)) )) 
+                : req.body.version === 'v1'
+                ? await this.getAccount(req, res)
+                : migrated
+                ? await this.getAccountV2(req, res)
+                : userIsNew
+                ? await this.getAccountV2(req, res)
+                : await this.getAccount(req, res)
 
         let tronAddress = ret.tronAddress
         delete ret.btc
@@ -1160,8 +1217,7 @@ exports.getListCryptoByUid = async (req, res) => {
                     name: userTokens[i].tokenName,
                     picUrl: userTokens[i].picUrl,
                     addedToken: true,
-                    purchase:userTokens[i].purchase,
-
+                    purchase: userTokens[i].purchase,
                 }
             }
             // we have updated tokens env by custom tokens
@@ -1221,15 +1277,15 @@ exports.getListCryptoByUid = async (req, res) => {
         for (let T_network in web3s) {
             if (web3s[T_network]) {
                 if (T_network == 'TRON') {
-                    const balanceTronList = [];
-                    for(let token of tokensInfosByNetwork[T_network]) {
+                    const balanceTronList = []
+                    for (let token of tokensInfosByNetwork[T_network]) {
                         const tronBalance = await this.getTronBalance(
                             await webTronInstance(),
                             token.contract,
                             tronAddress,
                             token.key === 'TRX' ? true : false
                         )
-                        balanceTronList.push(tronBalance)   
+                        balanceTronList.push(tronBalance)
                     }
                     balancesBynetwork[T_network] = balanceTronList
                 } else {
