@@ -9,6 +9,10 @@ var fs = require('fs')
 var bip39 = require('bip39')
 var bip32 = require('bip32')
 var bip38 = require('bip38')
+const { ethers } = require('ethers');
+
+const UserExternalWallet = require('../model/userwxternalwallet.model'); // Adjust the path as needed
+
 const Web3 = require('web3')
 const {
     networkProviders,
@@ -530,128 +534,51 @@ exports.transferTokensController = async (req, res) => {
     }
 }
 
-exports.checkWalletToken = async (req, res) => {
-    try {
-        if (req.user.hasWallet == true) {
-        } else {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Wallet not found'
-            )
-        }
 
-        let [tokenAdress] = [req.body.tokenAdress.trim()]
-        const Web3BEP20 = await bep20Connexion()
-        const Web3ETH = await erc20Connexion()
-        const web3MATIC = await polygonConnexion()
-        const web3BTT = await bttConnexion()
-        const tronWeb = await webTronInstance()
+exports.getBalanceExternalWallet = async (req, res) => {
+    try {
+        const { token, walletAddress } = req.body;
 
         const networks = [
-            { name: 'bep20', web3: Web3BEP20.eth, abi: Constants.token.abi },
-            { name: 'erc20', web3: Web3ETH.eth, abi: Constants.token.abi },
-            { name: 'polygon', web3: web3MATIC.eth, abi: Constants.token.abi },
-            { name: 'bttc', web3: web3BTT.eth, abi: Constants.token.abi },
+            { name: 'ethereum', providerUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY' },
+            { name: 'bsc', providerUrl: 'https://bsc-dataseed.binance.org/' },
+            { name: 'polygon', providerUrl: 'https://polygon-rpc.com/' },
+            // Add more networks here if needed
+        ];
 
-            // Add more EVM networks here if needed
-        ]
+        let balanceResponse;
 
-        let found = false
-        let result
-        const tronAddressRegex = /^T[A-Za-z1-9]{33}$/
-        let metaData // Declare with 'let' to allow reassignment
-        let logoimg
-        try {
-            const response = await rp(process.env.CMR_URL_ADDRR + tokenAdress, {
-                headers: {
-                    'X-CMC_PRO_API_KEY': process.env.CMCAPIKEY,
-                },
-            })
+        for (const networkObj of networks) {
+            try {
+                const provider = new ethers.providers.JsonRpcProvider(networkObj.providerUrl);
+                const contract = new ethers.Contract(
+                    token,
+                    ['function balanceOf(address) view returns (uint256)'],
+                    provider
+                );
 
-            metaData = response.data
-            // Process metaData here
-        } catch (error) {
-            logoimg = 'not img found'
-        }
+                const balance = await contract.balanceOf(walletAddress);
+                const formattedBalance = ethers.utils.formatUnits(balance, 18); // Assuming 18 decimals, adjust as needed
 
-        if (metaData)
-            logoimg = metaData.data[Object.keys(metaData.data)[0]].logo
-        if (tronAddressRegex.test(tokenAdress)) {
-            const wallet = await Wallet.findOne({ UserId: req.user._id })
-            if (
-                !!wallet &&
-                (wallet.tronAddress || wallet.walletV2.tronAddress)
-            ) {
-                const contract = await tronWeb.contract().at(tokenAdress)
-                tronWeb.setAddress(
-                    wallet.tronAddress
-                        ? wallet.tronAddress
-                        : wallet.walletV2.tronAddress
-                )
-                const tokenName = await contract.name().call()
-                const decimals = await contract.decimals().call()
-                const symbol = await contract.symbol().call()
-                const network = 'TRON'
-                result = {
-                    tokenName,
-                    symbol,
-                    decimals,
-                    tokenAdress,
-                    network,
-                    logoimg,
-                }
-                found = true
-            } else found = false
-        } else {
-            for (const networkObj of networks) {
-                let code = await networkObj.web3.getCode(tokenAdress)
-                if (code !== '0x') {
-                    let contract = new networkObj.web3.Contract(
-                        networkObj.abi,
-                        tokenAdress
-                    )
-                    const decimals = await contract.methods.decimals().call()
-                    const tokenName = await contract.methods.name().call()
-                    const network = networkObj.name.toUpperCase()
-                    const symbol = await contract.methods.symbol().call()
-
-                    result = {
-                        tokenName,
-                        symbol,
-                        decimals,
-                        tokenAdress,
-                        network,
-                        logoimg,
-                    }
-                    found = true
-                    break
-                }
+                balanceResponse = { balance: formattedBalance, network: networkObj.name };
+                res.json(balanceResponse);
+                return; // Return immediately upon successful balance fetch
+            } catch (error) {
+                // Handle network-specific errors here
+                console.error(`Error fetching balance for ${networkObj.name}: ${error.message}`);
             }
         }
 
-        if (!found) {
-            return responseHandler.makeResponseError(
-                res,
-                204,
-                'Not a token address on any network'
-            )
-        } else {
-            return responseHandler.makeResponseData(
-                res,
-                200,
-                'Token found',
-                result
-            )
-        }
+        // If the loop completes without returning, it means all networks failed
+        res.status(500).json({
+            error: 'An error occurred while fetching the balance for all networks.',
+        });
     } catch (err) {
-        return responseHandler.makeResponseError(
-            res,
-            500,
-            err.message ? err.message : err.error
-        )
+        res.status(500).json({
+            error: 'An error occurred while setting up network connections.',
+        });
     }
-}
+};
 
 exports.addNewToken = async (req, res) => {
     try {
@@ -1091,6 +1018,30 @@ exports.createNewWalletV2 = async (req, res) => {
         )
     }
 }
+
+
+exports.createUserFromExternalWallet = async (req, res) =>{
+
+try{
+
+    const newUserWallet = new UserExternalWallet({
+        _id: req.body.wallet, // Replace with the actual user ID
+      });
+
+    await newUserWallet.save()
+
+    return responseHandler.makeResponseData(res, 200, 'User created successfully', newUserWallet);
+
+}
+catch(err){
+    return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
+
+}
+
+
+}
+
+
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
         let account = await Wallet.findOne({ UserId: req.user._id })

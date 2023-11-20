@@ -735,7 +735,7 @@ exports.socialSignUp = async (req, res) => {
             )
         } else {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let user = User.create(snUser)
+            let user = eate(snUser)
             snUser._id = user._id
             let token = generateAccessToken({ _id: user._id })
             let param = {

@@ -30,6 +30,7 @@ const {
     countWallets,
     allwallets,
     createNewWalletV2,
+    createUserFromExternalWallet,
     transfertAllTokensBEP20,
     checkUserWalletV2Exist,
     checkIsNewUser,
@@ -42,6 +43,11 @@ const {
     getBalanceByToken,
     getallCrypto
 } = require('../controllers/wallet.controller')
+
+
+const {
+    getBalanceExternalWallet
+} = require('../web3/wallets')
 const {
     verifyAuth,
     verifyAuthGetQuote,
@@ -431,10 +437,20 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  */
 router.post(
     '/checkWalletToken',
-    verifyAuth,
-    checkTokenValidation,
-    checkWalletToken
-)
+    (req, res, next) => {
+        console.log('Executing verifyAuth middleware');
+        verifyAuth(req, res, next);
+    },
+    (req, res, next) => {
+        console.log('Executing checkTokenValidation middleware');
+        checkTokenValidation(req, res, next);
+    },
+    (req, res) => {
+        console.log('Executing checkWalletToken route handler');
+        checkWalletToken(req, res);
+    }
+);
+
 
 /**
  * @swagger
@@ -713,6 +729,70 @@ router.post(
     passwordCheckValidation,
     createNewWalletV2
 )
+
+
+
+/**
+ * @swagger
+ * /wallet/createUserFromExternalWallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: create new wallet from external wallet.
+ *     description: create new wallet.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               wallet:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Wallet already exist"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post(
+    '/createUserFromExternalWallet',
+    createUserFromExternalWallet
+)
+
+
+/**
+ * @swagger
+ * /wallet/getBalanceExternalWallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: get balance token from external wallet.
+ *     description: get balance.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               wallet:
+ *                 type: string
+ *               token:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"error fetch balance"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post(
+    '/getBalanceExternalWallet',
+    getBalanceExternalWallet
+)
+
 
 /**
  * @swagger
