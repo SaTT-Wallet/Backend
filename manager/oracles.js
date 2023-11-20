@@ -1322,10 +1322,11 @@ exports.updateFacebookPages = async (UserId, accessToken, isInsta = false) => {
                         page.instagram_username = resMedia.username
                     }
                     await FbPage.updateOne(
-                        { id: res.data[i].id, UserId },
-                        { $set: page },
-                        { upsert: true }
-                    )
+                            { id: res.data[i].id, UserId },
+                            { $set: page },
+                            { upsert: true }
+                        )
+                   
                 }
                 if (!res.paging || !res.paging.next) {
                     break
@@ -1393,10 +1394,10 @@ exports.getFacebookPages = async (UserId, accessToken, isInsta = false) => {
                         page.instagram_username = resMedia.username
                     }
                     await FbPage.updateOne(
-                        { id: res.data[i].id, UserId },
-                        { $set: page },
-                        { upsert: true }
-                    )
+                            { id: res.data[i].id, UserId },
+                            { $set: page },
+                            { upsert: true }
+                        )
                 }
                 if (!res.paging || !res.paging.next) {
                     break

@@ -558,7 +558,7 @@ const getNetworkByToken = async (idCrypto) => {
                         const result = await rp.request(options)
                         results.push(result)
                     } catch (err) {
-                        console.error('Error fetching data for batch:', err)
+                        
                         // Handle the error as needed, e.g., retry or skip
                     }
                 })
@@ -823,7 +823,7 @@ exports.getallCryptoMarket = async (startVariable) => {
                     const response = await rp(options)
                     result.push(response)
                 } catch (error) {
-                    console.error('Error fetching prices:', error)
+                    
                     throw new Error('Error fetching prices')
                 }
             }
