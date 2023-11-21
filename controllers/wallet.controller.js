@@ -1020,25 +1020,17 @@ exports.createNewWalletV2 = async (req, res) => {
 }
 
 
-exports.createUserFromExternalWallet = async (req, res) =>{
+exports.createUserFromExternalWallet = async (req, res) =>{   
+    try {
+        const userExist = await UserExternalWallet.findOne({_id: req.body.wallet});
+        if(!userExist) {
+            await UserExternalWallet.create({_id: req.body.wallet});
+            return responseHandler.makeResponseData(res, 200, 'User created successfully', req.body.wallet);
+        } else return responseHandler.makeResponseData(res, 200, 'User signed In successfully', null);
 
-try{
-
-    const newUserWallet = new UserExternalWallet({
-        _id: req.body.wallet, // Replace with the actual user ID
-      });
-
-    await newUserWallet.save()
-
-    return responseHandler.makeResponseData(res, 200, 'User created successfully', newUserWallet);
-
-}
-catch(err){
-    return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
-
-}
-
-
+    } catch(err){
+        return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
+    }
 }
 
 
