@@ -5,7 +5,7 @@ const verifySignatureMiddleware = (req, res, next) => {
     const address = req.header('X-Address');
     const message = req.header('X-Message')
     if (verifySignature(message, signature, address)) {
-        // Signature is valid, proceed with next middleware/route
+        req.address = address;
         return next();
     } else {
         return res.status(401).json({ message: 'Invalid signature' });

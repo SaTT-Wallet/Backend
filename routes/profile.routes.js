@@ -57,6 +57,7 @@ const {
     deleteGoogleChannels,
     account,
     socialAccounts,
+    externalSocialAccounts,
     checkOnBoarding,
     requestMoney,
     notificationUpdate,
@@ -72,6 +73,7 @@ const {
     deleteFacebookChannel,
     deleteLinkedinChannel,
     deleteTiktokChannel,
+    externalDeleteTiktokChannel,
     deleteTiktokChannels,
     deleteTwitterChannels,
     deleteTwitterChannel,
@@ -118,6 +120,8 @@ const {
     idThreadsAccountValidation
 } = require('../middleware/profileValidator.middleware')
 const { sendNotificationTest } = require('../manager/notification')
+
+const verifySignatureMiddleware = require('./../middleware/verifySignature.middleware')
 
 /**
  * @swagger
@@ -412,7 +416,7 @@ router.delete('/RemoveTwitterChannel/:id', verifyAuth, idCheckValidation,deleteT
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
+router.delete('/RemoveGoogleChannels', verifySignatureMiddleware, deleteGoogleChannels)
 
 /**
  * @swagger
@@ -437,6 +441,8 @@ router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
  *          description: error:<br> server error
  */
 router.delete('/RemoveGoogleChannel/:id', verifyAuth, idCheckValidation,deleteGoogleChannel)
+
+
 
 /**
  * @swagger
@@ -556,6 +562,8 @@ router.delete(
  */
 
 router.delete('/RemoveTiktokChannel/:id', verifyAuth, idCheckValidation,deleteTiktokChannel)
+
+
 /**
  * @swagger
  * /profile/RemoveTiktokChannel:
@@ -596,6 +604,7 @@ router.delete('/RemoveTiktokChannels', verifyAuth, deleteTiktokChannels)
  *          description: error:<br> server error
  */
 router.get('/socialAccounts', verifyAuth, socialAccounts)
+
 
 /**
  * @swagger
@@ -852,6 +861,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('profile/callback/addChannel/youtube'),
         async (req, accessToken, refreshToken, profile, cb) => {
+            console.log({accessToken})
             addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
         }
     )

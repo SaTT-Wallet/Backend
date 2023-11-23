@@ -30,7 +30,6 @@ const {
     countWallets,
     allwallets,
     createNewWalletV2,
-    createUserFromExternalWallet,
     transfertAllTokensBEP20,
     checkUserWalletV2Exist,
     checkIsNewUser,
@@ -728,37 +727,6 @@ router.post(
     verifyAuth,
     passwordCheckValidation,
     createNewWalletV2
-)
-
-
-
-/**
- * @swagger
- * /wallet/createUserFromExternalWallet:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: create new wallet from external wallet.
- *     description: create new wallet.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               wallet:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"Wallet already exist"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post(
-    '/createUserFromExternalWallet',
-    createUserFromExternalWallet
 )
 
 
