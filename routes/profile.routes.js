@@ -121,7 +121,6 @@ const {
 } = require('../middleware/profileValidator.middleware')
 const { sendNotificationTest } = require('../manager/notification')
 
-const verifySignatureMiddleware = require('./../middleware/verifySignature.middleware')
 
 /**
  * @swagger
@@ -416,7 +415,7 @@ router.delete('/RemoveTwitterChannel/:id', verifyAuth, idCheckValidation,deleteT
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveGoogleChannels', verifySignatureMiddleware, deleteGoogleChannels)
+router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
 
 /**
  * @swagger
@@ -860,8 +859,7 @@ passport.use(
     'youtube_strategy_add_channel',
     new GoogleStrategy(
         googleCredentials('profile/callback/addChannel/youtube'),
-        async (req, accessToken, refreshToken, profile, cb) => {
-            console.log({accessToken})
+        async (req, accessToken, refreshToken, profile, cb) => { 
             addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
