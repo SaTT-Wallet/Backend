@@ -4,8 +4,7 @@ var Twitter = require('twitter')
 var LocalStrategy = require('passport-local').Strategy
 var Long = require('mongodb').Long
 const crypto = require('crypto')
-const hasha = require('hasha')
-var rp = require('axios');
+var rp = require('axios')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
 var FbProfile = require('../model/fbProfile.model')
@@ -87,26 +86,33 @@ const handleSocialMediaSignin = async (query, cb) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne(query).lean()
-        if (user) {
-            var validAuth = await isBlocked(user, true)
-            if (!validAuth.res && validAuth.auth == true) {
-                let token = generateAccessToken({ _id: user._id })
-                await User.updateOne(
-                    { _id: Long.fromNumber(user._id) },
-                    { $set: { failed_count: 0 } }
-                )
-                return cb(null, { id: user._id, token, expires_in: date })
-            } else {
-                let message = `account_locked:${user.date_locked}`
-                return cb({
-                    error: true,
-                    message,
-                    blockedDate: user.date_locked,
-                })
-            }
-        } else {
-            return cb('Register First')
+        if (!user) return cb('Register First')
+
+        var validAuth = await isBlocked(user, true)
+
+        const response =
+            !validAuth.res && validAuth.auth
+                ? {
+                      id: user._id,
+                      token: generateAccessToken({ _id: user._id }),
+                      expires_in: date,
+                  }
+                : {
+                      error: true,
+                      message: `account_locked:${user.date_locked}`,
+                      blockedDate: user.date_locked,
+                  }
+
+        if (response.error) {
+            return cb(response)
         }
+
+        await User.updateOne(
+            { _id: Long.fromNumber(user._id) },
+            { $set: { failed_count: 0 } }
+        )
+
+        cb(null, response)
     } catch (err) {
         console.error('handleSocialMediaSignin', err)
     } finally {
@@ -117,7 +123,7 @@ const handleSocialMediaSignin = async (query, cb) => {
     }
 }
 
-let createUser = (
+const createUser = (
     enabled,
     idSn,
     lang,
@@ -130,21 +136,19 @@ let createUser = (
     firstName = null,
     lastName = null,
     password = null
-) => {
-    const userObject = {}
-    userObject.enabled = enabled
-    userObject.idSn = idSn
-    userObject.newsLetter = newsLetter ?? false
-    if (picLink) userObject.picLink = picLink
-    ;(userObject.username = username || ''), (userObject.email = email)
-    if (idOnSn && socialId) userObject[idOnSn] = socialId
-    if (firstName) userObject.firstName = firstName
-    if (lang) userObject.lang = lang
-    if (lastName) userObject.lastName = lastName
-
-    userObject.password = password ?? synfonyHash(crypto.randomUUID())
-    return userObject
-}
+) => ({
+    password: password ?? synfonyHash(crypto.randomUUID()),
+    enabled,
+    idSn,
+    newsLetter: newsLetter ?? false,
+    ...(picLink && { picLink }),
+    username: username || '',
+    email,
+    ...(idOnSn && socialId && { [idOnSn]: socialId }),
+    ...(firstName && { firstName }),
+    ...(lang && { lang }),
+    ...(lastName && { lastName }),
+})
 /*
  * begin signin with email and password
  */
@@ -159,54 +163,57 @@ const signinWithEmail = async (
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne({ email: username.toLowerCase() }).lean()
-        if (user) {
-            if (user.password == synfonyHash(password)) {
-                var validAuth = await isBlocked(user, true)
-                if (!validAuth.res && validAuth.auth == true) {
-                    //let userAuth = cloneUser(user)
-                    let token = generateAccessToken({ _id: user._id })
-                    await User.updateOne(
-                        { _id: Long.fromNumber(user._id) },
-                        { $set: { failed_count: 0 } }
-                    )
-                    return done(null, {
-                        id: user._id,
-                        token,
-                        expires_in: date,
-                        noredirect: req.body.noredirect,
-                        loggedIn: true,
-                    })
-                } else {
-                    return done(null, false, {
-                        error: true,
-                        message: 'account_locked',
-                        blockedDate: validAuth.blockedDate,
-                    })
-                }
-            } else {
-                let validAuth = await isBlocked(user, false)
-                if (validAuth.res) {
-                    return done(null, false, {
-                        error: true,
-                        message: 'account_locked',
-                        blockedDate: validAuth.blockedDate,
-                    })
-                }
-                return done(null, false, {
-                    error: true,
-                    message:
-                        (!fromSignup && 'invalid_credentials') ||
-                        (user.idSn == 2 && 'account_already_used') ||
-                        'account_exists',
-                    ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
-                })
-            }
-        } else {
+        if (!user) {
             return done(null, false, {
                 error: true,
                 message: 'user not found',
             })
         }
+
+        const isPasswordMatch = user.password === synfonyHash(password)
+        var validAuth = await isBlocked(user, isPasswordMatch)
+
+        if (!isPasswordMatch) {
+            if (validAuth.res) {
+                return done(null, false, {
+                    error: true,
+                    message: 'account_locked',
+                    blockedDate: validAuth.blockedDate,
+                })
+            }
+
+            return done(null, false, {
+                error: true,
+                message:
+                    (!fromSignup && 'invalid_credentials') ||
+                    (user.idSn === 2 && 'account_already_used') ||
+                    'account_exists',
+                ...(!fromSignup && { blockedDate: validAuth.blockedDate }),
+            })
+        }
+
+        if (!validAuth.res && validAuth.auth === true) {
+            const token = generateAccessToken({ _id: user._id })
+
+            await User.updateOne(
+                { _id: Long.fromNumber(user._id) },
+                { $set: { failed_count: 0 } }
+            )
+
+            return done(null, {
+                id: user._id,
+                token,
+                expires_in: date,
+                noredirect: req.body.noredirect,
+                loggedIn: true,
+            })
+        }
+
+        return done(null, false, {
+            error: true,
+            message: 'account_locked',
+            blockedDate: validAuth.blockedDate,
+        })
     } catch (err) {
         console.error('singin catch', err)
     } finally {
@@ -236,7 +243,7 @@ exports.emailConnection = async (req, res, next) => {
             if (!user) {
                 return responseHandler.makeResponseError(res, 401, info)
             }
-            req.logIn(user, function (err) {
+            req.logIn(user, (err) => {
                 var param = {
                     access_token: user.token,
                     expires_in: user.expires_in,
@@ -270,16 +277,16 @@ passport.use(
                 email: username.toLowerCase(),
             }).lean()
             if (user) {
-                if (user.password == synfonyHash(password)) {
+                if (user.password === synfonyHash(password)) {
                     let validAuth = await isBlocked(user, true)
-                    if (!validAuth.res && validAuth.auth == true) {
+                    if (!validAuth.res && validAuth.auth === true) {
                         //let userAuth = cloneUser(user)
                         let token = generateAccessToken({ _id: user._id })
                         await User.updateOne(
                             { _id: Long.fromNumber(user._id) },
                             { $set: { failed_count: 0 } }
                         )
-                        if (user.hasWallet == true) {
+                        if (user.hasWallet === true) {
                             let account = await Wallet.findOne({
                                 UserId: user._id,
                             })
@@ -367,16 +374,7 @@ exports.sattConnect = async (req, res, next) => {
 /*
  * begin signin with facebook strategy
  */
-exports.twitterAuthSignin = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
-    console.log('profilleeee in sigin,', profile)
-    await handleSocialMediaSignin({ idOnSn: profile.id }, cb)
-}
+
 /*
  * end signin with email and password
  */
@@ -384,13 +382,7 @@ exports.twitterAuthSignin = async (
 /*
  * begin signin with facebook strategy
  */
-exports.facebookAuthSignin = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
+exports.facebookAuthSignin = async (profile, cb) => {
     await handleSocialMediaSignin(
         { idOnSn: profile._json.token_for_business },
         cb
@@ -403,13 +395,7 @@ exports.facebookAuthSignin = async (
 /*
  *begin signin with google strategy
  */
-exports.googleAuthSignin = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
+exports.googleAuthSignin = async (profile, cb) => {
     await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
 }
 /*
@@ -512,13 +498,7 @@ exports.emailSignup = async (req, res, next) => {
 /*
  * begin signup with facebook strategy
  */
-exports.facebookAuthSignup = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
+exports.facebookAuthSignup = async (req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne(
         { idOnSn: profile._json.token_for_business },
@@ -553,13 +533,7 @@ exports.facebookAuthSignup = async (
  *end signup with facebook strategy
  */
 
-exports.googleAuthSignup = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
+exports.googleAuthSignup = async (req, profile, cb) => {
     var date = Math.floor(Date.now() / 1000) + 86400
     var user = await User.findOne({ idOnSn2: profile.id }).lean()
     let wallet = user && (await Wallet.findOne({ UserId: user._id }).lean())
@@ -581,6 +555,7 @@ exports.googleAuthSignup = async (
             profile.name.givenName,
             profile.name.familyName
         )
+
         let user = await new User(createdUser).save()
         createdUser._id = user._id
         let token = generateAccessToken({ _id: createdUser._id })
@@ -634,8 +609,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         )
         let user = await new User(createdUser).save()
         createdUser._id = user._id
-        let token = generateAccessToken({_id : user._id})
-        console.log('create user telegram')
+        let token = generateAccessToken({ _id: user._id })
         return cb(null, { id: createdUser._id, token: token, expires_in: date })
     }
 }
@@ -668,117 +642,32 @@ exports.telegramConnection = (req, res) => {
  *end signin with telegram strategy
  */
 
-//  twitter signup
-
-exports.twitterAuthSignup = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
-    console.log('hello twitter signup')
-    var date = Math.floor(Date.now() / 1000) + 86400
-
-    let user = await User.findOne({ idOnSn: profile.id })
-
-    console.log('user', user)
-
-    console.log('profile..........', profile)
-
-    if (user) {
-        await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
-    } else {
-        console.log('not exist', profile)
-        let createdUser = createUser(
-            1,
-            7,
-            'en',
-            false,
-            '',
-            '',
-            '',
-            'idOnSn3',
-            profile.id,
-            profile.displayName,
-            ''
-        )
-        let user = await new User(createdUser).save()
-        createdUser._id = user._id
-        let token = generateAccessToken({ _id: createdUser._id })
-
-        return cb(null, { id: createdUser._id, token: token, expires_in: date })
-    }
-
-    console.log('user', user)
-
-    return user
-}
-
 /*
  * begin connect account with facebook strategy
  */
-exports.linkFacebookAccount = async (
+exports.linkSocialAccount = async ({
     req,
-    accessToken,
-    refreshToken,
     profile,
-    cb
-) => {
+    done,
+    token_field,
+    id_field,
+}) => {
     let state = req.query.state.split('|')
     let user_id = +state[0]
-    let user = await User.findOne({
-        idOnSn: profile._json.token_for_business,
-    })
-    if (user) {
-        return cb(null, profile, {
-            status: false,
-            message: 'account exist',
-        })
-    } else {
-        await User.updateOne(
-            { _id: user_id },
-            { $set: { idOnSn: profile._json.token_for_business } }
-        )
-        return cb(null, profile, {
-            status: true,
-            message: 'account_linked_with success',
-        })
-    }
-}
-/*
- * end connect account with facebook strategy
- */
+    let response = { status: false, message: 'account exist' }
+    let id = id_field ? profile._json[id_field] : profile.id
 
-/*
- * begin connect account with google strategy
- */
-exports.linkGoogleAccount = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    done
-) => {
-    let state = req.query.state.split('|')
-    let user_id = +state[0]
-    let userExist = await User.findOne({ idOnSn2: profile.id })
-    if (userExist) {
-        return done(null, profile, {
-            status: false,
-            message: 'account exist',
-        })
-    } else {
+    if (!(await User.exists({ [token_field]: id }))) {
         await User.updateOne(
             { _id: user_id },
-            { $set: { idOnSn2: profile.id } }
+            { $set: { [token_field]: id, completed: true } }
         )
-        return done(null, profile, {
-            status: true,
-            message: 'account_linked_with success',
-        })
+        response = { status: true, message: 'account_linked_with success' }
     }
+
+    return done(null, profile, response)
 }
+
 /*
  * end connect account with google strategy
  */
@@ -797,13 +686,14 @@ exports.connectTelegramAccount = async (req, res) => {
 }
 exports.telegram_connect_function = async (req, profile, cb) => {
     let user_id = +req.params.idUser
-    let user = await User.findOne({ idOnSn3: profile.id })
-    if (user) {
+
+    if (await User.exists({ idOnSn3: profile.id })) {
         return cb(null, profile, { message: 'account exist' })
     } else {
         await User.updateOne(
             { _id: user_id },
-            { $set: { idOnSn3: profile.id } }
+
+            { $set: { idOnSn3: profile.id, completed: true } }
         )
         return cb(null, profile, {
             status: true,
@@ -818,18 +708,12 @@ exports.telegram_connect_function = async (req, profile, cb) => {
 /*
  * begin add facebook channel strategy
  */
-exports.addFacebookChannel = async (
-    req,
-    accessToken,
-    refreshToken,
-    profile,
-    cb
-) => {
+exports.addFacebookChannel = async (req, accessToken, profile, cb) => {
     let longToken = accessToken
     let UserId = +req.query.state.split('|')[0]
     let isInsta = false
-    let fbProfile = await FbProfile.findOne({ UserId })
-    if (fbProfile) {
+
+    if (await FbProfile.exists({ UserId })) {
         await FbProfile.updateOne(
             { UserId },
             { $set: { accessToken: longToken } }
@@ -852,22 +736,24 @@ exports.addTwitterChannel = async (req, res) => {
     let user_id = +req.query.u
     let redirect = req.query.r
     const { oauth_verifier, oauth_token } = req.query
-    var twitterAccount = await twitterOauth(oauth_verifier, oauth_token)
-    const userAuth = new Twitter(
-        twitterAuth(
-            twitterAccount.oauth_token,
-            twitterAccount.oauth_token_secret
-        )
+    var { oauth_token: accountToken, oauth_token_secret } = await twitterOauth(
+        oauth_verifier,
+        oauth_token
     )
-    var userData = await userAuth.get('account/verify_credentials', {
+
+    const userAuth = new Twitter(twitterAuth(accountToken, oauth_token_secret))
+    const {
+        id,
+        id_str,
+        screen_name,
+        name,
+        followers_count,
+        profile_image_url,
+    } = await userAuth.get('account/verify_credentials', {
         include_email: true,
     })
 
-    var twitterProfile = await TwitterProfile.findOne({
-        $and: [{ UserId: user_id }, { twitter_id: userData.id }],
-    }).lean()
-
-    if (twitterProfile) {
+    if (await TwitterProfile.exists({ UserId: user_id, twitter_id: id })) {
         return res.redirect(
             process.env.BASED_URL +
                 redirect +
@@ -877,16 +763,16 @@ exports.addTwitterChannel = async (req, res) => {
         )
     } else {
         let profile = { _json: {} }
-        profile.access_token_key = twitterAccount.oauth_token
-        profile.access_token_secret = twitterAccount.oauth_token_secret
+        profile.access_token_key = accountToken
+        profile.access_token_secret = oauth_token_secret
         profile.UserId = user_id
-        profile.username = userData.screen_name
-        profile.subscibers = userData.followers_count
-        profile.twitter_id = userData.id
-        profile.id = userData.id_str
-        profile.displayName = userData.name
-        profile.photos = [{ value: userData.profile_image_url }]
-        profile._json.followers_count = userData.followers_count
+        profile.username = screen_name
+        profile.subscibers = followers_count
+        profile.twitter_id = id
+        profile.id = id_str
+        profile.displayName = name
+        profile.photos = [{ value: profile_image_url }]
+        profile._json.followers_count = followers_count
         await TwitterProfile.create(profile)
     }
     // return cb(null, { id: user_id })
@@ -928,13 +814,18 @@ exports.addlinkedinChannel = async (
         })
     }
 
-    let linkedinPages = (await rp.get('https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',{
-        headers : {
-            Authorization: 'Bearer ' + accessToken,
-            'X-Restli-Protocol-Version': '2.0.0'
-        }
-    })).data
-    
+    let linkedinPages = (
+        await rp.get(
+            'https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&projection=(elements*(*, organization~(localizedName,logoV2(original~:playableStreams))))',
+            {
+                headers: {
+                    Authorization: 'Bearer ' + accessToken,
+                    'X-Restli-Protocol-Version': '2.0.0',
+                },
+            }
+        )
+    ).data
+
     var linkedinProfile = { accessToken, refreshToken, userId, linkedinId }
     linkedinProfile.pages = []
     if (linkedinPages.elements.length) {
@@ -1001,6 +892,10 @@ exports.addTikTokChannel = async (
                 profile.userTiktokId,
                 profile.refreshToken,
             ] = [accessToken, userId, profile.id, refreshToken]
+
+            if (profile.username[0] !== '@') {
+                profile.username = '@' + profile.username
+            }
             profile.followers = await tiktokAbos(userId, accessToken)
             await TikTokProfile.create(profile)
             return cb(null, profile, {
@@ -1030,11 +925,13 @@ exports.addyoutubeChannel = async (
 ) => {
     var user_id = +req.query.state.split('|')[0]
 
-    var res = await rp.get('https://www.googleapis.com/youtube/v3/channels', {params :{
-              access_token: accessToken,
+    var res = await rp.get('https://www.googleapis.com/youtube/v3/channels', {
+        params: {
+            access_token: accessToken,
             part: 'snippet,statistics',
             mine: true,
-    }})
+        },
+    })
     if (res?.data?.pageInfo?.totalResults == 0) {
         return cb(null, profile, {
             message: 'channel obligatoire',

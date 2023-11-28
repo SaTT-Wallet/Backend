@@ -1,5 +1,12 @@
 .env
 
+.env.local
+
+.env.testnet
+
+.env.
+
+uploads
 # Logs
 logs
 *.log
@@ -52,7 +59,7 @@ conf/wallets/campaign.json
 conf/wallets/campaign.polygon.json
 conf/ssl/fullchain.pem
 conf/ssl/privkey.pem
-
+conf/satt-token-firebase-adminsdk-fwxcj-2215bda3fa.json
 # TypeScript v1 declaration files
 typings/
 

@@ -9,6 +9,10 @@ const {
     webTronInstance,
 } = require('../blockchainConnexion')
 
+const {
+    Campaigns,
+} = require('../model/index')
+
 const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
 const {
@@ -22,11 +26,7 @@ const { config } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
 
-const {
-    getHttpProvider,
-    networkProviders,
-    getWeb3Connection,
-} = require('../web3/web3-connection')
+const { getHttpProvider, networkProviders } = require('../web3/web3-connection')
 const Web3 = require('web3')
 
 exports.unlock = async (req, res) => {
@@ -272,8 +272,10 @@ exports.getAccount = async (req, res) => {
 
     if (account) {
         var address = '0x' + account.keystore.address
-        let Web3ETH = await erc20Connexion()
-        let Web3BEP20 = await bep20Connexion()
+        const [Web3ETH, Web3BEP20] = await Promise.all([
+            erc20Connexion(),
+            bep20Connexion(),
+        ])
         var ether_balance = Web3ETH.eth.getBalance(address)
 
         var bnb_balance = Web3BEP20.eth.getBalance(address)
@@ -349,23 +351,28 @@ exports.createPerformanceCampaign = async (
     amount,
     credentials,
     tronWeb,
-    res
+    res,
+    limit = 100
 ) => {
     try {
-        if (!!tronWeb) {
-            let ctr = await tronWeb.contract(
+        /**   CHECK IF COMPAGNE NETWORK IS TRON */
+        if (tronWeb !== null && tronWeb !== undefined) {
+            /**  GET CAMPAGNE CONTRACT */
+            const contract = await tronWeb.contract(
                 TronConstant.campaign.abi,
                 TronConstant.campaign.address
             )
 
-            let receipt = await ctr
+            /**   CALL METHOD CREATE PRICE FUND ALL FROM CONTRACT*/
+            const transactionReceipt = await contract
                 .createPriceFundAll(
                     dataUrl,
                     startDate,
                     endDate,
                     ratios,
                     token,
-                    amount
+                    amount,
+                    limit || 100
                 )
                 .send({
                     feeLimit: 1e9,
@@ -374,8 +381,10 @@ exports.createPerformanceCampaign = async (
                 })
 
             await timeout(10000)
-            let result = await tronWeb.trx.getUnconfirmedTransactionInfo(
-                receipt
+
+            /**  CHECK TRANSACTION STATUS  */
+            const result = await tronWeb.trx.getUnconfirmedTransactionInfo(
+                transactionReceipt
             )
 
             if (result.receipt.result === 'SUCCESS') {
@@ -391,24 +400,32 @@ exports.createPerformanceCampaign = async (
             }
         }
 
+        /** CHECK TOKEN IS NATIVE OR NO (BNB for BEP20 / ETH for ERC20 ) */
         if (this.isNativeAddr(token)) {
             token = wrapConstants[credentials.network].address
 
             await wrapNative(amount, credentials)
         }
 
-        var ctr = await getContractByNetwork(credentials)
+        /** GET CONTRACT  */
+        const contract = await getContractByNetwork(credentials)
 
-        var gasPrice = await ctr.getGasPrice()
-        var gas = 5000000
-        var receipt = await ctr.methods
+        /** GET GAS PRICE  */
+        const gasPrice = await contract.getGasPrice()
+
+        /** GET GAS LIMIT FROM .env */
+        const gas = process.env.GAS_LIMIT
+
+        /**   CALL METHOD CREATE PRICE FUND ALL FROM CONTRACT*/
+        const transactionReceipt = await contract.methods
             .createPriceFundAll(
                 dataUrl,
                 startDate,
                 endDate,
                 ratios,
                 token,
-                amount + ''
+                amount + '',
+                limit || 100
             )
             .send({
                 from: credentials.address,
@@ -416,10 +433,11 @@ exports.createPerformanceCampaign = async (
                 gasPrice: gasPrice,
             })
 
-        receipt.transactionHash
+        transactionReceipt.transactionHash
         return {
-            hash: receipt.events.CampaignCreated.returnValues.id,
-            transactionHash: receipt.events.CampaignCreated.transactionHash,
+            hash: transactionReceipt.events.CampaignCreated.returnValues.id,
+            transactionHash:
+                transactionReceipt.events.CampaignCreated.transactionHash,
         }
     } catch (err) {
         res.status(500).send({
@@ -438,7 +456,8 @@ exports.createBountiesCampaign = async (
     amount,
     credentials,
     tronWeb,
-    res
+    res,
+    limit = 0
 ) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
@@ -453,7 +472,8 @@ exports.createBountiesCampaign = async (
                 endDate,
                 bounties,
                 token,
-                amount
+                amount,
+                limit || 100
             )
             .send({
                 feeLimit: 1e9,
@@ -495,7 +515,8 @@ exports.createBountiesCampaign = async (
                 endDate,
                 bounties,
                 token,
-                amount
+                amount,
+                limit || 100
             )
             .send({
                 from: credentials.address,
@@ -810,9 +831,16 @@ exports.sortOutPublic = (req, idNode, strangerDraft) => {
     return query
 }
 
-exports.getUserIdByWallet = async wallet => {
-    let user =
-        await Wallet.findOne({$or:[{ 'walletV2.keystore.address': wallet },{'keystore.address': wallet }]},{UserId:1}).lean()
+exports.getUserIdByWallet = async (wallet) => {
+    let user = await Wallet.findOne(
+        {
+            $or: [
+                { 'walletV2.keystore.address': wallet },
+                { 'keystore.address': wallet },
+            ],
+        },
+        { UserId: 1 }
+    ).lean()
     return user?.UserId
 }
 
@@ -838,7 +866,11 @@ exports.getLinkedinLinkInfo = async (
         }
         let linkInfo = {}
 
-        let postData = (await axios.get(config.linkedinActivityUrl(activityURN), {headers : {Authorization: 'Bearer ' + accessToken}})).data
+        let postData = (
+            await axios.get(config.linkedinActivityUrl(activityURN), {
+                headers: { Authorization: 'Bearer ' + accessToken },
+            })
+        ).data
         let urn = `urn:li:activity:${activityURN}`
         linkInfo.idUser =
             postData.results[urn]['domainEntity~'].owner ??
@@ -874,8 +906,12 @@ exports.getLinkedinLinkInfoMedia = async (
             accessToken = resAccessToken.access_token
         }
         let linkInfo = {}
-      
-        let postData = (await axios.get(config.linkedinShareUrl(shareURN),{headers : {'Authorization': 'Bearer ' + accessToken}})).data
+
+        let postData = (
+            await axios.get(config.linkedinShareUrl(shareURN), {
+                headers: { Authorization: 'Bearer ' + accessToken },
+            })
+        ).data
         let urn = shareURN
         linkInfo.idUser =
             postData.results[urn].owner ?? postData.results[urn].author
@@ -949,8 +985,6 @@ exports.applyCampaign = async (
         //         gasPrice: gasPrice,
         //     })
 
-        console.log('gas: ', gas)
-
         var gasPrice = await web3.getGasPrice()
 
         var receipt = await web3.methods
@@ -973,24 +1007,29 @@ exports.applyCampaign = async (
             idProm: prom,
         }
     } catch (err) {
-        console.log('err: ', err)
         return { error: err.message }
     }
 }
 
-exports.getRemainingFunds = async (token, hash, credentials) => {
+exports.getRemainingFunds = async (hash, credentials, advertiser = null) => {
     try {
         var gas = 200000
         var ctr = await getContractByNetwork(credentials)
         var gasPrice = await ctr.getGasPrice()
         var receipt = await ctr.methods.getRemainingFunds(hash).send({
             from: credentials.address,
-            gas: gas,
-            gasPrice: gasPrice,
+            gas,
+            gasPrice,
         })
+
+        await Campaigns.updateOne(
+            { hash: hash },
+            { $set: { retrieved: true } }
+        )
         return {
             transactionHash: receipt.transactionHash,
-            hash: hash,
+            hash,
+            ...(advertiser && { advertiser }),
         }
     } catch (err) {
         console.error(err)
@@ -1068,18 +1107,16 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
 }
 
 exports.filterLinks = (req, id_wallet) => {
-    const status = req.query.status
-    let oracles = req.query.oracles
-    oracles = typeof oracles === 'string' ? [oracles] : oracles
-    var query = { id_wallet: id_wallet }
-    if (req.query.campaign && req.query.state === 'part') {
-        query = { id_wallet: id_wallet, id_campaign: req.query.campaign }
-    } else if (req.query.campaign && req.query.state === 'owner')
-        query = { id_campaign: req.query.campaign }
-    else if (!req.query.campaign && !req.query.state)
-        query = { id_wallet: id_wallet }
+    let { oracles, status, campaign, state } = req.query
 
-    if (oracles) query.oracle = { $in: oracles }
+    var query = { id_wallet }
+    if (campaign && state === 'part') {
+        query = { id_wallet, id_campaign: campaign }
+    } else if (campaign && state === 'owner') query = { id_campaign: campaign }
+    else if (!campaign && !state) query = { id_wallet: id_wallet }
+
+    if (oracles)
+        query.oracle = { $in: Array.isArray(oracles) ? oracles : [oracles] }
 
     if (status == 'false') {
         query.status = false
@@ -1134,7 +1171,7 @@ exports.influencersLinks = async (links, tronWeb = null) => {
             for (let i = 0; i < wallets.length; i++) {
                 idByAddress[
                     (!!tronWeb && wallets[i].tronAddress) ||
-                        '0x' + wallets[i].keystore.address
+                        '0x' + wallets[i].keystore?.address
                 ] = 'id#' + wallets[i].UserId
                 if (ids.indexOf(wallets[i].UserId) == -1)
                     ids.push(wallets[i].UserId)
@@ -1230,8 +1267,6 @@ exports.validateProm = async (
     credentials,
     tronWeb
 ) => {
-    console.log('id_campaign', id_campaign)
-
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
@@ -1338,7 +1373,6 @@ exports.updatePromStats = async (idProm, credentials, tronWeb, res = null) => {
             events: receipt.events,
         }
     } catch (err) {
-        console.log(err)
         return { error: err }
     }
 }

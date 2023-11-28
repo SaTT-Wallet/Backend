@@ -14,6 +14,7 @@ const campaignLinkSchema = mongoose.Schema(
         typeURL: { type: String },
         appliedDate: { type: Number },
         acceptedDate: { type: Number },
+        lastHarvestDate: { type: Number },
         oracle: { type: String },
         abosNumber: { type: Number, default: 0 },
         instagramUserName: { type: String },
@@ -41,10 +42,10 @@ const campaignLinkSchema = mongoose.Schema(
             signature: { type: String },
         },
     },
-    {
+    {timestamps: true, 
         collection: 'campaign_link',
     }
 )
-
+campaignLinkSchema.index({ 'applyerSignature.signature': 1 });
 const CampaignLink = mongoose.model('campaign_link', campaignLinkSchema)
 module.exports = CampaignLink

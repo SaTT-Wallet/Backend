@@ -1,47 +1,8 @@
-const { auth } = require('google-auth-library')
-const { Token } = require('graphql')
-const { environment } = require('./settings')
+require('dotenv').config({
+    path: `.env.${process.env.NODE_ENV}`
+  });
 
-exports.mongoConnection = () => {
-    let connexion = {}
-    if (process.env.NODE_ENV === 'local') {
-        connexion.mongoBase = process.env.MONGO_BASE_LOCAL
-        connexion.mongoUser = process.env.MONGO_USER_LOCAL
-        connexion.mongoPass = process.env.MONGO_PASS_LOCAL
-        connexion.mongoHost = process.env.MONGO_HOST_LOCAL
-        connexion.mongoPort = process.env.MONGO_PORT_LOCAL
-
-        connexion.mongoURI =
-            'mongodb://' +
-            connexion.mongoHost +
-            ':' +
-            connexion.mongoPort +
-            '/' +
-            connexion.mongoBase
-    }
-    if (process.env.NODE_ENV === 'testnet') {
-        connexion.mongoBase = environment.testnet.MONGO_BASE
-
-        connexion.mongoUser = environment.testnet.MONGO_USER
-        connexion.mongoPass = environment.testnet.MONGO_PASS
-        connexion.mongoHost = environment.testnet.MONGO_HOST
-        connexion.mongoPort = environment.testnet.MONGO_PORT
-
-        connexion.mongoURI = environment.testnet.MONGOURI
-    }
-    if (process.env.NODE_ENV === 'mainnet') {
-        connexion.mongoBase = environment.mainnet.MONGO_BASE
-
-        connexion.mongoUser = environment.mainnet.MONGO_USER
-        connexion.mongoPass = environment.mainnet.MONGO_PASS
-        connexion.mongoHost = environment.mainnet.MONGO_HOST
-        connexion.mongoPort = environment.mainnet.MONGO_PORT
-
-        connexion.mongoURI = environment.mainnet.MONGOURI
-    }
-    return connexion
-}
-
+exports.mongoConnection = () => process.env.MONGOURI
 exports.payementRequest = async (payment) => {
     return {
         account_details: {
@@ -78,184 +39,401 @@ exports.payementRequest = async (payment) => {
     }
 }
 
-let sattContract,
-    sattBEP20CONTRACT,
-    sattTRONCONTRACT,
-    sattBTTCONTRACT,
-    daiContract,
-    busdContract,
-    usdtContract,
-    TRON_CONTRACT
+let sattTRONCONTRACT,
+    sattBTTCONTRACT
 
-if (process.env.NODE_ENV === 'testnet' || process.env.NODE_ENV === 'local') {
-    sattContract = process.env.CONST_TOKEN_ADDRESS_TESTNET
-    sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT_TESTNET
-    sattTRONCONTRACT = process.env.TOKEN_SATT_TRON_CONTRACT_TESTNET
-    sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT_TESTNET
 
-    daiContract = process.env.TOKEN_DAI_CONTRACT_TESTNET
-    usdtContract = process.env.TOKEN_USDT_CONTRACT_TESTNET
-    busdContract = process.env.TOKEN_BUSD_CONTRACT_TESTNET
-    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT_TESTNET
-    cakeContract = process.env.TOKEN_CAKE_CONTRACT_TESTNET
-} else {
-    sattContract = process.env.TOKEN_SATT_CONTRACT
-    sattBEP20CONTRACT = process.env.TOKEN_SATT_BEP20_CONTRACT
     sattTRONCONTRACT = process.env.TOKEN_SATT_TRONN_CONTRACT
     sattBTTCONTRACT = process.env.TOKEN_SATT_BTT_CONTRACT
-    daiContract = process.env.TOKEN_DAI_CONTRACT
-    usdtContract = process.env.TOKEN_USDT_CONTRACT
-    busdContract = process.env.TOKEN_BUSD_CONTRACT
-    TRON_CONTRACT = process.env.TOKEN_TRON_CONTRACT
-    cakeContract = process.env.TOKEN_CAKE_CONTRACT
-}
-let Tokens = {
-    SATT: {
-        name: process.env.TOKEN_SATT_NAME,
-        symbol: process.env.TOKEN_SATT_SYMBOL,
-        undername: process.env.TOKEN_SATT_UNDERNAME,
-        undername2: process.env.TOKEN_SATT_UNDERNAME2,
-        contract: sattContract,
-        dicimal: process.env.TOKEN_SATT_DICIMAL,
-        network: process.env.TOKEN_SATT_NETWORK,
-    },
-    WSATT: {
-        name: process.env.TOKEN_WSATT_NAME,
-        symbol: process.env.TOKEN_WSATT_SYMBOL,
-        undername: process.env.TOKEN_WSATT_UNDERNAME,
-        undername2: process.env.TOKEN_WSATT_UNDERNAME2,
-        contract: process.env.TOKEN_WSATT_CONTRACT,
-        dicimal: process.env.TOKEN_WSATT_DICIMAL,
-        network: process.env.TOKEN_WSATT_NETWORK,
-    },
-    SATT_BEP20: {
-        name: process.env.TOKEN_SATT_BEP20_NAME,
-        symbol: process.env.TOKEN_SATT_BEP20_SYMBOL,
-        undername: process.env.TOKEN_SATT_BEP20_UNDERNAME,
-        undername2: process.env.TOKEN_SATT_BEP20_UNDERNAME2,
-        contract: sattBEP20CONTRACT,
-        dicimal: process.env.TOKEN_SATT_BEP20_DICIMAL,
-        network: process.env.TOKEN_SATT_BEP20_NETWORK,
-    },
-    OMG: {
-        name: process.env.TOKEN_OMG_NAME,
-        symbol: process.env.TOKEN_OMG_SYMBOL,
-        undername: process.env.TOKEN_OMG_UNDERNAME,
-        undername2: process.env.TOKEN_OMG_UNDERNAME2,
-        contract: process.env.TOKEN_OMG_CONTRACT,
-        dicimal: process.env.TOKEN_OMG_DICIMAL,
-        network: process.env.TOKEN_OMG_NETWORK,
-    },
-    DAI: {
-        name: process.env.TOKEN_DAI_NAME,
-        symbol: process.env.TOKEN_DAI_SYMBOL,
-        undername: process.env.TOKEN_DAI_UNDERNAME,
-        undername2: process.env.TOKEN_DAI_UNDERNAME2,
-        contract: daiContract,
-        dicimal: process.env.TOKEN_DAI_DICIMAL,
-        network: process.env.TOKEN_DAI_NETWORK,
-    },
-    USDT: {
-        name: process.env.TOKEN_USDT_NAME,
-        symbol: process.env.TOKEN_USDT_SYMBOL,
-        undername: process.env.TOKEN_USDT_UNDERNAME,
-        undername2: process.env.TOKEN_USDT_UNDERNAME2,
-        contract: usdtContract,
-        dicimal: process.env.TOKEN_USDT_DICIMAL,
-        network: process.env.TOKEN_USDT_NETWORK,
-    },
-    ZRX: {
-        name: process.env.TOKEN_ZRX_NAME,
-        symbol: process.env.TOKEN_ZRX_SYMBOL,
-        undername: process.env.TOKEN_ZRX_UNDERNAME,
-        undername2: process.env.TOKEN_ZRX_UNDERNAME2,
-        contract: process.env.TOKEN_ZRX_CONTRACT,
-        dicimal: process.env.TOKEN_ZRX_DICIMAL,
-        network: process.env.TOKEN_ZRX_NETWORK,
-    },
-    MKR: {
-        name: process.env.TOKEN_MKR_NAME,
-        symbol: process.env.TOKEN_MKR_SYMBOL,
-        undername: process.env.TOKEN_MKR_UNDERNAME,
-        undername2: process.env.TOKEN_MKR_UNDERNAME2,
-        contract: process.env.TOKEN_MKR_CONTRACT,
-        dicimal: process.env.TOKEN_MKR_DICIMAL,
-        network: process.env.TOKEN_MKR_NETWORK,
-    },
-    BNB: {
-        name: process.env.TOKEN_BNB_NAME,
-        symbol: process.env.TOKEN_BNB_SYMBOL,
-        undername: process.env.TOKEN_BNB_UNDERNAME,
-        undername2: process.env.TOKEN_BNB_UNDERNAME2,
-        contract: process.env.TOKEN_BNB_CONTRACT,
-        dicimal: process.env.TOKEN_BNB_DICIMAL,
-        network: process.env.TOKEN_BNB_NETWORK,
-    },
-    CAKE: {
-        name: process.env.TOKEN_CAKE_NAME,
-        symbol: process.env.TOKEN_CAKE_SYMBOL,
-        undername: process.env.TOKEN_CAKE_UNDERNAME,
-        undername2: process.env.TOKEN_CAKE_UNDERNAME2,
-        contract: cakeContract,
-        dicimal: process.env.TOKEN_CAKE_DICIMAL,
-        network: process.env.TOKEN_CAKE_NETWORK,
-    },
-    BUSD: {
-        name: process.env.TOKEN_BUSD_NAME,
-        symbol: process.env.TOKEN_BUSD_SYMBOL,
-        undername: process.env.TOKEN_BUSD_UNDERNAME,
-        undername2: process.env.TOKEN_BUSD_UNDERNAME2,
-        contract: busdContract,
-        dicimal: process.env.TOKEN_BUSD_DICIMAL,
-        network: process.env.TOKEN_BUSD_NETWORK,
-    },
 
-    MATIC: {
-        name: process.env.TOKEN_MATIC_NAME,
-        symbol: process.env.TOKEN_MATIC_SYMBOL,
-        undername: process.env.TOKEN_MATIC_UNDERNAME,
-        undername2: process.env.TOKEN_MATIC_UNDERNAME2,
-        contract: process.env.TOKEN_MATIC_CONTRACT,
-        dicimal: process.env.TOKEN_MATIC_DICIMAL,
-        network: process.env.TOKEN_MATIC_NETWORK,
-    },
-    /*SATT_BTT: {
-        name: process.env.TOKEN_SATT_BTT_NAME,
-        symbol: process.env.TOKEN_SATT_BTT_SYMBOL,
-        undername: process.env.TOKEN_SATT_BTT_UNDERNAME,
-        undername2: process.env.TOKEN_SATT_BTT_UNDERNAME2,
-        contract: sattBTTCONTRACT,
-        dicimal: process.env.TOKEN_SATT_BTT_DICIMAL,
-        network: process.env.TOKEN_SATT_BTT_NETWORK,
-    },*/
-    BTT: {
-        name: process.env.TOKEN_BTT_NAME,
-        symbol: process.env.TOKEN_BTT_SYMBOL,
-        undername: process.env.TOKEN_BTT_UNDERNAME,
-        undername2: process.env.TOKEN_BTT_UNDERNAME2,
-        contract: process.env.TOKEN_BTT_CONTRACT,
-        dicimal: process.env.TOKEN_BTT_DICIMAL,
-        network: process.env.TOKEN_BTT_NETWORK,
-    },
-    TRX: {
-        name: process.env.TOKEN_TRON_NAME,
-        symbol: process.env.TOKEN_TRON_SYMBOL,
-        undername: process.env.TOKEN_TRON_UNDERNAME,
-        undername2: process.env.TOKEN_TRON_UNDERNAME2,
-        contract: TRON_CONTRACT,
-        dicimal: process.env.TOKEN_TRON_DICIMAL,
-        network: process.env.TOKEN_TRON_NETWORK,
-    },
-    /* SATT_TRON: {
-        name: process.env.TOKEN_SATT_TRON_NAME,
-        symbol: process.env.TOKEN_SATT_TRON_SYMBOL,
-        undername: process.env.TOKEN_SATT_TRON_UNDERNAME,
-        undername2: process.env.TOKEN_SATT_TRON_UNDERNAME2,
-        contract: sattTRONCONTRACT,
-        dicimal: process.env.TOKEN_SATT_TRON_DICIMAL,
-        network: process.env.TOKEN_SATT_TRON_NETWORK,
-    },*/
-}
+    let Tokens = {
+
+        SATT: {
+            name: process.env.TOKEN_SATT_NAME,
+            symbol: process.env.TOKEN_SATT_SYMBOL,
+            undername: process.env.TOKEN_SATT_UNDERNAME,
+            undername2: process.env.TOKEN_SATT_UNDERNAME2,
+            contract: process.env.TOKEN_SATT_CONTRACT,
+            dicimal: process.env.TOKEN_SATT_DICIMAL,
+            network: process.env.TOKEN_SATT_NETWORK,
+            purchase: true
+        },
+    
+        WSATT: {
+            name: process.env.TOKEN_WSATT_NAME,
+            symbol: process.env.TOKEN_WSATT_SYMBOL,
+            undername: process.env.TOKEN_WSATT_UNDERNAME,
+            undername2: process.env.TOKEN_WSATT_UNDERNAME2,
+            contract: process.env.TOKEN_WSATT_CONTRACT,
+            dicimal: process.env.TOKEN_WSATT_DICIMAL,
+            network: process.env.TOKEN_WSATT_NETWORK,
+            purchase: false
+        },
+    
+        SATT_BEP20: {
+            name: process.env.TOKEN_SATT_BEP20_NAME,
+            symbol: process.env.TOKEN_SATT_BEP20_SYMBOL,
+            undername: process.env.TOKEN_SATT_BEP20_UNDERNAME,
+            undername2: process.env.TOKEN_SATT_BEP20_UNDERNAME2,
+            contract: process.env.TOKEN_SATT_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_SATT_BEP20_DICIMAL,
+            network: process.env.TOKEN_SATT_BEP20_NETWORK,
+            purchase: true
+        },
+        
+        DAI: {
+            name: process.env.TOKEN_DAI_NAME,
+            symbol: process.env.TOKEN_DAI_SYMBOL,
+            undername: process.env.TOKEN_DAI_UNDERNAME,
+            undername2: process.env.TOKEN_DAI_UNDERNAME2,
+            contract: process.env.TOKEN_DAI_CONTRACT,
+            dicimal: process.env.TOKEN_DAI_DICIMAL,
+            network: process.env.TOKEN_DAI_NETWORK,
+            purchase: true
+        },
+    
+        DAI_BEP20: {
+            name: process.env.TOKEN_DAI_NAME,
+            symbol: process.env.TOKEN_DAI_SYMBOL,
+            undername: process.env.TOKEN_DAI_UNDERNAME,
+            undername2: process.env.TOKEN_DAI_UNDERNAME2,
+            contract: process.env.TOKEN_DAI_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_DAI_DICIMAL,
+            network: process.env.TOKEN_DAI_BEP20_NETWORK,
+            purchase: false
+        },
+    
+        DAI_POLYGON: {
+            name: process.env.TOKEN_DAI_NAME,
+            symbol: process.env.TOKEN_DAI_SYMBOL,
+            undername: process.env.TOKEN_DAI_UNDERNAME,
+            undername2: process.env.TOKEN_DAI_UNDERNAME2,
+            contract: process.env.TOKEN_DAI_POLYGON_CONTRACT,
+            dicimal: process.env.TOKEN_DAI_DICIMAL,
+            network: process.env.TOKEN_DAI_POLYGON_NETWORK,
+            purchase: false
+        },
+    
+        USDT: {
+            name: process.env.TOKEN_USDT_NAME,
+            symbol: process.env.TOKEN_USDT_SYMBOL,
+            undername: process.env.TOKEN_USDT_UNDERNAME,
+            undername2: process.env.TOKEN_USDT_UNDERNAME2,
+            contract: process.env.TOKEN_USDT_CONTRACT,
+            dicimal: process.env.TOKEN_USDT_DICIMAL,
+            network: process.env.TOKEN_USDT_NETWORK,
+            purchase: true
+        },
+    
+        USDT_BEP20: {
+            name: process.env.TOKEN_USDT_NAME,
+            symbol: process.env.TOKEN_USDT_SYMBOL,
+            undername: process.env.TOKEN_USDT_UNDERNAME,
+            undername2: process.env.TOKEN_USDT_UNDERNAME2,
+            contract: process.env.TOKEN_USDT_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_USDT_DICIMAL,
+            network: process.env.TOKEN_USDT_BEP20_NETWORK,
+            purchase: false
+        },
+    
+        USDT_POLYGON: {
+            name: process.env.TOKEN_USDT_NAME,
+            symbol: process.env.TOKEN_USDT_SYMBOL,
+            undername: process.env.TOKEN_USDT_UNDERNAME,
+            undername2: process.env.TOKEN_USDT_UNDERNAME2,
+            contract: process.env.TOKEN_USDT_POLYGON_CONTRACT,
+            dicimal: process.env.TOKEN_USDT_DICIMAL,
+            network: process.env.TOKEN_USDT_POLYGON_NETWORK,
+            purchase: false
+        },
+    
+        MKR: {
+            name: process.env.TOKEN_MKR_NAME,
+            symbol: process.env.TOKEN_MKR_SYMBOL,
+            undername: process.env.TOKEN_MKR_UNDERNAME,
+            undername2: process.env.TOKEN_MKR_UNDERNAME2,
+            contract: process.env.TOKEN_MKR_CONTRACT,
+            dicimal: process.env.TOKEN_MKR_DICIMAL,
+            network: process.env.TOKEN_MKR_NETWORK,
+            purchase: true
+        },
+    
+        BNB: {
+            name: process.env.TOKEN_BNB_NAME,
+            symbol: process.env.TOKEN_BNB_SYMBOL,
+            undername: process.env.TOKEN_BNB_UNDERNAME,
+            undername2: process.env.TOKEN_BNB_UNDERNAME2,
+            contract: process.env.TOKEN_BNB_CONTRACT,
+            dicimal: process.env.TOKEN_BNB_DICIMAL,
+            network: process.env.TOKEN_BNB_NETWORK,
+            purchase: true
+        },
+    
+        BNB_ERC20: {
+            name: process.env.TOKEN_BNB_NAME,
+            symbol: process.env.TOKEN_BNB_SYMBOL,
+            undername: process.env.TOKEN_BNB_UNDERNAME,
+            undername2: process.env.TOKEN_BNB_UNDERNAME2,
+            contract: process.env.TOKEN_BNB_ERC20_CONTRACT,
+            dicimal: process.env.TOKEN_BNB_DICIMAL,
+            network: process.env.TOKEN_BNB_ERC20_NETWORK,
+            purchase: false
+        },
+    
+        CAKE: {
+            name: process.env.TOKEN_CAKE_NAME,
+            symbol: process.env.TOKEN_CAKE_SYMBOL,
+            undername: process.env.TOKEN_CAKE_UNDERNAME,
+            undername2: process.env.TOKEN_CAKE_UNDERNAME2,
+            contract: process.env.TOKEN_CAKE_CONTRACT,
+            dicimal: process.env.TOKEN_CAKE_DICIMAL,
+            network: process.env.TOKEN_CAKE_NETWORK,
+            purchase: true
+        },
+    
+        CAKE_ERC20: {
+            name: process.env.TOKEN_CAKE_NAME,
+            symbol: process.env.TOKEN_CAKE_SYMBOL,
+            undername: process.env.TOKEN_CAKE_UNDERNAME,
+            undername2: process.env.TOKEN_CAKE_UNDERNAME2,
+            contract: process.env.TOKEN_CAKE_ERC20_CONTRACT,
+            dicimal: process.env.TOKEN_CAKE_DICIMAL,
+            network: process.env.TOKEN_CAKE_ERC20_NETWORK,
+            purchase: false
+        },
+    
+        SOL: {
+            name: process.env.TOKEN_SOL_NAME,
+            symbol: process.env.TOKEN_SOL_SYMBOL,
+            undername: process.env.TOKEN_SOL_UNDERNAME,
+            undername2: process.env.TOKEN_SOL_UNDERNAME2,
+            contract: process.env.TOKEN_SOL_CONTRACT,
+            dicimal: process.env.TOKEN_SOL_DICIMAL,
+            network: process.env.TOKEN_SOL_NETWORK,
+            purchase: false
+        },
+    
+        SOL_POLYGON: {
+            name: process.env.TOKEN_SOL_NAME,
+            symbol: process.env.TOKEN_SOL_SYMBOL,
+            undername: process.env.TOKEN_SOL_UNDERNAME,
+            undername2: process.env.TOKEN_SOL_UNDERNAME2,
+            contract: process.env.TOKEN_SOL_POLYGON_CONTRACT,
+            dicimal: process.env.TOKEN_SOL_DICIMAL,
+            network: process.env.TOKEN_SOL_POLYGON_NETWORK,
+            purchase: false
+        },
+    
+        SOL_BEP20: {
+            name: process.env.TOKEN_SOL_NAME,
+            symbol: process.env.TOKEN_SOL_SYMBOL,
+            undername: process.env.TOKEN_SOL_UNDERNAME,
+            undername2: process.env.TOKEN_SOL_UNDERNAME2,
+            contract: process.env.TOKEN_SOL_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_SOL_DICIMAL,
+            network: process.env.TOKEN_SOL_BEP20_NETWORK,
+            purchase: false
+        },
+    
+        USDC: {
+            name: process.env.TOKEN_USDC_NAME,
+            symbol: process.env.TOKEN_USDC_SYMBOL,
+            undername: process.env.TOKEN_USDC_UNDERNAME,
+            undername2: process.env.TOKEN_USDC_UNDERNAME2,
+            contract: process.env.TOKEN_USDC_CONTRACT,
+            dicimal: process.env.TOKEN_USDC_DICIMAL,
+            network: process.env.TOKEN_USDC_NETWORK,
+            purchase: false
+        },
+    
+        USDC_ERC20: {
+            name: process.env.TOKEN_USDC_NAME,
+            symbol: process.env.TOKEN_USDC_SYMBOL,
+            undername: process.env.TOKEN_USDC_UNDERNAME,
+            undername2: process.env.TOKEN_USDC_UNDERNAME2,
+            contract: process.env.TOKEN_USDC_ERC20_CONTRACT,
+            dicimal: process.env.TOKEN_USDC_DICIMAL,
+            network: process.env.TOKEN_USDC_ERC20_NETWORK,
+            purchase: false
+        },
+    
+        USDC_POLYGON: {
+            name: process.env.TOKEN_USDC_NAME,
+            symbol: process.env.TOKEN_USDC_SYMBOL,
+            undername: process.env.TOKEN_USDC_UNDERNAME,
+            undername2: process.env.TOKEN_USDC_UNDERNAME2,
+            contract: process.env.TOKEN_USDC_POLYGON_CONTRACT,
+            dicimal: process.env.TOKEN_USDC_DICIMAL,
+            network: process.env.TOKEN_USDC_POLYGON_NETWORK,
+            purchase: false
+        },
+    
+        MATIC: {
+            name: process.env.TOKEN_MATIC_NAME,
+            symbol: process.env.TOKEN_MATIC_SYMBOL,
+            undername: process.env.TOKEN_MATIC_UNDERNAME,
+            undername2: process.env.TOKEN_MATIC_UNDERNAME2,
+            contract: process.env.TOKEN_MATIC_CONTRACT,
+            dicimal: process.env.TOKEN_MATIC_DICIMAL,
+            network: process.env.TOKEN_MATIC_NETWORK,
+            purchase: true
+        },
+    
+        ADA: {
+            name: process.env.TOKEN_ADA_NAME,
+            symbol: process.env.TOKEN_ADA_SYMBOL,
+            undername: process.env.TOKEN_ADA_UNDERNAME,
+            undername2: process.env.TOKEN_ADA_UNDERNAME2,
+            contract: process.env.TOKEN_ADA_CONTRACT,
+            dicimal: process.env.TOKEN_ADA_DICIMAL,
+            network: process.env.TOKEN_ADA_NETWORK,
+            purchase: false
+        },
+    
+        LINK: {
+            name: process.env.TOKEN_LINK_NAME,
+            symbol: process.env.TOKEN_LINK_SYMBOL,
+            undername: process.env.TOKEN_LINK_UNDERNAME,
+            undername2: process.env.TOKEN_LINK_UNDERNAME2,
+            contract: process.env.TOKEN_LINK_CONTRACT,
+            dicimal: process.env.TOKEN_LINK_DICIMAL,
+            network: process.env.TOKEN_LINK_NETWORK,
+            purchase: false
+        },
+    
+        LINK_BEP20: {
+            name: process.env.TOKEN_LINK_NAME,
+            symbol: process.env.TOKEN_LINK_SYMBOL,
+            undername: process.env.TOKEN_LINK_UNDERNAME,
+            undername2: process.env.TOKEN_LINK_UNDERNAME2,
+            contract: process.env.TOKEN_LINK_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_LINK_DICIMAL,
+            network: process.env.TOKEN_LINK_BEP20_NETWORK,
+            purchase: false
+        },
+    
+        LINK_POLYGON: {
+            name: process.env.TOKEN_LINK_NAME,
+            symbol: process.env.TOKEN_LINK_SYMBOL,
+            undername: process.env.TOKEN_LINK_UNDERNAME,
+            undername2: process.env.TOKEN_LINK_UNDERNAME2,
+            contract: process.env.TOKEN_LINK_POLYGON_CONTRACT,
+            dicimal: process.env.TOKEN_LINK_DICIMAL,
+            network: process.env.TOKEN_LINK_POLYGON_NETWORK,
+            purchase: false
+        },
+    
+        MATIC_ERC20: {
+            name: process.env.TOKEN_MATIC_NAME,
+            symbol: process.env.TOKEN_MATIC_SYMBOL,
+            undername: process.env.TOKEN_MATIC_UNDERNAME,
+            undername2: process.env.TOKEN_MATIC_UNDERNAME2,
+            contract: process.env.TOKEN_MATIC_ERC20_CONTRACT,
+            dicimal: process.env.TOKEN_MATIC_DICIMAL,
+            network: process.env.TOKEN_MATIC_ERC20_NETWORK,
+            purchase: false
+        },
+    
+        MATIC_BEP20: {
+            name: process.env.TOKEN_MATIC_NAME,
+            symbol: process.env.TOKEN_MATIC_SYMBOL,
+            undername: process.env.TOKEN_MATIC_UNDERNAME,
+            undername2: process.env.TOKEN_MATIC_UNDERNAME2,
+            contract: process.env.TOKEN_MATIC_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_MATIC_DICIMAL,
+            network: process.env.TOKEN_MATIC_BEP20_NETWORK,
+            purchase: false
+        },
+    
+        ETH_BEP20: {
+            name: process.env.TOKEN_ETH_NAME,
+            symbol: process.env.TOKEN_ETH_SYMBOL,
+            undername: process.env.TOKEN_ETH_UNDERNAME,
+            undername2: process.env.TOKEN_ETH_UNDERNAME2,
+            contract: process.env.TOKEN_ETH_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_ETH_DICIMAL,
+            network: process.env.TOKEN_ETH_BEP20_NETWORK,
+            purchase: false
+        },
+    
+    
+        BTT: {
+            name: process.env.TOKEN_BTT_NAME,
+            symbol: process.env.TOKEN_BTT_SYMBOL,
+            undername: process.env.TOKEN_BTT_UNDERNAME,
+            undername2: process.env.TOKEN_BTT_UNDERNAME2,
+            contract: process.env.TOKEN_BTT_CONTRACT,
+            dicimal: process.env.TOKEN_BTT_DICIMAL,
+            network: process.env.TOKEN_BTT_NETWORK,
+            purchase: false
+        },
+    
+        BTT_ERC20: {
+            name: process.env.TOKEN_BTT_NAME,
+            symbol: process.env.TOKEN_BTT_SYMBOL,
+            undername: process.env.TOKEN_BTT_UNDERNAME,
+            undername2: process.env.TOKEN_BTT_UNDERNAME2,
+            contract: process.env.TOKEN_BTT_ERC20_CONTRACT,
+            dicimal: process.env.TOKEN_BTT_DICIMAL,
+            network: process.env.TOKEN_BTT_ERC20_NETWORK,
+            purchase: false
+        },
+    
+        BTT_TRON: {
+            name: process.env.TOKEN_BTT_NAME,
+            symbol: process.env.TOKEN_BTT_SYMBOL,
+            undername: process.env.TOKEN_BTT_UNDERNAME,
+            undername2: process.env.TOKEN_BTT_UNDERNAME2,
+            contract: process.env.TOKEN_BTT_TRON_CONTRACT,
+            dicimal: process.env.TOKEN_BTT_DICIMAL,
+            network: process.env.TOKEN_BTT_TRON_NETWORK,
+            purchase: false
+        },
+    
+        BTT_BEP20: {
+            name: process.env.TOKEN_BTT_NAME,
+            symbol: process.env.TOKEN_BTT_SYMBOL,
+            undername: process.env.TOKEN_BTT_UNDERNAME,
+            undername2: process.env.TOKEN_BTT_UNDERNAME2,
+            contract: process.env.TOKEN_BTT_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_BTT_DICIMAL,
+            network: process.env.TOKEN_BTT_BEP20_NETWORK,
+            purchase: false
+        },
+        
+        TRX: {
+            name: process.env.TOKEN_TRON_NAME,
+            symbol: process.env.TOKEN_TRON_SYMBOL,
+            undername: process.env.TOKEN_TRON_UNDERNAME,
+            undername2: process.env.TOKEN_TRON_UNDERNAME2,
+            contract: process.env.TOKEN_TRON_CONTRACT,
+            dicimal: process.env.TOKEN_TRON_DICIMAL,
+            network: process.env.TOKEN_TRON_NETWORK,
+            purchase: true
+        },
+    
+        TRX_BEP20: {
+            name: process.env.TOKEN_TRON_NAME,
+            symbol: process.env.TOKEN_TRON_SYMBOL,
+            undername: process.env.TOKEN_TRON_UNDERNAME,
+            undername2: process.env.TOKEN_TRON_UNDERNAME2,
+            contract: process.env.TOKEN_TRON_BEP20_CONTRACT,
+            dicimal: process.env.TOKEN_TRON_DICIMAL,
+            network: process.env.TOKEN_TRON_BEP20_NETWORK,
+            purchase: false
+        },
+    
+        TRX_ERC20: {
+            name: process.env.TOKEN_TRON_NAME,
+            symbol: process.env.TOKEN_TRON_SYMBOL,
+            undername: process.env.TOKEN_TRON_UNDERNAME,
+            undername2: process.env.TOKEN_TRON_UNDERNAME2,
+            contract: process.env.TOKEN_TRON_ERC20_CONTRACT,
+            dicimal: process.env.TOKEN_TRON_DICIMAL,
+            network: process.env.TOKEN_TRON_ERC20_NETWORK,
+            purchase: false
+        },
+    }
 
 let token200 = [
     {
@@ -1223,30 +1401,7 @@ let config = {
         }
     },
     linkedinMediaUrl: (idPost) =>
-        `${process.env.LINKEDIN_ORIGINAL_ARTICLE}${idPost}`,
-
-    bridgeKeystore: {
-        version: 3,
-        id: '8a6cc367-db49-4fb4-a46b-2a5dd50c90d7',
-        address: 'd01a19594444e179f2b27faff73907508fc96d1b',
-        crypto: {
-            ciphertext:
-                '1c212f452f78ae0c1c1c9ee199923a4abbf92ff0790ef1054ecb87388c15818c',
-            cipherparams: {
-                iv: 'e68d9ac516c239e6f40da4b35152d610',
-            },
-            cipher: 'aes-128-ctr',
-            kdf: 'scrypt',
-            kdfparams: {
-                dklen: 32,
-                salt: '839688c2298c829239b0c2fc5a66edd0b3369700655a9afeb8b62764aa7965fe',
-                n: 8192,
-                r: 8,
-                p: 1,
-            },
-            mac: 'f96ff770a448732ff6abee63caefd3e93ce88c79b3a9d31e74d2d49029f13639',
-        },
-    }
+        `${process.env.LINKEDIN_ORIGINAL_ARTICLE}${idPost}`
 }
 
 let oauth = {
@@ -1276,21 +1431,6 @@ let oauth = {
 
 let loginSettings = {
     lockedPeriod: process.env.lockedPeriod,
-}
-
-let configSendBox
-
-let booltestnet
-
-if (process.env.NODE_ENV == 'testnet' || process.env.NODE_ENV == 'local') {
-    configSendBox = process.env.CONFIG_SEND_BOX_TESTNET
-    PolygonApi = process.env.POLYGONSCAN_testnet_API
-    booltestnet = true
-} else {
-    PolygonApi = process.env.POLYGONSCAN_API
-    booltestnet = false
-
-    configSendBox = process.env.CONFIG_SEND_BOX_MAINNET
 }
 
 let networkSegWitCompat = {
@@ -1408,7 +1548,6 @@ module.exports.config = config
 module.exports.basicAtt = basicAtt
 module.exports.oauth = oauth
 module.exports.loginSettings = loginSettings
-module.exports.configSendBox = configSendBox
-module.exports.booltestnet = booltestnet
+module.exports.configSendBox = process.env.CONFIG_SAND_BOX
 module.exports.pathBtcSegwitCompat = pathBtcSegwitCompat
-module.exports.PolygonApi = PolygonApi
+module.exports.PolygonApi = process.env.POLYGONSCAN_API

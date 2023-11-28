@@ -1,6 +1,15 @@
-var rp = require('axios');
+var rp = require('axios')
 const validator = require('validator')
-
+const { Constants, TronConstant } = require('../conf/const')
+const Big = require('big.js')
+const {
+    erc20Connexion,
+    bep20Connexion,
+    polygonConnexion,
+    bttConnexion,
+    tronConnexion,
+    webTronInstance,
+} = require('../blockchainConnexion')
 const {
     User,
     GoogleProfile,
@@ -11,6 +20,9 @@ const {
     Notification,
     FbPage,
     TikTokProfile,
+    Wallet,
+    Campaigns,
+    CampaignLink,
 } = require('../model/index')
 const axios = require('axios')
 
@@ -26,6 +38,8 @@ const {
     configureTranslation,
     readHTMLFileProfile,
 } = require('../helpers/utils')
+
+const { extractFollowerCount } = require('../helpers/common')
 const {
     verifyYoutube,
     verifyFacebook,
@@ -36,8 +50,9 @@ const {
     updateFacebookPages,
     tiktokAbos,
     getFacebookUsername,
+    verifyThread,
 } = require('../manager/oracles')
-
+const { getListCryptoByUid } = require('../web3/wallets')
 //var ejs = require('ejs')
 const QRCode = require('qrcode')
 
@@ -46,7 +61,7 @@ let gfsprofilePic
 let gfsUserLegal
 const { mongoConnection, oauth } = require('../conf/config')
 
-const connect = mongoose.connect(mongoConnection().mongoURI, {
+const connect = mongoose.connect(mongoConnection(), {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
@@ -119,6 +134,7 @@ exports.account = async (req, res) => {
                 fireBaseAccessToken,
                 ...user
             } = req.user.toObject()
+
             return makeResponseData(res, 200, 'success', user)
         } else {
             return makeResponseError(res, 204, 'user not found')
@@ -132,22 +148,159 @@ exports.account = async (req, res) => {
     }
 }
 
+exports.notificationDecision = async (req, res) => {
+    try {
+        if (!req.user) {
+            return makeResponseData(res, 200, 'user-not-found', false)
+        }
+        const user = req.user.toObject()
+        const requiredFields = [
+            'firstName',
+            'lastName',
+            'address',
+            'email',
+            'phone',
+            'gender',
+            'city',
+            'zipCode',
+            'country',
+            'birthday',
+        ]
+        const count = requiredFields.reduce((acc, field) => {
+            if (user[field] && user[field] !== '') {
+                return acc + 1
+            }
+            return acc
+        }, 0)
+        const percentProf = (count * 100) / requiredFields.length
+        if (percentProf < 100) {
+            return makeResponseData(
+                res,
+                200,
+                'showing-complete-profile',
+                percentProf
+            )
+        } else {
+            const wallet = await Wallet.findOne({ UserId: req.user._id })
+            if (!!wallet) {
+                // GET SATT BALANCE
+                let sattBalance = Big(0)
+                const Web3BEP20 = await bep20Connexion()
+                const Web3ETH = await erc20Connexion()
+                const networks = [
+                    {
+                        name: 'bep20',
+                        web3: Web3BEP20.eth,
+                        abi: Constants.token.abi,
+                        smarContract: process.env.TOKEN_SATT_BEP20_CONTRACT,
+                    },
+                    {
+                        name: 'erc20',
+                        web3: Web3ETH.eth,
+                        abi: Constants.token.abi,
+                        smarContract: process.env.TOKEN_SATT_CONTRACT,
+                    },
+                ]
+                for (const networkObj of networks) {
+                    let contract = new networkObj.web3.Contract(
+                        networkObj.abi,
+                        networkObj.smarContract
+                    )
+                    if (user.hasWallet && !!wallet.keystore.address) {
+                        const balance = await contract.methods
+                            .balanceOf(`0x${wallet.keystore.address}`)
+                            .call()
+                        sattBalance += Big(balance)
+                    }
+                    if (
+                        user.hasWalletV2 &&
+                        !!wallet.walletV2.keystore.address
+                    ) {
+                        const balance = await contract.methods
+                            .balanceOf(`0x${wallet.walletV2.keystore.address}`)
+                            .call()
+                        sattBalance += Big(balance)
+                    }
+                }
+                if (Number(sattBalance) === 0) {
+                    return makeResponseData(res, 200, 'showing-buy-satt', true)
+                } else {
+                    let gasBalance = 0
+                    for (const networkObj of networks) {
+                        if (user.hasWallet && !!wallet.keystore.address) {
+                            const balance = await networkObj.web3.getBalance(
+                                `0x${wallet.keystore.address}`
+                            )
+                            gasBalance += Big(balance)
+                        }
+                        if (
+                            user.hasWalletV2 &&
+                            !!wallet.walletV2.keystore.address
+                        ) {
+                            const balance = await networkObj.web3.getBalance(
+                                `0x${wallet.walletV2.keystore.address}`
+                            )
+                            gasBalance += Big(balance)
+                        }
+                    }
+                    if (Number(gasBalance) === 0) {
+                        return makeResponseData(
+                            res,
+                            200,
+                            'showing-buy-fees',
+                            true
+                        )
+                    } else {
+                        // CHECK NEW AD POOLS
+                        const campaignActive = await Campaigns.findOne({
+                            type: 'apply',
+                        }).sort({ _id: -1 })
+                        if (!!campaignActive)
+                            return makeResponseData(
+                                res,
+                                200,
+                                'showing-campaign',
+                                campaignActive.coverMobile
+                            )
+                        else {
+                            const randomNum = Math.floor(Math.random() * 3) + 1
+                            return makeResponseData(
+                                res,
+                                200,
+                                'showing-random-number',
+                                randomNum
+                            )
+                        }
+                    }
+                }
+            } else {
+                return makeResponseData(res, 200, 'wallet-not-found', false)
+            }
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.profilePicture = async (req, response) => {
     try {
         const idUser = req.query.id ? +req.query.id : req.user._id
-        gfsprofilePic.files.findOne({ 'user.$id': idUser }, (err, file) => {
-            if (!file || file.length === 0) {
-                return makeResponseError(response, 204, 'No file exists')
-            } else {
-                response.writeHead(200, {
-                    'Content-Type': 'image/png',
-                    'Content-Length': file.length,
-                    'Content-Disposition': contentDisposition(file.filename),
-                })
-                const readstream = gfsprofilePic.createReadStream(file.filename)
-                readstream.pipe(response)
-            }
-        })
+        let file = await gfsprofilePic.files.findOne({ 'user.$id': idUser })
+        if (!file || file.length === 0) {
+            return makeResponseError(response, 204, 'No file exists')
+        } else {
+            response.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Content-Length': file.length,
+                'Content-Disposition': contentDisposition(file.filename),
+            })
+            const readstream = gfsprofilePic.createReadStream(file.filename)
+            readstream.pipe(response)
+        }
     } catch (err) {
         return makeResponseError(
             response,
@@ -238,7 +391,6 @@ exports.addUserLegalProfile = async (req, res) => {
         const id = req.user._id
         const idNode = '0' + id
         let type = req.body.type
-
         if (type && req.file) {
             await gfsUserLegal.files.deleteMany({
                 $and: [{ idNode }, { type }],
@@ -280,24 +432,20 @@ exports.addUserLegalProfile = async (req, res) => {
 exports.FindUserLegalProfile = async (req, res) => {
     try {
         const _id = req.params.id
-        gfsUserLegal.files.findOne({ _id: ObjectId(_id) }, (err, file) => {
-            if (!file || file.length === 0) {
-                return makeResponseError(res, 204, 'No file exists')
-            } else {
-                if (file.contentType) {
-                    contentType = file.contentType
-                } else {
-                    contentType = file.mimeType
-                }
-                res.writeHead(200, {
-                    'Content-type': contentType,
-                    'Content-Length': file.length,
-                    'Content-Disposition': contentDisposition(file.filename),
-                })
-                const readstream = gfsUserLegal.createReadStream(file.filename)
-                readstream.pipe(res)
-            }
-        })
+        let file = await gfsUserLegal.files.findOne({ _id: ObjectId(_id) })
+        if (!file || file.length === 0) {
+            return makeResponseError(res, 204, 'No file exists')
+        } else {
+            let contentType =
+                (file?.contentType && file.contentType) || file.mimeType
+            res.writeHead(200, {
+                'Content-type': contentType,
+                'Content-Length': file.length,
+                'Content-Disposition': contentDisposition(file.filename),
+            })
+            const readstream = gfsUserLegal.createReadStream(file.filename)
+            readstream.pipe(res)
+        }
     } catch (err) {
         return makeResponseError(
             res,
@@ -366,7 +514,7 @@ exports.deleteGoogleChannel = async (req, res) => {
     try {
         let UserId = req.user._id
         let _id = req.params.id
-        let googleProfile = await GoogleProfile.findOne({ _id })
+        let googleProfile = await GoogleProfile.findOne({ _id }).lean()
         if (googleProfile?.UserId !== UserId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
@@ -553,7 +701,7 @@ exports.UpdateIntersts = async (req, res) => {
 }
 exports.tiktokApiAbos = async (req, res) => {
     try {
-        let abos = await tiktokAbos(req.params.userId)
+        let abos = await tiktokAbos(req.params.idUser)
         return makeResponseData(res, 200, 'success', abos)
     } catch (err) {
         return makeResponseError(
@@ -762,7 +910,17 @@ module.exports.changeNotificationsStatus = async (req, res) => {
 module.exports.getNotifications = async (req, res) => {
     try {
         const idNode = '0' + req.user._id
-        const arrayNotifications = await Notification.find({ idNode }).sort({
+        const typesToExclude = [
+            'buy_some_gas',
+            'invite_friends',
+            'join_on_social',
+        ]
+        const startDate = new Date(process.env.STARTDATE_NOTIFICATION)
+        const arrayNotifications = await Notification.find({
+            idNode,
+            createdAt: { $gte: startDate },
+            $and: [{ type: { $nin: typesToExclude } }],
+        }).sort({
             createdAt: 'desc',
         })
 
@@ -771,6 +929,7 @@ module.exports.getNotifications = async (req, res) => {
         }
 
         const limit = parseInt(req.query.limit) || 10000000
+        //const limit = 10;
         const page = parseInt(req.query.page) || 1
         const startIndex = (page - 1) * limit
         const endIndex = page * limit
@@ -797,6 +956,37 @@ module.exports.getNotifications = async (req, res) => {
             startIndex,
             endIndex
         )
+
+        const notificationTasks = notifications.notifications.map(
+            async (notification) => {
+                switch (notification.type) {
+                    case 'cmp_candidate_insert_link':
+                    case 'cmp_candidate_reject_link':
+                    case 'apply_campaign':
+                    case 'cmp_candidate_accept_link':
+                        const link = await CampaignLink.findOne({
+                            _id:
+                                notification.label.linkHash ||
+                                notification.label.promHash ||
+                                notification.label.linkId,
+                        })
+                        notification.label.linkExist = Boolean(link)
+                        notification.label.link = link || null
+                        break
+
+                    case 'create_campaign':
+                        const campaign = await Campaigns.findOne({
+                            hash: notification.label.cmp.hash,
+                        })
+                        notification.label.cmp_update = campaign || null
+                        break
+                }
+            }
+        )
+
+        // Wait for all tasks to complete
+        await Promise.all(notificationTasks)
+
         return makeResponseData(res, 200, 'success', notifications)
     } catch (err) {
         return makeResponseError(
@@ -809,7 +999,7 @@ module.exports.getNotifications = async (req, res) => {
 
 module.exports.changeEmail = async (req, res) => {
     var pass = req.body.pass
-    var email = req.body.email
+    var email = req.body.email.toLowerCase()
     var user = req.user
 
     try {
@@ -889,6 +1079,26 @@ module.exports.confrimChangeMail = async (req, res) => {
     }
 }
 
+module.exports.checkThreads = async (req, res) => {
+    try {
+        let instaAccount = await FbPage.findOne({
+            UserId: req.user._id,
+            instagram_username: { $exists: true },
+        })
+        if (!instaAccount)
+            return makeResponseData(res, 200, 'instagram_not_found')
+        if (instaAccount.threads_id)
+            return makeResponseData(res, 200, 'threads_already_added')
+        return makeResponseData(res, 200, true)
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 module.exports.verifyLink = async (req, response) => {
     try {
         var userId = req.user._id
@@ -933,24 +1143,16 @@ module.exports.verifyLink = async (req, response) => {
                 ).lean()
 
                 if (googleProfile) {
-                    // var options = {
-                    //     method: 'POST',
-                    //     uri: 'https://oauth2.googleapis.com/token',
-                    //     body: {
-                    //         client_id: oauth.google.googleClientId,
-                    //         client_secret: oauth.google.googleClientSecret,
-                    //         refresh_token: googleProfile.refreshToken,
-                    //         grant_type: 'refresh_token',
-                    //     },
-                    //     json: true,
-                    // }
-                    const {access_token} = await rp.post('https://oauth2.googleapis.com/token', {
-                                client_id: oauth.google.googleClientId,
-                                client_secret: oauth.google.googleClientSecret,
-                                refresh_token: googleProfile.refreshToken,
-                                grant_type: 'refresh_token',
-                            })
-                    //const { access_token } = await rp(options)
+                    const data = await rp.post(
+                        'https://oauth2.googleapis.com/token',
+                        {
+                            client_id: oauth.google.googleClientId,
+                            client_secret: oauth.google.googleClientSecret,
+                            refresh_token: googleProfile.refreshToken,
+                            grant_type: 'refresh_token',
+                        }
+                    )
+                    const access_token = data.data.access_token
                     await GoogleProfile.updateOne(
                         { UserId: userId },
                         { $set: { accessToken: access_token } }
@@ -1013,7 +1215,29 @@ module.exports.verifyLink = async (req, response) => {
                 }).lean()
                 if (tiktokProfile) {
                     linked = true
-                    res = await verifytiktok(tiktokProfile, userId, idPost)
+                    res = await verifytiktok(tiktokProfile, idPost)
+                    if (res === 'deactivate') deactivate = true
+                }
+
+                break
+            case '7':
+                var threads = await FbPage.findOne(
+                    {
+                        UserId: userId,
+                        instagram_id: { $exists: true },
+                        threads_id: { $exists: true },
+                    },
+                    { threads_id: 1, instagram_username: 1 }
+                ).lean()
+
+                if (threads) {
+                    linked = true
+                    res = await verifyThread(
+                        idPost,
+                        threads.threads_id,
+                        threads.instagram_username
+                    )
+
                     if (res === 'deactivate') deactivate = true
                 }
 
@@ -1027,14 +1251,26 @@ module.exports.verifyLink = async (req, response) => {
             return makeResponseError(response, 406, 'invalid link')
         else if (deactivate)
             return makeResponseError(response, 405, 'account deactivated')
-        else
-            return makeResponseData(
-                response,
-                200,
-                'success',
-                res ? 'true' : 'false',
-                res === true && typeSN == '5' && profileLinedin?.linkedinId
-            )
+        else if (res === 'link_not_found')
+            return makeResponseError(response, 406, 'link not found')
+        else {
+            if (typeSN == '7')
+                return makeResponseData(
+                    response,
+                    200,
+                    'success',
+                    res ? 'true' : 'false',
+                    threads.instagram_username
+                )
+            else
+                return makeResponseData(
+                    response,
+                    200,
+                    'success',
+                    res ? 'true' : 'false',
+                    res === true && typeSN == '5' && profileLinedin?.linkedinId
+                )
+        }
     } catch (err) {
         return makeResponseError(
             response,
@@ -1046,7 +1282,7 @@ module.exports.verifyLink = async (req, response) => {
 module.exports.convertIdToFbUsername = async (req, res) => {
     try {
         idUser = req.user._id
-        var idLink = req.params.idLink
+        var idLink = req.params.id
         let usernamefb = await getFacebookUsername(idUser, idLink)
         return makeResponseData(
             res,
@@ -1067,24 +1303,23 @@ module.exports.ShareByActivity = async (req, res) => {
     try {
         let userId = req.user._id
         let activityURN = req.params.activity
-        let linkedinProfile = await LinkedinProfile.findOne({ userId })
+        let linkedinProfile = await LinkedinProfile.findOne(
+            { userId },
+            { accessToken: 1 }
+        ).lean()
 
-        let linkedinData = {
-            url: process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN,
-            method: 'GET',
-            headers: {
-                Authorization: 'Bearer ' + linkedinProfile.accessToken,
-            },
-            json: true,
-        }
+        let postData = await rp.get(
+            process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN + '&projection=(results(*(domainEntity~)))',
+            {
+                headers: {
+                    Authorization: 'Bearer ' + linkedinProfile.accessToken,
+                },
+            }
+        )
 
-        let postData = await rp.get(process.env.LINKEDIN_FIRST_URL_ADRR_FIRST + activityURN,{headers:{
-            Authorization: 'Bearer ' + linkedinProfile.accessToken,
-        }})
-        //let postData = await rp(linkedinData)
         let urn = `urn:li:activity:${activityURN}`
 
-        let sharedId = postData.results[urn]['domainEntity']
+        let sharedId = postData.data.results[urn]['domainEntity']
         return makeResponseData(res, 200, 'success', sharedId)
     } catch (err) {
         return makeResponseError(
@@ -1102,23 +1337,29 @@ module.exports.ProfilPrivacy = async (req, res) => {
         let tiktokProfile = await TikTokProfile.findOne({ userId })
         let getUrl = `https://open-api.tiktok.com/oauth/refresh_token?client_key=${process.env.TIKTOK_KEY}&grant_type=refresh_token&refresh_token=${tiktokProfile.refreshToken}`
         let resMedia = await rp.get(getUrl)
-        const linkedinData = {
+        const linkedinData = await {
             url: 'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
             method: 'POST',
             body: {
                 max_count: 20,
             },
             headers: {
-                Authorization: 'Bearer ' + resMedia?.data.access_token,
+                Authorization: 'Bearer ' + resMedia?.data.data.access_token,
             },
             json: true,
         }
-        let postData = await rp.post('https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',{
-            max_count: 20,
-        },{headers :{
-            Authorization: 'Bearer ' + resMedia?.data.access_token,
-        }})
-        if (postData.data.videos.length === 0) {
+        let postData = await rp.post(
+            'https://open.tiktokapis.com/v2/video/list/?fields=cover_image_url,id,title',
+            {
+                max_count: 20,
+            },
+            {
+                headers: {
+                    Authorization: 'Bearer ' + resMedia?.data.data.access_token,
+                },
+            }
+        )
+        if (postData.data.data.videos.length === 0) {
             privacy = 'private'
         } else {
             privacy = 'public'
@@ -1132,4 +1373,157 @@ module.exports.ProfilPrivacy = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
+}
+
+module.exports.addThreadsAccount = async (req, res) => {
+    try {
+        const instaAccount = await FbPage.findOne({
+            UserId: req.user._id,
+            instagram_username: { $exists: true },
+        })
+        if (!instaAccount)
+            return makeResponseData(res, 200, 'instagram_not_found')
+        if (instaAccount.threads_id)
+            return makeResponseData(res, 200, 'threads_already_added')
+        const user = await axios.get(
+            `https://www.threads.net/@${instaAccount.instagram_username}`
+        )
+        let text = user.data.replace(/\s/g, '').replace(/\s/g, '')
+        const userID = text.match(/"user_id":"(\d+)"/)?.[1]
+        if (!userID) return makeResponseData(res, 200, 'threads_not_found')
+        const followers = extractFollowerCount(
+            user.data
+                .split('Followers')[0]
+                .split('content=')
+                [
+                    user.data.split('Followers')[0].split('content=').length - 1
+                ].trim()
+        )
+        const lsdToken = getLsdToken(text)
+        const currentUser = await fetchUserThreadData(lsdToken, userID)
+        if (currentUser) {
+            const userPicture = await axios.get(currentUser.profile_pic_url, {
+                responseType: 'arraybuffer',
+            })
+            const base64String = Buffer.from(
+                userPicture.data,
+                'binary'
+            ).toString('base64')
+            await FbPage.updateOne(
+                {
+                    UserId: req.user._id,
+                    instagram_username: instaAccount.instagram_username,
+                },
+                {
+                    threads_id: currentUser.pk,
+                    threads_picture: base64String
+                        ? base64String
+                        : currentUser.profile_pic_url,
+                    threads_followers: followers,
+                }
+            )
+            return makeResponseData(res, 200, 'threads_account_added', {
+                username: instaAccount.instagram_username,
+                picture: base64String
+                    ? base64String
+                    : currentUser.profile_pic_url,
+                id: currentUser.pk,
+                threads_followers: followers,
+            })
+        }
+        return makeResponseData(res, 200, 'error')
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.removeThreadsAccount = async (req, res) => {
+    try {
+        // Find the instaAccount
+        const instaAccount = await FbPage.findOne({
+            UserId: req.user._id,
+            threads_id: req.params.id,
+            instagram_username: { $exists: true },
+        })
+
+        // Set the default response data message
+        let responseDataMessage = 'no_threads_found'
+
+        // Check if the instaAccount exists
+        if (!instaAccount) {
+            responseDataMessage = 'instagram_not_found'
+        } else if (instaAccount.threads_id) {
+            // Check if threads_id exists and update the FbPage document
+            await FbPage.updateOne(
+                {
+                    UserId: req.user._id,
+                    threads_id: req.params.id,
+                },
+                {
+                    $unset: {
+                        threads_id: 1,
+                        threads_picture: 1,
+                        threads_followers: 1,
+                    },
+                }
+            )
+            responseDataMessage = 'deleted successfully'
+        }
+
+        return makeResponseData(res, 200, responseDataMessage)
+    } catch (error) {
+        // Handle any errors that might occur during the process
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+const getLsdToken = (text) =>
+    text.match(/"LSD",\[\],{"token":"(\w+)"},\d+\]/)?.[1]
+
+const fetchUserThreadData = async (token, userID) => {
+    const data = {
+        lsd: token,
+        variables: `{"userID": ${userID}}`,
+        doc_id: '23996318473300828',
+    }
+
+    const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        'X-ASBD-ID': '129477',
+        'X-FB-LSD': token,
+        'X-IG-App-ID': '5587632691339264',
+    }
+
+    const response = await axios.post(
+        'https://www.threads.net/api/graphql',
+        data,
+        {
+            headers: headers,
+            transformRequest: [
+                (data) => {
+                    return Object.entries(data)
+                        .map(
+                            ([key, value]) =>
+                                `${encodeURIComponent(
+                                    key
+                                )}=${encodeURIComponent(value)}`
+                        )
+                        .join('&')
+                },
+            ],
+        }
+    )
+
+    const user = response?.data?.data?.userData?.user
+    return user
 }

@@ -154,15 +154,6 @@ exports.walletConnection = async (req, res) => {
 }
 
 exports.codeRecover = async (req, res) => {
-    const validateEmail = /\S+@\S+\.\S+/
-
-    if (!validateEmail.test(req.body.mail.toLowerCase())) {
-        return responseHandler.makeResponseError(
-            res,
-            400,
-            'please enter a valid email address!'
-        )
-    }
     try {
         let dateNow = Math.floor(Date.now() / 1000)
         let lang = req.body.lang || 'en'
@@ -744,7 +735,7 @@ exports.socialSignUp = async (req, res) => {
             )
         } else {
             let date = Math.floor(Date.now() / 1000) + 86400
-            let user = User.create(snUser)
+            let user = eate(snUser)
             snUser._id = user._id
             let token = generateAccessToken({ _id: user._id })
             let param = {
@@ -835,7 +826,7 @@ module.exports.verifyQrCode = async (req, res) => {
         let user = await User.findOne({ _id })
         let secret = user.secret
         let code = req.body.code
-        let verified = speakeasy.totp.verify({
+        let verified = await speakeasy.totp.verify({
             secret: secret,
             encoding: 'ascii',
             token: code,
@@ -990,4 +981,9 @@ module.exports.signupRequest = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
+}
+
+
+module.exports.verifyExpiredToken = (req, res) => {
+    return responseHandler.makeResponseData(res, 200, 'success', true)
 }

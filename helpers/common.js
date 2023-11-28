@@ -166,7 +166,6 @@ module.exports.updateStat = async () => {
                     tiktokProfile
                 )
             } catch (e) {
-                console.error(e)
                 continue
             }
 
@@ -255,16 +254,17 @@ exports.updateStatforUser = async (UserId) => {
         ],
     })
 
-    let eventLint = []
-    MyLinksCampaign.forEach((event) => {
-        const result = campaigns.find(
+    const eventLint = MyLinksCampaign.reduce((acc, event) => {
+        const campaign = campaigns.find(
             (campaign) => event.id_campaign === campaign.hash
         )
 
-        if (result?.toObject()) {
-            eventLint.push({ ...event.toObject(), campaign: result.toObject() })
+        if (campaign?.toObject()) {
+            acc.push({ ...event.toObject(), campaign: campaign.toObject() })
         }
-    })
+
+        return acc
+    }, [])
 
     for (const event of eventLint) {
         if (
@@ -319,7 +319,6 @@ exports.updateStatforUser = async (UserId) => {
                 tiktokProfile
             )
         } catch (e) {
-            console.error(e)
             continue
         }
 
@@ -382,28 +381,27 @@ exports.automaticRjectLink = async (_) => {
 
 exports.UpdateStats = async (obj, socialOracle) => {
     if (!socialOracle) {
-        delete obj.views,
-            delete obj.likes,
-            delete obj.shares,
-            delete obj.totalToEarn
+        ;['views', 'likes', 'shares', 'totalToEarn'].forEach(
+            (field) => delete obj[field]
+        )
     }
 
-    await CampaignLink.findOne(
-        { 'applyerSignature.signature': obj.applyerSignature.signature },
-        async (err, result) => {
-            if (!result) {
-                await CampaignLink.create(obj)
-            } else {
-                await CampaignLink.updateOne(
-                    {
-                        'applyerSignature.signature':
-                            obj.applyerSignature.signature,
-                    },
-                    { $set: obj }
-                )
-            }
-        }
-    )
+    if (
+        !(await CampaignLink.exists({
+            'applyerSignature.messageHash': obj.applyerSignature.messageHash,
+        }))
+    ) {
+        await CampaignLink.create(obj)
+        return
+    } else {
+        await CampaignLink.updateOne(
+            {
+                'applyerSignature.messageHash':
+                    obj.applyerSignature.messageHash,
+            },
+            { $set: obj }
+        )
+    }
 }
 
 exports.BalanceUsersStats = async (condition) => {
@@ -444,7 +442,6 @@ exports.BalanceUsersStats = async (condition) => {
             let res = {}
             balance = await getBalanceByUid(req, res)
         } catch (err) {
-            console.error(err)
             continue
         }
         // !balance['Total_balance'] && counter++
@@ -457,7 +454,6 @@ exports.BalanceUsersStats = async (condition) => {
         ) {
             counter++
         } else {
-            console.log('user balance: ' + result.Balance, 'userId: ' + id)
             user[condition].unshift(result)
             if (user[condition].length > 7) {
                 user[condition].pop()
@@ -470,4 +466,24 @@ exports.BalanceUsersStats = async (condition) => {
             counter++
         }
     }
+}
+
+exports.extractFollowerCount = (str) => {
+    const regex = /(\d+(\.\d+)?)([MK]?)\s*$/
+
+    const match = str.match(regex)
+
+    if (match) {
+        let followerCount = parseFloat(match[1])
+
+        if (match[3] === 'K') {
+            followerCount *= 1000
+        } else if (match[3] === 'M') {
+            followerCount *= 1000000
+        }
+
+        return parseInt(followerCount, 10)
+    }
+
+    return 0
 }

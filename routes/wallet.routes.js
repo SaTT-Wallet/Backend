@@ -6,7 +6,6 @@ const {
     payementRequest,
     getQuote,
     gasPriceErc20,
-    gasPriceTron,
     checkWalletToken,
     addNewToken,
     mywallet,
@@ -17,138 +16,58 @@ const {
     gasPriceBtt,
     gasPricePolygon,
     cryptoDetails,
+    getCharts,
     getMnemo,
     verifyMnemo,
     verifySign,
     createNewWallet,
     removeToken,
     getTransactionHistory,
-    bridge,
     balanceStat,
-
     addTronWalletToExistingAccount,
     gasPriceTrx,
     getGasPrice,
-    nbrHolder,
     countWallets,
-    addNewWallet,
     allwallets,
     createNewWalletV2,
+    createUserFromExternalWallet,
     transfertAllTokensBEP20,
     checkUserWalletV2Exist,
     checkIsNewUser,
-    transferAllTron,
-    resetpassword,
     getCodeKeyStore,
     exportKeyStore,
-    exportEth,
-    exportBtc,
-    exportTron,
-    exportEthV2,
-    exportBtcV2,
-    exportTronV2,
+    exportKeyStoreMobile,
+    cryptoPriceDetails,
+    globalCryptoMarketInfo,
+    getNftByAddress,
+    getBalanceByToken,
+    getallCrypto
 } = require('../controllers/wallet.controller')
+
+
+const {
+    getBalanceExternalWallet
+} = require('../web3/wallets')
 const {
     verifyAuth,
     verifyAuthGetQuote,
 } = require('../middleware/passport.middleware')
 
-
-/**
- * @swagger
- * /wallet/exportBtc:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: export btc wallet.
- *     description: user can download his BTC key, <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/exportBtc', verifyAuth, exportBtc)
-
-router.post('/exportBtcV2', verifyAuth, exportBtcV2)
-
-
-/**
- * @swagger
- * /wallet/exportETH:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: export eth wallet.
- *     description: user can download his ETH key, <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/exportETH', verifyAuth, exportEth)
-
-router.post('/exportETHV2', verifyAuth, exportEthV2)
-
-
-
-
-
-/**
- * @swagger
- * /wallet/exportTron:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: export tron wallet.
- *     description: user can download his Tronlink compatible keystore, <br> with access_token.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               pass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/exportTron', verifyAuth, exportTron)
-
-router.post('/exportTronV2', verifyAuth, exportTronV2)
-
-
-
-
-
-
-
+const {
+    getCodeKeyStoreValidation,
+    exportKeyStoreValidation,
+    walletVersionValidation,
+    networkValidation,
+    checkTokenValidation,
+    checkEVMValidation,
+    addNewTokenValidation,
+    passwordCheckValidation,
+    paymentRequestValidation,
+    getQuoteValidation,
+    sendTokenValidation,
+    migrationWalletValidation,
+    cryptoListValidation,
+} = require('../middleware/walletValidator.middleware')
 
 /**
  * @swagger
@@ -176,29 +95,7 @@ router.post('/exportTronV2', verifyAuth, exportTronV2)
  *       "500":
  *          description: code:500,<br>error
  */
-router.post('/mywallet', verifyAuth, mywallet)
-
-/**
- * @swagger
- * /wallet/mywallet:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: return user wallet.
- *     description: system return object of wallet(address,bnb balance ...)<br> with access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: code:200,<br>message:"success"
- *       "401":
- *          description: code:401,<br>error:"token required"
- *       "204":
- *          description: code:204,<br>error:"Wallet not found"
- *       "500":
- *          description: code:500,<br>error
- */
-router.get('/mywallet', verifyAuth, mywallet)
+router.post('/mywallet', verifyAuth, walletVersionValidation, mywallet)
 
 /**
  * @swagger
@@ -248,30 +145,7 @@ router.get('/allwallets', verifyAuth, allwallets)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/userBalance', verifyAuth, userBalance)
-
-/**
- * @swagger
- * /wallet/userBalance:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get user balance
- *     description: return to user his crypto list <br> with access_token
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.get('/userBalance', verifyAuth, userBalance)
-
-// router.get('/polygonCnx', testPolygon.polygonConnexion)
-// router.get('/polygonContract', getContractPolygon)
+router.post('/userBalance', verifyAuth, walletVersionValidation, userBalance)
 
 /**
  * @swagger
@@ -294,7 +168,7 @@ router.get('/userBalance', verifyAuth, userBalance)
  *          description: error:"error"
  */
 
-router.get('/gasPrice/:network', getGasPrice)
+router.get('/gasPrice/:network', networkValidation, getGasPrice)
 
 /**
  * @swagger
@@ -374,6 +248,24 @@ router.get('/polygonGasPrice', gasPricePolygon)
 
 /**
  * @swagger
+ * /wallet/globalCryptoMarketInfo:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+router.get('/globalCryptoMarketInfo', globalCryptoMarketInfo)
+
+/**
+ * @swagger
  * /wallet/cryptoDetails:
  *   get:
  *     tags:
@@ -389,6 +281,85 @@ router.get('/polygonGasPrice', gasPricePolygon)
  *          description: error:"error"
  */
 router.get('/cryptoDetails', cryptoDetails)
+
+
+/**
+ * @swagger
+ * /wallet/getCharts:
+ *   post:
+ *     tags:
+ *     - "getCharts"
+ *     summary: get charts crypto for token info .
+ *     description: return the charts of tokens
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *               range:
+ *                 type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "204":
+ *          description: code,<br>error:"Wallet not found"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post('/getCharts', getCharts)
+
+/**
+ * @swagger
+ * /wallet/cryptoPriceDetails:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: cryptolist
+ *         required: false
+ *         type: string
+ *         description: The list of cryptos to get details for, separated by commas
+ *     responses:
+ *       "200":
+ *         description: code,<br>message:"success"
+ *       "500":
+ *         description: error:"error"
+ */
+router.get('/cryptoPriceDetails', cryptoListValidation, cryptoPriceDetails)
+
+/**
+ * @swagger
+ * /wallet/getallCrypto:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get crypto list details
+ *     description: return detail of crypto list to user <br> without access_token
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: cryptochunk
+ *         required: false
+ *         type: string
+ *         description: The list of cryptos to get details for, separated by commas
+ *     responses:
+ *       "200":
+ *         description: code,<br>message:"success"
+ *       "500":
+ *         description: error:"error"
+ */
+router.get('/getallCrypto', getallCrypto)
 
 /**
  * @swagger
@@ -416,27 +387,8 @@ router.get('/cryptoDetails', cryptoDetails)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/totalBalance', verifyAuth, totalBalances)
+router.post('/totalBalance', verifyAuth, walletVersionValidation, totalBalances)
 
-/**
- * @swagger
- * /wallet/totalBalance:
- *   get:
- *     tags:
- *     - "wallets"
- *     summary: get total balance
- *     description: return the sum of balances for user
- *     produces:
- *       - application/json
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "204":
- *          description: code,<br>error:"Wallet not found"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.get('/totalBalance', verifyAuth, totalBalances)
 /**
  * @swagger
  * /wallet/Erc20GasPrice:
@@ -483,7 +435,22 @@ router.get('/Erc20GasPrice', gasPriceErc20)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/checkWalletToken', verifyAuth, checkWalletToken)
+router.post(
+    '/checkWalletToken',
+    (req, res, next) => {
+        console.log('Executing verifyAuth middleware');
+        verifyAuth(req, res, next);
+    },
+    (req, res, next) => {
+        console.log('Executing checkTokenValidation middleware');
+        checkTokenValidation(req, res, next);
+    },
+    (req, res) => {
+        console.log('Executing checkWalletToken route handler');
+        checkWalletToken(req, res);
+    }
+);
+
 
 /**
  * @swagger
@@ -519,7 +486,7 @@ router.post('/checkWalletToken', verifyAuth, checkWalletToken)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/addNewToken', verifyAuth, addNewToken)
+router.post('/addNewToken', verifyAuth, addNewTokenValidation, addNewToken)
 
 /**
  * @swagger
@@ -560,7 +527,12 @@ router.post('/addNewToken', verifyAuth, addNewToken)
  *          description: code,<br>error:"error"
  *
  */
-router.post('/transferTokens', verifyAuth, transferTokensController)
+router.post(
+    '/transferTokens',
+    verifyAuth,
+    sendTokenValidation,
+    transferTokensController
+)
 
 /**
  * @swagger
@@ -594,7 +566,7 @@ router.post('/transferTokens', verifyAuth, transferTokensController)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/getQuote', verifyAuthGetQuote, getQuote)
+router.post('/getQuote', verifyAuthGetQuote, getQuoteValidation, getQuote)
 
 /**
  * @swagger
@@ -624,9 +596,12 @@ router.post('/getQuote', verifyAuthGetQuote, getQuote)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/payementRequest', verifyAuth, payementRequest)
-
-//router.post('/bridge', verifyAuth, bridge)
+router.post(
+    '/payementRequest',
+    verifyAuth,
+    paymentRequestValidation,
+    payementRequest
+)
 
 /**
  * @swagger
@@ -696,7 +671,7 @@ router.post('/verifyMnemo', verifyAuth, verifyMnemo)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/create', verifyAuth, createNewWallet)
+router.post('/create', verifyAuth, passwordCheckValidation, createNewWallet)
 
 /**
  * @swagger
@@ -722,7 +697,7 @@ router.post('/create', verifyAuth, createNewWallet)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/verifySign', verifyAuth, verifySign)
+router.post('/verifySign', verifyAuth, passwordCheckValidation, verifySign)
 
 /**
  * @swagger
@@ -748,23 +723,30 @@ router.post('/verifySign', verifyAuth, verifySign)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/create/v2', verifyAuth, createNewWalletV2)
+router.post(
+    '/create/v2',
+    verifyAuth,
+    passwordCheckValidation,
+    createNewWalletV2
+)
+
+
 
 /**
  * @swagger
- * /wallet/addNewWallet:
+ * /wallet/createUserFromExternalWallet:
  *   post:
  *     tags:
  *     - "wallets"
- *     summary: add new wallet.
- *     description: add new wallet.
+ *     summary: create new wallet from external wallet.
+ *     description: create new wallet.
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:      # Request body contents
  *             type: object
  *             properties:
- *               password:
+ *               wallet:
  *                 type: string
  *     responses:
  *       "200":
@@ -774,7 +756,43 @@ router.post('/create/v2', verifyAuth, createNewWalletV2)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/addNewWallet', verifyAuth, addNewWallet)
+router.post(
+    '/createUserFromExternalWallet',
+    createUserFromExternalWallet
+)
+
+
+/**
+ * @swagger
+ * /wallet/getBalanceExternalWallet:
+ *   post:
+ *     tags:
+ *     - "wallets"
+ *     summary: get balance token from external wallet.
+ *     description: get balance.
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               wallet:
+ *                 type: string
+ *               token:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"error fetch balance"
+ *       "500":
+ *          description: code,<br>error:"error"
+ */
+router.post(
+    '/getBalanceExternalWallet',
+    getBalanceExternalWallet
+)
+
 
 /**
  * @swagger
@@ -800,7 +818,12 @@ router.post('/addNewWallet', verifyAuth, addNewWallet)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post('/add-tron-wallet', verifyAuth, addTronWalletToExistingAccount)
+router.post(
+    '/add-tron-wallet',
+    verifyAuth,
+    passwordCheckValidation,
+    addTronWalletToExistingAccount
+)
 
 /**
  * @swagger
@@ -823,7 +846,12 @@ router.post('/add-tron-wallet', verifyAuth, addTronWalletToExistingAccount)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.delete('/removeToken/:tokenAddress', verifyAuth, removeToken)
+router.delete(
+    '/removeToken/:address',
+    verifyAuth,
+    checkEVMValidation,
+    removeToken
+)
 
 /**
  * @swagger
@@ -846,7 +874,11 @@ router.delete('/removeToken/:tokenAddress', verifyAuth, removeToken)
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.get('/transaction_history/:address', getTransactionHistory)
+router.get(
+    '/transaction_history/:address',
+    checkEVMValidation,
+    getTransactionHistory
+)
 
 /**
  * @swagger
@@ -883,41 +915,45 @@ router.get('/countWallets', countWallets)
  */
 router.get('/stats', verifyAuth, balanceStat)
 
-router.post('/transfertTokensBep20', verifyAuth, transfertAllTokensBEP20)
+router.post(
+    '/transfertTokensBep20',
+    verifyAuth,
+    migrationWalletValidation,
+    transfertAllTokensBEP20
+)
 
 router.get('/checkUserWalletV2', verifyAuth, checkUserWalletV2Exist)
 
 router.get('/checkIsNewUser', verifyAuth, checkIsNewUser)
 
-/**
- * @swagger
- * /wallet/resetpassword:
- *   post:
- *     tags:
- *     - "wallets"
- *     summary: add TRX wallet to preExisting ETH/BTC Wallet .
- *     description: add TRX wallet to preExisting ETH/BTC Wallet.
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:      # Request body contents
- *             type: object
- *             properties:
- *               oldPass:
- *                 type: string
- *               newPass:
- *                 type: string
- *     responses:
- *       "200":
- *          description: code,<br>message:"success"
- *       "401":
- *          description: code,<br>error:"Wallet already exist"
- *       "500":
- *          description: code,<br>error:"error"
- */
-router.post('/resetpassword', verifyAuth, resetpassword)
+router.post(
+    '/code-export-keystore',
+    verifyAuth,
+    getCodeKeyStoreValidation,
+    getCodeKeyStore
+)
 
-router.post('/code-export-keystore', verifyAuth, getCodeKeyStore)
-router.post('/export-keystore', verifyAuth, exportKeyStore)
+router.post(
+    '/export-keystore',
+    verifyAuth,
+    exportKeyStoreValidation,
+    exportKeyStore
+)
+
+router.post('/code-export-keystore', verifyAuth, getCodeKeyStoreValidation ,getCodeKeyStore)
+
+
+
+router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyStore)
+
+
+router.post('/export-keystore-mobile', verifyAuth ,exportKeyStoreMobile)
+
+
+router.get('/nfts/:address', checkEVMValidation,getNftByAddress)
+
+
+
+router.post('/getBalance', verifyAuth, getBalanceByToken)
 
 module.exports = router
