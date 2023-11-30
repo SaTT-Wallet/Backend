@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const { mongoConnection } = require('../conf/config');
-
 const db = mongoose.createConnection(mongoConnection(), {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -9,7 +8,12 @@ const db = mongoose.createConnection(mongoConnection(), {
 });
 
 const userExternalWalletSchema = new mongoose.Schema({
-  _id: {
+  UserId: {
+    type: Number,
+    required: true,
+    unique:true
+  },
+  walletId: {
     type: String,
     required: true,
   },

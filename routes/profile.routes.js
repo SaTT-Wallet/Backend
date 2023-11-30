@@ -119,6 +119,7 @@ const {
 } = require('../middleware/profileValidator.middleware')
 const { sendNotificationTest } = require('../manager/notification')
 
+
 /**
  * @swagger
  * /profile/account:
@@ -438,6 +439,8 @@ router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
  */
 router.delete('/RemoveGoogleChannel/:id', verifyAuth, idCheckValidation,deleteGoogleChannel)
 
+
+
 /**
  * @swagger
  * /profile/RemoveFacebookChannels:
@@ -556,6 +559,8 @@ router.delete(
  */
 
 router.delete('/RemoveTiktokChannel/:id', verifyAuth, idCheckValidation,deleteTiktokChannel)
+
+
 /**
  * @swagger
  * /profile/RemoveTiktokChannel:
@@ -596,6 +601,7 @@ router.delete('/RemoveTiktokChannels', verifyAuth, deleteTiktokChannels)
  *          description: error:<br> server error
  */
 router.get('/socialAccounts', verifyAuth, socialAccounts)
+
 
 /**
  * @swagger
@@ -851,7 +857,7 @@ passport.use(
     'youtube_strategy_add_channel',
     new GoogleStrategy(
         googleCredentials('profile/callback/addChannel/youtube'),
-        async (req, accessToken, refreshToken, profile, cb) => {
+        async (req, accessToken, refreshToken, profile, cb) => { 
             addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
         }
     )

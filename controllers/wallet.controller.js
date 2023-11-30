@@ -11,7 +11,7 @@ var bip32 = require('bip32')
 var bip38 = require('bip38')
 const { ethers } = require('ethers');
 
-const UserExternalWallet = require('./../model/userxternalwallet.model.js'); // Adjust the path as needed
+
 
 const Web3 = require('web3')
 const {
@@ -1018,29 +1018,6 @@ exports.createNewWalletV2 = async (req, res) => {
         )
     }
 }
-
-
-exports.createUserFromExternalWallet = async (req, res) =>{
-
-try{
-
-    const newUserWallet = new UserExternalWallet({
-        _id: req.body.wallet, // Replace with the actual user ID
-      });
-
-    await newUserWallet.save()
-
-    return responseHandler.makeResponseData(res, 200, 'User created successfully', newUserWallet);
-
-}
-catch(err){
-    return responseHandler.makeResponseError(res, 500, err.message ? err.message : err.error);
-
-}
-
-
-}
-
 
 exports.addTronWalletToExistingAccount = async (req, res) => {
     try {
