@@ -9,7 +9,16 @@ const {
     TikTokProfile,
     UserExternalWallet
 } = require('../model/index')
-
+const {
+    verifyYoutube,
+    verifyFacebook,
+    verifyInsta,
+    verifyTwitter,
+    verifyLinkedin,
+    verifytiktok,
+    updateFacebookPages,
+    verifyThread,
+} = require('../manager/oracles')
 
 exports.createUserFromExternalWallet = async (req, res) =>{   
     try {
