@@ -13,7 +13,8 @@ const {
     externalDeleteLinkedinChannels,
     externalDeleteLinkedinChannel,
     externalDeleteTwitterChannels,
-    externalDeleteTwitterChannel
+    externalDeleteTwitterChannel,
+    externalVerifyLink
 } = require('../controllers/external.controller');
 
 const verifySignatureMiddleware = require('./../middleware/verifySignature.middleware')
@@ -55,6 +56,9 @@ router.delete('/RemoveTwitterChannels', verifySignatureMiddleware, externalDelet
 
 
 router.delete('/RemoveTwitterChannel/:id', verifySignatureMiddleware, externalDeleteTwitterChannel)
+
+
+router.get('/link/verify/:typeSN/:idUser/:idPost', verifySignatureMiddleware, externalVerifyLink)
 
 
 
