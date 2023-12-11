@@ -20,6 +20,7 @@ const {
 
 const verifySignatureMiddleware = require('./../middleware/verifySignature.middleware')
 
+router.use(verifySignatureMiddleware);
 
 
 // DONE
