@@ -10,6 +10,7 @@ const {
     UserExternalWallet,
     CampaignLink,
     Campaigns,
+    FbProfile
 } = require('../model/index')
 var rp = require('axios')
 const {  oauth } = require('../conf/config')
