@@ -493,7 +493,6 @@ module.exports.externalVerifyLink = async (req, response) => {
                     { UserId: userId },
                     { accessToken: 1 }
                 ).lean()
-                await updateFacebookPages(userId, fbProfile.accessToken, false)
                 let fbPage = await FbPage.findOne(
                     {
                         UserId: userId,
