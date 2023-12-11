@@ -7,33 +7,53 @@ const {
     TwitterProfile,
     FbPage,
     TikTokProfile,
-    UserExternalWallet
+    UserExternalWallet,
+    CampaignLink,
+    Campaigns
 } = require('../model/index')
 
-
-exports.createUserFromExternalWallet = async (req, res) =>{   
+const {filterLinks} = require('../web3/campaigns')
+exports.createUserFromExternalWallet = async (req, res) => {
     try {
-        const userExist = await UserExternalWallet.findOne({walletId: req.body.wallet});
-        if(!userExist) {
+        const userExist = await UserExternalWallet.findOne({
+            walletId: req.body.wallet,
+        })
+        if (!userExist) {
             const workerId = process.pid
-            const currentDate = new Date().getTime();
-            const uniqueId = parseInt(workerId + currentDate);
-            const user = new UserExternalWallet({UserId: uniqueId,walletId: req.body.wallet});
-            const savedUser = await user.save();
-            return makeResponseData(res, 200, 'User created successfully', savedUser);
-        } else return makeResponseData(res, 200, 'User signed In successfully', userExist);
-
-    } catch(err){
-        return makeResponseError(res, 500, err.message ? err.message : err.error);
+            const currentDate = new Date().getTime()
+            const uniqueId = parseInt(workerId + currentDate)
+            const user = new UserExternalWallet({
+                UserId: uniqueId,
+                walletId: req.body.wallet,
+            })
+            const savedUser = await user.save()
+            return makeResponseData(
+                res,
+                200,
+                'User created successfully',
+                savedUser
+            )
+        } else
+            return makeResponseData(
+                res,
+                200,
+                'User signed In successfully',
+                userExist
+            )
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }
 
-
 exports.externalSocialAccounts = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address});
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
 
-        let UserId = user.UserId;
+        let UserId = user.UserId
         let networks = {}
         let [channelsGoogle, channelsTwitter] = await Promise.all([
             GoogleProfile.find({ UserId }, { accessToken: 0, refreshToken: 0 }),
@@ -79,9 +99,9 @@ exports.externalSocialAccounts = async (req, res) => {
     }
 }
 
-exports.externalDeleteTiktokChannel = async (req,res) => {
+exports.externalDeleteTiktokChannel = async (req, res) => {
     try {
-        let user = await UserExternalWallet.findOne({walletId: req.address})
+        let user = await UserExternalWallet.findOne({ walletId: req.address })
 
         let tiktokProfiles = await TikTokProfile.find({ userId: user.UserId })
 
@@ -102,14 +122,14 @@ exports.externalDeleteTiktokChannel = async (req,res) => {
 
 exports.externalDeleteTiktokChannels = async (req, res) => {
     try {
-        let user = await UserExternalWallet.findOne({walletId: req.address})
+        let user = await UserExternalWallet.findOne({ walletId: req.address })
 
         let tiktokProfiles = await TikTokProfile.find({ userId: user.UserId })
 
         if (tiktokProfiles.length === 0)
             return makeResponseError(res, 204, 'No channel found')
         else {
-            await TikTokProfile.deleteMany({ userId: user.UserId  })
+            await TikTokProfile.deleteMany({ userId: user.UserId })
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
@@ -123,7 +143,9 @@ exports.externalDeleteTiktokChannels = async (req, res) => {
 
 exports.externalDeleteGoogleChannel = async (req, res) => {
     try {
-        const UserId = await UserExternalWallet.findOne({walletId: req.address})
+        const UserId = await UserExternalWallet.findOne({
+            walletId: req.address,
+        })
         let _id = req.params.id
         let googleProfile = await GoogleProfile.findOne({ _id }).lean()
         if (googleProfile?.UserId !== UserId.UserId)
@@ -143,7 +165,7 @@ exports.externalDeleteGoogleChannel = async (req, res) => {
 
 exports.externalDeleteGoogleChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         const result = await GoogleProfile.deleteMany({ UserId: user.UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
@@ -151,7 +173,7 @@ exports.externalDeleteGoogleChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log({err})
+        console.log({ err })
         return makeResponseError(
             res,
             500,
@@ -162,7 +184,7 @@ exports.externalDeleteGoogleChannels = async (req, res) => {
 
 exports.externalDeleteFacebookChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         const result = await FbPage.deleteMany({ UserId: user.UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
@@ -180,7 +202,7 @@ exports.externalDeleteFacebookChannels = async (req, res) => {
 
 exports.externalDeleteFacebookChannel = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         let _id = req.params.id
         let facebookProfile = await FbPage.findOne({ _id })
         if (facebookProfile?.UserId !== user.UserId)
@@ -200,7 +222,7 @@ exports.externalDeleteFacebookChannel = async (req, res) => {
 
 exports.externalDeleteLinkedinChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         const result = await LinkedinProfile.deleteMany({ userId: user.UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
@@ -218,7 +240,7 @@ exports.externalDeleteLinkedinChannels = async (req, res) => {
 
 exports.externalDeleteLinkedinChannel = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         let { organization, linkedinId } = req.params
         let linkedinProfile = await LinkedinProfile.findOne(
             { userId: user.UserId, linkedinId },
@@ -243,10 +265,9 @@ exports.externalDeleteLinkedinChannel = async (req, res) => {
     }
 }
 
-
 exports.externalDeleteTwitterChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         const result = await TwitterProfile.deleteMany({ UserId: user.UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
@@ -264,7 +285,7 @@ exports.externalDeleteTwitterChannels = async (req, res) => {
 
 exports.externalDeleteTwitterChannel = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({walletId: req.address})
+        const user = await UserExternalWallet.findOne({ walletId: req.address })
         let _id = req.params.id
         let twitterProfile = await TwitterProfile.findOne({ _id })
         if (twitterProfile?.UserId !== user.UserId)
@@ -275,6 +296,131 @@ exports.externalDeleteTwitterChannel = async (req, res) => {
         }
     } catch (err) {
         return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.externalGetLinks = async (req, res) => {
+    try {
+        const accountData = req.body.wallet_id 
+        const limit = +req.query.limit || 50
+        const page = +req.query.page || 1
+        const skip = limit * (page - 1)
+        let arrayOfLinks = []
+        let arrayOfTronLinks = []
+
+        let allProms = []
+        let query = filterLinks(req, accountData)
+        var count =
+            (await CampaignLink.find(
+                { id_wallet: { $in: [query.id_wallet] } },
+                { type: { $exists: 0 } }
+            ).countDocuments()) || 0
+
+        let tri =
+            req.query.state === 'owner'
+                ? [
+                      [
+                          'waiting_for_validation',
+                          'harvest',
+                          'already_recovered',
+                          'not_enough_budget',
+                          'no_gains',
+                          'indisponible',
+                          'rejected',
+                          'none',
+                      ],
+                      '$type',
+                  ]
+                : [
+                      [
+                          'harvest',
+                          'already_recovered',
+                          'waiting_for_validation',
+                          'not_enough_budget',
+                          'no_gains',
+                          'indisponible',
+                          'rejected',
+                          'none',
+                      ],
+                      '$type',
+                  ]
+        let userLinks = await CampaignLink.aggregate([
+            {
+                $match: ( query),
+            },
+            {
+                $addFields: {
+                    sort: {
+                        $indexOfArray: tri,
+                    },
+                },
+            },
+            {
+                $sort: {
+                    sort: 1,
+                    appliedDate: -1,
+                    _id: 1,
+                },
+            },
+        ])
+            .allowDiskUse(true)
+            .skip(skip)
+            .limit(limit)
+
+  
+        for (let i = 0; i < userLinks.length; i++) {
+            let result = userLinks[i]
+            let campaign = await Campaigns.findOne(
+                { hash: result.id_campaign },
+                {
+                    fields: {
+                        logo: 0,
+                        resume: 0,
+                        description: 0,
+                        tags: 0,
+                        cover: 0,
+                    },
+                }
+            )
+
+            if (campaign) {
+                let cmp = {}
+                const funds = campaign.funds ? campaign.funds[1] : campaign.cost
+                ;(cmp._id = campaign._id),
+                    (cmp.currency = campaign.token.name),
+                    (cmp.title = campaign.title),
+                    (cmp.remaining = funds),
+                    (cmp.ratio = campaign.ratios),
+                    (cmp.bounties = campaign.bounties),
+                    (cmp.remuneration = campaign.remuneration),
+                    (cmp.endDate = campaign.endDate),
+                    (cmp.type = campaign.type)
+                result.campaign = cmp
+                arrayOfLinks.push(result)
+            }
+        }
+        allProms =
+            req.query.campaign && req.query.state
+                ? await influencersLinks(arrayOfLinks)
+                : arrayOfLinks
+
+        //repeating same process with tron links
+
+        var Links = {
+            Links: [
+                ...allProms,
+                ...(req.query.state === 'owner' ? [] : []),
+            ],
+            count,
+        };
+        
+        return responseHandler.makeResponseData(res, 200, 'success', Links)
+    } catch (err) {
+        return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error

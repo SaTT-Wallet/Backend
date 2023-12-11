@@ -13,7 +13,8 @@ const {
     externalDeleteLinkedinChannels,
     externalDeleteLinkedinChannel,
     externalDeleteTwitterChannels,
-    externalDeleteTwitterChannel
+    externalDeleteTwitterChannel,
+    externalGetLinks
 } = require('../controllers/external.controller');
 
 const verifySignatureMiddleware = require('./../middleware/verifySignature.middleware')
@@ -25,6 +26,8 @@ router.post('/create-user', createUserFromExternalWallet)
 
 // DONE
 router.get('/socialAccounts', verifySignatureMiddleware , externalSocialAccounts)
+router.post('/campaign/filterLinksExternal', verifySignatureMiddleware , externalGetLinks)
+
 
 // DONE
 router.delete('/RemoveTiktokChannel/:id', verifySignatureMiddleware, externalDeleteTiktokChannel)
