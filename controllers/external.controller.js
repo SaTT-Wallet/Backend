@@ -24,7 +24,18 @@ const {
     verifytiktok,
     updateFacebookPages,
     verifyThread,
+    getInstagramUserName,
+    findBountyOracle,
+    answerAbos,
+    getPromApplyStats,
 } = require('../manager/oracles')
+
+const {
+    getLinkedinLinkInfo,
+    influencersLinks,
+} = require('../web3/campaigns')
+
+
 
 exports.createUserFromExternalWallet = async (req, res) => {
     try {
@@ -653,4 +664,139 @@ module.exports.externalVerifyLink = async (req, response) => {
             err.message ? err.message : err.error
         )
     }
+}
+
+
+module.exports.externalApply = async (req, res) => {
+
+    try {
+    const user = await UserExternalWallet.findOne({
+        walletId: req.address,
+    })
+    var id = user.UserId
+    // var pass = req.body.pass
+    var {
+        linkedinId,
+        idCampaign,
+        typeSN,
+        idPost,
+        idUser,
+        title,
+        pass,
+        linkedinUserId,
+        signature
+    } = req.body
+    let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
+    var campaignDetails = await Campaigns.findOne({ hash }).lean()
+    let limit = campaignDetails.limit;
+    let userWallet = user.walletId;
+    let numberParticipation = await CampaignLink.find({ id_campaign: hash,id_wallet:userWallet}).count()
+    if (limit > 0 && limit === numberParticipation){
+        return responseHandler.makeResponseError(
+            res,
+            401,
+            'Limit participation reached'
+        )
+    }
+
+    
+        let promExist = await CampaignLink.exists({
+            id_campaign: hash,
+            idPost,
+        })
+
+        if (promExist) {
+            return responseHandler.makeResponseError(
+                res,
+                401,
+                'Link already sent'
+            )
+        }
+       
+        req.body.network = campaignDetails.token.type
+        if (typeSN == 5) {
+            var linkedinProfile = await LinkedinProfile.findOne(
+                { userId: id, ...(linkedinId && { linkedinId }) },
+                { refreshToken: 1, accessToken: 1 }
+            ).lean()
+            var linkedinInfo = await getLinkedinLinkInfo(
+                linkedinProfile.accessToken,
+                linkedinUserId,
+                linkedinProfile
+            )
+
+            var media_url = linkedinInfo?.mediaUrl || ''
+            idUser = linkedinInfo?.idUser
+            idPost = linkedinInfo?.idPost.replace(/\D/g, '')
+        }
+
+        if (typeSN == 6) {
+            var tiktokProfile = await TikTokProfile.findOne({ userId: id })
+        }
+        if (typeSN == 3)
+            prom.instagramUserName = await getInstagramUserName(idPost, id)
+
+        if (typeSN == 7) {
+            var threads = await FbPage.findOne(
+                {
+                    UserId: id,
+                    instagram_id: { $exists: true },
+                    threads_id: { $exists: true },
+                },
+                { threads_id: 1, instagram_username: 1 }
+            ).lean()
+            prom.instagramUserName = threads.instagram_username
+        }
+
+        prom.abosNumber = await answerAbos(
+            typeSN + '',
+            idPost,
+            idUser,
+            linkedinProfile,
+            tiktokProfile,
+            id,
+            prom.instagramUserName
+        )
+
+        prom.applyerSignature = req.body.signature
+        prom.typeSN = typeSN.toString()
+        prom.idUser = idUser
+        if (media_url) prom.media_url = media_url
+        if (prom.typeSN == 5) {
+            prom.typeURL = linkedinInfo.idPost.split(':')[2]
+            prom.linkedinId = linkedinId
+        }
+        prom.id_wallet = user.walletId
+        prom.idPost = idPost
+        prom.id_campaign = hash
+        prom.appliedDate = date
+        prom.oracle = findBountyOracle(prom.typeSN)
+        var insert = await CampaignLink.create(prom)
+
+        let socialOracle = await getPromApplyStats(
+            prom.oracle,
+            prom,
+            id,
+            linkedinProfile,
+            tiktokProfile
+        )
+
+        prom.views = socialOracle?.views || 0
+        prom.likes = socialOracle?.likes || 0
+        prom.shares = socialOracle?.shares || 0
+        prom.media_url = media_url || socialOracle?.media_url
+
+        
+           await CampaignLink.updateOne({ _id: insert._id }, { $set: prom })
+            
+       
+
+        return responseHandler.makeResponseData(res, 200, 'success', prom)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } 
 }
