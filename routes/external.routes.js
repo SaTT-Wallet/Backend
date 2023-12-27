@@ -1,8 +1,8 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 
 const {
-    createUserFromExternalWallet, 
+    createUserFromExternalWallet,
     externalSocialAccounts,
     externalDeleteTiktokChannel,
     externalDeleteTiktokChannels,
@@ -14,52 +14,129 @@ const {
     externalDeleteLinkedinChannel,
     externalDeleteTwitterChannels,
     externalDeleteTwitterChannel,
-    externalVerifyLink
-} = require('../controllers/external.controller');
+    externalVerifyLink,
+    externalSaveCampaign,
+    externalVerifyExpiredToken,
+    externalAccount,
+    externalUpdate,
+    externalUploadPictureToIPFS,
+    campaignsPictureUploadExternal,
+    externalAddKits,
+    uploadExternal,
+} = require('../controllers/external.controller')
 
-const verifySignatureMiddleware = require('./../middleware/verifySignature.middleware')
+const {
+    verifySignatureMiddleware,
+    idCheckValidation,
+    addKitsValidation,
+} = require('./../middleware/verifySignature.middleware')
+const multer = require('multer')
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/') // Uploads directory
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname)
+    },
+})
+const upload = multer({ storage: storage });
 
-
-// DONE
 router.post('/create-user', createUserFromExternalWallet)
 
-// DONE
-router.get('/socialAccounts', verifySignatureMiddleware , externalSocialAccounts)
+router.post('/createCampaign', verifySignatureMiddleware, externalSaveCampaign)
 
 // DONE
-router.delete('/RemoveTiktokChannel/:id', verifySignatureMiddleware, externalDeleteTiktokChannel)
+router.get('/socialAccounts', verifySignatureMiddleware, externalSocialAccounts)
+router.get(
+    '/verify-token',
+    verifySignatureMiddleware,
+    externalVerifyExpiredToken
+)
+router.get('/externalAccount', verifySignatureMiddleware, externalAccount)
 
+// DONE
+router.delete(
+    '/RemoveTiktokChannel/:id',
+    verifySignatureMiddleware,
+    externalDeleteTiktokChannel
+)
 
-router.delete('/RemoveTiktokChannels', verifySignatureMiddleware, externalDeleteTiktokChannels)
+router.delete(
+    '/RemoveTiktokChannels',
+    verifySignatureMiddleware,
+    externalDeleteTiktokChannels
+)
 
+router.delete(
+    '/RemoveGoogleChannel/:id',
+    verifySignatureMiddleware,
+    externalDeleteGoogleChannel
+)
 
-router.delete('/RemoveGoogleChannel/:id', verifySignatureMiddleware, externalDeleteGoogleChannel)
+router.delete(
+    '/RemoveGoogleChannels',
+    verifySignatureMiddleware,
+    externalDeleteGoogleChannels
+)
 
+router.delete(
+    '/RemoveFacebookChannels',
+    verifySignatureMiddleware,
+    externalDeleteFacebookChannels
+)
 
-router.delete('/RemoveGoogleChannels', verifySignatureMiddleware, externalDeleteGoogleChannels)
+router.delete(
+    '/RemoveFacebookChannel/:id',
+    verifySignatureMiddleware,
+    externalDeleteFacebookChannel
+)
 
+router.delete(
+    '/RemoveLinkedInChannels',
+    verifySignatureMiddleware,
+    externalDeleteLinkedinChannels
+)
 
-router.delete('/RemoveFacebookChannels', verifySignatureMiddleware, externalDeleteFacebookChannels)
+router.delete(
+    '/remove/:linkedinId/linkedInChannel/:organization',
+    verifySignatureMiddleware,
+    externalDeleteLinkedinChannel
+)
 
+router.delete(
+    '/RemoveTwitterChannels',
+    verifySignatureMiddleware,
+    externalDeleteTwitterChannels
+)
 
-router.delete('/RemoveFacebookChannel/:id', verifySignatureMiddleware, externalDeleteFacebookChannel)
+router.delete(
+    '/RemoveTwitterChannel/:id',
+    verifySignatureMiddleware,
+    externalDeleteTwitterChannel
+)
 
+router.get(
+    '/link/verify/:typeSN/:idUser/:idPost',
+    verifySignatureMiddleware,
+    externalVerifyLink
+)
 
-router.delete('/RemoveLinkedInChannels', verifySignatureMiddleware, externalDeleteLinkedinChannels)
+router.put('/externalUpdate/:id', verifySignatureMiddleware, externalUpdate)
 
+// Example:
+router.post(
+    '/externalUploadPictureToIPFS/:id',
+    idCheckValidation,
+    campaignsPictureUploadExternal,
+    externalUploadPictureToIPFS
+)
 
-router.delete('/remove/:linkedinId/linkedInChannel/:organization', verifySignatureMiddleware, externalDeleteLinkedinChannel)
+router.post(
+    '/externalAddKits',
+    addKitsValidation,
+    upload.single('file'),
+    externalAddKits
+)
 
-
-router.delete('/RemoveTwitterChannels', verifySignatureMiddleware, externalDeleteTwitterChannels)
-
-
-router.delete('/RemoveTwitterChannel/:id', verifySignatureMiddleware, externalDeleteTwitterChannel)
-
-
-router.get('/link/verify/:typeSN/:idUser/:idPost', verifySignatureMiddleware, externalVerifyLink)
-
-
-
-module.exports = router;
+module.exports = router

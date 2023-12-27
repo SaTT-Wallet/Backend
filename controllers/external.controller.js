@@ -1,7 +1,22 @@
 const { responseHandler } = require('../helpers/response-handler')
 const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
+const multer = require('multer');
+const { ObjectId } = require('mongodb');
+
+const storageCover = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/')
+    },
+    filename: (req, file, cb) => {
+        cb(
+            null,
+            new Date().toISOString().replace(/:/g, '-') + file.originalname
+        )
+    },
+})
 const {
+    Campaigns,
     GoogleProfile,
     LinkedinProfile,
     TwitterProfile,
@@ -9,6 +24,8 @@ const {
     TikTokProfile,
     UserExternalWallet
 } = require('../model/index')
+var fs = require('fs')
+
 const {
     verifyYoutube,
     verifyFacebook,
@@ -19,7 +36,16 @@ const {
     updateFacebookPages,
     verifyThread,
 } = require('../manager/oracles')
+const { create } = require('ipfs-http-client')
+var mongoose = require('mongoose')
+const Grid = require('gridfs-stream')
 
+let gfsKit
+const conn = mongoose.connection
+conn.once('open', () => {
+    gfsKit = Grid(conn.db, mongoose.mongo)
+    gfsKit.collection('campaign_kit')
+})
 exports.createUserFromExternalWallet = async (req, res) =>{   
     try {
         const userExist = await UserExternalWallet.findOne({walletId: req.body.wallet});
@@ -36,6 +62,14 @@ exports.createUserFromExternalWallet = async (req, res) =>{
         return makeResponseError(res, 500, err.message ? err.message : err.error);
     }
 }
+
+
+exports.campaignsPictureUploadExternal = multer({
+    storage: storageCover,
+}).single('cover')
+
+
+
 
 
 exports.externalSocialAccounts = async (req, res) => {
@@ -472,5 +506,214 @@ module.exports.externalVerifyLink = async (req, response) => {
             500,
             err.message ? err.message : err.error
         )
+    }
+}
+
+
+module.exports.externalSaveCampaign = async (req, res) => {
+    try {
+        let campaign = req.body
+        const user = await UserExternalWallet.findOne({walletId: req.address});
+
+        campaign.idNode = user.UserId
+        campaign.createdAt = Date.now()
+        campaign.updatedAt = Date.now()
+        campaign.type = 'draft'
+        let draft = await Campaigns.create(campaign)
+        return responseHandler.makeResponseData(res, 200, 'success', draft)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+module.exports.externalVerifyExpiredToken = (req, res) => {
+    return responseHandler.makeResponseData(res, 200, 'success', true)
+}
+
+
+module.exports.externalAccount = async (req, res) => {
+    try {
+        if (req.user) {
+            let {
+                password,
+                secureCode,
+                secret,
+                newEmail,
+                fireBaseAccessToken,
+                ...user
+            } = req.user.toObject()
+
+            return makeResponseData(res, 200, 'success', user)
+        } else {
+            return makeResponseError(res, 204, 'user not found')
+        }
+    } catch (err) {
+        return makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+module.exports.externalUpdate = async (req, res) => {
+    try {
+        let campaign = req.body
+        campaign.updatedAt = Date.now()
+        let updatedCampaign = await Campaigns.findOneAndUpdate(
+            { _id: req.params.id, idNode: req.body.userId},
+            { $set: campaign.values },
+            { new: true }
+        )
+
+        if (updatedCampaign) {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'updated',
+                updatedCampaign
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Campaign not found'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+
+module.exports.externalUploadPictureToIPFS = async (req, res) => {
+    // using IPFS
+    try {
+        if (req.file) {
+            const { id } = req.params
+
+            // SEARCH COMPAIGN ID
+            const campaign = await Campaigns.findOne({
+                _id: id,
+                idNode: req.body.userId,
+            })
+
+            if (campaign) {
+                // IPFS CONNECTION
+                const ipfs = await ipfsConnect()
+
+                // READ FILE
+                const x = fs.readFileSync(req.file.path)
+
+                // ADD TO IPFS
+                let buffer = Buffer.from(x)
+                let result = await ipfs.add({ content: buffer })
+
+                // REMOVE FILE FROM UPLOADS DIR
+                fs.unlinkSync('uploads/' + req.file.filename)
+
+                return responseHandler.makeResponseData(res, 200, result, true)
+            } else
+                return responseHandler.makeResponseData(
+                    res,
+                    400,
+                    'campaign not found / you are not the owner',
+                    false
+                )
+        } else
+            return responseHandler.makeResponseData(
+                res,
+                400,
+                'required picture',
+                false
+            )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+const ipfsConnect = async () => {
+    const auth =
+        'Basic ' +
+        Buffer.from(
+            process.env.IPFS_PROJECT_ID + ':' + process.env.IPFS_SECRET_KEY
+        ).toString('base64')
+
+    const ipfs = await create({
+        host: process.env.IPFS_INFURA,
+        port: process.env.IPFS_INFURA_PORT,
+        protocol: process.env.IPFS_INFURA_PROTOCOL,
+        headers: {
+            authorization: auth,
+        },
+    })
+    return ipfs
+}
+
+
+
+module.exports.externalAddKits = async (req, res) => {
+    try {
+        let file = req.file; // Use singular 'file' instead of 'files'
+
+        let links = 
+            typeof req.body.link === 'string'
+                ? [req.body.link] // Wrap the single link in an array
+                : req.body.link;
+
+        let idCampaign = ObjectId(req.body.campaign);
+
+        if (file) {
+            // Update the single file
+            await gfsKit.files.updateOne(
+                { _id: file.id },
+                {
+                    $set: {
+                        campaign: {
+                            $ref: 'campaign',
+                            $id: idCampaign,
+                            $db: 'atayen',
+                        },
+                    },
+                }
+            );
+        }
+
+        if (links) {
+            await Promise.all(
+                links.map((link) => {
+                    return gfsKit.files.insertOne({
+                        campaign: {
+                            $ref: 'campaign',
+                            $id: idCampaign,
+                            $db: 'atayen',
+                        },
+                        link: link,
+                    });
+                })
+            );
+        }
+
+        return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false);
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        );
     }
 }
