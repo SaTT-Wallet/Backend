@@ -23,7 +23,9 @@ const {
     campaignsPictureUploadExternal,
     externalAddKits,
     uploadExternal,
-} = require('../controllers/external.controller')
+    externalGetLinks,
+    externalApply
+} = require('../controllers/external.controller');
 
 const {
     verifySignatureMiddleware,
@@ -41,10 +43,15 @@ const storage = multer.diskStorage({
     },
 })
 const upload = multer({ storage: storage });
+router.use(verifySignatureMiddleware);
 
 router.post('/create-user', createUserFromExternalWallet)
 
 router.post('/createCampaign', verifySignatureMiddleware, externalSaveCampaign)
+// DONE
+router.get('/socialAccounts', verifySignatureMiddleware , externalSocialAccounts)
+router.post('/campaign/filterLinksExternal', verifySignatureMiddleware , externalGetLinks)
+
 
 // DONE
 router.get('/socialAccounts', verifySignatureMiddleware, externalSocialAccounts)
@@ -140,3 +147,16 @@ router.post(
 )
 
 module.exports = router
+
+router.delete('/RemoveTwitterChannels', verifySignatureMiddleware, externalDeleteTwitterChannels)
+
+
+router.delete('/RemoveTwitterChannel/:id', verifySignatureMiddleware, externalDeleteTwitterChannel)
+
+
+router.get('/link/verify/:typeSN/:idUser/:idPost', verifySignatureMiddleware, externalVerifyLink)
+
+
+router.post('/apply', verifySignatureMiddleware,externalApply)
+
+module.exports = router;
