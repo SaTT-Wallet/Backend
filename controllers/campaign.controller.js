@@ -2,7 +2,9 @@ var requirement = require('../helpers/utils')
 var { readHTMLFileCampaign } = requirement
 var sanitize = require('mongo-sanitize')
 const multer = require('multer')
+const { utils } = require('ethers');
 const Big = require('big.js')
+const web3 = require('web3')
 const etherInWei = new Big(1000000000000000000)
 const Grid = require('gridfs-stream')
 const GridFsStorage = require('multer-gridfs-storage')
@@ -23,6 +25,7 @@ const {
     Request,
     User,
     FbPage,
+    UserExternalWallet
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -167,7 +170,8 @@ const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 const { request } = require('http')
 const { URL } = require('url')
-const { http, https } = require('follow-redirects')
+const { http, https } = require('follow-redirects');
+const verifySignature = require('../web3/verifySignature');
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -1157,18 +1161,30 @@ exports.validateCampaign = async (req, res) => {
             } else {
                 req.body.network = campaign.token.type
                 cred = await unlockV2(req, res)
-
-                let recoveredSigner = await cred.WEB3.eth.accounts.recover(
-                    campaignLink.applyerSignature
-                )
-
-                if (recoveredSigner.toLowerCase() !== campaignLink.id_wallet) {
-                    return responseHandler.makeResponseError(
-                        res,
-                        401,
-                        'the signature is not matched  to the link or signature'
+                if(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) {
+                    const recoveredSigner = verifySignature(campaignLink.applyerSignature.messageHash, campaignLink.applyerSignature.signature, campaignLink.id_wallet)
+                    if(!recoveredSigner) {
+                        return responseHandler.makeResponseError(
+                            res,
+                            401,
+                            'the signature is not matched  to the link or signature'
+                        )
+                    }
+                    
+                } else {
+                    const recoveredSigner = await cred.WEB3.eth.accounts.recover(
+                        campaignLink.applyerSignature
                     )
+                    if(recoveredSigner.toLowerCase() !== campaignLink.id_wallet) {
+                        return responseHandler.makeResponseError(
+                            res,
+                            401,
+                            'the signature is not matched  to the link or signature'
+                        )
+                    }
                 }
+                let messageHashSignature;
+                if(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) messageHashSignature = utils.hashMessage(signature.messageHash);
                 var ret = await validateProm(
                     campaignLink.id_campaign,
                     campaignLink.typeSN,
@@ -1176,7 +1192,7 @@ exports.validateCampaign = async (req, res) => {
                     campaignLink.idUser,
                     campaignLink.abosNumber,
                     ownerLink,
-                    signature.messageHash,
+                    (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? messageHashSignature :  signature.messageHash ,
                     signature.v,
                     signature.r,
                     signature.s,
@@ -1190,7 +1206,13 @@ exports.validateCampaign = async (req, res) => {
             }
             if (ret && ret.transactionHash) {
                 let link = await CampaignLink.findOne({ _id: idLink }).lean()
-                let userWallet =
+                let userWallet;
+                if(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) {
+                    userWallet = await UserExternalWallet.findOne({
+                        walletId: link.id_wallet,
+                    })
+                } else {
+                    userWallet =
                     (!!tronWeb &&
                         (await Wallet.findOne(
                             {
@@ -1218,10 +1240,12 @@ exports.validateCampaign = async (req, res) => {
                         },
                         { UserId: 1, _id: 0 }
                     ))
-
-                let user = await User.findOne({ _id: userWallet.UserId }).lean()
-                const id = user._id
-                const email = user.email
+                }
+                
+               
+                let user = (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? userWallet  : await User.findOne({ _id: userWallet.UserId }).lean()
+                const id = (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? user.UserId : user._id
+                const email = (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? '' : user.email
                 let linkedinProfile =
                     link.oracle == 'linkedin' &&
                     (await LinkedinProfile.findOne({ userId: id }))
@@ -1255,23 +1279,25 @@ exports.validateCampaign = async (req, res) => {
                     { _id: idLink },
                     { $set: socialOracle }
                 )
-
-                await notificationManager(id, 'cmp_candidate_accept_link', {
-                    cmp_name: campaign.title,
-                    action: 'link_accepted',
-                    cmp_link: linkProm,
-                    cmp_hash: _id,
-                    hash: ret.transactionHash,
-                    promHash: idLink,
-                })
-                readHTMLFileCampaign(
-                    __dirname +
-                        '/../public/emailtemplate/email_validated_link.html',
-                    'campaignValidation',
-                    campaign.title,
-                    email,
-                    _id
-                )
+                if(!(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true)) {
+                    await notificationManager(id, 'cmp_candidate_accept_link', {
+                        cmp_name: campaign.title,
+                        action: 'link_accepted',
+                        cmp_link: linkProm,
+                        cmp_hash: _id,
+                        hash: ret.transactionHash,
+                        promHash: idLink,
+                    })
+                    readHTMLFileCampaign(
+                        __dirname +
+                            '/../public/emailtemplate/email_validated_link.html',
+                        'campaignValidation',
+                        campaign.title,
+                        email,
+                        _id
+                    )
+                }    
+                
             }
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
