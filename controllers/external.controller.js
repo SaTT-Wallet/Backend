@@ -989,7 +989,7 @@ module.exports.externalApply = async (req, res) => {
         prom.applyerSignature.v = v
         prom.applyerSignature.s = s
         prom.typeSN = typeSN.toString()
-        prom.idUser = idUser
+        prom.idUser = typeSN === 6 ? user.UserId : idUser
         prom.userExternal = true;
         if (media_url) prom.media_url = media_url
         if (prom.typeSN == 5) {
