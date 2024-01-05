@@ -19,6 +19,13 @@ const {
     answerOne,
     limitStats,
     answerCallExternal,
+    verifyYoutube,
+    verifyInsta,
+    verifyFacebook,
+    verifyTwitter,
+    verifyLinkedin,
+    verifytiktok,
+    verifyThread
 } = require('../manager/oracles')
 
 const {
