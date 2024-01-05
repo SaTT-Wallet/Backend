@@ -1425,6 +1425,12 @@ exports.getTransactionAmount = async (
     } catch (e) {}
 }
 
+exports.getProviderUrl = async (networkName) => {
+    const network = networks.find(net => net.name === networkName);
+    return network ? network.providerUrl : null;
+}
+
+
 exports.getTransactionAmountExternal = async (
     credentials,
     type,
@@ -1433,10 +1439,13 @@ exports.getTransactionAmountExternal = async (
 ) => {
     try {
         let web3 = await new Web3(
-            new Web3.providers.HttpProvider(web3UrlBep20, options)
+            new Web3.providers.HttpProvider(await exports.getProviderUrl(credentials.network), options)
         )
         let data = await new web3.eth.getTransactionReceipt(transactionHash)
+        console.log(data)
+
         let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
+        console.log(amount)
         let hex = web3.utils.hexToNumberString(amount)
         return hex
     } catch (e) {console.log("error",e)}
