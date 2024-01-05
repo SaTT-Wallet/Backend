@@ -32,6 +32,12 @@ const {
 const { config } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const axios = require('axios')
+const networks = [
+    { name: 'ERC20', providerUrl: process.env.WEB3_URL },
+    { name: 'BEP20', providerUrl: process.env.WEB3_URL_BEP20 },
+    { name: 'POLYGON', providerUrl: process.env.WEB3_URL_POLYGON },
+    { name: 'BTTC', providerUrl: process.env.WEB3_URL_BTT }, 
+];
 
 const { getHttpProvider, networkProviders } = require('../web3/web3-connection')
 const Web3 = require('web3')
