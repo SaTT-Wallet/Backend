@@ -24,13 +24,17 @@ const {
     externalAddKits,
     uploadExternal,
     externalGetLinks,
-    externalApply
+    externalApply,
+    checkHarvest,
+    externalAnswer,
+    externalGains
 } = require('../controllers/external.controller');
 
 const {
     verifySignatureMiddleware,
     idCheckValidation,
     addKitsValidation,
+    externalGainsValidation
 } = require('./../middleware/verifySignature.middleware')
 const multer = require('multer')
 
@@ -158,5 +162,11 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifySignatureMiddleware, ex
 
 
 router.post('/apply', verifySignatureMiddleware,externalApply)
+
+router.post('/checkHarvest', verifySignatureMiddleware, checkHarvest)
+
+router.post('/externalAnswer', verifySignatureMiddleware, externalAnswer)
+router.post('/externalGains', verifySignatureMiddleware, externalGains)
+
 
 module.exports = router;

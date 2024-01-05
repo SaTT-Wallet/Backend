@@ -30,6 +30,16 @@ const options = {
         onTimeout: false,
     },
 }
+
+
+const networks = [
+    { name: 'ERC20', providerUrl: process.env.WEB3_URL },
+    { name: 'BEP20', providerUrl: process.env.WEB3_URL_BEP20 },
+    { name: 'POLYGON', providerUrl: process.env.WEB3_URL_POLYGON },
+    { name: 'BTTC', providerUrl: process.env.WEB3_URL_BTT }, 
+];
+
+
 exports.bep20Connexion = async () => {
     try {
         let Web3 = require('web3')
@@ -111,6 +121,28 @@ exports.getContractByNetwork = async (credentials) => {
     } catch (err) {}
 }
 
+exports.getProviderUrl = async (networkName) => {
+    const network = networks.find(net => net.name === networkName);
+    return network ? network.providerUrl : null;
+}
+
+
+exports.getContractByNetworkExternal = async (credentials) => {
+    try {
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(await exports.getProviderUrl(credentials.network), options)
+        )
+        var contract = new web3.eth.Contract(
+            CampaignConstants[credentials.network.toUpperCase()].abi,
+            CampaignConstants[credentials.network.toUpperCase()].address
+        )
+        contract.getGasPrice = web3.eth.getGasPrice
+
+        return contract
+    } catch (err) {console.log(err)}
+}
+
+
 exports.getCampaignContractByHashCampaign = async (
     hash,
     credentials = false,
@@ -132,6 +164,20 @@ exports.getCampaignContractByHashCampaign = async (
     } catch (err) {}
 }
 
+
+exports.getCampaignContractByHashCampaignExternal = async (
+    hash,
+    credentials = false,
+    tronWeb = null
+) => {
+    try {
+        var campaign = await Campaigns.findOne({ hash })
+        if (campaign?.contract) {
+            credentials.network = campaign.token.type
+            return this.getContractByNetworkExternal(credentials)
+        }
+    } catch (err) {}
+}
 exports.getPromContract = async (idProm, credentials = false) => {
     try {
         var prom = await Event.findOne(
@@ -140,6 +186,17 @@ exports.getPromContract = async (idProm, credentials = false) => {
         )
 
         return this.getContractByNetwork(credentials)
+    } catch (err) {}
+}
+
+exports.getPromContractExternal = async (idProm, credentials = false) => {
+    try {
+        var prom = await Event.findOne(
+            { prom: idProm },
+            { contract: 1, _id: 0 }
+        )
+
+        return this.getContractByNetworkExternal(credentials)
     } catch (err) {}
 }
 
@@ -167,6 +224,21 @@ exports.getOracleContractByCampaignContract = async (credentials = false) => {
     } catch (err) {}
 }
 
+
+exports.getOracleContractByCampaignContractExternal = async (credentials = false) => {
+    try {
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(await exports.getProviderUrl(credentials.network), options)
+        )
+        var contract = new web3.eth.Contract(
+            OracleConstants[credentials.network.toUpperCase()].abi,
+            OracleConstants[credentials.network.toUpperCase()].address
+        )
+        contract.getGasPrice = web3.eth.getGasPrice
+
+        return contract
+    } catch (err) {}
+}
 module.exports.tronBalances = async (_) => {
     // let tronWallets = await Wallet.find({tronAddress :{ $exists: true }},{tronAddress :1})
     let tronWallets = require('./tronWallets').walletsTron

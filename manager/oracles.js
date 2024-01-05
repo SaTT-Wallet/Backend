@@ -1,5 +1,14 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
 var rp = require('axios');
+var Web3 = require('web3')
+const {
+    web3UrlBep20,
+    web3UrlBTT,
+    web3Url,
+    web3PolygonUrl,
+    CampaignConstants,
+    OracleConstants,
+} = require('../conf/const')
 const child_process = require('child_process')
 const {
     FbPage,
@@ -17,6 +26,7 @@ var Twitter = require('twitter')
 const { default: Big } = require('big.js')
 const {
     getOracleContractByCampaignContract,
+    getOracleContractByCampaignContractExternal,
     webTronInstance,
 } = require('../blockchainConnexion')
 const puppeteer = require('puppeteer')
@@ -28,6 +38,27 @@ const {
     networkProviders,
     networkProvidersOptions,
 } = require('../web3/web3-connection')
+const options = {
+    timeout: 30000,
+
+    clientConfig: {
+        // Useful if requests are large
+        maxReceivedFrameSize: 100000000, // bytes - default: 1MiB
+        maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+
+        // Useful to keep a connection alive
+        keepalive: true,
+        keepaliveInterval: 60000, // ms
+    },
+
+    // Enable auto reconnection
+    reconnect: {
+        auto: true,
+        delay: 5000, // ms
+        maxAttempts: 5,
+        onTimeout: false,
+    },
+}
 const { responseHandler } = require('../helpers/response-handler')
 
 exports.getLinkedinLinkInfo = async (accessToken, activityURN) => {
@@ -1262,6 +1293,116 @@ exports.answerCall = async (opts) => {
         )
 
         var gasPrice = await contract.getGasPrice()
+        var receipt = await contract.methods
+            .answer(
+                opts.campaignContract,
+                opts.idRequest,
+                opts.likes,
+                opts.shares,
+                opts.views
+            )
+            .send({
+                from: process.env.CAMPAIGN_OWNER,
+                gas: 500000,
+                gasPrice: gasPrice,
+            })
+            .once('transactionHash', function (hash) {})
+        return { result: 'OK', hash: receipt.hash }
+    } catch (error) {
+        console.error('answerCall', error)
+    }
+}
+
+
+
+exports.answerCallExternal = async (opts) => {
+    try {
+        if (!!opts.tronWeb) {
+            var tronCampaignKeystore = fs.readFileSync(
+                process.env.CAMPAIGN_TRON_WALLET_PATH,
+                'utf8'
+            )
+            tronCampaignWallet = JSON.parse(tronCampaignKeystore)
+
+            let ethAddr = tronCampaignWallet.address.slice(2)
+            tronCampaignWallet.address = ethAddr
+
+            let webTron = getWeb3Connection(
+                networkProviders['ERC20'],
+                networkProvidersOptions['ERC20']
+            )
+
+            let wallet = webTron.eth.accounts.decrypt(
+                tronCampaignWallet,
+                process.env.CAMPAIGN_TRON_OWNER_PASS
+            )
+
+            let tronWeb = await webTronInstance()
+            tronWeb.setPrivateKey(wallet.privateKey.slice(2))
+            let walletAddr = tronWeb.address.fromPrivateKey(
+                wallet.privateKey.slice(2)
+            )
+            tronWeb.setAddress(walletAddr)
+            let contract = await tronWeb.contract(
+                TronConstant.oracle.abi,
+                TronConstant.oracle.address
+            )
+            let receipt = await contract
+                .answer(
+                    opts.campaignContract,
+                    opts.idRequest,
+                    opts.likes,
+                    opts.shares,
+                    opts?.views
+                )
+                .send({
+                    feeLimit: 100_000_000,
+                    callValue: 0,
+                    shouldPollResponse: false,
+                })
+            await timeout(10000)
+            let result = await tronWeb.trx.getTransaction(receipt)
+            if (result.ret[0].contractRet === 'SUCCESS') {
+                return { result: 'OK', hash: receipt } //TODO check if transaction if went with SUCCESS
+            } else {
+                res.status(500).send({
+                    code: 500,
+                    error: result,
+                })
+            }
+        }
+        // let contract = await getOracleContractByCampaignContractExternal(
+        //     opts.credentials
+        // )
+        var campaignKeystore = fs.readFileSync(
+            process.env.CAMPAIGN_WALLET_PATH,
+            'utf8'
+        )
+
+        campaignWallet = JSON.parse(campaignKeystore)
+        
+        const web3 = new Web3(new Web3.providers.HttpProvider(web3UrlBep20, options));
+
+        // Decrypt the campaign wallet using the owner's password
+        const decryptedAccounts = web3.eth.accounts.wallet.decrypt(
+            [campaignWallet],
+            process.env.CAMPAIGN_OWNER_PASS
+        );
+    
+        if (!decryptedAccounts || decryptedAccounts.length === 0) {
+            throw new Error('Failed to decrypt the campaign wallet.');
+        }
+        // var contract = new web3.eth.Contract(
+        //     OracleConstants[credentials.network.toUpperCase()].abi,
+        //     OracleConstants[credentials.network.toUpperCase()].address
+        // )
+        const contract = new web3.eth.Contract(OracleConstants[opts.credentials.network.toUpperCase()].abi, OracleConstants[opts.credentials.network.toUpperCase()].address);
+
+        // Set the gas price
+        const gasPrice = await web3.eth.getGasPrice()
+
+
+        // var gasPrice = await contract.getGasPrice()
         var receipt = await contract.methods
             .answer(
                 opts.campaignContract,

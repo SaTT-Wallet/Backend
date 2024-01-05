@@ -8,7 +8,14 @@ const {
     bttConnexion,
     webTronInstance,
 } = require('../blockchainConnexion')
-
+const {
+    web3UrlBep20,
+    web3UrlBTT,
+    web3Url,
+    web3PolygonUrl,
+    CampaignConstants,
+    OracleConstants,
+} = require('../conf/const')
 const {
     Campaigns,
 } = require('../model/index')
@@ -28,7 +35,27 @@ const axios = require('axios')
 
 const { getHttpProvider, networkProviders } = require('../web3/web3-connection')
 const Web3 = require('web3')
+const options = {
+    timeout: 30000,
 
+    clientConfig: {
+        // Useful if requests are large
+        maxReceivedFrameSize: 100000000, // bytes - default: 1MiB
+        maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+
+        // Useful to keep a connection alive
+        keepalive: true,
+        keepaliveInterval: 60000, // ms
+    },
+
+    // Enable auto reconnection
+    reconnect: {
+        auto: true,
+        delay: 5000, // ms
+        maxAttempts: 5,
+        onTimeout: false,
+    },
+}
 exports.unlock = async (req, res) => {
     try {
         let UserId = req.user._id
@@ -1396,6 +1423,23 @@ exports.getTransactionAmount = async (
         let hex = network.utils.hexToNumberString(amount)
         return hex
     } catch (e) {}
+}
+
+exports.getTransactionAmountExternal = async (
+    credentials,
+    type,
+    transactionHash,
+    network
+) => {
+    try {
+        let web3 = await new Web3(
+            new Web3.providers.HttpProvider(web3UrlBep20, options)
+        )
+        let data = await new web3.eth.getTransactionReceipt(transactionHash)
+        let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
+        let hex = web3.utils.hexToNumberString(amount)
+        return hex
+    } catch (e) {console.log("error",e)}
 }
 
 exports.campaignStatus = (campaign) => {

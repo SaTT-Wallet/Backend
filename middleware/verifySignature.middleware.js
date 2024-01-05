@@ -41,6 +41,11 @@ const schemas = {
         link: Joi.string(),
         campaign: Joi.string().required()
     }),
+    gainsSchema: Joi.object({
+        idProm: Joi.string().required(),
+        pass: Joi.string().required(),
+        hash: Joi.string().required()
+    }),
 };
 
 module.exports = {
@@ -48,5 +53,6 @@ module.exports = {
     validationMiddleware,
     idCheckValidation: validationMiddleware(schemas.idCheckSchema, 'params'),
     addKitsValidation: validationMiddleware(schemas.checkFileSchema, 'file', schemas.addKitsSchema, 'body'),
+    externalGainsValidation: validationMiddleware(schemas.gainsSchema, 'body'),
 
 };
