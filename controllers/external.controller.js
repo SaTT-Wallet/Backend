@@ -3,7 +3,30 @@ const makeResponseData = responseHandler.makeResponseData
 const makeResponseError = responseHandler.makeResponseError
 const multer = require('multer')
 const { ObjectId } = require('mongodb')
+var sanitize = require('mongo-sanitize')
+const web3 = require('web3')
 
+const {
+    getInstagramUserName,
+    findBountyOracle,
+    answerAbos,
+    getPromApplyStats,
+    getReachLimit,
+    getTotalToEarn,
+    getReward,
+    getButtonStatus,
+    answerBounty,
+    answerOne,
+    limitStats,
+    answerCallExternal,
+} = require('../manager/oracles')
+
+const {
+    getCampaignContractByHashCampaignExternal,
+    getPromContractExternal,
+    getCampaignOwnerAddr,
+    webTronInstance,
+} = require('../blockchainConnexion')
 const storageCover = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/')
@@ -23,7 +46,9 @@ const {
     FbPage,
     TikTokProfile,
     UserExternalWallet,
+    Request,
     CampaignLink,
+    User,
     FbProfile,
 } = require('../model/index')
 var fs = require('fs')
@@ -31,25 +56,12 @@ var fs = require('fs')
 var rp = require('axios')
 const { oauth } = require('../conf/config')
 const { filterLinks } = require('../web3/campaigns')
-const {
-    verifyYoutube,
-    verifyFacebook,
-    verifyInsta,
-    verifyTwitter,
-    verifyLinkedin,
-    verifytiktok,
-    updateFacebookPages,
-    verifyThread,
-    getInstagramUserName,
-    findBountyOracle,
-    answerAbos,
-    getPromApplyStats,
-} = require('../manager/oracles')
+
 const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 const Grid = require('gridfs-stream')
 
-const { getLinkedinLinkInfo, influencersLinks } = require('../web3/campaigns')
+const { getLinkedinLinkInfo, influencersLinks,getTransactionAmountExternal } = require('../web3/campaigns')
 
 exports.createUserFromExternalWallet = async (req, res) => {
     try {
@@ -1017,5 +1029,343 @@ module.exports.externalApply = async (req, res) => {
             500,
             err.message ? err.message : err.error
         )
+    }
+}
+
+module.exports.checkHarvest = async (req, res) => {
+    req.body = sanitize(req.body)
+    var idProm = req.body.idProm
+
+
+    try {
+        var link = await CampaignLink.findOne({ id_prom: idProm }).lean()
+        var date = Math.floor(Date.now() / 1000)
+        if (link.acceptedDate && date - link.acceptedDate <= 86400) {
+            return responseHandler.makeResponseError(
+                res,
+                403,
+                "You didn't exceed the limits timing to harvest again"
+            )
+        } else {
+            return responseHandler.makeResponseData(res, 200, 'success')
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+module.exports.externalAnswer = async (req, res) => {
+    try {
+        var tronWeb
+
+        var link = await CampaignLink.findOne({
+            id_prom: req.body.idProm,
+        }).lean()
+
+        const externalWallet = await UserExternalWallet.findOne({
+            walletId: link.id_wallet,
+        })
+        var ctr
+        var gasPrice
+        var wrappedTrx = false
+        campaignData = await Campaigns.findOne({ hash: link.id_campaign }).lean()
+        var credentials = {
+            network: campaignData.token.type,
+        }
+        var linkedinData =
+            link.typeSN == '5' &&
+            (await LinkedinProfile.findOne(
+                {
+                    userId: req.user._id,
+                    ...(link.linkedinId && { linkedinId: link.linkedinId }),
+                },
+                { accessToken: 1, _id: 0, refreshToken: 1 }
+            ).lean())
+        if (!!campaignData.bounties.length) {
+            if (tronWeb?.BigNumber(prom.amount._hex) > 0 && prom.isPayed) {
+                var ret = await getGains(
+                    idProm,
+                    credentials,
+                    tronWeb,
+                    campaignData.token.addr
+                )
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    ret
+                )
+            }
+
+            let bountie = campaignData.bounties.find(
+                (b) => b.oracle == findBountyOracle(prom.typeSN)
+            )
+            let maxBountieFollowers =
+                bountie.categories[bountie.categories.length - 1].maxFollowers
+            var evts = await updateBounty(idProm, credentials, tronWeb)
+            stats = link.abosNumber
+            if (+stats >= +maxBountieFollowers) {
+                stats = (+maxBountieFollowers - 1).toString()
+            }
+
+            await Request.updateOne(
+                { id: idProm },
+                {
+                    $set: {
+                        nbAbos: stats,
+                        isBounty: true,
+                        new: false,
+                        date: Date.now(),
+                        typeSN: prom.typeSN,
+                        idPost: prom.idPost,
+                        idUser: externalWallet.idUser,
+                    },
+                },
+                { upsert: true }
+            )
+            try {
+                await answerBounty({
+                    credentials,
+                    tronWeb,
+                    gasPrice: gasPrice,
+                    from: process.env.CAMPAIGN_OWNER,
+                    campaignContract:
+                        (!!tronWeb && TronConstant.campaign.address) ||
+                        ctr.options.address,
+                    idProm: idProm,
+                    nbAbos: stats,
+                })
+            } finally {
+                var ret = await getGains(
+                    idProm,
+                    credentials,
+                    tronWeb,
+                    campaignData.token.addr
+                        ? campaignData.token.addr
+                        : Constants.token.native
+                )
+
+                if (ret) {
+                    await User.updateOne(
+                        { _id: req.user._id },
+                        {
+                            $set: {
+                                lastHarvestDate: Date.now(),
+                            },
+                        }
+                    )
+                }
+
+                return responseHandler.makeResponseData(
+                    res,
+                    200,
+                    'success',
+                    ret
+                )
+            }
+        } else {
+            ctr = await getPromContractExternal(req.body.idProm, credentials)
+            gasPrice = await ctr.getGasPrice()
+        }
+
+        var prevstat = await Request.find({
+            new: false,
+            typeSN: link.typeSN,
+            idPost: link.idPost,
+            idUser: externalWallet.UserId,
+            idCampaign: link.id_campaign,
+        }).sort({ date: -1 })
+
+        if (link.typeSN == '6') {
+            var tiktokProfile = await TikTokProfile.findOne({
+                userId: req.user._id,
+            })
+        }
+
+        stats = await answerOne(
+            link.typeSN + '',
+            link.idPost + '',
+            externalWallet.UserId + '',
+            link.typeURL,
+            linkedinData,
+            tiktokProfile,
+            link.instagramUserName
+        )
+        var copyStats = { ...stats }
+        var ratios =
+            (!!tronWeb && (await ctr.getRatios(link.id_campaign).call())) ||
+            (await ctr.methods.getRatios(link.id_campaign).call())
+
+        var abos = link.abosNumber
+        if (stats) stats = limitStats(link.typeSN, stats, ratios, abos, '')
+        stats.views = stats?.views || 0
+        if (stats.views === 'old') stats.views = link?.views
+        stats.shares = stats?.shares || 0
+        stats.likes = stats?.likes || 0
+
+        requests = await Request.find({
+            new: true,
+            isBounty: false,
+            typeSN: link.typeSN,
+            idPost: link.idPost,
+            idUser: externalWallet.UserId,
+        })
+
+        if (!requests.length) {
+            if (
+                !prevstat.length ||
+                stats?.likes != prevstat[0]?.likes ||
+                stats?.shares != prevstat[0]?.shares ||
+                stats?.views != prevstat[0]?.views
+            ) {
+
+
+                requests = await Request.find({
+                    new: true,
+                    isBounty: false,
+                    typeSN: link.typeSN,
+                    idPost: link.idPost,
+                    idUser: externalWallet.UserId,
+                })
+                var tronWeb
+
+
+                var idRequest = req.body.tx[0].topics[1]
+
+                // var idRequest = (!!tronWeb && evt.result.idRequest) || evt.raw.topics[1]
+                requests = [{ id: idRequest }]
+            }
+        }
+        if (requests && requests.length) {
+            await Request.updateOne(
+                { id: idRequest },
+                {
+                    $set: {
+                        id: idRequest ,
+                        likes: stats.likes,
+                        shares: stats.shares,
+                        views: stats?.views,
+                        new: false,
+                        date: Date.now(),
+                        typeSN: link.typeSN,
+                        idPost: link.idPost,
+                        idUser: externalWallet.UserId,
+                    },
+                },
+                { upsert: true }
+            )
+            let campaignContractOwnerAddr = process.env.CAMPAIGN_OWNER
+            await answerCallExternal({
+                credentials,
+                tronWeb,
+                gasPrice: gasPrice,
+                from: campaignContractOwnerAddr,
+                campaignContract:
+                    (!!tronWeb && TronConstant.campaign.address) ||
+                    ctr.options.address,
+                idRequest: idRequest,
+                likes: stats.likes,
+                shares: stats?.shares,
+                views: stats?.views,
+            })
+        }
+
+
+        return responseHandler.makeResponseData(res, 200, 'success',copyStats)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } 
+}
+
+
+
+module.exports.externalGains = async (req, res) => {
+    try{
+
+        var tronWeb
+            await CampaignLink.updateOne(
+                { id_prom: req.body.idProm },
+                {
+                    $set: {
+                        lastHarvestDate: Math.floor(
+                            new Date().getTime() / 1000
+                        ),
+                    },
+                }
+            )
+            var link = await CampaignLink.findOne({
+                id_prom: req.body.idProm,
+            }).lean()
+    
+            const externalWallet = await UserExternalWallet.findOne({
+                walletId: link.id_wallet,
+            })
+
+            campaignData = await Campaigns.findOne({ hash: link.id_campaign }).lean()
+            var credentials = {
+                network: campaignData.token.type,
+            }
+
+            await User.updateOne(
+                { _id: externalWallet.UserId },
+                {
+                    $set: {
+                        lastHarvestDate: Date.now(),
+                    },
+                }
+            )
+       
+        return responseHandler.makeResponseData(res, 200, 'success')
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    } finally {
+
+        if (req.body.tx.data) {
+            let campaignType = {}
+            let amount = await getTransactionAmountExternal(
+                credentials,
+                campaignData.token.type,
+                req.body.tx.hash,
+                credentials.network
+            )
+            let updatedFUnds = { ...req.body.data.data }
+
+            let cmpLink = await CampaignLink.findOne({ id_prom: req.body.idProm }).lean()
+            req.body.bounty && (updatedFUnds.isPayed = true)
+            updatedFUnds.payedAmount = !cmpLink.payedAmount
+                ? amount
+                : new Big(cmpLink.payedAmount).plus(new Big(amount)).toFixed()
+            updatedFUnds.type = 'already_recovered'
+            await CampaignLink.updateOne(
+                { id_prom: req.body.idProm },
+                { $set: updatedFUnds }
+            )
+
+            let contract = await getCampaignContractByHashCampaignExternal(
+                cmpLink.id_campaign,
+                credentials,
+                tronWeb
+            )
+            var result =
+                (!!tronWeb && (await contract.campaigns('0x' + hash).call())) ||
+                (await contract.methods.campaigns(cmpLink.id_campaign).call())
+
+                campaignType.funds = result.funds
+                if (result.funds[1] === '0') campaignType.type = 'finished'
+            
+            await Campaigns.updateOne({ hash: cmpLink.id_campaign }, { $set: campaignType })
+        }
     }
 }
