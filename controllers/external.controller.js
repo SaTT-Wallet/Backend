@@ -991,10 +991,18 @@ module.exports.externalApply = async (req, res) => {
             id,
             prom.instagramUserName
         )
-
-        prom.applyerSignature = req.body.signature
+        const r = req.body.signature.slice(0, 66);
+        const s = '0x' + req.body.signature.slice(66, 130);
+        const v = '0x' + req.body.signature.slice(130, 132);
+        prom.applyerSignature = {}
+        prom.applyerSignature.signature = req.body.signature
+        prom.applyerSignature.messageHash = req.body.message
+        prom.applyerSignature.r = r
+        prom.applyerSignature.v = v
+        prom.applyerSignature.s = s
         prom.typeSN = typeSN.toString()
-        prom.idUser = idUser
+        prom.idUser = typeSN === 6 ? user.UserId : idUser
+        prom.userExternal = true;
         if (media_url) prom.media_url = media_url
         if (prom.typeSN == 5) {
             prom.typeURL = linkedinInfo.idPost.split(':')[2]

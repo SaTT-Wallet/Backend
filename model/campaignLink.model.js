@@ -27,6 +27,7 @@ const campaignLinkSchema = mongoose.Schema(
         reason: { type: [] },
         deleted: { type: Boolean },
         linkedinId: { type: String },
+        userExternal: {type: Boolean , default: false},
         applyerSignature: {
             messageHash: { type: String },
             v: { type: String },
