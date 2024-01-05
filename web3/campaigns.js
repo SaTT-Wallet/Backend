@@ -1439,7 +1439,7 @@ exports.getTransactionAmountExternal = async (
 ) => {
     try {
         let web3 = await new Web3(
-            new Web3.providers.HttpProvider(await exports.getProviderUrl(credentials.network), options)
+            new Web3.providers.HttpProvider(await exports.getProviderUrl(network), options)
         )
         let data = await new web3.eth.getTransactionReceipt(transactionHash)
         console.log(data)
