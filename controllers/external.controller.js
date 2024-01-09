@@ -1095,7 +1095,7 @@ module.exports.externalAnswer = async (req, res) => {
             link.typeSN == '5' &&
             (await LinkedinProfile.findOne(
                 {
-                    userId: req.user._id,
+                    userId: externalWallet.UserId,
                     ...(link.linkedinId && { linkedinId: link.linkedinId }),
                 },
                 { accessToken: 1, _id: 0, refreshToken: 1 }
@@ -1155,31 +1155,12 @@ module.exports.externalAnswer = async (req, res) => {
                     nbAbos: stats,
                 })
             } finally {
-                var ret = await getGains(
-                    idProm,
-                    credentials,
-                    tronWeb,
-                    campaignData.token.addr
-                        ? campaignData.token.addr
-                        : Constants.token.native
-                )
 
-                if (ret) {
-                    await User.updateOne(
-                        { _id: req.user._id },
-                        {
-                            $set: {
-                                lastHarvestDate: Date.now(),
-                            },
-                        }
-                    )
-                }
 
                 return responseHandler.makeResponseData(
                     res,
                     200,
                     'success',
-                    ret
                 )
             }
         } else {
@@ -1197,7 +1178,7 @@ module.exports.externalAnswer = async (req, res) => {
 
         if (link.typeSN == '6') {
             var tiktokProfile = await TikTokProfile.findOne({
-                userId: req.user._id,
+                userId: externalWallet.UserId,
             })
         }
 
