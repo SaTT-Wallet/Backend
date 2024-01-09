@@ -768,7 +768,7 @@ const linkedin = async (organization, idPost, type, linkedinProfile) => {
         //     perf.views = bodyVideo.elements[0].value
         // }
         return perf
-    } catch (err) {}
+    } catch (err) {console.log("error",err)}
 }
 
 const getNewAccessTokenInstagram = async (accessToken, fbGraphVersion) => {

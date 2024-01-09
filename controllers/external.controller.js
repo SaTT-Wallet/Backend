@@ -1182,10 +1182,12 @@ module.exports.externalAnswer = async (req, res) => {
             })
         }
 
+
+
         stats = await answerOne(
             link.typeSN + '',
             link.idPost + '',
-            externalWallet.UserId + '',
+            link.typeSN === '5' ? link.idUser+ '' : externalWallet.UserId+ '',
             link.typeURL,
             linkedinData,
             tiktokProfile,
