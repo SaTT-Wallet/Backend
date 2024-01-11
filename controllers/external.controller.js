@@ -98,6 +98,7 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 userExist
             )
     } catch (err) {
+        console.log({err})
         return makeResponseError(
             res,
             500,
@@ -1321,7 +1322,6 @@ module.exports.externalGains = async (req, res) => {
                 }
             )
        
-        return responseHandler.makeResponseData(res, 200, 'success')
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1364,6 +1364,8 @@ module.exports.externalGains = async (req, res) => {
                 if (result.funds[1] === '0') campaignType.type = 'finished'
             
             await Campaigns.updateOne({ hash: cmpLink.id_campaign }, { $set: campaignType })
+            return responseHandler.makeResponseData(res, 200, 'success')
+
         }
     }
 }
