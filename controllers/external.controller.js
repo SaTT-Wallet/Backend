@@ -5,7 +5,7 @@ const multer = require('multer')
 const { ObjectId } = require('mongodb')
 var sanitize = require('mongo-sanitize')
 const web3 = require('web3')
-const { updateStatforUser } = require('../helpers/common')
+const { externalUpdateStatforUser } = require('../helpers/common')
 
 const {
     getInstagramUserName,
@@ -93,7 +93,7 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 savedUser
             )
         } else
-        await updateStatforUser(userExist.UserId)
+        await externalUpdateStatforUser(userExist.UserId)
             return makeResponseData(
                 res,
                 200,

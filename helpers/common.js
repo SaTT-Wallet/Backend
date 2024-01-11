@@ -13,7 +13,11 @@ var TwitterProfile = require('../model/twitterProfile.model')
 var fs = require('fs')
 // /const { getPrices } = require('../manager/accounts.js')
 //const { getBalanceByUid } = require('../web3/wallets')
+const {
 
+    UserExternalWallet,
+
+} = require('../model/index')
 const {
     unlock,
     createSeed,
@@ -252,6 +256,154 @@ exports.updateStatforUser = async (UserId) => {
             { id_wallet: myWallet?.walletV2?.tronAddress },
             { id_wallet: '0x' + myWallet.walletV2?.keystore?.address },
         ],
+    })
+
+    const eventLint = MyLinksCampaign.reduce((acc, event) => {
+        const campaign = campaigns.find(
+            (campaign) => event.id_campaign === campaign.hash
+        )
+
+        if (campaign?.toObject()) {
+            acc.push({ ...event.toObject(), campaign: campaign.toObject() })
+        }
+
+        return acc
+    }, [])
+
+    for (const event of eventLint) {
+        if (
+            event.status === 'rejected' ||
+            event.campaign?.funds[1] == '0' ||
+            event.deleted === true ||
+            event.status === 'indisponible'
+        )
+            continue
+
+        if (event.typeSN == 5) {
+            var linkedinProfile = await LinkedinProfile.findOne({
+                userId: UserId,
+                ...(event.linkedinId && { linkedinId: event.linkedinId }),
+            }).lean()
+            var linkedinInfo = await getLinkedinLinkInfoMedia(
+                linkedinProfile?.accessToken,
+                event.idPost,
+                linkedinProfile
+            )
+
+            var media_url = linkedinInfo?.mediaUrl || ''
+        }
+
+        if (event.typeSN == '1') {
+            var facebookProfile = await FbProfile.findOne(
+                {
+                    UserId: UserId,
+                },
+                { accessToken: 1 }
+            ).lean()
+
+            await updateFacebookPages(
+                UserId,
+                facebookProfile?.accessToken,
+                false
+            )
+        }
+        if (event.typeSN == '6') {
+            var tiktokProfile = await TikTokProfile.findOne({
+                userId: UserId,
+            })
+        }
+
+        let oracle = findBountyOracle(event.typeSN)
+        try {
+            var socialOracle = await getPromApplyStats(
+                oracle,
+                event,
+                UserId,
+                linkedinProfile,
+                tiktokProfile
+            )
+        } catch (e) {
+            continue
+        }
+
+        if (socialOracle === 'Rate limit exceeded') continue
+        socialOracle === 'No found' && (event.deleted = true)
+        socialOracle === 'indisponible' && (event.status = 'indisponible')
+
+        if (socialOracle && typeof socialOracle !== 'string') {
+            event.shares = socialOracle?.shares || event.shares
+            event.likes = socialOracle?.likes || event.likes
+            event.views =
+                socialOracle?.views === 'old'
+                    ? event.views
+                    : socialOracle?.views
+            event.media_url = socialOracle?.media_url || media_url
+            event.oracle = oracle
+        }
+
+        if (event.campaign.ratios.length && socialOracle) {
+            event.totalToEarn =
+                event.campaign.funds[1] !== '0'
+                    ? getTotalToEarn(event, event.campaign.ratios)
+                    : 0
+        }
+
+        if (event.campaign.bounties.length && socialOracle) {
+            event.totalToEarn = getReward(event, event.campaign.bounties)
+        }
+
+        event.type = getButtonStatus(event)
+
+        delete event.campaign
+        delete event.payedAmount
+        delete event._id
+        delete event.status
+        await this.UpdateStats(event, socialOracle) //saving & updating proms in campaign_link.
+    }
+}
+
+
+exports.externalUpdateStatforUser = async (UserId) => {
+    let campaigns = await Campaigns.find(
+        { hash: { $exists: true }, type: { $ne: 'archived' } },
+        {
+            logo: 0,
+            resume: 0,
+            description: 0,
+            tags: 0,
+            cover: 0,
+            coverSrc: 0,
+            coverMobile: 0,
+            coverSrcMobile: 0,
+            countries: 0,
+        }
+    )
+
+    for (let campaign of campaigns) {
+        if (!campaign) continue
+        let type = campaignStatus(campaign)
+        await Campaigns.updateOne(
+            { _id: campaign._id },
+            {
+                $set: {
+                    type,
+                    launchDate: new Date(
+                        campaign.startDate * 1000
+                    ).toISOString(),
+                },
+            }
+        )
+        campaign.type = type
+    }
+
+    const myWallet = await UserExternalWallet.findOne({
+        UserId: UserId,
+    })
+
+    if (!myWallet) return
+
+    let MyLinksCampaign = await CampaignLink.find({
+        id_wallet: myWallet.walletId,
     })
 
     const eventLint = MyLinksCampaign.reduce((acc, event) => {
