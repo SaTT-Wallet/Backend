@@ -1448,7 +1448,7 @@ exports.getTransactionAmountExternal = async (
             new Web3.providers.HttpProvider(await exports.getProviderUrl(network), options)
         )
         console.log(transactionHash)
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise(resolve => setTimeout(resolve, 15000));
         console.log(transactionHash,"done")
 
         let data = await new web3.eth.getTransactionReceipt(transactionHash)
