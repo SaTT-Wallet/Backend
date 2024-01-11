@@ -1190,7 +1190,7 @@ exports.validateCampaign = async (req, res) => {
                     campaignLink.typeSN,
                     campaignLink.idPost,
                     campaignLink.idUser,
-                    campaignLink.abosNumber,
+                    !isNaN(campaignLink.abosNumber) ? campaignLink.abosNumber : 0,
                     ownerLink,
                     (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? messageHashSignature :  signature.messageHash ,
                     signature.v,
