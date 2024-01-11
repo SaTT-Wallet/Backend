@@ -1447,15 +1447,11 @@ exports.getTransactionAmountExternal = async (
         let web3 = await new Web3(
             new Web3.providers.HttpProvider(await exports.getProviderUrl(network), options)
         )
-        console.log(transactionHash)
         await new Promise(resolve => setTimeout(resolve, 15000));
-        console.log(transactionHash,"done")
 
         let data = await new web3.eth.getTransactionReceipt(transactionHash)
-        console.log(data)
 
         let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
-        console.log(amount)
         let hex = web3.utils.hexToNumberString(amount)
         return hex
     } catch (e) {console.log("error",e)}
