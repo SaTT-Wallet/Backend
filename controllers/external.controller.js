@@ -1084,7 +1084,7 @@ module.exports.externalAnswer = async (req, res) => {
         var link = await CampaignLink.findOne({
             id_prom: req.body.idProm,
         }).lean()
-
+       
         const externalWallet = await UserExternalWallet.findOne({
             walletId: link.id_wallet,
         })
@@ -1191,7 +1191,7 @@ module.exports.externalAnswer = async (req, res) => {
         stats = await answerOne(
             link.typeSN + '',
             link.idPost + '',
-            link.typeSN === '5' || link.typeSN === '1' ? link.idUser+ '' : externalWallet.UserId+ '',
+            link.typeSN === 5 || link.typeSN === 1 ? link.idUser+ '' : externalWallet.UserId+ '',
             link.typeURL,
             linkedinData,
             tiktokProfile,
@@ -1275,7 +1275,7 @@ module.exports.externalAnswer = async (req, res) => {
                 views: stats?.views,
             })
         }
-
+          
 
         return responseHandler.makeResponseData(res, 200, 'success',copyStats)
     } catch (err) {
