@@ -565,6 +565,37 @@ router.get('/details/:id', idCheckValidation,campaignDetails)
  */
 router.get('/campaignPrompAll/:id', verifyAuth, campaignPrompValidation,campaignPromp)
 
+
+
+/**
+ * @swagger
+ * /campaign/campaignPrompAllExt/{id}:
+ *   get:
+ *     tags: ["campaign"]
+ *     summary: get campaign pending link
+ *     description: return to user the list of campaign promp ALl <br> without access_token
+ *     produces:
+ *     - application/json
+ *     parameters:
+ *     - in: path
+ *       name: id
+ *       type: string
+ *       description: the campaign id.
+ *       required: true
+ *     - in: query
+ *       name: influencer
+ *       type: string
+ *       description: the influencer wallet_id.
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: error:error message<br>"unothorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.get('/campaignPrompAllExt/:id',campaignPrompValidation,campaignPromp)
+
 /**
  * @swagger
  * /campaign/expandLink/{shortUrl}:
