@@ -11,7 +11,8 @@ const corsSetup = (req, res, next) => {
         'https://dapp.satt.com',
         'https://satt-token.com',
         'https://app.ihave.io',
-        'http://backoffice.atayen.us'
+        'http://backoffice.atayen.us',
+        'https://app.satt.com'
       ];
   
       if (req.headers.origin && allowedOrigins.includes(req.headers.origin)) {
