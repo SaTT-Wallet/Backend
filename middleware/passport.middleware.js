@@ -86,33 +86,34 @@ const handleSocialMediaSignin = async (query, cb) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne(query).lean()
-        if (!user) return cb('Register First')
+        if (!user) {
+            await googleAuthSignup()
+        } else {
+            var validAuth = await isBlocked(user, true)
+            const response =
+                !validAuth.res && validAuth.auth
+                    ? {
+                        id: user._id,
+                        token: generateAccessToken({ _id: user._id }),
+                        expires_in: date,
+                    }
+                    : {
+                        error: true,
+                        message: `account_locked:${user.date_locked}`,
+                        blockedDate: user.date_locked,
+                    }
 
-        var validAuth = await isBlocked(user, true)
+            if (response.error) {
+                return cb(response)
+            }
 
-        const response =
-            !validAuth.res && validAuth.auth
-                ? {
-                      id: user._id,
-                      token: generateAccessToken({ _id: user._id }),
-                      expires_in: date,
-                  }
-                : {
-                      error: true,
-                      message: `account_locked:${user.date_locked}`,
-                      blockedDate: user.date_locked,
-                  }
+            await User.updateOne(
+                { _id: Long.fromNumber(user._id) },
+                { $set: { failed_count: 0 } }
+            )
 
-        if (response.error) {
-            return cb(response)
-        }
-
-        await User.updateOne(
-            { _id: Long.fromNumber(user._id) },
-            { $set: { failed_count: 0 } }
-        )
-
-        cb(null, response)
+            cb(null, response)
+    }
     } catch (err) {
         console.error('handleSocialMediaSignin', err)
     } finally {
