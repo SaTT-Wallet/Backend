@@ -82,12 +82,29 @@ passport.deserializeUser(async function (id, cb) {
     cb(null, user)
 })
 
-const handleSocialMediaSignin = async (query, cb) => {
+const handleSocialMediaSignin = async (req,profile,query, cb) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne(query).lean()
         if (!user) {
-            await googleAuthSignup()
+            let createdUser = createUser(
+                1,
+                2,
+                req.body.lang,
+                req.body.newsLetter,
+                profile.photos.length ? profile.photos[0].value : false,
+                profile.displayName,
+                profile.emails[0].value,
+                'idOnSn2',
+                profile.id,
+                profile.name.givenName,
+                profile.name.familyName
+            )
+    
+            let user = await new User(createdUser).save()
+            createdUser._id = user._id
+            let token = generateAccessToken({ _id: createdUser._id })
+            return cb(null, { id: createdUser._id, token: token, expires_in: date })
         } else {
             var validAuth = await isBlocked(user, true)
             const response =
@@ -396,8 +413,8 @@ exports.facebookAuthSignin = async (profile, cb) => {
 /*
  *begin signin with google strategy
  */
-exports.googleAuthSignin = async (profile, cb) => {
-    await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
+exports.googleAuthSignin = async (req,profile, cb) => {
+    await handleSocialMediaSignin(req,profile,{ idOnSn2: profile.id }, cb)
 }
 /*
  *end signin with google strategy
@@ -507,6 +524,8 @@ exports.facebookAuthSignup = async (req, profile, cb) => {
     ).lean()
     if (user) {
         await handleSocialMediaSignin(
+            req,
+            profile,
             { idOnSn: profile._json.token_for_business },
             cb
         )
@@ -541,7 +560,7 @@ exports.googleAuthSignup = async (req, profile, cb) => {
 
     if (user && wallet) {
         // return cb('account_already_used&idSn=' + user.idSn)
-        await handleSocialMediaSignin({ idOnSn2: profile.id }, cb)
+        await handleSocialMediaSignin(req,profile,{ idOnSn2: profile.id }, cb)
     } else {
         let createdUser = createUser(
             1,
@@ -593,7 +612,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         // return cb('account_already_used&idSn=' + user.idSn)
         // let token = generateAccessToken(user)
         // return cb(null, { id: user._id, token: token, expires_in: date })
-        await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
+        await handleSocialMediaSignin(req,profile,{ idOnSn3: profile.id }, cb)
     } else {
         let createdUser = createUser(
             1,
@@ -622,7 +641,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
 begin signin with telegram strategy
 */
 exports.signin_telegram_function = async (req, profile, cb) => {
-    await handleSocialMediaSignin({ idOnSn3: profile.id }, cb)
+    await handleSocialMediaSignin(req, profile,{ idOnSn3: profile.id }, cb)
 }
 exports.telegramConnection = (req, res) => {
     try {
