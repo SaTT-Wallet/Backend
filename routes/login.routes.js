@@ -591,7 +591,7 @@ passport.use(
     new GoogleStrategy(
         googleCredentials('auth/callback/google/connection'),
         async (req, accessToken, refreshToken, profile, cb) => {
-            googleAuthSignin(profile, cb)
+            googleAuthSignin(req,profile, cb)
         }
     )
 )
