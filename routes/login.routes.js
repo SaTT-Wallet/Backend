@@ -497,7 +497,7 @@ passport.use(
     new FbStrategy(
         facebookCredentials('auth/callback/facebook/connection'),
         async function (req, accessToken, refreshToken, profile, cb) {
-            facebookAuthSignin(profile, cb)
+            facebookAuthSignin(req,profile, cb)
         }
     )
 )

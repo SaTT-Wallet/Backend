@@ -645,7 +645,7 @@ router.get(
     (req, res, next) => {
         passport.authenticate('facebook_strategy_add_channel', {
             failureRedirect:
-                process.env.BASED_URL +
+            (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL )+
                 req.query.state.split('|')[1] +
                 '?message=access-denied',
         })(req, res, next)
@@ -655,7 +655,7 @@ router.get(
             redirect = req.query.state.split('|')[1]
             let message = req.authInfo.message
             response.redirect(
-                process.env.BASED_URL +
+                (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
                     redirect +
                     '?message=' +
                     message +
@@ -743,7 +743,7 @@ router.get(
         if (!req.query.error) next()
         else
             res.redirect(
-                process.env.BASED_URL +
+                (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
                     redirect +
                     '?message=access-denied&sn=linkd'
             )
@@ -754,7 +754,7 @@ router.get(
             let redirect = req.query.state.split('|')[1]
             let message = req.authInfo.message
             res.redirect(
-                process.env.BASED_URL +
+                (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
                     redirect +
                     '?message=' +
                     message +
@@ -804,7 +804,7 @@ router.get(
     (req, res, next) => {
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
-                process.env.BASED_URL +
+            (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
                 req.query.state.split('|')[1] +
                 '?message=access-denied',
         })(req, res, next)
@@ -819,7 +819,7 @@ router.get(
                 message = 'account_linked_with_success'
             }
             response.redirect(
-                process.env.BASED_URL +
+                (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
                     redirect +
                     '?message=' +
                     message +
@@ -868,7 +868,7 @@ router.get(
     (req, res, next) => {
         passport.authenticate('youtube_strategy_add_channel', {
             failureRedirect:
-                process.env.BASED_URL +
+            (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
                 req.query.state.split('|')[1] +
                 '?message=access-denied&sn=youtue',
         })(req, res, next)
@@ -882,7 +882,7 @@ router.get(
                 message = 'account_linked_with_success'
             }
             res.redirect(
-                process.env.BASED_URL + redirect + '?message=' + message
+                (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) + redirect + '?message=' + message
             )
         } catch (err) {
             res.end(
@@ -1180,7 +1180,7 @@ router.get(
     '/callback/link/facebook',
     passport.authenticate('link_facebook_account', {
         failureRedirect:
-            process.env.BASED_URL +
+        (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
             '/home/settings/social-networks?message=access-denied',
     }),
     async (req, response) => {
@@ -1188,7 +1188,7 @@ router.get(
             let state = req.query.state.split('|')
             let url = state[1]
             response.redirect(
-                process.env.BASED_URL + url + '?message=' + req.authInfo.message
+                (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) + url + '?message=' + req.authInfo.message
             )
         } catch (e) {}
     }
@@ -1233,7 +1233,7 @@ router.get(
     '/callback/link/google',
     passport.authenticate('link_google_account', {
         failureRedirect:
-            process.env.BASED_URL +
+        (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
             '/home/settings/social-networks?message=access-denied',
     }),
     async (req, res) => {
@@ -1241,7 +1241,7 @@ router.get(
             let state = req.query.state.split('|')
             let url = state[1]
             let message = req.authInfo.message
-            res.redirect(process.env.BASED_URL + url + '?message=' + message)
+            res.redirect((process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) + url + '?message=' + message)
         } catch (e) {}
     }
 )

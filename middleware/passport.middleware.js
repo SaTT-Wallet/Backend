@@ -400,8 +400,10 @@ exports.sattConnect = async (req, res, next) => {
 /*
  * begin signin with facebook strategy
  */
-exports.facebookAuthSignin = async (profile, cb) => {
+exports.facebookAuthSignin = async (req,profile, cb) => {
     await handleSocialMediaSignin(
+        req,
+        profile,
         { idOnSn: profile._json.token_for_business },
         cb
     )
