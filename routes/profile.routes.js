@@ -1178,11 +1178,13 @@ passport.use(
 
 router.get(
     '/callback/link/facebook',
-    passport.authenticate('link_facebook_account', {
-        failureRedirect:
-        (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
-            '/home/settings/social-networks?message=access-denied',
-    }),
+    (req, res, next) => {
+        passport.authenticate('link_facebook_account', {
+            failureRedirect:
+            (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
+                '/home/settings/social-networks?message=access-denied',
+        })(req, res, next)
+    },
     async (req, response) => {
         try {
             let state = req.query.state.split('|')
@@ -1231,11 +1233,13 @@ passport.use(
 
 router.get(
     '/callback/link/google',
-    passport.authenticate('link_google_account', {
-        failureRedirect:
-        (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
-            '/home/settings/social-networks?message=access-denied',
-    }),
+    (req, res, next) => {
+        passport.authenticate('link_google_account', {
+            failureRedirect:
+            (process.env.NODE_ENV === "mainnet" ? (req.origins.header.includes('https://app.satt.com') ? process.env.METAMASK_BASED_URL : process.env.BASED_URL) : process.env.BASED_URL ) +
+                '/home/settings/social-networks?message=access-denied',
+        })(req,res,next)
+    },
     async (req, res) => {
         try {
             let state = req.query.state.split('|')
