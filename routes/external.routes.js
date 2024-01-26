@@ -18,12 +18,12 @@ const {
     externalSaveCampaign,
     externalVerifyExpiredToken,
     externalAccount,
-    externalUpdate,
     externalUploadPictureToIPFS,
     campaignsPictureUploadExternal,
     externalAddKits,
     uploadExternal,
     externalGetLinks,
+    externalGetOneLinks,
     externalApply,
     checkHarvest,
     externalAnswer,
@@ -56,6 +56,7 @@ router.post('/createCampaign', verifySignatureMiddleware, externalSaveCampaign)
 router.get('/socialAccounts', verifySignatureMiddleware , externalSocialAccounts)
 router.post('/campaign/filterLinksExternal', verifySignatureMiddleware , externalGetLinks)
 
+router.post('/campaign/getLinksExternal', verifySignatureMiddleware , externalGetOneLinks)
 
 // DONE
 router.get('/socialAccounts', verifySignatureMiddleware, externalSocialAccounts)
@@ -133,7 +134,7 @@ router.get(
     externalVerifyLink
 )
 
-router.put('/externalUpdate/:id', verifySignatureMiddleware, externalUpdate)
+// router.put('/externalUpdate/:id', verifySignatureMiddleware, externalUpdate)
 
 // Example:
 router.post(

@@ -2,7 +2,7 @@ var requirement = require('../helpers/utils')
 var { readHTMLFileCampaign } = requirement
 var sanitize = require('mongo-sanitize')
 const multer = require('multer')
-const { utils } = require('ethers');
+const { utils } = require('ethers')
 const Big = require('big.js')
 const web3 = require('web3')
 const etherInWei = new Big(1000000000000000000)
@@ -25,7 +25,7 @@ const {
     Request,
     User,
     FbPage,
-    UserExternalWallet
+    UserExternalWallet,
 } = require('../model/index')
 
 const { responseHandler } = require('../helpers/response-handler')
@@ -170,8 +170,8 @@ const { BigNumber } = require('ethers')
 const { token } = require('morgan')
 const { request } = require('http')
 const { URL } = require('url')
-const { http, https } = require('follow-redirects');
-const verifySignature = require('../web3/verifySignature');
+const { http, https } = require('follow-redirects')
+const verifySignature = require('../web3/verifySignature')
 
 //const conn = mongoose.createConnection(mongoConnection().mongoURI)
 let gfsKit
@@ -392,6 +392,66 @@ module.exports.launchCampaign = async (req, res) => {
     }
 }
 
+module.exports.launchCampaignExt = async (req, res) => {
+    let { idCampaign: _id, currency } = req.body.campagne
+
+    try {
+        const _id = req.body.campagne.id
+
+        const contract = req.body.result.to
+
+        if (currency.name.includes('SATT')) {
+            amount = (req.body.campagne.amount * 95) / 100
+        } else {
+            amount = (req.body.campagne.amount * 85) / 100
+        }
+        var campaign = {
+            hash: req.body.campagne.hash,
+            transactionHash: req.body.result.hash,
+            startDate: req.body.campagne.startDate,
+            endDate: req.body.campagne.endDate,
+            limit: req.body.campagne.limit,
+            token: {
+                name: req.body.campagne.currency.name,
+                type: req.body.campagne.currency.type,
+                addr: req.body.campagne.currency.addr,
+            },
+            coverSrc: req.body.campagne.coverSrc,
+            dataUrl:
+                'https://ropsten.etherscan.io/token/0x2bef0d7531f0aae08adc26a0442ba8d0516590d0',
+            funds: [contract, req.body.campagne.amount],
+            contract: contract.toLowerCase(),
+            walletId: req.body.campagne.walletId,
+            type: 'inProgress',
+            cost: req.body.campagne.amount,
+        }
+        let campaignData = await Campaigns.findOne({ _id })
+        campaign.cost_usd =
+            (req.body.campagne.currency.addr ==
+                Constants.bep20.address.sattBep20 &&
+                req.body.campagne.cost_usd * 0.95) ||
+            req.body.campagne.cost_usd * 0.85
+
+        await Campaigns.updateOne({ _id }, { $set: campaign })
+
+        let event = {
+            id: req.body.campagne.hash,
+            type: 'modified',
+            date: Math.floor(Date.now() / 1000),
+            txhash: req.body.result.hash,
+            contract: contract.toLowerCase(),
+        }
+
+        return responseHandler.makeResponseData(res, 200, 'success', event)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 module.exports.launchBounty = async (req, res) => {
     let [_id, contract] = [req.body.idCampaign, req.body.contract.toLowerCase()]
     var { limit, bounties, amount, tokenAddress, endDate, startDate, dataUrl } =
@@ -545,6 +605,55 @@ exports.uploadPictureToIPFS = async (req, res) => {
     }
 }
 
+exports.uploadExternalPictureToIPFS = async (req, res) => {
+    // using IPFS
+    try {
+        if (req.file) {
+            const { id } = req.params
+
+            // SEARCH COMPAIGN ID
+            const campaign = await Campaigns.findOne({
+                _id: id,
+                idNode: req.body.userId,
+            })
+
+            if (campaign) {
+                // IPFS CONNECTION
+                const ipfs = await ipfsConnect()
+
+                // READ FILE
+                const x = fs.readFileSync(req.file.path)
+
+                // ADD TO IPFS
+                let buffer = Buffer.from(x)
+                let result = await ipfs.add({ content: buffer })
+
+                // REMOVE FILE FROM UPLOADS DIR
+                fs.unlinkSync('uploads/' + req.file.filename)
+
+                return responseHandler.makeResponseData(res, 200, result, true)
+            } else
+                return responseHandler.makeResponseData(
+                    res,
+                    400,
+                    'campaign not found / you are not the owner',
+                    false
+                )
+        } else
+            return responseHandler.makeResponseData(
+                res,
+                400,
+                'required picture',
+                false
+            )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
 exports.campaigns = async (req, res) => {
     try {
         let strangerDraft = []
@@ -881,10 +990,13 @@ exports.apply = async (req, res) => {
     } = req.body
     let [prom, date, hash] = [{}, Math.floor(Date.now() / 1000), req.body.hash]
     var campaignDetails = await Campaigns.findOne({ hash }).lean()
-    let limit = campaignDetails.limit;
+    let limit = campaignDetails.limit
     let userWallet = await Wallet.findOne({ UserId: req.user._id })
-    let numberParticipation = await CampaignLink.find({ id_campaign: hash,id_wallet:"0x"+userWallet.walletV2.keystore.address}).count()
-    if (limit > 0 && limit === numberParticipation){
+    let numberParticipation = await CampaignLink.find({
+        id_campaign: hash,
+        id_wallet: '0x' + userWallet.walletV2.keystore.address,
+    }).count()
+    if (limit > 0 && limit === numberParticipation) {
         return responseHandler.makeResponseError(
             res,
             401,
@@ -938,7 +1050,6 @@ exports.apply = async (req, res) => {
                 )
             cred = await unlockV2(req, res)
 
-            
             let decryptAccount =
                 await cred.Web3BEP20.eth.accounts.wallet.decrypt(
                     [userWallet.walletV2.keystore],
@@ -1091,6 +1202,62 @@ exports.linkNotifications = async (req, res) => {
     }
 }
 
+exports.validateCampaignExt = async (req, res) => {
+    try {
+        let link = await CampaignLink.findOne({ _id: req.body.prom.id }).lean()
+        
+        const campaignId = req.body.prom.campaign._id 
+
+        const campaign = await Campaigns.findOne({_id: campaignId}).lean()
+        
+        let linkedinProfile =
+            link.oracle == 'linkedin' &&
+            (await LinkedinProfile.findOne({ userId: req.body.userId }))
+        let tiktokProfile =
+            link.oracle == 'tiktok' &&
+            (await TikTokProfile.findOne({ userId: req.body.userId }))
+        let userId = link.oracle === 'instagram' ? req.body.userId : null
+        let socialOracle = await getPromApplyStats(
+            link.oracle,
+            link,
+            userId,
+            linkedinProfile,
+            tiktokProfile
+        )
+        delete socialOracle.id_prom;
+
+        socialOracle.status = true
+        link.status = true
+        if (socialOracle.views === 'old') socialOracle.views = link.views || '0'
+        link.likes = socialOracle.likes ?? '0'
+        link.views = socialOracle?.views ?? '0'
+        link.shares = socialOracle.shares ?? '0'
+        link.campaign = campaign
+        link.totalToEarn = campaign.ratios.length
+            ? getTotalToEarn(link, campaign.ratios)
+            : getReward(link, campaign.bounties)
+        socialOracle.totalToEarn = link.totalToEarn
+        socialOracle.type = getButtonStatus(link)
+        socialOracle.acceptedDate = Math.floor(Date.now() / 1000)
+        socialOracle.id_prom = req.body.ret.toString()
+        await CampaignLink.updateOne(
+            { _id: req.body.prom.id },
+            { $set: {
+                ...socialOracle,
+                id_prom: req.body.ret.toString()
+              } }
+        )
+
+        return responseHandler.makeResponseData(res, 200, 'success')
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.validateCampaign = async (req, res) => {
     /*const _id = req.body.idCampaign
     const linkProm = req.body.link
@@ -1161,21 +1328,30 @@ exports.validateCampaign = async (req, res) => {
             } else {
                 req.body.network = campaign.token.type
                 cred = await unlockV2(req, res)
-                if(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) {
-                    const recoveredSigner = verifySignature(campaignLink.applyerSignature.messageHash, campaignLink.applyerSignature.signature, campaignLink.id_wallet)
-                    if(!recoveredSigner) {
+                if (
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                    campaignLink.userExternal === true
+                ) {
+                    const recoveredSigner = verifySignature(
+                        campaignLink.applyerSignature.messageHash,
+                        campaignLink.applyerSignature.signature,
+                        campaignLink.id_wallet
+                    )
+                    if (!recoveredSigner) {
                         return responseHandler.makeResponseError(
                             res,
                             401,
                             'the signature is not matched  to the link or signature'
                         )
                     }
-                    
                 } else {
-                    const recoveredSigner = await cred.WEB3.eth.accounts.recover(
-                        campaignLink.applyerSignature
-                    )
-                    if(recoveredSigner.toLowerCase() !== campaignLink.id_wallet) {
+                    const recoveredSigner =
+                        await cred.WEB3.eth.accounts.recover(
+                            campaignLink.applyerSignature
+                        )
+                    if (
+                        recoveredSigner.toLowerCase() !== campaignLink.id_wallet
+                    ) {
                         return responseHandler.makeResponseError(
                             res,
                             401,
@@ -1183,16 +1359,27 @@ exports.validateCampaign = async (req, res) => {
                         )
                     }
                 }
-                let messageHashSignature;
-                if(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) messageHashSignature = utils.hashMessage(signature.messageHash);
+                let messageHashSignature
+                if (
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                    campaignLink.userExternal === true
+                )
+                    messageHashSignature = utils.hashMessage(
+                        signature.messageHash
+                    )
                 var ret = await validateProm(
                     campaignLink.id_campaign,
                     campaignLink.typeSN,
                     campaignLink.idPost,
                     campaignLink.idUser,
-                    !isNaN(campaignLink.abosNumber) ? campaignLink.abosNumber : 0,
+                    !isNaN(campaignLink.abosNumber)
+                        ? campaignLink.abosNumber
+                        : 0,
                     ownerLink,
-                    (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? messageHashSignature :  signature.messageHash ,
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                        campaignLink.userExternal === true
+                        ? messageHashSignature
+                        : signature.messageHash,
                     signature.v,
                     signature.r,
                     signature.s,
@@ -1206,46 +1393,64 @@ exports.validateCampaign = async (req, res) => {
             }
             if (ret && ret.transactionHash) {
                 let link = await CampaignLink.findOne({ _id: idLink }).lean()
-                let userWallet;
-                if(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) {
+                let userWallet
+                if (
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                    campaignLink.userExternal === true
+                ) {
                     userWallet = await UserExternalWallet.findOne({
                         walletId: link.id_wallet,
                     })
                 } else {
                     userWallet =
-                    (!!tronWeb &&
+                        (!!tronWeb &&
+                            (await Wallet.findOne(
+                                {
+                                    $or: [
+                                        { tronAddress: link.id_wallet },
+                                        {
+                                            'walletV2.tronAddress':
+                                                link.id_wallet,
+                                        },
+                                    ],
+                                },
+                                { UserId: 1, _id: 0 }
+                            ))) ||
                         (await Wallet.findOne(
                             {
                                 $or: [
-                                    { tronAddress: link.id_wallet },
-                                    { 'walletV2.tronAddress': link.id_wallet },
+                                    {
+                                        'walletV2.keystore.address':
+                                            link.id_wallet
+                                                .toLowerCase()
+                                                .substring(2),
+                                    },
+                                    {
+                                        'keystore.address': link.id_wallet
+                                            .toLowerCase()
+                                            .substring(2),
+                                    },
                                 ],
                             },
                             { UserId: 1, _id: 0 }
-                        ))) ||
-                    (await Wallet.findOne(
-                        {
-                            $or: [
-                                {
-                                    'walletV2.keystore.address': link.id_wallet
-                                        .toLowerCase()
-                                        .substring(2),
-                                },
-                                {
-                                    'keystore.address': link.id_wallet
-                                        .toLowerCase()
-                                        .substring(2),
-                                },
-                            ],
-                        },
-                        { UserId: 1, _id: 0 }
-                    ))
+                        ))
                 }
-                
-               
-                let user = (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? userWallet  : await User.findOne({ _id: userWallet.UserId }).lean()
-                const id = (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? user.UserId : user._id
-                const email = (typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true) ? '' : user.email
+
+                let user =
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                    campaignLink.userExternal === true
+                        ? userWallet
+                        : await User.findOne({ _id: userWallet.UserId }).lean()
+                const id =
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                    campaignLink.userExternal === true
+                        ? user.UserId
+                        : user._id
+                const email =
+                    typeof campaignLink.userExternal !== 'undefined' &&
+                    campaignLink.userExternal === true
+                        ? ''
+                        : user.email
                 let linkedinProfile =
                     link.oracle == 'linkedin' &&
                     (await LinkedinProfile.findOne({ userId: id }))
@@ -1279,7 +1484,12 @@ exports.validateCampaign = async (req, res) => {
                     { _id: idLink },
                     { $set: socialOracle }
                 )
-                if(!(typeof campaignLink.userExternal !== 'undefined' && campaignLink.userExternal === true)) {
+                if (
+                    !(
+                        typeof campaignLink.userExternal !== 'undefined' &&
+                        campaignLink.userExternal === true
+                    )
+                ) {
                     await notificationManager(id, 'cmp_candidate_accept_link', {
                         cmp_name: campaign.title,
                         action: 'link_accepted',
@@ -1296,8 +1506,7 @@ exports.validateCampaign = async (req, res) => {
                         email,
                         _id
                     )
-                }    
-                
+                }
             }
 
             return responseHandler.makeResponseData(res, 200, 'success', ret)
@@ -1363,15 +1572,13 @@ exports.gains = async (req, res) => {
                 (!!tronWeb && (await ctr.proms(idProm).call())) ||
                 (await ctr.methods.proms(idProm).call())
 
-                
-
-             if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
-                 return responseHandler.makeResponseError(
-                     res,
-                     403,
-                     "You didn't exceed the limits timing to harvest between 24H"
-                 )
-             }
+            if (prom.lastHarvest && date - prom.lastHarvest <= 86400) {
+                return responseHandler.makeResponseError(
+                    res,
+                    403,
+                    "You didn't exceed the limits timing to harvest between 24H"
+                )
+            }
             var linkedinData =
                 prom.typeSN == '5' &&
                 (await LinkedinProfile.findOne(
@@ -1583,7 +1790,16 @@ exports.gains = async (req, res) => {
             )
 
             if (ret) {
-                await CampaignLink.updateOne( { id_prom: idProm }, { $set: {lastHarvestDate:  Math.floor(new Date().getTime() / 1000)} } )
+                await CampaignLink.updateOne(
+                    { id_prom: idProm },
+                    {
+                        $set: {
+                            lastHarvestDate: Math.floor(
+                                new Date().getTime() / 1000
+                            ),
+                        },
+                    }
+                )
 
                 await User.updateOne(
                     { _id: req.user._id },
@@ -1744,6 +1960,57 @@ exports.addKits = async (req, res) => {
     }
 }
 
+exports.externalAddKits = async (req, res) => {
+    try {
+        let files = req.files
+        let links =
+            typeof req.body.link === 'string'
+                ? Array(req.body.link)
+                : req.body.link
+        let idCampaign = ObjectId(req.body.campaign)
+
+        if (files) {
+            await Promise.all(
+                files.map((file) => {
+                    return gfsKit.files.updateOne(
+                        { _id: file.id },
+                        {
+                            $set: {
+                                campaign: {
+                                    $ref: 'campaign',
+                                    $id: idCampaign,
+                                    $db: 'atayen',
+                                },
+                            },
+                        }
+                    )
+                })
+            )
+        }
+        if (links) {
+            await Promise.all(
+                links.map((link) => {
+                    return gfsKit.files.insertOne({
+                        campaign: {
+                            $ref: 'campaign',
+                            $id: idCampaign,
+                            $db: 'atayen',
+                        },
+                        link: link,
+                    })
+                })
+            )
+        }
+        return responseHandler.makeResponseData(res, 200, 'Kit uploaded', false)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 exports.findKit = async (req, res) => {
     try {
         const _id = req.params.id
@@ -1800,6 +2067,39 @@ exports.update = async (req, res) => {
         let updatedCampaign = await Campaigns.findOneAndUpdate(
             { _id: req.params.id, idNode: '0' + req.user._id },
             { $set: campaign },
+            { new: true }
+        )
+
+        if (updatedCampaign) {
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'updated',
+                updatedCampaign
+            )
+        } else {
+            return responseHandler.makeResponseError(
+                res,
+                204,
+                'Campaign not found'
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+exports.extUpdate = async (req, res) => {
+    try {
+        let campaign = req.body
+        campaign.updatedAt = Date.now()
+        let updatedCampaign = await Campaigns.updateOne(
+            { _id: req.params.id, idNode: req.body.userId },
+            { $set: campaign.values },
             { new: true }
         )
 
@@ -2422,8 +2722,6 @@ exports.getLinks = async (req, res) => {
             .skip(skip)
             .limit(limit)
 
-
-            
         let tronUserLinks =
             (!!accountData.tronAddress &&
                 !!accountData.walletV2?.tronAddress &&
@@ -3003,35 +3301,35 @@ module.exports.totalInvested = async (req, res) => {
     }
 }
 
-
-exports.generateBrief = async  (req, res) => {
+exports.generateBrief = async (req, res) => {
     try {
         const openIAURL = process.env.OPEN_IA_URL
-        const apiKey = process.env.OPEN_IA_API_KEY;
-        const title= req.body.title;
+        const apiKey = process.env.OPEN_IA_API_KEY
+        const title = req.body.title
         const headers = {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer ' +  apiKey,
+            Authorization: 'Bearer ' + apiKey,
         }
         const body = {
             model: process.env.MODEL_GPT,
             messages: [
                 {
                     role: process.env.ROLE_OPEN_IA,
-                    content: process.env.PROMPT_OPEN_IA + title 
-                }
-                ],
-            temperature: Number(process.env.TEMPERATURE_OPEN_IA)
+                    content: process.env.PROMPT_OPEN_IA + title,
+                },
+            ],
+            temperature: Number(process.env.TEMPERATURE_OPEN_IA),
         }
-        const request = await axios.post(
-            openIAURL,
-            body,
-            {
+        const request = await axios.post(openIAURL, body, {
             headers,
-            
         })
-        return responseHandler.makeResponseData(res, 200, 'success', request.data)
-    }catch(err) {
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'success',
+            request.data
+        )
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,

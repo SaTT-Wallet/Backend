@@ -7,6 +7,7 @@ var sanitize = require('mongo-sanitize')
 const web3 = require('web3')
 const { externalUpdateStatforUser } = require('../helpers/common')
 const Big = require('big.js')
+const upload = multer({ dest: 'uploads/' });
 
 const {
     getInstagramUserName,
@@ -36,17 +37,7 @@ const {
     getCampaignOwnerAddr,
     webTronInstance,
 } = require('../blockchainConnexion')
-const storageCover = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/')
-    },
-    filename: (req, file, cb) => {
-        cb(
-            null,
-            new Date().toISOString().replace(/:/g, '-') + file.originalname
-        )
-    },
-})
+const storageCover =  multer.memoryStorage();
 const {
     Campaigns,
     GoogleProfile,
@@ -113,7 +104,7 @@ exports.createUserFromExternalWallet = async (req, res) => {
 
 exports.campaignsPictureUploadExternal = multer({
     storage: storageCover,
-}).single('cover')
+}).single('cover');
 
 exports.externalSocialAccounts = async (req, res) => {
     try {
@@ -415,12 +406,10 @@ exports.externalGetLinks = async (req, res) => {
 
         let allProms = []
         let query = filterLinks(req, accountData)
-        var count =
-            (await CampaignLink.find(
-                { id_wallet: { $in: [query.id_wallet] } },
-                { type: { $exists: 0 } }
-            ).countDocuments()) || 0
-
+        var count = query.id_campaign
+        ? (delete query.id_wallet, await CampaignLink.find({ id_campaign: query.id_campaign }, { type: 0 }).countDocuments())
+        : await CampaignLink.find({ id_wallet: query.id_wallet }, { type: 0 }).countDocuments() || 0;
+      
         let tri =
             req.query.state === 'owner'
                 ? [
@@ -524,6 +513,25 @@ exports.externalGetLinks = async (req, res) => {
         )
     }
 }
+
+
+exports.externalGetOneLinks = async (req, res) => {
+    try {
+        const _id = req.body.params
+
+        let link = await CampaignLink.find({_id})
+
+
+        return responseHandler.makeResponseData(res, 200, 'success', link)
+    } catch (err) {
+        return makeResponseError(
+            response,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
 
 module.exports.externalVerifyLink = async (req, response) => {
     try {
@@ -757,13 +765,18 @@ module.exports.externalAccount = async (req, res) => {
     }
 }
 
-module.exports.externalUpdate = async (req, res) => {
+module.exports.extUpdate = async (req, res) => {
     try {
         let campaign = req.body
         campaign.updatedAt = Date.now()
         let updatedCampaign = await Campaigns.findOneAndUpdate(
             { _id: req.params.id, idNode: req.body.userId },
-            { $set: campaign.values },
+            {
+                $set: {
+                    values: { ...campaign.values } ,
+                //   walletId: req.body.walletId,
+                },
+            },
             { new: true }
         )
 
@@ -794,7 +807,7 @@ module.exports.externalUploadPictureToIPFS = async (req, res) => {
     // using IPFS
     try {
         if (req.file) {
-            const { id } = req.params
+            const { id } = '65a90106ceb1f41824a61161'
 
             // SEARCH COMPAIGN ID
             const campaign = await Campaigns.findOne({
