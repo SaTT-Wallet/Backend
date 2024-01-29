@@ -10,6 +10,7 @@ const {
     campaignDetails,
     campaigns,
     launchCampaign,
+    launchCampaignExt,
     campaignPromp,
     launchBounty,
     apply,
@@ -20,10 +21,12 @@ const {
     gains,
     addKits,
     update,
+    extUpdate,
     kits,
     saveCampaign,
     upload,
     validateCampaign,
+    validateCampaignExt,
     bep20Allow,
     erc20Allow,
     expandUrl,
@@ -38,8 +41,10 @@ const {
     tronApproval,
     tronAllow,
     uploadPictureToIPFS,
+    uploadExternalPictureToIPFS,
     campaignsPictureUpload,
-    generateBrief
+    generateBrief,
+    externalAddKits
 } = require('../controllers/campaign.controller')
 const {
     evmApprovalValidation,
@@ -437,7 +442,10 @@ router.post('/erc20/allow', verifyAuth, evmAllowValidation,erc20Allow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/launch/performance', verifyAuth, launchCampaignValidation,launchCampaign)
+router.post('/launch/performance',  launchCampaignValidation,launchCampaign)
+
+router.post('/launch/performanceext', launchCampaignExt)
+
 /**
  * @swagger
  * /campaign/launchBounty:
@@ -510,6 +518,9 @@ router.get('/campaigns', campaigns)
 
 
 router.post('/ipfs/:id', verifyAuth,idCheckValidation,campaignsPictureUpload ,uploadPictureToIPFS)
+
+
+router.post('/ipfsExternal/:id', idCheckValidation,campaignsPictureUpload ,uploadExternalPictureToIPFS)
 
 /**
  * @swagger
@@ -725,6 +736,10 @@ router.post('/linkNotification', verifyAuth, linkNotificationsValidation , linkN
  *          description: error:error message
  */
 router.post('/validate', verifyAuth, validateCampaignValidation,validateCampaign)
+
+router.post('/validateExt',validateCampaignExt)
+
+
 
 /**
  * @swagger
@@ -989,6 +1004,10 @@ router.delete('/kit/:id', verifyAuth,idCheckValidation,deleteKit)
 
 router.post('/addKits', verifyAuth, upload, addKitsValidation,addKits)
 
+
+router.post('/externalAddKits',  upload, addKitsValidation,externalAddKits)
+
+
 /**
  * @swagger
  * /campaign/update/{idCampaign}:
@@ -1099,6 +1118,11 @@ router.post('/addKits', verifyAuth, upload, addKitsValidation,addKits)
  */
 
 router.put('/update/:id', verifyAuth, updateCampaignValidation,update)
+
+
+
+router.put('/extUpdate/:id',  extUpdate)
+
 /**
  * @swagger
  * /campaign/prom/stats/{idProm}:
