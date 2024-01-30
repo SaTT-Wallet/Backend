@@ -8,6 +8,7 @@ const {
     bttApproval,
     bttAllow,
     campaignDetails,
+    campaignDetailsDraft,
     campaigns,
     launchCampaign,
     launchCampaignExt,
@@ -546,6 +547,7 @@ router.post('/ipfsExternal/:id', idCheckValidation,campaignsPictureUpload ,uploa
  *          description: error:"error"
  */
 router.get('/details/:id', idCheckValidation,campaignDetails)
+router.get('/detailsdraft/:id', idCheckValidation,campaignDetailsDraft)
 
 /**
  * @swagger

@@ -729,6 +729,26 @@ exports.campaigns = async (req, res) => {
     }
 }
 
+exports.campaignDetailsDraft = async (req, res) => {
+    try {
+        var _id = req.params.id
+        var campaign = await Campaigns.findOne({ _id }).lean()
+        return responseHandler.makeResponseData(
+            res,
+            200,
+            'success',
+            campaign
+        )
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+
+}
+
 exports.campaignDetails = async (req, res) => {
     try {
         var _id = req.params.id
