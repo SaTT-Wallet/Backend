@@ -396,14 +396,14 @@ module.exports.launchCampaignExt = async (req, res) => {
     let { idCampaign: _id, currency } = req.body.campagne
 
     try {
-        const _id = req.body.campagne.id
+        const _id = req.body.campagne._id
 
         const contract = req.body.result.to
 
-        if (currency.name.includes('SATT')) {
-            amount = (req.body.campagne.amount * 95) / 100
+        if (req.body.campagne.token.name.includes('SATT')) {
+            amount = (req.body.campagne.cost * 95) / 100
         } else {
-            amount = (req.body.campagne.amount * 85) / 100
+            amount = (req.body.campagne.cost * 85) / 100
         }
         var campaign = {
             hash: req.body.campagne.hash,
@@ -412,27 +412,28 @@ module.exports.launchCampaignExt = async (req, res) => {
             endDate: req.body.campagne.endDate,
             limit: req.body.campagne.limit,
             token: {
-                name: req.body.campagne.currency.name,
-                type: req.body.campagne.currency.type,
-                addr: req.body.campagne.currency.addr,
+                name: req.body.campagne.token.name,
+                type: req.body.campagne.token.type,
+                addr: req.body.campagne.token.addr,
             },
             coverSrc: req.body.campagne.coverSrc,
             dataUrl:
                 'https://ropsten.etherscan.io/token/0x2bef0d7531f0aae08adc26a0442ba8d0516590d0',
-            funds: [contract, req.body.campagne.amount],
+            funds: [contract, req.body.campagne.cost],
             contract: contract.toLowerCase(),
             walletId: req.body.campagne.walletId,
             type: 'inProgress',
-            cost: req.body.campagne.amount,
+            cost: req.body.campagne.cost,
         }
-        let campaignData = await Campaigns.findOne({ _id })
+
+        
         campaign.cost_usd =
-            (req.body.campagne.currency.addr ==
+            (req.body.campagne.token.addr ==
                 Constants.bep20.address.sattBep20 &&
                 req.body.campagne.cost_usd * 0.95) ||
             req.body.campagne.cost_usd * 0.85
-
-        await Campaigns.updateOne({ _id }, { $set: campaign })
+            const updatedArray = { ...req.body.campagne, ...campaign };
+        await Campaigns.updateOne({ _id }, { $set: updatedArray })
 
         let event = {
             id: req.body.campagne.hash,
