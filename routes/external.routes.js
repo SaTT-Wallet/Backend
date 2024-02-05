@@ -29,7 +29,8 @@ const {
     externalAnswer,
     externalGains,
     campaigns,
-    getBalanceUserExternal
+    getBalanceUserExternal,
+    externalDeleteDraft
 } = require('../controllers/external.controller');
 
 const {
@@ -59,6 +60,8 @@ router.post('/createCampaign', verifySignatureMiddleware, externalSaveCampaign)
 router.get('/socialAccounts', verifySignatureMiddleware , externalSocialAccounts)
 router.post('/campaign/filterLinksExternal', verifySignatureMiddleware , externalGetLinks)
 
+
+router.delete('/deleteDraft/:id', verifySignatureMiddleware, idCheckValidation,externalDeleteDraft)
 router.post('/campaign/getLinksExternal', verifySignatureMiddleware , externalGetOneLinks)
 
 // DONE
