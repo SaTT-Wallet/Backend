@@ -55,13 +55,13 @@ var fs = require('fs')
 
 var rp = require('axios')
 const { oauth } = require('../conf/config')
-const { filterLinks } = require('../web3/campaigns')
+const { filterLinks, sortOutPublic, getLinkedinLinkInfo, influencersLinks,getTransactionAmountExternal } = require('../web3/campaigns')
 
 const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 const Grid = require('gridfs-stream')
 
-const { getLinkedinLinkInfo, influencersLinks,getTransactionAmountExternal } = require('../web3/campaigns')
+
 
 exports.createUserFromExternalWallet = async (req, res) => {
     try {
@@ -85,7 +85,7 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 savedUser
             )
         } else
-        await externalUpdateStatforUser(userExist.UserId)
+        //await externalUpdateStatforUser(userExist.UserId)
             return makeResponseData(
                 res,
                 200,
@@ -1384,5 +1384,81 @@ module.exports.externalGains = async (req, res) => {
             return responseHandler.makeResponseData(res, 200, 'success')
 
         }
+    }
+}
+
+
+
+exports.campaigns = async (req, res) => {
+    try {
+        let strangerDraft = []
+        let idWallet =
+            req.query.idWallet === 'null'
+                ? JSON.parse(req.query.idWallet)
+                : req.query.idWallet     
+        if (idWallet) {
+            let userId = await UserExternalWallet.findOne({walletId: idWallet}); 
+            var idNode = userId.UserId;
+            strangerDraft = await Campaigns.distinct('_id', {
+                idNode: { $ne: idNode },
+                hash: { $exists: false },
+            })
+        }
+        let limit = +req.query.limit || 10
+        let page = +req.query.page || 1
+        //let skip = limit * (page - 1)
+        let skip = 1 * (page - 1)
+        let query = sortOutPublic(req, idNode, strangerDraft)
+
+        let count = await Campaigns.countDocuments()
+        console.log({count});
+        let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
+        let campaigns = await Campaigns.aggregate([
+            {
+                $match: query,
+            },
+            {
+                $addFields: {
+                    sortPriority: { $eq: ['$idNode', idNode] },
+                    sort: {
+                        $indexOfArray: tri,
+                    },
+                },
+            },
+            {
+                $sort: {
+                    sort: 1,
+                    sortPriority: -1,
+                    launchDate: -1,
+                    _id: 1,
+                },
+            },
+            {
+                $project: {
+                    coverSrc: 0,
+                    description: 0,
+                    logo: 0,
+                    tags: 0,
+                    dataUrl: 0,
+                    countries: 0,
+                    resume: 0,
+                },
+            },
+        ])
+            .allowDiskUse(true)
+            .skip(skip)
+            .limit(1)
+
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            campaigns,
+            count,
+        })
+    } catch (err) {
+        
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
     }
 }

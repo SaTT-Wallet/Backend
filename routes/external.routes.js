@@ -27,7 +27,8 @@ const {
     externalApply,
     checkHarvest,
     externalAnswer,
-    externalGains
+    externalGains,
+    campaigns
 } = require('../controllers/external.controller');
 
 const {
@@ -47,9 +48,10 @@ const storage = multer.diskStorage({
     },
 })
 const upload = multer({ storage: storage });
-router.use(verifySignatureMiddleware);
+
 
 router.post('/create-user', createUserFromExternalWallet)
+router.get('/campaigns', campaigns)
 
 router.post('/createCampaign', verifySignatureMiddleware, externalSaveCampaign)
 // DONE
