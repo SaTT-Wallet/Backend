@@ -1513,3 +1513,33 @@ exports.getBalanceUserExternal = async (req, res) => {
         )
     }
 }
+
+
+module.exports.externalDeleteDraft = async (req, res) => {
+    try {
+        let user = await UserExternalWallet.findOne({
+            walletId: req.address,
+        })
+        let _id = req.params.id
+        let idUser = user.UserId
+        let campaign = await Campaigns.findOne({ _id })
+        if (campaign.idNode !== idUser.toString() || campaign.type !== 'draft') {
+
+            return responseHandler.makeResponseError(res, 401, 'unauthorized')
+        } else {
+            await Campaigns.deleteOne({ _id })
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'deleted successfully',
+                false
+            )
+        }
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
