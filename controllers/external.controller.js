@@ -8,7 +8,12 @@ const web3 = require('web3')
 const { externalUpdateStatforUser } = require('../helpers/common')
 const Big = require('big.js')
 const upload = multer({ dest: 'uploads/' });
-
+const {
+    getWeb3Instance,
+    formatTokenBalance,
+    getNativeBalance,
+} = require('../web3/wallets')
+const { Constants, TronConstant } = require('../conf/const')
 const {
     getInstagramUserName,
     findBountyOracle,
@@ -720,12 +725,13 @@ module.exports.externalSaveCampaign = async (req, res) => {
     try {
         let campaign = req.body
         const user = await UserExternalWallet.findOne({ walletId: req.address })
-
         campaign.idNode = user.UserId
         campaign.createdAt = Date.now()
         campaign.updatedAt = Date.now()
         campaign.type = 'draft'
+        console.log({campaign});
         let draft = await Campaigns.create(campaign)
+        console.log({draft});
         return responseHandler.makeResponseData(res, 200, 'success', draft)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -1397,8 +1403,8 @@ exports.campaigns = async (req, res) => {
                 ? JSON.parse(req.query.idWallet)
                 : req.query.idWallet     
         if (idWallet) {
-            let userId = await UserExternalWallet.findOne({walletId: idWallet}); 
-            var idNode = userId.UserId;
+            let user = await UserExternalWallet.findOne({walletId: idWallet}); 
+            var idNode = user.UserId;
             strangerDraft = await Campaigns.distinct('_id', {
                 idNode: { $ne: idNode },
                 hash: { $exists: false },
@@ -1411,7 +1417,6 @@ exports.campaigns = async (req, res) => {
         let query = sortOutPublic(req, idNode, strangerDraft)
 
         let count = await Campaigns.countDocuments()
-        console.log({count});
         let tri = [['draft', 'apply', 'inProgress', 'finished'], '$type']
         let campaigns = await Campaigns.aggregate([
             {
@@ -1455,6 +1460,52 @@ exports.campaigns = async (req, res) => {
         })
     } catch (err) {
         
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error
+        )
+    }
+}
+
+
+exports.getBalanceUserExternal = async (req, res) => {
+    try {
+        const { network, walletAddress, smartContract, isNative } = req.body
+
+        // Initialize the appropriate Web3 instance based on the network
+        const web3Instance = await getWeb3Instance(network)
+
+        if (!isNative) {
+            const contract = new web3Instance.eth.Contract(
+                Constants.token.abi,
+                smartContract
+            )
+            const [balance, decimals] = await Promise.all([
+                contract.methods.balanceOf(walletAddress).call(),
+                contract.methods.decimals().call(),
+            ])
+            const balanceFormatted = formatTokenBalance(balance, decimals)
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                balanceFormatted
+            )
+        } else {
+            const balance = await getNativeBalance(
+                web3Instance,
+                walletAddress,
+                network
+            )
+            return responseHandler.makeResponseData(
+                res,
+                200,
+                'success',
+                balance
+            )
+        }
+    } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
