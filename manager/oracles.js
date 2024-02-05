@@ -1167,8 +1167,7 @@ exports.answerOne = async (
                     },
                     { UserId: 1 }
                 ).lean()
-                var res = await instagram(idUser, campaign_link)
-
+                var res = await instagram(userWallet.UserId, campaign_link)
                 break
             case '4':
                 var res = await twitter(idUser, idPost)
