@@ -1,6 +1,7 @@
 const { linkedinActivityUrl, config, oauth } = require('../conf/config')
 var rp = require('axios')
 var Web3 = require('web3')
+const needle = require('needle')
 const {
     web3UrlBep20,
     web3UrlBTT,
@@ -270,22 +271,21 @@ exports.verifyThread = async (idPost, threads_id, instagram_username) => {
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
         const token = process.env.TWITTER_BEARER_TOKEN
-        const endpointURL = 'https://api.twitter.com/2/tweets?ids='
+        const endpointURL = process.env.TWITTER_API_V2_URL
         const params = {
             ids: idPost, // Edit Tweet IDs to look up
-            'tweet.fields': 'author_id', // Edit optional query parameters here
+            'tweet.fields': 'lang,author_id', // Edit optional query parameters here
             'user.fields': 'created_at', // Edit optional query parameters here
         }
-        let config = {
-            params: params,
+
+        // this is the HTTP header that adds bearer token authentication
+        const res = await needle('get', endpointURL, params, {
             headers: {
                 authorization: `Bearer ${token}`,
             },
-        }
-        const tweet = await axios.get(endpointURL, config)
-        console.log({ tweet })
+        })
         var twitterProfile = await TwitterProfile.findOne({
-            id: tweet.data.author_id,
+            id: res.body.data[0].author_id,
             UserId: userId,
         }).select('access_token_key access_token_secret id')
         return twitterProfile ? true : false
@@ -915,25 +915,27 @@ const instagram = async (UserId, link) => {
 
 const twitter = async (userName, idPost) => {
     try {
-        var tweet = new Twitter({
-            consumer_key: oauth.twitter.consumer_key_alt,
-            consumer_secret: oauth.twitter.consumer_secret_alt,
-            access_token_key: oauth.access_token_key,
-            access_token_secret: oauth.access_token_secret,
-            bearer_token: process.env.TWITTER_BEARER_TOKEN,
+        const token = process.env.TWITTER_BEARER_TOKEN
+        const endpointURL = process.env.TWITTER_API_V2_URL
+        const params = {
+            ids: idPost, // Edit Tweet IDs to look up
+            'tweet.fields': 'public_metrics', // Edit optional query parameters here
+            'media.fields':
+                'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width,alt_text', // Edit optional query parameters here
+            expansions: 'attachments.media_keys',
+        }
+        // this is the HTTP header that adds bearer token authentication
+        const res = await needle('get', endpointURL, params, {
+            headers: {
+                authorization: `Bearer ${token}`,
+            },
         })
-        const res = await tweet.get(
-            `https://api.twitter.com/1.1/statuses/show.json?id=${idPost}&include_entities=true`,
-            { params: {} }
-        )
         var perf = {
-            shares: res.retweet_count,
-            likes: res.favorite_count,
-            // views: No direct equivalent in API v1.1, impression count is not available
+            shares: res.body.data[0].public_metrics.retweet_count,
+            likes: res.body.data[0].public_metrics.like_count,
+            views: res.body.data[0].public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-            // API v1.1 doesn't provide a 'media_url' in the same manner as API v2.
-            // Here we are trying to find it from the entities->media object if it exists.
-            media_url: res.extended_entities.media[0]?.media_url_https || ' ',
+            media_url: res.body.includes.media[0].url || ' ',
         }
         return perf
     } catch (err) {
