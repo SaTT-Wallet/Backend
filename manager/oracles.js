@@ -551,22 +551,43 @@ exports.instagramAbos = async (idPost, id, userName) => {
 
 exports.twitterAbos = async function (pageName, idPost) {
     try {
-        var tweet = new Twitter({
-            consumer_key: oauth.twitter.consumer_key_alt,
-            consumer_secret: oauth.twitter.consumer_secret_alt,
-            access_token_key: oauth?.twitter?.access_token_key,
-            access_token_secret: oauth.twitter.access_token_secret,
-            bearer_token: process.env.TWITTER_BEARER_TOKEN,
+        const token = process.env.TWITTER_BEARER_TOKEN
+        const endpointURL = process.env.TWITTER_API_V2_URL
+        const params = {
+            ids: idPost, // Edit Tweet IDs to look up
+            'tweet.fields': 'lang,author_id', // Edit optional query parameters here
+            'user.fields': 'created_at', // Edit optional query parameters here
+        }
+
+        // this is the HTTP header that adds bearer token authentication
+        const res = await needle('get', endpointURL, params, {
+            headers: {
+                authorization: `Bearer ${token}`,
+            },
         })
-        var twitterDetails = await tweet.get('statuses/show', { id: idPost })
+        const userId = res.body.data[0].author_id
+        const userFollowersEndPoint = `https://api.twitter.com/2/users/${userId}?`
+        const response = await needle(
+            'get',
+            userFollowersEndPoint,
+            { 'user.fields': 'public_metrics' },
+            {
+                headers: {
+                    authorization: `Bearer ${token}`,
+                },
+            }
+        )
         await TwitterProfile.updateMany(
             {
-                id: twitterDetails.user.id_str,
+                id: userId,
             },
-            { '_json.followers_count': twitterDetails.user.followers_count }
+            {
+                '_json.followers_count':
+                    response.body.data.public_metrics.followers_count,
+            }
         )
 
-        return twitterDetails.user.followers_count
+        return response.body.data.public_metrics.followers_count
     } catch (err) {}
 }
 
