@@ -586,7 +586,6 @@ exports.twitterAbos = async function (pageName, idPost) {
                     response.body.data.public_metrics.followers_count,
             }
         )
-
         return response.body.data.public_metrics.followers_count
     } catch (err) {}
 }
@@ -951,12 +950,15 @@ const twitter = async (userName, idPost) => {
                 authorization: `Bearer ${token}`,
             },
         })
+
         var perf = {
             shares: res.body.data[0].public_metrics.retweet_count,
             likes: res.body.data[0].public_metrics.like_count,
             views: res.body.data[0].public_metrics.impression_count,
             date: Math.floor(Date.now() / 1000),
-            media_url: res.body.includes.media[0].url || ' ',
+            media_url: !!res.body?.includes?.media?.[0]?.url
+                ? res.body.includes.media[0].url
+                : ' ',
         }
         return perf
     } catch (err) {
