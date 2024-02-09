@@ -270,7 +270,7 @@ exports.verifyThread = async (idPost, threads_id, instagram_username) => {
 }
 exports.verifyTwitter = async function (twitterProfile, userId, idPost) {
     try {
-        const token = process.env.TWITTER_BEARER_TOKEN
+        const token = process.env.TWITTER_BEARER_TOKEN_V2
         const endpointURL = process.env.TWITTER_API_V2_URL
         const params = {
             ids: idPost, // Edit Tweet IDs to look up
@@ -551,7 +551,7 @@ exports.instagramAbos = async (idPost, id, userName) => {
 
 exports.twitterAbos = async function (pageName, idPost) {
     try {
-        const token = process.env.TWITTER_BEARER_TOKEN
+        const token = process.env.TWITTER_BEARER_TOKEN_V2
         const endpointURL = process.env.TWITTER_API_V2_URL
         const params = {
             ids: idPost, // Edit Tweet IDs to look up
@@ -935,7 +935,7 @@ const instagram = async (UserId, link) => {
 
 const twitter = async (userName, idPost) => {
     try {
-        const token = process.env.TWITTER_BEARER_TOKEN
+        const token = process.env.TWITTER_BEARER_TOKEN_V2
         const endpointURL = process.env.TWITTER_API_V2_URL
         const params = {
             ids: idPost, // Edit Tweet IDs to look up
