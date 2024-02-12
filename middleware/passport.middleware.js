@@ -778,16 +778,12 @@ exports.addTwitterChannel = async (req, res) => {
     } = await userAuth.get('account/verify_credentials', {
         include_email: true,
     })
-
+    const env = req.query.r.includes('frontendApp=metamask')
+        ? process.env.METAMASK_BASED_URL
+        : process.env.BASED_URL
     if (await TwitterProfile.exists({ UserId: user_id, twitter_id: id })) {
         return res.redirect(
-            req.query.state.includes('frontendApp=metamask')
-                ? process.env.METAMASK_BASED_URL
-                : process.env.BASED_URL +
-                      redirect +
-                      '?message=' +
-                      'account exist' +
-                      '&sn=twitter'
+            env + redirect + '?message=' + 'account exist' + '&sn=twitter'
         )
     } else {
         let profile = { _json: {} }
@@ -805,13 +801,11 @@ exports.addTwitterChannel = async (req, res) => {
     }
     // return cb(null, { id: user_id })
     res.redirect(
-        req.query.state.includes('frontendApp=metamask')
-            ? process.env.METAMASK_BASED_URL
-            : process.env.BASED_URL +
-                  redirect +
-                  '?message=' +
-                  'account_linked_with_success' +
-                  '&sn=twitter'
+        env +
+            redirect +
+            '?message=' +
+            'account_linked_with_success' +
+            '&sn=twitter'
     )
 }
 /*

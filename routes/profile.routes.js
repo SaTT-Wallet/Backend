@@ -81,7 +81,7 @@ const {
     checkThreads,
     addThreadsAccount,
     removeThreadsAccount,
-    notificationDecision
+    notificationDecision,
 } = require('../controllers/profile.controller')
 const {
     addFacebookChannel,
@@ -92,7 +92,7 @@ const {
     verifyAuth,
     telegram_connect_function,
     connectTelegramAccount,
-    linkSocialAccount
+    linkSocialAccount,
 } = require('../middleware/passport.middleware')
 const {
     facebookCredentials,
@@ -115,10 +115,9 @@ const {
     verifyLinkValidation,
     ShareByActivityValidation,
     addUserLegalProfileValidation,
-    idThreadsAccountValidation
+    idThreadsAccountValidation,
 } = require('../middleware/profileValidator.middleware')
 const { sendNotificationTest } = require('../manager/notification')
-
 
 /**
  * @swagger
@@ -187,7 +186,13 @@ router.get('/picture', verifyAuth, profilePicture)
  *          description: error:<br> server error
  */
 
-router.post('/picture', verifyAuth, uploadImageProfile, addProfilePictureValidation,addProfilePicture)
+router.post(
+    '/picture',
+    verifyAuth,
+    uploadImageProfile,
+    addProfilePictureValidation,
+    addProfilePicture
+)
 /**
  * @swagger
  * /profile/UpdateProfile:
@@ -248,7 +253,7 @@ router.post('/picture', verifyAuth, uploadImageProfile, addProfilePictureValidat
  *       "500":
  *          description: error:<br> server error
  */
-router.put('/UpdateProfile', verifyAuth, updateProfileValidation,updateProfile)
+router.put('/UpdateProfile', verifyAuth, updateProfileValidation, updateProfile)
 /**
  * @swagger
  * /profile/UserLegal:
@@ -317,7 +322,12 @@ router.get('/UserIntersts', verifyAuth, UserInterstes)
  *       "500":
  *          description: error:<br> Server error
  */
-router.post('/AddUserIntersts', verifyAuth, UpdateInterstsValidation,UpdateIntersts)
+router.post(
+    '/AddUserIntersts',
+    verifyAuth,
+    UpdateInterstsValidation,
+    UpdateIntersts
+)
 
 /**
  * @swagger
@@ -349,7 +359,12 @@ router.post('/AddUserIntersts', verifyAuth, UpdateInterstsValidation,UpdateInter
  *       "500":
  *          description: error:<br> server error
  */
-router.put('/UpdateUserIntersts', verifyAuth, UpdateInterstsValidation,UpdateIntersts)
+router.put(
+    '/UpdateUserIntersts',
+    verifyAuth,
+    UpdateInterstsValidation,
+    UpdateIntersts
+)
 
 /**
  * @swagger
@@ -393,7 +408,12 @@ router.delete('/RemoveTwitterChannels', verifyAuth, deleteTwitterChannels)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveTwitterChannel/:id', verifyAuth, idCheckValidation,deleteTwitterChannel)
+router.delete(
+    '/RemoveTwitterChannel/:id',
+    verifyAuth,
+    idCheckValidation,
+    deleteTwitterChannel
+)
 
 /**
  * @swagger
@@ -437,9 +457,12 @@ router.delete('/RemoveGoogleChannels', verifyAuth, deleteGoogleChannels)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveGoogleChannel/:id', verifyAuth, idCheckValidation,deleteGoogleChannel)
-
-
+router.delete(
+    '/RemoveGoogleChannel/:id',
+    verifyAuth,
+    idCheckValidation,
+    deleteGoogleChannel
+)
 
 /**
  * @swagger
@@ -484,7 +507,12 @@ router.delete('/RemoveFacebookChannels', verifyAuth, deleteFacebookChannels)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/RemoveFacebookChannel/:id', verifyAuth, idCheckValidation,deleteFacebookChannel)
+router.delete(
+    '/RemoveFacebookChannel/:id',
+    verifyAuth,
+    idCheckValidation,
+    deleteFacebookChannel
+)
 
 /**
  * @swagger
@@ -558,8 +586,12 @@ router.delete(
  *          description: error:<br> server error
  */
 
-router.delete('/RemoveTiktokChannel/:id', verifyAuth, idCheckValidation,deleteTiktokChannel)
-
+router.delete(
+    '/RemoveTiktokChannel/:id',
+    verifyAuth,
+    idCheckValidation,
+    deleteTiktokChannel
+)
 
 /**
  * @swagger
@@ -602,7 +634,6 @@ router.delete('/RemoveTiktokChannels', verifyAuth, deleteTiktokChannels)
  */
 router.get('/socialAccounts', verifyAuth, socialAccounts)
 
-
 /**
  * @swagger
  * /profile/addChannel/facebook/{idUser}:
@@ -615,20 +646,24 @@ router.get('/socialAccounts', verifyAuth, socialAccounts)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/facebook/:idUser', idUserCheckValidation,(req, res, next) => {
-    const state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('facebook_strategy_add_channel', {
-        scope: [
-            'email',
-            'read_insights',
-            'pages_show_list',
-            'instagram_basic',
-            'instagram_manage_insights',
-            'pages_read_engagement',
-        ],
-        state,
-    })(req, res, next)
-})
+router.get(
+    '/addChannel/facebook/:idUser',
+    idUserCheckValidation,
+    (req, res, next) => {
+        const state = req.params.idUser + '|' + req.query.redirect
+        passport.authenticate('facebook_strategy_add_channel', {
+            scope: [
+                'email',
+                'read_insights',
+                'pages_show_list',
+                'instagram_basic',
+                'instagram_manage_insights',
+                'pages_read_engagement',
+            ],
+            state,
+        })(req, res, next)
+    }
+)
 
 passport.use(
     'facebook_strategy_add_channel',
@@ -645,7 +680,9 @@ router.get(
     (req, res, next) => {
         passport.authenticate('facebook_strategy_add_channel', {
             failureRedirect:
-            req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL+
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                 req.query.state.split('|')[1] +
                 '?message=access-denied',
         })(req, res, next)
@@ -655,7 +692,9 @@ router.get(
             redirect = req.query.state.split('|')[1]
             let message = req.authInfo.message
             response.redirect(
-                req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL+
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                     redirect +
                     '?message=' +
                     message +
@@ -681,7 +720,7 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/tiktokAbos/:idUser', idUserCheckValidation,tiktokApiAbos)
+router.get('/tiktokAbos/:idUser', idUserCheckValidation, tiktokApiAbos)
 /**
  * @swagger
  * /profile/addChannel/twitter/{idUser}:
@@ -694,14 +733,18 @@ router.get('/tiktokAbos/:idUser', idUserCheckValidation,tiktokApiAbos)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/twitter/:idUser', idUserCheckValidation,async (req, res) => {
-    const requestedData = await client.getRequestToken(
-        process.env.BASEURL +
-            'profile/callback/addChannel/twitter' +
-            `?u=${req.params.idUser}&r=${req.query.redirect}`
-    )
-    res.redirect(twitterAuthUrl(requestedData.oauth_token))
-})
+router.get(
+    '/addChannel/twitter/:idUser',
+    idUserCheckValidation,
+    async (req, res) => {
+        const requestedData = await client.getRequestToken(
+            process.env.BASEURL +
+                'profile/callback/addChannel/twitter' +
+                `?u=${req.params.idUser}&r=${req.query.redirect}`
+        )
+        res.redirect(twitterAuthUrl(requestedData.oauth_token))
+    }
+)
 
 router.get('/callback/addChannel/twitter', addTwitterChannel)
 
@@ -717,14 +760,18 @@ router.get('/callback/addChannel/twitter', addTwitterChannel)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/linkedin/:idUser', idUserCheckValidation,(req, res, next) => {
-    let state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('linkedin_strategy_add_channel', { state })(
-        req,
-        res,
-        next
-    )
-})
+router.get(
+    '/addChannel/linkedin/:idUser',
+    idUserCheckValidation,
+    (req, res, next) => {
+        let state = req.params.idUser + '|' + req.query.redirect
+        passport.authenticate('linkedin_strategy_add_channel', { state })(
+            req,
+            res,
+            next
+        )
+    }
+)
 
 passport.use(
     'linkedin_strategy_add_channel',
@@ -743,7 +790,9 @@ router.get(
         if (!req.query.error) next()
         else
             res.redirect(
-                req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL+
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                     redirect +
                     '?message=access-denied&sn=linkd'
             )
@@ -754,7 +803,9 @@ router.get(
             let redirect = req.query.state.split('|')[1]
             let message = req.authInfo.message
             res.redirect(
-                req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL +
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                     redirect +
                     '?message=' +
                     message +
@@ -779,21 +830,23 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/tikTok/:idUser', idUserCheckValidation,(req, res, next) => {
-    const state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('tikTok_strategy_add_channel', {
-        scope: ['user.info.basic', 'video.list'],
-        state,
-    })(req, res, next)
-})
+router.get(
+    '/addChannel/tikTok/:idUser',
+    idUserCheckValidation,
+    (req, res, next) => {
+        const state = req.params.idUser + '|' + req.query.redirect
+        passport.authenticate('tikTok_strategy_add_channel', {
+            scope: ['user.info.basic', 'video.list'],
+            state,
+        })(req, res, next)
+    }
+)
 
 passport.use(
     'tikTok_strategy_add_channel',
     new tikTokStrategy(
         tikTokCredentials('profile/callback/addChannel/tikTok'),
         (req, accessToken, refreshToken, profile, cb) => {
-     
-           
             addTikTokChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
@@ -804,7 +857,9 @@ router.get(
     (req, res, next) => {
         passport.authenticate('tikTok_strategy_add_channel', {
             failureRedirect:
-            req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL +
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                 req.query.state.split('|')[1] +
                 '?message=access-denied',
         })(req, res, next)
@@ -819,7 +874,9 @@ router.get(
                 message = 'account_linked_with_success'
             }
             response.redirect(
-                req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL +
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                     redirect +
                     '?message=' +
                     message +
@@ -840,24 +897,28 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/addChannel/youtube/:idUser', idUserCheckValidation,(req, res, next) => {
-    var state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('youtube_strategy_add_channel', {
-        scope: [
-            'profile',
-            'email',
-            'https://www.googleapis.com/auth/youtube.readonly',
-        ],
-        accessType: 'offline',
-        prompt: 'consent',
-        state: state,
-    })(req, res, next)
-})
+router.get(
+    '/addChannel/youtube/:idUser',
+    idUserCheckValidation,
+    (req, res, next) => {
+        var state = req.params.idUser + '|' + req.query.redirect
+        passport.authenticate('youtube_strategy_add_channel', {
+            scope: [
+                'profile',
+                'email',
+                'https://www.googleapis.com/auth/youtube.readonly',
+            ],
+            accessType: 'offline',
+            prompt: 'consent',
+            state: state,
+        })(req, res, next)
+    }
+)
 passport.use(
     'youtube_strategy_add_channel',
     new GoogleStrategy(
         googleCredentials('profile/callback/addChannel/youtube'),
-        async (req, accessToken, refreshToken, profile, cb) => { 
+        async (req, accessToken, refreshToken, profile, cb) => {
             addyoutubeChannel(req, accessToken, refreshToken, profile, cb)
         }
     )
@@ -868,7 +929,9 @@ router.get(
     (req, res, next) => {
         passport.authenticate('youtube_strategy_add_channel', {
             failureRedirect:
-            req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL +
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                 req.query.state.split('|')[1] +
                 '?message=access-denied&sn=youtue',
         })(req, res, next)
@@ -882,7 +945,12 @@ router.get(
                 message = 'account_linked_with_success'
             }
             res.redirect(
-                req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL + redirect + '?message=' + message
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
+                    redirect +
+                    '?message=' +
+                    message
             )
         } catch (err) {
             res.end(
@@ -948,7 +1016,7 @@ router.get('/onBoarding', verifyAuth, checkOnBoarding)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/receiveMoney', verifyAuth, requestMoneyValidation,requestMoney)
+router.post('/receiveMoney', verifyAuth, requestMoneyValidation, requestMoney)
 
 /**
  * @swagger
@@ -1009,7 +1077,12 @@ router.post(
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/legalUserUpload/:id', verifyAuth, idCheckValidation,FindUserLegalProfile)
+router.get(
+    '/legalUserUpload/:id',
+    verifyAuth,
+    idCheckValidation,
+    FindUserLegalProfile
+)
 
 /**
  * @swagger
@@ -1036,7 +1109,12 @@ router.get('/legalUserUpload/:id', verifyAuth, idCheckValidation,FindUserLegalPr
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/notification/seen/:id', verifyAuth, idCheckValidation,notificationUpdate)
+router.post(
+    '/notification/seen/:id',
+    verifyAuth,
+    idCheckValidation,
+    notificationUpdate
+)
 
 /**
  * @swagger
@@ -1108,7 +1186,7 @@ router.get('/notifications', verifyAuth, getNotifications)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/changeEmail', verifyAuth, changeEmailValidation,changeEmail)
+router.post('/changeEmail', verifyAuth, changeEmailValidation, changeEmail)
 
 /**
  * @swagger
@@ -1140,7 +1218,7 @@ router.post('/changeEmail', verifyAuth, changeEmailValidation,changeEmail)
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/SattSupport', supportValidation,support)
+router.post('/SattSupport', supportValidation, support)
 
 /**
  * @swagger
@@ -1154,10 +1232,18 @@ router.post('/SattSupport', supportValidation,support)
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/connect/facebook/:idUser', idUserCheckValidation,(req, res, next) => {
-    let state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('link_facebook_account', { state })(req, res, next)
-})
+router.get(
+    '/connect/facebook/:idUser',
+    idUserCheckValidation,
+    (req, res, next) => {
+        let state = req.params.idUser + '|' + req.query.redirect
+        passport.authenticate('link_facebook_account', { state })(
+            req,
+            res,
+            next
+        )
+    }
+)
 
 passport.use(
     'link_facebook_account',
@@ -1170,7 +1256,7 @@ passport.use(
                 profile,
                 done: cb,
                 token_field: 'idOnSn',
-                id_field: 'token_for_business'
+                id_field: 'token_for_business',
             })
         }
     )
@@ -1181,7 +1267,9 @@ router.get(
     (req, res, next) => {
         passport.authenticate('link_facebook_account', {
             failureRedirect:
-            req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL +
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                 '/home/settings/social-networks?message=access-denied',
         })(req, res, next)
     },
@@ -1190,7 +1278,12 @@ router.get(
             let state = req.query.state.split('|')
             let url = state[1]
             response.redirect(
-                req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL + url + '?message=' + req.authInfo.message
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
+                    url +
+                    '?message=' +
+                    req.authInfo.message
             )
         } catch (e) {}
     }
@@ -1208,13 +1301,17 @@ router.get(
  *       "200":
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
-router.get('/connect/google/:idUser', idUserCheckValidation,(req, res, next) => {
-    let state = req.params.idUser + '|' + req.query.redirect
-    passport.authenticate('link_google_account', {
-        scope: ['profile', 'email'],
-        state: state,
-    })(req, res, next)
-})
+router.get(
+    '/connect/google/:idUser',
+    idUserCheckValidation,
+    (req, res, next) => {
+        let state = req.params.idUser + '|' + req.query.redirect
+        passport.authenticate('link_google_account', {
+            scope: ['profile', 'email'],
+            state: state,
+        })(req, res, next)
+    }
+)
 
 passport.use(
     'link_google_account',
@@ -1225,7 +1322,7 @@ passport.use(
                 req,
                 profile,
                 done,
-                token_field: 'idOnSn2'
+                token_field: 'idOnSn2',
             })
         }
     )
@@ -1236,16 +1333,25 @@ router.get(
     (req, res, next) => {
         passport.authenticate('link_google_account', {
             failureRedirect:
-            req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL +
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
                 '/home/settings/social-networks?message=access-denied',
-        })(req,res,next)
+        })(req, res, next)
     },
     async (req, res) => {
         try {
             let state = req.query.state.split('|')
             let url = state[1]
             let message = req.authInfo.message
-            res.redirect(req.query.state.includes('frontendApp=metamask') ? process.env.METAMASK_BASED_URL: process.env.BASED_URL + url + '?message=' + message)
+            res.redirect(
+                (req.query.state.includes('frontendApp=metamask')
+                    ? process.env.METAMASK_BASED_URL
+                    : process.env.BASED_URL) +
+                    url +
+                    '?message=' +
+                    message
+            )
         } catch (e) {}
     }
 )
@@ -1263,7 +1369,8 @@ router.get(
  *          description: redirection:param={"access_token":token,"expires_in":expires_in,"token_type":"bearer","scope":"user"}
  */
 router.get(
-    '/connect/telegram/:idUser',idUserCheckValidation,
+    '/connect/telegram/:idUser',
+    idUserCheckValidation,
     passport.authenticate('link_telegram_account'),
     connectTelegramAccount
 )
@@ -1307,7 +1414,12 @@ passport.use(
  *       "500":
  *          description: error:<br> server error
  */
-router.post('/confirmChangeEmail', verifyAuth, confrimChangeMailValidation,confrimChangeMail)
+router.post(
+    '/confirmChangeEmail',
+    verifyAuth,
+    confrimChangeMailValidation,
+    confrimChangeMail
+)
 
 /**
  * @swagger
@@ -1344,7 +1456,12 @@ router.post('/confirmChangeEmail', verifyAuth, confrimChangeMailValidation,confr
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLinkValidation,verifyLink)
+router.get(
+    '/link/verify/:typeSN/:idUser/:idPost',
+    verifyAuth,
+    verifyLinkValidation,
+    verifyLink
+)
 
 /**
  * @swagger
@@ -1365,7 +1482,12 @@ router.get('/link/verify/:typeSN/:idUser/:idPost', verifyAuth, verifyLinkValidat
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/link/verify/fbUserName/:id', verifyAuth, idCheckValidation,convertIdToFbUsername)
+router.get(
+    '/link/verify/fbUserName/:id',
+    verifyAuth,
+    idCheckValidation,
+    convertIdToFbUsername
+)
 
 /**
  * @swagger
@@ -1388,7 +1510,12 @@ router.get('/link/verify/fbUserName/:id', verifyAuth, idCheckValidation,convertI
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/linkedin/ShareByActivity/:activity', verifyAuth, ShareByActivityValidation,ShareByActivity)
+router.get(
+    '/linkedin/ShareByActivity/:activity',
+    verifyAuth,
+    ShareByActivityValidation,
+    ShareByActivity
+)
 
 /**
  * @swagger
@@ -1424,13 +1551,14 @@ router.get('/Tiktok/ProfilPrivacy', verifyAuth, ProfilPrivacy)
  */
 
 router.get('/add/threads-account', verifyAuth, addThreadsAccount)
-router.get('/check/threads-account',verifyAuth,checkThreads)
+router.get('/check/threads-account', verifyAuth, checkThreads)
 
-
-
-router.delete('/remove/threads-account/:id', verifyAuth, idThreadsAccountValidation,removeThreadsAccount)
-
-
+router.delete(
+    '/remove/threads-account/:id',
+    verifyAuth,
+    idThreadsAccountValidation,
+    removeThreadsAccount
+)
 
 router.get('/notifications/decision', verifyAuth, notificationDecision)
 
