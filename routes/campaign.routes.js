@@ -1371,6 +1371,6 @@ router.get('/statistics', campaignsStatistics)
  */
 router.delete('/deleteDraft/:id', verifyAuth, idCheckValidation, deleteDraft)
 
-router.post('/generate-brief', verifyAuth, titleCheckValidation, generateBrief)
+router.post('/generate-brief', titleCheckValidation, generateBrief)
 
 module.exports = router
