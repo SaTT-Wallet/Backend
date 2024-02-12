@@ -426,13 +426,12 @@ module.exports.launchCampaignExt = async (req, res) => {
             cost: req.body.campagne.cost,
         }
 
-        
         campaign.cost_usd =
             (req.body.campagne.token.addr ==
                 Constants.bep20.address.sattBep20 &&
                 req.body.campagne.cost_usd * 0.95) ||
             req.body.campagne.cost_usd * 0.85
-            const updatedArray = { ...req.body.campagne, ...campaign };
+        const updatedArray = { ...req.body.campagne, ...campaign }
         await Campaigns.updateOne({ _id }, { $set: updatedArray })
 
         let event = {
@@ -734,12 +733,7 @@ exports.campaignDetailsDraft = async (req, res) => {
     try {
         var _id = req.params.id
         var campaign = await Campaigns.findOne({ _id }).lean()
-        return responseHandler.makeResponseData(
-            res,
-            200,
-            'success',
-            campaign
-        )
+        return responseHandler.makeResponseData(res, 200, 'success', campaign)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -747,7 +741,6 @@ exports.campaignDetailsDraft = async (req, res) => {
             err.message ? err.message : err.error
         )
     }
-
 }
 
 exports.campaignDetails = async (req, res) => {
@@ -1226,11 +1219,11 @@ exports.linkNotifications = async (req, res) => {
 exports.validateCampaignExt = async (req, res) => {
     try {
         let link = await CampaignLink.findOne({ _id: req.body.prom.id }).lean()
-        
-        const campaignId = req.body.prom.campaign._id 
 
-        const campaign = await Campaigns.findOne({_id: campaignId}).lean()
-        
+        const campaignId = req.body.prom.campaign._id
+
+        const campaign = await Campaigns.findOne({ _id: campaignId }).lean()
+
         let linkedinProfile =
             link.oracle == 'linkedin' &&
             (await LinkedinProfile.findOne({ userId: req.body.userId }))
@@ -1245,7 +1238,7 @@ exports.validateCampaignExt = async (req, res) => {
             linkedinProfile,
             tiktokProfile
         )
-        delete socialOracle.id_prom;
+        delete socialOracle.id_prom
 
         socialOracle.status = true
         link.status = true
@@ -1263,10 +1256,12 @@ exports.validateCampaignExt = async (req, res) => {
         socialOracle.id_prom = req.body.ret.toString()
         await CampaignLink.updateOne(
             { _id: req.body.prom.id },
-            { $set: {
-                ...socialOracle,
-                id_prom: req.body.ret.toString()
-              } }
+            {
+                $set: {
+                    ...socialOracle,
+                    id_prom: req.body.ret.toString(),
+                },
+            }
         )
 
         return responseHandler.makeResponseData(res, 200, 'success')
@@ -1707,7 +1702,7 @@ exports.gains = async (req, res) => {
                     userId: req.user._id,
                 })
             }
-
+            const external = false
             stats = await answerOne(
                 prom.typeSN + '',
                 prom.idPost + '',
@@ -1715,7 +1710,8 @@ exports.gains = async (req, res) => {
                 link.typeURL,
                 linkedinData,
                 tiktokProfile,
-                prom.instagramUserName
+                prom.instagramUserName,
+                external
             )
             var copyStats = { ...stats }
             var ratios =
