@@ -7,7 +7,7 @@ var sanitize = require('mongo-sanitize')
 const web3 = require('web3')
 const { externalUpdateStatforUser } = require('../helpers/common')
 const Big = require('big.js')
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'uploads/' })
 const {
     getWeb3Instance,
     formatTokenBalance,
@@ -33,7 +33,7 @@ const {
     verifyTwitter,
     verifyLinkedin,
     verifytiktok,
-    verifyThread
+    verifyThread,
 } = require('../manager/oracles')
 
 const {
@@ -42,7 +42,7 @@ const {
     getCampaignOwnerAddr,
     webTronInstance,
 } = require('../blockchainConnexion')
-const storageCover =  multer.memoryStorage();
+const storageCover = multer.memoryStorage()
 const {
     Campaigns,
     GoogleProfile,
@@ -60,13 +60,17 @@ var fs = require('fs')
 
 var rp = require('axios')
 const { oauth } = require('../conf/config')
-const { filterLinks, sortOutPublic, getLinkedinLinkInfo, influencersLinks,getTransactionAmountExternal } = require('../web3/campaigns')
+const {
+    filterLinks,
+    sortOutPublic,
+    getLinkedinLinkInfo,
+    influencersLinks,
+    getTransactionAmountExternal,
+} = require('../web3/campaigns')
 
 const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 const Grid = require('gridfs-stream')
-
-
 
 exports.createUserFromExternalWallet = async (req, res) => {
     try {
@@ -82,15 +86,16 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 walletId: req.body.wallet,
             })
             const savedUser = await user.save()
-           
+
             return makeResponseData(
                 res,
                 200,
                 'User created successfully',
                 savedUser
             )
-        } else
+        }
         //await externalUpdateStatforUser(userExist.UserId)
+        else
             return makeResponseData(
                 res,
                 200,
@@ -98,7 +103,7 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 userExist
             )
     } catch (err) {
-        console.log({err})
+        console.log({ err })
         return makeResponseError(
             res,
             500,
@@ -109,7 +114,7 @@ exports.createUserFromExternalWallet = async (req, res) => {
 
 exports.campaignsPictureUploadExternal = multer({
     storage: storageCover,
-}).single('cover');
+}).single('cover')
 
 exports.externalSocialAccounts = async (req, res) => {
     try {
@@ -412,9 +417,16 @@ exports.externalGetLinks = async (req, res) => {
         let allProms = []
         let query = filterLinks(req, accountData)
         var count = query.id_campaign
-        ? (delete query.id_wallet, await CampaignLink.find({ id_campaign: query.id_campaign }, { type: 0 }).countDocuments())
-        : await CampaignLink.find({ id_wallet: query.id_wallet }, { type: 0 }).countDocuments() || 0;
-      
+            ? (delete query.id_wallet,
+              await CampaignLink.find(
+                  { id_campaign: query.id_campaign },
+                  { type: 0 }
+              ).countDocuments())
+            : (await CampaignLink.find(
+                  { id_wallet: query.id_wallet },
+                  { type: 0 }
+              ).countDocuments()) || 0
+
         let tri =
             req.query.state === 'owner'
                 ? [
@@ -519,13 +531,11 @@ exports.externalGetLinks = async (req, res) => {
     }
 }
 
-
 exports.externalGetOneLinks = async (req, res) => {
     try {
         const _id = req.body.params
 
-        let link = await CampaignLink.find({_id})
-
+        let link = await CampaignLink.find({ _id })
 
         return responseHandler.makeResponseData(res, 200, 'success', link)
     } catch (err) {
@@ -536,7 +546,6 @@ exports.externalGetOneLinks = async (req, res) => {
         )
     }
 }
-
 
 module.exports.externalVerifyLink = async (req, response) => {
     try {
@@ -729,9 +738,9 @@ module.exports.externalSaveCampaign = async (req, res) => {
         campaign.createdAt = Date.now()
         campaign.updatedAt = Date.now()
         campaign.type = 'draft'
-        console.log({campaign});
+        console.log({ campaign })
         let draft = await Campaigns.create(campaign)
-        console.log({draft});
+        console.log({ draft })
         return responseHandler.makeResponseData(res, 200, 'success', draft)
     } catch (err) {
         return responseHandler.makeResponseError(
@@ -779,8 +788,8 @@ module.exports.extUpdate = async (req, res) => {
             { _id: req.params.id, idNode: req.body.userId },
             {
                 $set: {
-                    values: { ...campaign.values } ,
-                //   walletId: req.body.walletId,
+                    values: { ...campaign.values },
+                    //   walletId: req.body.walletId,
                 },
             },
             { new: true }
@@ -1022,9 +1031,9 @@ module.exports.externalApply = async (req, res) => {
             id,
             prom.instagramUserName
         )
-        const r = req.body.signature.slice(0, 66);
-        const s = '0x' + req.body.signature.slice(66, 130);
-        const v = '0x' + req.body.signature.slice(130, 132);
+        const r = req.body.signature.slice(0, 66)
+        const s = '0x' + req.body.signature.slice(66, 130)
+        const v = '0x' + req.body.signature.slice(130, 132)
         prom.applyerSignature = {}
         prom.applyerSignature.signature = req.body.signature
         prom.applyerSignature.messageHash = req.body.message
@@ -1033,7 +1042,7 @@ module.exports.externalApply = async (req, res) => {
         prom.applyerSignature.s = s
         prom.typeSN = typeSN.toString()
         prom.idUser = typeSN === 6 ? user.UserId : idUser
-        prom.userExternal = true;
+        prom.userExternal = true
         if (media_url) prom.media_url = media_url
         if (prom.typeSN == 5) {
             prom.typeURL = linkedinInfo.idPost.split(':')[2]
@@ -1075,7 +1084,6 @@ module.exports.checkHarvest = async (req, res) => {
     req.body = sanitize(req.body)
     var idProm = req.body.idProm
 
-
     try {
         var link = await CampaignLink.findOne({ id_prom: idProm }).lean()
         var date = Math.floor(Date.now() / 1000)
@@ -1104,14 +1112,16 @@ module.exports.externalAnswer = async (req, res) => {
         var link = await CampaignLink.findOne({
             id_prom: req.body.idProm,
         }).lean()
-       
+
         const externalWallet = await UserExternalWallet.findOne({
             walletId: link.id_wallet,
         })
         var ctr
         var gasPrice
         var wrappedTrx = false
-        campaignData = await Campaigns.findOne({ hash: link.id_campaign }).lean()
+        campaignData = await Campaigns.findOne({
+            hash: link.id_campaign,
+        }).lean()
         var credentials = {
             network: campaignData.token.type,
         }
@@ -1179,13 +1189,7 @@ module.exports.externalAnswer = async (req, res) => {
                     nbAbos: stats,
                 })
             } finally {
-
-
-                return responseHandler.makeResponseData(
-                    res,
-                    200,
-                    'success',
-                )
+                return responseHandler.makeResponseData(res, 200, 'success')
             }
         } else {
             ctr = await getPromContractExternal(req.body.idProm, credentials)
@@ -1206,16 +1210,18 @@ module.exports.externalAnswer = async (req, res) => {
             })
         }
 
-
-
+        const external = true
         stats = await answerOne(
             link.typeSN + '',
             link.idPost + '',
-            link.typeSN === 5 || link.typeSN === 1 ? link.idUser+ '' : externalWallet.UserId+ '',
+            link.typeSN === 5 || link.typeSN === 1
+                ? link.idUser + ''
+                : externalWallet.UserId + '',
             link.typeURL,
             linkedinData,
             tiktokProfile,
-            link.instagramUserName
+            link.instagramUserName,
+            external
         )
         var copyStats = { ...stats }
         var ratios =
@@ -1244,8 +1250,6 @@ module.exports.externalAnswer = async (req, res) => {
                 stats?.shares != prevstat[0]?.shares ||
                 stats?.views != prevstat[0]?.views
             ) {
-
-
                 requests = await Request.find({
                     new: true,
                     isBounty: false,
@@ -1254,8 +1258,6 @@ module.exports.externalAnswer = async (req, res) => {
                     idUser: externalWallet.UserId,
                 })
                 var tronWeb
-
-
                 var idRequest = req.body.tx[0].topics[1]
 
                 // var idRequest = (!!tronWeb && evt.result.idRequest) || evt.raw.topics[1]
@@ -1267,7 +1269,7 @@ module.exports.externalAnswer = async (req, res) => {
                 { id: idRequest },
                 {
                     $set: {
-                        id: idRequest ,
+                        id: idRequest,
                         likes: stats.likes,
                         shares: stats.shares,
                         views: stats?.views,
@@ -1295,56 +1297,51 @@ module.exports.externalAnswer = async (req, res) => {
                 views: stats?.views,
             })
         }
-          
 
-        return responseHandler.makeResponseData(res, 200, 'success',copyStats)
+        return responseHandler.makeResponseData(res, 200, 'success', copyStats)
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
-    } 
+    }
 }
 
-
-
 module.exports.externalGains = async (req, res) => {
-    try{
-
+    try {
         var tronWeb
-            await CampaignLink.updateOne(
-                { id_prom: req.body.idProm },
-                {
-                    $set: {
-                        lastHarvestDate: Math.floor(
-                            new Date().getTime() / 1000
-                        ),
-                    },
-                }
-            )
-            var link = await CampaignLink.findOne({
-                id_prom: req.body.idProm,
-            }).lean()
-    
-            const externalWallet = await UserExternalWallet.findOne({
-                walletId: link.id_wallet,
-            })
-
-            campaignData = await Campaigns.findOne({ hash: link.id_campaign }).lean()
-            var credentials = {
-                network: campaignData.token.type,
+        await CampaignLink.updateOne(
+            { id_prom: req.body.idProm },
+            {
+                $set: {
+                    lastHarvestDate: Math.floor(new Date().getTime() / 1000),
+                },
             }
+        )
+        var link = await CampaignLink.findOne({
+            id_prom: req.body.idProm,
+        }).lean()
 
-            await User.updateOne(
-                { _id: externalWallet.UserId },
-                {
-                    $set: {
-                        lastHarvestDate: Date.now(),
-                    },
-                }
-            )
-       
+        const externalWallet = await UserExternalWallet.findOne({
+            walletId: link.id_wallet,
+        })
+
+        campaignData = await Campaigns.findOne({
+            hash: link.id_campaign,
+        }).lean()
+        var credentials = {
+            network: campaignData.token.type,
+        }
+
+        await User.updateOne(
+            { _id: externalWallet.UserId },
+            {
+                $set: {
+                    lastHarvestDate: Date.now(),
+                },
+            }
+        )
     } catch (err) {
         return responseHandler.makeResponseError(
             res,
@@ -1352,7 +1349,6 @@ module.exports.externalGains = async (req, res) => {
             err.message ? err.message : err.error
         )
     } finally {
-
         if (req.body.tx.data) {
             let campaignType = {}
             let amount = await getTransactionAmountExternal(
@@ -1363,7 +1359,9 @@ module.exports.externalGains = async (req, res) => {
             )
             let updatedFUnds = { ...req.body.data.data }
 
-            let cmpLink = await CampaignLink.findOne({ id_prom: req.body.idProm }).lean()
+            let cmpLink = await CampaignLink.findOne({
+                id_prom: req.body.idProm,
+            }).lean()
             req.body.bounty && (updatedFUnds.isPayed = true)
             updatedFUnds.payedAmount = !cmpLink.payedAmount
                 ? amount
@@ -1383,17 +1381,17 @@ module.exports.externalGains = async (req, res) => {
                 (!!tronWeb && (await contract.campaigns('0x' + hash).call())) ||
                 (await contract.methods.campaigns(cmpLink.id_campaign).call())
 
-                campaignType.funds = result.funds
-                if (result.funds[1] === '0') campaignType.type = 'finished'
-            
-            await Campaigns.updateOne({ hash: cmpLink.id_campaign }, { $set: campaignType })
-            return responseHandler.makeResponseData(res, 200, 'success')
+            campaignType.funds = result.funds
+            if (result.funds[1] === '0') campaignType.type = 'finished'
 
+            await Campaigns.updateOne(
+                { hash: cmpLink.id_campaign },
+                { $set: campaignType }
+            )
+            return responseHandler.makeResponseData(res, 200, 'success')
         }
     }
 }
-
-
 
 exports.campaigns = async (req, res) => {
     try {
@@ -1401,10 +1399,10 @@ exports.campaigns = async (req, res) => {
         let idWallet =
             req.query.idWallet === 'null'
                 ? JSON.parse(req.query.idWallet)
-                : req.query.idWallet     
+                : req.query.idWallet
         if (idWallet) {
-            let user = await UserExternalWallet.findOne({walletId: idWallet}); 
-            var idNode = user.UserId;
+            let user = await UserExternalWallet.findOne({ walletId: idWallet })
+            var idNode = user.UserId
             strangerDraft = await Campaigns.distinct('_id', {
                 idNode: { $ne: idNode },
                 hash: { $exists: false },
@@ -1459,7 +1457,6 @@ exports.campaigns = async (req, res) => {
             count,
         })
     } catch (err) {
-        
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1467,7 +1464,6 @@ exports.campaigns = async (req, res) => {
         )
     }
 }
-
 
 exports.getBalanceUserExternal = async (req, res) => {
     try {
@@ -1514,7 +1510,6 @@ exports.getBalanceUserExternal = async (req, res) => {
     }
 }
 
-
 module.exports.externalDeleteDraft = async (req, res) => {
     try {
         let user = await UserExternalWallet.findOne({
@@ -1523,8 +1518,10 @@ module.exports.externalDeleteDraft = async (req, res) => {
         let _id = req.params.id
         let idUser = user.UserId
         let campaign = await Campaigns.findOne({ _id })
-        if (campaign.idNode !== idUser.toString() || campaign.type !== 'draft') {
-
+        if (
+            campaign.idNode !== idUser.toString() ||
+            campaign.type !== 'draft'
+        ) {
             return responseHandler.makeResponseError(res, 401, 'unauthorized')
         } else {
             await Campaigns.deleteOne({ _id })

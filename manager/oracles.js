@@ -1250,7 +1250,8 @@ exports.answerOne = async (
     type = null,
     linkedinProfile = null,
     tiktokProfile = null,
-    instagramUserName
+    instagramUserName,
+    external
 ) => {
     try {
         switch (typeSN) {
@@ -1264,25 +1265,30 @@ exports.answerOne = async (
                 break
             case '3':
                 var campaign_link = await CampaignLink.findOne({ idPost })
-                var userWallet = await Wallet.findOne(
-                    {
-                        $or: [
-                            {
-                                'keystore.address': campaign_link.id_wallet
-                                    .toLowerCase()
-                                    .substring(2),
-                            },
-                            {
-                                'walletV2.keystore.address':
-                                    campaign_link.id_wallet
+                if (!external) {
+                    var userWallet = await Wallet.findOne(
+                        {
+                            $or: [
+                                {
+                                    'keystore.address': campaign_link.id_wallet
                                         .toLowerCase()
                                         .substring(2),
-                            },
-                        ],
-                    },
-                    { UserId: 1 }
-                ).lean()
-                var res = await instagram(userWallet.UserId, campaign_link)
+                                },
+                                {
+                                    'walletV2.keystore.address':
+                                        campaign_link.id_wallet
+                                            .toLowerCase()
+                                            .substring(2),
+                                },
+                            ],
+                        },
+                        { UserId: 1 }
+                    ).lean()
+                }
+                var res = await instagram(
+                    external ? idUser : userWallet.UserId,
+                    campaign_link
+                )
                 break
             case '4':
                 var res = await twitter(idUser, idPost)
