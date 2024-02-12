@@ -45,7 +45,7 @@ const {
     uploadExternalPictureToIPFS,
     campaignsPictureUpload,
     generateBrief,
-    externalAddKits
+    externalAddKits,
 } = require('../controllers/campaign.controller')
 const {
     evmApprovalValidation,
@@ -69,11 +69,9 @@ const {
     saveCampaignValidation,
     updateCampaignValidation,
     addKitsValidation,
-    titleCheckValidation
+    titleCheckValidation,
 } = require('../middleware/campaignValidator.middleware')
 const { verifyAuth } = require('../middleware/passport.middleware')
-
-
 
 /**
  * @swagger
@@ -102,7 +100,7 @@ const { verifyAuth } = require('../middleware/passport.middleware')
  *       "500":
  *          description: error:"error"
  */
-router.post('/btt/approval', verifyAuth, evmApprovalValidation,bttApproval)
+router.post('/btt/approval', verifyAuth, evmApprovalValidation, bttApproval)
 
 /**
  * @swagger
@@ -135,7 +133,7 @@ router.post('/btt/approval', verifyAuth, evmApprovalValidation,bttApproval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/btt/allow', verifyAuth, evmAllowValidation,bttAllow)
+router.post('/btt/allow', verifyAuth, evmAllowValidation, bttAllow)
 
 /**
  * @swagger
@@ -164,8 +162,7 @@ router.post('/btt/allow', verifyAuth, evmAllowValidation,bttAllow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/tron/approval', verifyAuth, tronApprovalValidation,tronApproval)
-
+router.post('/tron/approval', verifyAuth, tronApprovalValidation, tronApproval)
 
 /**
  * @swagger
@@ -197,7 +194,7 @@ router.post('/tron/approval', verifyAuth, tronApprovalValidation,tronApproval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/tron/allow', verifyAuth, tronAllowValidation,tronAllow)
+router.post('/tron/allow', verifyAuth, tronAllowValidation, tronAllow)
 
 /**
  * @swagger
@@ -226,7 +223,7 @@ router.post('/tron/allow', verifyAuth, tronAllowValidation,tronAllow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/bep20/approval', verifyAuth, evmApprovalValidation,bep20Approval)
+router.post('/bep20/approval', verifyAuth, evmApprovalValidation, bep20Approval)
 
 /**
  * @swagger
@@ -259,7 +256,7 @@ router.post('/bep20/approval', verifyAuth, evmApprovalValidation,bep20Approval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/bep20/allow', verifyAuth, evmAllowValidation,bep20Allow)
+router.post('/bep20/allow', verifyAuth, evmAllowValidation, bep20Allow)
 
 /**
  * @swagger
@@ -288,7 +285,12 @@ router.post('/bep20/allow', verifyAuth, evmAllowValidation,bep20Allow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/polygon/approval', verifyAuth, evmApprovalValidation,polygonApproval)
+router.post(
+    '/polygon/approval',
+    verifyAuth,
+    evmApprovalValidation,
+    polygonApproval
+)
 
 /**
  * @swagger
@@ -320,7 +322,7 @@ router.post('/polygon/approval', verifyAuth, evmApprovalValidation,polygonApprov
  *       "500":
  *          description: error:"error"
  */
-router.post('/polygon/allow', verifyAuth, evmAllowValidation,polygonAllow)
+router.post('/polygon/allow', verifyAuth, evmAllowValidation, polygonAllow)
 
 /**
  * @swagger
@@ -349,7 +351,7 @@ router.post('/polygon/allow', verifyAuth, evmAllowValidation,polygonAllow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/erc20/approval', verifyAuth, evmApprovalValidation,erc20Approval)
+router.post('/erc20/approval', verifyAuth, evmApprovalValidation, erc20Approval)
 /**
  * @swagger
  * /campaign/erc20/allow:
@@ -380,7 +382,7 @@ router.post('/erc20/approval', verifyAuth, evmApprovalValidation,erc20Approval)
  *       "500":
  *          description: error:"error"
  */
-router.post('/erc20/allow', verifyAuth, evmAllowValidation,erc20Allow)
+router.post('/erc20/allow', verifyAuth, evmAllowValidation, erc20Allow)
 /**
  * @swagger
  * /campaign/launch/performance:
@@ -443,7 +445,12 @@ router.post('/erc20/allow', verifyAuth, evmAllowValidation,erc20Allow)
  *       "500":
  *          description: error:"error"
  */
-router.post('/launch/performance',  launchCampaignValidation,launchCampaign)
+router.post(
+    '/launch/performance',
+    verifyAuth,
+    launchCampaignValidation,
+    launchCampaign
+)
 
 router.post('/launch/performanceext', launchCampaignExt)
 
@@ -491,7 +498,7 @@ router.post('/launch/performanceext', launchCampaignExt)
  *          description: error:"error"
  */
 
-router.post('/launchBounty', verifyAuth, launchBountyValidation,launchBounty)
+router.post('/launchBounty', verifyAuth, launchBountyValidation, launchBounty)
 
 /**
  * @swagger
@@ -517,11 +524,20 @@ router.post('/launchBounty', verifyAuth, launchBountyValidation,launchBounty)
  */
 router.get('/campaigns', campaigns)
 
+router.post(
+    '/ipfs/:id',
+    verifyAuth,
+    idCheckValidation,
+    campaignsPictureUpload,
+    uploadPictureToIPFS
+)
 
-router.post('/ipfs/:id', verifyAuth,idCheckValidation,campaignsPictureUpload ,uploadPictureToIPFS)
-
-
-router.post('/ipfsExternal/:id', idCheckValidation,campaignsPictureUpload ,uploadExternalPictureToIPFS)
+router.post(
+    '/ipfsExternal/:id',
+    idCheckValidation,
+    campaignsPictureUpload,
+    uploadExternalPictureToIPFS
+)
 
 /**
  * @swagger
@@ -546,8 +562,8 @@ router.post('/ipfsExternal/:id', idCheckValidation,campaignsPictureUpload ,uploa
  *       "500":
  *          description: error:"error"
  */
-router.get('/details/:id', idCheckValidation,campaignDetails)
-router.get('/detailsdraft/:id', idCheckValidation,campaignDetailsDraft)
+router.get('/details/:id', idCheckValidation, campaignDetails)
+router.get('/detailsdraft/:id', idCheckValidation, campaignDetailsDraft)
 
 /**
  * @swagger
@@ -576,9 +592,12 @@ router.get('/detailsdraft/:id', idCheckValidation,campaignDetailsDraft)
  *       "500":
  *          description: error:"error"
  */
-router.get('/campaignPrompAll/:id', verifyAuth, campaignPrompValidation,campaignPromp)
-
-
+router.get(
+    '/campaignPrompAll/:id',
+    verifyAuth,
+    campaignPrompValidation,
+    campaignPromp
+)
 
 /**
  * @swagger
@@ -607,7 +626,7 @@ router.get('/campaignPrompAll/:id', verifyAuth, campaignPrompValidation,campaign
  *       "500":
  *          description: error:"error"
  */
-router.get('/campaignPrompAllExt/:id',campaignPrompValidation,campaignPromp)
+router.get('/campaignPrompAllExt/:id', campaignPrompValidation, campaignPromp)
 
 /**
  * @swagger
@@ -629,7 +648,7 @@ router.get('/campaignPrompAllExt/:id',campaignPrompValidation,campaignPromp)
  *       "500":
  *          description: error:<br> server error
  */
-router.get('/expandLink',  expandUrlValidation,expandUrl)
+router.get('/expandLink', expandUrlValidation, expandUrl)
 
 /**
  * @swagger
@@ -669,7 +688,7 @@ router.get('/expandLink',  expandUrlValidation,expandUrl)
  *       "500":
  *          description: error:error message
  */
-router.post('/apply', verifyAuth, applyValidation,apply)
+router.post('/apply', verifyAuth, applyValidation, apply)
 /**
  * @swagger
  * /campaign/linkNotification:
@@ -698,7 +717,12 @@ router.post('/apply', verifyAuth, applyValidation,apply)
  *       "500":
  *          description: error:error message
  */
-router.post('/linkNotification', verifyAuth, linkNotificationsValidation , linkNotifications)
+router.post(
+    '/linkNotification',
+    verifyAuth,
+    linkNotificationsValidation,
+    linkNotifications
+)
 /**
  * @swagger
  * /campaign/validate:
@@ -737,11 +761,14 @@ router.post('/linkNotification', verifyAuth, linkNotificationsValidation , linkN
  *       "500":
  *          description: error:error message
  */
-router.post('/validate', verifyAuth, validateCampaignValidation,validateCampaign)
+router.post(
+    '/validate',
+    verifyAuth,
+    validateCampaignValidation,
+    validateCampaign
+)
 
-router.post('/validateExt',validateCampaignExt)
-
-
+router.post('/validateExt', validateCampaignExt)
 
 /**
  * @swagger
@@ -776,7 +803,7 @@ router.post('/validateExt',validateCampaignExt)
  *          description: error:error message
  */
 
-router.post('/gains', verifyAuth, gainsValidation , gains)
+router.post('/gains', verifyAuth, gainsValidation, gains)
 
 /**
  * @swagger
@@ -897,7 +924,7 @@ router.get('/invested', verifyAuth, totalInvested)
  *          description: error:error message
  */
 
-router.post('/save', verifyAuth, saveCampaignValidation,saveCampaign)
+router.post('/save', verifyAuth, saveCampaignValidation, saveCampaign)
 
 /**
  * @swagger
@@ -922,7 +949,7 @@ router.post('/save', verifyAuth, saveCampaignValidation,saveCampaign)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/:id/kits', idCheckValidation,kits)
+router.get('/:id/kits', idCheckValidation, kits)
 
 /**
  * @swagger
@@ -947,7 +974,7 @@ router.get('/:id/kits', idCheckValidation,kits)
  *       "500":
  *          description: code,<br>error
  */
-router.get('/kit/:id', idCheckValidation,findKit)
+router.get('/kit/:id', idCheckValidation, findKit)
 
 /**
  * @swagger
@@ -972,7 +999,7 @@ router.get('/kit/:id', idCheckValidation,findKit)
  *       "500":
  *          description: code,<br>error
  */
-router.delete('/kit/:id', verifyAuth,idCheckValidation,deleteKit)
+router.delete('/kit/:id', verifyAuth, idCheckValidation, deleteKit)
 
 /**
  * @swagger
@@ -1004,11 +1031,9 @@ router.delete('/kit/:id', verifyAuth,idCheckValidation,deleteKit)
  *          description: error:error message
  */
 
-router.post('/addKits', verifyAuth, upload, addKitsValidation,addKits)
+router.post('/addKits', verifyAuth, upload, addKitsValidation, addKits)
 
-
-router.post('/externalAddKits',  upload, addKitsValidation,externalAddKits)
-
+router.post('/externalAddKits', upload, addKitsValidation, externalAddKits)
 
 /**
  * @swagger
@@ -1119,11 +1144,9 @@ router.post('/externalAddKits',  upload, addKitsValidation,externalAddKits)
  *          description: error:error message
  */
 
-router.put('/update/:id', verifyAuth, updateCampaignValidation,update)
+router.put('/update/:id', verifyAuth, updateCampaignValidation, update)
 
-
-
-router.put('/extUpdate/:id',  extUpdate)
+router.put('/extUpdate/:id', extUpdate)
 
 /**
  * @swagger
@@ -1146,7 +1169,6 @@ router.put('/extUpdate/:id',  extUpdate)
  */
 
 router.get('/prom/stats/:id', idCheckValidation, linkStats)
-
 
 /**
  * @swagger
@@ -1171,7 +1193,7 @@ router.get('/prom/stats/:id', idCheckValidation, linkStats)
  *       "500":
  *          description: error:error message
  */
-router.get('/filterLinks/:idUser', verifyAuth, getLinksValidation,getLinks)
+router.get('/filterLinks/:idUser', verifyAuth, getLinksValidation, getLinks)
 
 /**
  * @swagger
@@ -1200,7 +1222,7 @@ router.get('/filterLinks/:idUser', verifyAuth, getLinksValidation,getLinks)
  *          description: error:error message
  */
 
-router.post('/remaining', verifyAuth, getFundsValidation,getFunds)
+router.post('/remaining', verifyAuth, getFundsValidation, getFunds)
 
 /**
  * @swagger
@@ -1225,7 +1247,12 @@ router.post('/remaining', verifyAuth, getFundsValidation,getFunds)
  *       "500":
  *          description: error:error message
  */
-router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaignValidation,statLinkCampaign)
+router.get(
+    '/statLinkCampaign/:hash',
+    verifyAuth,
+    statLinkCampaignValidation,
+    statLinkCampaign
+)
 
 /**
  * @swagger
@@ -1271,7 +1298,7 @@ router.get('/statLinkCampaign/:hash', verifyAuth, statLinkCampaignValidation,sta
  *       "500":
  *          description: error:error message
  */
-router.put('/reject/:id', verifyAuth, rejectLinkValidation,rejectLink)
+router.put('/reject/:id', verifyAuth, rejectLinkValidation, rejectLink)
 
 /**
  * @swagger
@@ -1300,7 +1327,7 @@ router.put('/reject/:id', verifyAuth, rejectLinkValidation,rejectLink)
  *       "500":
  *          description: error:error message
  */
-router.get('/coverByCampaign/:id', coverByCampaignValidation,coverByCampaign)
+router.get('/coverByCampaign/:id', coverByCampaignValidation, coverByCampaign)
 
 /**
  * @swagger
@@ -1342,9 +1369,8 @@ router.get('/statistics', campaignsStatistics)
  *       "500":
  *          description: error:<br> server error
  */
-router.delete('/deleteDraft/:id', verifyAuth, idCheckValidation,deleteDraft)
+router.delete('/deleteDraft/:id', verifyAuth, idCheckValidation, deleteDraft)
 
-
-router.post('/generate-brief', verifyAuth, titleCheckValidation,generateBrief)
+router.post('/generate-brief', verifyAuth, titleCheckValidation, generateBrief)
 
 module.exports = router
